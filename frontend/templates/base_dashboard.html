@@ -31,14 +31,8 @@
 
     <!-- 공통 테마 시스템 -->
     <style>
-        /* 💥 EMERGENCY DEBUG STYLES */
-        * {
-            border: 1px solid red !important;
-            background: rgba(255, 0, 0, 0.1) !important;
-        }
-        
         body {
-            background: #0000ff !important;
+            background: var(--bg-primary);
             margin: 0;
             padding: 0;
         }
@@ -127,7 +121,7 @@
             display: flex;
             min-height: 100vh;
             position: relative;
-            background: #00ff00 !important;
+            background: var(--bg-primary);
         }
 
         /* 사이드바 접힘 상태 관리 */
@@ -145,7 +139,7 @@
             padding: 2rem;
             overflow-x: hidden;
             overflow-y: auto;
-            background: #ff0000 !important;
+            background: var(--bg-primary);
             z-index: 50;
             display: block !important;
             visibility: visible !important;
