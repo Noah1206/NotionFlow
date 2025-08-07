@@ -42,39 +42,27 @@
             bottom: 10px !important;
         }
 
-        /* 📱 Main Content Area - Clean White Design */
+
+        /* 사이드바 뒤 레이어 완전 숨기기 */
         .main-content {
-            position: fixed !important;
-            top: 10px !important;
-            left: 260px !important; /* 10px + 240px + 10px gap */
-            right: 10px !important;
-            bottom: 10px !important;
-            width: calc(100vw - 270px) !important;
-            height: calc(100vh - 20px) !important;
-            padding: 1rem 2rem;
-            overflow-x: hidden;
-            overflow-y: auto;
-            background: var(--bg-primary) !important; /* Clean white background */
-            border-radius: 16px !important;
-            border: 1px solid var(--border-primary) !important;
-            z-index: 50;
-            display: flex !important;
-            flex-direction: column !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            box-sizing: border-box;
-            box-shadow: var(--shadow-md) !important;
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
         }
-
-        /* 사이드바 축소 시 메인 콘텐츠 조정 */
-        .sidebar.collapsed ~ .main-content,
-        .sidebar-collapsed .main-content {
-            left: 70px !important; /* 10px + 50px + 10px gap */
-            right: 10px !important;
-            width: calc(100vw - 80px) !important;
-            padding-left: 2rem !important;
+        
+        /* 모든 페이지 콘텐츠 숨기기 */
+        main {
+            display: none !important;
         }
-
+        
+        /* API Keys 페이지 콘텐츠 숨기기 */
+        .api-modern-container,
+        .api-container,
+        .api-keys-page {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        
         /* 모든 섹션과 콘텐츠가 최대 너비를 사용하도록 */
         .dashboard-section {
             width: 100%;
@@ -170,12 +158,6 @@
             {% include 'components/sidebar.html' %}
         </div>
 
-        <!-- Main Content Area -->
-        <main class="main-content" role="main">
-            {% block content %}
-            <!-- Page content goes here -->
-            {% endblock %}
-        </main>
     </div>
 
     <!-- Core JavaScript -->
