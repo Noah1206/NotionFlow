@@ -1,0 +1,345 @@
+{% extends "base_dashboard.html" %}
+
+{% block body_class %}calendar-list-page{% endblock %}
+
+{% block title %}Calendar List - NotionFlow{% endblock %}
+
+{% block description %}Manage your calendars and events in one unified view. Create, organize, and sync your personal and shared calendars.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-list.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="calendar-list-container">
+    <!-- Hero Section -->
+    <div class="calendar-hero">
+        <div class="hero-content">
+            <div class="hero-badge">📅 CALENDAR MANAGEMENT</div>
+            <h1 class="hero-title">Your Calendar Universe</h1>
+            <p class="hero-subtitle">Manage all your calendars in one powerful, unified interface</p>
+        </div>
+        <div class="hero-stats">
+            <div class="stat-item">
+                <div class="stat-number">{{ summary.total_calendars }}</div>
+                <div class="stat-label">Total Calendars</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{{ summary.personal_calendars }}</div>
+                <div class="stat-label">Personal</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{{ summary.shared_calendars }}</div>
+                <div class="stat-label">Shared</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="action-bar">
+        <div class="action-left">
+            <button class="btn-primary" onclick="createNewCalendar()">
+                <span class="btn-icon">➕</span>
+                <span>New Calendar</span>
+            </button>
+            <button class="btn-secondary" onclick="importCalendar()">
+                <span class="btn-icon">📥</span>
+                <span>Import</span>
+            </button>
+        </div>
+        <div class="action-right">
+            <div class="view-switcher">
+                <button class="view-btn active" data-view="grid">
+                    <span>⊞</span> Grid
+                </button>
+                <button class="view-btn" data-view="list">
+                    <span>☰</span> List
+                </button>
+            </div>
+            <div class="filter-dropdown">
+                <button class="filter-btn">
+                    <span>🎯</span> All Types
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar Grid -->
+    <div class="calendar-grid" id="calendar-grid">
+        
+        <!-- Personal Calendars Section -->
+        <div class="calendar-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="section-icon">👤</span>
+                    Personal Calendars
+                </h2>
+                <span class="section-count">3</span>
+            </div>
+            
+            <div class="calendars-container">
+                <!-- Calendar Card 1 -->
+                <div class="calendar-card personal-calendar">
+                    <div class="calendar-header">
+                        <div class="calendar-color" style="background: #3b82f6;"></div>
+                        <div class="calendar-info">
+                            <h3 class="calendar-name">My Work Schedule</h3>
+                            <p class="calendar-description">Daily work meetings and deadlines</p>
+                        </div>
+                        <div class="calendar-menu">
+                            <button class="menu-btn">⋯</button>
+                        </div>
+                    </div>
+                    
+                    <div class="calendar-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">24</span>
+                            <span class="stat-label">Events</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">12</span>
+                            <span class="stat-label">This Month</span>
+                        </div>
+                        <div class="calendar-sync">
+                            <span class="sync-status active">🔄 Synced</span>
+                        </div>
+                    </div>
+                    
+                    <div class="calendar-actions">
+                        <button class="action-btn primary">View Calendar</button>
+                        <button class="action-btn secondary">Edit</button>
+                    </div>
+                </div>
+
+                <!-- Calendar Card 2 -->
+                <div class="calendar-card personal-calendar">
+                    <div class="calendar-header">
+                        <div class="calendar-color" style="background: #10b981;"></div>
+                        <div class="calendar-info">
+                            <h3 class="calendar-name">Personal Life</h3>
+                            <p class="calendar-description">Family events and personal activities</p>
+                        </div>
+                        <div class="calendar-menu">
+                            <button class="menu-btn">⋯</button>
+                        </div>
+                    </div>
+                    
+                    <div class="calendar-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">18</span>
+                            <span class="stat-label">Events</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">8</span>
+                            <span class="stat-label">This Month</span>
+                        </div>
+                        <div class="calendar-sync">
+                            <span class="sync-status active">🔄 Synced</span>
+                        </div>
+                    </div>
+                    
+                    <div class="calendar-actions">
+                        <button class="action-btn primary">View Calendar</button>
+                        <button class="action-btn secondary">Edit</button>
+                    </div>
+                </div>
+
+                <!-- Calendar Card 3 -->
+                <div class="calendar-card personal-calendar">
+                    <div class="calendar-header">
+                        <div class="calendar-color" style="background: #f59e0b;"></div>
+                        <div class="calendar-info">
+                            <h3 class="calendar-name">Health & Fitness</h3>
+                            <p class="calendar-description">Workouts, medical appointments, wellness</p>
+                        </div>
+                        <div class="calendar-menu">
+                            <button class="menu-btn">⋯</button>
+                        </div>
+                    </div>
+                    
+                    <div class="calendar-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">15</span>
+                            <span class="stat-label">Events</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">6</span>
+                            <span class="stat-label">This Month</span>
+                        </div>
+                        <div class="calendar-sync">
+                            <span class="sync-status pending">⏳ Syncing</span>
+                        </div>
+                    </div>
+                    
+                    <div class="calendar-actions">
+                        <button class="action-btn primary">View Calendar</button>
+                        <button class="action-btn secondary">Edit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shared Calendars Section -->
+        <div class="calendar-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="section-icon">👥</span>
+                    Shared Calendars
+                </h2>
+                <span class="section-count">2</span>
+            </div>
+            
+            <div class="calendars-container">
+                <!-- Shared Calendar 1 -->
+                <div class="calendar-card shared-calendar">
+                    <div class="calendar-header">
+                        <div class="calendar-color" style="background: #8b5cf6;"></div>
+                        <div class="calendar-info">
+                            <h3 class="calendar-name">Team Meetings</h3>
+                            <p class="calendar-description">Shared with Development Team</p>
+                        </div>
+                        <div class="calendar-menu">
+                            <button class="menu-btn">⋯</button>
+                        </div>
+                    </div>
+                    
+                    <div class="calendar-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">31</span>
+                            <span class="stat-label">Events</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">16</span>
+                            <span class="stat-label">This Month</span>
+                        </div>
+                        <div class="calendar-sync">
+                            <span class="sync-status active">🔄 Synced</span>
+                        </div>
+                    </div>
+                    
+                    <div class="calendar-actions">
+                        <button class="action-btn primary">View Calendar</button>
+                        <button class="action-btn secondary">Manage</button>
+                    </div>
+                </div>
+
+                <!-- Shared Calendar 2 -->
+                <div class="calendar-card shared-calendar">
+                    <div class="calendar-header">
+                        <div class="calendar-color" style="background: #ef4444;"></div>
+                        <div class="calendar-info">
+                            <h3 class="calendar-name">Family Events</h3>
+                            <p class="calendar-description">Shared with Family Members</p>
+                        </div>
+                        <div class="calendar-menu">
+                            <button class="menu-btn">⋯</button>
+                        </div>
+                    </div>
+                    
+                    <div class="calendar-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">12</span>
+                            <span class="stat-label">Events</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">4</span>
+                            <span class="stat-label">This Month</span>
+                        </div>
+                        <div class="calendar-sync">
+                            <span class="sync-status active">🔄 Synced</span>
+                        </div>
+                    </div>
+                    
+                    <div class="calendar-actions">
+                        <button class="action-btn primary">View Calendar</button>
+                        <button class="action-btn secondary">Manage</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create New Calendar Card -->
+        <div class="calendar-section">
+            <div class="calendars-container">
+                <div class="calendar-card new-calendar-card" onclick="createNewCalendar()">
+                    <div class="new-calendar-content">
+                        <div class="new-calendar-icon">➕</div>
+                        <h3 class="new-calendar-title">Create New Calendar</h3>
+                        <p class="new-calendar-description">Start organizing your events in a new calendar</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Bar -->
+    <div class="quick-actions">
+        <div class="quick-action" onclick="syncAllCalendars()">
+            <div class="quick-icon">🔄</div>
+            <span>Sync All</span>
+        </div>
+        <div class="quick-action" onclick="exportCalendars()">
+            <div class="quick-icon">📤</div>
+            <span>Export</span>
+        </div>
+        <div class="quick-action" onclick="calendarSettings()">
+            <div class="quick-icon">⚙️</div>
+            <span>Settings</span>
+        </div>
+        <div class="quick-action" onclick="viewAnalytics()">
+            <div class="quick-icon">📊</div>
+            <span>Analytics</span>
+        </div>
+    </div>
+</div>
+
+<script>
+// Calendar List JavaScript Functions
+function createNewCalendar() {
+    console.log('Creating new calendar...');
+    // Add your calendar creation logic here
+    alert('Calendar creation feature will be available in the next update!');
+}
+
+function importCalendar() {
+    console.log('Importing calendar...');
+    alert('Calendar import feature will be available in the next update!');
+}
+
+function syncAllCalendars() {
+    console.log('Syncing all calendars...');
+    alert('Syncing all calendars...');
+}
+
+function exportCalendars() {
+    console.log('Exporting calendars...');
+    alert('Export feature will be available in the next update!');
+}
+
+function calendarSettings() {
+    console.log('Opening calendar settings...');
+    alert('Calendar settings will be available in the next update!');
+}
+
+function viewAnalytics() {
+    console.log('Viewing calendar analytics...');
+    alert('Calendar analytics will be available in the next update!');
+}
+
+// View Switcher
+document.addEventListener('DOMContentLoaded', function() {
+    const viewBtns = document.querySelectorAll('.view-btn');
+    const calendarGrid = document.getElementById('calendar-grid');
+    
+    viewBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            viewBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            const viewType = this.getAttribute('data-view');
+            calendarGrid.className = viewType === 'list' ? 'calendar-grid list-view' : 'calendar-grid';
+        });
+    });
+});
+</script>
+{% endblock %}

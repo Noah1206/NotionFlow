@@ -238,8 +238,8 @@ def dashboard():
                 from utils.dashboard_data import dashboard_data
             except ImportError as e:
                 print(f"Import error: {e}")
-                # Fallback: redirect to API Keys since dashboard deleted
-                return redirect('/dashboard/api-keys')
+                # Fallback: redirect to Calendar List since dashboard deleted
+                return redirect('/dashboard/calendar-list')
             
             # Get dashboard data using the real dashboard data manager
             try:
@@ -261,19 +261,33 @@ def dashboard():
         except Exception as e:
             print(f"Error loading dashboard data: {e}")
     
-    print("🔄 Dashboard deleted - redirecting to API Keys page")
-    return redirect('/dashboard/api-keys')
+    print("🔄 Dashboard redirecting to Calendar List page")
+    return redirect('/dashboard/calendar-list')
 
 @app.route('/dashboard/index')
 def dashboard_index():
     """Main dashboard route - redirect to unified dashboard"""
     return redirect('/dashboard')
 
-# Calendar list route - redirect to dashboard
+# Calendar list route - main calendar list page
 @app.route('/dashboard/calendar-list')
-def calendar_list_redirect():
-    """Redirect old calendar-list URL to dashboard"""
-    return redirect('/dashboard')
+def calendar_list():
+    """Calendar List Management Page"""
+    # Get current user ID from session
+    user_id = session.get('user_id')
+    
+    if not user_id:
+        return redirect('/login?from=calendar-list')
+    
+    # Load calendar list data
+    calendar_context = {
+        'current_page': 'calendar-list',
+        'user_id': user_id,
+        'calendars': [],
+        'summary': {'total_calendars': 0, 'personal_calendars': 0, 'shared_calendars': 0}
+    }
+    
+    return render_template('calendar_list.html', **calendar_context)
 
 @app.route('/dashboard/api-keys')
 def dashboard_api_keys():
