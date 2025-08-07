@@ -571,33 +571,95 @@ button.sidebar-toggle-btn-header:hover svg,
     /* 약간의 확대 효과 */
 }
 
-/* 🚨 CRITICAL: 사이드바 헤더 강제 표시 */
-.sidebar-header-container {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    padding: 12px 16px !important;
-    border-bottom: 1px solid #e2e8f0 !important;
-    min-height: 60px !important;
-    height: 60px !important;
-    background: #ffffff !important;
-    border-radius: 12px 12px 0 0 !important;
-    z-index: 10001 !important;
+/* 🚨 접힌 상태 헤더 */
+.collapsed-header {
+    display: none !important; /* 기본적으로 숨김 */
     position: absolute !important;
     top: 0 !important;
     left: 0 !important;
     right: 0 !important;
-    width: 100% !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    box-sizing: border-box !important;
-    flex-shrink: 0 !important;
+    height: 60px !important;
+    background: #ffffff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    border-radius: 12px 12px 0 0 !important;
+    justify-content: center !important;
+    align-items: center !important;
+    z-index: 10001 !important;
 }
 
-/* 접힌 상태에서 헤더 조정 - 햄버거만 중앙에 */
-.sidebar.collapsed .sidebar-header-container {
+.collapsed-toggle-btn {
+    background: #1e293b !important;
+    border: 2px solid #1e293b !important;
+    border-radius: 8px !important;
+    padding: 8px !important;
+    cursor: pointer !important;
+    width: 36px !important;
+    height: 36px !important;
+    display: flex !important;
+    align-items: center !important;
     justify-content: center !important;
-    padding: 12px 8px !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15) !important;
+}
+
+.collapsed-toggle-btn svg {
+    width: 18px !important;
+    height: 18px !important;
+    stroke: #ffffff !important;
+    stroke-width: 2 !important;
+}
+
+/* 🚨 펼쳐진 상태 헤더 */
+.expanded-header {
+    display: flex !important; /* 기본적으로 표시 */
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 60px !important;
+    background: #ffffff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    border-radius: 12px 12px 0 0 !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 12px 16px !important;
+    box-sizing: border-box !important;
+    z-index: 10001 !important;
+}
+
+.expanded-toggle-btn {
+    background: #ffffff !important;
+    border: 2px solid #1e293b !important;
+    border-radius: 6px !important;
+    padding: 8px !important;
+    cursor: pointer !important;
+    width: 36px !important;
+    height: 36px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #1e293b !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.expanded-toggle-btn svg {
+    width: 18px !important;
+    height: 18px !important;
+    stroke: #1e293b !important;
+    stroke-width: 2 !important;
+}
+
+/* 상태별 헤더 표시/숨김 */
+.sidebar:not(.collapsed) .collapsed-header {
+    display: none !important;
+}
+
+.sidebar.collapsed .expanded-header {
+    display: none !important;
+}
+
+.sidebar.collapsed .collapsed-header {
+    display: flex !important;
 }
 
 .sidebar-header-left {
