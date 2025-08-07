@@ -1509,6 +1509,7 @@ div.sidebar {
     width: 100% !important;
     display: flex !important;
     text-align: center !important;
+    position: relative !important;
 }
 
 .sidebar.collapsed .nav-section-bottom .nav-icon {
@@ -1519,7 +1520,10 @@ div.sidebar {
     width: 20px !important;
     height: 20px !important;
     min-width: 20px !important;
-    position: relative !important;
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
 }
 
 .sidebar.collapsed .nav-section-bottom .nav-icon svg {
@@ -1527,6 +1531,22 @@ div.sidebar {
     height: 18px !important;
     display: block !important;
     margin: 0 auto !important;
+}
+
+/* 하단 섹션의 정렬을 상단 아이콘들과 완전히 동일하게 강제 */
+.sidebar.collapsed .nav-section-bottom .nav-item > *:first-child {
+    margin: 0 auto !important;
+    justify-content: center !important;
+    align-items: center !important;
+    display: flex !important;
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    text-align: center !important;
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
 }
 
 /* 접힌 상태에서 모든 아이콘들이 정확히 같은 위치에 정렬되도록 강제 */
