@@ -584,7 +584,7 @@ button.sidebar-toggle-btn-header:hover svg,
     border-radius: 12px 12px 0 0 !important;
     justify-content: center !important;
     align-items: center !important;
-    z-index: 10001 !important;
+    z-index: 9999 !important; /* 네비게이션보다 낮게 */
 }
 
 .collapsed-toggle-btn {
@@ -624,7 +624,7 @@ button.sidebar-toggle-btn-header:hover svg,
     align-items: center !important;
     padding: 12px 16px !important;
     box-sizing: border-box !important;
-    z-index: 10001 !important;
+    z-index: 9999 !important; /* 네비게이션보다 낮게 */
 }
 
 .expanded-toggle-btn {
@@ -823,6 +823,8 @@ button.sidebar-toggle:hover,
     margin: 1rem 0;
     /* 섹션간 간격 추가 */
     padding: 0 0.5rem;
+    position: relative !important;
+    z-index: 10000 !important; /* 헤더보다 위에 표시 */
     /* 좌우 패딩 추가 */
 }
 
