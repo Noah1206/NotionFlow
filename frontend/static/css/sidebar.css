@@ -21,7 +21,7 @@
 .sidebar {
     width: 240px !important;
     background: #ffffff !important;
-    border: 1px solid #e2e8f0 !important;
+    border: 2px solid #1e293b !important; /* 검은색 테두리로 변경 */
     border-radius: 12px !important;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: fixed !important;
@@ -828,10 +828,10 @@ button.sidebar-toggle:hover,
     /* 좌우 패딩 추가 */
 }
 
-/* 첫 번째 섹션 (새 캘린더) - 최상단에 배치 */
+/* 첫 번째 섹션 (프로필) - 헤더 아래로 충분히 내림 */
 .nav-section:first-of-type {
-    margin-top: 0.5rem;
-    padding-top: 0.5rem;
+    margin-top: 4rem !important; /* 헤더 공간을 위해 여유 확보 */
+    padding-top: 1rem !important;
 }
 
 /* 메인 섹션들 - 적절한 간격 */
@@ -1309,10 +1309,10 @@ div.sidebar.collapsed button.sidebar-toggle {
     padding: 0;
 }
 
-/* 첫 번째 섹션 (새 캘린더) 최상단 배치 */
+/* 첫 번째 섹션 (프로필) 최상단 배치 - 오버라이드 */
 .nav-section:first-of-type {
-    margin-top: 0;
-    padding-top: 0.25rem;
+    margin-top: 4rem !important; /* 헤더 공간을 위해 여유 확보 */
+    padding-top: 1rem !important;
 }
 
 /* 페이지 섹션 - 간격 최소화 */
