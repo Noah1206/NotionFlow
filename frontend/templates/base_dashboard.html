@@ -20,8 +20,8 @@
         html, body {
             height: 100%;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f8f9fb !important; /* 강제 라이트 모드 배경 */
-            color: #1e293b !important; /* 강제 라이트 모드 텍스트 */
+            background: #f5f5f5 !important; /* Clean light gray background for contrast */
+            color: var(--text-primary) !important; /* Clean black text */
             overflow: hidden;
         }
 
@@ -31,7 +31,7 @@
             width: 100vw;
             height: 100vh;
             position: relative;
-            background: #f8f9fb !important; /* 강제 라이트 모드 */
+            background: #f5f5f5 !important; /* Clean light gray background */
         }
 
         /* 사이드바 접힘 상태 관리 */
@@ -42,7 +42,7 @@
             bottom: 10px !important;
         }
 
-        /* 📱 Main Content Area */
+        /* 📱 Main Content Area - Clean White Design */
         .main-content {
             position: fixed !important;
             top: 10px !important;
@@ -54,13 +54,16 @@
             padding: 1rem 2rem;
             overflow-x: hidden;
             overflow-y: auto;
-            background: #0f0f0f !important; /* 검은색 배경으로 변경 */
+            background: var(--bg-primary) !important; /* Clean white background */
+            border-radius: 16px !important;
+            border: 1px solid var(--border-primary) !important;
             z-index: 50;
             display: flex !important;
             flex-direction: column !important;
             visibility: visible !important;
             opacity: 1 !important;
             box-sizing: border-box;
+            box-shadow: var(--shadow-md) !important;
         }
 
         /* 사이드바 축소 시 메인 콘텐츠 조정 */
