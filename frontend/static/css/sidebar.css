@@ -38,7 +38,7 @@
     overflow-y: auto !important; /* 세로 스크롤만 허용 */
     overflow-x: hidden !important; /* 가로 스크롤 완전 차단 */
     flex-shrink: 0;
-    z-index: 9999 !important;
+    z-index: 10000 !important;
     /* 강력한 floating 효과를 위한 다중 그림자 */
     box-shadow: 
         0 30px 60px rgba(0, 0, 0, 0.6), /* 메인 그림자 */
@@ -62,7 +62,7 @@ aside.sidebar {
     background-color: #ffffff !important;
     opacity: 1 !important;
     visibility: visible !important;
-    z-index: 9999 !important;
+    z-index: 10000 !important;
 }
 
 /* 사이드바 내부 콘텐츠 wrapper - flex 구조 (삭제됨) */
@@ -216,7 +216,7 @@ button.sidebar-toggle-btn-header {
     height: 36px !important;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
     position: relative !important;
-    z-index: 9999 !important;
+    z-index: 10000 !important;
     visibility: visible !important;
     opacity: 1 !important;
 }
@@ -725,7 +725,7 @@ span.nav-icon svg {
     border-radius: 12px 12px 0 0 !important;
     justify-content: center !important;
     align-items: center !important;
-    z-index: 9999 !important; /* 네비게이션보다 낮게 */
+    z-index: 10000 !important; /* 네비게이션보다 낮게 */
 }
 
 .collapsed-toggle-btn {
@@ -765,7 +765,7 @@ span.nav-icon svg {
     align-items: center !important;
     padding: 12px 16px !important;
     box-sizing: border-box !important;
-    z-index: 9999 !important; /* 네비게이션보다 낮게 */
+    z-index: 10000 !important; /* 네비게이션보다 낮게 */
 }
 
 .expanded-toggle-btn {
@@ -861,7 +861,7 @@ span.nav-icon svg {
     opacity: 1 !important;
     visibility: visible !important;
     position: relative !important;
-    z-index: 9999 !important;
+    z-index: 10000 !important;
     margin: 0.5rem auto !important;
     color: #ffffff !important;
     align-items: center !important;
@@ -901,7 +901,7 @@ button.sidebar-toggle,
     opacity: 1 !important;
     visibility: visible !important;
     position: relative !important;
-    z-index: 9999 !important;
+    z-index: 10000 !important;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
     flex-shrink: 0 !important;
 }
