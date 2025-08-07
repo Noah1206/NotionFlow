@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}NotionFlow Dashboard{% endblock %}</title>
     
-    <!-- CSS Files -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/variables.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
+    <!-- CSS Files with cache buster -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/variables.css') }}?v={{ range(100000, 999999) | random }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}?v={{ range(100000, 999999) | random }}">
     
     <style>
         /* 🌟 Reset & Base */
@@ -20,8 +20,8 @@
         html, body {
             height: 100%;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
+            background: #f8f9fb !important; /* 강제 라이트 모드 배경 */
+            color: #1e293b !important; /* 강제 라이트 모드 텍스트 */
             overflow: hidden;
         }
 
@@ -31,7 +31,7 @@
             width: 100vw;
             height: 100vh;
             position: relative;
-            background: var(--bg-primary);
+            background: #f8f9fb !important; /* 강제 라이트 모드 */
         }
 
         /* 사이드바 접힘 상태 관리 */
@@ -54,7 +54,7 @@
             padding: 1rem 2rem;
             overflow-x: hidden;
             overflow-y: auto;
-            background: var(--bg-primary);
+            background: #f8f9fb !important; /* 강제 라이트 모드 */
             z-index: 50;
             display: flex !important;
             flex-direction: column !important;
@@ -129,8 +129,8 @@
             bottom: 10px !important;
             width: 240px !important;
             height: calc(100vh - 20px) !important;
-            background: var(--sidebar-bg) !important;
-            border: 1px solid var(--sidebar-border) !important;
+            background: #ffffff !important; /* 강제 라이트 모드 사이드바 */
+            border: 1px solid #e2e8f0 !important; /* 강제 라이트 모드 테두리 */
             border-radius: 12px !important;
             z-index: 10 !important;
             overflow-y: hidden !important;
@@ -201,12 +201,12 @@
                     'width': '240px',
                     'height': 'calc(100vh - 20px)',
                     'margin': '0',
-                    'background': 'var(--sidebar-bg)',
-                    'border': '1px solid var(--sidebar-border)',
+                    'background': '#ffffff',
+                    'border': '1px solid #e2e8f0',
                     'border-radius': '12px',
                     'z-index': '10',
                     'overflow-y': 'hidden',
-                    'box-shadow': 'var(--shadow-lg)'
+                    'box-shadow': '0 10px 15px rgba(0, 0, 0, 0.1)'
                 };
                 
                 Object.keys(styles).forEach(property => {

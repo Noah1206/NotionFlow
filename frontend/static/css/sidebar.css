@@ -15,11 +15,11 @@
     height: 0 !important;
 }
 
-/* ✨ 사이드바 기본 구조 - Floating Design with 10px margins */
+/* ✨ 사이드바 기본 구조 - Light Mode Floating Design with 10px margins */
 .sidebar {
     width: 240px !important;
-    background: #1A1A1A !important;
-    border: 1px solid var(--sidebar-border, rgba(255, 255, 255, 0.1)) !important;
+    background: #ffffff !important; /* 강제 라이트 모드 */
+    border: 1px solid #e2e8f0 !important; /* 강제 라이트 모드 테두리 */
     border-radius: 12px !important;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: fixed !important;
@@ -32,7 +32,8 @@
     overflow-x: hidden;
     flex-shrink: 0;
     z-index: 9999;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24), 0 4px 16px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1) !important; /* 라이트 모드 그림자 */
+    color: #1e293b !important; /* 강제 라이트 모드 텍스트 */
 }
 
 /* 사이드바 내부 콘텐츠 wrapper - flex 구조 (삭제됨) */
@@ -97,29 +98,36 @@ body.sidebar-collapsed .sidebar-toggle-btn-floating {
     left: 35px; /* 10px margin + 50px 사이드바의 중앙 (10 + 25) */
 }
 
-/* 헤더 내부 토글 버튼 스타일 - 펼쳐진 상태에서만 표시 */
+/* 헤더 내부 토글 버튼 스타일 - Light Mode */
 .sidebar-toggle-btn-header {
     background: none;
     border: none;
     cursor: pointer;
-    padding: 12px; /* 패딩 증가로 클릭 영역 확대 */
-    border-radius: 8px; /* 모서리 약간 증가 */
+    padding: 12px;
+    border-radius: 8px;
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--sidebar-text-primary);
-    margin-left: 8px; /* 로고와의 간격 추가 */
+    color: #64748b !important; /* 라이트 모드 버튼 색상 */
+    margin-left: 8px;
 }
 
 .sidebar-toggle-btn-header:hover {
-    background: var(--sidebar-hover-bg);
+    background: #f8fafc !important; /* 라이트 모드 호버 */
+    color: #1e293b !important;
     transform: scale(1.1);
 }
+
 
 .sidebar-toggle-btn-header svg {
     width: 18px;
     height: 18px;
+    stroke: #64748b !important; /* 라이트 모드 아이콘 색상 */
+}
+
+.sidebar-toggle-btn-header:hover svg {
+    stroke: #1e293b !important;
 }
 
 /* 사이드바가 접혔을 때 헤더 버튼 숨김 */
@@ -206,23 +214,33 @@ body.sidebar-collapsed .sidebar-toggle-btn-floating {
     height: 18px;
 }
 
-/* 📋 네비게이션 아이템들 - ClickUp 스타일 컴팩트 */
+/* 📋 네비게이션 아이템들 - Light Mode 스타일 */
 .sidebar .nav-item {
     display: flex;
     align-items: center;
-    padding: 0.75rem 1.25rem; /* 패딩 증가 */
-    color: var(--sidebar-text-secondary);
+    padding: 0.75rem 1.25rem;
+    color: #64748b !important; /* 강제 라이트 모드 색상 */
     text-decoration: none;
     transition: all 0.2s ease;
     position: relative;
-    gap: 0.875rem; /* 아이콘과 텍스트 간격 증가 */
+    gap: 0.875rem;
     font-size: 0.88rem;
     font-weight: 500;
-    margin: 0.25rem 0.5rem; /* 상하좌우 마진 추가 */
+    margin: 0.25rem 0.5rem;
     border-radius: 8px;
     letter-spacing: -0.01em;
-    min-height: 42px; /* 최소 높이 증가 */
+    min-height: 42px;
     box-sizing: border-box;
+}
+
+.sidebar .nav-item:hover {
+    background: #f8fafc !important; /* 라이트 모드 호버 */
+    color: #1e293b !important;
+}
+
+.sidebar .nav-item.active {
+    background: #e0e7ff !important; /* 라이트 모드 액티브 */
+    color: #1e293b !important;
 }
 
 /* 펼친 상태에서 아이콘과 텍스트 정렬 */
@@ -277,7 +295,7 @@ body.sidebar-collapsed .sidebar-toggle-btn-floating {
     width: 24px !important;
     height: 24px !important;
     flex-shrink: 0 !important;
-    color: var(--sidebar-text-secondary);
+    color: #64748b !important; /* 라이트 모드 아이콘 색상 */
     transition: color 0.2s ease;
     margin-right: 0 !important;
     margin-left: 0 !important;
@@ -297,7 +315,7 @@ body.sidebar-collapsed .sidebar-toggle-btn-floating {
 
 .sidebar .nav-item:hover .nav-icon,
 .sidebar .nav-item.active .nav-icon {
-    color: var(--sidebar-text-primary);
+    color: #1e293b !important; /* 라이트 모드 호버/액티브 색상 */
 }
 
 /* 새 캘린더 버튼 스타일 - 카테고리와 동일한 padding으로 정렬 */
@@ -449,16 +467,16 @@ body.sidebar-collapsed .sidebar-toggle-btn-floating {
     /* 약간의 확대 효과 */
 }
 
-/* 📱 사이드바 헤더 컨테이너 - Floating 스타일 */
+/* 📱 사이드바 헤더 컨테이너 - Light Mode 스타일 */
 .sidebar-header-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid var(--border-primary);
+    border-bottom: 1px solid #e2e8f0 !important; /* 라이트 모드 테두리 */
     min-height: 70px;
-    background: rgba(248, 250, 252, 0.95);
-    border-radius: 12px 12px 0 0; /* 상단 모서리만 둥글게 */
+    background: rgba(255, 255, 255, 0.95) !important; /* 라이트 모드 배경 */
+    border-radius: 12px 12px 0 0;
     z-index: 10001;
     position: relative;
 }
@@ -480,7 +498,7 @@ body.sidebar-collapsed .sidebar-toggle-btn-floating {
 .logo-text {
     font-size: 1.125rem;
     font-weight: 600;
-    color: var(--sidebar-text-primary, #ffffff);
+    color: #1e293b !important; /* 라이트 모드 로고 색상 */
     letter-spacing: -0.02em;
 }
 
