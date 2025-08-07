@@ -38,7 +38,7 @@
     overflow-y: auto !important; /* 세로 스크롤만 허용 */
     overflow-x: hidden !important; /* 가로 스크롤 완전 차단 */
     flex-shrink: 0;
-    z-index: 10000 !important;
+    z-index: 99999 !important;
     /* 강력한 floating 효과를 위한 다중 그림자 */
     box-shadow: 
         0 30px 60px rgba(0, 0, 0, 0.6), /* 메인 그림자 */
@@ -62,7 +62,7 @@ aside.sidebar {
     background-color: #ffffff !important;
     opacity: 1 !important;
     visibility: visible !important;
-    z-index: 10000 !important;
+    z-index: 99999 !important;
 }
 
 /* 사이드바 내부 콘텐츠 wrapper - flex 구조 (삭제됨) */
@@ -216,7 +216,7 @@ button.sidebar-toggle-btn-header {
     height: 36px !important;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
     position: relative !important;
-    z-index: 10000 !important;
+    z-index: 99999 !important;
     visibility: visible !important;
     opacity: 1 !important;
 }
@@ -243,7 +243,7 @@ button.sidebar-toggle-btn-header svg,
     opacity: 1 !important;
     color: #1e293b !important;
     position: relative !important;
-    z-index: 10000 !important;
+    z-index: 99999 !important;
 }
 
 .sidebar-toggle-btn-header:hover svg,
@@ -266,7 +266,7 @@ button.sidebar-toggle-btn-header:hover svg,
     margin-top: 60px !important;
     /* 헤더 높이만큼 여백 */
     position: relative !important;
-    z-index: 10000 !important;
+    z-index: 99999 !important;
 }
 
 /* 메인 네비게이션 영역 */
@@ -725,7 +725,7 @@ span.nav-icon svg {
     border-radius: 12px 12px 0 0 !important;
     justify-content: center !important;
     align-items: center !important;
-    z-index: 10000 !important; /* 네비게이션보다 낮게 */
+    z-index: 99999 !important; /* 네비게이션보다 낮게 */
 }
 
 .collapsed-toggle-btn {
@@ -765,7 +765,7 @@ span.nav-icon svg {
     align-items: center !important;
     padding: 12px 16px !important;
     box-sizing: border-box !important;
-    z-index: 10000 !important; /* 네비게이션보다 낮게 */
+    z-index: 99999 !important; /* 네비게이션보다 낮게 */
 }
 
 .expanded-toggle-btn {
@@ -861,7 +861,7 @@ span.nav-icon svg {
     opacity: 1 !important;
     visibility: visible !important;
     position: relative !important;
-    z-index: 10000 !important;
+    z-index: 99999 !important;
     margin: 0.5rem auto !important;
     color: #ffffff !important;
     align-items: center !important;
@@ -901,7 +901,7 @@ button.sidebar-toggle,
     opacity: 1 !important;
     visibility: visible !important;
     position: relative !important;
-    z-index: 10000 !important;
+    z-index: 99999 !important;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
     flex-shrink: 0 !important;
 }
@@ -965,7 +965,7 @@ button.sidebar-toggle:hover,
     /* 섹션간 간격 추가 */
     padding: 0 0.5rem;
     position: relative !important;
-    z-index: 10000 !important; /* 헤더보다 위에 표시 */
+    z-index: 99999 !important; /* 헤더보다 위에 표시 */
     /* 좌우 패딩 추가 */
 }
 
@@ -1046,7 +1046,7 @@ div.sidebar button.sidebar-toggle {
     width: 32px !important;
     height: 32px !important;
     color: #ffffff !important;
-    z-index: 10000 !important;
+    z-index: 99999 !important;
     position: relative !important;
 }
 
@@ -1066,7 +1066,7 @@ div.sidebar.collapsed button.sidebar-toggle {
     width: 40px !important;
     height: 40px !important;
     color: #ffffff !important;
-    z-index: 10000 !important;
+    z-index: 99999 !important;
     position: relative !important;
     margin: 0.5rem auto !important;
 }
@@ -1548,15 +1548,19 @@ div.sidebar.collapsed button.sidebar-toggle {
 #sidebar,
 div.sidebar {
     position: fixed !important;
-    left: 16px !important;
-    top: 16px !important;
-    bottom: 16px !important;
+    left: 10px !important;
+    top: 10px !important;
+    bottom: 10px !important;
     right: auto !important;
     margin: 0 !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
     margin-top: 0 !important;
     margin-bottom: 0 !important;
+    z-index: 99999 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: block !important;
 }
 
 /* 사이드바 축소 시 하단 섹션 너비 */
