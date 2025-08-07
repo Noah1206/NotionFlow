@@ -6,8 +6,13 @@ services:
     startCommand: gunicorn --config gunicorn_config.py app:app
     plan: free
     healthCheckPath: /health
+    # 자동 재배포 설정
+    branch: main
+    autoDeploy: true
     envVars:
       - key: RENDER
         value: "true"
       - key: FLASK_ENV
         value: "production"
+      - key: PYTHON_VERSION
+        value: "3.9"
