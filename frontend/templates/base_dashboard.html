@@ -37,20 +37,20 @@
         /* 사이드바 접힘 상태 관리 */
         .sidebar.collapsed {
             width: 50px !important;
-            left: 0 !important;
-            top: 0 !important;
-            bottom: 0 !important;
+            left: 10px !important;
+            top: 10px !important;
+            bottom: 10px !important;
         }
 
         /* 📱 Main Content Area */
         .main-content {
             position: fixed !important;
-            top: 0 !important;
-            left: 240px !important;
-            right: 0 !important;
-            bottom: 0 !important;
-            width: calc(100vw - 240px) !important;
-            height: 100vh !important;
+            top: 10px !important;
+            left: 260px !important; /* 10px + 240px + 10px gap */
+            right: 10px !important;
+            bottom: 10px !important;
+            width: calc(100vw - 270px) !important;
+            height: calc(100vh - 20px) !important;
             padding: 1rem 2rem;
             overflow-x: hidden;
             overflow-y: auto;
@@ -66,9 +66,9 @@
         /* 사이드바 축소 시 메인 콘텐츠 조정 */
         .sidebar.collapsed ~ .main-content,
         .sidebar-collapsed .main-content {
-            left: 50px !important;
-            right: 0 !important;
-            width: calc(100vw - 50px) !important;
+            left: 70px !important; /* 10px + 50px + 10px gap */
+            right: 10px !important;
+            width: calc(100vw - 80px) !important;
             padding-left: 2rem !important;
         }
 
@@ -117,26 +117,26 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
-        /* 🎨 Full Height Sidebar - CRITICAL OVERRIDE */
+        /* 🎨 Floating Sidebar with 10px margins - CRITICAL OVERRIDE */
         .sidebar,
         #sidebar,
         div.sidebar,
         .dashboard-container .sidebar {
             position: fixed !important;
-            left: 0 !important;
-            top: 0 !important;
+            left: 10px !important;
+            top: 10px !important;
             right: auto !important;
-            bottom: 0 !important;
+            bottom: 10px !important;
             width: 240px !important;
-            height: 100vh !important;
+            height: calc(100vh - 20px) !important;
             background: #1A1A1A !important;
-            border: none !important;
-            border-radius: 0 !important;
+            border: 1px solid var(--sidebar-border, rgba(255, 255, 255, 0.1)) !important;
+            border-radius: 12px !important;
             z-index: 10 !important;
             overflow-y: hidden !important;
             font-size: 14px;
             transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24), 0 4px 16px rgba(0, 0, 0, 0.12) !important;
             margin: 0 !important;
         }
 
@@ -191,22 +191,22 @@
                 // Remove all existing positioning
                 sidebar.style.cssText = '';
                 
-                // Force full height position - NUCLEAR OPTION
+                // Force floating position with 10px margins - NUCLEAR OPTION
                 const styles = {
                     'position': 'fixed',
-                    'left': '0',
-                    'top': '0', 
-                    'bottom': '0',
+                    'left': '10px',
+                    'top': '10px', 
+                    'bottom': '10px',
                     'right': 'auto',
                     'width': '240px',
-                    'height': '100vh',
+                    'height': 'calc(100vh - 20px)',
                     'margin': '0',
                     'background': '#1A1A1A',
-                    'border': 'none',
-                    'border-radius': '0',
+                    'border': '1px solid rgba(255, 255, 255, 0.1)',
+                    'border-radius': '12px',
                     'z-index': '10',
                     'overflow-y': 'hidden',
-                    'box-shadow': '2px 0 8px rgba(0, 0, 0, 0.15)'
+                    'box-shadow': '0 8px 32px rgba(0, 0, 0, 0.24), 0 4px 16px rgba(0, 0, 0, 0.12)'
                 };
                 
                 Object.keys(styles).forEach(property => {
@@ -214,8 +214,8 @@
                 });
                 
                 // Double-check the left position
-                if (sidebar.getBoundingClientRect().left !== 0) {
-                    sidebar.style.setProperty('left', '0', 'important');
+                if (sidebar.getBoundingClientRect().left !== 10) {
+                    sidebar.style.setProperty('left', '10px', 'important');
                     sidebar.style.setProperty('transform', 'translateX(0)', 'important');
                 }
                 
@@ -232,20 +232,20 @@
                 // Update sidebar width for collapsed state
                 if (isCollapsed) {
                     sidebar.style.setProperty('width', '50px', 'important');
-                    // Collapsed: 50px from left
-                    mainContent.style.setProperty('left', '50px', 'important');
-                    mainContent.style.setProperty('width', 'calc(100vw - 50px)', 'important');
+                    // Collapsed: 10px + 50px + 10px gap = 70px from left
+                    mainContent.style.setProperty('left', '70px', 'important');
+                    mainContent.style.setProperty('width', 'calc(100vw - 80px)', 'important');
                 } else {
                     sidebar.style.setProperty('width', '240px', 'important');
-                    // Expanded: 240px from left  
-                    mainContent.style.setProperty('left', '240px', 'important');
-                    mainContent.style.setProperty('width', 'calc(100vw - 240px)', 'important');
+                    // Expanded: 10px + 240px + 10px gap = 260px from left  
+                    mainContent.style.setProperty('left', '260px', 'important');
+                    mainContent.style.setProperty('width', 'calc(100vw - 270px)', 'important');
                 }
                 
-                mainContent.style.setProperty('top', '0', 'important');
-                mainContent.style.setProperty('right', '0', 'important');
-                mainContent.style.setProperty('bottom', '0', 'important');
-                mainContent.style.setProperty('height', '100vh', 'important');
+                mainContent.style.setProperty('top', '10px', 'important');
+                mainContent.style.setProperty('right', '10px', 'important');
+                mainContent.style.setProperty('bottom', '10px', 'important');
+                mainContent.style.setProperty('height', 'calc(100vh - 20px)', 'important');
                 
             }
             
