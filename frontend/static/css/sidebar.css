@@ -21,7 +21,7 @@
 .sidebar {
     width: 240px !important;
     background: #ffffff !important;
-    border: 3px solid #000000 !important; /* 더 진한 검은색 테두리 */
+    border: 5px solid #000000 !important; /* 더욱 두꺼운 검은색 테두리 */
     border-radius: 12px !important;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: fixed !important;
@@ -33,8 +33,17 @@
     overflow: visible !important; /* 햄버거 버튼이 보이도록 */
     flex-shrink: 0;
     z-index: 9999;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.8) !important; /* 강한 그림자와 추가 테두리 */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(0, 0, 0, 1) !important; /* 더 강한 그림자와 추가 테두리 */
     color: #1e293b !important;
+}
+
+/* 사이드바 테두리 강제 적용 - 최고 우선순위 */
+div.sidebar,
+.sidebar,
+nav.sidebar,
+aside.sidebar {
+    border: 5px solid #000000 !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(0, 0, 0, 1) !important;
 }
 
 /* 사이드바 내부 콘텐츠 wrapper - flex 구조 (삭제됨) */
@@ -49,8 +58,8 @@ div.sidebar.collapsed {
     max-width: 50px !important;
     /* 햄버거 버튼이 보이도록 overflow visible */
     overflow: visible !important;
-    border: 3px solid #000000 !important; /* 더 진한 검은색 테두리 유지 */
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.8) !important; /* 강한 그림자와 추가 테두리 */
+    border: 5px solid #000000 !important; /* 더욱 두꺼운 검은색 테두리 유지 */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(0, 0, 0, 1) !important; /* 더 강한 그림자와 추가 테두리 */
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     /* 축소 상태에서도 10px 여백 유지 */
     top: 10px !important;
@@ -1649,4 +1658,32 @@ div.sidebar {
 .sidebar *::-webkit-scrollbar {
     display: none;
     width: 0;
+}
+
+/* 🚨 FINAL OVERRIDE - 사이드바 테두리 강제 적용 */
+.sidebar,
+div.sidebar,
+nav.sidebar,
+aside.sidebar,
+[class*="sidebar"],
+#sidebar {
+    border: 5px solid #000000 \!important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(0, 0, 0, 1) \!important;
+}
+
+.sidebar.collapsed,
+div.sidebar.collapsed,
+nav.sidebar.collapsed,
+aside.sidebar.collapsed,
+[class*="sidebar"].collapsed,
+#sidebar.collapsed {
+    border: 5px solid #000000 \!important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(0, 0, 0, 1) \!important;
+}
+
+/* 브라우저별 강제 적용 */
+*[class="sidebar"],
+*[class*="sidebar"] {
+    border: 5px solid #000000 \!important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(0, 0, 0, 1) \!important;
 }
