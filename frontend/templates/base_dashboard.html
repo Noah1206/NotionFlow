@@ -50,10 +50,10 @@
         .main-content {
             position: fixed !important;
             top: 10px !important;
-            left: 260px !important; /* 10px + 240px + 10px gap */
+            left: 272px !important; /* 16px + 240px + 16px gap */
             right: 10px !important;
             bottom: 10px !important;
-            width: calc(100vw - 270px) !important;
+            width: calc(100vw - 282px) !important;
             height: calc(100vh - 20px) !important;
             padding: 1rem 2rem;
             overflow-x: hidden;
@@ -73,9 +73,9 @@
         /* 사이드바 축소 시 메인 콘텐츠 조정 */
         .sidebar.collapsed ~ .main-content,
         .sidebar-collapsed .main-content {
-            left: 70px !important; /* 10px + 50px + 10px gap */
+            left: 88px !important; /* 16px + 50px + 22px gap */
             right: 10px !important;
-            width: calc(100vw - 80px) !important;
+            width: calc(100vw - 98px) !important;
             padding-left: 2rem !important;
         }
         
@@ -247,14 +247,14 @@
                 // Update sidebar width for collapsed state
                 if (isCollapsed) {
                     sidebar.style.setProperty('width', '50px', 'important');
-                    // Collapsed: 10px + 50px + 10px gap = 70px from left
-                    mainContent.style.setProperty('left', '70px', 'important');
-                    mainContent.style.setProperty('width', 'calc(100vw - 80px)', 'important');
+                    // Collapsed: 16px + 50px + 22px gap = 88px from left
+                    mainContent.style.setProperty('left', '88px', 'important');
+                    mainContent.style.setProperty('width', 'calc(100vw - 98px)', 'important');
                 } else {
                     sidebar.style.setProperty('width', '240px', 'important');
-                    // Expanded: 10px + 240px + 10px gap = 260px from left  
-                    mainContent.style.setProperty('left', '260px', 'important');
-                    mainContent.style.setProperty('width', 'calc(100vw - 270px)', 'important');
+                    // Expanded: 16px + 240px + 16px gap = 272px from left  
+                    mainContent.style.setProperty('left', '272px', 'important');
+                    mainContent.style.setProperty('width', 'calc(100vw - 282px)', 'important');
                 }
                 
                 mainContent.style.setProperty('top', '10px', 'important');
