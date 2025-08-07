@@ -186,7 +186,6 @@
     <script>
         // 기본 초기화 스크립트
         document.addEventListener('DOMContentLoaded', function () {
-            console.log('🚀 Base dashboard initialization started');
             
             // 🚨 CRITICAL: Force sidebar positioning with JavaScript
             function forceSidebarPosition() {
@@ -228,8 +227,6 @@
                     sidebar.style.setProperty('transform', 'translateX(0)', 'important');
                 }
                 
-                console.log('✓ Sidebar position NUCLEAR forced via JavaScript');
-                console.log('Sidebar left position:', sidebar.getBoundingClientRect().left);
             }
             
             // Force main content positioning
@@ -255,7 +252,6 @@
                 mainContent.style.setProperty('bottom', '16px', 'important');
                 mainContent.style.setProperty('height', 'calc(100vh - 32px)', 'important');
                 
-                console.log('✓ Main content position forced via JavaScript');
             }
             
             // 메인 콘텐츠 레이아웃 조정 함수
@@ -302,7 +298,6 @@
                 }, 100);
             });
             
-            console.log('✓ Base dashboard initialization complete');
         });
     </script>
 
