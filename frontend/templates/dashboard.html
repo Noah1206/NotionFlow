@@ -5,40 +5,40 @@
 {% block content %}
 <div class="dashboard-section active">
     <div class="section-header">
-        <h1>Dashboard Overview</h1>
-        <p>NotionFlow 통합 대시보드에 오신 것을 환영합니다.</p>
+        <h1 style="color: white !important;">Dashboard Overview</h1>
+        <p style="color: #ccc !important;">NotionFlow 통합 대시보드에 오신 것을 환영합니다.</p>
     </div>
     
     <div class="dashboard-grid">
-        <div class="stat-card">
+        <div class="stat-card" style="background: #1a1a1a !important; border: 2px solid #333 !important;">
             <div class="stat-icon">📊</div>
             <div class="stat-content">
-                <h3>전체 플랫폼</h3>
-                <div class="stat-number">{{ summary.total_platforms or 5 }}</div>
+                <h3 style="color: white !important;">전체 플랫폼</h3>
+                <div class="stat-number" style="color: #4CAF50 !important;">{{ summary.total_platforms or 5 }}</div>
             </div>
         </div>
         
-        <div class="stat-card">
+        <div class="stat-card" style="background: #1a1a1a !important; border: 2px solid #333 !important;">
             <div class="stat-icon">✅</div>
             <div class="stat-content">
-                <h3>연결된 플랫폼</h3>
-                <div class="stat-number">{{ summary.configured_platforms or 0 }}</div>
+                <h3 style="color: white !important;">연결된 플랫폼</h3>
+                <div class="stat-number" style="color: #4CAF50 !important;">{{ summary.configured_platforms or 0 }}</div>
             </div>
         </div>
         
-        <div class="stat-card">
+        <div class="stat-card" style="background: #1a1a1a !important; border: 2px solid #333 !important;">
             <div class="stat-icon">🔄</div>
             <div class="stat-content">
-                <h3>동기화 활성</h3>
-                <div class="stat-number">{{ summary.enabled_platforms or 0 }}</div>
+                <h3 style="color: white !important;">동기화 활성</h3>
+                <div class="stat-number" style="color: #4CAF50 !important;">{{ summary.enabled_platforms or 0 }}</div>
             </div>
         </div>
         
-        <div class="stat-card">
+        <div class="stat-card" style="background: #1a1a1a !important; border: 2px solid #333 !important;">
             <div class="stat-icon">📈</div>
             <div class="stat-content">
-                <h3>이번 달 활동</h3>
-                <div class="stat-number">{{ events | length or 0 }}</div>
+                <h3 style="color: white !important;">이번 달 활동</h3>
+                <div class="stat-number" style="color: #4CAF50 !important;">{{ events | length or 0 }}</div>
             </div>
         </div>
     </div>
