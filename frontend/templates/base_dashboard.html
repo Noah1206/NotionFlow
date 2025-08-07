@@ -133,7 +133,7 @@
             border: 1px solid var(--sidebar-border) !important;
             border-radius: 12px !important;
             z-index: 10 !important;
-            overflow-y: auto !important;
+            overflow-y: hidden !important;
             font-size: 14px;
             transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24), 0 4px 16px rgba(0, 0, 0, 0.12) !important;
@@ -213,7 +213,7 @@
                     'border': '1px solid var(--sidebar-border)',
                     'border-radius': '12px',
                     'z-index': '10',
-                    'overflow-y': 'auto',
+                    'overflow-y': 'hidden',
                     'box-shadow': '0 8px 32px rgba(0, 0, 0, 0.24), 0 4px 16px rgba(0, 0, 0, 0.12)'
                 };
                 
@@ -237,11 +237,14 @@
                 
                 const isCollapsed = sidebar.classList.contains('collapsed');
                 
+                // Update sidebar width for collapsed state
                 if (isCollapsed) {
+                    sidebar.style.setProperty('width', '50px', 'important');
                     // Collapsed: 16px + 50px + 16px = 82px from left (with gap)
                     mainContent.style.setProperty('left', '82px', 'important');
                     mainContent.style.setProperty('width', 'calc(100vw - 98px)', 'important');
                 } else {
+                    sidebar.style.setProperty('width', '240px', 'important');
                     // Expanded: 16px + 240px + 16px = 272px from left (with gap)  
                     mainContent.style.setProperty('left', '272px', 'important');
                     mainContent.style.setProperty('width', 'calc(100vw - 288px)', 'important');

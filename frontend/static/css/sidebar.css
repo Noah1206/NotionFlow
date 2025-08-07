@@ -15,7 +15,7 @@
     bottom: 16px !important;
     height: calc(100vh - 32px) !important;
     margin: 0 !important;
-    overflow-y: auto; /* 전체 사이드바 스크롤 */
+    overflow-y: hidden; /* 스크롤바 제거 */
     overflow-x: hidden;
     /* 가로 스크롤 방지 */
     flex-shrink: 0;
@@ -98,9 +98,10 @@ div.sidebar.collapsed {
 }
 
 /* 사이드바가 접혀 있을 때만 floating 버튼 표시 - 중앙에 위치 */
-.sidebar-container.sidebar-collapsed .sidebar-toggle-btn-floating {
+.sidebar-container.sidebar-collapsed .sidebar-toggle-btn-floating,
+.sidebar.collapsed ~ .sidebar-toggle-btn-floating {
     display: flex;
-    left: 25px; /* 50px 사이드바의 중앙 */
+    left: 41px; /* 16px margin + 50px 사이드바의 중앙 (16 + 25) */
 }
 
 /* 헤더 내부 토글 버튼 스타일 - 펼쳐진 상태에서만 표시 */
@@ -202,7 +203,12 @@ div.sidebar.collapsed {
 
 .sidebar.collapsed .nav-icon,
 .sidebar-container .sidebar.collapsed .nav-icon {
-    margin: 0;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 18px;
+    height: 18px;
 }
 
 /* 📋 네비게이션 아이템들 - ClickUp 스타일 컴팩트 */
