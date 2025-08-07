@@ -971,7 +971,8 @@ function unloadCalendarAssets() {
 // 사이드바 토글 아이콘 업데이트 함수
 function updateSidebarToggleIcon() {
     if (!sidebar || !toggleIconElement || !collapsedIconElement) return;
-    if (sidebar.classList.contains('collapsed')) {
+    // classList가 존재하는지 확인
+    if (sidebar.classList && sidebar.classList.contains('collapsed')) {
         toggleIconElement.style.display = 'none';
         collapsedIconElement.style.display = 'inline';
     } else {

@@ -42,10 +42,35 @@
     backdrop-filter: blur(10px);
 }
 
-/* 사이드바 축소 상태 - 축소된 floating 너비 */
+/* 사이드바 축소 상태 - 거의 안보이게 */
 .sidebar.collapsed {
-    width: 72px;
-    /* floating 디자인에 맞춰 약간 늘림 */
+    width: 50px;
+    /* 버튼만 보이도록 최소 너비 */
+    overflow: hidden;
+}
+
+/* 사이드바 토글 버튼 항상 보이게 */
+.sidebar-toggle {
+    position: absolute;
+    right: 10px;
+    top: 20px;
+    z-index: 10000;
+    background: var(--sidebar-bg);
+    border: 1px solid var(--sidebar-border);
+    border-radius: 6px;
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sidebar-toggle:hover {
+    background: var(--sidebar-hover-bg);
+    transform: scale(1.1);
+}
+
+/* 접혔을 때 토글 버튼 위치 조정 */
+.sidebar.collapsed .sidebar-toggle {
+    right: 5px;
 }
 
 /* 네비게이션 전체 컨테이너 */
@@ -84,13 +109,30 @@
     white-space: nowrap;
 }
 
-/* Keep nav-label visible in collapsed state but with better styling */
-.sidebar.collapsed .nav-label {
-    opacity: 1 !important;
-    visibility: visible !important;
-    font-size: 0.85rem;
-    margin-left: 0.6rem;
-    font-weight: 500;
+/* 접혔을 때 모든 텍스트 완전히 숨기기 */
+.sidebar.collapsed .nav-label,
+.sidebar.collapsed .new-calendar-label,
+.sidebar.collapsed .nav-section-title,
+.sidebar.collapsed .calendar-category-title,
+.sidebar.collapsed .calendar-name,
+.sidebar.collapsed .sidebar-header-title,
+.sidebar.collapsed .profile-name,
+.sidebar.collapsed .profile-email {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    width: 0;
+    overflow: hidden;
+    display: none !important;
+}
+
+/* 접혔을 때 아이콘만 중앙 정렬 */
+.sidebar.collapsed .nav-item {
+    justify-content: center;
+    padding: 0.55rem 0.5rem;
+}
+
+.sidebar.collapsed .nav-icon {
+    margin: 0;
 }
 
 /* 📋 네비게이션 아이템들 - ClickUp 스타일 컴팩트 */
