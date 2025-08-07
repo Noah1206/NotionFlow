@@ -136,6 +136,9 @@
             box-sizing: border-box;
             position: relative;
             z-index: 1;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
         }
 
         /* 사이드바 축소 시 메인 콘텐츠 조정 */
@@ -2652,6 +2655,11 @@
                         mainContent.style.marginLeft = '280px';
                         mainContent.style.width = 'calc(100vw - 280px)';
                     }
+                    
+                    // 강제로 표시되도록 설정
+                    mainContent.style.display = 'block';
+                    mainContent.style.visibility = 'visible';
+                    mainContent.style.opacity = '1';
                 }
             }
             
