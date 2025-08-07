@@ -127,15 +127,20 @@
         /* 사이드바 접힘 상태 관리 */
         .sidebar.collapsed {
             width: 50px !important;
+            left: 16px !important;
+            top: 16px !important;
+            bottom: 16px !important;
         }
 
         /* 📱 Main Content Area */
         .main-content {
             position: fixed !important;
-            top: 0 !important;
-            left: 256px !important;
-            width: calc(100vw - 256px) !important;
-            height: 100vh !important;
+            top: 16px !important;
+            left: 272px !important;
+            right: 16px !important;
+            bottom: 16px !important;
+            width: calc(100vw - 288px) !important;
+            height: calc(100vh - 32px) !important;
             padding: 1rem 2rem;
             overflow-x: hidden;
             overflow-y: auto;
@@ -151,8 +156,9 @@
         /* 사이드바 축소 시 메인 콘텐츠 조정 */
         .sidebar.collapsed ~ .main-content,
         .sidebar-collapsed .main-content {
-            left: 66px !important;
-            width: calc(100vw - 66px) !important;
+            left: 82px !important;
+            right: 16px !important;
+            width: calc(100vw - 98px) !important;
             padding-left: 2rem !important;
         }
 
@@ -249,6 +255,8 @@
             position: fixed;
             left: 16px;
             top: 16px;
+            right: auto;
+            bottom: 16px;
             width: 240px;
             height: calc(100vh - 32px);
             background: #1A1A1A !important;
