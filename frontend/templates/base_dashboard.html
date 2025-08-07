@@ -188,6 +188,54 @@
         document.addEventListener('DOMContentLoaded', function () {
             console.log('🚀 Base dashboard initialization started');
             
+            // 🚨 CRITICAL: Force sidebar positioning with JavaScript
+            function forceSidebarPosition() {
+                const sidebar = document.querySelector('.sidebar');
+                if (!sidebar) return;
+                
+                // Force floating position with 16px margins
+                sidebar.style.setProperty('position', 'fixed', 'important');
+                sidebar.style.setProperty('left', '16px', 'important');
+                sidebar.style.setProperty('top', '16px', 'important');
+                sidebar.style.setProperty('bottom', '16px', 'important');
+                sidebar.style.setProperty('right', 'auto', 'important');
+                sidebar.style.setProperty('width', '240px', 'important');
+                sidebar.style.setProperty('height', 'calc(100vh - 32px)', 'important');
+                sidebar.style.setProperty('margin', '0', 'important');
+                sidebar.style.setProperty('margin-left', '0', 'important');
+                sidebar.style.setProperty('margin-right', '0', 'important');
+                sidebar.style.setProperty('margin-top', '0', 'important');
+                sidebar.style.setProperty('margin-bottom', '0', 'important');
+                
+                console.log('✓ Sidebar position forced via JavaScript');
+            }
+            
+            // Force main content positioning
+            function forceMainContentPosition() {
+                const mainContent = document.querySelector('.main-content');
+                const sidebar = document.querySelector('.sidebar');
+                if (!mainContent || !sidebar) return;
+                
+                const isCollapsed = sidebar.classList.contains('collapsed');
+                
+                if (isCollapsed) {
+                    // Collapsed: 66px from left (50px + 16px)
+                    mainContent.style.setProperty('left', '66px', 'important');
+                    mainContent.style.setProperty('width', 'calc(100vw - 82px)', 'important');
+                } else {
+                    // Expanded: 256px from left (240px + 16px)
+                    mainContent.style.setProperty('left', '256px', 'important');
+                    mainContent.style.setProperty('width', 'calc(100vw - 272px)', 'important');
+                }
+                
+                mainContent.style.setProperty('top', '16px', 'important');
+                mainContent.style.setProperty('right', '16px', 'important');
+                mainContent.style.setProperty('bottom', '16px', 'important');
+                mainContent.style.setProperty('height', 'calc(100vh - 32px)', 'important');
+                
+                console.log('✓ Main content position forced via JavaScript');
+            }
+            
             // 메인 콘텐츠 레이아웃 조정 함수
             function adjustMainContent() {
                 const sidebar = document.querySelector('.sidebar');
@@ -200,6 +248,12 @@
                         if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
                             const isCollapsed = sidebar.classList.contains('collapsed');
                             document.body.classList.toggle('sidebar-collapsed', isCollapsed);
+                            
+                            // Re-force positioning when collapsed state changes
+                            setTimeout(() => {
+                                forceSidebarPosition();
+                                forceMainContentPosition();
+                            }, 100);
                         }
                     });
                 });
@@ -208,7 +262,15 @@
             }
             
             // 초기화
+            forceSidebarPosition();
+            forceMainContentPosition();
             adjustMainContent();
+            
+            // Re-apply positioning every 2 seconds to handle any CSS conflicts
+            setInterval(() => {
+                forceSidebarPosition();
+                forceMainContentPosition();
+            }, 2000);
             
             console.log('✓ Base dashboard initialization complete');
         });
