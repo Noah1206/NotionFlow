@@ -196,10 +196,9 @@ def dashboard():
     """Unified SPA dashboard route"""
     print("🔍 Dashboard route accessed!")
     
-    # 🎯 Get URL parameters for section and calendar activation
+    # 🎯 Get URL parameters for section activation
     active_section = request.args.get('section', 'dashboard')
-    calendar_id = request.args.get('calendar_id', None)
-    print(f"🎯 Active section: {active_section}, Calendar ID: {calendar_id}")
+    print(f"🎯 Active section: {active_section}")
     
     # Get current user ID
     user_id = session.get('user_id')
@@ -223,7 +222,6 @@ def dashboard():
     dashboard_context = {
         'current_page': 'overview',
         'active_section': active_section,
-        'calendar_id': calendar_id,
         'encrypted_email': None,
         'events': [],
         'sync_status': {},
