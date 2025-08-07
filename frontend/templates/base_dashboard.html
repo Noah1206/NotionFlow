@@ -114,26 +114,35 @@
         .dashboard-layout {
             display: flex;
             min-height: 100vh;
+            position: relative;
+        }
+
+        /* 사이드바 접힘 상태 관리 */
+        .sidebar.collapsed {
+            width: 50px !important;
         }
 
         /* 📱 Main Content Area */
         .main-content {
             flex: 1;
             padding: 2rem;
-            margin-left: 280px;
+            margin-left: 240px;
             transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             min-height: 100vh;
-            width: calc(100vw - 280px);
+            width: calc(100vw - 240px);
             /* 사이드바를 제외한 전체 너비 */
             overflow-x: hidden;
             background: var(--bg-primary);
             box-sizing: border-box;
+            position: relative;
+            z-index: 1;
         }
 
         /* 사이드바 축소 시 메인 콘텐츠 조정 */
-        .dashboard-layout.sidebar-collapsed .main-content {
-            margin-left: 60px;
-            width: calc(100vw - 60px);
+        .sidebar.collapsed ~ .main-content,
+        .sidebar-collapsed .main-content {
+            margin-left: 50px;
+            width: calc(100vw - 50px);
             /* 축소된 사이드바를 제외한 전체 너비 */
         }
 
@@ -165,13 +174,14 @@
             position: fixed;
             left: 0;
             top: 0;
-            width: 280px;
+            width: 240px;
             height: 100vh;
             background: #1A1A1A !important;
             border-right: 1px solid var(--sidebar-border);
             z-index: 100;
             overflow-y: auto;
             font-size: 14px;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .sidebar-header {
@@ -2577,6 +2587,39 @@
             console.log('✓ Theme management delegated to theme-manager.js');
 
             // 사이드바는 sidebar.js에서 자동 초기화됨
+            
+            // 메인 콘텐츠 레이아웃 조정 함수
+            function adjustMainContent() {
+                const sidebar = document.querySelector('.sidebar');
+                const mainContent = document.querySelector('.main-content');
+                
+                if (sidebar && mainContent) {
+                    if (sidebar.classList.contains('collapsed')) {
+                        mainContent.style.marginLeft = '50px';
+                        mainContent.style.width = 'calc(100vw - 50px)';
+                    } else {
+                        mainContent.style.marginLeft = '240px';
+                        mainContent.style.width = 'calc(100vw - 240px)';
+                    }
+                }
+            }
+            
+            // 초기 조정
+            setTimeout(adjustMainContent, 100);
+            
+            // 사이드바 상태 변경 감지
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        adjustMainContent();
+                    }
+                });
+            });
+            
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                observer.observe(sidebar, { attributes: true });
+            }
         });
     </script>
 
