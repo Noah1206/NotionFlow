@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입 - NotionFlow | 3분만에 생산성 극대화 시작하기</title>
+    <meta name="description" content="NotionFlow 회원가입으로 모든 캘린더를 연결하고 생산성을 극대화하세요. 설정 3분, 평생 혜택.">
+    <style>
+        /* 🎨 Classic Clean Theme System */
+        :root {
+            /* Light Theme (Default) */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --text-primary: #000000;
+            --text-secondary: #666666;
+            --text-tertiary: #999999;
+            --accent-primary: #667EEA;
+            --border-color: #000000;
+            --input-bg: #ffffff;
+            --input-border: #000000;
+            --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        /* Dark Theme */
+        [data-theme="dark"] {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --text-tertiary: #999999;
+            --accent-primary: #667EEA;
+            --border-color: #333333;
+            --input-bg: #1a1a1a;
+            --input-border: #333333;
+            --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            transition: var(--transition);
+            margin: 0;
+            padding: 0;
+        }
+
+        @keyframes breathe {
+
+            0%,
+            100% {
+                transform: translateX(-50%) scale(1);
+                opacity: 0.1;
+            }
+
+            50% {
+                transform: translateX(-50%) scale(1.1);
+                opacity: 0.15;
+            }
+        }
+
+        /* Back Button - Floating */
+        #back-btn {
+            background: var(--bg-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            color: var(--text-primary);
+            cursor: pointer;
+            width: 50px;
+            height: 50px;
+            font-size: 1.2rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            z-index: 1000;
+            box-shadow: var(--shadow-light);
+        }
+
+        #back-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Theme Toggle - Floating */
+        .theme-toggle {
+            background: var(--bg-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 1.3rem;
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 1000;
+            box-shadow: var(--shadow-light);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.05);
+        }
+
+
+
+        [data-theme="light"] .signup-badge {
+            background: rgba(88, 86, 214, 0.06);
+            border: 1px solid rgba(88, 86, 214, 0.12);
+            color: var(--accent-primary);
+            box-shadow: 0 2px 4px rgba(88, 86, 214, 0.06);
+        }
+
+        [data-theme="light"] .time-indicator {
+            background: rgba(16, 185, 129, 0.06);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            color: #059669;
+        }
+
+        [data-theme="light"] .notion-signup-form input[type="text"],
+        [data-theme="light"] .notion-signup-form input[type="password"],
+        [data-theme="light"] .notion-signup-form input[type="email"] {
+            background: #f8f8fa;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            color: var(--text-primary);
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+            text-align: left !important;
+        }
+
+        [data-theme="light"] .notion-signup-form input::placeholder {
+            color: rgba(0, 0, 0, 0.4);
+            text-align: left !important;
+            direction: ltr !important;
+        }
+
+        [data-theme="light"] .notion-signup-form input:hover {
+            border-color: rgba(0, 0, 0, 0.12);
+            background: #fafafa;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        }
+
+        [data-theme="light"] .notion-signup-form input:focus {
+            border-color: var(--input-focus);
+            background: #fafafa;
+            box-shadow: 0 0 0 3px rgba(88, 86, 214, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+        }
+
+        [data-theme="light"] #google-signup-btn {
+            background: #fafafa;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: var(--text-primary);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        [data-theme="light"] #google-signup-btn:hover {
+            background: #f8f9fa;
+            border-color: rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="light"] .notion-signup-terms {
+            color: var(--text-secondary);
+        }
+
+        [data-theme="light"] .notion-signup-terms a {
+            color: var(--accent-primary);
+        }
+
+        /* 🎨 Classic Signup Container */
+        .notion-signup-box {
+            background: var(--bg-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: var(--shadow-light);
+            max-width: 520px;
+            margin: 4rem auto 2rem;
+            padding: 3.5rem;
+            animation: fadeInUp 0.8s ease;
+            position: relative;
+        }
+
+        /* 🎯 Productivity Badge */
+        .signup-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 50px;
+            padding: 0.5rem 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .signup-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            text-align: center;
+            line-height: 1.3;
+            text-shadow: none;
+        }
+
+        .signup-subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        .productivity-highlight {
+            color: var(--text-primary);
+            font-weight: 700;
+            position: relative;
+            background: linear-gradient(180deg, transparent 60%, rgba(0, 0, 0, 0.1) 60%);
+            animation: highlightPulse 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes highlightPulse {
+            0% {
+                background: linear-gradient(180deg, transparent 60%, rgba(0, 0, 0, 0.1) 60%);
+            }
+            100% {
+                background: linear-gradient(180deg, transparent 60%, rgba(0, 0, 0, 0.2) 60%);
+            }
+        }
+
+        .productivity-highlight::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--text-primary);
+            transform: scaleX(0);
+            transform-origin: left;
+            animation: underlineExpand 1.5s ease-out 0.5s forwards;
+        }
+
+        @keyframes underlineExpand {
+            0% {
+                transform: scaleX(0);
+            }
+            100% {
+                transform: scaleX(1);
+            }
+        }
+
+        /* 🕐 Time Indicator */
+        .time-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--success-color);
+            border-radius: 50px;
+            padding: 0.5rem 1rem;
+            margin-bottom: 2rem;
+            color: var(--success-color);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        /* 📝 Enhanced Form Styling */
+        .notion-signup-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.8rem;
+        }
+
+        .notion-signup-form label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+            display: block;
+        }
+
+        .notion-signup-form input[type="text"],
+        .notion-signup-form input[type="password"],
+        .notion-signup-form input[type="email"] {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: var(--input-bg);
+            border: 2px solid var(--input-border);
+            border-radius: 4px;
+            font-size: 1rem;
+            color: var(--text-primary);
+            transition: var(--transition);
+            box-sizing: border-box;
+        }
+
+        .notion-signup-form input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .notion-signup-form input:hover {
+            border-color: var(--accent-primary);
+        }
+
+        .notion-signup-form input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .notion-signup-form button[type="submit"] {
+            width: 100%;
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            border: 2px solid var(--text-primary);
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .notion-signup-form button[type="submit"]:hover {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-light);
+        }
+
+        /* 🔐 Enhanced Google Signup Button */
+        #google-signup-btn {
+            width: 100%;
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+            padding: 1rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+        }
+
+        #google-signup-btn:hover {
+            background: var(--glass-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        #google-signup-btn img {
+            width: 20px;
+            height: 20px;
+        }
+
+        [data-theme="dark"] #google-signup-btn img {
+            display: none;
+        }
+
+        [data-theme="light"] #google-signup-btn img {
+            display: inline-block;
+        }
+
+        /* 📄 Enhanced Terms */
+        .notion-signup-terms {
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: 0.9rem;
+            margin-top: 2rem;
+            line-height: 1.5;
+        }
+
+        .notion-signup-terms a {
+            color: var(--accent-primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .notion-signup-terms a:hover {
+            color: var(--accent-secondary);
+            text-decoration: underline;
+        }
+
+        /* 🎬 Enhanced Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 📱 Responsive Design */
+        @media (max-width: 768px) {
+            .notion-signup-box {
+                margin: 3rem 1rem 2rem;
+                padding: 2.5rem;
+            }
+
+            .signup-title {
+                font-size: 2rem;
+            }
+
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Floating Controls -->
+    <button id="back-btn">←</button>
+    <button class="theme-toggle" id="theme-toggle" title="테마 전환">
+        <span id="theme-icon">☀️</span>
+    </button>
+
+    <!-- 🎨 Main Signup Section -->
+    <div style="display:flex;min-height:100vh;align-items:center;justify-content:center;">
+        <div class="notion-signup-box">
+            <!-- 🎯 Productivity Badge -->
+            <div style="text-align:center;margin-bottom:2rem;">
+                <h2 class="signup-title">
+                    <span class="productivity-highlight">생산성 혁신</span>을<br>
+                    지금 시작하세요
+                </h2>
+                <p class="signup-subtitle">
+                    모든 캘린더를 연결하고 스케줄 관리를 자동화하세요.
+                </p>
+            </div>
+            <form class="notion-signup-form">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                    <div>
+                        <label for="user_id">사용자 ID</label>
+                        <input type="text" id="user_id" name="user_id" placeholder="사용할 ID를 입력하세요"
+                            style="text-align: left !important;" required>
+                    </div>
+                    <div>
+                        <label for="email">이메일</label>
+                        <input type="email" id="email" name="email" placeholder="이메일 주소를 입력하세요"
+                            style="text-align: left !important;" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="password">비밀번호</label>
+                    <input type="password" id="password" name="password" placeholder="8자 이상 입력하세요"
+                        style="text-align: left !important;" required>
+                </div>
+
+                <div>
+                    <label for="password_confirm">비밀번호 확인</label>
+                    <input type="password" id="password_confirm" name="password_confirm" placeholder="비밀번호를 다시 입력하세요"
+                        style="text-align: left !important;" required>
+                </div>
+
+                <button type="submit">생산성 혁신 시작하기</button>
+            </form>
+
+            <!-- 🔐 Enhanced Google Signup -->
+            <button id="google-signup-btn" type="button">
+                <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo">
+                Google로 3초만에 시작하기
+            </button>
+
+            <!-- 📄 Enhanced Terms -->
+            <div class="notion-signup-terms">
+                계속 진행하면 NotionFlow의 <a href="#">서비스 약관</a> 및 <a href="#">개인정보 처리방침</a>에 동의하는 것으로 간주됩니다.
+            </div>
+        </div>
+    </div>
+
+    <!-- 🌓 Enhanced Theme Toggle Script -->
+    <script>
+        // Theme Toggle System
+        function initThemeToggle() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const themeIcon = document.getElementById('theme-icon');
+            const html = document.documentElement;
+
+            // Get saved theme or default to light
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            html.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = html.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+                html.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateThemeIcon(newTheme);
+
+                // Add click animation
+                themeToggle.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    themeToggle.style.transform = 'scale(1)';
+                }, 150);
+            });
+        }
+
+        function updateThemeIcon(theme) {
+            const themeIcon = document.getElementById('theme-icon');
+            themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+
+        // Initialize theme toggle
+        document.addEventListener('DOMContentLoaded', function () {
+            initThemeToggle();
+        });
+    </script>
+
+    <!-- 🚀 Enhanced Signup with Unified Authentication Service -->
+    <!-- 🚀 Load Authentication Service -->
+    <script src="/static/js/supabaseAuth.js"></script>
+    
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // 🔙 뒤로가기 버튼 이벤트
+            const backBtn = document.getElementById('back-btn');
+            if (backBtn) {
+                backBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    window.history.back();
+                });
+            }
+
+            // 🎯 Enhanced signup form handler
+            const signupForm = document.querySelector('.notion-signup-form');
+            if (!signupForm) {
+                console.error('❌ Signup form not found');
+                return;
+            }
+
+            signupForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const userId = document.getElementById('user_id').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+                const passwordConfirm = document.getElementById('password_confirm').value;
+                const submitButton = signupForm.querySelector('button[type="submit"]');
+
+                // 🔄 Show loading state
+                const originalText = submitButton.textContent;
+                submitButton.textContent = '회원가입 처리 중...';
+                submitButton.disabled = true;
+
+                try {
+                    // 🚀 Use unified authentication service
+                    const result = await window.authService.register(email, password, userId);
+
+                    if (result.success) {
+                        // ✅ Success feedback
+                        submitButton.textContent = result.needsVerification ? '인증 이메일 발송됨!' : '회원가입 완료!';
+                        submitButton.style.background = 'var(--success-color)';
+
+                        // 🎯 Success notification
+                        showNotification(result.message, 'success');
+
+                        // 🏠 Redirect based on verification status
+                        setTimeout(async () => {
+                            if (result.needsVerification) {
+                                // Email verification required
+                                window.location.href = '/login';
+                            } else {
+                                // Direct access to encrypted email dashboard
+                                const dashboardURL = await window.authService.getUserDashboardURL(result.user);
+                                console.log('Redirecting to:', dashboardURL);
+                                window.location.href = dashboardURL;
+                            }
+                        }, 2000);
+
+                    } else {
+                        // ❌ Error handling
+                        throw new Error(result.message);
+                    }
+
+                } catch (error) {
+                    console.error('Signup error:', error);
+
+                    // 🚨 Error feedback
+                    showNotification(error.message, 'error');
+
+                    // 🔄 Reset button state
+                    submitButton.textContent = originalText;
+                    submitButton.disabled = false;
+                    submitButton.style.background = '';
+                }
+            });
+
+            // 🔍 Real-time password validation
+            const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('password_confirm');
+
+            if (passwordInput && confirmPasswordInput) {
+                const validatePasswordMatch = () => {
+                    const password = passwordInput.value;
+                    const confirmPassword = confirmPasswordInput.value;
+
+                    if (confirmPassword && password !== confirmPassword) {
+                        confirmPasswordInput.style.borderColor = '#ef4444';
+                        showPasswordError('비밀번호가 일치하지 않습니다.');
+                    } else if (confirmPassword) {
+                        confirmPasswordInput.style.borderColor = 'var(--success-color)';
+                        hidePasswordError();
+                    }
+                };
+
+                confirmPasswordInput.addEventListener('input', validatePasswordMatch);
+                passwordInput.addEventListener('input', validatePasswordMatch);
+            }
+
+            // 🔗 Check if user is already authenticated
+            checkAuthenticationStatus();
+        });
+
+        // 🔍 Check current authentication status
+        async function checkAuthenticationStatus() {
+            try {
+                const isAuth = await window.authService.isAuthenticated();
+                if (isAuth) {
+                    console.log('✅ User already authenticated, redirecting...');
+                    const dashboardURL = await window.authService.getUserDashboardURL();
+                    window.location.href = dashboardURL;
+                }
+            } catch (error) {
+                console.log('Authentication check failed:', error);
+            }
+        }
+
+        // 🔒 Password validation error display
+        function showPasswordError(message) {
+            hidePasswordError(); // Remove existing error
+
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'password-error';
+            errorDiv.textContent = message;
+            errorDiv.style.cssText = `
+                color: #ef4444;
+                font-size: 0.875rem;
+                margin-top: 0.5rem;
+                font-weight: 500;
+            `;
+
+            const confirmInput = document.getElementById('password_confirm');
+            confirmInput.parentNode.appendChild(errorDiv);
+        }
+
+        function hidePasswordError() {
+            const errorDiv = document.querySelector('.password-error');
+            if (errorDiv) {
+                errorDiv.remove();
+            }
+        }
+
+        // 📢 Enhanced notification system
+        function showNotification(message, type = 'info') {
+            // Remove existing notification
+            const existingNotification = document.querySelector('.auth-notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+
+            // Create new notification
+            const notification = document.createElement('div');
+            notification.className = `auth-notification auth-notification-${type}`;
+            notification.innerHTML = `
+                <div class="notification-content">
+                    <span class="notification-icon">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+                    <span class="notification-text">${message}</span>
+                </div>
+            `;
+
+            // Add styles
+            notification.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                z-index: 10000;
+                background: var(--glass-bg);
+                backdrop-filter: blur(20px);
+                border: 1px solid var(--glass-border);
+                border-radius: 12px;
+                padding: 1rem 1.5rem;
+                color: var(--text-primary);
+                box-shadow: var(--shadow-xl);
+                animation: slideInRight 0.4s ease;
+                min-width: 300px;
+                max-width: 400px;
+            `;
+
+            if (type === 'success') {
+                notification.style.borderColor = 'var(--success-color)';
+            } else if (type === 'error') {
+                notification.style.borderColor = '#ef4444';
+            }
+
+            document.body.appendChild(notification);
+
+            // Auto remove after 6 seconds for signup (longer than login)
+            setTimeout(() => {
+                if (notification && notification.parentNode) {
+                    notification.style.animation = 'slideOutRight 0.4s ease';
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.remove();
+                        }
+                    }, 400);
+                }
+            }, 6000);
+        }
+
+        // 📱 Add notification animations
+        const style = document.createElement('style');
+        style.textContent = `
+            .notification-content {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+            }
+            
+            .notification-icon {
+                font-size: 1.2rem;
+            }
+            
+            .notification-text {
+                font-weight: 500;
+                line-height: 1.4;
+            }
+            
+            @keyframes slideInRight {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes slideOutRight {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+    <!-- 🔐 Google Signup Button Handler -->
+    <script>
+        document.getElementById('google-signup-btn')?.addEventListener('click', function () {
+            this.classList.add('google-btn-loading');
+            if (!this.querySelector('.google-btn-spinner')) {
+                const spinner = document.createElement('span');
+                spinner.className = 'google-btn-spinner';
+                this.appendChild(spinner);
+            }
+            setTimeout(() => window.location.href = '/login/google', 150);
+        });
+    </script>
+</body>
+
+</html>

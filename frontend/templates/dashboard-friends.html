@@ -1,0 +1,549 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}친구 - NotionFlow 대시보드{% endblock %}
+
+{% block description %}NotionFlow에서 친구를 관리하고 캘린더를 공유하세요.{% endblock %}
+
+{% block content %}
+<div class="dashboard-content animate-fade-in">
+    <!-- 📊 페이지 헤더 -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <h1 class="page-title">
+                <span class="title-icon">👥</span>
+                친구
+            </h1>
+            <p class="page-description">친구를 추가하고 캘린더를 공유하세요</p>
+        </div>
+    </div>
+
+    <!-- 📱 친구 관리 메인 컨텐츠 -->
+    <div class="friends-container">
+        <!-- 친구 탭 네비게이션 -->
+        <div class="friends-tabs">
+            <button class="friends-tab-btn active" onclick="showFriendsSection('list')">
+                친구 목록
+            </button>
+            <button class="friends-tab-btn" onclick="showFriendsSection('add')">
+                친구 추가
+            </button>
+            <button class="friends-tab-btn" onclick="showFriendsSection('requests')">
+                친구 요청
+            </button>
+        </div>
+
+        <!-- 친구 목록 섹션 -->
+        <div class="friends-section active" id="friends-list-section">
+            <div class="section-header">
+                <h2>친구 목록</h2>
+                <div class="friends-stats">
+                    <span class="friends-count">0명</span>
+                </div>
+            </div>
+            
+            <div class="friends-grid" id="friends-list-grid">
+                <!-- 친구 목록이 여기에 로드됩니다 -->
+                <div class="no-friends-message">
+                    <div class="no-friends-icon">👋</div>
+                    <h3>아직 친구가 없습니다</h3>
+                    <p>친구를 추가하여 캘린더를 공유해보세요!</p>
+                    <button class="btn-primary" onclick="showFriendsSection('add')">
+                        친구 추가하기
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 친구 추가 섹션 -->
+        <div class="friends-section" id="friends-add-section">
+            <div class="section-header">
+                <h2>친구 추가</h2>
+            </div>
+            
+            <div class="friend-search-container">
+                <div class="search-form">
+                    <input type="text" 
+                           id="friend-search-input" 
+                           placeholder="사용자명 또는 이메일로 검색하세요"
+                           class="search-input">
+                    <button class="btn-search" onclick="searchFriends()">
+                        검색
+                    </button>
+                </div>
+                
+                <div class="search-results" id="friend-search-results">
+                    <!-- 검색 결과가 여기에 표시됩니다 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 친구 요청 섹션 -->
+        <div class="friends-section" id="friends-requests-section">
+            <div class="section-header">
+                <h2>친구 요청</h2>
+                <div class="requests-badge">
+                    <span class="requests-count">0</span>
+                </div>
+            </div>
+            
+            <div class="friend-requests-container" id="friend-requests-container">
+                <!-- 친구 요청이 여기에 로드됩니다 -->
+                <div class="no-requests-message">
+                    <div class="no-requests-icon">📬</div>
+                    <h3>새로운 친구 요청이 없습니다</h3>
+                    <p>친구 요청이 있으면 여기에 표시됩니다.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_styles %}
+/* 🎨 친구 페이지 전용 스타일 */
+.friends-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.friends-tabs {
+    display: flex;
+    border-bottom: 2px solid var(--border-primary);
+    margin-bottom: 24px;
+    gap: 0;
+}
+
+.friends-tab-btn {
+    flex: 1;
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.15s ease;
+}
+
+.friends-tab-btn:hover {
+    color: var(--text-primary);
+    background: #141414 !important;
+}
+
+.friends-tab-btn.active {
+    color: var(--text-primary);
+    border-bottom-color: var(--text-primary);
+    background: #141414 !important;
+}
+
+.friends-section {
+    display: none;
+}
+
+.friends-section.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.section-header h2 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.friends-stats,
+.requests-badge {
+    background: #141414 !important;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.friends-count,
+.requests-count {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* 친구 목록 그리드 */
+.friends-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.friend-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.15s ease;
+}
+
+.friend-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+}
+
+.friend-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #141414 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin: 0 auto 12px;
+}
+
+.friend-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.friend-status {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+}
+
+.friend-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.friend-actions button {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-share {
+    background: var(--text-primary);
+    color: var(--bg-primary);
+}
+
+.btn-share:hover {
+    background: var(--text-secondary);
+}
+
+.btn-remove {
+    background: var(--text-primary);
+    color: var(--bg-primary);
+}
+
+.btn-remove:hover {
+    background: var(--text-secondary);
+}
+
+/* 빈 상태 메시지 */
+.no-friends-message,
+.no-requests-message {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-secondary);
+}
+
+.no-friends-icon,
+.no-requests-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.no-friends-message h3,
+.no-requests-message h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.no-friends-message p,
+.no-requests-message p {
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+/* 검색 폼 */
+.friend-search-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.search-form {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.search-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 2px solid var(--border-primary);
+    border-radius: 8px;
+    font-size: 16px;
+    background: #141414 !important;
+    color: var(--text-primary);
+    transition: all 0.15s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--text-primary);
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+.btn-search {
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-search:hover {
+    background: var(--text-secondary);
+}
+
+.search-results {
+    min-height: 200px;
+}
+
+.search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.search-result-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #141414 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.search-result-info {
+    flex: 1;
+}
+
+.search-result-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.search-result-email {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.btn-add-friend {
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-add-friend:hover {
+    background: var(--text-secondary);
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .friends-tabs {
+        flex-direction: column;
+    }
+    
+    .friends-tab-btn {
+        border-bottom: 1px solid var(--border-primary);
+        border-right: none;
+    }
+    
+    .friends-tab-btn.active {
+        border-bottom-color: var(--text-primary);
+    }
+    
+    .friends-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .search-form {
+        flex-direction: column;
+    }
+}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 친구 페이지 JavaScript
+let currentFriendsSection = 'list';
+let friendsData = {
+    friends: [],
+    requests: [],
+    searchResults: []
+};
+
+// 친구 섹션 전환
+function showFriendsSection(section) {
+    // 탭 버튼 업데이트
+    document.querySelectorAll('.friends-tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`[onclick="showFriendsSection('${section}')"]`).classList.add('active');
+    
+    // 섹션 표시 업데이트
+    document.querySelectorAll('.friends-section').forEach(sec => {
+        sec.classList.remove('active');
+    });
+    document.getElementById(`friends-${section}-section`).classList.add('active');
+    
+    currentFriendsSection = section;
+    
+    // 섹션별 데이터 로드
+    switch(section) {
+        case 'list':
+            loadFriendsList();
+            break;
+        case 'add':
+            // 검색 입력창 포커스
+            setTimeout(() => {
+                const searchInput = document.getElementById('friend-search-input');
+                if (searchInput) searchInput.focus();
+            }, 100);
+            break;
+        case 'requests':
+            loadFriendRequests();
+            break;
+    }
+}
+
+// 친구 목록 로드
+function loadFriendsList() {
+    // 실제 구현에서는 API 호출
+    const friendsGrid = document.getElementById('friends-list-grid');
+    
+    if (friendsData.friends.length === 0) {
+        friendsGrid.innerHTML = `
+            <div class="no-friends-message">
+                <div class="no-friends-icon">👋</div>
+                <h3>아직 친구가 없습니다</h3>
+                <p>친구를 추가하여 캘린더를 공유해보세요!</p>
+                <button class="btn-primary" onclick="showFriendsSection('add')">
+                    친구 추가하기
+                </button>
+            </div>
+        `;
+    } else {
+        // 친구 카드 렌더링
+        friendsGrid.innerHTML = friendsData.friends.map(friend => `
+            <div class="friend-card">
+                <div class="friend-avatar">${friend.avatar || '👤'}</div>
+                <div class="friend-name">${friend.name}</div>
+                <div class="friend-status">${friend.isOnline ? '온라인' : '오프라인'}</div>
+                <div class="friend-actions">
+                    <button class="btn-share" onclick="shareCalendarWithFriend('${friend.id}')">
+                        캘린더 공유
+                    </button>
+                    <button class="btn-remove" onclick="removeFriend('${friend.id}')">
+                        삭제
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    // 친구 수 업데이트
+    document.querySelector('.friends-count').textContent = `${friendsData.friends.length}명`;
+}
+
+// 친구 검색
+function searchFriends() {
+    const searchInput = document.getElementById('friend-search-input');
+    const query = searchInput.value.trim();
+    
+    if (!query) {
+        alert('검색어를 입력하세요.');
+        return;
+    }
+    
+    // 실제 구현에서는 API 호출
+    console.log('친구 검색:', query);
+    
+    // 임시 검색 결과 표시
+    const resultsContainer = document.getElementById('friend-search-results');
+    resultsContainer.innerHTML = `
+        <div class="no-requests-message">
+            <div class="no-requests-icon">🔍</div>
+            <h3>검색 결과가 없습니다</h3>
+            <p>다른 검색어로 시도해보세요.</p>
+        </div>
+    `;
+}
+
+// 친구 요청 로드
+function loadFriendRequests() {
+    const requestsContainer = document.getElementById('friend-requests-container');
+    
+    if (friendsData.requests.length === 0) {
+        requestsContainer.innerHTML = `
+            <div class="no-requests-message">
+                <div class="no-requests-icon">📬</div>
+                <h3>새로운 친구 요청이 없습니다</h3>
+                <p>친구 요청이 있으면 여기에 표시됩니다.</p>
+            </div>
+        `;
+    }
+    
+    // 요청 수 업데이트
+    document.querySelector('.requests-count').textContent = friendsData.requests.length;
+}
+
+// 페이지 로드 시 초기화
+document.addEventListener('DOMContentLoaded', function() {
+    showFriendsSection('list');
+});
+</script>
+{% endblock %}

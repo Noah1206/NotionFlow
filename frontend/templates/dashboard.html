@@ -1,0 +1,150 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}NotionFlow Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+    {% include 'components/sidebar.html' %}
+
+    <div class="main-content">
+        <!-- 개요 섹션 (기본 활성) -->
+        <div id="overview-section" class="dashboard-section active">
+            <div class="section-header">
+                <h1>Dashboard Overview</h1>
+                <p>NotionFlow 통합 대시보드에 오신 것을 환영합니다.</p>
+            </div>
+            
+            <div class="dashboard-grid">
+                <!-- 통계 카드들 -->
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-content">
+                        <h3>전체 플랫폼</h3>
+                        <div class="stat-number">{{ summary.total_platforms or 5 }}</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-content">
+                        <h3>연결된 플랫폼</h3>
+                        <div class="stat-number">{{ summary.configured_platforms or 0 }}</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">🔄</div>
+                    <div class="stat-content">
+                        <h3>동기화 활성</h3>
+                        <div class="stat-number">{{ summary.enabled_platforms or 0 }}</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-content">
+                        <h3>이번 달 활동</h3>
+                        <div class="stat-number">{{ events | length or 0 }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 동기화 섹션 -->
+        <div id="sync-section" class="dashboard-section">
+            <div class="section-header">
+                <h2>동기화 상태</h2>
+                <p>각 플랫폼별 동기화 상태를 확인하세요.</p>
+            </div>
+            
+            <div class="sync-status-grid">
+                <div class="sync-card">
+                    <div class="platform-icon">📝</div>
+                    <div class="platform-info">
+                        <h3>Notion</h3>
+                        <span class="status-badge disconnected">미연결</span>
+                    </div>
+                </div>
+                
+                <div class="sync-card">
+                    <div class="platform-icon">📅</div>
+                    <div class="platform-info">
+                        <h3>Google Calendar</h3>
+                        <span class="status-badge disconnected">미연결</span>
+                    </div>
+                </div>
+                
+                <div class="sync-card">
+                    <div class="platform-icon">💬</div>
+                    <div class="platform-info">
+                        <h3>Slack</h3>
+                        <span class="status-badge disconnected">미연결</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- API 키 섹션 -->
+        <div id="api-keys-section" class="dashboard-section">
+            <div class="api-keys-header">
+                <h2>API 키 관리</h2>
+                <p>외부 서비스와의 연동을 위한 API 키를 관리하세요.</p>
+            </div>
+
+            <div id="api-keys-container" class="api-keys-grid">
+                <div class="api-key-card">
+                    <h3>API 키를 불러오는 중...</h3>
+                    <p>잠시만 기다려주세요.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 설정 섹션 -->
+        <div id="settings-section" class="dashboard-section">
+            <div class="settings-header">
+                <h2>설정</h2>
+                <p>대시보드 설정을 관리하세요.</p>
+            </div>
+
+            <div class="settings-content">
+                <p>설정 페이지 준비 중...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Dashboard Core JavaScript -->
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+<!-- Dashboard Navigation Script -->
+<script>
+    // Simple navigation function
+    window.navigateToSection = function (section) {
+        console.log('Navigating to section:', section);
+
+        try {
+            // Update URL
+            const url = `/dashboard?section=${section}`;
+            history.pushState(null, '', url);
+
+            // Hide all sections
+            const allSections = document.querySelectorAll('.dashboard-section');
+            allSections.forEach(sectionEl => {
+                sectionEl.classList.remove('active');
+                sectionEl.style.display = 'none';
+            });
+
+            // Show target section
+            const targetSection = document.getElementById(`${section}-section`);
+            if (targetSection) {
+                targetSection.classList.add('active');
+                targetSection.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Error in navigation:', error);
+        }
+    };
+</script>
+{% endblock %}

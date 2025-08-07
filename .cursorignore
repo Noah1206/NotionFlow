@@ -1,0 +1,26 @@
+# 폴더
+node_modules/
+.git/
+.cache/
+dist/
+build/
+venv/
+__pycache__/
+.env/
+tmp/
+archive/
+
+# 파일 확장자
+*.log
+*.tmp
+*.sqlite
+*.zip
+*.png
+*.jpg
+*.jpeg
+*.pdf
+.DS_Store
+
+# 예외 설정 (포함하고 싶은 경우)
+!src/
+!core/ 

@@ -1,0 +1,9 @@
+/* NotionFlow Main CSS - 메인 스타일 파일 */
+/* 이 파일은 다른 CSS 파일들을 import하여 통합합니다 */
+
+/* CSS 파일 imports - 최적화된 순서 */
+@import url('variables.css');
+@import url('base.css');
+@import url('layout.css');
+
+/* 프로젝트별 공통 스타일이 필요한 경우 여기에 추가 */

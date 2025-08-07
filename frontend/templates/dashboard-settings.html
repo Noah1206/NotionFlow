@@ -1,0 +1,2548 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}NotionFlow 설정 | 생산성 관리 센터{% endblock %}
+
+{% block description %}NotionFlow 설정 페이지에서 생산성 지표를 확인하고 API 키를 관리하세요. 실시간 시간 절약 현황과 플랫폼 연결 상태를 관리하세요.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/clickup-redesign.css') }}?v=2025072301">
+<style>
+    /* Settings-specific CSS variables for theme support */
+    :root,
+    [data-theme="dark"] {
+        --border-color: var(--border-primary);
+        --border-hover: var(--accent-primary);
+        --bg-accent: rgba(0, 0, 0, 0.1);
+        --text-accent: var(--accent-primary);
+    }
+
+    [data-theme="light"] {
+        --border-color: var(--border-primary);
+        --border-hover: var(--accent-primary);
+        --bg-accent: rgba(0, 0, 0, 0.1);
+        --text-accent: var(--accent-primary);
+    }
+
+    /* Override for toggle switch to ensure it displays properly */
+    .theme-toggle .toggle-switch {
+        position: relative !important;
+        display: inline-block !important;
+        width: 50px !important;
+        height: 30px !important;
+        vertical-align: middle !important;
+    }
+
+    .theme-toggle .toggle-switch input[type="checkbox"] {
+        position: absolute !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .theme-toggle .toggle-slider {
+        position: absolute !important;
+        cursor: pointer !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        background-color: #ccc !important;
+        border: none !important;
+        transition: all 0.4s ease !important;
+        border-radius: 30px !important;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .theme-toggle .toggle-slider::before {
+        position: absolute !important;
+        content: "" !important;
+        height: 26px !important;
+        width: 26px !important;
+        left: 2px !important;
+        bottom: 2px !important;
+        background-color: #141414 !important;
+    }
+
+    /* Force all dashboard elements to #141414 background */
+    .metric-card,
+    .theme-settings-box,
+    .chart-container,
+    .api-key-card,
+    .sync-activity-section,
+    .analytics-section,
+    .main-content,
+    .dashboard-content,
+    [class*="card"],
+    [class*="container"],
+    [class*="section"],
+    [class*="box"] {
+        background: #141414 !important;
+    }
+
+    .theme-toggle input[type="checkbox"]:checked+.toggle-slider {
+        background-color: var(--text-primary) !important;
+    }
+
+    .theme-toggle input[type="checkbox"]:checked+.toggle-slider::before {
+        transform: translateX(20px) !important;
+    }
+
+    /* Theme Settings Section */
+    .theme-settings-section {
+        margin-bottom: 32px;
+    }
+
+    .theme-settings-box {
+        background: #141414 !important;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .theme-setting-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .theme-setting-item:last-child {
+        border-bottom: none;
+    }
+
+    .theme-setting-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .theme-setting-title {
+        font-size: 16px;
+        font-weight: 500;
+        color: var(--text-primary);
+        line-height: 1.4;
+    }
+
+    .theme-setting-description {
+        font-size: 14px;
+        color: var(--text-secondary);
+        line-height: 1.4;
+    }
+
+    /* Updated Toggle Switch for Settings Section */
+    .theme-settings-section .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 30px;
+        flex-shrink: 0;
+    }
+
+    .theme-settings-section .toggle-switch input[type="checkbox"] {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+        margin: 0;
+        padding: 0;
+    }
+
+    .theme-settings-section .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        border: none;
+        transition: all 0.4s ease;
+        border-radius: 30px;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .theme-settings-section .toggle-slider::before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 2px;
+        bottom: 2px;
+        background-color: #141414;
+        transition: all 0.4s ease;
+        border-radius: 50%;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    .theme-settings-section input[type="checkbox"]:checked+.toggle-slider {
+        background-color: #4cd964;
+    }
+
+    .theme-settings-section input[type="checkbox"]:checked+.toggle-slider::before {
+        transform: translateX(20px);
+    }
+
+    /* Dark theme adjustments for settings section */
+    [data-theme="dark"] .theme-settings-section .toggle-slider {
+        background-color: var(--text-secondary) !important;
+    }
+
+    [data-theme="dark"] .theme-settings-section input[type="checkbox"]:checked+.toggle-slider {
+        background-color: var(--text-primary) !important;
+    }
+
+    /* Additional override for dark mode toggle color */
+    html[data-theme="dark"] .theme-settings-section .toggle-switch input[type="checkbox"]:checked+.toggle-slider {
+        background-color: var(--text-primary) !important;
+    }
+
+    body[data-theme="dark"] .theme-settings-section .toggle-switch input[type="checkbox"]:checked+.toggle-slider {
+        background-color: var(--text-primary) !important;
+    }
+</style>
+{% endblock %}
+
+{% block page_styles %}
+/* NotionFlow Navy Theme Settings Design */
+.settings-container {
+background: #141414 !important;
+min-height: calc(100vh - 80px);
+padding: 40px;
+max-width: 1200px;
+margin: 0 auto;
+}
+
+.settings-header {
+text-align: left;
+margin-bottom: 40px;
+padding: 32px;
+background: #141414 !important;
+border-radius: 8px;
+border: 1px solid var(--border-primary);
+}
+
+.settings-title {
+font-size: 32px;
+font-weight: 600;
+color: var(--text-primary);
+margin-bottom: 12px;
+font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+letter-spacing: -0.02em;
+}
+
+.settings-subtitle {
+font-size: 16px;
+color: var(--text-secondary);
+line-height: 1.5;
+margin-bottom: 0;
+}
+
+/* Language Toggle Styles */
+.settings-header-content {
+display: flex;
+justify-content: space-between;
+align-items: flex-start;
+}
+
+.settings-text {
+flex: 1;
+}
+
+.language-toggle {
+position: relative;
+margin-left: 24px;
+}
+
+.theme-toggle {
+display: flex;
+align-items: center;
+gap: 12px;
+margin-left: 24px;
+}
+
+.theme-toggle-label {
+font-size: 14px;
+font-weight: 500;
+color: var(--text-primary);
+white-space: nowrap;
+}
+
+/* iOS Style Toggle Switch */
+.theme-toggle .toggle-switch {
+position: relative;
+display: inline-block;
+width: 50px;
+height: 30px;
+vertical-align: middle;
+}
+
+.theme-toggle .toggle-switch input {
+position: absolute;
+opacity: 0;
+width: 0;
+height: 0;
+margin: 0;
+padding: 0;
+}
+
+.theme-toggle .toggle-slider {
+position: absolute;
+cursor: pointer;
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+background-color: #ccc !important;
+border: none !important;
+transition: all 0.4s ease !important;
+border-radius: 30px !important;
+box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+.theme-toggle .toggle-slider:before {
+position: absolute;
+content: "";
+height: 26px !important;
+width: 26px !important;
+left: 2px !important;
+bottom: 2px !important;
+background-color: #141414 !important;
+transition: all 0.4s ease !important;
+border-radius: 50% !important;
+box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
+}
+
+.theme-toggle input:checked + .toggle-slider {
+background-color: var(--text-primary) !important;
+}
+
+.theme-toggle input:checked + .toggle-slider:before {
+transform: translateX(20px) !important;
+}
+
+/* Dark theme specific styles */
+[data-theme="dark"] .theme-toggle .toggle-slider {
+background-color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .theme-toggle input:checked + .toggle-slider {
+background-color: var(--text-primary) !important;
+}
+
+.theme-toggle .toggle-slider:hover {
+opacity: 0.8;
+}
+
+.language-toggle-btn {
+display: flex;
+align-items: center;
+gap: 8px;
+padding: 8px 12px;
+background: #141414 !important;
+border: 1px solid var(--border-color);
+border-radius: 6px;
+cursor: pointer;
+transition: all 0.2s ease;
+font-size: 14px;
+font-weight: 500;
+color: var(--text-primary);
+min-width: 80px;
+}
+
+.language-toggle-btn:hover {
+background: #141414 !important;
+border-color: var(--border-hover);
+}
+
+.lang-flag {
+font-size: 16px;
+}
+
+.lang-text {
+font-size: 13px;
+font-weight: 600;
+}
+
+.toggle-arrow {
+font-size: 12px;
+color: var(--text-secondary);
+transition: transform 0.2s ease;
+}
+
+.language-toggle.active .toggle-arrow {
+transform: rotate(180deg);
+}
+
+.language-dropdown {
+position: absolute;
+top: 100%;
+right: 0;
+background: #141414 !important;
+border: 1px solid var(--border-color);
+border-radius: 6px;
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+z-index: 1000;
+min-width: 140px;
+opacity: 0;
+visibility: hidden;
+transform: translateY(-8px);
+transition: all 0.2s ease;
+}
+
+.language-toggle.active .language-dropdown {
+opacity: 1;
+visibility: visible;
+transform: translateY(4px);
+}
+
+.language-option {
+display: flex;
+align-items: center;
+gap: 8px;
+padding: 12px 16px;
+cursor: pointer;
+transition: background-color 0.2s ease;
+font-size: 14px;
+}
+
+.language-option:hover {
+background: #141414 !important;
+}
+
+.language-option:first-child {
+border-radius: 6px 6px 0 0;
+}
+
+.language-option:last-child {
+border-radius: 0 0 6px 6px;
+}
+
+.language-option.active {
+background: var(--bg-accent);
+color: var(--text-accent);
+}
+
+.lang-name {
+font-weight: 500;
+}
+
+.metrics-section {
+margin-bottom: 32px;
+}
+
+.section-title {
+font-size: 18px;
+font-weight: 600;
+color: var(--text-primary);
+margin-bottom: 16px;
+padding-left: 4px;
+}
+
+.metrics-grid {
+display: grid;
+grid-template-columns: 1fr;
+gap: 16px;
+margin-bottom: 40px;
+}
+
+.metric-card {
+background: #141414 !important;
+border: 1px solid var(--border-primary);
+border-radius: 8px;
+padding: 24px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+transition: all 0.2s ease;
+cursor: pointer;
+position: relative;
+box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+overflow: hidden;
+}
+
+.metric-card:hover {
+transform: translateY(-2px);
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+border-color: var(--text-primary);
+}
+
+.metric-header {
+display: flex;
+align-items: center;
+gap: 16px;
+flex: 1;
+}
+
+/* Text-only metric indicators */
+.metric-label-text {
+font-size: 14px;
+font-weight: 600;
+color: var(--text-accent);
+background: rgba(0, 0, 0, 0.1);
+padding: 4px 8px;
+border-radius: 4px;
+border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.metric-trend {
+background: #141414 !important;
+padding: 4px 8px;
+border-radius: 4px;
+font-size: 12px;
+font-weight: 500;
+color: var(--text-accent);
+border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.metric-trend.positive {
+color: var(--text-primary);
+border-color: rgba(0, 0, 0, 0.2);
+}
+
+.metric-trend.negative {
+color: var(--text-primary);
+border-color: rgba(220, 38, 38, 0.2);
+}
+
+.metric-number {
+font-size: 48px;
+font-weight: 700;
+color: var(--text-primary);
+margin-bottom: 12px;
+font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+line-height: 1;
+}
+
+.metric-label {
+font-size: 16px;
+font-weight: 600;
+color: var(--text-primary);
+margin-bottom: 8px;
+}
+
+.metric-description {
+font-size: 14px;
+color: var(--text-secondary);
+line-height: 1.5;
+}
+
+/* Horizontal layout styles for metric cards */
+.metric-left {
+display: flex;
+flex-direction: column;
+justify-content: center;
+flex: 1;
+}
+
+.metric-right {
+display: flex;
+align-items: center;
+justify-content: center;
+min-width: 120px;
+}
+
+.metric-right .metric-number {
+font-size: 36px;
+margin-bottom: 0;
+}
+
+/* Dark Mode Toggle Section */
+.dark-mode-section {
+background: #141414 !important;
+border: 1px solid var(--border-primary);
+border-radius: 8px;
+padding: 32px;
+margin-bottom: 40px;
+}
+
+.dark-mode-title {
+font-size: 20px;
+font-weight: 600;
+color: var(--text-primary);
+margin-bottom: 8px;
+}
+
+.dark-mode-description {
+font-size: 14px;
+color: var(--text-secondary);
+margin-bottom: 20px;
+}
+
+.dark-mode-toggle-container {
+display: flex;
+align-items: center;
+justify-content: flex-end;
+}
+
+/* Sync Activity Section */
+.sync-activity-section {
+background: #141414 !important;
+border: 1px solid var(--border-primary);
+border-radius: 8px;
+padding: 32px;
+margin-bottom: 40px;
+}
+
+.sync-activity-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 24px;
+}
+
+.sync-activity-title {
+font-size: 20px;
+font-weight: 600;
+color: var(--text-primary);
+margin: 0;
+}
+
+.sync-activity-settings {
+background: #141414 !important;
+border: 1px solid var(--border-primary);
+border-radius: 6px;
+padding: 8px 16px;
+font-size: 14px;
+color: var(--text-secondary);
+cursor: pointer;
+transition: all 0.3s ease;
+}
+
+.sync-activity-settings:hover {
+background: #141414 !important;
+color: var(--text-primary);
+}
+
+.sync-activity-content {
+background: #141414 !important;
+border: 1px solid var(--border-secondary);
+border-radius: 6px;
+padding: 60px 32px;
+text-align: center;
+}
+
+.sync-activity-empty-text {
+font-size: 16px;
+color: var(--text-tertiary);
+margin: 0;
+}
+line-height: 1.4;
+}
+
+.analytics-section {
+display: grid;
+grid-template-columns: 2fr 1fr;
+gap: 16px;
+margin-bottom: 32px;
+}
+
+.chart-container {
+background: #141414 !important;
+border-radius: 4px;
+padding: 24px;
+box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+border: 1px solid var(--border-color);
+}
+
+.chart-header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+margin-bottom: 20px;
+}
+
+.chart-title {
+font-size: 16px;
+font-weight: 600;
+color: var(--text-primary);
+}
+
+.chart-period {
+background: #141414 !important;
+padding: 6px 12px;
+border-radius: 4px;
+font-size: 12px;
+color: var(--text-secondary);
+font-weight: 500;
+border: 1px solid var(--border-color);
+}
+
+.main-chart {
+height: 200px;
+background: #141414 !important;
+border-radius: 4px;
+position: relative;
+overflow: hidden;
+display: flex;
+align-items: center;
+justify-content: center;
+padding: 16px;
+border: 1px solid var(--border-color);
+}
+
+.chart-placeholder {
+color: var(--text-secondary);
+font-size: 14px;
+text-align: center;
+}
+
+.activity-panel {
+background: #141414 !important;
+border-radius: 4px;
+padding: 24px;
+box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+border: 1px solid var(--border-color);
+height: fit-content;
+}
+
+.activity-title {
+font-size: 16px;
+font-weight: 600;
+color: var(--text-primary);
+margin-bottom: 16px;
+}
+
+.activity-item {
+padding: 12px 0;
+border-bottom: 1px solid var(--border-color);
+display: flex;
+align-items: center;
+gap: 12px;
+}
+
+.activity-item:last-child {
+border-bottom: none;
+}
+
+/* Text-only activity indicators */
+.activity-label {
+width: 60px;
+height: 24px;
+background: var(--text-accent);
+border-radius: 4px;
+display: flex;
+align-items: center;
+justify-content: center;
+color: white;
+font-size: 10px;
+font-weight: 600;
+flex-shrink: 0;
+text-transform: uppercase;
+}
+
+.activity-content {
+flex: 1;
+}
+
+.activity-text {
+font-size: 13px;
+color: var(--text-primary);
+margin-bottom: 2px;
+}
+
+.activity-time {
+font-size: 11px;
+color: var(--text-secondary);
+}
+
+/* Connection Progress Section */
+.connection-progress-section {
+margin-bottom: 2rem;
+padding: 1.5rem;
+background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(59, 130, 246, 0.05));
+border-radius: 8px;
+border: 1px solid rgba(16, 185, 129, 0.1);
+}
+
+.progress-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 1rem;
+}
+
+.progress-text {
+font-size: 1rem;
+font-weight: 600;
+color: var(--text-primary);
+display: flex;
+align-items: center;
+gap: 0.5rem;
+}
+
+.progress-count {
+color: var(--text-accent);
+font-weight: 700;
+}
+
+.progress-percentage {
+font-size: 1.5rem;
+font-weight: 800;
+color: var(--text-accent);
+}
+
+.progress-bar {
+width: 100%;
+height: 8px;
+background: rgba(0, 0, 0, 0.1);
+border-radius: 4px;
+overflow: hidden;
+position: relative;
+}
+
+.progress-fill {
+height: 100%;
+background: linear-gradient(90deg, var(--text-accent), var(--text-primary));
+border-radius: 4px;
+transition: width 0.8s ease;
+width: 0%;
+position: relative;
+}
+
+.progress-fill::after {
+content: '';
+position: absolute;
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+animation: shimmer 2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+0% { transform: translateX(-100%); }
+100% { transform: translateX(100%); }
+}
+
+/* API Keys Management Section */
+.api-keys-grid {
+display: grid;
+grid-template-columns: 1fr;
+gap: 16px;
+}
+
+.api-key-card {
+background: #141414 !important;
+border: 1px solid var(--border-color);
+border-radius: 4px;
+padding: 24px;
+transition: all 0.2s ease;
+box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.api-key-card:hover {
+transform: translateY(-2px);
+box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+border-color: var(--text-accent);
+}
+
+.api-key-header {
+display: flex;
+justify-content: space-between;
+align-items: flex-start;
+margin-bottom: 20px;
+}
+
+.platform-info {
+display: flex;
+align-items: flex-start;
+gap: 12px;
+flex: 1;
+}
+
+/* Platform icon indicators */
+.platform-label {
+width: 40px;
+height: 40px;
+border-radius: 4px;
+display: flex;
+align-items: center;
+justify-content: center;
+flex-shrink: 0;
+padding: 8px;
+}
+
+.platform-label svg {
+width: 100%;
+height: 100%;
+}
+
+.platform-label.notion {
+background: #141414;
+}
+
+.platform-label.google {
+background: #4285f4;
+}
+
+.platform-label.apple {
+background: #141414;
+}
+
+.platform-label.outlook {
+background: #0078d4;
+}
+
+.platform-label.slack {
+background: #4a154b;
+}
+
+.platform-details {
+flex: 1;
+}
+
+.platform-name {
+font-size: 16px;
+font-weight: 600;
+color: var(--text-primary);
+margin-bottom: 4px;
+}
+
+.platform-description {
+font-size: 13px;
+color: var(--text-secondary);
+line-height: 1.4;
+margin: 0;
+}
+
+.connection-status {
+display: flex;
+align-items: center;
+gap: 6px;
+flex-shrink: 0;
+}
+
+.status-dot {
+width: 8px;
+height: 8px;
+border-radius: 50%;
+background: #d1d5db;
+}
+
+.status-dot.connected {
+background: var(--text-primary);
+}
+
+.status-dot.disconnected {
+background: var(--text-primary);
+}
+
+.status-text {
+font-size: 12px;
+font-weight: 500;
+color: var(--text-secondary);
+}
+
+.api-key-input-section {
+margin-bottom: 20px;
+}
+
+.input-label {
+display: flex;
+align-items: center;
+gap: 6px;
+font-size: 14px;
+font-weight: 500;
+color: var(--text-primary);
+margin-bottom: 8px;
+}
+
+.label-text {
+font-size: 12px;
+}
+
+.input-container {
+position: relative;
+display: flex;
+align-items: center;
+}
+
+.api-key-input {
+width: 100%;
+padding: 12px 16px;
+padding-right: 44px;
+border: 1px solid var(--border-color);
+border-radius: 4px;
+background: #141414 !important;
+color: var(--text-primary);
+font-size: 14px;
+font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+transition: all 0.2s ease;
+}
+
+.api-key-input:focus {
+outline: none;
+border-color: var(--text-accent);
+box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.api-key-input::placeholder {
+color: var(--text-secondary);
+opacity: 0.7;
+}
+
+.visibility-toggle {
+position: absolute;
+right: 12px;
+background: none;
+border: none;
+cursor: pointer;
+padding: 4px;
+color: var(--text-secondary);
+transition: color 0.2s ease;
+}
+
+.visibility-toggle:hover {
+color: var(--text-primary);
+}
+
+.eye-text {
+font-size: 10px;
+font-weight: 600;
+text-transform: uppercase;
+}
+
+.input-help {
+margin-top: 6px;
+font-size: 12px;
+color: var(--text-secondary);
+line-height: 1.4;
+}
+
+.help-link {
+color: var(--text-accent);
+text-decoration: none;
+margin-left: 8px;
+font-weight: 500;
+}
+
+.help-link:hover {
+text-decoration: underline;
+}
+
+.api-key-actions {
+display: flex;
+gap: 12px;
+margin-bottom: 16px;
+}
+
+.btn-connect,
+.btn-test {
+display: flex;
+align-items: center;
+gap: 6px;
+padding: 10px 16px;
+border: 1px solid var(--border-color);
+border-radius: 4px;
+background: #141414 !important;
+color: var(--text-primary);
+font-size: 13px;
+font-weight: 500;
+cursor: pointer;
+transition: all 0.2s ease;
+text-decoration: none;
+}
+
+.btn-connect:hover,
+.btn-test:hover {
+background: var(--text-accent);
+color: white;
+}
+
+/* Text-only action indicators */
+.btn-text {
+font-size: 12px;
+font-weight: 600;
+}
+
+.connection-details {
+padding-top: 16px;
+border-top: 1px solid var(--border-color);
+}
+
+.detail-row {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 8px;
+}
+
+.detail-row:last-child {
+margin-bottom: 0;
+}
+
+.detail-label {
+font-size: 12px;
+color: var(--text-secondary);
+font-weight: 500;
+}
+
+.detail-value {
+font-size: 12px;
+color: var(--text-primary);
+font-weight: 500;
+}
+
+.detail-value.success {
+color: var(--text-primary);
+}
+
+.detail-value.warning {
+color: var(--text-primary);
+}
+
+.detail-value.error {
+color: var(--text-primary);
+}
+
+/* Quick Actions Section */
+.quick-actions {
+background: #141414 !important;
+border: 1px solid var(--border-color);
+border-radius: 4px;
+padding: 24px;
+box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.actions-grid {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+gap: 12px;
+}
+
+.action-button {
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 8px;
+padding: 16px 12px;
+background: #141414 !important;
+border: 1px solid var(--border-color);
+border-radius: 4px;
+text-decoration: none;
+transition: all 0.2s ease;
+color: var(--text-primary);
+}
+
+.action-button:hover {
+background: var(--text-accent);
+border-color: var(--text-accent);
+color: white;
+transform: translateY(-1px);
+box-shadow: 0 4px 8px rgba(16, 185, 129, 0.2);
+}
+
+/* Text-only action indicators */
+.action-text {
+font-size: 10px;
+font-weight: 600;
+color: var(--text-accent);
+background: rgba(0, 0, 0, 0.1);
+padding: 6px 8px;
+border-radius: 4px;
+border: 1px solid rgba(0, 0, 0, 0.2);
+text-transform: uppercase;
+}
+
+.action-button:hover .action-text {
+background: #141414;
+color: var(--text-accent);
+}
+
+.action-label {
+font-size: 12px;
+font-weight: 500;
+color: var(--text-primary);
+text-align: center;
+line-height: 1.3;
+transition: all 0.2s ease;
+}
+
+.action-button:hover .action-label {
+color: white;
+}
+
+/* Logout Section */
+.logout-section {
+background: #141414 !important;
+border: 1px solid var(--border-color);
+border-radius: 4px;
+padding: 24px;
+box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.logout-container {
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 2rem;
+}
+
+.logout-info {
+flex: 1;
+}
+
+.logout-title {
+font-size: 16px;
+font-weight: 600;
+color: var(--text-primary);
+margin-bottom: 8px;
+}
+
+.logout-description {
+font-size: 14px;
+color: var(--text-secondary);
+line-height: 1.5;
+margin: 0;
+}
+
+.logout-button {
+display: flex;
+align-items: center;
+gap: 8px;
+padding: 12px 20px;
+background: var(--text-primary);
+color: white;
+border: none;
+border-radius: 6px;
+font-size: 14px;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.2s ease;
+min-width: 120px;
+justify-content: center;
+}
+
+.logout-button:hover {
+background: var(--text-secondary);
+transform: translateY(-1px);
+box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+}
+
+.logout-button:active {
+transform: translateY(0);
+}
+
+.logout-button svg {
+flex-shrink: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+.analytics-section {
+grid-template-columns: 1fr;
+gap: 16px;
+}
+}
+
+@media (max-width: 768px) {
+.settings-container {
+padding: 16px;
+}
+
+.metrics-grid {
+grid-template-columns: 1fr;
+gap: 12px;
+}
+
+.actions-grid {
+grid-template-columns: repeat(2, 1fr);
+}
+
+.settings-header {
+padding: 20px;
+}
+
+.settings-title {
+font-size: 24px;
+}
+
+.settings-subtitle {
+font-size: 14px;
+}
+
+.metric-card {
+padding: 16px;
+}
+
+.metric-number {
+font-size: 24px;
+}
+
+.api-keys-grid {
+grid-template-columns: 1fr;
+gap: 16px;
+}
+
+.api-key-card {
+padding: 20px;
+}
+
+.api-key-header {
+flex-direction: column;
+gap: 12px;
+align-items: flex-start;
+}
+
+.connection-status {
+align-self: flex-end;
+}
+
+.api-key-actions {
+flex-direction: column;
+}
+
+.btn-connect,
+.btn-test {
+justify-content: center;
+}
+
+.logout-container {
+flex-direction: column;
+align-items: flex-start;
+gap: 1rem;
+}
+
+.logout-button {
+align-self: stretch;
+}
+}
+
+@media (max-width: 480px) {
+.settings-container {
+padding: 12px;
+}
+
+.actions-grid {
+grid-template-columns: 1fr;
+}
+
+.settings-header {
+padding: 16px;
+}
+
+.settings-title {
+font-size: 22px;
+}
+
+.metric-card {
+padding: 14px;
+}
+
+.chart-container,
+.activity-panel {
+padding: 16px;
+}
+
+.platform-info {
+flex-direction: column;
+gap: 8px;
+}
+
+.platform-label {
+width: 32px;
+height: 32px;
+font-size: 8px;
+}
+
+.api-key-input {
+padding: 10px 12px;
+padding-right: 40px;
+font-size: 13px;
+}
+
+.btn-connect,
+.btn-test {
+padding: 8px 12px;
+font-size: 12px;
+}
+}
+{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+    <div class="settings-header">
+        <div class="settings-header-content">
+            <div class="settings-text">
+                <h1 class="settings-title" data-translate="settings.title">NotionFlow 설정</h1>
+                <p class="settings-subtitle" data-translate="settings.subtitle">
+                    연결된 모든 플랫폼의 생산성 통합 및 동기화 상태를 모니터링하고 관리하세요.
+                </p>
+            </div>
+            <div class="language-toggle">
+                <button class="language-toggle-btn" id="languageToggle" onclick="toggleLanguage()">
+                    <span class="lang-flag">🇰🇷</span>
+                    <span class="lang-text">KO</span>
+                    <span class="toggle-arrow">⌄</span>
+                </button>
+                <div class="language-dropdown" id="languageDropdown">
+                    <div class="language-option" onclick="setLanguage('en')">
+                        <span class="lang-flag">🇺🇸</span>
+                        <span class="lang-name">English</span>
+                    </div>
+                    <div class="language-option" onclick="setLanguage('ko')">
+                        <span class="lang-flag">🇰🇷</span>
+                        <span class="lang-name">한국어</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Theme Toggle Section -->
+    <!-- Dark Mode Section -->
+    <div class="dark-mode-section">
+        <h2 class="dark-mode-title">다크 모드</h2>
+        <p class="dark-mode-description">어두운 테마로 변경합니다</p>
+        <div class="dark-mode-toggle-container">
+            <label class="toggle-switch">
+                <input type="checkbox" id="theme-toggle" checked>
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+    </div>
+
+    <!-- Platform Status Section -->
+    <div class="metrics-section">
+        <h2 class="section-title" data-translate="section.platform_status">플랫폼 상태</h2>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-number">1,247</div>
+                <div class="metric-label">동기화된 이벤트</div>
+                <div class="metric-description">이번 달 모든 플랫폼에서 동기화된 총 이벤트 수</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-number">60%</div>
+                <div class="metric-label">플랫폼 커버리지</div>
+                <div class="metric-description">연결된 플랫폼: Notion, Google Calendar, Apple Calendar</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-number">24.5h</div>
+                <div class="metric-label">절약된 시간</div>
+                <div class="metric-description">이번 주 자동화를 통해 절약된 예상 시간</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-number">92%</div>
+                <div class="metric-label">동기화 성공률</div>
+                <div class="metric-description">지난 30일간 성공적인 동기화 비율</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sync Activity Section -->
+    <div class="sync-activity-section">
+        <div class="sync-activity-header">
+            <h2 class="sync-activity-title">동기화 활동</h2>
+            <button class="sync-activity-settings">최근 7일</button>
+        </div>
+        <div class="sync-activity-content">
+            <div class="sync-activity-empty">
+                <p class="sync-activity-empty-text">동기화 활동 차트 시각화</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- End of content -->
+
+    <!-- API Keys Management Section -->
+    <div class="metrics-section">
+        <h2 class="section-title" data-translate="section.platform_connections">플랫폼 연결</h2>
+
+        <!-- Progress Tracking System -->
+        <div class="connection-progress-section">
+            <div class="progress-header">
+                <div class="progress-text" id="progress-text">
+                    <span class="progress-count">0 of 5</span> 개 플랫폼 연결됨
+                </div>
+                <div class="progress-percentage" id="progress-percentage">0%</div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+
+        <div class="api-keys-grid" id="apiKeysGrid">
+            <!-- Notion Platform -->
+            <div class="api-key-card" data-platform="notion">
+                <div class="api-key-header">
+                    <div class="platform-info">
+                        <div class="platform-label notion">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046 1.121-.56 1.121-1.167V6.354c0-.606-.233-.933-.747-.887l-15.177.887c-.56.047-.934.373-.934 1.027zm13.748.327c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.139c-.093-.514.28-.887.747-.933zM1.936 1.035l13.31-.98c1.634-.14 2.055-.047 3.082.7l4.249 2.986c.7.513.934.653.934 1.213v16.378c0 1.026-.373 1.634-1.68 1.726l-15.458.934c-.98.047-1.448-.093-1.962-.747l-3.129-4.06c-.56-.747-.793-1.306-.793-1.96V2.667c0-.839.374-1.54 1.447-1.632z"/>
+                            </svg>
+                        </div>
+                        <div class="platform-details">
+                            <h3 class="platform-name">Notion</h3>
+                            <p class="platform-description">노트, 데이터베이스, 프로젝트 관리를 위한 완전한 워크스페이스</p>
+                        </div>
+                    </div>
+                    <div class="connection-status" id="notion-status">
+                        <span class="status-dot disconnected"></span>
+                        <span class="status-text">연결되지 않음</span>
+                    </div>
+                </div>
+
+                <div class="api-key-input-section">
+                    <label class="input-label" for="notion-key-input">
+                        <span class="label-text">키</span>
+                        Notion 통합 토큰
+                    </label>
+                    <div class="input-container">
+                        <input type="password" class="api-key-input" id="notion-key-input"
+                            placeholder="secret_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" data-platform="notion">
+                        <button class="visibility-toggle" onclick="toggleKeyVisibility('notion')" type="button">
+                            <span class="eye-text">표시</span>
+                        </button>
+                    </div>
+                    <div class="input-help">
+                        Notion 워크스페이스 설정에서 이 토큰을 생성하세요
+                        <a href="/setup/notion" target="_blank" class="help-link">설정 가이드</a>
+                    </div>
+                </div>
+
+                <div class="api-key-actions">
+                    <button class="btn-connect" onclick="saveApiKey('notion')" id="notion-connect-btn">
+                        <span class="btn-text">연결</span>
+                        Notion 연결
+                    </button>
+                    <button class="btn-test" onclick="testConnection('notion')" id="notion-test-btn">
+                        <span class="btn-text">테스트</span>
+                        연결 테스트
+                    </button>
+                </div>
+
+                <div class="connection-details" id="notion-details" style="display: none;">
+                    <div class="detail-row">
+                        <span class="detail-label">마지막 동기화:</span>
+                        <span class="detail-value">2분 전</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">상태:</span>
+                        <span class="detail-value success">활성</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Google Calendar Platform -->
+            <div class="api-key-card" data-platform="google">
+                <div class="api-key-header">
+                    <div class="platform-info">
+                        <div class="platform-label google">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                            </svg>
+                        </div>
+                        <div class="platform-details">
+                            <h3 class="platform-name">Google Calendar</h3>
+                            <p class="platform-description">스마트 스케줄링 기능이 있는 고급 캘린더 통합</p>
+                        </div>
+                    </div>
+                    <div class="connection-status" id="google-status">
+                        <span class="status-dot disconnected"></span>
+                        <span class="status-text">연결되지 않음</span>
+                    </div>
+                </div>
+
+                <div class="api-key-input-section">
+                    <label class="input-label" for="google-key-input">
+                        <span class="label-text">키</span>
+                        Google Calendar API 키
+                    </label>
+                    <div class="input-container">
+                        <input type="password" class="api-key-input" id="google-key-input"
+                            placeholder="AIzaSyxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" data-platform="google">
+                        <button class="visibility-toggle" onclick="toggleKeyVisibility('google')" type="button">
+                            <span class="eye-text">표시</span>
+                        </button>
+                    </div>
+                    <div class="input-help">
+                        Calendar API가 활성화된 Google Cloud Console에서 API 키를 생성하세요
+                        <a href="/setup/google" target="_blank" class="help-link">설정 가이드</a>
+                    </div>
+                </div>
+
+                <div class="api-key-actions">
+                    <button class="btn-connect" onclick="saveApiKey('google')" id="google-connect-btn">
+                        <span class="btn-text">연결</span>
+                        Google 연결
+                    </button>
+                    <button class="btn-test" onclick="testConnection('google')" id="google-test-btn">
+                        <span class="btn-text">테스트</span>
+                        연결 테스트
+                    </button>
+                </div>
+
+                <div class="connection-details" id="google-details" style="display: none;">
+                    <div class="detail-row">
+                        <span class="detail-label">마지막 동기화:</span>
+                        <span class="detail-value">15분 전</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">상태:</span>
+                        <span class="detail-value warning">주의 필요</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Apple Calendar Platform -->
+            <div class="api-key-card" data-platform="apple">
+                <div class="api-key-header">
+                    <div class="platform-info">
+                        <div class="platform-label apple">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                            </svg>
+                        </div>
+                        <div class="platform-details">
+                            <h3 class="platform-name">Apple Calendar</h3>
+                            <p class="platform-description">원활한 기기 동기화를 제공하는 네이티브 iCloud 캘린더 통합</p>
+                        </div>
+                    </div>
+                    <div class="connection-status" id="apple-status">
+                        <span class="status-dot disconnected"></span>
+                        <span class="status-text">연결되지 않음</span>
+                    </div>
+                </div>
+
+                <div class="api-key-input-section">
+                    <label class="input-label" for="apple-key-input">
+                        <span class="label-text">키</span>
+                        앱 암호
+                    </label>
+                    <div class="input-container">
+                        <input type="password" class="api-key-input" id="apple-key-input"
+                            placeholder="xxxx-xxxx-xxxx-xxxx" data-platform="apple">
+                        <button class="visibility-toggle" onclick="toggleKeyVisibility('apple')" type="button">
+                            <span class="eye-text">표시</span>
+                        </button>
+                    </div>
+                    <div class="input-help">
+                        Apple ID 설정에서 앱 암호를 생성하세요
+                        <a href="/setup/apple" target="_blank" class="help-link">설정 가이드</a>
+                    </div>
+                </div>
+
+                <div class="api-key-actions">
+                    <button class="btn-connect" onclick="saveApiKey('apple')" id="apple-connect-btn">
+                        <span class="btn-text">연결</span>
+                        Apple 연결
+                    </button>
+                    <button class="btn-test" onclick="testConnection('apple')" id="apple-test-btn">
+                        <span class="btn-text">테스트</span>
+                        연결 테스트
+                    </button>
+                </div>
+
+                <div class="connection-details" id="apple-details" style="display: none;">
+                    <div class="detail-row">
+                        <span class="detail-label">마지막 동기화:</span>
+                        <span class="detail-value">1시간 전</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">상태:</span>
+                        <span class="detail-value success">활성</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Outlook Platform -->
+            <div class="api-key-card" data-platform="outlook">
+                <div class="api-key-header">
+                    <div class="platform-info">
+                        <div class="platform-label outlook">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" fill="#0078D4"/>
+                                <path d="M12 2V22L2 17V7L12 2Z" fill="#0078D4"/>
+                                <path d="M12 2L22 7V17L12 22V2Z" fill="#28A8EA"/>
+                                <path d="M12 7V17L22 12V7L12 7Z" fill="#50D9FF"/>
+                                <path d="M12 7L2 12V17L12 17V7Z" fill="#0364B8"/>
+                                <path d="M7 9.5C7 8.67157 7.67157 8 8.5 8H15.5C16.3284 8 17 8.67157 17 9.5V14.5C17 15.3284 16.3284 16 15.5 16H8.5C7.67157 16 7 15.3284 7 14.5V9.5Z" fill="white"/>
+                                <path d="M12 10C10.8954 10 10 10.8954 10 12C10 13.1046 10.8954 14 12 14C13.1046 14 14 13.1046 14 12C14 10.8954 13.1046 10 12 10Z" fill="#0078D4"/>
+                            </svg>
+                        </div>
+                        <div class="platform-details">
+                            <h3 class="platform-name">Microsoft Outlook</h3>
+                            <p class="platform-description">Microsoft Graph API를 활용한 전문적인 이메일 및 캘린더 통합</p>
+                        </div>
+                    </div>
+                    <div class="connection-status" id="outlook-status">
+                        <span class="status-dot disconnected"></span>
+                        <span class="status-text">연결되지 않음</span>
+                    </div>
+                </div>
+
+                <div class="api-key-input-section">
+                    <label class="input-label" for="outlook-key-input">
+                        <span class="label-text">키</span>
+                        Microsoft Graph API 키
+                    </label>
+                    <div class="input-container">
+                        <input type="password" class="api-key-input" id="outlook-key-input"
+                            placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" data-platform="outlook">
+                        <button class="visibility-toggle" onclick="toggleKeyVisibility('outlook')" type="button">
+                            <span class="eye-text">표시</span>
+                        </button>
+                    </div>
+                    <div class="input-help">
+                        Azure Portal에서 Graph API 권한으로 앱 등록을 생성하세요
+                        <a href="/setup/outlook" target="_blank" class="help-link">설정 가이드</a>
+                    </div>
+                </div>
+
+                <div class="api-key-actions">
+                    <button class="btn-connect" onclick="saveApiKey('outlook')" id="outlook-connect-btn">
+                        <span class="btn-text">연결</span>
+                        Outlook 연결
+                    </button>
+                    <button class="btn-test" onclick="testConnection('outlook')" id="outlook-test-btn">
+                        <span class="btn-text">테스트</span>
+                        연결 테스트
+                    </button>
+                </div>
+
+                <div class="connection-details" id="outlook-details" style="display: none;">
+                    <div class="detail-row">
+                        <span class="detail-label">마지막 동기화:</span>
+                        <span class="detail-value">5시간 전</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">상태:</span>
+                        <span class="detail-value error">연결 실패</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slack Platform -->
+            <div class="api-key-card" data-platform="slack">
+                <div class="api-key-header">
+                    <div class="platform-info">
+                        <div class="platform-label slack">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313z" fill="#E01E5A"/>
+                                <path d="M8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312z" fill="#36C5F0"/>
+                                <path d="M18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312z" fill="#2EB67D"/>
+                                <path d="M15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z" fill="#ECB22E"/>
+                            </svg>
+                        </div>
+                        <div class="platform-details">
+                            <h3 class="platform-name">Slack</h3>
+                            <p class="platform-description">워크플로우 자동화 기능이 있는 팀 커뮤니케이션 허브</p>
+                        </div>
+                    </div>
+                    <div class="connection-status" id="slack-status">
+                        <span class="status-dot disconnected"></span>
+                        <span class="status-text">연결되지 않음</span>
+                    </div>
+                </div>
+
+                <div class="api-key-input-section">
+                    <label class="input-label" for="slack-key-input">
+                        <span class="label-text">키</span>
+                        Slack 웹훅 URL
+                    </label>
+                    <div class="input-container">
+                        <input type="password" class="api-key-input" id="slack-key-input"
+                            placeholder="https://hooks.slack.com/services/..." data-platform="slack">
+                        <button class="visibility-toggle" onclick="toggleKeyVisibility('slack')" type="button">
+                            <span class="eye-text">표시</span>
+                        </button>
+                    </div>
+                    <div class="input-help">
+                        Slack 워크스페이스 설정에서 웹훅 URL을 생성하세요
+                        <a href="/setup/slack" target="_blank" class="help-link">설정 가이드</a>
+                    </div>
+                </div>
+
+                <div class="api-key-actions">
+                    <button class="btn-connect" onclick="saveApiKey('slack')" id="slack-connect-btn">
+                        <span class="btn-text">연결</span>
+                        Slack 연결
+                    </button>
+                    <button class="btn-test" onclick="testConnection('slack')" id="slack-test-btn">
+                        <span class="btn-text">테스트</span>
+                        연결 테스트
+                    </button>
+                </div>
+
+                <div class="connection-details" id="slack-details" style="display: none;">
+                    <div class="detail-row">
+                        <span class="detail-label">마지막 동기화:</span>
+                        <span class="detail-value">3시간 전</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">상태:</span>
+                        <span class="detail-value success">활성</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Section -->
+    <div class="metrics-section">
+        <h2 class="section-title" data-translate="section.quick_actions">빠른 작업</h2>
+        <div class="quick-actions">
+            <div class="actions-grid">
+                <button class="action-button" onclick="syncAllPlatforms()">
+                    <div class="action-text">동기화</div>
+                    <span class="action-label">수동 동기화</span>
+                </button>
+                <a href="/dashboard?section=calendar" class="action-button">
+                    <div class="action-text">캘린더</div>
+                    <span class="action-label">캘린더</span>
+                </a>
+                <a href="/dashboard/analytics" class="action-button">
+                    <div class="action-text">보고서</div>
+                    <span class="action-label">보고서</span>
+                </a>
+                <a href="/dashboard/help" class="action-button">
+                    <div class="action-text">지원</div>
+                    <span class="action-label">지원</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout Section -->
+    <div class="metrics-section">
+        <div class="logout-section">
+            <div class="logout-container">
+                <div class="logout-info">
+                    <h3 class="logout-title" data-translate="logout.title">계정 관리</h3>
+                    <p class="logout-description" data-translate="logout.description">
+                        NotionFlow 계정에서 안전하게 로그아웃하고 모든 활성 세션을 종료합니다.
+                    </p>
+                </div>
+                <button class="logout-button" onclick="handleLogout()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M17 7L15.59 8.41L18.17 11H8V13H18.17L15.59 15.58L17 17L22 12L17 7Z" fill="currentColor"/>
+                        <path d="M2 2H12V6H10V4H4V20H10V18H12V22H2V2Z" fill="currentColor"/>
+                    </svg>
+                    <span data-translate="logout.button">로그아웃</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Translation Dictionary (copied from dashboard-index.html)
+    const translations = {
+        en: {
+            // Page Meta
+            'page.title': 'NotionFlow Settings | Productivity Management Center',
+            'page.description': 'Check productivity metrics and manage API keys in NotionFlow Settings. View real-time time savings and platform connection status.',
+
+            // Settings Header
+            'settings.title': 'NotionFlow Settings',
+            'settings.subtitle': 'Monitor and manage your productivity integrations and synchronization status across all connected platforms.',
+
+            // Platform Status Section
+            'section.platform_status': 'Platform Status',
+
+            // Metric Cards
+            'metrics.events_synced': 'Events Synced',
+            'metrics.events_synced_desc': 'Total synchronized events across all platforms this month',
+            'metrics.platform_coverage': 'Platform Coverage',
+            'metrics.platform_coverage_desc': 'Connected platforms: Notion, Google Calendar, Apple Calendar',
+            'metrics.time_saved': 'Time Saved',
+            'metrics.time_saved_desc': 'Estimated time saved through automation this week',
+            'metrics.sync_success': 'Sync Success',
+            'metrics.sync_success_desc': 'Successful synchronization rate over the last 30 days',
+
+            // Analytics Section
+            'analytics.chart_title': 'Synchronization Activity',
+            'analytics.chart_period': 'Last 7 days',
+            'analytics.chart_placeholder': 'Sync activity chart visualization',
+            'analytics.recent_activity': 'Recent Activity',
+
+            // Activity Items
+            'activity.notion_updated': 'Notion database updated',
+            'activity.google_created': 'Google Calendar event created',
+            'activity.apple_completed': 'Apple Calendar sync completed',
+            'activity.slack_sent': 'Slack notification sent',
+            'activity.outlook_failed': 'Outlook calendar sync failed',
+            'activity.time.minutes_ago': 'minutes ago',
+            'activity.time.hour_ago': 'hour ago',
+            'activity.time.hours_ago': 'hours ago',
+
+            // Platform Connections
+            'section.platform_connections': 'Platform Connections',
+            'progress.platforms_connected': 'platforms connected',
+
+            // Platform Names & Descriptions
+            'platform.notion.name': 'Notion',
+            'platform.notion.desc': 'Complete workspace for notes, databases, and project management',
+            'platform.google.name': 'Google Calendar',
+            'platform.google.desc': 'Advanced calendar integration with smart scheduling',
+            'platform.apple.name': 'Apple Calendar',
+            'platform.apple.desc': 'Native iCloud calendar integration with seamless device sync',
+            'platform.outlook.name': 'Microsoft Outlook',
+            'platform.outlook.desc': 'Professional email and calendar integration with Microsoft Graph API',
+            'platform.slack.name': 'Slack',
+            'platform.slack.desc': 'Team communication hub with workflow automation',
+
+            // Connection States
+            'connection.not_connected': 'Not Connected',
+            'connection.connected': 'Connected',
+            'connection.connecting': 'Connecting...',
+            'connection.failed': 'Connection Failed',
+            'connection.needs_attention': 'Needs Attention',
+            'connection.active': 'Active',
+
+            // Input Labels
+            'input.notion_token': 'Notion Integration Token',
+            'input.google_key': 'Google Calendar API Key',
+            'input.apple_password': 'App-Specific Password',
+            'input.outlook_key': 'Microsoft Graph API Key',
+            'input.slack_webhook': 'Slack Webhook URL',
+
+            // Help Text
+            'help.notion': 'Generate this token from your Notion workspace settings',
+            'help.google': 'Create an API key in Google Cloud Console with Calendar API enabled',
+            'help.apple': 'Generate an app-specific password from your Apple ID settings',
+            'help.outlook': 'Create an app registration in Azure Portal with Graph API permissions',
+            'help.slack': 'Create a webhook URL in your Slack workspace settings',
+
+            // Buttons
+            'btn.setup_guide': 'Setup Guide',
+            'btn.connect_notion': 'Connect Notion',
+            'btn.connect_google': 'Connect Google',
+            'btn.connect_apple': 'Connect Apple',
+            'btn.connect_outlook': 'Connect Outlook',
+            'btn.connect_slack': 'Connect Slack',
+            'btn.test_connection': 'Test Connection',
+            'btn.testing': 'Testing...',
+            'btn.test_passed': 'Test Passed',
+            'btn.test_failed': 'Test Failed',
+
+            // Status Labels
+            'status.last_sync': 'Last Sync:',
+            'status.status': 'Status:',
+
+            // Quick Actions
+            'section.quick_actions': 'Quick Actions',
+            'action.manual_sync': 'Manual Sync',
+            'action.calendar': 'Calendar',
+            'action.reports': 'Reports',
+            'action.support': 'Support',
+            'action.syncing': 'Syncing...',
+            'action.sync_complete': 'Sync Complete',
+
+            // Toast Messages
+            'toast.api_key_required': 'Please enter your {platform} API key first',
+            'toast.invalid_format': 'Invalid {platform} API key format. Please check your key and try again.',
+            'toast.test_successful': '{platform} connection test successful!',
+            'toast.test_failed': '{platform} connection test failed. Please verify your API key.',
+            'toast.api_key_saved': '{platform} API key saved successfully!',
+            'toast.connecting': 'Connecting to {platform}...',
+
+            // Logout
+            'logout.title': 'Account Management',
+            'logout.description': 'Safely logout from your NotionFlow account and terminate all active sessions.',
+            'logout.button': 'Logout',
+        },
+        ko: {
+            // Page Meta
+            'page.title': 'NotionFlow 설정 | 생산성 관리 센터',
+            'page.description': 'NotionFlow 설정에서 생산성 지표를 확인하고 API 키를 관리하세요. 실시간 시간 절약 현황과 플랫폼 연결 상태를 한눈에 보세요.',
+
+            // Settings Header
+            'settings.title': 'NotionFlow 설정',
+            'settings.subtitle': '연결된 모든 플랫폼의 생산성 통합 및 동기화 상태를 모니터링하고 관리하세요.',
+
+            // Platform Status Section
+            'section.platform_status': '플랫폼 상태',
+
+            // Metric Cards
+            'metrics.events_synced': '동기화된 이벤트',
+            'metrics.events_synced_desc': '이번 달 모든 플랫폼에서 동기화된 총 이벤트 수',
+            'metrics.platform_coverage': '플랫폼 커버리지',
+            'metrics.platform_coverage_desc': '연결된 플랫폼: Notion, Google Calendar, Apple Calendar',
+            'metrics.time_saved': '절약된 시간',
+            'metrics.time_saved_desc': '이번 주 자동화를 통해 절약된 예상 시간',
+            'metrics.sync_success': '동기화 성공률',
+            'metrics.sync_success_desc': '지난 30일간 성공적인 동기화 비율',
+
+            // Analytics Section
+            'analytics.chart_title': '동기화 활동',
+            'analytics.chart_period': '최근 7일',
+            'analytics.chart_placeholder': '동기화 활동 차트 시각화',
+            'analytics.recent_activity': '최근 활동',
+
+            // Activity Items
+            'activity.notion_updated': 'Notion 데이터베이스 업데이트됨',
+            'activity.google_created': 'Google Calendar 이벤트 생성됨',
+            'activity.apple_completed': 'Apple Calendar 동기화 완료됨',
+            'activity.slack_sent': 'Slack 알림 전송됨',
+            'activity.outlook_failed': 'Outlook 캘린더 동기화 실패',
+            'activity.time.minutes_ago': '분 전',
+            'activity.time.hour_ago': '시간 전',
+            'activity.time.hours_ago': '시간 전',
+
+            // Platform Connections
+            'section.platform_connections': '플랫폼 연결',
+            'progress.platforms_connected': '개 플랫폼 연결됨',
+
+            // Platform Names & Descriptions
+            'platform.notion.name': 'Notion',
+            'platform.notion.desc': '노트, 데이터베이스, 프로젝트 관리를 위한 완전한 워크스페이스',
+            'platform.google.name': 'Google Calendar',
+            'platform.google.desc': '스마트 스케줄링 기능이 있는 고급 캘린더 통합',
+            'platform.apple.name': 'Apple Calendar',
+            'platform.apple.desc': '원활한 기기 동기화를 제공하는 네이티브 iCloud 캘린더 통합',
+            'platform.outlook.name': 'Microsoft Outlook',
+            'platform.outlook.desc': 'Microsoft Graph API를 활용한 전문적인 이메일 및 캘린더 통합',
+            'platform.slack.name': 'Slack',
+            'platform.slack.desc': '워크플로우 자동화 기능이 있는 팀 커뮤니케이션 허브',
+
+            // Connection States
+            'connection.not_connected': '연결되지 않음',
+            'connection.connected': '연결됨',
+            'connection.connecting': '연결 중...',
+            'connection.failed': '연결 실패',
+            'connection.needs_attention': '주의 필요',
+            'connection.active': '활성',
+
+            // Input Labels
+            'input.notion_token': 'Notion 통합 토큰',
+            'input.google_key': 'Google Calendar API 키',
+            'input.apple_password': '앱 암호',
+            'input.outlook_key': 'Microsoft Graph API 키',
+            'input.slack_webhook': 'Slack 웹훅 URL',
+
+            // Help Text
+            'help.notion': 'Notion 워크스페이스 설정에서 이 토큰을 생성하세요',
+            'help.google': 'Calendar API가 활성화된 Google Cloud Console에서 API 키를 생성하세요',
+            'help.apple': 'Apple ID 설정에서 앱 암호를 생성하세요',
+            'help.outlook': 'Azure Portal에서 Graph API 권한으로 앱 등록을 생성하세요',
+            'help.slack': 'Slack 워크스페이스 설정에서 웹훅 URL을 생성하세요',
+
+            // Buttons
+            'btn.setup_guide': '설정 가이드',
+            'btn.connect_notion': 'Notion 연결',
+            'btn.connect_google': 'Google 연결',
+            'btn.connect_apple': 'Apple 연결',
+            'btn.connect_outlook': 'Outlook 연결',
+            'btn.connect_slack': 'Slack 연결',
+            'btn.test_connection': '연결 테스트',
+            'btn.testing': '테스트 중...',
+            'btn.test_passed': '테스트 통과',
+            'btn.test_failed': '테스트 실패',
+
+            // Status Labels
+            'status.last_sync': '마지막 동기화:',
+            'status.status': '상태:',
+
+            // Quick Actions
+            'section.quick_actions': '빠른 작업',
+            'action.manual_sync': '수동 동기화',
+            'action.calendar': '캘린더',
+            'action.reports': '보고서',
+            'action.support': '지원',
+            'action.syncing': '동기화 중...',
+            'action.sync_complete': '동기화 완료',
+
+            // Toast Messages
+            'toast.api_key_required': '{platform} API 키를 먼저 입력해주세요',
+            'toast.invalid_format': '잘못된 {platform} API 키 형식입니다. 키를 확인하고 다시 시도해주세요.',
+            'toast.test_successful': '{platform} 연결 테스트가 성공했습니다!',
+            'toast.test_failed': '{platform} 연결 테스트가 실패했습니다. API 키를 확인해주세요.',
+            'toast.api_key_saved': '{platform} API 키가 성공적으로 저장되었습니다!',
+            'toast.connecting': '{platform}에 연결 중...',
+
+            // Logout
+            'logout.title': '계정 관리',
+            'logout.description': 'NotionFlow 계정에서 안전하게 로그아웃하고 모든 활성 세션을 종료합니다.',
+            'logout.button': '로그아웃',
+        }
+    };
+
+    // Current language (default: Korean)
+    let currentLanguage = localStorage.getItem('preferred_language') || 'ko';
+
+    // Logout functionality
+    function handleLogout() {
+        if (confirm('정말 로그아웃 하시겠습니까?')) {
+            // Show loading state
+            const logoutBtn = document.querySelector('.logout-button');
+            const originalContent = logoutBtn.innerHTML;
+            
+            logoutBtn.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1L13.5 2.5L16.17 5.17C15.24 5.06 14.28 5 13.33 5C10.22 5 7.08 5.8 4.23 7.25L5.23 9.04C7.46 7.92 10.22 7.5 13.33 7.5C14.38 7.5 15.42 7.64 16.42 7.9L13.5 10.82L15 12.32L21 6.32V4.32L19 2.32L17.5 3.82L20.17 6.5C20.11 6.33 20.06 6.16 20 6V9Z" fill="currentColor"/>
+                </svg>
+                <span>로그아웃 중...</span>
+            `;
+            logoutBtn.disabled = true;
+            
+            // Redirect to logout
+            setTimeout(() => {
+                window.location.href = '/logout';
+            }, 1000);
+        }
+    }
+
+    // All JavaScript functions copied from dashboard-index.html with all the API key management, toast notifications, and language switching functionality
+    // [Note: The full JavaScript code from dashboard-index.html should be copied here]
+    // Including: toggleKeyVisibility, saveApiKey, testConnection, validateApiKeyFormat, showToast, updateConnectionProgress, loadExistingConnections, syncAllPlatforms, translate, updateLanguageToggle, applyTranslations, toggleLanguage, setLanguage, and all related functions
+
+    function toggleKeyVisibility(platform) {
+        const input = document.getElementById(`${platform}-key-input`);
+        const eyeText = input.parentElement.querySelector('.eye-text');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            eyeText.textContent = '숨기기';
+        } else {
+            input.type = 'password';
+            eyeText.textContent = '표시';
+        }
+    }
+
+    function saveApiKey(platform) {
+        const input = document.getElementById(`${platform}-key-input`);
+        const connectBtn = document.getElementById(`${platform}-connect-btn`);
+        const statusDot = document.querySelector(`#${platform}-status .status-dot`);
+        const statusText = document.querySelector(`#${platform}-status .status-text`);
+        const apiKeyCard = document.querySelector(`[data-platform="${platform}"]`);
+
+        const apiKey = input.value.trim();
+
+        if (!apiKey) {
+            showToast(translate('toast.api_key_required', { platform: translate(`platform.${platform}.name`) }), 'error');
+            return;
+        }
+
+        // Validate API key format
+        if (!validateApiKeyFormat(platform, apiKey)) {
+            return; // Validation function shows its own error
+        }
+
+        // Show loading state
+        connectBtn.disabled = true;
+        connectBtn.innerHTML = '<span class="btn-text">연결 중</span>연결 중...';
+        apiKeyCard.classList.add('connecting');
+
+        // Simulate API call
+        setTimeout(() => {
+            // Update connection status
+            statusDot.className = 'status-dot connected';
+            statusText.textContent = '연결됨';
+
+            // Update card state
+            apiKeyCard.classList.remove('connecting');
+            apiKeyCard.classList.add('connected');
+
+            // Reset button
+            connectBtn.disabled = false;
+            connectBtn.innerHTML = '<span class="btn-text">연결됨</span>연결됨';
+
+            // Show connection details
+            const details = document.getElementById(`${platform}-details`);
+            if (details) {
+                details.style.display = 'block';
+            }
+
+            // Save to session storage
+            sessionStorage.setItem(`${platform}_connected`, 'true');
+
+            // Update progress
+            updateConnectionProgress();
+
+            showToast(translate('toast.api_key_saved', { platform: translate(`platform.${platform}.name`) }), 'success');
+            console.log(`${platform} API key saved successfully`);
+        }, 2000);
+    }
+
+    function testConnection(platform) {
+        const testBtn = document.getElementById(`${platform}-test-btn`);
+        const input = document.getElementById(`${platform}-key-input`);
+
+        const apiKey = input.value.trim();
+
+        if (!apiKey) {
+            showToast(translate('toast.api_key_required', { platform: translate(`platform.${platform}.name`) }), 'error');
+            return;
+        }
+
+        // Validate API key format
+        if (!validateApiKeyFormat(platform, apiKey)) {
+            showToast(translate('toast.invalid_format', { platform: translate(`platform.${platform}.name`) }), 'error');
+            return;
+        }
+
+        // Show testing state
+        testBtn.disabled = true;
+        testBtn.innerHTML = '<span class="btn-text">테스트</span>테스트 중...';
+
+        // Simulate API test
+        setTimeout(() => {
+            const isSuccessful = Math.random() > 0.3; // 70% success rate for demo
+
+            if (isSuccessful) {
+                testBtn.innerHTML = '<span class="btn-text">성공</span>테스트 통과';
+                testBtn.style.background = 'var(--text-primary)';
+                testBtn.style.borderColor = 'var(--text-primary)';
+                testBtn.style.color = 'white';
+
+                showToast(translate('toast.test_successful', { platform: translate(`platform.${platform}.name`) }), 'success');
+
+                setTimeout(() => {
+                    testBtn.innerHTML = '<span class="btn-text">테스트</span>연결 테스트';
+                    testBtn.style.background = '';
+                    testBtn.style.borderColor = '';
+                    testBtn.style.color = '';
+                    testBtn.disabled = false;
+                }, 3000);
+            } else {
+                testBtn.innerHTML = '<span class="btn-text">실패</span>테스트 실패';
+                testBtn.style.background = 'var(--text-primary)';
+                testBtn.style.borderColor = 'var(--text-primary)';
+                testBtn.style.color = 'white';
+
+                showToast(translate('toast.test_failed', { platform: translate(`platform.${platform}.name`) }), 'error');
+
+                setTimeout(() => {
+                    testBtn.innerHTML = '<span class="btn-text">테스트</span>연결 테스트';
+                    testBtn.style.background = '';
+                    testBtn.style.borderColor = '';
+                    testBtn.style.color = '';
+                    testBtn.disabled = false;
+                }, 3000);
+            }
+        }, 1500);
+    }
+
+    function syncAllPlatforms() {
+        const syncBtn = document.querySelector('.action-button[onclick="syncAllPlatforms()"]');
+        const originalContent = syncBtn.innerHTML;
+
+        // Show syncing state
+        syncBtn.innerHTML = '<div class="action-text">동기화</div><span class="action-label">동기화 중...</span>';
+        syncBtn.style.pointerEvents = 'none';
+
+        // Simulate sync process
+        setTimeout(() => {
+            syncBtn.innerHTML = '<div class="action-text">완료</div><span class="action-label">동기화 완료</span>';
+
+            setTimeout(() => {
+                syncBtn.innerHTML = originalContent;
+                syncBtn.style.pointerEvents = '';
+            }, 2000);
+
+            console.log('Platform synchronization completed');
+        }, 3000);
+    }
+
+    // API Key Format Validation
+    function validateApiKeyFormat(platform, apiKey) {
+        let isValid = false;
+        let errorMessage = '';
+
+        switch (platform) {
+            case 'notion':
+                isValid = apiKey.startsWith('secret_') && apiKey.length > 50;
+                errorMessage = 'Notion API key must start with "secret_" and be at least 50 characters long';
+                break;
+            case 'google':
+                isValid = apiKey.startsWith('AIza') && apiKey.length >= 35;
+                errorMessage = 'Google API key must start with "AIza" and be at least 35 characters long';
+                break;
+            case 'apple':
+                isValid = /^[a-z]{4}-[a-z]{4}-[a-z]{4}-[a-z]{4}$/i.test(apiKey);
+                errorMessage = 'Apple app-specific password must be in format: xxxx-xxxx-xxxx-xxxx';
+                break;
+            case 'outlook':
+                isValid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(apiKey);
+                errorMessage = 'Microsoft Graph API key must be a valid UUID format';
+                break;
+            case 'slack':
+                isValid = apiKey.startsWith('xoxb-') || apiKey.startsWith('https://hooks.slack.com/');
+                errorMessage = 'Slack token must start with "xoxb-" or be a valid webhook URL';
+                break;
+            default:
+                isValid = true;
+        }
+
+        if (!isValid) {
+            showToast(errorMessage, 'error');
+            return false;
+        }
+
+        return true;
+    }
+
+    // Toast Notification System
+    function showToast(message, type = 'info') {
+        // Remove existing toast
+        const existingToast = document.querySelector('.toast-notification');
+        if (existingToast) {
+            existingToast.remove();
+        }
+
+        // Create toast
+        const toast = document.createElement('div');
+        toast.className = `toast-notification toast-${type}`;
+
+        const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+
+        toast.innerHTML = `
+            <div class="toast-content">
+                <span class="toast-icon">${icon}</span>
+                <span class="toast-message">${message}</span>
+            </div>
+        `;
+
+        // Add styles
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            background: #141414 !important;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            color: var(--text-primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slideInRight 0.3s ease;
+            min-width: 300px;
+            max-width: 400px;
+        `;
+
+        if (type === 'success') {
+            toast.style.borderColor = 'var(--text-primary)';
+            toast.style.background = 'rgba(16, 185, 129, 0.05)';
+        } else if (type === 'error') {
+            toast.style.borderColor = 'var(--text-primary)';
+            toast.style.background = 'rgba(239, 68, 68, 0.05)';
+        } else if (type === 'warning') {
+            toast.style.borderColor = 'var(--text-primary)';
+            toast.style.background = 'rgba(245, 158, 11, 0.05)';
+        }
+
+        document.body.appendChild(toast);
+
+        // Auto remove
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }
+        }, 4000);
+    }
+
+    // Connection Progress Update
+    function updateConnectionProgress() {
+        const connectedCards = document.querySelectorAll('.api-key-card.connected');
+        const totalPlatforms = 5;
+        const connectedCount = connectedCards.length;
+
+        const progressText = document.getElementById('progress-text');
+        const progressFill = document.getElementById('progress-fill');
+        const progressPercentage = document.getElementById('progress-percentage');
+
+        if (progressText) {
+            const progressCountSpan = progressText.querySelector('.progress-count');
+            if (progressCountSpan) {
+                progressCountSpan.textContent = `${connectedCount} of ${totalPlatforms}`;
+            }
+        }
+
+        const percentage = Math.round((connectedCount / totalPlatforms) * 100);
+
+        if (progressFill) {
+            progressFill.style.width = `${percentage}%`;
+        }
+
+        if (progressPercentage) {
+            progressPercentage.textContent = `${percentage}%`;
+        }
+    }
+
+    // Load existing connections on page load
+    function loadExistingConnections() {
+        const platforms = ['notion', 'google', 'apple', 'outlook', 'slack'];
+
+        platforms.forEach(platform => {
+            const isConnected = sessionStorage.getItem(`${platform}_connected`) === 'true';
+            if (isConnected) {
+                const apiKeyCard = document.querySelector(`[data-platform="${platform}"]`);
+                const statusDot = document.querySelector(`#${platform}-status .status-dot`);
+                const statusText = document.querySelector(`#${platform}-status .status-text`);
+                const connectBtn = document.getElementById(`${platform}-connect-btn`);
+                const details = document.getElementById(`${platform}-details`);
+
+                if (apiKeyCard) apiKeyCard.classList.add('connected');
+                if (statusDot) statusDot.className = 'status-dot connected';
+                if (statusText) statusText.textContent = '연결됨';
+                if (connectBtn) connectBtn.innerHTML = '<span class="btn-text">연결됨</span>연결됨';
+                if (details) details.style.display = 'block';
+            }
+        });
+
+        updateConnectionProgress();
+    }
+
+    // Language Switching Functions
+    function translate(key, replacements = {}) {
+        let text = translations[currentLanguage][key] || key;
+
+        // Handle string replacements like {platform}
+        Object.keys(replacements).forEach(placeholder => {
+            const regex = new RegExp(`{${placeholder}}`, 'g');
+            text = text.replace(regex, replacements[placeholder]);
+        });
+
+        return text;
+    }
+
+    function updateLanguageToggle() {
+        const toggleBtn = document.getElementById('languageToggle');
+        const flagSpan = toggleBtn.querySelector('.lang-flag');
+        const textSpan = toggleBtn.querySelector('.lang-text');
+
+        if (currentLanguage === 'ko') {
+            flagSpan.textContent = '🇰🇷';
+            textSpan.textContent = 'KO';
+        } else {
+            flagSpan.textContent = '🇺🇸';
+            textSpan.textContent = 'EN';
+        }
+
+        // Update active state in dropdown
+        const options = document.querySelectorAll('.language-option');
+        options.forEach(option => {
+            option.classList.remove('active');
+            if ((currentLanguage === 'en' && option.onclick.toString().includes("'en'")) ||
+                (currentLanguage === 'ko' && option.onclick.toString().includes("'ko'"))) {
+                option.classList.add('active');
+            }
+        });
+    }
+
+    function applyTranslations() {
+        // Update page meta
+        document.title = translate('page.title');
+        const metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) {
+            metaDesc.setAttribute('content', translate('page.description'));
+        }
+
+        // Update elements with data-translate attributes
+        const translatableElements = document.querySelectorAll('[data-translate]');
+        translatableElements.forEach(element => {
+            const key = element.getAttribute('data-translate');
+            element.textContent = translate(key);
+        });
+    }
+
+    function toggleLanguage() {
+        const languageToggle = document.querySelector('.language-toggle');
+        languageToggle.classList.toggle('active');
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function (event) {
+            if (!languageToggle.contains(event.target)) {
+                languageToggle.classList.remove('active');
+            }
+        });
+    }
+
+    function setLanguage(lang) {
+        currentLanguage = lang;
+        localStorage.setItem('preferred_language', lang);
+
+        // Update UI
+        updateLanguageToggle();
+        applyTranslations();
+
+        // Close dropdown
+        document.querySelector('.language-toggle').classList.remove('active');
+
+        // Show toast notification
+        const message = lang === 'ko' ? '언어가 한국어로 변경되었습니다' : 'Language changed to English';
+        showToast(message, 'success');
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log('✨ NotionFlow Settings loaded');
+
+        loadExistingConnections();
+        updateConnectionProgress();
+
+        // Initialize language
+        updateLanguageToggle();
+        applyTranslations();
+    });
+
+    // Add CSS animations for toast
+    const toastStyle = document.createElement('style');
+    toastStyle.textContent = `
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        .toast-content {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .toast-icon {
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        
+        .toast-message {
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        /* Card states */
+        .api-key-card.connecting {
+            border-color: var(--text-primary);
+            background: rgba(245, 158, 11, 0.02);
+            animation: pulse-border 2s ease-in-out infinite;
+        }
+
+        .api-key-card.connected {
+            border-color: var(--text-primary);
+            background: rgba(16, 185, 129, 0.02);
+        }
+
+        @keyframes pulse-border {
+            0%, 100% {
+                border-color: var(--text-primary);
+                box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.1);
+            }
+            50% {
+                border-color: #fbbf24;
+                box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.05);
+            }
+        }
+    `;
+    document.head.appendChild(toastStyle);
+</script>
+{% endblock %}

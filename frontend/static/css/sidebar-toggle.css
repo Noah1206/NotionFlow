@@ -1,0 +1,274 @@
+/* 사이드바 토글 버튼 - 사이드바 내부 위치 */
+.sidebar-toggle-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    /* 사이드바 내부 오른쪽 모서리 */
+    width: 36px;
+    height: 36px;
+    background: var(--bg-primary);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.sidebar-toggle-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    transform: scale(1.05);
+    box-shadow: var(--shadow-md);
+    border-color: var(--border-accent);
+}
+
+.sidebar-toggle:hover {
+    background: var(--sidebar-text-primary);
+    transform: scale(1.05);
+}
+
+/* 토글 버튼 아이콘 스타일 - 더 크고 명확하게 */
+.sidebar-toggle-btn svg {
+    width: 18px;
+    height: 18px;
+    color: currentColor;
+    transition: transform 0.2s ease;
+}
+
+.sidebar-toggle svg {
+    width: 20px !important;
+    height: 20px !important;
+    transition: transform 0.2s ease !important;
+    display: block !important;
+    color: currentColor !important;
+    fill: currentColor !important;
+}
+
+/* 접힌 상태에서 화살표 회전 */
+.sidebar.collapsed .sidebar-toggle svg {
+    transform: rotate(180deg);
+}
+
+/* 축소 상태에서도 토글 버튼 표시 */
+.sidebar.collapsed .sidebar-toggle {
+    background: var(--sidebar-text-primary);
+    border: 1px solid var(--sidebar-border);
+}
+
+.sidebar.collapsed .sidebar-toggle:hover {
+    background: var(--sidebar-active-bg);
+    transform: scale(1.1);
+}
+
+/* 사이드바 기본 상태 */
+.sidebar {
+    width: 280px;
+    transition: width 0.3s ease;
+    position: relative;
+    /* 토글 버튼 절대 위치를 위해 */
+}
+
+/* 캘린더 페이지에서 사이드바 토글 버튼 스타일 개선 */
+.calendar-page .sidebar {
+    position: relative;
+}
+
+.calendar-page .sidebar .sidebar-toggle {
+    position: absolute;
+    top: 20px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 100;
+}
+
+.calendar-page .sidebar .sidebar-toggle:hover {
+    background: var(--bg-hover);
+    transform: scale(1.05);
+    box-shadow: var(--shadow-md);
+}
+
+/* 캘린더 페이지에서 접힌 상태의 토글 버튼 */
+.calendar-page .sidebar.collapsed .sidebar-toggle {
+    position: absolute;
+    top: 20px;
+    right: 8px;
+    /* 접힌 상태에서는 더 가운데로 */
+    left: 8px;
+    width: 44px;
+    margin: 0 auto;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+}
+
+/* 사이드바 접힌 상태 */
+.sidebar.collapsed {
+    width: 60px;
+}
+
+/* 사이드바 접힌 상태에서 토글 버튼 위치 조정 - JavaScript로 동적 제어 */
+/* 이 부분은 JavaScript의 updateToggleButtonPosition 함수에서 처리됩니다 */
+
+/* 네비게이션 영역 상단 여백 - 토글 버튼이 바깥에 있으므로 최소화 */
+.sidebar-nav {
+    padding-top: 20px;
+    /* 최소한의 상단 여백 */
+}
+
+/* 텍스트 요소 숨김/표시 */
+.sidebar .nav-label,
+.sidebar .new-calendar-label,
+.sidebar .sidebar-header-title,
+.sidebar .calendar-name,
+.sidebar .category-text,
+.sidebar .category-count,
+.sidebar .share-badge,
+.sidebar .count-badge,
+.sidebar .premium-badge {
+    transition: opacity 0.2s ease;
+}
+
+.sidebar.collapsed .nav-label,
+.sidebar.collapsed .new-calendar-label,
+.sidebar.collapsed .sidebar-header-title,
+.sidebar.collapsed .calendar-name,
+.sidebar.collapsed .category-text,
+.sidebar.collapsed .category-count,
+.sidebar.collapsed .share-badge,
+.sidebar.collapsed .count-badge,
+.sidebar.collapsed .premium-badge,
+.sidebar.collapsed .calendar-list {
+    display: none;
+}
+
+/* 축소 상태에서 아이콘 중앙 정렬 */
+.sidebar.collapsed .nav-item,
+.sidebar.collapsed .new-calendar-button {
+    justify-content: center;
+    padding: 0.75rem 0;
+}
+
+.sidebar.collapsed .nav-icon {
+    margin: 0 auto;
+}
+
+/* 사이드바 헤더 - 토글 버튼 항상 표시 */
+.sidebar-header,
+.sidebar .sidebar-header,
+.sidebar-header-container,
+.sidebar .sidebar-header-container {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+}
+
+/* 축소 상태에서 헤더 처리 */
+.sidebar.collapsed .sidebar-header-left {
+    display: none;
+}
+
+.sidebar.collapsed .sidebar-header-container {
+    justify-content: center;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* 토글 버튼은 항상 표시 - 모든 상태에서 */
+.sidebar.collapsed .sidebar-toggle,
+.sidebar:not(.collapsed) .sidebar-toggle,
+.sidebar .sidebar-header .sidebar-toggle,
+.sidebar-header-container .sidebar-toggle {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* 기존 sidebar.css의 숨김 규칙 무효화 */
+.sidebar.collapsed .sidebar-header {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    overflow: visible !important;
+}
+
+/* 새로운 토글 버튼의 화살표 방향 변경 */
+.sidebar.collapsed #sidebar-toggle-icon {
+    display: none;
+}
+
+.sidebar.collapsed #sidebar-collapsed-icon {
+    display: block;
+}
+
+.sidebar:not(.collapsed) #sidebar-toggle-icon {
+    display: block;
+}
+
+.sidebar:not(.collapsed) #sidebar-collapsed-icon {
+    display: none;
+}
+
+/* 기본 아이콘 설정 */
+#sidebar-toggle-icon {
+    display: block;
+    width: 16px;
+    height: 16px;
+    color: #949494;
+}
+
+#sidebar-collapsed-icon {
+    display: none;
+    width: 16px;
+    height: 16px;
+    color: #949494;
+}
+
+/* 모든 상태에서 토글 버튼은 사이드바 바깥에 고정 */
+.sidebar-toggle-btn {
+    /* 위에서 이미 설정한 스타일로 충분 */
+}
+
+/* 최종 안전장치 - 토글 버튼 강제 표시 */
+[class*="sidebar"] .sidebar-toggle,
+div[id*="sidebar"] .sidebar-toggle,
+* .sidebar-toggle {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    background: var(--bg-primary) !important;
+    width: 32px !important;
+    height: 32px !important;
+    border: 1px solid var(--border-primary) !important;
+    border-radius: 6px !important;
+    color: var(--text-secondary) !important;
+    cursor: pointer !important;
+    z-index: 99999 !important;
+}
+
+/* 다크 모드에서 화살표 박스 border 제거 및 배경색 조정 */
+[data-theme="dark"] .sidebar-toggle,
+[data-theme="dark"] .sidebar-toggle-btn,
+[data-theme="dark"] .calendar-page .sidebar .sidebar-toggle,
+[data-theme="dark"] .sidebar.collapsed .sidebar-toggle {
+    border: none !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* 다크 모드 hover 상태 */
+[data-theme="dark"] .sidebar-toggle:hover,
+[data-theme="dark"] .sidebar-toggle-btn:hover,
+[data-theme="dark"] .calendar-page .sidebar .sidebar-toggle:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+}

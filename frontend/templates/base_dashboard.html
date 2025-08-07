@@ -1,0 +1,2587 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- 페이지별 제목 설정 -->
+    <title>{% block title %}NotionFlow 대시보드{% endblock %}</title>
+
+    <!-- 페이지별 메타 설명 -->
+    <meta name="description" content="{% block description %}NotionFlow에서 생산성을 극대화하고 모든 캘린더를 통합 관리하세요.{% endblock %}">
+
+    <!-- 공통 CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/variables.css') }}?v={{ range(1, 999999) | random }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v={{ range(1, 999999) | random }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}?v={{ range(1, 999999) | random }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-toggle.css') }}?v={{ range(1, 999999) | random }}">
+    <!-- 사이드바 토글 CSS를 마지막에 로드 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar-toggle.css') }}?v={{ range(1, 999999) | random }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+
+    <!-- 외부 라이브러리 -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <!-- 테마 관리자 - DOM 로드 전에 실행 -->
+    <script src="{{ url_for('static', filename='js/theme-manager.js') }}"></script>
+
+    <!-- 페이지별 추가 CSS -->
+    {% block extra_css %}{% endblock %}
+
+    <!-- 공통 테마 시스템 -->
+    <style>
+        /* ✨ Enhanced Classic Modern Theme System */
+        :root {
+            /* Light Theme (Default) */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --bg-card: rgba(248, 250, 252, 0.8);
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --text-tertiary: #64748b;
+            --accent-primary: #000000;
+            --accent-secondary: #333333;
+            --accent-gradient: linear-gradient(135deg, #000000 0%, #333333 100%);
+            --productivity-gradient: linear-gradient(135deg, #000000 0%, #333333 50%, #666666 100%);
+            --success-color: var(--text-primary);
+            --warning-color: var(--text-primary);
+            --error-color: var(--text-primary);
+            --glass-bg: rgba(248, 250, 252, 0.8);
+            --glass-border: rgba(30, 41, 59, 0.1);
+            --glass-hover: rgba(241, 245, 249, 0.9);
+            --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
+            --shadow-glow: 0 0 40px rgba(0, 0, 0, 0.1);
+            --sidebar-bg: #f8f9fa;
+            --sidebar-border: #e5e7eb;
+            --border-primary: #e5e7eb;
+        }
+
+        /* Dark Theme */
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --bg-card: rgba(51, 65, 85, 0.8);
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-tertiary: #94a3b8;
+            --accent-primary: #ffffff;
+            --accent-secondary: #cccccc;
+            --accent-gradient: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
+            --productivity-gradient: linear-gradient(135deg, #ffffff 0%, #cccccc 50%, #999999 100%);
+            --glass-bg: rgba(51, 65, 85, 0.4);
+            --glass-border: rgba(248, 250, 252, 0.1);
+            --glass-hover: rgba(71, 85, 105, 0.5);
+            --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.4);
+            --shadow-glow: 0 0 40px rgba(16, 185, 129, 0.2);
+            --sidebar-bg: #202020;
+            --sidebar-border: #374151;
+            --border-primary: #374151;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow-x: hidden;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        /* ✨ Solid Background - No gradient */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-primary);
+            z-index: -2;
+        }
+
+        /* 🏗️ Dashboard Layout */
+        .dashboard-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* 📱 Main Content Area */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            margin-left: 280px;
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-height: 100vh;
+            width: calc(100vw - 280px);
+            /* 사이드바를 제외한 전체 너비 */
+            overflow-x: hidden;
+            background: var(--bg-primary);
+            box-sizing: border-box;
+        }
+
+        /* 사이드바 축소 시 메인 콘텐츠 조정 */
+        .dashboard-layout.sidebar-collapsed .main-content {
+            margin-left: 60px;
+            width: calc(100vw - 60px);
+            /* 축소된 사이드바를 제외한 전체 너비 */
+        }
+
+        /* 모든 섹션과 콘텐츠가 최대 너비를 사용하도록 */
+        .dashboard-section {
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* 캘린더 섹션 특별 처리 */
+        #calendar-section {
+            width: 100%;
+            max-width: 100%;
+            height: calc(100vh - 4rem);
+            /* 패딩 제외 */
+        }
+
+        #calendar-section .calendar-spa,
+        #calendar-section .calendar-main-container,
+        #calendar-section #main-calendar-area,
+        #calendar-section #calendar-spa-container {
+            width: 100%;
+            max-width: 100%;
+        }
+
+        /* 🎨 Notion-Style Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: #1A1A1A !important;
+            border-right: 1px solid var(--sidebar-border);
+            z-index: 100;
+            overflow-y: auto;
+            font-size: 14px;
+        }
+
+        .sidebar-header {
+            padding: 20px 16px 16px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        [data-theme="dark"] .sidebar-header {
+            border-bottom: 1px solid #374151;
+        }
+
+        .workspace-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .workspace-name {
+            font-size: 15px;
+        }
+
+        .sidebar-nav {
+            padding: 0 8px;
+        }
+
+        .nav-section {
+            margin-bottom: 24px;
+        }
+
+        .nav-section-title {
+            padding: 8px 12px 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        [data-theme="dark"] .nav-section-title {
+            color: #9ca3af;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 12px;
+            margin: 1px 0;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.15s ease;
+            font-size: 14px;
+            line-height: 1.2;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: #f3f4f6;
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .nav-item.active {
+            background: #1A1A1A;
+            color: #ffffff;
+        }
+
+        .nav-label {
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .nav-section-bottom {
+            position: absolute;
+            bottom: 20px;
+            left: 8px;
+            right: 8px;
+            margin-bottom: 0;
+        }
+
+        /* 🔍 Enhanced Sidebar Features */
+
+        /* 🆕 New Calendar Button */
+        .new-calendar-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            margin: 8px 0 16px;
+            border-radius: 6px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-size: 14px;
+            text-align: left;
+            width: 100%;
+        }
+
+        .new-calendar-button:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .circle-plus-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 600;
+            color: #6b7280;
+            flex-shrink: 0;
+            transition: all 0.15s ease;
+        }
+
+        .new-calendar-button:hover .circle-plus-icon {
+            background: #d1d5db;
+            color: #4b5563;
+        }
+
+        [data-theme="dark"] .circle-plus-icon {
+            background: #4b5563;
+            color: #9ca3af;
+        }
+
+        [data-theme="dark"] .new-calendar-button:hover .circle-plus-icon {
+            background: #6b7280;
+            color: #d1d5db;
+        }
+
+        .new-calendar-label {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        /* Search Section */
+        .search-section {
+            padding: 16px 16px 12px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        [data-theme="dark"] .search-section {
+            border-bottom: 1px solid #374151;
+        }
+
+        .search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 6px;
+            padding: 6px 8px;
+            transition: all 0.15s ease;
+        }
+
+        .search-box:focus-within {
+            border-color: var(--text-primary);
+            box-shadow: 0 0 0 1px var(--text-primary);
+        }
+
+
+        .search-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            flex: 1;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        .search-input::placeholder {
+            color: #9ca3af;
+        }
+
+
+        .new-button {
+            background: #141414;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .new-button:hover {
+            background: #e5e7eb;
+        }
+
+        [data-theme="dark"] .new-button {
+            background: #4b5563;
+            border-color: #6b7280;
+            color: var(--text-secondary);
+        }
+
+        [data-theme="dark"] .new-button:hover {
+            background: #6b7280;
+        }
+
+
+        .premium-badge {
+            background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
+            color: white;
+            font-size: 9px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .count-badge {
+            background: #e5e7eb;
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 500;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+
+        [data-theme="dark"] .count-badge {
+            background: #4b5563;
+        }
+
+        /* Section Action Buttons */
+        .nav-section-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-add {
+            background: transparent;
+            border: none;
+            padding: 2px 6px;
+            border-radius: 3px;
+            cursor: pointer;
+            color: #6b7280;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.15s ease;
+        }
+
+        .section-add:hover {
+            background: #141414;
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .section-add:hover {
+            background: #4b5563;
+        }
+
+        /* 📱 Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: #141414;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow: hidden;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        [data-theme="dark"] .modal-content {
+            background: #141414;
+            box-shadow: 0 20px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        [data-theme="dark"] .modal-header {
+            border-bottom: 1px solid #374151;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.15s ease;
+        }
+
+        .modal-close:hover {
+            background: #141414;
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .modal-close:hover {
+            background: #141414;
+        }
+
+        .modal-body {
+            padding: 20px 24px;
+            overflow-y: auto;
+            max-height: 60vh;
+        }
+
+        .modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 16px 24px 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        [data-theme="dark"] .modal-footer {
+            border-top: 1px solid #374151;
+        }
+
+        /* Type Selector Styles */
+        .type-selector {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .type-option {
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .type-option:hover {
+            border-color: #d1d5db;
+            background: #141414;
+        }
+
+        .type-option.selected {
+            border-color: var(--text-primary);
+            background: var(--bg-secondary);
+        }
+
+        [data-theme="dark"] .type-option {
+            border-color: #374151;
+        }
+
+        [data-theme="dark"] .type-option:hover {
+            border-color: #4b5563;
+            background: #141414;
+        }
+
+        [data-theme="dark"] .type-option.selected {
+            border-color: var(--text-primary);
+            background: var(--bg-tertiary);
+        }
+
+        .type-info h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 4px 0;
+        }
+
+        .type-info p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* 📅 Calendar Creation Modal Styles - Black/White Design */
+        .calendar-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .calendar-modal-content {
+            background: #141414;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            width: 90%;
+            max-width: 580px;
+            max-height: 85vh;
+            overflow: hidden;
+            animation: modalSlideIn 0.3s ease;
+            border: 1px solid #e5e7eb;
+        }
+
+        [data-theme="dark"] .calendar-modal-content {
+            background: #141414;
+            border-color: #374151;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .calendar-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 28px 20px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        [data-theme="dark"] .calendar-modal-header {
+            border-bottom: 1px solid #374151;
+        }
+
+        .calendar-modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .calendar-modal-subtitle {
+            font-size: 15px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .calendar-modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 6px;
+            transition: all 0.15s ease;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .calendar-modal-close:hover {
+            background: #141414;
+            color: var(--text-secondary);
+        }
+
+        [data-theme="dark"] .calendar-modal-close:hover {
+            background: #141414;
+        }
+
+        .calendar-modal-body {
+            padding: 0 28px 24px;
+        }
+
+        .calendar-modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 20px 28px 24px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        [data-theme="dark"] .calendar-modal-footer {
+            border-top: 1px solid #374151;
+        }
+
+        /* 📋 Calendar Type Cards */
+        .calendar-type-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .calendar-type-card {
+            background: #141414;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            position: relative;
+        }
+
+        .calendar-type-card:hover {
+            border-color: var(--text-primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .calendar-type-card.selected {
+            border-color: var(--text-primary);
+            background: var(--bg-secondary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        [data-theme="dark"] .calendar-type-card {
+            background: #141414;
+            border-color: #374151;
+        }
+
+        [data-theme="dark"] .calendar-type-card:hover {
+            border-color: var(--text-primary);
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+        }
+
+        [data-theme="dark"] .calendar-type-card.selected {
+            background: var(--bg-tertiary);
+            border-color: var(--text-primary);
+        }
+
+        .calendar-type-icon {
+            margin: 0 auto 16px;
+            width: 48px;
+            height: 48px;
+            background: #141414;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .calendar-type-card:hover .calendar-type-icon,
+        .calendar-type-card.selected .calendar-type-icon {
+            background: #dbeafe;
+        }
+
+        [data-theme="dark"] .calendar-type-icon {
+            background: #141414;
+        }
+
+        [data-theme="dark"] .calendar-type-card:hover .calendar-type-icon,
+        [data-theme="dark"] .calendar-type-card.selected .calendar-type-icon {
+            background: #1e40af;
+        }
+
+        .calendar-type-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 8px 0;
+        }
+
+        .calendar-type-description {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin: 0 0 16px 0;
+            line-height: 1.4;
+        }
+
+        .calendar-type-tags {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .calendar-type-tag {
+            background: #141414;
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .calendar-type-card.selected .calendar-type-tag {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .calendar-type-tag {
+            background: #141414;
+            border-color: #4b5563;
+        }
+
+        [data-theme="dark"] .calendar-type-card.selected .calendar-type-tag {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border-color: var(--text-primary);
+        }
+
+        /* 🤖 AI Feature Notice */
+        .ai-feature-notice {
+            background: #141414;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        [data-theme="dark"] .ai-feature-notice {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        .ai-feature-icon {
+            flex-shrink: 0;
+            width: 32px;
+            height: 32px;
+            background: #dbeafe;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 2px;
+        }
+
+        [data-theme="dark"] .ai-feature-icon {
+            background: #1e40af;
+        }
+
+        .ai-feature-text {
+            flex: 1;
+        }
+
+        .ai-feature-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .ai-feature-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        /* ⚙️ Community Settings */
+        .community-settings {
+            background: #141414;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        [data-theme="dark"] .community-settings {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        .settings-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .settings-checkbox {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            cursor: pointer;
+            padding: 8px 0;
+        }
+
+        .settings-checkbox input[type="checkbox"] {
+            display: none;
+        }
+
+        .checkbox-custom {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #d1d5db;
+            border-radius: 4px;
+            background: #141414;
+            flex-shrink: 0;
+            margin-top: 1px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .settings-checkbox input[type="checkbox"]:checked+.checkbox-custom {
+            background: var(--text-primary);
+            border-color: var(--text-primary);
+        }
+
+        .settings-checkbox input[type="checkbox"]:checked+.checkbox-custom::after {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 2px;
+            width: 6px;
+            height: 10px;
+            border: solid #ffffff;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        [data-theme="dark"] .checkbox-custom {
+            background: #141414;
+            border-color: #4b5563;
+        }
+
+        .checkbox-content {
+            flex: 1;
+        }
+
+        .checkbox-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .checkbox-description {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        /* 🔘 Modal Buttons */
+        .calendar-btn-cancel {
+            background: #141414;
+            border: 1px solid #d1d5db;
+            color: var(--text-secondary);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .calendar-btn-cancel:hover {
+            background: #141414;
+            border-color: #9ca3af;
+        }
+
+        .calendar-btn-create {
+            background: var(--text-primary);
+            border: 1px solid var(--text-primary);
+            color: var(--bg-primary);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .calendar-btn-create:hover:not(:disabled) {
+            background: var(--text-secondary);
+            border-color: var(--text-secondary);
+        }
+
+        .calendar-btn-create:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        [data-theme="dark"] .calendar-btn-cancel {
+            background: #141414;
+            border-color: #4b5563;
+            color: var(--text-secondary);
+        }
+
+        [data-theme="dark"] .calendar-btn-cancel:hover {
+            background: #4b5563;
+        }
+
+        /* 🔧 Settings Modal Specific Styles */
+        .settings-modal-content {
+            max-width: 520px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .settings-section {
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .settings-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        [data-theme="dark"] .settings-section {
+            border-bottom-color: #374151;
+        }
+
+        .settings-section-header {
+            margin-bottom: 16px;
+        }
+
+        .settings-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 4px 0;
+        }
+
+        .settings-section-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* Language Toggle in Settings */
+        .language-toggle {
+            position: relative;
+        }
+
+        .language-toggle-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 8px;
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .language-toggle-btn:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--border-secondary);
+        }
+
+        .language-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-primary);
+            border-radius: 8px;
+            margin-top: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 1001;
+        }
+
+        [data-theme="dark"] .language-dropdown {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .language-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .language-option:hover {
+            background: var(--bg-secondary);
+        }
+
+        .language-option:first-child {
+            border-radius: 8px 8px 0 0;
+        }
+
+        .language-option:last-child {
+            border-radius: 0 0 8px 8px;
+        }
+
+        /* Theme Toggle in Settings */
+        .theme-toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .settings-toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            margin: 0;
+        }
+
+        .settings-toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .settings-toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #cbd5e1;
+            border-radius: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .settings-toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .settings-toggle-switch input:checked+.settings-toggle-slider {
+            background: #3b82f6;
+        }
+
+        .settings-toggle-switch input:checked+.settings-toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        .theme-toggle-label {
+            font-size: 14px;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* Quick Stats Grid */
+        .quick-stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .quick-stat-item {
+            text-align: center;
+            padding: 16px 12px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border-primary);
+        }
+
+        .quick-stat-number {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .quick-stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .quick-action-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            color: var(--text-primary);
+            font-size: 14px;
+            text-decoration: none;
+        }
+
+        .quick-action-btn:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--border-secondary);
+            transform: translateY(-1px);
+        }
+
+        .quick-action-icon {
+            font-size: 16px;
+        }
+
+        /* 📱 Responsive Design */
+        @media (max-width: 640px) {
+            .calendar-type-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .calendar-modal-content {
+                margin: 16px;
+                width: calc(100% - 32px);
+            }
+
+            .calendar-modal-header,
+            .calendar-modal-body,
+            .calendar-modal-footer {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+
+            .settings-modal-content {
+                max-height: 80vh;
+            }
+
+            .quick-stats-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .quick-actions {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+
+        .form-container {
+            animation: formSlideIn 0.3s ease;
+        }
+
+        @keyframes formSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 14px;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            transition: all 0.15s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--text-primary);
+            box-shadow: 0 0 0 1px var(--text-primary);
+        }
+
+        [data-theme="dark"] .form-group input,
+        [data-theme="dark"] .form-group textarea {
+            border-color: #4b5563;
+            background: #141414;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-primary);
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+
+        .btn-cancel,
+        .btn-create {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .btn-cancel {
+            background: #141414;
+            border: 1px solid #e5e7eb;
+            color: var(--text-secondary);
+        }
+
+        .btn-cancel:hover {
+            background: #e5e7eb;
+        }
+
+        .btn-create {
+            background: var(--text-primary);
+            border: 1px solid var(--text-primary);
+            color: var(--bg-primary);
+        }
+
+        .btn-create:hover:not(:disabled) {
+            background: var(--text-secondary);
+        }
+
+        .btn-create:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        [data-theme="dark"] .btn-cancel {
+            background: #4b5563;
+            border-color: #6b7280;
+            color: var(--text-secondary);
+        }
+
+        [data-theme="dark"] .btn-cancel:hover {
+            background: #6b7280;
+        }
+
+        /* Tabs Styles */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 20px;
+        }
+
+        [data-theme="dark"] .tabs {
+            border-bottom: 1px solid #374151;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 16px;
+            background: none;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.15s ease;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            color: var(--text-primary);
+            border-bottom-color: var(--text-primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .friend-search {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .friend-search input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .friend-search button {
+            padding: 8px 16px;
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .friend-search button:hover {
+            background: var(--text-secondary);
+        }
+
+        /* Calendar Lists */
+        .calendar-list {
+            margin-top: 8px;
+        }
+
+        .calendar-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            margin: 1px 0;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.15s ease;
+            font-size: 11px !important;
+        }
+
+        .calendar-item:hover {
+            background: #141414;
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .calendar-item:hover {
+            background: #141414;
+        }
+
+        .calendar-name {
+            flex: 1;
+        }
+
+        .calendar-color-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            background: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .calendar-color-dot::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background-image: url("data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .no-calendars {
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: 13px;
+            padding: 16px 12px;
+            font-style: italic;
+        }
+
+        .share-badge {
+            font-size: 10px;
+            background: var(--text-primary);
+            color: white;
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+
+        /* 🔘 새 캘린더 버튼 스타일 */
+        .new-calendar-button {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            margin: 8px 0;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.15s ease;
+        }
+
+        .new-calendar-button:hover {
+            background: var(--bg-secondary);
+        }
+
+        .circle-plus-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #6b7280;
+            transition: all 0.15s ease;
+        }
+
+        .new-calendar-button:hover .circle-plus-icon {
+            background: #d1d5db;
+            color: #374151;
+        }
+
+        [data-theme="dark"] .circle-plus-icon {
+            background: #4b5563;
+            color: #9ca3af;
+        }
+
+        [data-theme="dark"] .new-calendar-button:hover .circle-plus-icon {
+            background: #6b7280;
+            color: #d1d5db;
+        }
+
+        .new-calendar-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .new-calendar-button:hover .new-calendar-label {
+            color: var(--text-primary);
+        }
+
+        /* 🎨 캘린더 생성 모달 개선된 스타일 */
+        .calendar-type-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .type-radio-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .type-radio-option:hover {
+            border-color: #d1d5db;
+            background: #141414;
+        }
+
+        .type-radio-option:has(input:checked) {
+            border-color: var(--text-primary);
+            background: var(--bg-secondary);
+        }
+
+        [data-theme="dark"] .type-radio-option {
+            border-color: #374151;
+        }
+
+        [data-theme="dark"] .type-radio-option:hover {
+            border-color: #4b5563;
+            background: #141414;
+        }
+
+        [data-theme="dark"] .type-radio-option:has(input:checked) {
+            border-color: var(--text-primary);
+            background: var(--bg-tertiary);
+        }
+
+        .type-radio-option input[type="radio"] {
+            margin: 2px 0 0 0;
+        }
+
+        .type-option-content h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 4px 0;
+        }
+
+        .type-option-content p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .sharing-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .color-options {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .color-options input[type="radio"] {
+            display: none;
+        }
+
+        .color-option {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.15s ease;
+            position: relative;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        .color-options input[type="radio"]:checked+.color-option {
+            border-color: var(--text-primary);
+            box-shadow: 0 0 0 2px var(--bg-primary);
+        }
+
+        .color-options input[type="radio"]:checked+.color-option::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 🎛️ Settings Modal Styling - Notion Design */
+        .settings-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+        }
+
+        .settings-modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .settings-modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 800px;
+            height: 600px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        [data-theme="dark"] .settings-modal-content {
+            background: #1f1f1f;
+            border: 1px solid #333;
+        }
+
+        .settings-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        [data-theme="dark"] .settings-modal-header {
+            border-bottom: 1px solid #333;
+        }
+
+        .settings-modal-header h2 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .settings-close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .settings-close-btn:hover {
+            background: #f3f4f6;
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .settings-close-btn:hover {
+            background: #333;
+        }
+
+        .settings-modal-body {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .settings-sidebar {
+            width: 240px;
+            background: #f8fafc;
+            border-right: 1px solid #e5e7eb;
+            padding: 16px 0;
+            overflow-y: auto;
+        }
+
+        [data-theme="dark"] .settings-sidebar {
+            background: #2a2a2a;
+            border-right: 1px solid #333;
+        }
+
+        .settings-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            margin: 2px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .settings-nav-item:hover {
+            background: #e5e7eb;
+            color: var(--text-primary);
+        }
+
+        .settings-nav-item.active {
+            color: #0369a1;
+        }
+
+        [data-theme="dark"] .settings-nav-item:hover {
+            background: #333;
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .settings-nav-item.active {
+            color: #3b82f6;
+        }
+
+        .settings-nav-item svg {
+            width: 16px;
+            height: 16px;
+            opacity: 0.7;
+        }
+
+        .settings-nav-item.active svg {
+            opacity: 1;
+        }
+
+        .settings-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        .settings-section {
+            display: none;
+        }
+
+        .settings-section.active {
+            display: block;
+        }
+
+        .settings-section-content {
+            color: var(--text-primary);
+        }
+
+        .settings-section-content h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        .settings-section-content h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin: 0 0 4px 0;
+            color: var(--text-primary);
+        }
+
+        /* Metrics Grid */
+        .settings-metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .settings-metric-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        [data-theme="dark"] .settings-metric-card {
+            background: #333;
+            border: 1px solid #444;
+        }
+
+        .metric-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .metric-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .metric-description {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        /* Sync Activity */
+        .settings-sync-activity {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        [data-theme="dark"] .settings-sync-activity {
+            background: #333;
+            border: 1px solid #444;
+        }
+
+        .sync-activity-header {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .sync-activity-empty-text {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 14px;
+            padding: 20px;
+        }
+
+        /* Theme Settings */
+        .theme-setting-item {
+            padding: 16px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        [data-theme="dark"] .theme-setting-item {
+            background: #333;
+            border: 1px solid #444;
+        }
+
+        .theme-setting-info {
+            margin-bottom: 16px;
+        }
+
+        .theme-setting-info h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 4px 0;
+        }
+
+        .theme-setting-info p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* 테마 모드 버튼 스타일 */
+        .theme-mode-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .theme-mode-button {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 12px 16px;
+            border: 2px solid #e5e5e5;
+            background: #ffffff;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .theme-mode-button:hover {
+            border-color: #d5d5d5;
+            background: #f5f5f5;
+        }
+
+        .theme-mode-button.active {
+            border-color: #000000;
+            background: #000000;
+            color: #ffffff;
+        }
+
+        [data-theme="dark"] .theme-mode-button {
+            border-color: #444;
+            background: #2a2a2a;
+            color: #999;
+        }
+
+        [data-theme="dark"] .theme-mode-button:hover {
+            border-color: #555;
+            background: #333;
+        }
+
+        [data-theme="dark"] .theme-mode-button.active {
+            border-color: #ffffff;
+            background: #ffffff;
+            color: #000000;
+        }
+
+        .mode-icon {
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        .mode-text {
+            font-size: 14px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            border-radius: 24px;
+            transition: 0.3s;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        input:checked+.toggle-slider {
+            background-color: #3b82f6;
+        }
+
+        input:checked+.toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Language Settings */
+        .language-options {
+            display: flex;
+            gap: 8px;
+        }
+
+        .language-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .language-option.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        [data-theme="dark"] .language-option {
+            border-color: #444;
+        }
+
+        /* Platform Cards */
+        .connection-progress-section {
+            margin-bottom: 24px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #3b82f6;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .platform-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .platform-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        [data-theme="dark"] .platform-card {
+            background: #333;
+            border: 1px solid #444;
+        }
+
+        .platform-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .platform-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .platform-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .platform-icon.notion {
+            background: #000;
+        }
+
+        .platform-icon.google {
+            background: #f8f9fa;
+        }
+
+        .platform-details p {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-dot.disconnected {
+            background: #ef4444;
+        }
+
+        .status-dot.connected {
+            background: #22c55e;
+        }
+
+        .platform-input {
+            display: flex;
+            gap: 8px;
+        }
+
+        .platform-api-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 13px;
+            background: white;
+        }
+
+        [data-theme="dark"] .platform-api-input {
+            background: #444;
+            border-color: #555;
+            color: white;
+        }
+
+        .btn-connect {
+            padding: 8px 16px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .btn-connect:hover {
+            background: #2563eb;
+        }
+
+        /* 📱 Mobile Responsive */
+        @media (max-width: 768px) {
+            .settings-modal-content {
+                width: 95%;
+                height: 80%;
+            }
+
+            .settings-sidebar {
+                width: 200px;
+            }
+
+            .settings-nav-item {
+                padding: 10px 16px;
+                margin: 2px 8px;
+                font-size: 13px;
+            }
+
+            .settings-content {
+                padding: 16px;
+            }
+        }
+
+        /* 페이지별 스타일 블록 */
+            {
+            % block page_styles %
+        }
+
+            {
+            % endblock %
+        }
+    </style>
+</head>
+
+<body class="{% block body_class %}{% endblock %}">
+    <div class="dashboard-layout">
+        <!-- 🚀 사이드바 컴포넌트 포함 -->
+        {% include 'components/sidebar.html' %}
+
+        <!-- 📱 메인 콘텐츠 영역 -->
+        <div class="main-content">
+            {% block content %}
+            <!-- 페이지별 콘텐츠가 여기에 들어갑니다 -->
+            {% endblock %}
+        </div>
+    </div>
+
+    <!-- 🎛️ Settings Modal -->
+    <div id="settingsModal" class="settings-modal">
+        <div class="settings-modal-overlay" onclick="closeSettingsModal()"></div>
+        <div class="settings-modal-content">
+            <div class="settings-modal-header">
+                <h2>설정</h2>
+                <button class="settings-close-btn" onclick="closeSettingsModal()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            d="M18 6L6 18M6 6L18 18" />
+                    </svg>
+                </button>
+            </div>
+            <div class="settings-modal-body">
+                <div class="settings-sidebar">
+                    <div class="settings-nav-item active" data-section="general">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path stroke="currentColor" stroke-width="2" d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
+                            <path stroke="currentColor" stroke-width="2"
+                                d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" />
+                        </svg>
+                        기본 설정
+                    </div>
+                    <div class="settings-nav-item" data-section="appearance">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path stroke="currentColor" stroke-width="2"
+                                d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                        </svg>
+                        테마
+                    </div>
+                    <div class="settings-nav-item" data-section="integrations">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path stroke="currentColor" stroke-width="2" d="M9 12l2 2 4-4" />
+                            <path stroke="currentColor" stroke-width="2"
+                                d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3" />
+                            <path stroke="currentColor" stroke-width="2"
+                                d="M3 12c1 0 3-1 3-3S4 6 3 6s-3 1-3 3 2 3 3 3" />
+                        </svg>
+                        연동 관리
+                    </div>
+                </div>
+                <div class="settings-content">
+                    <!-- 기본 설정 섹션 -->
+                    <div class="settings-section active" id="general-section">
+                        <div class="settings-section-content">
+                            <h3>플랫폼 상태</h3>
+                            <div class="settings-metrics-grid">
+                                <div class="settings-metric-card">
+                                    <div class="metric-number">1,247</div>
+                                    <div class="metric-label">동기화된 이벤트</div>
+                                    <div class="metric-description">이번 달 모든 플랫폼에서 동기화된 총 이벤트 수</div>
+                                </div>
+                                <div class="settings-metric-card">
+                                    <div class="metric-number">60%</div>
+                                    <div class="metric-label">플랫폼 커버리지</div>
+                                    <div class="metric-description">연결된 플랫폼: Notion, Google Calendar, Apple Calendar
+                                    </div>
+                                </div>
+                                <div class="settings-metric-card">
+                                    <div class="metric-number">24.5h</div>
+                                    <div class="metric-label">절약된 시간</div>
+                                    <div class="metric-description">이번 주 자동화를 통해 절약된 예상 시간</div>
+                                </div>
+                                <div class="settings-metric-card">
+                                    <div class="metric-number">92%</div>
+                                    <div class="metric-label">동기화 성공률</div>
+                                    <div class="metric-description">지난 30일간 성공적인 동기화 비율</div>
+                                </div>
+                            </div>
+
+                            <h3 style="margin-top: 32px;">동기화 활동</h3>
+                            <div class="settings-sync-activity">
+                                <div class="sync-activity-header">
+                                    <span>최근 7일</span>
+                                </div>
+                                <div class="sync-activity-content">
+                                    <p class="sync-activity-empty-text">동기화 활동 차트 시각화</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 테마 설정 섹션 -->
+                    <div class="settings-section" id="appearance-section">
+                        <div class="settings-section-content">
+                            <h3>테마 설정</h3>
+                            <div class="theme-setting-item">
+                                <div class="theme-setting-info">
+                                    <h4>테마 선택</h4>
+                                    <p>원하는 테마를 선택하세요</p>
+                                </div>
+                                <div class="theme-mode-buttons">
+                                    <button class="theme-mode-button light-mode" onclick="setThemeMode('light')">
+                                        <span class="mode-icon">☀️</span>
+                                        <span class="mode-text">라이트 모드</span>
+                                    </button>
+                                    <button class="theme-mode-button dark-mode active" onclick="setThemeMode('dark')">
+                                        <span class="mode-icon">🌙</span>
+                                        <span class="mode-text">다크 모드</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <h3 style="margin-top: 32px;">언어 설정</h3>
+                            <div class="language-setting-item">
+                                <div class="language-options">
+                                    <div class="language-option active" data-lang="ko">
+                                        <span class="lang-flag">🇰🇷</span>
+                                        <span class="lang-name">한국어</span>
+                                    </div>
+                                    <div class="language-option" data-lang="en">
+                                        <span class="lang-flag">🇺🇸</span>
+                                        <span class="lang-name">English</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 연동 관리 섹션 -->
+                    <div class="settings-section" id="integrations-section">
+                        <div class="settings-section-content">
+                            <h3>플랫폼 연결</h3>
+
+                            <!-- Progress Tracking -->
+                            <div class="connection-progress-section">
+                                <div class="progress-header">
+                                    <div class="progress-text">
+                                        <span class="progress-count">0 of 5</span> 개 플랫폼 연결됨
+                                    </div>
+                                    <div class="progress-percentage">0%</div>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill"></div>
+                                </div>
+                            </div>
+
+                            <!-- Platform Cards -->
+                            <div class="platform-cards">
+                                <!-- Notion -->
+                                <div class="platform-card" data-platform="notion">
+                                    <div class="platform-header">
+                                        <div class="platform-info">
+                                            <div class="platform-icon notion">
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                                                    <path
+                                                        d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046 1.121-.56 1.121-1.167V6.354c0-.606-.233-.933-.747-.887l-15.177.887c-.56.047-.934.373-.934 1.027z" />
+                                                </svg>
+                                            </div>
+                                            <div class="platform-details">
+                                                <h4>Notion</h4>
+                                                <p>노트, 데이터베이스, 프로젝트 관리</p>
+                                            </div>
+                                        </div>
+                                        <div class="connection-status">
+                                            <span class="status-dot disconnected"></span>
+                                            <span class="status-text">연결되지 않음</span>
+                                        </div>
+                                    </div>
+                                    <div class="platform-input">
+                                        <input type="password" placeholder="Notion 통합 토큰" class="platform-api-input">
+                                        <button class="btn-connect">연결</button>
+                                    </div>
+                                </div>
+
+                                <!-- Google Calendar -->
+                                <div class="platform-card" data-platform="google">
+                                    <div class="platform-header">
+                                        <div class="platform-info">
+                                            <div class="platform-icon google">
+                                                <svg width="20" height="20" viewBox="0 0 24 24">
+                                                    <path fill="#4285F4"
+                                                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                                                    <path fill="#34A853"
+                                                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                                                    <path fill="#FBBC05"
+                                                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                                                    <path fill="#EA4335"
+                                                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                                                </svg>
+                                            </div>
+                                            <div class="platform-details">
+                                                <h4>Google Calendar</h4>
+                                                <p>구글 캘린더 일정 동기화</p>
+                                            </div>
+                                        </div>
+                                        <div class="connection-status">
+                                            <span class="status-dot disconnected"></span>
+                                            <span class="status-text">연결되지 않음</span>
+                                        </div>
+                                    </div>
+                                    <div class="platform-input">
+                                        <input type="password" placeholder="Google Calendar API 키"
+                                            class="platform-api-input">
+                                        <button class="btn-connect">연결</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🚀 공통 JavaScript -->
+    <script src="{{ url_for('static', filename='js/sidebar.js') }}?bust={{ range(100000, 999999) | random }}"></script>
+
+    <!-- 🎛️ Settings Modal JavaScript -->
+    <script>
+        // Settings Modal Functions
+        function openSettingsModal() {
+            document.getElementById('settingsModal').style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').style.display = 'none';
+            document.body.style.overflow = 'auto'; // Restore scrolling
+        }
+
+        // Settings Navigation
+        function switchSettingsSection(sectionName) {
+            // Remove active class from all nav items
+            document.querySelectorAll('.settings-nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // Remove active class from all sections
+            document.querySelectorAll('.settings-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Add active class to clicked nav item
+            document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
+
+            // Show corresponding section
+            document.getElementById(`${sectionName}-section`).classList.add('active');
+        }
+
+        // 🎨 간단한 테마 모드 설정 함수
+        function setThemeMode(mode) {
+            console.log('🎨 Setting theme mode:', mode);
+
+            // ThemeManager가 있으면 사용
+            if (window.themeManager) {
+                window.themeManager.setTheme(mode);
+            } else {
+                // 직접 처리
+                localStorage.setItem('theme', mode);
+                document.documentElement.setAttribute('data-theme', mode);
+                document.body.setAttribute('data-theme', mode);
+            }
+
+            // 버튼 활성화 상태 업데이트
+            updateThemeButtons(mode);
+        }
+
+        // 테마 버튼 상태 업데이트
+        function updateThemeButtons(currentTheme) {
+            const lightButton = document.querySelector('.theme-mode-button.light-mode');
+            const darkButton = document.querySelector('.theme-mode-button.dark-mode');
+
+            if (lightButton && darkButton) {
+                if (currentTheme === 'light') {
+                    lightButton.classList.add('active');
+                    darkButton.classList.remove('active');
+                } else {
+                    lightButton.classList.remove('active');
+                    darkButton.classList.add('active');
+                }
+            }
+        }
+
+        // Initialize Settings Modal
+        document.addEventListener('DOMContentLoaded', function () {
+            // Add click handlers to settings navigation items
+            document.querySelectorAll('.settings-nav-item').forEach(item => {
+                item.addEventListener('click', function () {
+                    const section = this.getAttribute('data-section');
+                    switchSettingsSection(section);
+                });
+            });
+
+            // Close modal when clicking outside
+            document.getElementById('settingsModal').addEventListener('click', function (e) {
+                if (e.target === this) {
+                    closeSettingsModal();
+                }
+            });
+
+            // Close modal with Escape key
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && document.getElementById('settingsModal').style.display === 'block') {
+                    closeSettingsModal();
+                }
+            });
+
+            // Initialize theme buttons when modal opens
+            const currentTheme = localStorage.getItem('theme') || 'dark';
+            updateThemeButtons(currentTheme);
+        });
+    </script>
+
+    <!-- 테마 매니저 -->
+    <script src="{{ url_for('static', filename='js/theme-manager.js') }}"></script>
+
+    <!-- 테마 토글 스크립트 -->
+    <script>
+        // Theme Toggle System
+        // Initialize on DOM ready
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('🚀 Base dashboard initialization started');
+
+            // Theme toggle is now handled by theme-manager.js
+            console.log('✓ Theme management delegated to theme-manager.js');
+
+            // 사이드바는 sidebar.js에서 자동 초기화됨
+        });
+    </script>
+
+    <!-- 페이지별 JavaScript -->
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

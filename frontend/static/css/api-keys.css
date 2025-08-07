@@ -1,0 +1,391 @@
+/* API Keys Page - Clean Design */
+
+/* Page-specific reset to prevent conflicts */
+.api-keys-page {
+    background: #ffffff;
+    color: #000000;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+}
+
+/* Layout */
+.api-keys-page .main-content {
+    margin-left: 280px;
+    min-height: 100vh;
+    background: #ffffff;
+}
+
+.api-keys-page .api-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 48px 32px;
+}
+
+/* Back Button */
+.api-keys-page .back-to-dashboard {
+    position: fixed;
+    top: 32px;
+    right: 32px;
+    z-index: 100;
+}
+
+.api-keys-page .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: #000000;
+    color: #ffffff;
+    border-radius: 50px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.api-keys-page .back-btn:hover {
+    background: #333333;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Hero Section */
+.api-keys-page .api-hero {
+    background: #000000;
+    color: #ffffff;
+    padding: 80px 48px;
+    border-radius: 24px;
+    margin-bottom: 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.api-keys-page .api-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(255, 255, 255, 0.02) 10px,
+        rgba(255, 255, 255, 0.02) 20px
+    );
+    pointer-events: none;
+}
+
+.api-keys-page .hero-icon {
+    font-size: 48px;
+    margin-bottom: 24px;
+    opacity: 0.9;
+}
+
+.api-keys-page .api-hero h1 {
+    font-size: 42px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin: 0 0 16px 0;
+}
+
+.api-keys-page .api-hero p {
+    font-size: 18px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.85);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* Platform Grid */
+.api-keys-page .platforms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 32px;
+    margin-bottom: 48px;
+}
+
+/* Platform Cards */
+.api-keys-page .platform-card {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 16px;
+    padding: 32px;
+    transition: all 0.3s ease;
+}
+
+.api-keys-page .platform-card:hover {
+    border-color: #000000;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    transform: translateY(-4px);
+}
+
+.api-keys-page .platform-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.api-keys-page .platform-icon {
+    width: 60px;
+    height: 60px;
+    background: #000000;
+    color: #ffffff;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+    transition: all 0.3s ease;
+}
+
+.api-keys-page .platform-card:hover .platform-icon {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.api-keys-page .platform-info h3 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+    color: #000000;
+}
+
+.api-keys-page .platform-info p {
+    font-size: 14px;
+    color: #666666;
+    margin: 0;
+}
+
+/* Platform Stats */
+.api-keys-page .platform-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    padding: 24px 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    margin-bottom: 32px;
+}
+
+.api-keys-page .stat-item {
+    text-align: center;
+}
+
+.api-keys-page .stat-value {
+    font-size: 32px;
+    font-weight: 800;
+    color: #000000;
+    line-height: 1;
+    margin-bottom: 8px;
+}
+
+.api-keys-page .stat-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #999999;
+    font-weight: 600;
+}
+
+/* Status Indicators */
+.api-keys-page .status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.api-keys-page .status-connected {
+    background: #000000;
+    color: #ffffff;
+}
+
+.api-keys-page .status-disconnected {
+    background: #f5f5f5;
+    color: #999999;
+}
+
+.api-keys-page .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.api-keys-page .status-connected .status-dot {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Buttons */
+.api-keys-page .platform-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.api-keys-page .btn {
+    flex: 1;
+    padding: 14px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.api-keys-page .btn-primary {
+    background: #000000;
+    color: #ffffff;
+}
+
+.api-keys-page .btn-primary:hover {
+    background: #1a1a1a;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.api-keys-page .btn-secondary {
+    background: #ffffff;
+    color: #000000;
+    border: 2px solid #000000;
+}
+
+.api-keys-page .btn-secondary:hover {
+    background: #000000;
+    color: #ffffff;
+}
+
+/* Security Notice */
+.api-keys-page .security-notice {
+    background: #f8f9fa;
+    border-radius: 16px;
+    padding: 40px;
+    text-align: center;
+    margin-top: 48px;
+}
+
+.api-keys-page .security-notice p {
+    font-size: 16px;
+    color: #666666;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+.api-keys-page .security-notice strong {
+    color: #000000;
+    font-weight: 700;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.api-keys-page .fade-in {
+    animation: fadeIn 0.6s ease-out;
+}
+
+.api-keys-page .platform-card {
+    animation: fadeIn 0.6s ease-out backwards;
+}
+
+.api-keys-page .platform-card:nth-child(1) { animation-delay: 0.1s; }
+.api-keys-page .platform-card:nth-child(2) { animation-delay: 0.2s; }
+.api-keys-page .platform-card:nth-child(3) { animation-delay: 0.3s; }
+.api-keys-page .platform-card:nth-child(4) { animation-delay: 0.4s; }
+.api-keys-page .platform-card:nth-child(5) { animation-delay: 0.5s; }
+.api-keys-page .platform-card:nth-child(6) { animation-delay: 0.6s; }
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .api-keys-page .main-content {
+        margin-left: 0;
+    }
+    
+    .api-keys-page .api-container {
+        padding: 32px 20px;
+    }
+    
+    .api-keys-page .platforms-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .api-keys-page .api-hero {
+        padding: 48px 32px;
+    }
+    
+    .api-keys-page .api-hero h1 {
+        font-size: 32px;
+    }
+    
+    .api-keys-page .platform-actions {
+        flex-direction: column;
+    }
+    
+    .api-keys-page .back-to-dashboard {
+        top: 16px;
+        right: 16px;
+    }
+}
+
+/* Focus States */
+.api-keys-page *:focus {
+    outline: 2px solid #000000;
+    outline-offset: 2px;
+}
+
+.api-keys-page .btn:focus-visible {
+    outline: 2px solid #000000;
+    outline-offset: 2px;
+}
+
+/* Loading State */
+.api-keys-page .platform-card.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.api-keys-page .platform-card.loading .platform-icon {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Status Warning (for connecting state) */
+.api-keys-page .status-warning {
+    background: #f59e0b;
+    color: #ffffff;
+}

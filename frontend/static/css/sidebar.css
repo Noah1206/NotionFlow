@@ -1,0 +1,1238 @@
+/* 🚀 NotionFlow Dashboard Sidebar Styles */
+/* 재사용 가능한 사이드바 컴포넌트 스타일 */
+
+/* ✨ 사이드바 기본 구조 - Floating Design */
+.sidebar {
+    width: var(--sidebar-width);
+    background: var(--sidebar-bg);
+    border: 1px solid var(--sidebar-border);
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* 부드러운 애니메이션 */
+    position: sticky;
+    top: 16px;
+    height: calc(100vh - 32px);
+    margin: 16px 0 16px 16px;
+    overflow-y: auto; /* 전체 사이드바 스크롤 */
+    overflow-x: hidden;
+    /* 가로 스크롤 방지 */
+    flex-shrink: 0;
+    z-index: 9999;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24), 0 4px 16px rgba(0, 0, 0, 0.12);
+    backdrop-filter: blur(20px);
+}
+
+/* 사이드바 내부 콘텐츠 wrapper - flex 구조 (삭제됨) */
+
+/* 라이트 모드에서 floating 사이드바 스타일 */
+[data-theme="light"] .sidebar {
+    background: rgba(248, 249, 250, 0.95);
+    border: 1px solid rgba(233, 236, 239, 0.8);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04);
+    backdrop-filter: blur(20px);
+}
+
+[data-theme="light"] .sidebar .sidebar-header {
+    background: transparent;
+}
+
+[data-theme="light"] .sidebar-header-container {
+    background: rgba(248, 249, 250, 0.9);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+/* 사이드바 축소 상태 - 축소된 floating 너비 */
+.sidebar.collapsed {
+    width: 72px;
+    /* floating 디자인에 맞춰 약간 늘림 */
+}
+
+/* 네비게이션 전체 컨테이너 */
+.sidebar-nav {
+    display: block;
+    padding-bottom: 80px; /* 설정 섹션을 위한 공간 */
+}
+
+/* 메인 네비게이션 영역 */
+.sidebar-main-nav {
+    display: block;
+}
+
+/* 모든 텍스트 요소에 부드러운 전환 효과 */
+.sidebar .nav-label,
+.sidebar .new-calendar-label,
+.sidebar .nav-section-title,
+.sidebar .calendar-category-title,
+.sidebar .calendar-name,
+.sidebar .sidebar-header-title {
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+/* 🎨 사이드바 헤더 - 스크린샷 스타일 */
+.sidebar .sidebar-header {
+    padding: 1.25rem;
+    border-bottom: 1px solid var(--sidebar-border);
+    background: #202020;
+}
+
+.sidebar.collapsed .sidebar-header,
+.sidebar.collapsed .nav-section-title {
+    opacity: 0;
+    pointer-events: none;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+/* Keep nav-label visible in collapsed state but with better styling */
+.sidebar.collapsed .nav-label {
+    opacity: 1 !important;
+    visibility: visible !important;
+    font-size: 0.85rem;
+    margin-left: 0.6rem;
+    font-weight: 500;
+}
+
+/* 📋 네비게이션 아이템들 - ClickUp 스타일 컴팩트 */
+.sidebar .nav-item {
+    display: flex;
+    align-items: center;
+    padding: 0.55rem 1rem;
+    /* 적절한 패딩 */
+    color: var(--sidebar-text-secondary);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    position: relative;
+    gap: 0.75rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    margin: 0.125rem 0;
+    border-radius: 8px;
+    letter-spacing: -0.01em;
+    min-height: 40px;
+    box-sizing: border-box;
+}
+
+/* 펼친 상태에서 아이콘과 텍스트 정렬 */
+.sidebar:not(.collapsed) .nav-item>*:first-child {
+    justify-content: flex-start !important;
+}
+
+.sidebar:not(.collapsed) .new-calendar-button>*:first-child {
+    justify-content: flex-start !important;
+}
+
+.sidebar:not(.collapsed) .calendar-nav-item>*:first-child {
+    justify-content: flex-start !important;
+}
+
+.sidebar:not(.collapsed) .category-icon {
+    justify-content: flex-start !important;
+}
+
+/* 강제 아이콘 정렬 - nav-item 내부의 모든 아이콘 */
+.sidebar .nav-item>*:first-child {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 24px !important;
+    width: 24px !important;
+    height: 24px !important;
+    flex-shrink: 0 !important;
+    margin-right: 0 !important;
+    position: relative;
+}
+
+.sidebar .nav-item:hover {
+    background: var(--sidebar-hover-bg);
+    color: var(--sidebar-text-primary);
+    transform: translateX(2px);
+}
+
+.sidebar .nav-item.active {
+    background: var(--sidebar-active-bg);
+    color: var(--sidebar-text-primary);
+}
+
+
+
+/* 🎯 네비게이션 아이콘 - 고정된 위치 정렬 */
+.sidebar .nav-icon {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 24px !important;
+    width: 24px !important;
+    height: 24px !important;
+    flex-shrink: 0 !important;
+    color: var(--sidebar-text-secondary);
+    transition: color 0.2s ease;
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+    position: relative;
+}
+
+.sidebar .nav-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    display: block;
+}
+
+.sidebar .nav-item:hover .nav-icon,
+.sidebar .nav-item.active .nav-icon {
+    color: var(--sidebar-text-primary);
+}
+
+/* 새 캘린더 버튼 스타일 - 카테고리와 동일한 padding으로 정렬 */
+.new-calendar-button {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    /* 패딩 줄임 */
+    margin: 0.125rem 0;
+    color: var(--sidebar-text-secondary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+    font-weight: 500;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: left;
+    min-height: 40px;
+    /* 높이 줄임 */
+}
+
+/* 새 캘린더 버튼 첫 번째 요소(아이콘) 강제 정렬 */
+.new-calendar-button>*:first-child {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 24px !important;
+    width: 24px !important;
+    height: 24px !important;
+    flex-shrink: 0 !important;
+    margin-right: 0 !important;
+    position: relative;
+}
+
+.new-calendar-button:hover {
+    background: var(--sidebar-hover-bg);
+    color: var(--sidebar-text-primary);
+    transform: translateX(2px);
+}
+
+.new-calendar-button .nav-icon {
+    color: inherit;
+    transition: color 0.2s ease;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 24px !important;
+    width: 24px !important;
+    height: 24px !important;
+    flex-shrink: 0 !important;
+    padding-left: 0 !important;
+    position: relative;
+}
+
+.new-calendar-label {
+    color: inherit;
+    font-weight: inherit;
+}
+
+/* 축소 상태에서 레이블 및 텍스트 숨기기 (nav-label 제외) */
+.sidebar.collapsed .new-calendar-label,
+.sidebar.collapsed .nav-section-title,
+.sidebar.collapsed .calendar-category-title,
+.sidebar.collapsed .calendar-name,
+.sidebar.collapsed .share-badge,
+.sidebar.collapsed .category-count,
+.sidebar.collapsed .count-badge,
+.sidebar.collapsed .premium-badge,
+.sidebar.collapsed .calendar-list,
+.sidebar.collapsed .calendar-category-items {
+    display: none;
+}
+
+/* 축소 상태에서 네비게이션 아이템 중앙 정렬 - 스크린샷 스타일 */
+.sidebar.collapsed .nav-item,
+.sidebar.collapsed .new-calendar-button,
+.sidebar.collapsed .calendar-nav-item {
+    padding: 0.75rem 0;
+    margin: 0.25rem 0;
+    justify-content: center;
+    min-height: 48px;
+    /* 터치 친화적인 크기 */
+}
+
+/* 축소 상태에서 아이콘만 표시하고 중앙 정렬 */
+.sidebar.collapsed .nav-icon,
+.sidebar.collapsed .category-icon,
+.sidebar.collapsed .calendar-indicator {
+    margin: 0 auto;
+    justify-content: center;
+}
+
+/* 축소 상태에서 섹션 간격 조정 */
+.sidebar.collapsed .nav-section {
+    margin: 0.5rem 0;
+}
+
+/* 축소 상태에서 툴팁 기능 */
+.sidebar.collapsed .nav-item,
+.sidebar.collapsed .new-calendar-button,
+.sidebar.collapsed .calendar-nav-item {
+    position: relative;
+}
+
+.sidebar.collapsed .nav-item::after,
+.sidebar.collapsed .new-calendar-button::after,
+.sidebar.collapsed .calendar-nav-item::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--border-color);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: all 0.2s ease;
+    margin-left: 0.5rem;
+    z-index: 1000;
+}
+
+.sidebar.collapsed .nav-item:hover::after,
+.sidebar.collapsed .new-calendar-button:hover::after,
+.sidebar.collapsed .calendar-nav-item:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* 축소 상태에서 더 나은 호버 효과 */
+.sidebar.collapsed .nav-item:hover,
+.sidebar.collapsed .new-calendar-button:hover,
+.sidebar.collapsed .calendar-nav-item:hover {
+    background: var(--sidebar-hover-bg);
+    transform: none;
+    /* 가로 이동 효과 제거 */
+    scale: 1.05;
+    /* 약간의 확대 효과 */
+}
+
+/* 📱 사이드바 헤더 컨테이너 - Floating 스타일 */
+.sidebar-header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    min-height: 60px;
+    background: rgba(32, 32, 32, 0.8);
+    backdrop-filter: blur(10px);
+    border-radius: 12px 12px 0 0;
+    z-index: 10001;
+    position: relative;
+}
+
+.sidebar-header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+}
+
+/* 축소 상태에서 헤더 조정 */
+.sidebar.collapsed .sidebar-header-container {
+    padding: 1rem 0.5rem;
+    justify-content: center;
+}
+
+/* 축소 상태에서 헤더 내용 숨기기 - 토글 버튼 제외 */
+.sidebar.collapsed .sidebar-header-left {
+    display: none;
+}
+
+/* 축소 상태에서도 토글 버튼 표시 - 강제 우선순위 */
+.sidebar.collapsed .sidebar-toggle,
+.sidebar.collapsed .sidebar-toggle,
+.sidebar.collapsed button.sidebar-toggle,
+.sidebar.collapsed #sidebar-toggle.sidebar-toggle {
+    display: flex !important;
+    width: 40px !important;
+    height: 40px !important;
+    background: #000000 !important;
+    border-radius: 8px !important;
+    border: 2px solid #ffffff !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    position: relative !important;
+    z-index: 9999 !important;
+    margin: 0.5rem auto !important;
+    color: #ffffff !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+}
+
+/* 🏷️ 사이드바 제목 - 스크린샷 스타일 */
+.sidebar-header-title {
+    font-size: 1rem;
+    /* 조금 줄여서 일관성 있게 */
+    font-weight: 600;
+    color: var(--sidebar-text-primary);
+    white-space: nowrap;
+    letter-spacing: -0.01em;
+}
+
+/* 🔄 사이드바 토글 버튼 - 스크린샷 스타일 */
+.sidebar .sidebar-toggle,
+.sidebar-toggle,
+button.sidebar-toggle,
+#sidebar-toggle.sidebar-toggle {
+    background: #000000 !important;
+    border: 1px solid #ffffff !important;
+    border-radius: 6px !important;
+    padding: 0.5rem !important;
+    cursor: pointer !important;
+    color: #ffffff !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 32px !important;
+    height: 32px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    position: relative !important;
+    z-index: 9999 !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+    flex-shrink: 0 !important;
+}
+
+.sidebar .sidebar-toggle:hover,
+.sidebar-toggle:hover,
+button.sidebar-toggle:hover,
+#sidebar-toggle.sidebar-toggle:hover {
+    background: var(--sidebar-active-bg) !important;
+    color: var(--sidebar-text-primary) !important;
+    transform: scale(1.05) !important;
+    border-color: var(--sidebar-text-secondary) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.sidebar-toggle svg {
+    width: 18px;
+    height: 18px;
+    transition: transform 0.3s ease;
+}
+
+/* 축소 상태에서 화살표 회전 */
+.sidebar.collapsed .sidebar-toggle svg {
+    transform: rotate(180deg);
+}
+
+/* 축소 상태에서 토글 버튼 호버 효과 */
+.sidebar.collapsed .sidebar-toggle:hover,
+.sidebar.collapsed .sidebar-toggle:hover,
+.sidebar.collapsed button.sidebar-toggle:hover,
+.sidebar.collapsed #sidebar-toggle.sidebar-toggle:hover {
+    background: var(--sidebar-active-bg) !important;
+    transform: scale(1.1) !important;
+    border-color: var(--sidebar-text-primary) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* 토글 버튼 툴팁 - 임시 비활성화 (가시성 확보를 위해) */
+.sidebar.collapsed .sidebar-toggle {
+    position: relative;
+}
+
+.sidebar.collapsed .sidebar-toggle::after {
+    display: none !important;
+    /* 툴팁 완전 비활성화 */
+}
+
+.sidebar.collapsed .sidebar-toggle:hover::after {
+    display: none !important;
+    /* 툴팁 완전 비활성화 */
+}
+
+/* 축소 상태에서 제목 숨기기 */
+.sidebar.collapsed .sidebar-header-title {
+    display: none;
+}
+
+/* 📑 네비게이션 섹션 - ClickUp 스타일 상단 정렬 */
+.nav-section {
+    margin: 0;
+    /* 상단에 딱 붙임 */
+}
+
+/* 첫 번째 섹션 (새 캘린더) - 최상단에 배치 */
+.nav-section:first-of-type {
+    margin-top: 0;
+    padding-top: 0.5rem;
+}
+
+/* 메인 섹션들 - 간격 최소화 */
+.nav-section:not(.nav-section-bottom) {
+    margin: 0;
+    padding: 0.25rem 0;
+}
+
+.nav-section-title {
+    font-size: 0.875rem;
+    /* 통일된 폰트 사이즈 */
+    font-weight: 600;
+    color: var(--sidebar-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0 1rem 0.5rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.8;
+}
+
+/* 하단 고정 섹션 - 설정 아이콘만 (중복 제거됨) */
+
+/* 메인 콘텐츠 영역 조정 */
+.sidebar.collapsed+.main-content {
+    margin-left: 0;
+}
+
+/* 🌙 테마 토글 버튼 - 스크린샷 스타일 */
+.theme-toggle {
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    padding: 6px;
+    cursor: pointer;
+    color: var(--sidebar-text-secondary);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+}
+
+.theme-toggle:hover {
+    background: var(--sidebar-hover-bg);
+    color: var(--sidebar-text-primary);
+    transform: scale(1.05);
+}
+
+/* 축소 상태에서 테마 토글 중앙 정렬 */
+.sidebar.collapsed .theme-toggle {
+    width: 28px;
+    height: 28px;
+    margin: 0 auto;
+}
+
+/* layout.css 충돌 방지 - 최고 우선순위 override */
+.sidebar #sidebar-toggle,
+.sidebar .sidebar-toggle,
+.sidebar-header-container .sidebar-toggle,
+div.sidebar button.sidebar-toggle {
+    background: #000000 !important;
+    border: 1px solid #ffffff !important;
+    border-radius: 6px !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    outline: none !important;
+    width: 32px !important;
+    height: 32px !important;
+    color: #ffffff !important;
+    z-index: 10000 !important;
+    position: relative !important;
+}
+
+/* 축소 상태 최고 우선순위 */
+.sidebar.collapsed #sidebar-toggle,
+.sidebar.collapsed .sidebar-toggle,
+.sidebar.collapsed .sidebar-header-container .sidebar-toggle,
+div.sidebar.collapsed button.sidebar-toggle {
+    background: #000000 !important;
+    border: 2px solid #ffffff !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25) !important;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    outline: none !important;
+    width: 40px !important;
+    height: 40px !important;
+    color: #ffffff !important;
+    z-index: 10000 !important;
+    position: relative !important;
+    margin: 0.5rem auto !important;
+}
+
+/* 📱 반응형 디자인 */
+@media (max-width: 768px) {
+    .sidebar {
+        width: var(--sidebar-width);
+        position: fixed;
+        left: calc(-1 * var(--sidebar-width));
+        margin: 8px;
+        top: 8px;
+        height: calc(100vh - 16px);
+        border-radius: 12px;
+        transition: left 0.3s ease;
+        z-index: 1000;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.32), 0 8px 24px rgba(0, 0, 0, 0.16);
+    }
+
+    .sidebar.mobile-open {
+        left: 0;
+    }
+
+    /* 모바일에서 오버레이 배경 */
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .sidebar-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    /* 모바일 햄버거 메뉴 버튼 */
+    .mobile-menu-toggle {
+        display: block;
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        z-index: 1001;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 8px;
+        padding: 0.75rem;
+        cursor: pointer;
+        color: var(--text-primary);
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
+
+    .mobile-menu-toggle:hover {
+        background: var(--glass-hover);
+        transform: scale(1.05);
+    }
+}
+
+/* 데스크톱에서 모바일 메뉴 버튼 숨기기 */
+@media (min-width: 769px) {
+    .mobile-menu-toggle {
+        display: none;
+    }
+
+    .sidebar-overlay {
+        display: none;
+    }
+}
+
+/* 🎨 스크롤바 스타일링 */
+.sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: var(--text-tertiary);
+    border-radius: 2px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+/* Firefox 스크롤바 스타일링 - 스크린샷 스타일 */
+.sidebar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--sidebar-text-secondary) transparent;
+}
+
+/* 추가 스타일 - 사이드바 텍스트 레이블 개선 */
+.sidebar .nav-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: inherit;
+    transition: color 0.2s ease;
+}
+
+/* 캘린더 카테고리 스타일 */
+.calendar-category {
+    padding: 0;
+}
+
+.calendar-category:first-child {
+    margin-top: 0.5rem;
+}
+
+.calendar-category-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem 0.5rem;
+    font-size: 0.875rem;
+    /* 통일된 폰트 사이즈 */
+    font-weight: 600;
+    color: var(--sidebar-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+    opacity: 0.9;
+}
+
+/* 접기/펼치기 가능한 카테고리 제목 */
+.collapsible-title {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 6px;
+}
+
+.collapsible-title:hover {
+    background: var(--sidebar-hover-bg);
+    color: var(--sidebar-text-primary);
+    opacity: 1;
+}
+
+/* 접기/펼치기 화살표 */
+.collapse-arrow {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+}
+
+.collapse-arrow svg {
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.category-icon {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 24px !important;
+    width: 24px !important;
+    height: 24px !important;
+    flex-shrink: 0 !important;
+    padding-left: 0 !important;
+    position: relative;
+}
+
+.category-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.category-text {
+    flex: 1;
+}
+
+.category-count {
+    background: var(--sidebar-hover-bg);
+    color: var(--sidebar-text-secondary);
+    padding: 0.125rem 0.375rem;
+    border-radius: 12px;
+    font-size: 0.625rem;
+    font-weight: 500;
+    min-width: 18px;
+    text-align: center;
+}
+
+.calendar-category-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+/* 접힌 상태 스타일 */
+.calendar-category.collapsed .calendar-category-items {
+    margin-bottom: 0;
+}
+
+.calendar-category.collapsed .calendar-category-title {
+    margin-bottom: 0.5rem;
+}
+
+/* 캘린더 네비게이션 아이템 스타일 - 카테고리와 동일한 padding으로 정렬 */
+.calendar-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    padding-left: 1.25rem;
+    margin: 0.125rem 0;
+    color: var(--sidebar-text-secondary);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    font-size: 0.75rem;
+    font-weight: 500;
+    min-height: 28px;
+    box-sizing: border-box;
+}
+
+/* 캘린더 네비게이션 아이템 첫 번째 요소(아이콘) 강제 정렬 */
+.calendar-nav-item>*:first-child {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+    flex-shrink: 0 !important;
+    margin-right: 0 !important;
+    position: relative;
+}
+
+.calendar-nav-item:hover {
+    background: var(--sidebar-hover-bg);
+    color: var(--sidebar-text-primary);
+    transform: translateX(2px);
+}
+
+.calendar-nav-item.selected {
+    background: var(--sidebar-active-bg);
+    color: var(--sidebar-text-primary);
+}
+
+.calendar-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.calendar-name {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.share-badge {
+    background: var(--sidebar-active-bg);
+    color: var(--sidebar-text-primary);
+    padding: 0.125rem 0.375rem;
+    border-radius: 10px;
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+/* 개인/공유 캘린더 구분 스타일 */
+.personal-calendar .calendar-indicator {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.shared-calendar .calendar-indicator {
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+/* 캘린더가 없을 때 */
+.no-calendars {
+    text-align: center;
+    color: var(--sidebar-text-secondary);
+    font-size: 0.875rem;
+    padding: 2rem 1rem;
+    opacity: 0.7;
+}
+
+/* 캘린더 리스트 컨테이너 스타일 */
+.calendar-list {
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    clear: both;
+}
+
+/* 개인/공유 캘린더 섹션 스크롤 제한 */
+.calendar-category-items {
+    max-height: calc(5 * 44px);
+    /* 5개 아이템 * 최소 높이 */
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* 캘린더 카테고리 스크롤바 스타일 */
+.calendar-category-items::-webkit-scrollbar {
+    width: 4px;
+}
+
+.calendar-category-items::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.calendar-category-items::-webkit-scrollbar-thumb {
+    background: var(--sidebar-text-secondary);
+    border-radius: 2px;
+    opacity: 0.5;
+}
+
+.calendar-category-items::-webkit-scrollbar-thumb:hover {
+    opacity: 0.8;
+}
+
+/* Firefox 스크롤바 */
+.calendar-category-items {
+    scrollbar-width: thin;
+    scrollbar-color: var(--sidebar-text-secondary) transparent;
+}
+
+/* ClickUp 스타일 - 상단 정렬된 섹션 간격 */
+
+/* 라이트 모드에서 아이콘 색상 조정 */
+[data-theme="light"] .sidebar .nav-icon svg,
+[data-theme="light"] .sidebar .new-calendar-button svg,
+[data-theme="light"] .sidebar .calendar-nav-item svg,
+[data-theme="light"] .sidebar .category-icon svg,
+[data-theme="light"] .sidebar .collapse-arrow svg,
+[data-theme="light"] .sidebar .sidebar-toggle-btn-internal svg {
+    stroke: var(--sidebar-text-primary) !important;
+    color: var(--sidebar-text-primary) !important;
+}
+
+/* 라이트 모드에서 보조 아이콘들 (화살표 등) */
+[data-theme="light"] .sidebar .collapse-arrow svg {
+    stroke: var(--sidebar-text-secondary) !important;
+}
+
+/* 라이트 모드에서 활성 상태 아이콘 */
+[data-theme="light"] .sidebar .nav-item.active .nav-icon svg,
+[data-theme="light"] .sidebar .calendar-nav-item.selected svg {
+    stroke: var(--sidebar-text-primary) !important;
+    color: var(--sidebar-text-primary) !important;
+}
+
+/* 라이트 모드에서 호버 상태 아이콘 */
+[data-theme="light"] .sidebar .nav-item:hover .nav-icon svg,
+[data-theme="light"] .sidebar .new-calendar-button:hover svg,
+[data-theme="light"] .sidebar .calendar-nav-item:hover svg {
+    stroke: var(--sidebar-text-primary) !important;
+    color: var(--sidebar-text-primary) !important;
+}
+
+.nav-section {
+    margin: 0;
+    padding: 0;
+}
+
+/* 첫 번째 섹션 (새 캘린더) 최상단 배치 */
+.nav-section:first-of-type {
+    margin-top: 0;
+    padding-top: 0.25rem;
+}
+
+/* 페이지 섹션 - 간격 최소화 */
+.nav-section:nth-child(3) {
+    margin: 0;
+    padding: 0.25rem 0;
+}
+
+/* 연결 & 관리 섹션 - 상단에 붙임 */
+.nav-section:nth-child(4) {
+    margin: 0;
+    padding: 0.25rem 0;
+}
+
+/* 하단 고정 섹션 - floating 설정 아이콘 */
+.nav-section-bottom {
+    padding: 1rem 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(32, 32, 32, 0.8);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    flex-shrink: 0;
+    min-height: 60px; /* 최소 높이 보장 */
+}
+
+/* 라이트 모드에서 하단 섹션 배경 */
+[data-theme="light"] .nav-section-bottom {
+    background: rgba(248, 249, 250, 0.95);
+    border: 1px solid rgba(233, 236, 239, 0.5);
+}
+
+/* 🎯 Clean Z-Index Hierarchy */
+.sidebar {
+    z-index: 200;
+}
+
+.sidebar .sidebar-header-container {
+    z-index: 201;
+    position: relative;
+}
+
+.sidebar .nav-section-bottom {
+    z-index: 202;
+}
+
+/* 하단 설정 섹션 - floating design에 맞게 조정 */
+.nav-section-bottom {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    background: #202020;
+    border-radius: 8px;
+    z-index: 10000;
+}
+
+/* 사이드바 축소 시 하단 섹션 너비 */
+.sidebar.collapsed .nav-section-bottom {
+    width: auto;
+    left: 8px;
+    right: 8px;
+}
+
+/* 메인 콘텐츠와 floating 사이드바 간격 */
+.main-content {
+    margin-left: 0;
+    /* floating 사이드바는 겹치지 않도록 자동 간격 */
+}
+
+
+/* 캘린더 섹션과 사이드바 간격 보장 */
+.calendar-category {
+    padding: 0;
+    /* 각 캘린더 카테고리 간 충분한 간격 */
+}
+
+/* 캘린더 리스트 컨테이너 */
+.calendar-list-container {
+    margin-bottom: 2rem;
+    /* 캘린더 리스트와 하단 섹션 간 충분한 간격 */
+}
+
+/* 캘린더 리스트 - 4개 제한 및 스크롤 */
+.calendar-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    /* 최대 4개 항목 높이 (60px * 4 = 240px) */
+    max-height: 240px;
+    overflow-y: auto;
+    padding-right: 4px; /* 스크롤바 공간 */
+}
+
+/* 캘린더 아이템 */
+.calendar-item {
+    background: var(--sidebar-bg-secondary);
+    border-radius: 8px;
+    padding: 0.75rem;
+    border: 1px solid var(--sidebar-border);
+    transition: all 0.2s ease;
+    min-height: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.calendar-item:hover {
+    background: var(--sidebar-bg-hover);
+    border-color: var(--accent-color);
+}
+
+.calendar-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.calendar-type {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--sidebar-text-primary);
+}
+
+.calendar-id {
+    font-size: 0.75rem;
+    color: var(--sidebar-text-secondary);
+    font-family: monospace;
+}
+
+.calendar-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.share-button, .delete-button {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.share-button {
+    background: var(--accent-blue);
+    color: white;
+}
+
+.share-button:hover {
+    background: var(--accent-blue-hover);
+}
+
+.delete-button {
+    background: var(--accent-red);
+    color: white;
+}
+
+.delete-button:hover {
+    background: var(--accent-red-hover);
+}
+
+/* 스크롤 인디케이터 */
+.calendar-scroll-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    background: var(--sidebar-bg-tertiary);
+    border-radius: 6px;
+    color: var(--sidebar-text-secondary);
+    font-size: 0.75rem;
+    animation: pulse 2s infinite;
+}
+
+.scroll-arrow {
+    font-size: 0.875rem;
+    animation: bounce 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-3px); }
+    60% { transform: translateY(-1px); }
+}
+
+/* 캘린더 리스트 스크롤바 스타일링 */
+.calendar-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.calendar-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.calendar-list::-webkit-scrollbar-thumb {
+    background: var(--sidebar-text-tertiary);
+    border-radius: 2px;
+    opacity: 0.5;
+}
+
+.calendar-list::-webkit-scrollbar-thumb:hover {
+    background: var(--sidebar-text-secondary);
+    opacity: 0.8;
+}
+
+/* 빈 캘린더 메시지 */
+.no-calendars {
+    text-align: center;
+    color: var(--sidebar-text-secondary);
+    font-style: italic;
+    padding: 1rem;
+    font-size: 0.875rem;
+}
+
+/* 라이트 모드 */
+[data-theme="light"] .calendar-item {
+    background: #f8f9fa;
+    border-color: #e9ecef;
+}
+
+[data-theme="light"] .calendar-item:hover {
+    background: #e9ecef;
+    border-color: #007bff;
+}
+
+[data-theme="light"] .calendar-scroll-indicator {
+    background: #f0f0f0;
+}
+
+/* 설정 아이콘 스타일 */
+.nav-section-bottom .nav-item {
+    margin: 0;
+    padding: 0.5rem 1rem;
+}
+
+/* 사이드바 스크롤 영역 패딩 조정 */
+.sidebar-main-nav::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar-main-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-main-nav::-webkit-scrollbar-thumb {
+    background: var(--text-tertiary);
+    border-radius: 2px;
+}
+
+.sidebar-main-nav::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
