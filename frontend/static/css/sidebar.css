@@ -25,6 +25,7 @@
 .sidebar {
     width: 240px !important;
     background: #ffffff !important;
+    background-color: #ffffff !important;
     border: 6px solid #000000 !important; /* 더욱 두꺼운 검은색 테두리 */
     border-radius: 16px !important; /* 더 둥근 모서리 */
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -37,7 +38,7 @@
     overflow-y: auto !important; /* 세로 스크롤만 허용 */
     overflow-x: hidden !important; /* 가로 스크롤 완전 차단 */
     flex-shrink: 0;
-    z-index: 9999;
+    z-index: 9999 !important;
     /* 강력한 floating 효과를 위한 다중 그림자 */
     box-shadow: 
         0 30px 60px rgba(0, 0, 0, 0.6), /* 메인 그림자 */
@@ -46,6 +47,8 @@
         0 4px 8px rgba(0, 0, 0, 0.2) /* 가까운 그림자 */
         !important;
     color: #1e293b !important;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 /* 사이드바 테두리 강제 적용 - 최고 우선순위 */
@@ -55,6 +58,11 @@ nav.sidebar,
 aside.sidebar {
     border: 5px solid #000000 !important;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(0, 0, 0, 1) !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    z-index: 9999 !important;
 }
 
 /* 사이드바 내부 콘텐츠 wrapper - flex 구조 (삭제됨) */
