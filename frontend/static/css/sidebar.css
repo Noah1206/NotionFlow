@@ -1,13 +1,17 @@
 /* 🚀 NotionFlow Dashboard Sidebar Styles */
 /* 재사용 가능한 사이드바 컴포넌트 스타일 */
 
-/* 🚫 GLOBAL: 사이드바 모든 스크롤바 완전 제거 */
+/* 🚫 GLOBAL: 사이드바 가로 스크롤 완전 차단 및 텍스트 오버플로우 제어 */
 .sidebar,
 .sidebar * {
     scrollbar-width: none;
     /* Firefox */
     -ms-overflow-style: none;
     /* Internet Explorer 10+ */
+    overflow-x: hidden !important; /* 모든 하위 요소 가로 스크롤 차단 */
+    white-space: nowrap !important; /* 텍스트 줄바꿈 방지 */
+    text-overflow: ellipsis !important; /* 넘치는 텍스트 ... 처리 */
+    max-width: 100% !important; /* 부모 컨테이너 너비 초과 방지 */
 }
 
 .sidebar::-webkit-scrollbar,
@@ -30,7 +34,8 @@
     bottom: 10px !important;
     height: calc(100vh - 20px) !important;
     margin: 0 !important;
-    overflow: visible !important; /* 햄버거 버튼이 보이도록 */
+    overflow-y: auto !important; /* 세로 스크롤만 허용 */
+    overflow-x: hidden !important; /* 가로 스크롤 완전 차단 */
     flex-shrink: 0;
     z-index: 9999;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(0, 0, 0, 1) !important; /* 더 강한 그림자와 추가 테두리 */
@@ -56,8 +61,9 @@ div.sidebar.collapsed {
     width: 50px !important;
     min-width: 50px !important;
     max-width: 50px !important;
-    /* 햄버거 버튼이 보이도록 overflow visible */
-    overflow: visible !important;
+    /* 가로 스크롤 완전 차단, 세로만 허용 */
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
     border: 5px solid #000000 !important; /* 더욱 두꺼운 검은색 테두리 유지 */
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(0, 0, 0, 1) !important; /* 더 강한 그림자와 추가 테두리 */
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
@@ -333,6 +339,8 @@ button.sidebar-toggle-btn-header:hover svg,
     letter-spacing: -0.01em;
     min-height: 42px;
     box-sizing: border-box;
+    width: calc(100% - 1rem) !important; /* 좌우 마진 고려한 너비 */
+    overflow: hidden !important; /* 내용물이 넘치지 않도록 */
 }
 
 .sidebar .nav-item:hover {
@@ -1044,6 +1052,10 @@ div.sidebar.collapsed button.sidebar-toggle {
     font-weight: 500;
     color: inherit;
     transition: color 0.2s ease;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    max-width: 150px !important; /* 텍스트 최대 너비 제한 */
 }
 
 /* 캘린더 카테고리 스타일 */
