@@ -437,7 +437,7 @@ window.sidebarAPI = {
 
 // 전역 toggleSidebar 함수 - HTML onclick에서 직접 호출 가능
 window.toggleSidebar = function() {
-    console.log('toggleSidebar called'); // 디버그용
+    // console.log('toggleSidebar called'); // 디버그용
     
     if (sidebarManager) {
         sidebarManager.toggleSidebar();
@@ -447,21 +447,21 @@ window.toggleSidebar = function() {
         const openIcon = floatingBtn?.querySelector('.sidebar-toggle-open-icon');
         const closeIcon = floatingBtn?.querySelector('.sidebar-toggle-close-icon');
         
-        console.log('Sidebar collapsed:', sidebarManager.sidebar?.classList.contains('collapsed')); // 디버그용
+        // console.log('Sidebar collapsed:', sidebarManager.sidebar?.classList.contains('collapsed')); // 디버그용
         
         if (sidebarManager.sidebar?.classList.contains('collapsed')) {
             // 사이드바가 접혔을 때 - 햄버거 아이콘 표시
             if (openIcon) openIcon.style.display = 'block';
             if (closeIcon) closeIcon.style.display = 'none';
-            console.log('Showing hamburger icon'); // 디버그용
+            // console.log('Showing hamburger icon'); // 디버그용
         } else {
             // 사이드바가 펼쳐졌을 때 - X 아이콘 표시
             if (openIcon) openIcon.style.display = 'none';
             if (closeIcon) closeIcon.style.display = 'block';
-            console.log('Showing close icon'); // 디버그용
+            // console.log('Showing close icon'); // 디버그용
         }
     } else {
-        console.log('sidebarManager not found'); // 디버그용
+        // console.log('sidebarManager not found'); // 디버그용
     }
 };
 

@@ -376,7 +376,7 @@ function populateApiKeyFields(userKeys) {
 };
 // 유저의 실제 API Key 상태를 받아오는 함수, 백엔드 상태 확인 후 사용자 키 가져오기
 async function initializeUserKeys() {
-    console.log('🔑 Initializing user keys - temporarily disabled to prevent 404 errors');
+    // console.log('🔑 Initializing user keys - temporarily disabled to prevent 404 errors');
     return; // Skip API calls to prevent sidebar loading issues
     
     // 1. 백엔드 상태 확인
@@ -1547,7 +1547,7 @@ async function connectCalendar(platform, calendarId) {
         const result = await response.json();
         
         if (result.success) {
-            console.log(`✅ Successfully connected ${platform} calendar:`, calendarId);
+            // console.log(`✅ Successfully connected ${platform} calendar:`, calendarId);
             return result;
         } else {
             throw new Error(result.message || 'Failed to connect calendar');
@@ -1586,7 +1586,7 @@ async function disconnectCalendar(platform, calendarId) {
         const result = await response.json();
         
         if (result.success) {
-            console.log(`❌ Successfully disconnected ${platform} calendar:`, calendarId);
+            // console.log(`❌ Successfully disconnected ${platform} calendar:`, calendarId);
             return result;
         } else {
             throw new Error(result.message || 'Failed to disconnect calendar');

@@ -163,7 +163,7 @@ class ThemeManager {
     createToggleButton() {
         // DISABLED: Don't create toggle button automatically
         // User wants theme toggle only in settings modal
-        console.log('🎨 Theme toggle button creation disabled - use settings modal instead');
+        // console.log('🎨 Theme toggle button creation disabled - use settings modal instead');
         return null;
     }
 
