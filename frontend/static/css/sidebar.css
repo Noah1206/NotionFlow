@@ -599,43 +599,26 @@ button.sidebar-toggle-btn-header:hover svg,
     margin: 0.5rem 0;
 }
 
-/* 축소 상태에서 툴팁 기능 */
+/* 툴팁 완전 제거 - 접힌 상태에서 아이콘 클릭 시 사이드바만 펼쳐짐 */
 .sidebar.collapsed .nav-item,
 .sidebar.collapsed .new-calendar-button,
 .sidebar.collapsed .calendar-nav-item {
     position: relative;
+    /* 툴팁 관련 모든 가상 요소 제거 */
 }
 
 .sidebar.collapsed .nav-item::after,
 .sidebar.collapsed .new-calendar-button::after,
 .sidebar.collapsed .calendar-nav-item::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    left: 100%;
-    top: 50%;
-    transform: translateY(-50%);
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    padding: 0.5rem 0.75rem;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    white-space: nowrap;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    border: 1px solid var(--border-color);
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transition: all 0.2s ease;
-    margin-left: 0.5rem;
-    z-index: 1000;
+    display: none !important;
+    content: none !important;
 }
 
 .sidebar.collapsed .nav-item:hover::after,
 .sidebar.collapsed .new-calendar-button:hover::after,
 .sidebar.collapsed .calendar-nav-item:hover::after {
-    opacity: 1;
-    visibility: visible;
+    display: none !important;
+    content: none !important;
 }
 
 /* 축소 상태에서 더 나은 호버 효과 */

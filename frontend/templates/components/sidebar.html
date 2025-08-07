@@ -10,7 +10,7 @@
 
 <!-- 접힌 상태 전용 햄버거 버튼 -->
 <div class="collapsed-header">
-    <button class="collapsed-toggle-btn" onclick="toggleSidebar()" data-tooltip="사이드바 펼치기">
+    <button class="collapsed-toggle-btn" onclick="toggleSidebar()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="3" y1="6" x2="21" y2="6"></line>
             <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -24,7 +24,7 @@
     <div class="sidebar-logo">
         <span class="logo-text">NodeFlow</span>
     </div>
-    <button class="expanded-toggle-btn" onclick="toggleSidebar()" data-tooltip="사이드바 접기">
+    <button class="expanded-toggle-btn" onclick="toggleSidebar()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -40,8 +40,8 @@
         <div class="nav-section">
             <!-- 프로필 -->
             <div class="nav-item profile-nav-item {{ 'active' if current_page == 'profile' else '' }}"
-                data-section="profile" data-tooltip="프로필"
-                onclick="if(typeof navigateToSection === 'function') { navigateToSection('profile'); } else { window.location.href = '/profile'; }">
+                data-section="profile"
+                onclick="handleSidebarItemClick('profile')">
                 <span class="nav-icon profile-avatar-icon">
                     <img id="sidebar-profile-avatar" src="/static/images/default-avatar.svg" alt="프로필"
                         class="sidebar-avatar">
@@ -52,7 +52,7 @@
 
         <!-- 캘린더 섹션 -->
         <div class="nav-section">
-            <div class="nav-item" data-tooltip="캘린더 목록" onclick="window.location.href='/dashboard/calendar-list'">
+            <div class="nav-item" onclick="handleSidebarItemClick('calendar')">
                 <span class="nav-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -69,8 +69,7 @@
         <!-- 기타 기능 섹션 -->
         <div class="nav-section">
             <div class="nav-item {{ 'active' if current_page == 'overview' else '' }}" data-section="overview"
-                data-tooltip="홈"
-                onclick="if(typeof navigateToSection === 'function') { navigateToSection('overview'); } else { console.log('navigateToSection not loaded yet'); }">
+                onclick="handleSidebarItemClick('overview')">
                 <span class="nav-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -82,8 +81,7 @@
             </div>
 
             <div class="nav-item {{ 'active' if current_page == 'sync' else '' }}" data-section="sync"
-                data-tooltip="동기화 상태"
-                onclick="if(typeof navigateToSection === 'function') { navigateToSection('sync'); } else { console.log('navigateToSection not loaded yet'); }">
+                onclick="handleSidebarItemClick('sync')">
                 <span class="nav-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -96,7 +94,7 @@
             </div>
 
             <!-- AI 알림 수신함 (프리미엄 기능) -->
-            <div class="nav-item" data-tooltip="수신함" onclick="openInbox()">
+            <div class="nav-item" onclick="handleSidebarItemClick('inbox')">
                 <span class="nav-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -113,8 +111,7 @@
         <div class="nav-section">
 
             <div class="nav-item {{ 'active' if current_page == 'friends' else '' }}" data-section="friends"
-                data-tooltip="친구"
-                onclick="if(typeof navigateToSection === 'function') { navigateToSection('friends'); } else { console.log('navigateToSection not loaded yet'); }">
+                onclick="handleSidebarItemClick('friends')">
                 <span class="nav-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -128,7 +125,7 @@
             </div>
 
             <div class="nav-item {{ 'active' if current_page == 'api-keys' else '' }}" data-section="api-keys"
-                data-tooltip="API 키 관리" onclick="navigateToApiKeys()">
+                onclick="handleSidebarItemClick('api-keys')">
                 <span class="nav-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -141,8 +138,8 @@
             </div>
 
             <!-- 설정 아이콘을 연결 & 관리 섹션으로 이동 -->
-            <div class="nav-item {{ 'active' if current_page == 'settings' else '' }}" data-tooltip="설정"
-                onclick="openSettingsModal()">
+            <div class="nav-item {{ 'active' if current_page == 'settings' else '' }}"
+                onclick="handleSidebarItemClick('settings')">
                 <span class="nav-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -1499,6 +1496,64 @@
         }
 
 
+
+        // 접힌 상태에서 아이콘 클릭 시 사이드바 펼치기 또는 기본 동작
+        function handleSidebarItemClick(section) {
+            const sidebar = document.getElementById('sidebar');
+            if (!sidebar) return;
+
+            // 사이드바가 접혀있으면 펼치기만 함
+            if (sidebar.classList.contains('collapsed')) {
+                toggleSidebar();
+                return; // 다른 동작은 하지 않음
+            }
+
+            // 펼쳐져 있으면 원래 기능 실행
+            switch(section) {
+                case 'profile':
+                    if(typeof navigateToSection === 'function') { 
+                        navigateToSection('profile'); 
+                    } else { 
+                        window.location.href = '/profile'; 
+                    }
+                    break;
+                case 'calendar':
+                    window.location.href = '/dashboard/calendar-list';
+                    break;
+                case 'overview':
+                    if(typeof navigateToSection === 'function') { 
+                        navigateToSection('overview'); 
+                    }
+                    break;
+                case 'sync':
+                    if(typeof navigateToSection === 'function') { 
+                        navigateToSection('sync'); 
+                    }
+                    break;
+                case 'inbox':
+                    if(typeof openInbox === 'function') { 
+                        openInbox(); 
+                    }
+                    break;
+                case 'friends':
+                    if(typeof navigateToSection === 'function') { 
+                        navigateToSection('friends'); 
+                    }
+                    break;
+                case 'api-keys':
+                    if(typeof navigateToApiKeys === 'function') { 
+                        navigateToApiKeys(); 
+                    }
+                    break;
+                case 'settings':
+                    if(typeof openSettingsModal === 'function') { 
+                        openSettingsModal(); 
+                    }
+                    break;
+                default:
+                    console.log('Unknown section:', section);
+            }
+        }
 
         // 사이드바 토글 기능 - 간단하고 확실한 버전
         function toggleSidebar() {
