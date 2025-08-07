@@ -238,8 +238,8 @@ def dashboard():
                 from utils.dashboard_data import dashboard_data
             except ImportError as e:
                 print(f"Import error: {e}")
-                # Fallback to basic dashboard
-                return render_template('dashboard.html', **dashboard_context)
+                # Fallback: redirect to API Keys since dashboard deleted
+                return redirect('/dashboard/api-keys')
             
             # Get dashboard data using the real dashboard data manager
             try:
@@ -261,12 +261,8 @@ def dashboard():
         except Exception as e:
             print(f"Error loading dashboard data: {e}")
     
-    print(f"🎯 Rendering dashboard.html with context: {dashboard_context}")
-    try:
-        return render_template('dashboard.html', **dashboard_context)
-    except Exception as e:
-        print(f"❌ Template rendering error: {e}")
-        return f"Template Error: {e}", 500
+    print("🔄 Dashboard deleted - redirecting to API Keys page")
+    return redirect('/dashboard/api-keys')
 
 @app.route('/dashboard/index')
 def dashboard_index():
