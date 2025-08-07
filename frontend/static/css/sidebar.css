@@ -352,6 +352,36 @@ button.sidebar-toggle-btn-header:hover svg,
     stroke: #1e293b !important;
     color: #1e293b !important;
     fill: none !important;
+    stroke-width: 2 !important;
+    stroke-linecap: round !important;
+    stroke-linejoin: round !important;
+}
+
+/* 🚨 EMERGENCY: 접힌 상태 아이콘 강제 표시 */
+.sidebar.collapsed span.nav-icon,
+.sidebar.collapsed .nav-item .nav-icon,
+.sidebar.collapsed .nav-item span.nav-icon,
+.sidebar.collapsed .new-calendar-button .nav-icon {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: flex !important;
+    color: #1e293b !important;
+}
+
+.sidebar.collapsed span.nav-icon svg,
+.sidebar.collapsed .nav-item .nav-icon svg,
+.sidebar.collapsed .nav-item span.nav-icon svg,
+.sidebar.collapsed .new-calendar-button .nav-icon svg,
+.sidebar.collapsed svg {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: block !important;
+    stroke: #1e293b !important;
+    fill: none !important;
+    stroke-width: 2 !important;
+    width: 18px !important;
+    height: 18px !important;
+    color: #1e293b !important;
 }
 
 /* 접힌 상태에서 새 캘린더 버튼 중앙 정렬 */
@@ -496,6 +526,37 @@ button.sidebar-toggle-btn-header:hover svg,
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
+    color: #1e293b !important;
+}
+
+/* 🚨 EMERGENCY: 모든 사이드바 아이콘 강제 표시 */
+.sidebar span.nav-icon,
+.sidebar .nav-item .nav-icon,
+.sidebar .nav-item span.nav-icon,
+.new-calendar-button .nav-icon,
+.sidebar .nav-section .nav-icon {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: flex !important;
+    color: #1e293b !important;
+}
+
+.sidebar span.nav-icon svg,
+.sidebar .nav-item .nav-icon svg,
+.sidebar .nav-item span.nav-icon svg,
+.new-calendar-button .nav-icon svg,
+.sidebar .nav-section .nav-icon svg,
+.sidebar svg,
+.nav-item svg,
+span.nav-icon svg {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: block !important;
+    stroke: #1e293b !important;
+    fill: none !important;
+    stroke-width: 2 !important;
+    width: 18px !important;
+    height: 18px !important;
     color: #1e293b !important;
 }
 
