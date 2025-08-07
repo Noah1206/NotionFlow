@@ -1014,6 +1014,8 @@
             margin: 0 auto !important;
             width: 36px !important;
             height: 36px !important;
+            z-index: 10003 !important; /* 헤더보다 위에 표시 */
+            position: relative !important;
         }
 
         .sidebar.collapsed .sidebar-avatar {
@@ -1023,6 +1025,14 @@
             min-height: 32px !important;
             max-width: 32px !important;
             max-height: 32px !important;
+            z-index: 10003 !important; /* 헤더보다 위에 표시 */
+            position: relative !important;
+        }
+        
+        /* 접힌 상태에서 모든 네비게이션 아이템들을 헤더 위에 표시 */
+        .sidebar.collapsed .nav-item {
+            z-index: 10003 !important;
+            position: relative !important;
         }
 
         /* 사이드바 헤더 컨테이너 */
