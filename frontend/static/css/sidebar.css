@@ -1475,6 +1475,9 @@ div.sidebar.collapsed button.sidebar-toggle {
     background: #202020;
     border-radius: 8px;
     z-index: 10000;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 /* 🚨 CRITICAL OVERRIDE - Force Floating Sidebar Position */
@@ -1498,6 +1501,10 @@ div.sidebar {
     width: auto;
     left: 8px;
     right: 8px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
 }
 
 /* 접힌 상태에서 설정 아이콘을 다른 아이콘들과 완전히 동일하게 정렬 */
