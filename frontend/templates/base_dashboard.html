@@ -137,19 +137,15 @@
 
         /* 📱 Main Content Area */
         .main-content {
-            flex: 1;
+            position: fixed !important;
+            top: 0 !important;
+            left: 280px !important;
+            right: 0 !important;
+            bottom: 0 !important;
             padding: 2rem;
-            margin-left: 280px;
-            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            min-height: 100vh;
-            height: 100vh;
-            width: calc(100vw - 280px);
-            /* 사이드바를 제외한 전체 너비 */
             overflow-x: hidden;
             overflow-y: auto;
             background: #ff0000 !important;
-            box-sizing: border-box;
-            position: relative;
             z-index: 50;
             display: block !important;
             visibility: visible !important;
@@ -159,9 +155,7 @@
         /* 사이드바 축소 시 메인 콘텐츠 조정 */
         .sidebar.collapsed ~ .main-content,
         .sidebar-collapsed .main-content {
-            margin-left: 60px;
-            width: calc(100vw - 60px);
-            /* 축소된 사이드바를 제외한 전체 너비 */
+            left: 60px !important;
         }
 
         /* 모든 섹션과 콘텐츠가 최대 너비를 사용하도록 */
