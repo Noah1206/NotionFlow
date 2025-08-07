@@ -4,8 +4,10 @@
 /* 🚫 GLOBAL: 사이드바 모든 스크롤바 완전 제거 */
 .sidebar,
 .sidebar * {
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* Internet Explorer 10+ */
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* Internet Explorer 10+ */
 }
 
 .sidebar::-webkit-scrollbar,
@@ -18,8 +20,8 @@
 /* ✨ 사이드바 기본 구조 - Light Mode Floating Design with 10px margins */
 .sidebar {
     width: 240px !important;
-    background: #ffffff !important; /* 강제 라이트 모드 */
-    border: 1px solid #e2e8f0 !important; /* 강제 라이트 모드 테두리 */
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
     border-radius: 12px !important;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: fixed !important;
@@ -28,12 +30,11 @@
     bottom: 10px !important;
     height: calc(100vh - 20px) !important;
     margin: 0 !important;
-    overflow-y: hidden;
-    overflow-x: hidden;
+    overflow: visible !important; /* 햄버거 버튼이 보이도록 */
     flex-shrink: 0;
     z-index: 9999;
-    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1) !important; /* 라이트 모드 그림자 */
-    color: #1e293b !important; /* 강제 라이트 모드 텍스트 */
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1) !important;
+    color: #1e293b !important;
 }
 
 /* 사이드바 내부 콘텐츠 wrapper - flex 구조 (삭제됨) */
@@ -46,8 +47,8 @@ div.sidebar.collapsed {
     width: 50px !important;
     min-width: 50px !important;
     max-width: 50px !important;
-    /* 버튼만 보이도록 최소 너비 */
-    overflow: hidden !important;
+    /* 햄버거 버튼이 보이도록 overflow visible */
+    overflow: visible !important;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     /* 축소 상태에서도 10px 여백 유지 */
     top: 10px !important;
@@ -61,8 +62,10 @@ div.sidebar.collapsed {
     position: fixed;
     top: 32px;
     z-index: 10001;
-    background: var(--sidebar-bg);
-    border: 1px solid var(--sidebar-border);
+    background: #ffffff !important;
+    /* 라이트 모드 배경 */
+    border: 1px solid #e2e8f0 !important;
+    /* 라이트 모드 테두리 */
     border-radius: 8px;
     padding: 10px;
     cursor: pointer;
@@ -73,10 +76,13 @@ div.sidebar.collapsed {
     align-items: center;
     justify-content: center;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    color: #1e293b !important;
+    /* 강제 다크 색상 */
 }
 
 .sidebar-toggle-btn-floating:hover {
-    background: var(--sidebar-hover-bg);
+    background: #f8fafc !important;
+    /* 라이트 모드 호버 */
     transform: scale(1.1);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
@@ -84,50 +90,129 @@ div.sidebar.collapsed {
 .sidebar-toggle-btn-floating svg {
     width: 20px;
     height: 20px;
-}
-
-/* 사이드바가 펼쳐져 있을 때는 floating 버튼 숨김 */
-.sidebar-toggle-btn-floating {
-    display: none;
-}
-
-/* 사이드바가 접혀 있을 때만 floating 버튼 표시 - 중앙에 위치 */
-.sidebar.collapsed ~ .sidebar-toggle-btn-floating,
-body.sidebar-collapsed .sidebar-toggle-btn-floating {
-    display: flex;
-    left: 35px; /* 10px margin + 50px 사이드바의 중앙 (10 + 25) */
-}
-
-/* 헤더 내부 토글 버튼 스타일 - Light Mode */
-.sidebar-toggle-btn-header {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 12px;
-    border-radius: 8px;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #64748b !important; /* 라이트 모드 버튼 색상 */
-    margin-left: 8px;
-}
-
-.sidebar-toggle-btn-header:hover {
-    background: #f8fafc !important; /* 라이트 모드 호버 */
-    color: #1e293b !important;
-    transform: scale(1.1);
-}
-
-
-.sidebar-toggle-btn-header svg {
-    width: 18px;
-    height: 18px;
-    stroke: #64748b !important; /* 라이트 모드 아이콘 색상 */
-}
-
-.sidebar-toggle-btn-header:hover svg {
     stroke: #1e293b !important;
+    /* 강제 다크 색상 */
+    stroke-width: 2;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* 🚨 CRITICAL: 접힌 상태 토글 버튼 강제 표시 - 검은색 버튼 */
+.sidebar-toggle-btn-floating,
+#sidebar-toggle-floating {
+    display: none !important;
+    /* 기본적으로 숨김 */
+    position: fixed !important;
+    top: 35px !important;
+    left: 35px !important;
+    /* 10px margin + 25px (50px의 중앙) */
+    z-index: 10002 !important;
+    background: #1e293b !important;
+    /* 검은색 배경 */
+    border: 2px solid #1e293b !important;
+    border-radius: 8px !important;
+    padding: 8px !important;
+    cursor: pointer !important;
+    width: 36px !important;
+    height: 36px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25) !important;
+    color: #ffffff !important;
+    /* 흰색 아이콘 */
+}
+
+/* 사이드바가 접혀 있을 때만 floating 버튼 표시 */
+.sidebar.collapsed .sidebar-toggle-btn-floating,
+.sidebar.collapsed #sidebar-toggle-floating,
+body.sidebar-collapsed .sidebar-toggle-btn-floating,
+body.sidebar-collapsed #sidebar-toggle-floating {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* 접힌 상태 floating 버튼 SVG - 흰색 아이콘 */
+.sidebar.collapsed .sidebar-toggle-btn-floating svg,
+.sidebar.collapsed #sidebar-toggle-floating svg,
+.sidebar-toggle-open-icon {
+    width: 18px !important;
+    height: 18px !important;
+    stroke: #ffffff !important;
+    /* 흰색 아이콘 */
+    stroke-width: 2 !important;
+    fill: none !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    color: #000000 !important;
+}
+
+/* 접힌 상태 floating 버튼 호버 효과 */
+.sidebar.collapsed .sidebar-toggle-btn-floating:hover,
+.sidebar.collapsed #sidebar-toggle-floating:hover {
+    background: #0f172a !important;
+    border-color: #0f172a !important;
+    transform: scale(1.1) !important;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* 🚨 CRITICAL: 헤더 토글 버튼 강제 표시 */
+.sidebar-toggle-btn-header,
+button.sidebar-toggle-btn-header {
+    background: #ffffff !important;
+    /* 흰색 배경으로 강제 */
+    border: 2px solid #1e293b !important;
+    /* 다크 테두리 */
+    cursor: pointer !important;
+    padding: 8px !important;
+    border-radius: 6px !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #1e293b !important;
+    margin-left: 8px !important;
+    width: 36px !important;
+    height: 36px !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    position: relative !important;
+    z-index: 9999 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.sidebar-toggle-btn-header:hover,
+button.sidebar-toggle-btn-header:hover {
+    background: #f8fafc !important;
+    border-color: #0f172a !important;
+    color: #0f172a !important;
+    transform: scale(1.1) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.sidebar-toggle-btn-header svg,
+button.sidebar-toggle-btn-header svg,
+.sidebar-toggle-close-icon {
+    width: 18px !important;
+    height: 18px !important;
+    stroke: #1e293b !important;
+    stroke-width: 2 !important;
+    fill: none !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    color: #1e293b !important;
+    position: relative !important;
+    z-index: 10000 !important;
+}
+
+.sidebar-toggle-btn-header:hover svg,
+button.sidebar-toggle-btn-header:hover svg,
+.sidebar-toggle-btn-header:hover .sidebar-toggle-close-icon {
+    stroke: #0f172a !important;
+    color: #0f172a !important;
 }
 
 /* 사이드바가 접혔을 때 헤더 버튼 숨김 */
@@ -139,13 +224,18 @@ body.sidebar-collapsed .sidebar-toggle-btn-floating {
 /* 네비게이션 전체 컨테이너 */
 .sidebar-nav {
     display: block;
-    padding: 1rem 0 80px 0; /* 상단 패딩 추가, 설정 섹션을 위한 공간 */
+    padding: 0 0 80px 0;
+    margin-top: 60px !important;
+    /* 헤더 높이만큼 여백 */
+    position: relative !important;
+    z-index: 10000 !important;
 }
 
 /* 메인 네비게이션 영역 */
 .sidebar-main-nav {
     display: block;
-    padding: 0.5rem 0; /* 상하 패딩 추가 */
+    padding: 0.5rem 0;
+    /* 상하 패딩 추가 */
 }
 
 /* 모든 텍스트 요소에 부드러운 전환 효과 */
@@ -219,7 +309,8 @@ body.sidebar-collapsed .sidebar-toggle-btn-floating {
     display: flex;
     align-items: center;
     padding: 0.75rem 1.25rem;
-    color: #64748b !important; /* 강제 라이트 모드 색상 */
+    color: #64748b !important;
+    /* 강제 라이트 모드 색상 */
     text-decoration: none;
     transition: all 0.2s ease;
     position: relative;
@@ -234,12 +325,14 @@ body.sidebar-collapsed .sidebar-toggle-btn-floating {
 }
 
 .sidebar .nav-item:hover {
-    background: #f8fafc !important; /* 라이트 모드 호버 */
+    background: #f8fafc !important;
+    /* 라이트 모드 호버 */
     color: #1e293b !important;
 }
 
 .sidebar .nav-item.active {
-    background: #e0e7ff !important; /* 라이트 모드 액티브 */
+    background: #e0e7ff !important;
+    /* 라이트 모드 액티브 */
     color: #1e293b !important;
 }
 
@@ -295,7 +388,8 @@ body.sidebar-collapsed .sidebar-toggle-btn-floating {
     width: 24px !important;
     height: 24px !important;
     flex-shrink: 0 !important;
-    color: #64748b !important; /* 라이트 모드 아이콘 색상 */
+    color: #1e293b !important;
+    /* 강제 다크 색상으로 표시 */
     transition: color 0.2s ease;
     margin-right: 0 !important;
     margin-left: 0 !important;
@@ -305,17 +399,27 @@ body.sidebar-collapsed .sidebar-toggle-btn-floating {
 .sidebar .nav-icon svg {
     width: 18px;
     height: 18px;
-    stroke: currentColor;
+    stroke: #1e293b !important;
+    /* 강제 다크 색상으로 표시 */
     fill: none;
     stroke-width: 2;
     stroke-linecap: round;
     stroke-linejoin: round;
-    display: block;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .sidebar .nav-item:hover .nav-icon,
 .sidebar .nav-item.active .nav-icon {
-    color: #1e293b !important; /* 라이트 모드 호버/액티브 색상 */
+    color: #0f172a !important;
+    /* 라이트 모드 호버/액티브 색상 */
+}
+
+.sidebar .nav-item:hover .nav-icon svg,
+.sidebar .nav-item.active .nav-icon svg {
+    stroke: #0f172a !important;
+    /* 라이트 모드 호버/액티브 색상 */
 }
 
 /* 새 캘린더 버튼 스타일 - 카테고리와 동일한 padding으로 정렬 */
@@ -467,18 +571,27 @@ body.sidebar-collapsed .sidebar-toggle-btn-floating {
     /* 약간의 확대 효과 */
 }
 
-/* 📱 사이드바 헤더 컨테이너 - Light Mode 스타일 */
+/* 🚨 CRITICAL: 사이드바 헤더 강제 표시 */
 .sidebar-header-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid #e2e8f0 !important; /* 라이트 모드 테두리 */
-    min-height: 70px;
-    background: rgba(255, 255, 255, 0.95) !important; /* 라이트 모드 배경 */
-    border-radius: 12px 12px 0 0;
-    z-index: 10001;
-    position: relative;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 12px 16px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    min-height: 60px !important;
+    height: 60px !important;
+    background: #ffffff !important;
+    border-radius: 12px 12px 0 0 !important;
+    z-index: 10001 !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    box-sizing: border-box !important;
+    flex-shrink: 0 !important;
 }
 
 .sidebar-header-left {
@@ -490,16 +603,20 @@ body.sidebar-collapsed .sidebar-toggle-btn-floating {
 
 /* 사이드바 로고 스타일 */
 .sidebar-logo {
-    display: flex;
-    align-items: center;
-    margin-right: auto; /* 로고를 왼쪽에 고정 */
+    display: flex !important;
+    align-items: center !important;
+    margin-right: auto !important;
+    flex: 1 !important;
 }
 
 .logo-text {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #1e293b !important; /* 라이트 모드 로고 색상 */
-    letter-spacing: -0.02em;
+    font-size: 1.125rem !important;
+    font-weight: 600 !important;
+    color: #1e293b !important;
+    letter-spacing: -0.02em !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 /* 축소 상태에서 헤더 조정 */
@@ -628,8 +745,10 @@ button.sidebar-toggle:hover,
 
 /* 📑 네비게이션 섹션 - 적절한 간격으로 디자인 개선 */
 .nav-section {
-    margin: 1rem 0; /* 섹션간 간격 추가 */
-    padding: 0 0.5rem; /* 좌우 패딩 추가 */
+    margin: 1rem 0;
+    /* 섹션간 간격 추가 */
+    padding: 0 0.5rem;
+    /* 좌우 패딩 추가 */
 }
 
 /* 첫 번째 섹션 (새 캘린더) - 최상단에 배치 */
@@ -1078,32 +1197,32 @@ div.sidebar.collapsed button.sidebar-toggle {
 /* ClickUp 스타일 - 상단 정렬된 섹션 간격 */
 
 /* 라이트 모드에서 아이콘 색상 조정 */
- .sidebar .nav-icon svg,
- .sidebar .new-calendar-button svg,
- .sidebar .calendar-nav-item svg,
- .sidebar .category-icon svg,
- .sidebar .collapse-arrow svg,
- .sidebar .sidebar-toggle-btn-internal svg {
+.sidebar .nav-icon svg,
+.sidebar .new-calendar-button svg,
+.sidebar .calendar-nav-item svg,
+.sidebar .category-icon svg,
+.sidebar .collapse-arrow svg,
+.sidebar .sidebar-toggle-btn-internal svg {
     stroke: var(--sidebar-text-primary) !important;
     color: var(--sidebar-text-primary) !important;
 }
 
 /* 라이트 모드에서 보조 아이콘들 (화살표 등) */
- .sidebar .collapse-arrow svg {
+.sidebar .collapse-arrow svg {
     stroke: var(--sidebar-text-secondary) !important;
 }
 
 /* 라이트 모드에서 활성 상태 아이콘 */
- .sidebar .nav-item.active .nav-icon svg,
- .sidebar .calendar-nav-item.selected svg {
+.sidebar .nav-item.active .nav-icon svg,
+.sidebar .calendar-nav-item.selected svg {
     stroke: var(--sidebar-text-primary) !important;
     color: var(--sidebar-text-primary) !important;
 }
 
 /* 라이트 모드에서 호버 상태 아이콘 */
- .sidebar .nav-item:hover .nav-icon svg,
- .sidebar .new-calendar-button:hover svg,
- .sidebar .calendar-nav-item:hover svg {
+.sidebar .nav-item:hover .nav-icon svg,
+.sidebar .new-calendar-button:hover svg,
+.sidebar .calendar-nav-item:hover svg {
     stroke: var(--sidebar-text-primary) !important;
     color: var(--sidebar-text-primary) !important;
 }
@@ -1134,18 +1253,43 @@ div.sidebar.collapsed button.sidebar-toggle {
 /* 하단 고정 섹션 - floating 설정 아이콘 */
 .nav-section-bottom {
     padding: 1rem 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(32, 32, 32, 0.8);
+    border-top: 1px solid #e2e8f0 !important;
+    /* 라이트 모드 테두리 */
+    background: rgba(248, 249, 250, 0.95) !important;
+    /* 라이트 모드 배경 */
     backdrop-filter: blur(10px);
     border-radius: 8px;
     flex-shrink: 0;
-    min-height: 60px; /* 최소 높이 보장 */
+    min-height: 60px;
 }
 
-/* 라이트 모드에서 하단 섹션 배경 */
- .nav-section-bottom {
-    background: rgba(248, 249, 250, 0.95);
-    border: 1px solid rgba(233, 236, 239, 0.5);
+/* 하단 설정 섹션 아이콘 색상 강제 적용 */
+.nav-section-bottom .nav-item {
+    color: #1e293b !important;
+    /* 강제 다크 색상 */
+}
+
+.nav-section-bottom .nav-item .nav-icon {
+    color: #1e293b !important;
+    /* 강제 다크 색상 */
+}
+
+.nav-section-bottom .nav-item .nav-icon svg {
+    stroke: #1e293b !important;
+    /* 강제 다크 색상 */
+    stroke-width: 2;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.nav-section-bottom .nav-item:hover {
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+}
+
+.nav-section-bottom .nav-item:hover .nav-icon svg {
+    stroke: #0f172a !important;
 }
 
 /* 🎯 Clean Z-Index Hierarchy */
@@ -1224,7 +1368,8 @@ div.sidebar {
     /* 최대 4개 항목 높이 (60px * 4 = 240px) */
     max-height: 240px;
     overflow-y: hidden;
-    padding-right: 0; /* 스크롤바 제거로 패딩 불필요 */
+    padding-right: 0;
+    /* 스크롤바 제거로 패딩 불필요 */
 }
 
 /* 캘린더 아이템 */
@@ -1270,7 +1415,8 @@ div.sidebar {
     justify-content: flex-end;
 }
 
-.share-button, .delete-button {
+.share-button,
+.delete-button {
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
     font-size: 0.75rem;
@@ -1319,14 +1465,34 @@ div.sidebar {
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 0.7; }
-    50% { opacity: 1; }
+
+    0%,
+    100% {
+        opacity: 0.7;
+    }
+
+    50% {
+        opacity: 1;
+    }
 }
 
 @keyframes bounce {
-    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-    40% { transform: translateY(-3px); }
-    60% { transform: translateY(-1px); }
+
+    0%,
+    20%,
+    50%,
+    80%,
+    100% {
+        transform: translateY(0);
+    }
+
+    40% {
+        transform: translateY(-3px);
+    }
+
+    60% {
+        transform: translateY(-1px);
+    }
 }
 
 /* 캘린더 리스트 스크롤바 스타일링 */
@@ -1359,17 +1525,17 @@ div.sidebar {
 }
 
 /* 라이트 모드 */
- .calendar-item {
+.calendar-item {
     background: #f8f9fa;
     border-color: #e9ecef;
 }
 
- .calendar-item:hover {
+.calendar-item:hover {
     background: #e9ecef;
     border-color: #007bff;
 }
 
- .calendar-scroll-indicator {
+.calendar-scroll-indicator {
     background: #f0f0f0;
 }
 
