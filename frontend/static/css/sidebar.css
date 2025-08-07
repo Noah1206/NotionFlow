@@ -25,8 +25,8 @@
 .sidebar {
     width: 240px !important;
     background: #ffffff !important;
-    border: 5px solid #000000 !important; /* 더욱 두꺼운 검은색 테두리 */
-    border-radius: 12px !important;
+    border: 6px solid #000000 !important; /* 더욱 두꺼운 검은색 테두리 */
+    border-radius: 16px !important; /* 더 둥근 모서리 */
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: fixed !important;
     top: 10px !important;
@@ -38,7 +38,13 @@
     overflow-x: hidden !important; /* 가로 스크롤 완전 차단 */
     flex-shrink: 0;
     z-index: 9999;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(0, 0, 0, 1) !important; /* 더 강한 그림자와 추가 테두리 */
+    /* 강력한 floating 효과를 위한 다중 그림자 */
+    box-shadow: 
+        0 30px 60px rgba(0, 0, 0, 0.6), /* 메인 그림자 */
+        0 0 0 4px rgba(0, 0, 0, 1), /* 추가 테두리 */
+        0 8px 16px rgba(0, 0, 0, 0.3), /* 중간 그림자 */
+        0 4px 8px rgba(0, 0, 0, 0.2) /* 가까운 그림자 */
+        !important;
     color: #1e293b !important;
 }
 
@@ -64,8 +70,15 @@ div.sidebar.collapsed {
     /* 가로 스크롤 완전 차단, 세로만 허용 */
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    border: 5px solid #000000 !important; /* 더욱 두꺼운 검은색 테두리 유지 */
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(0, 0, 0, 1) !important; /* 더 강한 그림자와 추가 테두리 */
+    border: 6px solid #000000 !important; /* 더욱 두꺼운 검은색 테두리 유지 */
+    border-radius: 16px !important; /* 더 둥근 모서리 */
+    /* 접힌 상태에서도 강력한 floating 효과 */
+    box-shadow: 
+        0 30px 60px rgba(0, 0, 0, 0.6), /* 메인 그림자 */
+        0 0 0 4px rgba(0, 0, 0, 1), /* 추가 테두리 */
+        0 8px 16px rgba(0, 0, 0, 0.3), /* 중간 그림자 */
+        0 4px 8px rgba(0, 0, 0, 0.2) /* 가까운 그림자 */
+        !important;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     /* 축소 상태에서도 10px 여백 유지 */
     top: 10px !important;
@@ -304,21 +317,67 @@ button.sidebar-toggle-btn-header:hover svg,
     display: none !important;
 }
 
-/* 접혔을 때 아이콘만 중앙 정렬 */
-.sidebar.collapsed .nav-item,
+/* 접힌 상태에서 아이콘 완벽 중앙 정렬 */
 .sidebar.collapsed .nav-item {
-    justify-content: center;
-    padding: 0.55rem 0.5rem;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 0.75rem 0 !important;
+    margin: 0.25rem 0 !important;
+    width: 100% !important;
+    display: flex !important;
+    text-align: center !important;
 }
 
-.sidebar.collapsed .nav-icon,
 .sidebar.collapsed .nav-icon {
-    margin: 0 auto;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 18px;
-    height: 18px;
+    margin: 0 auto !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 20px !important;
+    height: 20px !important;
+    position: relative !important;
+}
+
+/* 접힌 상태에서 아이콘 SVG 크기 조정 */
+.sidebar.collapsed .nav-icon svg {
+    width: 18px !important;
+    height: 18px !important;
+    display: block !important;
+    margin: 0 auto !important;
+}
+
+/* 접힌 상태에서 새 캘린더 버튼 중앙 정렬 */
+.sidebar.collapsed .new-calendar-button {
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 0.75rem 0 !important;
+    margin: 0.25rem 0 !important;
+    width: 100% !important;
+    display: flex !important;
+    text-align: center !important;
+}
+
+.sidebar.collapsed .new-calendar-button .nav-icon {
+    margin: 0 auto !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+/* 접힌 상태에서 캘린더 네비게이션 아이템 중앙 정렬 */
+.sidebar.collapsed .calendar-nav-item {
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 0.5rem 0 !important;
+    margin: 0.25rem 0 !important;
+    width: 100% !important;
+    display: flex !important;
+    text-align: center !important;
+}
+
+.sidebar.collapsed .calendar-nav-item .calendar-indicator {
+    margin: 0 auto !important;
+    justify-content: center !important;
+    align-items: center !important;
 }
 
 /* 📋 네비게이션 아이템들 - Light Mode 스타일 */
@@ -1444,12 +1503,33 @@ div.sidebar {
 /* 접힌 상태에서 설정 아이콘 중앙 정렬 */
 .sidebar.collapsed .nav-section-bottom .nav-item {
     justify-content: center !important;
-    padding: 0.5rem !important;
+    align-items: center !important;
+    padding: 0.75rem 0 !important;
+    margin: 0.25rem 0 !important;
+    width: 100% !important;
+    display: flex !important;
+    text-align: center !important;
 }
 
 .sidebar.collapsed .nav-section-bottom .nav-icon {
     margin: 0 auto !important;
     justify-content: center !important;
+    align-items: center !important;
+    display: flex !important;
+}
+
+/* 접힌 상태에서 모든 아이콘들이 정확히 같은 위치에 정렬되도록 강제 */
+.sidebar.collapsed .nav-item > *:first-child,
+.sidebar.collapsed .new-calendar-button > *:first-child,
+.sidebar.collapsed .calendar-nav-item > *:first-child {
+    margin: 0 auto !important;
+    justify-content: center !important;
+    align-items: center !important;
+    display: flex !important;
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    text-align: center !important;
 }
 
 /* 메인 콘텐츠와 floating 사이드바 간격 */
