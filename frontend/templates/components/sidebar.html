@@ -7,28 +7,31 @@
     VERSION: 5.0 - DIRECT CALENDAR LIST UI
     =============================================
 -->
+
+<!-- 사이드바 토글 버튼 - 사이드바 밖에 위치 -->
+<button class="sidebar-toggle-btn-floating" id="sidebar-toggle-floating" onclick="toggleSidebar()" data-tooltip="사이드바 접기/펼치기">
+    <!-- 햄버거 메뉴 아이콘 (접힌 상태) - 사이드바 펼치기를 의미 -->
+    <svg class="sidebar-toggle-open-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+    <!-- X 아이콘 (펼쳐진 상태) - 사이드바 접기를 의미 -->
+    <svg class="sidebar-toggle-close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+</button>
+
 <div class="sidebar" id="sidebar">
 
-    <!-- 사이드바 헤더 - 로고와 토글 버튼 -->
+    <!-- 사이드바 헤더 - 로고만 -->
     <div class="sidebar-header-container">
         <div class="sidebar-logo">
             <span class="logo-text">NodeFlow</span>
         </div>
-        <button class="sidebar-toggle-btn-internal" onclick="toggleSidebar()" data-tooltip="사이드바 접기/펼치기">
-            <!-- 사이드바 아이콘 (펼쳐진 상태) - 사이드바 접기를 의미 -->
-            <svg id="sidebar-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="7" height="18" rx="1"></rect>
-                <rect x="14" y="3" width="7" height="18" rx="1"></rect>
-            </svg>
-            <!-- 햄버거 메뉴 아이콘 (접힌 상태) - 사이드바 펼치기를 의미 -->
-            <svg id="sidebar-collapsed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <line x1="3" y1="12" x2="21" y2="12"></line>
-                <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
-        </button>
     </div>
 
     <!-- 네비게이션 메뉴 -->

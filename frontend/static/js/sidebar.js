@@ -419,6 +419,28 @@ window.sidebarAPI = {
     updateLinksWithUserID: () => sidebarManager?.updateSidebarLinksWithUserID()
 };
 
+// 전역 toggleSidebar 함수 - HTML onclick에서 직접 호출 가능
+window.toggleSidebar = function() {
+    if (sidebarManager) {
+        sidebarManager.toggleSidebar();
+        
+        // 토글 버튼 아이콘 업데이트
+        const floatingBtn = document.getElementById('sidebar-toggle-floating');
+        const openIcon = floatingBtn?.querySelector('.sidebar-toggle-open-icon');
+        const closeIcon = floatingBtn?.querySelector('.sidebar-toggle-close-icon');
+        
+        if (sidebarManager.sidebar?.classList.contains('collapsed')) {
+            // 사이드바가 접혔을 때 - 햄버거 아이콘 표시
+            if (openIcon) openIcon.style.display = 'block';
+            if (closeIcon) closeIcon.style.display = 'none';
+        } else {
+            // 사이드바가 펼쳐졌을 때 - X 아이콘 표시
+            if (openIcon) openIcon.style.display = 'none';
+            if (closeIcon) closeIcon.style.display = 'block';
+        }
+    }
+};
+
 // DOM 로드 완료 시 자동 초기화
 document.addEventListener('DOMContentLoaded', initSidebar);
 

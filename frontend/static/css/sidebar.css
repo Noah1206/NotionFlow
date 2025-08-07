@@ -49,28 +49,46 @@
     overflow: hidden;
 }
 
-/* 사이드바 토글 버튼 항상 보이게 */
-.sidebar-toggle {
-    position: absolute;
-    right: 10px;
+/* Floating 토글 버튼 - 사이드바 밖에 위치 */
+.sidebar-toggle-btn-floating {
+    position: fixed;
+    left: 20px;
     top: 20px;
-    z-index: 10000;
+    z-index: 10001;
     background: var(--sidebar-bg);
     border: 1px solid var(--sidebar-border);
-    border-radius: 6px;
-    padding: 8px;
+    border-radius: 8px;
+    padding: 10px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.sidebar-toggle:hover {
+.sidebar-toggle-btn-floating:hover {
     background: var(--sidebar-hover-bg);
     transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* 접혔을 때 토글 버튼 위치 조정 */
-.sidebar.collapsed .sidebar-toggle {
-    right: 5px;
+.sidebar-toggle-btn-floating svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* 사이드바가 펼쳐졌을 때 버튼 숨기기 (선택사항) */
+/* .sidebar:not(.collapsed) ~ .sidebar-toggle-btn-floating {
+    display: none;
+} */
+
+/* 사이드바가 접혔을 때 버튼 위치 */
+.sidebar.collapsed ~ .sidebar-toggle-btn-floating,
+.sidebar-toggle-btn-floating {
+    left: 20px;
 }
 
 /* 네비게이션 전체 컨테이너 */
