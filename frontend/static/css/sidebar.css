@@ -594,6 +594,12 @@ button.sidebar-toggle-btn-header:hover svg,
     flex-shrink: 0 !important;
 }
 
+/* 접힌 상태에서 헤더 조정 - 햄버거만 중앙에 */
+.sidebar.collapsed .sidebar-header-container {
+    justify-content: center !important;
+    padding: 12px 8px !important;
+}
+
 .sidebar-header-left {
     display: flex;
     align-items: center;
@@ -619,15 +625,22 @@ button.sidebar-toggle-btn-header:hover svg,
     opacity: 1 !important;
 }
 
-/* 축소 상태에서 헤더 조정 */
-.sidebar.collapsed .sidebar-header-container {
-    padding: 1rem 0.5rem;
-    justify-content: center;
+/* 접힌 상태에서 로고 숨기고 햄버거만 표시 */
+.sidebar.collapsed .sidebar-logo {
+    display: none !important;
 }
 
-/* 축소 상태에서 헤더 내용 숨기기 - 토글 버튼 제외 */
-.sidebar.collapsed .sidebar-header-left {
-    display: none;
+.sidebar.collapsed .sidebar-toggle-btn-header {
+    display: none !important; /* X 버튼 숨김 */
+}
+
+/* 접힌 상태에서 floating 햄버거 버튼을 헤더에 표시 */
+.sidebar.collapsed .sidebar-toggle-btn-floating {
+    display: flex !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
 }
 
 /* 축소 상태에서도 토글 버튼 표시 - 강제 우선순위 */
