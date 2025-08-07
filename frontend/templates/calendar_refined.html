@@ -11,22 +11,23 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-list.css') }}?v={{ range(100000, 999999) | random }}">
     
     <style>
-        /* 강제 사이드바 표시 */
+        /* 깔끔한 사이드바 디자인 */
         .sidebar {
             position: fixed !important;
-            left: 10px !important;
-            top: 10px !important;
-            bottom: 10px !important;
+            left: 16px !important;
+            top: 16px !important;
+            bottom: 16px !important;
             width: 240px !important;
-            height: calc(100vh - 20px) !important;
+            height: calc(100vh - 32px) !important;
             background: #ffffff !important;
-            border: 5px solid #000000 !important;
-            border-radius: 12px !important;
+            border: 1px solid #e5e7eb !important;
+            border-radius: 16px !important;
             z-index: 999999 !important;
             visibility: visible !important;
             opacity: 1 !important;
             display: block !important;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 0 4px rgba(0, 0, 0, 1) !important;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05) !important;
+            overflow: hidden !important;
         }
         
         body {
@@ -35,9 +36,41 @@
         }
         
         .main-content {
-            margin-left: 260px !important;
+            margin-left: 272px !important;
             padding: 20px !important;
             min-height: 100vh !important;
+        }
+        
+        /* 사이드바 내부 요소들 스타일링 */
+        .sidebar .nav-item {
+            padding: 12px 20px !important;
+            margin: 2px 12px !important;
+            border-radius: 8px !important;
+            color: #6b7280 !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            transition: all 0.2s ease !important;
+        }
+        
+        .sidebar .nav-item:hover {
+            background: #f3f4f6 !important;
+            color: #1f2937 !important;
+        }
+        
+        .sidebar .nav-item.active {
+            background: #dbeafe !important;
+            color: #1e40af !important;
+        }
+        
+        .sidebar .expanded-header {
+            padding: 20px !important;
+            border-bottom: 1px solid #f3f4f6 !important;
+        }
+        
+        .sidebar .logo-text {
+            font-size: 20px !important;
+            font-weight: 600 !important;
+            color: #1f2937 !important;
         }
     </style>
 </head>
