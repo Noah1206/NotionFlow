@@ -3,10 +3,7 @@
 {% block title %}캘린더 관리 - NotionFlow{% endblock %}
 
 {% block content %}
-<div class="dashboard-layout">
-    {% include 'components/sidebar.html' %}
-    
-    <div class="main-content">
+<div class="main-content">
         <div class="calendar-list-container">
             <div class="calendar-header">
                 📱 캘린더 관리
@@ -76,13 +73,16 @@
                 </div>
             </div>
         </div>
-    </div>
 </div>
 
 <style>
+    /* 🎯 캘린더 목록 페이지 전용 스타일 */
     .calendar-list-container {
         background: transparent;
-        padding: 0;
+        padding: 20px;
+        width: 100%;
+        height: 100%;
+        overflow-y: auto;
     }
 
     .calendar-header {
@@ -101,6 +101,7 @@
         max-width: 100%;
         margin: 0;
         padding: 0;
+        width: 100%;
     }
 
     .search-container {
