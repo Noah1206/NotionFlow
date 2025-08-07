@@ -134,22 +134,25 @@
             position: fixed !important;
             top: 0 !important;
             left: 280px !important;
-            right: 0 !important;
-            bottom: 0 !important;
+            width: calc(100vw - 280px) !important;
+            height: 100vh !important;
             padding: 2rem;
             overflow-x: hidden;
             overflow-y: auto;
             background: var(--bg-primary);
             z-index: 50;
-            display: block !important;
+            display: flex !important;
+            flex-direction: column !important;
             visibility: visible !important;
             opacity: 1 !important;
+            box-sizing: border-box;
         }
 
         /* 사이드바 축소 시 메인 콘텐츠 조정 */
         .sidebar.collapsed ~ .main-content,
         .sidebar-collapsed .main-content {
             left: 60px !important;
+            width: calc(100vw - 60px) !important;
         }
 
         /* 모든 섹션과 콘텐츠가 최대 너비를 사용하도록 */
@@ -180,9 +183,11 @@
 
         .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 300px));
             gap: 1.5rem;
             margin-bottom: 2rem;
+            justify-content: start;
+            max-width: 1200px;
         }
 
         .stat-card {
