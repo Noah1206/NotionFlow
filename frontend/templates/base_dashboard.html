@@ -37,20 +37,20 @@
         /* 사이드바 접힘 상태 관리 */
         .sidebar.collapsed {
             width: 50px !important;
-            left: 16px !important;
-            top: 16px !important;
-            bottom: 16px !important;
+            left: 0 !important;
+            top: 0 !important;
+            bottom: 0 !important;
         }
 
         /* 📱 Main Content Area */
         .main-content {
             position: fixed !important;
-            top: 16px !important;
-            left: 272px !important;
-            right: 16px !important;
-            bottom: 16px !important;
-            width: calc(100vw - 288px) !important;
-            height: calc(100vh - 32px) !important;
+            top: 0 !important;
+            left: 240px !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: calc(100vw - 240px) !important;
+            height: 100vh !important;
             padding: 1rem 2rem;
             overflow-x: hidden;
             overflow-y: auto;
@@ -66,9 +66,9 @@
         /* 사이드바 축소 시 메인 콘텐츠 조정 */
         .sidebar.collapsed ~ .main-content,
         .sidebar-collapsed .main-content {
-            left: 82px !important;
-            right: 16px !important;
-            width: calc(100vw - 98px) !important;
+            left: 50px !important;
+            right: 0 !important;
+            width: calc(100vw - 50px) !important;
             padding-left: 2rem !important;
         }
 
@@ -117,31 +117,27 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
-        /* 🎨 Notion-Style Sidebar - CRITICAL OVERRIDE */
+        /* 🎨 Full Height Sidebar - CRITICAL OVERRIDE */
         .sidebar,
         #sidebar,
         div.sidebar,
         .dashboard-container .sidebar {
             position: fixed !important;
-            left: 16px !important;
-            top: 16px !important;
+            left: 0 !important;
+            top: 0 !important;
             right: auto !important;
-            bottom: 16px !important;
+            bottom: 0 !important;
             width: 240px !important;
-            height: calc(100vh - 32px) !important;
+            height: 100vh !important;
             background: #1A1A1A !important;
-            border: 1px solid var(--sidebar-border) !important;
-            border-radius: 12px !important;
+            border: none !important;
+            border-radius: 0 !important;
             z-index: 10 !important;
             overflow-y: hidden !important;
             font-size: 14px;
             transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24), 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15) !important;
             margin: 0 !important;
-            margin-left: 0 !important;
-            margin-right: 0 !important;
-            margin-top: 0 !important;
-            margin-bottom: 0 !important;
         }
 
         /* Responsive */
@@ -195,26 +191,22 @@
                 // Remove all existing positioning
                 sidebar.style.cssText = '';
                 
-                // Force floating position with 16px margins - NUCLEAR OPTION
+                // Force full height position - NUCLEAR OPTION
                 const styles = {
                     'position': 'fixed',
-                    'left': '16px',
-                    'top': '16px', 
-                    'bottom': '16px',
+                    'left': '0',
+                    'top': '0', 
+                    'bottom': '0',
                     'right': 'auto',
                     'width': '240px',
-                    'height': 'calc(100vh - 32px)',
+                    'height': '100vh',
                     'margin': '0',
-                    'margin-left': '0',
-                    'margin-right': '0', 
-                    'margin-top': '0',
-                    'margin-bottom': '0',
                     'background': '#1A1A1A',
-                    'border': '1px solid var(--sidebar-border)',
-                    'border-radius': '12px',
+                    'border': 'none',
+                    'border-radius': '0',
                     'z-index': '10',
                     'overflow-y': 'hidden',
-                    'box-shadow': '0 8px 32px rgba(0, 0, 0, 0.24), 0 4px 16px rgba(0, 0, 0, 0.12)'
+                    'box-shadow': '2px 0 8px rgba(0, 0, 0, 0.15)'
                 };
                 
                 Object.keys(styles).forEach(property => {
@@ -222,8 +214,8 @@
                 });
                 
                 // Double-check the left position
-                if (sidebar.getBoundingClientRect().left !== 16) {
-                    sidebar.style.setProperty('left', '16px', 'important');
+                if (sidebar.getBoundingClientRect().left !== 0) {
+                    sidebar.style.setProperty('left', '0', 'important');
                     sidebar.style.setProperty('transform', 'translateX(0)', 'important');
                 }
                 
@@ -240,20 +232,20 @@
                 // Update sidebar width for collapsed state
                 if (isCollapsed) {
                     sidebar.style.setProperty('width', '50px', 'important');
-                    // Collapsed: 16px + 50px + 16px = 82px from left (with gap)
-                    mainContent.style.setProperty('left', '82px', 'important');
-                    mainContent.style.setProperty('width', 'calc(100vw - 98px)', 'important');
+                    // Collapsed: 50px from left
+                    mainContent.style.setProperty('left', '50px', 'important');
+                    mainContent.style.setProperty('width', 'calc(100vw - 50px)', 'important');
                 } else {
                     sidebar.style.setProperty('width', '240px', 'important');
-                    // Expanded: 16px + 240px + 16px = 272px from left (with gap)  
-                    mainContent.style.setProperty('left', '272px', 'important');
-                    mainContent.style.setProperty('width', 'calc(100vw - 288px)', 'important');
+                    // Expanded: 240px from left  
+                    mainContent.style.setProperty('left', '240px', 'important');
+                    mainContent.style.setProperty('width', 'calc(100vw - 240px)', 'important');
                 }
                 
-                mainContent.style.setProperty('top', '16px', 'important');
-                mainContent.style.setProperty('right', '16px', 'important');
-                mainContent.style.setProperty('bottom', '16px', 'important');
-                mainContent.style.setProperty('height', 'calc(100vh - 32px)', 'important');
+                mainContent.style.setProperty('top', '0', 'important');
+                mainContent.style.setProperty('right', '0', 'important');
+                mainContent.style.setProperty('bottom', '0', 'important');
+                mainContent.style.setProperty('height', '100vh', 'important');
                 
             }
             

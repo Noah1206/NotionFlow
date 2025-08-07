@@ -3,43 +3,36 @@
 
 /* 🚫 GLOBAL: 사이드바 모든 스크롤바 완전 제거 */
 .sidebar,
-.sidebar *,
-.sidebar-container,
-.sidebar-container * {
+.sidebar * {
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* Internet Explorer 10+ */
 }
 
 .sidebar::-webkit-scrollbar,
-.sidebar *::-webkit-scrollbar,
-.sidebar-container::-webkit-scrollbar,
-.sidebar-container *::-webkit-scrollbar {
+.sidebar *::-webkit-scrollbar {
     display: none !important;
     width: 0 !important;
     height: 0 !important;
 }
 
-/* ✨ 사이드바 기본 구조 - Floating Design */
+/* ✨ 사이드바 기본 구조 - Full Height Design */
 .sidebar {
-    width: var(--sidebar-width);
-    background: var(--sidebar-bg);
-    border: 1px solid var(--sidebar-border);
-    border-radius: 12px;
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    /* 부드러운 애니메이션 */
+    width: 240px !important;
+    background: #1A1A1A !important;
+    border: none !important;
+    border-radius: 0 !important;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: fixed !important;
-    top: 16px !important;
-    left: 16px !important;
-    bottom: 16px !important;
-    height: calc(100vh - 32px) !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    height: 100vh !important;
     margin: 0 !important;
-    overflow-y: hidden; /* 스크롤바 제거 */
+    overflow-y: hidden;
     overflow-x: hidden;
-    /* 가로 스크롤 방지 */
     flex-shrink: 0;
     z-index: 9999;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24), 0 4px 16px rgba(0, 0, 0, 0.12);
-    backdrop-filter: blur(20px);
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
 }
 
 /* 사이드바 내부 콘텐츠 wrapper - flex 구조 (삭제됨) */
@@ -64,7 +57,6 @@
 
 /* 사이드바 축소 상태 - 거의 안보이게 */
 .sidebar.collapsed,
-.sidebar-container .sidebar.collapsed,
 #sidebar.collapsed,
 div.sidebar.collapsed {
     width: 50px !important;
@@ -105,21 +97,16 @@ div.sidebar.collapsed {
     height: 20px;
 }
 
-/* 사이드바 컨테이너 */
-.sidebar-container {
-    position: relative;
-}
-
 /* 사이드바가 펼쳐져 있을 때는 floating 버튼 숨김 */
 .sidebar-toggle-btn-floating {
     display: none;
 }
 
 /* 사이드바가 접혀 있을 때만 floating 버튼 표시 - 중앙에 위치 */
-.sidebar-container.sidebar-collapsed .sidebar-toggle-btn-floating,
-.sidebar.collapsed ~ .sidebar-toggle-btn-floating {
+.sidebar.collapsed ~ .sidebar-toggle-btn-floating,
+body.sidebar-collapsed .sidebar-toggle-btn-floating {
     display: flex;
-    left: 41px; /* 16px margin + 50px 사이드바의 중앙 (16 + 25) */
+    left: 25px; /* 50px 사이드바의 중앙 */
 }
 
 /* 헤더 내부 토글 버튼 스타일 - 펼쳐진 상태에서만 표시 */
@@ -199,14 +186,14 @@ div.sidebar.collapsed {
 .sidebar.collapsed .sidebar-header-title,
 .sidebar.collapsed .profile-name,
 .sidebar.collapsed .profile-email,
-.sidebar-container .sidebar.collapsed .nav-label,
-.sidebar-container .sidebar.collapsed .new-calendar-label,
-.sidebar-container .sidebar.collapsed .nav-section-title,
-.sidebar-container .sidebar.collapsed .calendar-category-title,
-.sidebar-container .sidebar.collapsed .calendar-name,
-.sidebar-container .sidebar.collapsed .sidebar-header-title,
-.sidebar-container .sidebar.collapsed .profile-name,
-.sidebar-container .sidebar.collapsed .profile-email {
+.sidebar.collapsed .nav-label,
+.sidebar.collapsed .new-calendar-label,
+.sidebar.collapsed .nav-section-title,
+.sidebar.collapsed .calendar-category-title,
+.sidebar.collapsed .calendar-name,
+.sidebar.collapsed .sidebar-header-title,
+.sidebar.collapsed .profile-name,
+.sidebar.collapsed .profile-email {
     opacity: 0 !important;
     visibility: hidden !important;
     width: 0;
@@ -216,13 +203,13 @@ div.sidebar.collapsed {
 
 /* 접혔을 때 아이콘만 중앙 정렬 */
 .sidebar.collapsed .nav-item,
-.sidebar-container .sidebar.collapsed .nav-item {
+.sidebar.collapsed .nav-item {
     justify-content: center;
     padding: 0.55rem 0.5rem;
 }
 
 .sidebar.collapsed .nav-icon,
-.sidebar-container .sidebar.collapsed .nav-icon {
+.sidebar.collapsed .nav-icon {
     margin: 0 auto;
     display: flex;
     justify-content: center;
@@ -474,17 +461,15 @@ div.sidebar.collapsed {
     /* 약간의 확대 효과 */
 }
 
-/* 📱 사이드바 헤더 컨테이너 - Floating 스타일 */
+/* 📱 사이드바 헤더 컨테이너 - Full Width 스타일 */
 .sidebar-header-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.25rem 1.5rem; /* 상하좌우 여백 증가 */
+    padding: 1.25rem 1.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    min-height: 70px; /* 최소 높이 증가 */
-    background: rgba(32, 32, 32, 0.8);
-    backdrop-filter: blur(10px);
-    border-radius: 12px 12px 0 0;
+    min-height: 70px;
+    background: rgba(32, 32, 32, 0.95);
     z-index: 10001;
     position: relative;
 }
@@ -704,7 +689,7 @@ button.sidebar-toggle:hover,
 /* layout.css 충돌 방지 - 최고 우선순위 override */
 .sidebar #sidebar-toggle,
 .sidebar .sidebar-toggle,
-.sidebar-header-container .sidebar-toggle,
+.sidebar-header .sidebar-toggle,
 div.sidebar button.sidebar-toggle {
     background: #000000 !important;
     border: 1px solid #ffffff !important;
@@ -724,7 +709,7 @@ div.sidebar button.sidebar-toggle {
 /* 축소 상태 최고 우선순위 */
 .sidebar.collapsed #sidebar-toggle,
 .sidebar.collapsed .sidebar-toggle,
-.sidebar.collapsed .sidebar-header-container .sidebar-toggle,
+.sidebar.collapsed .sidebar-header .sidebar-toggle,
 div.sidebar.collapsed button.sidebar-toggle {
     background: #000000 !important;
     border: 2px solid #ffffff !important;
