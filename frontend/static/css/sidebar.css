@@ -7,7 +7,7 @@
     background: var(--sidebar-bg);
     border: 1px solid var(--sidebar-border);
     border-radius: 12px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     /* 부드러운 애니메이션 */
     position: sticky;
     top: 16px;
@@ -43,10 +43,16 @@
 }
 
 /* 사이드바 축소 상태 - 거의 안보이게 */
-.sidebar.collapsed {
-    width: 50px;
+.sidebar.collapsed,
+.sidebar-container .sidebar.collapsed,
+#sidebar.collapsed,
+div.sidebar.collapsed {
+    width: 50px !important;
+    min-width: 50px !important;
+    max-width: 50px !important;
     /* 버튼만 보이도록 최소 너비 */
-    overflow: hidden;
+    overflow: hidden !important;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 /* Floating 토글 버튼 - 사이드바 밖에 위치 */
@@ -139,7 +145,15 @@
 .sidebar.collapsed .calendar-name,
 .sidebar.collapsed .sidebar-header-title,
 .sidebar.collapsed .profile-name,
-.sidebar.collapsed .profile-email {
+.sidebar.collapsed .profile-email,
+.sidebar-container .sidebar.collapsed .nav-label,
+.sidebar-container .sidebar.collapsed .new-calendar-label,
+.sidebar-container .sidebar.collapsed .nav-section-title,
+.sidebar-container .sidebar.collapsed .calendar-category-title,
+.sidebar-container .sidebar.collapsed .calendar-name,
+.sidebar-container .sidebar.collapsed .sidebar-header-title,
+.sidebar-container .sidebar.collapsed .profile-name,
+.sidebar-container .sidebar.collapsed .profile-email {
     opacity: 0 !important;
     visibility: hidden !important;
     width: 0;
@@ -148,12 +162,14 @@
 }
 
 /* 접혔을 때 아이콘만 중앙 정렬 */
-.sidebar.collapsed .nav-item {
+.sidebar.collapsed .nav-item,
+.sidebar-container .sidebar.collapsed .nav-item {
     justify-content: center;
     padding: 0.55rem 0.5rem;
 }
 
-.sidebar.collapsed .nav-icon {
+.sidebar.collapsed .nav-icon,
+.sidebar-container .sidebar.collapsed .nav-icon {
     margin: 0;
 }
 
