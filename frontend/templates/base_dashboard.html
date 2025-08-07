@@ -133,10 +133,10 @@
         .main-content {
             position: fixed !important;
             top: 0 !important;
-            left: 280px !important;
-            width: calc(100vw - 280px) !important;
+            left: 240px !important;
+            width: calc(100vw - 240px) !important;
             height: 100vh !important;
-            padding: 2rem;
+            padding: 1rem 2rem;
             overflow-x: hidden;
             overflow-y: auto;
             background: var(--bg-primary);
@@ -151,8 +151,8 @@
         /* 사이드바 축소 시 메인 콘텐츠 조정 */
         .sidebar.collapsed ~ .main-content,
         .sidebar-collapsed .main-content {
-            left: 60px !important;
-            width: calc(100vw - 60px) !important;
+            left: 50px !important;
+            width: calc(100vw - 50px) !important;
         }
 
         /* 모든 섹션과 콘텐츠가 최대 너비를 사용하도록 */
@@ -2657,15 +2657,15 @@
                 
                 if (sidebar && mainContent) {
                     if (sidebar.classList.contains('collapsed')) {
-                        mainContent.style.marginLeft = '60px';
-                        mainContent.style.width = 'calc(100vw - 60px)';
+                        mainContent.style.left = '50px';
+                        mainContent.style.width = 'calc(100vw - 50px)';
                     } else {
-                        mainContent.style.marginLeft = '280px';
-                        mainContent.style.width = 'calc(100vw - 280px)';
+                        mainContent.style.left = '240px';
+                        mainContent.style.width = 'calc(100vw - 240px)';
                     }
                     
                     // 강제로 표시되도록 설정
-                    mainContent.style.display = 'block';
+                    mainContent.style.display = 'flex';
                     mainContent.style.visibility = 'visible';
                     mainContent.style.opacity = '1';
                 }
