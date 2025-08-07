@@ -193,21 +193,43 @@
                 const sidebar = document.querySelector('.sidebar');
                 if (!sidebar) return;
                 
-                // Force floating position with 16px margins
-                sidebar.style.setProperty('position', 'fixed', 'important');
-                sidebar.style.setProperty('left', '16px', 'important');
-                sidebar.style.setProperty('top', '16px', 'important');
-                sidebar.style.setProperty('bottom', '16px', 'important');
-                sidebar.style.setProperty('right', 'auto', 'important');
-                sidebar.style.setProperty('width', '240px', 'important');
-                sidebar.style.setProperty('height', 'calc(100vh - 32px)', 'important');
-                sidebar.style.setProperty('margin', '0', 'important');
-                sidebar.style.setProperty('margin-left', '0', 'important');
-                sidebar.style.setProperty('margin-right', '0', 'important');
-                sidebar.style.setProperty('margin-top', '0', 'important');
-                sidebar.style.setProperty('margin-bottom', '0', 'important');
+                // Remove all existing positioning
+                sidebar.style.cssText = '';
                 
-                console.log('✓ Sidebar position forced via JavaScript');
+                // Force floating position with 16px margins - NUCLEAR OPTION
+                const styles = {
+                    'position': 'fixed',
+                    'left': '16px',
+                    'top': '16px', 
+                    'bottom': '16px',
+                    'right': 'auto',
+                    'width': '240px',
+                    'height': 'calc(100vh - 32px)',
+                    'margin': '0',
+                    'margin-left': '0',
+                    'margin-right': '0', 
+                    'margin-top': '0',
+                    'margin-bottom': '0',
+                    'background': '#1A1A1A',
+                    'border': '1px solid var(--sidebar-border)',
+                    'border-radius': '12px',
+                    'z-index': '10',
+                    'overflow-y': 'auto',
+                    'box-shadow': '0 8px 32px rgba(0, 0, 0, 0.24), 0 4px 16px rgba(0, 0, 0, 0.12)'
+                };
+                
+                Object.keys(styles).forEach(property => {
+                    sidebar.style.setProperty(property, styles[property], 'important');
+                });
+                
+                // Double-check the left position
+                if (sidebar.getBoundingClientRect().left !== 16) {
+                    sidebar.style.setProperty('left', '16px', 'important');
+                    sidebar.style.setProperty('transform', 'translateX(0)', 'important');
+                }
+                
+                console.log('✓ Sidebar position NUCLEAR forced via JavaScript');
+                console.log('Sidebar left position:', sidebar.getBoundingClientRect().left);
             }
             
             // Force main content positioning
@@ -266,11 +288,19 @@
             forceMainContentPosition();
             adjustMainContent();
             
-            // Re-apply positioning every 2 seconds to handle any CSS conflicts
+            // Re-apply positioning every 500ms to handle any CSS conflicts
             setInterval(() => {
                 forceSidebarPosition();
                 forceMainContentPosition();
-            }, 2000);
+            }, 500);
+            
+            // Also force on window resize
+            window.addEventListener('resize', () => {
+                setTimeout(() => {
+                    forceSidebarPosition();
+                    forceMainContentPosition();
+                }, 100);
+            });
             
             console.log('✓ Base dashboard initialization complete');
         });
