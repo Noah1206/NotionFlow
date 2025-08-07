@@ -127,13 +127,14 @@ div.sidebar.collapsed {
     background: none;
     border: none;
     cursor: pointer;
-    padding: 8px;
-    border-radius: 6px;
+    padding: 12px; /* 패딩 증가로 클릭 영역 확대 */
+    border-radius: 8px; /* 모서리 약간 증가 */
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--sidebar-text-primary);
+    margin-left: 8px; /* 로고와의 간격 추가 */
 }
 
 .sidebar-toggle-btn-header:hover {
@@ -155,12 +156,13 @@ div.sidebar.collapsed {
 /* 네비게이션 전체 컨테이너 */
 .sidebar-nav {
     display: block;
-    padding-bottom: 80px; /* 설정 섹션을 위한 공간 */
+    padding: 1rem 0 80px 0; /* 상단 패딩 추가, 설정 섹션을 위한 공간 */
 }
 
 /* 메인 네비게이션 영역 */
 .sidebar-main-nav {
     display: block;
+    padding: 0.5rem 0; /* 상하 패딩 추가 */
 }
 
 /* 모든 텍스트 요소에 부드러운 전환 효과 */
@@ -233,19 +235,18 @@ div.sidebar.collapsed {
 .sidebar .nav-item {
     display: flex;
     align-items: center;
-    padding: 0.55rem 1rem;
-    /* 적절한 패딩 */
+    padding: 0.75rem 1.25rem; /* 패딩 증가 */
     color: var(--sidebar-text-secondary);
     text-decoration: none;
     transition: all 0.2s ease;
     position: relative;
-    gap: 0.75rem;
+    gap: 0.875rem; /* 아이콘과 텍스트 간격 증가 */
     font-size: 0.88rem;
     font-weight: 500;
-    margin: 0.125rem 0;
+    margin: 0.25rem 0.5rem; /* 상하좌우 마진 추가 */
     border-radius: 8px;
     letter-spacing: -0.01em;
-    min-height: 40px;
+    min-height: 42px; /* 최소 높이 증가 */
     box-sizing: border-box;
 }
 
@@ -478,9 +479,9 @@ div.sidebar.collapsed {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem;
+    padding: 1.25rem 1.5rem; /* 상하좌우 여백 증가 */
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    min-height: 60px;
+    min-height: 70px; /* 최소 높이 증가 */
     background: rgba(32, 32, 32, 0.8);
     backdrop-filter: blur(10px);
     border-radius: 12px 12px 0 0;
@@ -493,6 +494,20 @@ div.sidebar.collapsed {
     align-items: center;
     gap: 1rem;
     flex: 1;
+}
+
+/* 사이드바 로고 스타일 */
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    margin-right: auto; /* 로고를 왼쪽에 고정 */
+}
+
+.logo-text {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--sidebar-text-primary, #ffffff);
+    letter-spacing: -0.02em;
 }
 
 /* 축소 상태에서 헤더 조정 */
@@ -619,21 +634,21 @@ button.sidebar-toggle:hover,
     display: none;
 }
 
-/* 📑 네비게이션 섹션 - ClickUp 스타일 상단 정렬 */
+/* 📑 네비게이션 섹션 - 적절한 간격으로 디자인 개선 */
 .nav-section {
-    margin: 0;
-    /* 상단에 딱 붙임 */
+    margin: 1rem 0; /* 섹션간 간격 추가 */
+    padding: 0 0.5rem; /* 좌우 패딩 추가 */
 }
 
 /* 첫 번째 섹션 (새 캘린더) - 최상단에 배치 */
 .nav-section:first-of-type {
-    margin-top: 0;
+    margin-top: 0.5rem;
     padding-top: 0.5rem;
 }
 
-/* 메인 섹션들 - 간격 최소화 */
+/* 메인 섹션들 - 적절한 간격 */
 .nav-section:not(.nav-section-bottom) {
-    margin: 0;
+    margin: 0.75rem 0;
     padding: 0.25rem 0;
 }
 
