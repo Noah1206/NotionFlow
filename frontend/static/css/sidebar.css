@@ -1500,7 +1500,7 @@ div.sidebar {
     right: 8px;
 }
 
-/* 접힌 상태에서 설정 아이콘 중앙 정렬 */
+/* 접힌 상태에서 설정 아이콘을 다른 아이콘들과 완전히 동일하게 정렬 */
 .sidebar.collapsed .nav-section-bottom .nav-item {
     justify-content: center !important;
     align-items: center !important;
@@ -1516,6 +1516,17 @@ div.sidebar {
     justify-content: center !important;
     align-items: center !important;
     display: flex !important;
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    position: relative !important;
+}
+
+.sidebar.collapsed .nav-section-bottom .nav-icon svg {
+    width: 18px !important;
+    height: 18px !important;
+    display: block !important;
+    margin: 0 auto !important;
 }
 
 /* 접힌 상태에서 모든 아이콘들이 정확히 같은 위치에 정렬되도록 강제 */
