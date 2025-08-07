@@ -151,8 +151,9 @@
         /* 사이드바 축소 시 메인 콘텐츠 조정 */
         .sidebar.collapsed ~ .main-content,
         .sidebar-collapsed .main-content {
-            left: 50px !important;
-            width: calc(100vw - 50px) !important;
+            left: 0px !important;
+            width: 100vw !important;
+            padding-left: 60px !important;
         }
 
         /* 모든 섹션과 콘텐츠가 최대 너비를 사용하도록 */
@@ -2657,11 +2658,15 @@
                 
                 if (sidebar && mainContent) {
                     if (sidebar.classList.contains('collapsed')) {
-                        mainContent.style.left = '50px';
-                        mainContent.style.width = 'calc(100vw - 50px)';
+                        mainContent.style.left = '0px';
+                        mainContent.style.width = '100vw';
+                        mainContent.style.paddingLeft = '60px';
+                        mainContent.style.paddingRight = '2rem';
                     } else {
                         mainContent.style.left = '240px';
                         mainContent.style.width = 'calc(100vw - 240px)';
+                        mainContent.style.paddingLeft = '2rem';
+                        mainContent.style.paddingRight = '2rem';
                     }
                     
                     // 강제로 표시되도록 설정
