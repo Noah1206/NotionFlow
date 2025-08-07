@@ -126,10 +126,10 @@
         .main-content {
             flex: 1;
             padding: 2rem;
-            margin-left: 240px;
+            margin-left: 280px;
             transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             min-height: 100vh;
-            width: calc(100vw - 240px);
+            width: calc(100vw - 280px);
             /* 사이드바를 제외한 전체 너비 */
             overflow-x: hidden;
             background: var(--bg-primary);
@@ -141,8 +141,8 @@
         /* 사이드바 축소 시 메인 콘텐츠 조정 */
         .sidebar.collapsed ~ .main-content,
         .sidebar-collapsed .main-content {
-            margin-left: 50px;
-            width: calc(100vw - 50px);
+            margin-left: 60px;
+            width: calc(100vw - 60px);
             /* 축소된 사이드바를 제외한 전체 너비 */
         }
 
@@ -174,7 +174,7 @@
             position: fixed;
             left: 0;
             top: 0;
-            width: 240px;
+            width: 280px;
             height: 100vh;
             background: #1A1A1A !important;
             border-right: 1px solid var(--sidebar-border);
@@ -2595,11 +2595,11 @@
                 
                 if (sidebar && mainContent) {
                     if (sidebar.classList.contains('collapsed')) {
-                        mainContent.style.marginLeft = '50px';
-                        mainContent.style.width = 'calc(100vw - 50px)';
+                        mainContent.style.marginLeft = '60px';
+                        mainContent.style.width = 'calc(100vw - 60px)';
                     } else {
-                        mainContent.style.marginLeft = '240px';
-                        mainContent.style.width = 'calc(100vw - 240px)';
+                        mainContent.style.marginLeft = '280px';
+                        mainContent.style.width = 'calc(100vw - 280px)';
                     }
                 }
             }
