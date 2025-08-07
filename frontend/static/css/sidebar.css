@@ -95,9 +95,9 @@ div.sidebar.collapsed {
     left: 200px;
 }
 
-/* 사이드바가 접혀 있을 때 - 로고 자리에 위치 */
+/* 사이드바가 접혀 있을 때 - 중앙에 위치 */
 .sidebar-container .sidebar.collapsed ~ .sidebar-toggle-btn-floating {
-    left: 32px;
+    left: 25px; /* 50px 사이드바의 중앙 (50/2 - 버튼너비40/2 = 5px 정도) */
 }
 
 /* 네비게이션 전체 컨테이너 */
