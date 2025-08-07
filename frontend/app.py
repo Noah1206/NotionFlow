@@ -193,12 +193,8 @@ def user_dashboard_subpath(username, subpath):
 # 🔄 Dashboard Routes
 @app.route('/dashboard')
 def dashboard():
-    """Unified SPA dashboard route"""
+    """Dashboard route - redirect to Calendar List page"""
     print("🔍 Dashboard route accessed!")
-    
-    # 🎯 Get URL parameters for section activation
-    active_section = request.args.get('section', 'dashboard')
-    print(f"🎯 Active section: {active_section}")
     
     # Get current user ID
     user_id = session.get('user_id')
@@ -209,58 +205,7 @@ def dashboard():
         print("⚠️ No user session found, redirecting to login")
         return redirect('/login?from=dashboard')
     
-    # 🚨 Skip template existence check - let Flask handle it
-    print("✅ Attempting to render dashboard.html template...")
-    
-    # Get current date info for template
-    from datetime import datetime
-    now = datetime.now()
-    month_names = ['January', 'February', 'March', 'April', 'May', 'June',
-                   'July', 'August', 'September', 'October', 'November', 'December']
-    
-    # Load dashboard data
-    dashboard_context = {
-        'current_page': 'overview',
-        'active_section': active_section,
-        'encrypted_email': None,
-        'events': [],
-        'sync_status': {},
-        'summary': {},
-        'current_month_year': f"{month_names[now.month - 1]} {now.year}",
-        'current_date_str': f"{now.month}/{now.day}/{now.year}"
-    }
-    
-    if user_id:
-        try:
-            # Import required modules
-            try:
-                from utils.config import encrypt_user_id
-                from utils.dashboard_data import dashboard_data
-            except ImportError as e:
-                print(f"Import error: {e}")
-                # Fallback: redirect to Calendar List since dashboard deleted
-                return redirect('/dashboard/calendar-list')
-            
-            # Get dashboard data using the real dashboard data manager
-            try:
-                events = dashboard_data.get_user_calendar_events(user_id)
-                sync_status = dashboard_data.get_user_sync_status(user_id)
-                summary = dashboard_data.get_dashboard_summary(user_id)
-            except Exception as e:
-                print(f"Dashboard data error: {e}")
-                events = []
-                sync_status = {}
-                summary = {}
-            
-            dashboard_context.update({
-                'events': events,
-                'sync_status': sync_status,
-                'summary': summary,
-                'user_id': user_id
-            })
-        except Exception as e:
-            print(f"Error loading dashboard data: {e}")
-    
+    # 🔄 Always redirect to Calendar List (dashboard.html deleted)
     print("🔄 Dashboard redirecting to Calendar List page")
     return redirect('/dashboard/calendar-list')
 
@@ -269,25 +214,201 @@ def dashboard_index():
     """Main dashboard route - redirect to unified dashboard"""
     return redirect('/dashboard')
 
-# Calendar list route - main calendar list page
+# Calendar list route - main calendar list page  
 @app.route('/dashboard/calendar-list')
 def calendar_list():
-    """Calendar List Management Page"""
+    """Calendar List Management Page - New Refined Design"""
     # Get current user ID from session
     user_id = session.get('user_id')
     
     if not user_id:
         return redirect('/login?from=calendar-list')
     
-    # Load calendar list data
+    # Load real calendar data from database
     calendar_context = {
-        'current_page': 'calendar-list',
+        'current_page': 'calendar-refined',
         'user_id': user_id,
-        'calendars': [],
+        'personal_calendars': [],
+        'shared_calendars': [],
         'summary': {'total_calendars': 0, 'personal_calendars': 0, 'shared_calendars': 0}
     }
     
-    return render_template('calendar_list.html', **calendar_context)
+    try:
+        # Get user's actual calendar data from database
+        if dashboard_data_available:
+            calendar_data = dashboard_data.get_user_calendars(user_id)
+            calendar_context.update({
+                'personal_calendars': calendar_data['personal_calendars'],
+                'shared_calendars': calendar_data['shared_calendars'],
+                'summary': calendar_data['summary']
+            })
+            print(f"📅 Loaded {calendar_data['summary']['total_calendars']} calendars for user {user_id}")
+        else:
+            print("⚠️ Dashboard data not available, using sample data")
+            # Provide sample data for demonstration
+            calendar_context.update({
+                'personal_calendars': [
+                    {
+                        'id': 'sample_work',
+                        'name': 'Work Calendar',
+                        'platform': 'notion',
+                        'color': '#2563eb',
+                        'event_count': 24,
+                        'sync_status': 'synced',
+                        'last_sync_display': 'Synced 2 min ago',
+                        'is_enabled': True
+                    },
+                    {
+                        'id': 'sample_personal',
+                        'name': 'Personal Life',
+                        'platform': 'google',
+                        'color': '#059669',
+                        'event_count': 18,
+                        'sync_status': 'synced',
+                        'last_sync_display': 'Synced 5 min ago',
+                        'is_enabled': True
+                    }
+                ],
+                'shared_calendars': [
+                    {
+                        'id': 'sample_team',
+                        'name': 'Team Meetings',
+                        'platform': 'outlook',
+                        'color': '#7c3aed',
+                        'event_count': 31,
+                        'sync_status': 'synced',
+                        'last_sync_display': 'Synced 1 min ago',
+                        'is_enabled': True,
+                        'shared_with_count': 5
+                    }
+                ],
+                'summary': {'total_calendars': 3, 'personal_calendars': 2, 'shared_calendars': 1, 'total_events': 73}
+            })
+    except Exception as e:
+        print(f"❌ Error loading calendar data: {e}")
+        # Keep default empty data on error
+        pass
+    
+    return render_template('calendar_refined.html', **calendar_context)
+
+# Alternative route for calendar management
+@app.route('/calendar-refined')
+@app.route('/calendar-management') 
+def calendar_refined():
+    """Direct access to refined calendar management"""
+    return calendar_list()
+
+# 📅 Calendar Management API Endpoints
+@app.route('/api/calendar/create', methods=['POST'])
+def create_calendar():
+    """Create a new calendar for user"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'User not authenticated'}), 401
+        
+        data = request.get_json()
+        platform = data.get('platform', 'custom')
+        calendar_name = data.get('name', f'{platform.title()} Calendar')
+        calendar_color = data.get('color', '#6b7280')
+        is_shared = data.get('is_shared', False)
+        
+        # Insert into calendar_sync_configs table
+        try:
+            if dashboard_data_available:
+                # Use Supabase to create calendar config
+                result = dashboard_data.supabase.table('calendar_sync_configs').insert({
+                    'user_id': user_id,
+                    'platform': platform,
+                    'calendar_name': calendar_name,
+                    'calendar_color': calendar_color,
+                    'is_enabled': True,
+                    'is_shared': is_shared,
+                    'sync_frequency_minutes': 15,
+                    'consecutive_failures': 0,
+                    'created_at': 'now()'
+                }).execute()
+                
+                return jsonify({
+                    'success': True,
+                    'message': f'{calendar_name} calendar created successfully',
+                    'calendar': {
+                        'id': result.data[0]['id'] if result.data else f"{platform}_{user_id}",
+                        'name': calendar_name,
+                        'platform': platform,
+                        'color': calendar_color,
+                        'is_shared': is_shared
+                    }
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': 'Database not available'
+                }), 500
+        except Exception as e:
+            print(f"Error creating calendar: {e}")
+            return jsonify({
+                'success': False,
+                'error': f'Failed to create calendar: {str(e)}'
+            }), 500
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/calendar/<calendar_id>/delete', methods=['DELETE'])
+def delete_calendar(calendar_id):
+    """Delete a calendar"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'User not authenticated'}), 401
+        
+        if dashboard_data_available:
+            # Delete from calendar_sync_configs
+            result = dashboard_data.supabase.table('calendar_sync_configs').delete().eq('id', calendar_id).eq('user_id', user_id).execute()
+            
+            # Also delete associated events
+            dashboard_data.supabase.table('calendar_events').delete().eq('user_id', user_id).eq('source_platform', calendar_id.split('_')[0]).execute()
+            
+            return jsonify({
+                'success': True,
+                'message': 'Calendar deleted successfully'
+            })
+        else:
+            return jsonify({'success': False, 'error': 'Database not available'}), 500
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/calendar/<calendar_id>/toggle', methods=['POST'])
+def toggle_calendar(calendar_id):
+    """Toggle calendar enabled/disabled status"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'User not authenticated'}), 401
+        
+        if dashboard_data_available:
+            # Get current status
+            current = dashboard_data.supabase.table('calendar_sync_configs').select('is_enabled').eq('id', calendar_id).eq('user_id', user_id).single().execute()
+            
+            if current.data:
+                new_status = not current.data['is_enabled']
+                # Update status
+                dashboard_data.supabase.table('calendar_sync_configs').update({'is_enabled': new_status}).eq('id', calendar_id).eq('user_id', user_id).execute()
+                
+                return jsonify({
+                    'success': True,
+                    'enabled': new_status,
+                    'message': f'Calendar {"enabled" if new_status else "disabled"}'
+                })
+            else:
+                return jsonify({'success': False, 'error': 'Calendar not found'}), 404
+        else:
+            return jsonify({'success': False, 'error': 'Database not available'}), 500
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/dashboard/api-keys')
 def dashboard_api_keys():

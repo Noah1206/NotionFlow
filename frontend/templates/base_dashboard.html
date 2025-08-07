@@ -9,6 +9,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/variables.css') }}?v={{ range(100000, 999999) | random }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}?v={{ range(100000, 999999) | random }}">
     
+    <!-- Extra CSS from blocks -->
+    {% block extra_css %}{% endblock %}
+    
     <style>
         /* 🌟 Reset & Base */
         * {
