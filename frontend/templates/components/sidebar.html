@@ -1511,7 +1511,7 @@
         sidebar.classList.toggle('collapsed');
         const isCollapsed = sidebar.classList.contains('collapsed');
 
-        console.log('✅ Sidebar toggled:', isCollapsed ? 'collapsed' : 'expanded');
+        // console.log('✅ Sidebar toggled:', isCollapsed ? 'collapsed' : 'expanded');
 
         // 부모 컨테이너 클래스 업데이트 (선택사항)
         const dashboardLayout = document.querySelector('.dashboard-layout');
@@ -1564,7 +1564,7 @@
 
         if (isCollapsed) {
             sidebar.classList.add('collapsed');
-            console.log('✅ Sidebar restored to collapsed state');
+            // console.log('✅ Sidebar restored to collapsed state');
 
             // 부모 컨테이너도 업데이트
             const dashboardLayout = document.querySelector('.dashboard-layout');
@@ -1575,7 +1575,7 @@
             // 아이콘 상태 복원
             updateToggleIcons(true);
         } else {
-            console.log('✅ Sidebar restored to expanded state');
+            // console.log('✅ Sidebar restored to expanded state');
             updateToggleIcons(false);
         }
     }
@@ -1591,7 +1591,7 @@
                     const sidebarAvatar = document.getElementById('sidebar-profile-avatar');
                     if (sidebarAvatar) {
                         sidebarAvatar.src = avatarUrl;
-                        console.log('✅ Sidebar avatar loaded:', avatarUrl);
+                        // console.log('✅ Sidebar avatar loaded:', avatarUrl);
                     }
                 }
             }
