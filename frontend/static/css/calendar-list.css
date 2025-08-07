@@ -77,13 +77,26 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
+/* Override dashboard layout for calendar page with sidebar */
+.calendar-refined-page .main-content {
+    background: var(--color-gray-50) !important;
+    margin-left: 240px !important;
+    padding: 0 !important;
+    min-height: 100vh !important;
+}
+
+.calendar-refined-page .dashboard-container {
+    background: var(--color-gray-50) !important;
+}
+
 .calendar-container-refined {
-    max-width: 1200px !important;
-    margin: 0 auto !important;
+    max-width: none !important;
+    margin: 0 !important;
     padding: var(--spacing-8) var(--spacing-6) !important;
     position: relative !important;
     background: var(--color-gray-50) !important;
-    min-height: 100vh !important;
+    min-height: calc(100vh - 60px) !important;
+    width: 100% !important;
     z-index: 1 !important;
 }
 
@@ -574,6 +587,11 @@
 }
 
 @media (max-width: 768px) {
+    /* Mobile sidebar adjustments */
+    .calendar-refined-page .main-content {
+        margin-left: 0 !important;
+    }
+    
     .calendar-header-refined {
         flex-direction: column;
         align-items: stretch;
