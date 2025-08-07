@@ -1,28 +1,55 @@
 <!DOCTYPE html>
-<html lang="ko" class="calendar-refined-app">
+<html lang="ko" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendar Management - NotionFlow</title>
     
-    <!-- Refined Calendar CSS -->
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/variables.css') }}?v={{ range(100000, 999999) | random }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}?v={{ range(100000, 999999) | random }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-list.css') }}?v={{ range(100000, 999999) | random }}">
     
     <style>
-        /* Override any conflicting styles */
-        .calendar-refined-app body {
-            margin: 0 !important;
-            padding: 0 !important;
-            background: var(--color-gray-50) !important;
-            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', 'Segoe UI', system-ui, sans-serif !important;
+        /* 강제 사이드바 표시 */
+        .sidebar {
+            position: fixed !important;
+            left: 10px !important;
+            top: 10px !important;
+            bottom: 10px !important;
+            width: 240px !important;
+            height: calc(100vh - 20px) !important;
+            background: #ffffff !important;
+            border: 5px solid #000000 !important;
+            border-radius: 12px !important;
+            z-index: 999999 !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            display: block !important;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 0 4px rgba(0, 0, 0, 1) !important;
         }
         
-        .calendar-refined-app .sidebar {
-            display: none !important;
+        body {
+            background: #f5f5f5 !important;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .main-content {
+            margin-left: 260px !important;
+            padding: 20px !important;
+            min-height: 100vh !important;
         }
     </style>
 </head>
-<body class="calendar-list-page">
+
+<body class="calendar-list-page calendar-refined-page">
+    <!-- 사이드바 직접 포함 -->
+    <div class="sidebar" id="sidebar">
+        {% include 'components/sidebar.html' %}
+    </div>
+
+    <!-- 메인 콘텐츠 -->
+    <div class="main-content">
     <div class="calendar-container-refined">
         <!-- Clean Header -->
         <div class="calendar-header-refined">
@@ -342,5 +369,10 @@
         });
     });
     </script>
+    </div> <!-- main-content 끝 -->
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/theme-manager.js') }}"></script>
 </body>
 </html>
