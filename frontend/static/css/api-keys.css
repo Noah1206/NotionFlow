@@ -1,9 +1,9 @@
 /* API Keys Page - Clean Design */
 
-/* Page-specific reset to prevent conflicts */
+/* Page-specific reset - Clean White Design */
 .api-keys-page {
-    background: #ffffff;
-    color: #000000;
+    background: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
     min-height: 100vh;
 }
@@ -12,7 +12,7 @@
 .api-keys-page .main-content {
     margin-left: 280px;
     min-height: 100vh;
-    background: #ffffff;
+    background: var(--bg-primary) !important;
 }
 
 .api-keys-page .api-container {
@@ -50,16 +50,17 @@
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
 }
 
-/* Hero Section */
+/* Hero Section - Clean Black/White */
 .api-keys-page .api-hero {
-    background: #000000;
-    color: #ffffff;
+    background: var(--gradient-primary);
+    color: var(--text-inverse);
     padding: 80px 48px;
     border-radius: 24px;
     margin-bottom: 48px;
     text-align: center;
     position: relative;
     overflow: hidden;
+    border: 2px solid var(--border-accent);
 }
 
 .api-keys-page .api-hero::before {
@@ -109,18 +110,19 @@
     margin-bottom: 48px;
 }
 
-/* Platform Cards */
+/* Platform Cards - Clean Design */
 .api-keys-page .platform-card {
-    background: #ffffff;
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-primary);
     border-radius: 16px;
     padding: 32px;
     transition: all 0.3s ease;
+    box-shadow: var(--shadow-md);
 }
 
 .api-keys-page .platform-card:hover {
-    border-color: #000000;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    border-color: var(--border-accent);
+    box-shadow: var(--shadow-lg);
     transform: translateY(-4px);
 }
 
@@ -134,8 +136,8 @@
 .api-keys-page .platform-icon {
     width: 60px;
     height: 60px;
-    background: #000000;
-    color: #ffffff;
+    background: var(--accent-primary);
+    color: var(--text-inverse);
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -143,23 +145,24 @@
     font-size: 24px;
     font-weight: 700;
     transition: all 0.3s ease;
+    border: 2px solid var(--border-accent);
 }
 
 .api-keys-page .platform-card:hover .platform-icon {
     transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-lg);
 }
 
 .api-keys-page .platform-info h3 {
     font-size: 24px;
     font-weight: 700;
     margin: 0 0 4px 0;
-    color: #000000;
+    color: var(--text-primary);
 }
 
 .api-keys-page .platform-info p {
     font-size: 14px;
-    color: #666666;
+    color: var(--text-secondary);
     margin: 0;
 }
 
@@ -181,7 +184,7 @@
 .api-keys-page .stat-value {
     font-size: 32px;
     font-weight: 800;
-    color: #000000;
+    color: var(--text-primary);
     line-height: 1;
     margin-bottom: 8px;
 }
@@ -190,7 +193,7 @@
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: #999999;
+    color: var(--text-tertiary);
     font-weight: 600;
 }
 
@@ -208,13 +211,13 @@
 }
 
 .api-keys-page .status-connected {
-    background: #000000;
-    color: #ffffff;
+    background: var(--accent-success);
+    color: var(--text-inverse);
 }
 
 .api-keys-page .status-disconnected {
-    background: #f5f5f5;
-    color: #999999;
+    background: var(--accent-muted);
+    color: var(--text-tertiary);
 }
 
 .api-keys-page .status-dot {
@@ -254,30 +257,31 @@
 }
 
 .api-keys-page .btn-primary {
-    background: #000000;
-    color: #ffffff;
+    background: var(--btn-primary-bg);
+    color: var(--text-inverse);
 }
 
 .api-keys-page .btn-primary:hover {
-    background: #1a1a1a;
+    background: var(--btn-primary-hover);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-lg);
 }
 
 .api-keys-page .btn-secondary {
-    background: #ffffff;
-    color: #000000;
-    border: 2px solid #000000;
+    background: var(--btn-secondary-bg);
+    color: var(--text-primary);
+    border: 2px solid var(--btn-secondary-border);
 }
 
 .api-keys-page .btn-secondary:hover {
-    background: #000000;
-    color: #ffffff;
+    background: var(--btn-secondary-hover);
+    color: var(--text-primary);
 }
 
 /* Security Notice */
 .api-keys-page .security-notice {
-    background: #f8f9fa;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
     border-radius: 16px;
     padding: 40px;
     text-align: center;
@@ -286,14 +290,14 @@
 
 .api-keys-page .security-notice p {
     font-size: 16px;
-    color: #666666;
+    color: var(--text-secondary);
     max-width: 700px;
     margin: 0 auto;
     line-height: 1.6;
 }
 
 .api-keys-page .security-notice strong {
-    color: #000000;
+    color: var(--text-primary);
     font-weight: 700;
 }
 
