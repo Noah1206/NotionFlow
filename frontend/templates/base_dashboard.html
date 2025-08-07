@@ -46,10 +46,10 @@
         .main-content {
             position: fixed !important;
             top: 16px !important;
-            left: 272px !important;
+            left: 256px !important;
             right: 16px !important;
             bottom: 16px !important;
-            width: calc(100vw - 288px) !important;
+            width: calc(100vw - 272px) !important;
             height: calc(100vh - 32px) !important;
             padding: 1rem 2rem;
             overflow-x: hidden;
@@ -66,9 +66,9 @@
         /* 사이드바 축소 시 메인 콘텐츠 조정 */
         .sidebar.collapsed ~ .main-content,
         .sidebar-collapsed .main-content {
-            left: 82px !important;
+            left: 66px !important;
             right: 16px !important;
-            width: calc(100vw - 98px) !important;
+            width: calc(100vw - 82px) !important;
             padding-left: 2rem !important;
         }
 
@@ -219,13 +219,13 @@
                 const isCollapsed = sidebar.classList.contains('collapsed');
                 
                 if (isCollapsed) {
-                    // Collapsed: 16px + 50px + 16px = 82px from left
-                    mainContent.style.setProperty('left', '82px', 'important');
-                    mainContent.style.setProperty('width', 'calc(100vw - 98px)', 'important');
+                    // Collapsed: 16px + 50px = 66px from left (no gap)
+                    mainContent.style.setProperty('left', '66px', 'important');
+                    mainContent.style.setProperty('width', 'calc(100vw - 82px)', 'important');
                 } else {
-                    // Expanded: 16px + 240px + 16px = 272px from left  
-                    mainContent.style.setProperty('left', '272px', 'important');
-                    mainContent.style.setProperty('width', 'calc(100vw - 288px)', 'important');
+                    // Expanded: 16px + 240px = 256px from left (no gap)  
+                    mainContent.style.setProperty('left', '256px', 'important');
+                    mainContent.style.setProperty('width', 'calc(100vw - 272px)', 'important');
                 }
                 
                 mainContent.style.setProperty('top', '16px', 'important');
