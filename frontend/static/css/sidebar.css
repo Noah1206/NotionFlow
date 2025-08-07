@@ -90,14 +90,45 @@ div.sidebar.collapsed {
     position: relative;
 }
 
-/* 사이드바가 펼쳐져 있을 때 - 로고 옆에 위치 */
+/* 사이드바가 펼쳐져 있을 때는 floating 버튼 숨김 */
 .sidebar-toggle-btn-floating {
-    left: 200px;
+    display: none;
 }
 
-/* 사이드바가 접혀 있을 때 - 중앙에 위치 */
+/* 사이드바가 접혀 있을 때만 floating 버튼 표시 - 중앙에 위치 */
 .sidebar-container .sidebar.collapsed ~ .sidebar-toggle-btn-floating {
-    left: 25px; /* 50px 사이드바의 중앙 (50/2 - 버튼너비40/2 = 5px 정도) */
+    display: flex;
+    left: 25px; /* 50px 사이드바의 중앙 */
+}
+
+/* 헤더 내부 토글 버튼 스타일 - 펼쳐진 상태에서만 표시 */
+.sidebar-toggle-btn-header {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--sidebar-text-primary);
+}
+
+.sidebar-toggle-btn-header:hover {
+    background: var(--sidebar-hover-bg);
+    transform: scale(1.1);
+}
+
+.sidebar-toggle-btn-header svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* 사이드바가 접혔을 때 헤더 버튼 숨김 */
+.sidebar.collapsed .sidebar-toggle-btn-header {
+    display: none;
+}
 }
 
 /* 네비게이션 전체 컨테이너 */

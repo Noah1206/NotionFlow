@@ -9,17 +9,11 @@
 -->
 
 <div class="sidebar-container">
-    <!-- 사이드바 토글 버튼 - 사이드바 밖에 위치 -->
-    <button class="sidebar-toggle-btn-floating" id="sidebar-toggle-floating" onclick="toggleSidebar()" data-tooltip="사이드바 접기/펼치기">
-        <!-- X 아이콘 (펼쳐진 상태) - 사이드바 접기를 의미 -->
-        <svg class="sidebar-toggle-close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
+    <!-- 사이드바 토글 버튼 - 접힌 상태에서 사이드바 중앙에 위치 -->
+    <button class="sidebar-toggle-btn-floating" id="sidebar-toggle-floating" onclick="toggleSidebar()" data-tooltip="사이드바 펼치기">
         <!-- 햄버거 메뉴 아이콘 (접힌 상태) - 사이드바 펼치기를 의미 -->
         <svg class="sidebar-toggle-open-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+            stroke-linecap="round" stroke-linejoin="round">
             <line x1="3" y1="6" x2="21" y2="6"></line>
             <line x1="3" y1="12" x2="21" y2="12"></line>
             <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -28,11 +22,20 @@
 
     <div class="sidebar" id="sidebar">
 
-    <!-- 사이드바 헤더 - 로고만 -->
+    <!-- 사이드바 헤더 - 로고와 토글 버튼 -->
     <div class="sidebar-header-container">
         <div class="sidebar-logo">
             <span class="logo-text">NodeFlow</span>
         </div>
+        <!-- 토글 버튼을 헤더 내부로 이동 - 펼쳐진 상태에서 사이드바 접기용 -->
+        <button class="sidebar-toggle-btn-header" onclick="toggleSidebar()" data-tooltip="사이드바 접기">
+            <!-- X 아이콘 (펼쳐진 상태) - 사이드바 접기를 의미 -->
+            <svg class="sidebar-toggle-close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
     </div>
 
     <!-- 네비게이션 메뉴 -->
