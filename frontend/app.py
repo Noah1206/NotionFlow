@@ -275,16 +275,7 @@ def dashboard_index():
     """Main dashboard route - redirect to unified dashboard"""
     return redirect('/dashboard')
 
-@app.route('/dashboard/calendar-list')
-def calendar_list():
-    """Calendar list page"""
-    # Check if user is logged in
-    user_id = session.get('user_id')
-    
-    if not user_id:
-        return redirect('/login?from=calendar-list')
-    
-    return render_template('calendar_list.html')
+# Calendar list route removed - no longer needed
 
 @app.route('/dashboard/api-keys')
 def dashboard_api_keys():
