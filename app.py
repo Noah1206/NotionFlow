@@ -20,15 +20,7 @@ spec.loader.exec_module(frontend_app)
 # Get the Flask app instance
 app = frontend_app.app
 
-# Add health check endpoint for Render
-@app.route('/health')
-def health_check():
-    """Health check endpoint for deployment monitoring"""
-    return {
-        'status': 'healthy',
-        'message': 'NotionFlow is running successfully',
-        'timestamp': str(datetime.datetime.now())
-    }
+# Health check is handled in frontend/app.py
 
 if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))

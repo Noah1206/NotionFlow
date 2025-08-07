@@ -273,7 +273,11 @@ def dashboard_index():
     """Main dashboard route - redirect to unified dashboard"""
     return redirect('/dashboard')
 
-# Calendar list route removed - no longer needed
+# Calendar list route - redirect to dashboard
+@app.route('/dashboard/calendar-list')
+def calendar_list_redirect():
+    """Redirect old calendar-list URL to dashboard"""
+    return redirect('/dashboard')
 
 @app.route('/dashboard/api-keys')
 def dashboard_api_keys():
