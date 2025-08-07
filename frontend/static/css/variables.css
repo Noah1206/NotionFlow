@@ -1,115 +1,115 @@
-/* 🌟 NOTIONFLOW DARK THEME - ClickUp Inspired Dark */
+/* 🌟 NOTIONFLOW LIGHT THEME - ClickUp Inspired Light (Default) */
 :root,
-[data-theme="dark"] {
-    /* 🎨 CORE COLORS - ClickUp inspired dark theme */
-    --bg-primary: #1a1d21;
-    /* Dark blue-gray background */
-    --bg-secondary: #24272c;
-    /* Darker cards */
-    --bg-tertiary: #2a2d33;
-    /* Lighter sections */
-    --bg-modal: #24272c;
+[data-theme="light"] {
+    /* 🎨 CORE COLORS - ClickUp inspired soft theme */
+    --bg-primary: #f8f9fb;
+    /* Soft off-white background */
+    --bg-secondary: #ffffff;
+    /* Pure white for cards */
+    --bg-tertiary: #f4f5f7;
+    /* Light gray for subtle sections */
+    --bg-modal: #ffffff;
     /* Modal backgrounds */
-    --bg-glass: rgba(26, 29, 33, 0.95);
+    --bg-glass: rgba(255, 255, 255, 0.95);
     /* Glass effect */
-    --bg-hover: #2f3237;
+    --bg-hover: #f0f1f3;
     /* Hover states */
-    --bg-selected: #1e293b;
+    --bg-selected: #e8f2ff;
     /* Selected states */
 
-    /* 🌈 COLORFUL GRADIENTS - ClickUp inspired dark */
+    /* 🌈 COLORFUL GRADIENTS - ClickUp inspired light */
     --gradient-primary: linear-gradient(135deg, #000000 0%, #000000 100%);
     --gradient-emerald: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
     --gradient-blue: linear-gradient(135deg, #2196F3 0%, #21CBF3 100%);
     --gradient-warm: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
 
-    /* 🎯 COLORFUL ACCENT COLORS - ClickUp inspired dark */
-    --accent-primary: #8b5cf6;
-    /* Purple accent (lighter for dark) */
-    --accent-secondary: #22d3ee;
-    /* Cyan accent (lighter for dark) */
-    --accent-tertiary: #34d399;
-    /* Emerald accent (lighter for dark) */
-    --accent-success: #4ade80;
-    /* Green for success (lighter for dark) */
-    --accent-warning: #fbbf24;
-    /* Amber for warning (lighter for dark) */
-    --accent-error: #f87171;
-    /* Red for errors (lighter for dark) */
-    --accent-pink: #f472b6;
-    /* Pink accent (lighter for dark) */
-    --accent-indigo: #818cf8;
-    /* Indigo accent (lighter for dark) */
-    --accent-orange: #fb923c;
-    /* Orange accent (lighter for dark) */
+    /* 🎯 COLORFUL ACCENT COLORS - ClickUp inspired light */
+    --accent-primary: #7c3aed;
+    /* Purple accent */
+    --accent-secondary: #06b6d4;
+    /* Cyan accent */
+    --accent-tertiary: #10b981;
+    /* Emerald accent */
+    --accent-success: #22c55e;
+    /* Green for success */
+    --accent-warning: #f59e0b;
+    /* Amber for warning */
+    --accent-error: #ef4444;
+    /* Red for errors */
+    --accent-pink: #ec4899;
+    /* Pink accent */
+    --accent-indigo: #6366f1;
+    /* Indigo accent */
+    --accent-orange: #f97316;
+    /* Orange accent */
 
-    /* 📝 TEXT COLORS - ClickUp inspired dark */
-    --text-primary: #f8fafc;
-    /* Near white for primary text */
-    --text-secondary: #cbd5e1;
-    /* Light gray for secondary text */
-    --text-tertiary: #94a3b8;
+    /* 📝 TEXT COLORS - ClickUp inspired light */
+    --text-primary: #1e293b;
+    /* Dark blue-gray for primary text */
+    --text-secondary: #475569;
+    /* Medium gray for secondary text */
+    --text-tertiary: #64748b;
     /* Medium gray for tertiary text */
-    --text-muted: #64748b;
-    /* Muted gray for subtle text */
-    --text-inverse: #1a1d21;
-    /* Dark text on light backgrounds */
+    --text-muted: #94a3b8;
+    /* Lighter gray for subtle text */
+    --text-inverse: #ffffff;
+    /* Light text on dark backgrounds */
 
-    /* 🔲 BORDER COLORS - Perfect inverse system */
-    --border-primary: #1a1a1a;
-    /* Dark gray (inverse of #e5e5e5) */
-    --border-secondary: #0a0a0a;
-    /* Very dark (inverse of #f5f5f5) */
-    --border-accent: #ffffff;
-    /* White accent borders */
-    --border-glass: rgba(255, 255, 255, 0.1);
+    /* 🔲 BORDER COLORS - Light theme borders */
+    --border-primary: #e2e8f0;
+    /* Light gray border */
+    --border-secondary: #cbd5e1;
+    /* Medium gray border */
+    --border-accent: #7c3aed;
+    /* Purple accent borders */
+    --border-glass: rgba(0, 0, 0, 0.1);
     /* Glass borders */
 
-    /* 🌈 BUTTON STYLES - Perfect inverse */
-    --btn-primary-bg: #ffffff;
-    /* White (inverse of #000000) */
-    --btn-primary-hover: #d9d9d9;
-    /* Light gray (inverse of #262626) */
+    /* 🌈 BUTTON STYLES - Light theme buttons */
+    --btn-primary-bg: #7c3aed;
+    /* Purple primary button */
+    --btn-primary-hover: #6d28d9;
+    /* Darker purple on hover */
     --btn-secondary-bg: transparent;
-    --btn-secondary-border: #ffffff;
-    --btn-secondary-hover: rgba(255, 255, 255, 0.05);
+    --btn-secondary-border: #e2e8f0;
+    --btn-secondary-hover: rgba(0, 0, 0, 0.05);
 
-    /* 🎭 SHADOWS & EFFECTS - Adapted for dark theme */
-    --shadow-sm: 0 1px 2px rgba(255, 255, 255, 0.05);
-    --shadow-md: 0 4px 6px rgba(255, 255, 255, 0.1);
-    --shadow-lg: 0 10px 15px rgba(255, 255, 255, 0.15);
-    --shadow-glow: 0 0 20px rgba(255, 255, 255, 0.05);
-    --shadow-glow-hover: 0 0 30px rgba(255, 255, 255, 0.1);
+    /* 🎭 SHADOWS & EFFECTS - Light theme shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+    --shadow-glow: 0 0 20px rgba(124, 58, 237, 0.1);
+    --shadow-glow-hover: 0 0 30px rgba(124, 58, 237, 0.15);
 
     /* 🔧 LEGACY VARIABLE OVERRIDES */
-    --main-red: #ffffff;
-    --main-black: #ffffff;
-    --main-gray: #8c8c8c;
-    --main-bg: #000000;
-    --status-connected: #ffffff;
-    --status-disconnected: #8c8c8c;
+    --main-red: #ef4444;
+    --main-black: #1e293b;
+    --main-gray: #64748b;
+    --main-bg: #f8f9fb;
+    --status-connected: #22c55e;
+    --status-disconnected: #ef4444;
 
-    /* 🎨 SIDEBAR - Floating design with refined width */
-    --sidebar-bg: #1A1A1A !important;
-    /* Dark gray background */
-    --sidebar-border: #1a1a1a;
-    /* Dark border */
+    /* 🎨 SIDEBAR - Light theme floating design */
+    --sidebar-bg: #ffffff !important;
+    /* Clean white background */
+    --sidebar-border: rgba(0, 0, 0, 0.1);
+    /* Light border */
     --sidebar-width: 240px;
-    /* Reduced width for floating effect */
-    --sidebar-text-primary: #ffffff;
-    /* Pure white for icons/text */
-    --sidebar-text-secondary: #bfbfbf;
-    /* Light gray for secondary text */
-    --sidebar-hover-bg: #0f0f0f;
-    /* Hover background */
-    --sidebar-active-bg: #1A1A1A;
-    /* Active item background */
+    /* Consistent width */
+    --sidebar-text-primary: #1e293b;
+    /* Dark text for readability */
+    --sidebar-text-secondary: #64748b;
+    /* Medium gray for secondary text */
+    --sidebar-hover-bg: #f8fafc;
+    /* Light hover background */
+    --sidebar-active-bg: #e0e7ff;
+    /* Light purple active background */
 
-    /* Glass Effects - Dark theme */
-    --glass-bg: rgba(0, 0, 0, 0.95);
-    --glass-hover: rgba(10, 10, 10, 0.95);
-    --glass-border: rgba(255, 255, 255, 0.05);
-    --accent-gradient: linear-gradient(135deg, #ffffff 0%, #ffffff 100%);
+    /* Glass Effects - Light theme */
+    --glass-bg: rgba(255, 255, 255, 0.95);
+    --glass-hover: rgba(248, 250, 252, 0.95);
+    --glass-border: rgba(0, 0, 0, 0.1);
+    --accent-gradient: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
 
     /* 📐 SPACING & SIZING */
     --spacing-xs: 0.25rem;
@@ -257,115 +257,9 @@ body {
     margin-top: 4px;
 }
 
-/* 🌟 LIGHT MODE THEME VARIABLES - ClickUp Inspired */
-[data-theme="light"] {
-    /* 🎨 CORE COLORS - ClickUp inspired soft theme */
-    --bg-primary: #f8f9fb;
-    /* Soft off-white background */
-    --bg-secondary: #ffffff;
-    /* Pure white for cards */
-    --bg-tertiary: #f4f5f7;
-    /* Light gray for subtle sections */
-    --bg-modal: #ffffff;
-    /* Modal backgrounds */
-    --bg-glass: rgba(255, 255, 255, 0.95);
-    /* Glass effect */
-    --bg-hover: #f0f1f3;
-    /* Hover states */
-    --bg-selected: #e8f2ff;
-    /* Selected states */
 
-    /* 🌈 COLORFUL GRADIENTS - ClickUp inspired */
-    --gradient-primary: linear-gradient(135deg, #000000 0%, #000000 100%);
-    --gradient-emerald: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-    --gradient-blue: linear-gradient(135deg, #2196F3 0%, #21CBF3 100%);
-    --gradient-warm: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-
-    /* 🎯 COLORFUL ACCENT COLORS - ClickUp inspired */
-    --accent-primary: #7c3aed;
-    /* Purple accent */
-    --accent-secondary: #06b6d4;
-    /* Cyan accent */
-    --accent-tertiary: #10b981;
-    /* Emerald accent */
-    --accent-success: #22c55e;
-    /* Green for success */
-    --accent-warning: #f59e0b;
-    /* Amber for warning */
-    --accent-error: #ef4444;
-    /* Red for errors */
-    --accent-pink: #ec4899;
-    /* Pink accent */
-    --accent-indigo: #6366f1;
-    /* Indigo accent */
-    --accent-orange: #f97316;
-    /* Orange accent */
-
-    /* 📝 TEXT COLORS - ClickUp inspired light */
-    --text-primary: #1e293b;
-    /* Dark blue-gray for primary text */
-    --text-secondary: #475569;
-    /* Medium gray for secondary text */
-    --text-tertiary: #64748b;
-    /* Light gray for tertiary text */
-    --text-muted: #94a3b8;
-    /* Muted gray for subtle text */
-    --text-inverse: #f8fafc;
-    /* Light text on dark backgrounds */
-
-    /* 🔲 BORDER COLORS */
-    --border-primary: #e5e5e5;
-    /* Light gray borders */
-    --border-secondary: #f5f5f5;
-    /* Very light borders */
-    --border-accent: #000000;
-    /* Black accent borders */
-    --border-glass: rgba(0, 0, 0, 0.1);
-    /* Glass borders */
-
-    /* 🌈 BUTTON STYLES */
-    --btn-primary-bg: #000000;
-    --btn-primary-hover: #262626;
-    --btn-secondary-bg: transparent;
-    --btn-secondary-border: #000000;
-    --btn-secondary-hover: rgba(0, 0, 0, 0.05);
-
-    /* 🎭 SHADOWS & EFFECTS */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.15);
-    --shadow-glow: 0 0 20px rgba(0, 0, 0, 0.05);
-    --shadow-glow-hover: 0 0 30px rgba(0, 0, 0, 0.1);
-
-    /* 🔧 LEGACY VARIABLE OVERRIDES */
-    --main-red: #000000;
-    --main-black: #000000;
-    --main-gray: #737373;
-    --main-bg: #ffffff;
-    --status-connected: #000000;
-    --status-disconnected: #a3a3a3;
-    --sidebar-bg: #f8f9fa;
-
-    /* 🎨 SIDEBAR - Light theme */
-    --sidebar-text-primary: #1a1d21;
-    /* Dark text for light background */
-    --sidebar-text-secondary: #4a5568;
-    /* Medium gray for secondary text */
-    --sidebar-hover-bg: #e9ecef;
-    /* Light gray hover background */
-    --sidebar-active-bg: #dee2e6;
-    /* Slightly darker for active items */
-}
-
-/* Light mode body background */
-[data-theme="light"] body {
-    color: var(--text-primary) !important;
-    background: var(--bg-primary) !important;
-    background-image: none !important;
-}
-
-/* Dark mode body background */
-[data-theme="dark"] body {
+/* Default body background (light mode) */
+body {
     color: var(--text-primary) !important;
     background: var(--bg-primary) !important;
     background-image: none !important;

@@ -37,23 +37,6 @@
 
 /* 사이드바 내부 콘텐츠 wrapper - flex 구조 (삭제됨) */
 
-/* 라이트 모드에서 floating 사이드바 스타일 */
-[data-theme="light"] .sidebar {
-    background: rgba(248, 249, 250, 0.95);
-    border: 1px solid rgba(233, 236, 239, 0.8);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04);
-    backdrop-filter: blur(20px);
-}
-
-[data-theme="light"] .sidebar .sidebar-header {
-    background: transparent;
-}
-
-[data-theme="light"] .sidebar-header-container {
-    background: rgba(248, 249, 250, 0.9);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(10px);
-}
 
 /* 사이드바 축소 상태 - 거의 안보이게 */
 .sidebar.collapsed,
@@ -472,9 +455,9 @@ body.sidebar-collapsed .sidebar-toggle-btn-floating {
     justify-content: space-between;
     align-items: center;
     padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--border-primary);
     min-height: 70px;
-    background: rgba(32, 32, 32, 0.95);
+    background: rgba(248, 250, 252, 0.95);
     border-radius: 12px 12px 0 0; /* 상단 모서리만 둥글게 */
     z-index: 10001;
     position: relative;
@@ -1077,32 +1060,32 @@ div.sidebar.collapsed button.sidebar-toggle {
 /* ClickUp 스타일 - 상단 정렬된 섹션 간격 */
 
 /* 라이트 모드에서 아이콘 색상 조정 */
-[data-theme="light"] .sidebar .nav-icon svg,
-[data-theme="light"] .sidebar .new-calendar-button svg,
-[data-theme="light"] .sidebar .calendar-nav-item svg,
-[data-theme="light"] .sidebar .category-icon svg,
-[data-theme="light"] .sidebar .collapse-arrow svg,
-[data-theme="light"] .sidebar .sidebar-toggle-btn-internal svg {
+ .sidebar .nav-icon svg,
+ .sidebar .new-calendar-button svg,
+ .sidebar .calendar-nav-item svg,
+ .sidebar .category-icon svg,
+ .sidebar .collapse-arrow svg,
+ .sidebar .sidebar-toggle-btn-internal svg {
     stroke: var(--sidebar-text-primary) !important;
     color: var(--sidebar-text-primary) !important;
 }
 
 /* 라이트 모드에서 보조 아이콘들 (화살표 등) */
-[data-theme="light"] .sidebar .collapse-arrow svg {
+ .sidebar .collapse-arrow svg {
     stroke: var(--sidebar-text-secondary) !important;
 }
 
 /* 라이트 모드에서 활성 상태 아이콘 */
-[data-theme="light"] .sidebar .nav-item.active .nav-icon svg,
-[data-theme="light"] .sidebar .calendar-nav-item.selected svg {
+ .sidebar .nav-item.active .nav-icon svg,
+ .sidebar .calendar-nav-item.selected svg {
     stroke: var(--sidebar-text-primary) !important;
     color: var(--sidebar-text-primary) !important;
 }
 
 /* 라이트 모드에서 호버 상태 아이콘 */
-[data-theme="light"] .sidebar .nav-item:hover .nav-icon svg,
-[data-theme="light"] .sidebar .new-calendar-button:hover svg,
-[data-theme="light"] .sidebar .calendar-nav-item:hover svg {
+ .sidebar .nav-item:hover .nav-icon svg,
+ .sidebar .new-calendar-button:hover svg,
+ .sidebar .calendar-nav-item:hover svg {
     stroke: var(--sidebar-text-primary) !important;
     color: var(--sidebar-text-primary) !important;
 }
@@ -1142,7 +1125,7 @@ div.sidebar.collapsed button.sidebar-toggle {
 }
 
 /* 라이트 모드에서 하단 섹션 배경 */
-[data-theme="light"] .nav-section-bottom {
+ .nav-section-bottom {
     background: rgba(248, 249, 250, 0.95);
     border: 1px solid rgba(233, 236, 239, 0.5);
 }
@@ -1358,17 +1341,17 @@ div.sidebar {
 }
 
 /* 라이트 모드 */
-[data-theme="light"] .calendar-item {
+ .calendar-item {
     background: #f8f9fa;
     border-color: #e9ecef;
 }
 
-[data-theme="light"] .calendar-item:hover {
+ .calendar-item:hover {
     background: #e9ecef;
     border-color: #007bff;
 }
 
-[data-theme="light"] .calendar-scroll-indicator {
+ .calendar-scroll-indicator {
     background: #f0f0f0;
 }
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-theme="dark">
+<html lang="ko" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -129,8 +129,8 @@
             bottom: 10px !important;
             width: 240px !important;
             height: calc(100vh - 20px) !important;
-            background: #1A1A1A !important;
-            border: 1px solid var(--sidebar-border, rgba(255, 255, 255, 0.1)) !important;
+            background: var(--sidebar-bg) !important;
+            border: 1px solid var(--sidebar-border) !important;
             border-radius: 12px !important;
             z-index: 10 !important;
             overflow-y: hidden !important;
@@ -201,12 +201,12 @@
                     'width': '240px',
                     'height': 'calc(100vh - 20px)',
                     'margin': '0',
-                    'background': '#1A1A1A',
-                    'border': '1px solid rgba(255, 255, 255, 0.1)',
+                    'background': 'var(--sidebar-bg)',
+                    'border': '1px solid var(--sidebar-border)',
                     'border-radius': '12px',
                     'z-index': '10',
                     'overflow-y': 'hidden',
-                    'box-shadow': '0 8px 32px rgba(0, 0, 0, 0.24), 0 4px 16px rgba(0, 0, 0, 0.12)'
+                    'box-shadow': 'var(--shadow-lg)'
                 };
                 
                 Object.keys(styles).forEach(property => {
