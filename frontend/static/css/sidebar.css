@@ -336,14 +336,22 @@ button.sidebar-toggle-btn-header:hover svg,
     width: 20px !important;
     height: 20px !important;
     position: relative !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    color: #1e293b !important;
 }
 
-/* 접힌 상태에서 아이콘 SVG 크기 조정 */
+/* 접힌 상태에서 아이콘 SVG 크기 조정 - 강제 표시 */
 .sidebar.collapsed .nav-icon svg {
     width: 18px !important;
     height: 18px !important;
     display: block !important;
     margin: 0 auto !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    stroke: #1e293b !important;
+    color: #1e293b !important;
+    fill: none !important;
 }
 
 /* 접힌 상태에서 새 캘린더 버튼 중앙 정렬 */
@@ -457,7 +465,7 @@ button.sidebar-toggle-btn-header:hover svg,
 
 
 
-/* 🎯 네비게이션 아이콘 - 고정된 위치 정렬 */
+/* 🎯 네비게이션 아이콘 - 고정된 위치 정렬 - 강제 표시 */
 .sidebar .nav-icon {
     display: flex !important;
     align-items: center !important;
@@ -472,20 +480,23 @@ button.sidebar-toggle-btn-header:hover svg,
     margin-right: 0 !important;
     margin-left: 0 !important;
     position: relative;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .sidebar .nav-icon svg {
-    width: 18px;
-    height: 18px;
+    width: 18px !important;
+    height: 18px !important;
     stroke: #1e293b !important;
     /* 강제 다크 색상으로 표시 */
-    fill: none;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+    fill: none !important;
+    stroke-width: 2 !important;
+    stroke-linecap: round !important;
+    stroke-linejoin: round !important;
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
+    color: #1e293b !important;
 }
 
 .sidebar .nav-item:hover .nav-icon,
