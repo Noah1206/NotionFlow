@@ -117,23 +117,31 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
-        /* 🎨 Notion-Style Sidebar */
-        .sidebar {
-            position: fixed;
-            left: 16px;
-            top: 16px;
-            right: auto;
-            bottom: 16px;
-            width: 240px;
-            height: calc(100vh - 32px);
+        /* 🎨 Notion-Style Sidebar - CRITICAL OVERRIDE */
+        .sidebar,
+        #sidebar,
+        div.sidebar,
+        .dashboard-container .sidebar {
+            position: fixed !important;
+            left: 16px !important;
+            top: 16px !important;
+            right: auto !important;
+            bottom: 16px !important;
+            width: 240px !important;
+            height: calc(100vh - 32px) !important;
             background: #1A1A1A !important;
-            border: 1px solid var(--sidebar-border);
-            border-radius: 12px;
-            z-index: 10;
-            overflow-y: auto;
+            border: 1px solid var(--sidebar-border) !important;
+            border-radius: 12px !important;
+            z-index: 10 !important;
+            overflow-y: auto !important;
             font-size: 14px;
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24), 0 4px 16px rgba(0, 0, 0, 0.12);
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24), 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+            margin: 0 !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
         }
 
         /* Responsive */
