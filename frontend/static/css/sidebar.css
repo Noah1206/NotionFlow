@@ -96,7 +96,7 @@ div.sidebar.collapsed {
 }
 
 /* 사이드바가 접혀 있을 때만 floating 버튼 표시 - 중앙에 위치 */
-.sidebar-container .sidebar.collapsed ~ .sidebar-toggle-btn-floating {
+.sidebar-container.sidebar-collapsed .sidebar-toggle-btn-floating {
     display: flex;
     left: 25px; /* 50px 사이드바의 중앙 */
 }

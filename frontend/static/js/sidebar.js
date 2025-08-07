@@ -133,6 +133,16 @@ class SidebarManager {
 
         this.sidebar.classList.toggle('collapsed');
         
+        // 사이드바 컨테이너 클래스 관리 - floating 버튼 표시/숨김용
+        const sidebarContainer = document.querySelector('.sidebar-container');
+        if (sidebarContainer) {
+            if (this.sidebar.classList.contains('collapsed')) {
+                sidebarContainer.classList.add('sidebar-collapsed');
+            } else {
+                sidebarContainer.classList.remove('sidebar-collapsed');
+            }
+        }
+        
         // body 클래스 관리 - 캘린더 페이지에서 사이드바 상태 반영
         if (document.body.classList.contains('calendar-page')) {
             if (this.sidebar.classList.contains('collapsed')) {
@@ -325,6 +335,12 @@ class SidebarManager {
         if (savedState === 'true' && this.sidebar) {
             this.sidebar.classList.add('collapsed');
             this.updateToggleIcon();
+            
+            // 사이드바 컨테이너 클래스 관리 - floating 버튼 표시/숨김용
+            const sidebarContainer = document.querySelector('.sidebar-container');
+            if (sidebarContainer) {
+                sidebarContainer.classList.add('sidebar-collapsed');
+            }
             
             // body 클래스 관리 - 캘린더 페이지에서 사이드바 상태 반영
             if (document.body.classList.contains('calendar-page')) {
