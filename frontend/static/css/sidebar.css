@@ -1,6 +1,24 @@
 /* 🚀 NotionFlow Dashboard Sidebar Styles */
 /* 재사용 가능한 사이드바 컴포넌트 스타일 */
 
+/* 🚫 GLOBAL: 사이드바 모든 스크롤바 완전 제거 */
+.sidebar,
+.sidebar *,
+.sidebar-container,
+.sidebar-container * {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+.sidebar::-webkit-scrollbar,
+.sidebar *::-webkit-scrollbar,
+.sidebar-container::-webkit-scrollbar,
+.sidebar-container *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
 /* ✨ 사이드바 기본 구조 - Floating Design */
 .sidebar {
     width: var(--sidebar-width);
@@ -1020,13 +1038,14 @@ div.sidebar.collapsed button.sidebar-toggle {
 .calendar-category-items {
     max-height: calc(5 * 44px);
     /* 5개 아이템 * 최소 높이 */
-    overflow-y: auto;
+    overflow-y: hidden;
     overflow-x: hidden;
 }
 
-/* 캘린더 카테고리 스크롤바 스타일 */
+/* 캘린더 카테고리 스크롤바 제거 */
 .calendar-category-items::-webkit-scrollbar {
-    width: 4px;
+    display: none;
+    width: 0;
 }
 
 .calendar-category-items::-webkit-scrollbar-track {
@@ -1197,8 +1216,8 @@ div.sidebar {
     gap: 0.5rem;
     /* 최대 4개 항목 높이 (60px * 4 = 240px) */
     max-height: 240px;
-    overflow-y: auto;
-    padding-right: 4px; /* 스크롤바 공간 */
+    overflow-y: hidden;
+    padding-right: 0; /* 스크롤바 제거로 패딩 불필요 */
 }
 
 /* 캘린더 아이템 */
@@ -1353,20 +1372,18 @@ div.sidebar {
     padding: 0.5rem 1rem;
 }
 
-/* 사이드바 스크롤 영역 패딩 조정 */
+/* 사이드바 스크롤바 완전 제거 */
+.sidebar-main-nav {
+    overflow: hidden;
+}
+
 .sidebar-main-nav::-webkit-scrollbar {
-    width: 4px;
+    display: none;
+    width: 0;
 }
 
-.sidebar-main-nav::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.sidebar-main-nav::-webkit-scrollbar-thumb {
-    background: var(--text-tertiary);
-    border-radius: 2px;
-}
-
-.sidebar-main-nav::-webkit-scrollbar-thumb:hover {
-    background: var(--text-secondary);
+.sidebar::-webkit-scrollbar,
+.sidebar *::-webkit-scrollbar {
+    display: none;
+    width: 0;
 }
