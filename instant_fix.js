@@ -294,8 +294,11 @@
                     </div>
                 </div>
             </div>
+            `;
             
-            <script>
+            // 스크립트 코드를 템플릿 리터럴 밖에서 실행
+            const scriptElement = document.createElement('script');
+            scriptElement.innerHTML = `
                 // 섹션 토글 함수
                 window.toggleSection = function(sectionName) {
                     const content = document.getElementById(sectionName + '-content');
@@ -331,11 +334,11 @@
                     
                     // 캘린더 이름을 URL-safe하게 변환
                     const urlSafeName = calendarName
-                        .replace(/\s+/g, '-')           // 공백을 하이픈으로
+                        .replace(/\\s+/g, '-')           // 공백을 하이픈으로
                         .replace(/[^가-힣a-zA-Z0-9-]/g, '') // 특수문자 제거
                         .toLowerCase();
                     
-                    const targetUrl = `/dashboard/calendar/${urlSafeName}?view=calendar`;
+                    const targetUrl = \`/dashboard/calendar/\${urlSafeName}?view=calendar\`;
                     
                     console.log('📍 이동할 URL:', targetUrl);
                     
@@ -344,8 +347,8 @@
                 }
                 
                 console.log('✅ 캘린더 목록 UI 로드 완료');
-            </script>
             `;
+            document.head.appendChild(scriptElement);
             
             console.log('✅ 캘린더 목록 UI 표시 완료!');
         });
