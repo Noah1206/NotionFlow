@@ -477,6 +477,88 @@ def dashboard_settings():
     
     return render_template('dashboard-settings.html', **dashboard_context)
 
+@app.route('/profile')
+def profile():
+    """User profile page"""
+    # Get current user ID from session
+    user_id = session.get('user_id')
+    
+    if not user_id:
+        return redirect('/login?from=profile')
+    
+    # Load profile data
+    profile_context = {
+        'profile': {
+            'username': 'username',
+            'display_name': '이름 없음',
+            'email': 'user@example.com',
+            'bio': '소개가 없습니다',
+            'is_public': False,
+            'avatar_url': None,
+            'created_at': None
+        }
+    }
+    
+    try:
+        from utils.dashboard_data import dashboard_data
+        if dashboard_data and dashboard_data.supabase:
+            # Get user profile from database
+            result = dashboard_data.supabase.table('profiles').select('*').eq('user_id', user_id).single().execute()
+            if result.data:
+                profile_context['profile'] = result.data
+    except Exception as e:
+        print(f"Error loading profile data: {e}")
+    
+    return render_template('profile.html', **profile_context)
+
+@app.route('/api/profile', methods=['PUT'])
+def update_profile():
+    """Update user profile"""
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+    
+    try:
+        data = request.json
+        # Here you would update the profile in the database
+        # For now, just return success
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/profile/username/check', methods=['POST'])
+def check_username():
+    """Check if username is available"""
+    try:
+        data = request.json
+        username = data.get('username', '')
+        
+        # For now, just return that it's available
+        # In production, check against database
+        return jsonify({
+            'available': True,
+            'message': '사용 가능한 사용자명입니다.'
+        })
+    except Exception as e:
+        return jsonify({'available': False, 'message': str(e)}), 500
+
+@app.route('/api/profile/avatar', methods=['POST'])
+def upload_avatar():
+    """Upload user avatar"""
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+    
+    try:
+        # Handle file upload here
+        # For now, just return success with a placeholder URL
+        return jsonify({
+            'success': True,
+            'avatar_url': '/static/images/default-avatar.svg'
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/dashboard/friends')
 def dashboard_friends():
     """Dashboard friends route"""
