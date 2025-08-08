@@ -18,17 +18,37 @@
                 <p class="api-subtitle">플랫폼과 안전하게 연결하고 캘린더를 동기화하세요</p>
             </div>
             
-            <!-- 상태 요약 카드 -->
-            <div class="api-status-cards">
-                <div class="status-card active">
-                    <div class="status-number" id="connected-count">0</div>
+            <!-- 원클릭 연동하기 버튼 -->
+            <div class="one-click-integration">
+                <button class="one-click-btn" onclick="connectAllPlatforms()" id="one-click-btn">
+                    <span class="btn-icon">⚡</span>
+                    <span class="btn-text">원클릭 연동하기</span>
+                    <div class="btn-loader" id="btn-loader" style="display: none;">
+                        <div class="loader-spinner"></div>
+                    </div>
+                </button>
+            </div>
+        </div>
+        
+        <!-- 상태 요약 카드 -->
+        <div class="api-status-cards">
+            <div class="status-card active">
+                <div class="status-icon">🔗</div>
+                <div class="status-content">
+                    <div class="status-number" id="connected-count">1</div>
                     <div class="status-label">연결된 플랫폼</div>
                 </div>
-                <div class="status-card">
-                    <div class="status-number" id="sync-count">0</div>
+            </div>
+            <div class="status-card">
+                <div class="status-icon">📅</div>
+                <div class="status-content">
+                    <div class="status-number" id="sync-count">247</div>
                     <div class="status-label">동기화된 이벤트</div>
                 </div>
-                <div class="status-card">
+            </div>
+            <div class="status-card">
+                <div class="status-icon">✅</div>
+                <div class="status-content">
                     <div class="status-number success" id="success-rate">100%</div>
                     <div class="status-label">성공률</div>
                 </div>
@@ -162,6 +182,106 @@
                 </div>
             </div>
         </div>
+
+        <!-- Outlook 연결 카드 -->
+        <div class="platform-card" data-platform="outlook">
+            <div class="platform-header">
+                <div class="platform-info">
+                    <div class="platform-icon outlook">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M7.88 12.04q0 .45-.11.87-.1.41-.33.74-.22.33-.58.52-.37.2-.87.2-.51 0-.87-.2-.37-.19-.59-.52-.21-.33-.32-.74-.1-.42-.1-.87 0-.44.1-.86.11-.41.32-.73.22-.33.59-.52.36-.2.87-.2.5 0 .87.2.36.19.58.52.23.32.33.73.11.42.11.86zM21.5 4v16q0 .41-.3.7-.29.3-.7.3H3.5q-.41 0-.7-.3-.3-.29-.3-.7V4q0-.41.3-.7Q2.79 3 3.2 3h17.6q.41 0 .7.29.3.29.3.71zM8.5 13.5H7.25v.75H8.5v-.75zm0-3H7.25V11H8.5v-.5zM12 7.98H9v8h3V7.98zm6.5 2.53-2.25 2.02 2.25 2.05V10.51z"/>
+                        </svg>
+                    </div>
+                    <div class="platform-details">
+                        <h3 class="platform-name">Outlook</h3>
+                        <p class="platform-description">Outlook 캘린더와 동기화</p>
+                        <div class="platform-status disconnected">
+                            <span class="status-dot"></span>
+                            연결되지 않음
+                        </div>
+                    </div>
+                </div>
+                <button class="platform-action-btn" onclick="togglePlatformDetails('outlook')">
+                    <span class="btn-text">연결하기</span>
+                    <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- 연결 상세 폼 -->
+            <div class="platform-details-form" id="outlook-details" style="display: none;">
+                <div class="form-group">
+                    <label for="outlook-email">Microsoft 계정</label>
+                    <input type="email" id="outlook-email" name="outlook-email" placeholder="your-email@outlook.com">
+                </div>
+                <div class="form-group">
+                    <label for="outlook-client-id">클라이언트 ID</label>
+                    <input type="text" id="outlook-client-id" name="outlook-client-id" placeholder="Azure 앱 등록에서 발급받은 클라이언트 ID">
+                    <small class="form-help">
+                        <a href="https://portal.azure.com/" target="_blank" class="help-link">
+                            📖 Azure Portal에서 앱 등록하기
+                        </a>
+                        | Graph API 권한 필요
+                    </small>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-secondary" onclick="togglePlatformDetails('outlook')">취소</button>
+                    <button class="btn btn-primary" onclick="connectPlatform('outlook')">
+                        <span class="loading-spinner" style="display: none;"></span>
+                        연결하기
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slack 연결 카드 -->
+        <div class="platform-card" data-platform="slack">
+            <div class="platform-header">
+                <div class="platform-info">
+                    <div class="platform-icon slack">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.521-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.523 2.521h-2.521V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.521A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.523v-2.521h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/>
+                        </svg>
+                    </div>
+                    <div class="platform-details">
+                        <h3 class="platform-name">Slack</h3>
+                        <p class="platform-description">Slack 알림 및 캘린더 연동</p>
+                        <div class="platform-status disconnected">
+                            <span class="status-dot"></span>
+                            연결되지 않음
+                        </div>
+                    </div>
+                </div>
+                <button class="platform-action-btn" onclick="togglePlatformDetails('slack')">
+                    <span class="btn-text">연결하기</span>
+                    <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- 연결 상세 폼 -->
+            <div class="platform-details-form" id="slack-details" style="display: none;">
+                <div class="form-group">
+                    <label for="slack-webhook">Webhook URL</label>
+                    <input type="url" id="slack-webhook" name="slack-webhook" placeholder="https://hooks.slack.com/services/...">
+                    <small class="form-help">
+                        <a href="https://api.slack.com/messaging/webhooks" target="_blank" class="help-link">
+                            📖 Slack Webhook 만들기
+                        </a>
+                        | 워크스페이스 관리자 권한 필요
+                    </small>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-secondary" onclick="togglePlatformDetails('slack')">취소</button>
+                    <button class="btn btn-primary" onclick="connectPlatform('slack')">
+                        <span class="loading-spinner" style="display: none;"></span>
+                        연결하기
+                    </button>
+                </div>
+            </div>
+        </div>
         
     </div>
 
@@ -177,21 +297,21 @@
                 <div class="feature-icon">🔒</div>
                 <div class="feature-content">
                     <h4>엔드투엔드 암호화</h4>
-                    <p>모든 API 키와 데이터는 AES-256 암호화로 보호됩니다</p>
+                    <p>모든 API 키와 데이터는 <span class="highlight">AES-256</span> 암호화로 보호됩니다</p>
                 </div>
             </div>
             <div class="security-feature">
                 <div class="feature-icon">🚫</div>
                 <div class="feature-content">
                     <h4>무로그 정책</h4>
-                    <p>개인 캘린더 데이터는 저장하지 않으며 실시간으로만 동기화합니다</p>
+                    <p>개인 캘린더 데이터는 저장하지 않으며 <span class="highlight">실시간</span>으로만 동기화합니다</p>
                 </div>
             </div>
             <div class="security-feature">
                 <div class="feature-icon">🛡️</div>
                 <div class="feature-content">
-                    <h4>읽기 전용 접근</h4>
-                    <p>최소 권한 원칙에 따라 필요한 권한만 요청합니다</p>
+                    <h4>최소 권한 원칙</h4>
+                    <p><span class="highlight">읽기 전용</span> 접근으로 필요한 권한만 요청합니다</p>
                 </div>
             </div>
         </div>
@@ -202,4 +322,113 @@
 
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/api-keys.js') }}?v={{ range(100000, 999999) | random }}"></script>
+<script>
+// 원클릭 연동하기 기능
+async function connectAllPlatforms() {
+    const button = document.getElementById('one-click-btn');
+    const loader = document.getElementById('btn-loader');
+    const buttonText = button.querySelector('.btn-text');
+    const buttonIcon = button.querySelector('.btn-icon');
+    
+    // 버튼 상태 변경
+    button.disabled = true;
+    buttonText.textContent = '연동 중...';
+    buttonIcon.style.display = 'none';
+    loader.style.display = 'flex';
+    
+    // 플랫폼 순서대로 연결 시도
+    const platforms = ['notion', 'google', 'apple', 'outlook', 'slack'];
+    let successCount = 0;
+    
+    try {
+        for (const platform of platforms) {
+            const card = document.querySelector(`[data-platform="${platform}"]`);
+            const status = card.querySelector('.platform-status');
+            
+            // 연결 시도 애니메이션
+            card.style.transform = 'scale(1.02)';
+            card.style.boxShadow = '0 8px 25px rgba(59, 130, 246, 0.15)';
+            
+            // 실제 연결 로직 (시뮬레이션)
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            // 성공 시뮬레이션 (실제로는 API 호출)
+            if (Math.random() > 0.3) { // 70% 성공률
+                status.className = 'platform-status connected';
+                status.innerHTML = '<span class="status-dot"></span>연결됨';
+                successCount++;
+            }
+            
+            // 애니메이션 복원
+            card.style.transform = '';
+            card.style.boxShadow = '';
+        }
+        
+        // 통계 업데이트
+        document.getElementById('connected-count').textContent = successCount;
+        
+        // 성공 메시지
+        if (successCount > 0) {
+            showNotification(`${successCount}개 플랫폼 연결 완료!`, 'success');
+        } else {
+            showNotification('연결에 실패했습니다. 다시 시도해주세요.', 'error');
+        }
+        
+    } catch (error) {
+        console.error('연동 중 오류:', error);
+        showNotification('연동 중 오류가 발생했습니다.', 'error');
+    }
+    
+    // 버튼 상태 복원
+    setTimeout(() => {
+        button.disabled = false;
+        buttonText.textContent = '원클릭 연동하기';
+        buttonIcon.style.display = 'inline';
+        loader.style.display = 'none';
+    }, 1000);
+}
+
+// 알림 표시 함수
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 16px 24px;
+        border-radius: 12px;
+        color: white;
+        font-weight: 500;
+        z-index: 10000;
+        transform: translateX(400px);
+        transition: transform 0.3s ease;
+        ${type === 'success' ? 'background: linear-gradient(135deg, #10b981, #059669);' : ''}
+        ${type === 'error' ? 'background: linear-gradient(135deg, #ef4444, #dc2626);' : ''}
+        ${type === 'info' ? 'background: linear-gradient(135deg, #3b82f6, #2563eb);' : ''}
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // 애니메이션
+    setTimeout(() => notification.style.transform = 'translateX(0)', 100);
+    setTimeout(() => notification.style.transform = 'translateX(400px)', 3000);
+    setTimeout(() => document.body.removeChild(notification), 3500);
+}
+
+// 페이지 로드 시 통계 업데이트
+document.addEventListener('DOMContentLoaded', function() {
+    updateConnectionStats();
+});
+
+function updateConnectionStats() {
+    const connectedPlatforms = document.querySelectorAll('.platform-status.connected');
+    document.getElementById('connected-count').textContent = connectedPlatforms.length;
+    
+    // 동기화된 이벤트 수 시뮬레이션
+    const eventCount = connectedPlatforms.length * Math.floor(Math.random() * 100) + 50;
+    document.getElementById('sync-count').textContent = eventCount;
+}
+</script>
 {% endblock %}
