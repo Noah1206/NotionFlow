@@ -6,28 +6,9 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
 }
 
-/* 사이드바 스타일 통일 */
-.sidebar {
-    position: fixed !important;
-    left: 16px !important;
-    top: 16px !important;
-    bottom: 16px !important;
-    width: 240px !important;
-    height: calc(100vh - 32px) !important;
-    background: #ffffff !important;
-    border: 1px solid #e5e7eb !important;
-    border-radius: 16px !important;
-    z-index: 999999 !important;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05) !important;
-}
+/* 사이드바 스타일은 sidebar.css에서 통일 관리 */
 
-/* 메인 컨텐츠 영역 */
-.main-content {
-    margin-left: 272px !important;
-    padding: 24px !important;
-    min-height: 100vh !important;
-    background: transparent !important;
-}
+/* 메인 컨텐츠는 base_dashboard.html에서 관리 */
 
 /* 설정 페이지 전체 컨테이너 */
 .dashboard-content {

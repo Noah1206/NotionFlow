@@ -1310,33 +1310,7 @@
             color: #ffffff !important;
         }
 
-        /* 🎨 Floating 사이드바 스타일 강제 적용 */
-        [data-theme="light"] .sidebar {
-            background: rgba(248, 249, 250, 0.95) !important;
-            border: 1px solid rgba(233, 236, 239, 0.8) !important;
-            border-radius: 12px !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04) !important;
-            backdrop-filter: blur(20px) !important;
-            margin: 16px 0 16px 16px !important;
-            height: calc(100vh - 32px) !important;
-            width: 240px !important;
-        }
-
-        [data-theme="dark"] .sidebar {
-            background: rgba(26, 26, 26, 0.95) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            border-radius: 12px !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24), 0 4px 16px rgba(0, 0, 0, 0.12) !important;
-            backdrop-filter: blur(20px) !important;
-            margin: 16px 0 16px 16px !important;
-            height: calc(100vh - 32px) !important;
-            width: 240px !important;
-        }
-
-        /* 축소 상태 */
-        .sidebar.collapsed {
-            width: 72px !important;
-        }
+        /* 사이드바 스타일은 sidebar.css에서 통일 관리 */
 
         /* 설정 모달도 테마 적용 */
         [data-theme="light"] .calendar-modal-content,

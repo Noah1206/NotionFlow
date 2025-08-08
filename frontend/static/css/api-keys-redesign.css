@@ -8,12 +8,7 @@
     min-height: 100vh;
 }
 
-.api-keys-page .main-content {
-    margin-left: 272px !important;
-    padding: 24px !important;
-    min-height: 100vh;
-    background: #f8f9fa !important;
-}
+/* 메인 컨텐츠 스타일은 base_dashboard.html에서 통일 관리 */
 
 /* Header Section */
 .page-header {
@@ -391,10 +386,7 @@
 
 /* Responsive Design */
 @media (max-width: 1024px) {
-    .api-keys-page .main-content {
-        margin-left: 0;
-        padding: 16px;
-    }
+    /* 모바일에서는 base_dashboard.html이 처리 */
     
     .platforms-container {
         padding: 24px;
