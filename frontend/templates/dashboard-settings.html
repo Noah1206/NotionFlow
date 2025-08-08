@@ -1494,12 +1494,11 @@ font-size: 12px;
                             </div>
                         </div>
                     </div>
-                    <a href="/dashboard/api-keys" class="platform-action-btn">
-                        <span class="btn-text">연결하기</span>
-                        <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M7 17l9.2-9.2M17 17V7H7"/>
-                        </svg>
-                    </a>
+                    <div class="platform-actions">
+                        <button class="platform-connect-btn" onclick="connectPlatform('notion')" data-platform="notion">
+                            <span class="connect-text">연결하기</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -1521,12 +1520,11 @@ font-size: 12px;
                             </div>
                         </div>
                     </div>
-                    <a href="/dashboard/api-keys" class="platform-action-btn connected">
-                        <span class="btn-text">관리하기</span>
-                        <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M7 17l9.2-9.2M17 17V7H7"/>
-                        </svg>
-                    </a>
+                    <div class="platform-actions">
+                        <button class="platform-disconnect-btn" onclick="disconnectPlatform('google')" data-platform="google">
+                            <span class="disconnect-text">연결 해제</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -1548,12 +1546,11 @@ font-size: 12px;
                             </div>
                         </div>
                     </div>
-                    <a href="/dashboard/api-keys" class="platform-action-btn">
-                        <span class="btn-text">연결하기</span>
-                        <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M7 17l9.2-9.2M17 17V7H7"/>
-                        </svg>
-                    </a>
+                    <div class="platform-actions">
+                        <button class="platform-connect-btn" onclick="connectPlatform('apple')" data-platform="apple">
+                            <span class="connect-text">연결하기</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -1575,12 +1572,11 @@ font-size: 12px;
                             </div>
                         </div>
                     </div>
-                    <a href="/dashboard/api-keys" class="platform-action-btn">
-                        <span class="btn-text">연결하기</span>
-                        <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M7 17l9.2-9.2M17 17V7H7"/>
-                        </svg>
-                    </a>
+                    <div class="platform-actions">
+                        <button class="platform-connect-btn" onclick="connectPlatform('outlook')" data-platform="outlook">
+                            <span class="connect-text">연결하기</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -1602,12 +1598,11 @@ font-size: 12px;
                             </div>
                         </div>
                     </div>
-                    <a href="/dashboard/api-keys" class="platform-action-btn">
-                        <span class="btn-text">연결하기</span>
-                        <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M7 17l9.2-9.2M17 17V7H7"/>
-                        </svg>
-                    </a>
+                    <div class="platform-actions">
+                        <button class="platform-connect-btn" onclick="connectPlatform('slack')" data-platform="slack">
+                            <span class="connect-text">연결하기</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2367,5 +2362,113 @@ font-size: 12px;
         }
     `;
     document.head.appendChild(toastStyle);
+
+    // Platform connection functions
+    function connectPlatform(platform) {
+        const button = document.querySelector(`[data-platform="${platform}"] .platform-connect-btn`);
+        const connectText = button.querySelector('.connect-text');
+        const platformCard = document.querySelector(`[data-platform="${platform}"]`);
+        
+        // Show loading state
+        button.disabled = true;
+        connectText.textContent = '연결 중...';
+        platformCard.classList.add('connecting');
+        
+        // Simulate connection process
+        setTimeout(() => {
+            // Update to connected state
+            const statusElement = platformCard.querySelector('.platform-status');
+            const statusDot = platformCard.querySelector('.status-dot');
+            
+            statusElement.classList.remove('disconnected');
+            statusElement.classList.add('connected');
+            statusDot.classList.add('connected');
+            statusElement.innerHTML = '<span class="status-dot connected"></span>연결됨';
+            
+            // Replace connect button with disconnect button
+            button.outerHTML = `
+                <button class="platform-disconnect-btn" onclick="disconnectPlatform('${platform}')" data-platform="${platform}">
+                    <span class="disconnect-text">연결 해제</span>
+                </button>
+            `;
+            
+            platformCard.classList.remove('connecting');
+            platformCard.classList.add('connected');
+            
+            showToast(`${getPlatformName(platform)} 연결이 완료되었습니다.`, 'success');
+        }, 2000);
+    }
+    
+    function disconnectPlatform(platform) {
+        const button = document.querySelector(`[data-platform="${platform}"] .platform-disconnect-btn`);
+        const disconnectText = button.querySelector('.disconnect-text');
+        const platformCard = document.querySelector(`[data-platform="${platform}"]`);
+        
+        // Show loading state
+        button.disabled = true;
+        disconnectText.textContent = '해제 중...';
+        
+        // Simulate disconnection process
+        setTimeout(() => {
+            // Update to disconnected state
+            const statusElement = platformCard.querySelector('.platform-status');
+            const statusDot = platformCard.querySelector('.status-dot');
+            
+            statusElement.classList.remove('connected');
+            statusElement.classList.add('disconnected');
+            statusDot.classList.remove('connected');
+            statusElement.innerHTML = '<span class="status-dot"></span>연결되지 않음';
+            
+            // Replace disconnect button with connect button
+            button.outerHTML = `
+                <button class="platform-connect-btn" onclick="connectPlatform('${platform}')" data-platform="${platform}">
+                    <span class="connect-text">연결하기</span>
+                </button>
+            `;
+            
+            platformCard.classList.remove('connected');
+            
+            showToast(`${getPlatformName(platform)} 연결이 해제되었습니다.`, 'info');
+        }, 1500);
+    }
+    
+    function getPlatformName(platform) {
+        const names = {
+            'notion': 'Notion',
+            'google': 'Google Calendar',
+            'apple': 'Apple Calendar',
+            'outlook': 'Outlook',
+            'slack': 'Slack'
+        };
+        return names[platform] || platform;
+    }
+    
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        
+        const icons = {
+            success: '✅',
+            error: '❌',
+            warning: '⚠️',
+            info: 'ℹ️'
+        };
+        
+        toast.innerHTML = `
+            <div class="toast-icon">${icons[type] || icons.info}</div>
+            <div class="toast-message">${message}</div>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Show toast
+        setTimeout(() => toast.classList.add('show'), 100);
+        
+        // Hide and remove toast
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => document.body.removeChild(toast), 300);
+        }, 3000);
+    }
 </script>
 {% endblock %}

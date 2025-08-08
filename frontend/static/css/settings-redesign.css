@@ -96,6 +96,8 @@ body {
     color: var(--text-primary);
     font-family: var(--font-family);
     line-height: 1.6;
+    margin: 0;
+    padding: 0;
 }
 
 .dashboard-content {
@@ -103,8 +105,10 @@ body {
     border-radius: var(--radius-3xl) !important;
     padding: var(--space-8) !important;
     box-shadow: var(--shadow-sm) !important;
-    margin: var(--space-6);
-    min-height: calc(100vh - 3rem);
+    margin: var(--space-4);
+    margin-left: 280px; /* 사이드바 너비 + 여백 */
+    margin-right: var(--space-4);
+    min-height: calc(100vh - 2rem);
     border: 1px solid var(--border-primary);
 }
 
@@ -512,52 +516,74 @@ body {
     50% { opacity: 0.5; }
 }
 
-/* Modern Action Buttons */
-.platform-action-btn {
+/* ===== Platform Actions ===== */
+.platform-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: var(--space-2) !important;
+}
+
+.platform-connect-btn,
+.platform-disconnect-btn {
     display: inline-flex !important;
     align-items: center !important;
     gap: var(--space-2) !important;
-    padding: var(--space-3) var(--space-4) !important;
-    background: var(--accent-primary) !important;
-    color: var(--bg-primary) !important;
-    border: 1px solid var(--accent-primary) !important;
-    border-radius: var(--radius-lg) !important;
-    font-size: 0.875rem !important;
+    padding: var(--space-2) var(--space-4) !important;
+    font-size: 0.8125rem !important;
     font-weight: 500 !important;
     cursor: pointer !important;
     transition: all var(--transition-base) !important;
-    text-decoration: none !important;
-    min-width: 100px !important;
+    border-radius: var(--radius-md) !important;
+    border: none !important;
+    position: relative !important;
+    font-family: var(--font-family) !important;
+    min-width: 80px !important;
     justify-content: center !important;
 }
 
-.platform-action-btn:hover {
+.platform-connect-btn {
+    background: var(--accent-primary) !important;
+    color: var(--bg-primary) !important;
+}
+
+.platform-connect-btn:hover {
     background: var(--accent-hover) !important;
-    border-color: var(--accent-hover) !important;
     transform: translateY(-1px) !important;
-    box-shadow: var(--shadow-md) !important;
+    box-shadow: var(--shadow-sm) !important;
 }
 
-.platform-action-btn.connected {
-    background: var(--bg-secondary) !important;
-    color: var(--text-secondary) !important;
-    border-color: var(--border-primary) !important;
+.platform-disconnect-btn {
+    background: var(--error) !important;
+    color: white !important;
 }
 
-.platform-action-btn.connected:hover {
-    background: var(--bg-tertiary) !important;
-    color: var(--text-primary) !important;
-    border-color: var(--border-secondary) !important;
+.platform-disconnect-btn:hover {
+    background: #dc2626 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: var(--shadow-sm) !important;
 }
 
-.expand-icon {
-    width: 16px !important;
-    height: 16px !important;
-    transition: transform var(--transition-base) !important;
+.connect-text,
+.disconnect-text {
+    font-size: 0.8125rem !important;
+    font-weight: 500 !important;
 }
 
-.platform-action-btn:hover .expand-icon {
-    transform: translateX(2px) !important;
+.connect-loader,
+.disconnect-loader {
+    position: absolute !important;
+    left: var(--space-2) !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.loader-dot {
+    width: 12px !important;
+    height: 12px !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    border-top: 2px solid white !important;
+    border-radius: 50% !important;
+    animation: spin 1s linear infinite !important;
 }
 
 /* ===== Quick Actions Section ===== */
@@ -768,6 +794,7 @@ input[type="checkbox"]:checked + .toggle-slider::before {
 @media (max-width: 1024px) {
     .dashboard-content {
         margin: var(--space-4);
+        margin-left: 280px; /* 태블릿에서도 사이드바 유지 */
         padding: var(--space-6) !important;
     }
     
@@ -780,6 +807,7 @@ input[type="checkbox"]:checked + .toggle-slider::before {
 @media (max-width: 768px) {
     .dashboard-content {
         margin: var(--space-2);
+        margin-left: 0; /* 모바일에서는 사이드바 제거 */
         padding: var(--space-4) !important;
         border-radius: var(--radius-2xl) !important;
     }
@@ -792,6 +820,11 @@ input[type="checkbox"]:checked + .toggle-slider::before {
         grid-template-columns: 1fr !important;
     }
     
+    .platforms-section {
+        grid-template-columns: 1fr !important;
+        gap: var(--space-4) !important;
+    }
+    
     .sync-activity-content {
         padding: var(--space-8) var(--space-4) !important;
     }
@@ -802,6 +835,17 @@ input[type="checkbox"]:checked + .toggle-slider::before {
     
     .theme-setting-item {
         padding: var(--space-5) var(--space-6) !important;
+    }
+    
+    .platform-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: var(--space-4) !important;
+    }
+    
+    .platform-actions {
+        width: 100% !important;
+        justify-content: flex-end !important;
     }
 }
 
