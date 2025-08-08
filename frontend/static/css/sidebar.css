@@ -26,7 +26,7 @@
     width: 240px !important;
     background: #ffffff !important;
     background-color: #ffffff !important;
-    border: 6px solid #000000 !important; /* 더욱 두꺼운 검은색 테두리 */
+    border: 1px solid #e5e7eb !important; /* 얇은 회색 테두리 */
     border-radius: 16px !important; /* 더 둥근 모서리 */
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: fixed !important;
@@ -39,13 +39,8 @@
     overflow-x: hidden !important; /* 가로 스크롤 완전 차단 */
     flex-shrink: 0;
     z-index: 99999 !important;
-    /* 강력한 floating 효과를 위한 다중 그림자 */
-    box-shadow: 
-        0 30px 60px rgba(0, 0, 0, 0.6), /* 메인 그림자 */
-        0 0 0 4px rgba(0, 0, 0, 1), /* 추가 테두리 */
-        0 8px 16px rgba(0, 0, 0, 0.3), /* 중간 그림자 */
-        0 4px 8px rgba(0, 0, 0, 0.2) /* 가까운 그림자 */
-        !important;
+    /* 부드러운 그림자 효과 */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05) !important;
     color: #1e293b !important;
     opacity: 1 !important;
     visibility: visible !important;
@@ -56,8 +51,8 @@ div.sidebar,
 .sidebar,
 nav.sidebar,
 aside.sidebar {
-    border: 5px solid #000000 !important;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(0, 0, 0, 1) !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05) !important;
     background: #ffffff !important;
     background-color: #ffffff !important;
     opacity: 1 !important;
@@ -78,15 +73,10 @@ div.sidebar.collapsed {
     /* 가로 스크롤 완전 차단, 세로만 허용 */
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    border: 6px solid #000000 !important; /* 더욱 두꺼운 검은색 테두리 유지 */
-    border-radius: 16px !important; /* 더 둥근 모서리 */
-    /* 접힌 상태에서도 강력한 floating 효과 */
-    box-shadow: 
-        0 30px 60px rgba(0, 0, 0, 0.6), /* 메인 그림자 */
-        0 0 0 4px rgba(0, 0, 0, 1), /* 추가 테두리 */
-        0 8px 16px rgba(0, 0, 0, 0.3), /* 중간 그림자 */
-        0 4px 8px rgba(0, 0, 0, 0.2) /* 가까운 그림자 */
-        !important;
+    border: 1px solid #e5e7eb !important; /* 얇은 회색 테두리 유지 */
+    border-radius: 16px !important; /* 둥근 모서리 */
+    /* 접힌 상태에서도 부드러운 그림자 효과 */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05) !important;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     /* 축소 상태에서도 10px 여백 유지 */
     top: 10px !important;
@@ -1864,8 +1854,8 @@ nav.sidebar,
 aside.sidebar,
 [class*="sidebar"],
 #sidebar {
-    border: 5px solid #000000 \!important;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(0, 0, 0, 1) \!important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05) !important;
 }
 
 .sidebar.collapsed,
@@ -1874,13 +1864,13 @@ nav.sidebar.collapsed,
 aside.sidebar.collapsed,
 [class*="sidebar"].collapsed,
 #sidebar.collapsed {
-    border: 5px solid #000000 \!important;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(0, 0, 0, 1) \!important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05) !important;
 }
 
 /* 브라우저별 강제 적용 */
 *[class="sidebar"],
 *[class*="sidebar"] {
-    border: 5px solid #000000 \!important;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(0, 0, 0, 1) \!important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05) !important;
 }

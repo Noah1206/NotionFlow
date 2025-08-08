@@ -5,7 +5,8 @@
 {% block description %}NotionFlow 설정 페이지에서 생산성 지표를 확인하고 API 키를 관리하세요. 실시간 시간 절약 현황과 플랫폼 연결 상태를 관리하세요.{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/clickup-redesign.css') }}?v=2025072301">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}?v={{ range(100000, 999999) | random }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/settings-redesign.css') }}?v={{ range(100000, 999999) | random }}">
 <style>
     /* Settings-specific CSS variables for theme support */
     :root,
@@ -65,21 +66,7 @@
         background-color: #141414 !important;
     }
 
-    /* Force all dashboard elements to #141414 background */
-    .metric-card,
-    .theme-settings-box,
-    .chart-container,
-    .api-key-card,
-    .sync-activity-section,
-    .analytics-section,
-    .main-content,
-    .dashboard-content,
-    [class*="card"],
-    [class*="container"],
-    [class*="section"],
-    [class*="box"] {
-        background: #141414 !important;
-    }
+    /* Removed dark background forcing - now handled in settings-redesign.css */
 
     .theme-toggle input[type="checkbox"]:checked+.toggle-slider {
         background-color: var(--text-primary) !important;
