@@ -85,19 +85,30 @@
 }
 
 /* ===== Base Layout ===== */
+body {
+    background: var(--bg-secondary) !important;
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-family);
+}
+
 .api-container {
     background: var(--bg-primary) !important;
     color: var(--text-primary);
     font-family: var(--font-family);
-    min-height: 100vh;
-    padding: var(--spacing-8) var(--spacing-6);
-    margin-left: 272px; /* Preserve sidebar spacing */
+    min-height: calc(100vh - 2px);
+    padding: var(--spacing-8);
+    margin: 1px; /* 상하좌우 1px 간격 */
+    margin-left: calc(272px + 1px); /* 사이드바 + 1px 간격 */
+    margin-right: 1px;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
     transition: margin-left var(--transition-base);
 }
 
 @media (max-width: 768px) {
     .api-container {
-        margin-left: 0;
+        margin: 1px; /* 모바일에서도 1px 간격 유지 */
         padding: var(--spacing-4);
     }
 }
