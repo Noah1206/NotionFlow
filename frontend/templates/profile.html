@@ -2,12 +2,16 @@
 
 {% block title %}프로필 - NotionFlow{% endblock %}
 
-{% block head %}
+{% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/profile-redesign.css') }}?v={{ range(1, 10000) | random }}">
 <style>
 /* Force override any existing styles */
 body {
     background: #FFFFFF !important;
+}
+.main-content {
+    background: #FFFFFF !important;
+    padding: 0 !important;
 }
 </style>
 {% endblock %}

@@ -502,12 +502,13 @@ def profile():
     try:
         from utils.dashboard_data import dashboard_data
         if dashboard_data and dashboard_data.supabase:
-            # Get user profile from database
-            result = dashboard_data.supabase.table('profiles').select('*').eq('user_id', user_id).single().execute()
+            # Try to get user profile from user_profiles table (correct table name)
+            result = dashboard_data.supabase.table('user_profiles').select('*').eq('user_id', user_id).single().execute()
             if result.data:
                 profile_context['profile'] = result.data
     except Exception as e:
         print(f"Error loading profile data: {e}")
+        # Use default data if database fails
     
     return render_template('profile.html', **profile_context)
 
