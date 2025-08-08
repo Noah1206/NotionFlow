@@ -35,14 +35,14 @@
             <div class="status-card active">
                 <div class="status-icon">🔗</div>
                 <div class="status-content">
-                    <div class="status-number" id="connected-count">1</div>
+                    <div class="status-number" id="connected-count">2</div>
                     <div class="status-label">연결된 플랫폼</div>
                 </div>
             </div>
             <div class="status-card">
                 <div class="status-icon">📅</div>
                 <div class="status-content">
-                    <div class="status-number" id="sync-count">247</div>
+                    <div class="status-number" id="sync-count">214</div>
                     <div class="status-label">동기화된 이벤트</div>
                 </div>
             </div>
@@ -51,6 +51,13 @@
                 <div class="status-content">
                     <div class="status-number success" id="success-rate">100%</div>
                     <div class="status-label">성공률</div>
+                </div>
+            </div>
+            <div class="status-card">
+                <div class="status-icon">⚡</div>
+                <div class="status-content">
+                    <div class="status-number" id="sync-speed">2.4s</div>
+                    <div class="status-label">평균 동기화 시간</div>
                 </div>
             </div>
         </div>
@@ -77,12 +84,19 @@
                         </div>
                     </div>
                 </div>
-                <button class="platform-action-btn" onclick="togglePlatformDetails('notion')">
-                    <span class="btn-text">연결하기</span>
-                    <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M6 9l6 6 6-6"/>
-                    </svg>
-                </button>
+                <div class="platform-actions">
+                    <button class="platform-connect-btn" onclick="connectPlatform('notion')" data-platform="notion">
+                        <span class="connect-text">연결하기</span>
+                        <div class="connect-loader" style="display: none;">
+                            <div class="loader-dot"></div>
+                        </div>
+                    </button>
+                    <button class="platform-expand-btn" onclick="togglePlatformDetails('notion')">
+                        <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
             
             <!-- 연결 상세 폼 -->
@@ -125,9 +139,14 @@
                         </div>
                     </div>
                 </div>
-                <button class="platform-action-btn connected" onclick="disconnectPlatform('google')">
-                    <span class="btn-text">연결 해제</span>
-                </button>
+                <div class="platform-actions">
+                    <button class="platform-disconnect-btn" onclick="disconnectPlatform('google')" data-platform="google">
+                        <span class="disconnect-text">연결 해제</span>
+                        <div class="disconnect-loader" style="display: none;">
+                            <div class="loader-dot"></div>
+                        </div>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -149,12 +168,19 @@
                         </div>
                     </div>
                 </div>
-                <button class="platform-action-btn" onclick="togglePlatformDetails('apple')">
-                    <span class="btn-text">연결하기</span>
-                    <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M6 9l6 6 6-6"/>
-                    </svg>
-                </button>
+                <div class="platform-actions">
+                    <button class="platform-connect-btn" onclick="connectPlatform('apple')" data-platform="apple">
+                        <span class="connect-text">연결하기</span>
+                        <div class="connect-loader" style="display: none;">
+                            <div class="loader-dot"></div>
+                        </div>
+                    </button>
+                    <button class="platform-expand-btn" onclick="togglePlatformDetails('apple')">
+                        <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
             
             <!-- 연결 상세 폼 -->
@@ -201,12 +227,19 @@
                         </div>
                     </div>
                 </div>
-                <button class="platform-action-btn" onclick="togglePlatformDetails('outlook')">
-                    <span class="btn-text">연결하기</span>
-                    <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M6 9l6 6 6-6"/>
-                    </svg>
-                </button>
+                <div class="platform-actions">
+                    <button class="platform-connect-btn" onclick="connectPlatform('outlook')" data-platform="outlook">
+                        <span class="connect-text">연결하기</span>
+                        <div class="connect-loader" style="display: none;">
+                            <div class="loader-dot"></div>
+                        </div>
+                    </button>
+                    <button class="platform-expand-btn" onclick="togglePlatformDetails('outlook')">
+                        <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
             
             <!-- 연결 상세 폼 -->
@@ -253,12 +286,19 @@
                         </div>
                     </div>
                 </div>
-                <button class="platform-action-btn" onclick="togglePlatformDetails('slack')">
-                    <span class="btn-text">연결하기</span>
-                    <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M6 9l6 6 6-6"/>
-                    </svg>
-                </button>
+                <div class="platform-actions">
+                    <button class="platform-connect-btn" onclick="connectPlatform('slack')" data-platform="slack">
+                        <span class="connect-text">연결하기</span>
+                        <div class="connect-loader" style="display: none;">
+                            <div class="loader-dot"></div>
+                        </div>
+                    </button>
+                    <button class="platform-expand-btn" onclick="togglePlatformDetails('slack')">
+                        <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
             
             <!-- 연결 상세 폼 -->
@@ -323,6 +363,110 @@
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/api-keys.js') }}?v={{ range(100000, 999999) | random }}"></script>
 <script>
+// 개별 플랫폼 연동 기능
+async function connectPlatform(platformName) {
+    const button = document.querySelector(`[data-platform="${platformName}"]`);
+    const loader = button.querySelector('.connect-loader');
+    const buttonText = button.querySelector('.connect-text');
+    const card = document.querySelector(`[data-platform="${platformName}"]`);
+    const status = card.querySelector('.platform-status');
+    
+    // 버튼 상태 변경
+    button.disabled = true;
+    buttonText.textContent = '연결 중...';
+    loader.style.display = 'flex';
+    
+    // 카드 애니메이션
+    card.style.transform = 'scale(1.02)';
+    card.style.boxShadow = 'var(--shadow-lg)';
+    
+    try {
+        // 실제 연결 로직 시뮬레이션
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // 성공 시뮬레이션 (실제로는 API 호출)
+        if (Math.random() > 0.2) { // 80% 성공률
+            status.className = 'platform-status connected';
+            status.innerHTML = '<span class="status-dot"></span>연결됨';
+            
+            // 버튼을 연결해제 버튼으로 변경
+            button.className = 'platform-disconnect-btn';
+            button.setAttribute('onclick', `disconnectPlatform('${platformName}')`);
+            buttonText.textContent = '연결 해제';
+            
+            // 통계 업데이트
+            updateConnectionStats();
+            
+            showNotification(`${getKoreanPlatformName(platformName)} 연결 완료!`, 'success');
+        } else {
+            showNotification('연결에 실패했습니다. 다시 시도해주세요.', 'error');
+        }
+    } catch (error) {
+        console.error('연결 중 오류:', error);
+        showNotification('연결 중 오류가 발생했습니다.', 'error');
+    }
+    
+    // 애니메이션 및 상태 복원
+    setTimeout(() => {
+        button.disabled = false;
+        if (button.className === 'platform-connect-btn') {
+            buttonText.textContent = '연결하기';
+        }
+        loader.style.display = 'none';
+        card.style.transform = '';
+        card.style.boxShadow = '';
+    }, 500);
+}
+
+// 개별 플랫폼 연결 해제 기능
+async function disconnectPlatform(platformName) {
+    const button = document.querySelector(`[data-platform="${platformName}"]`);
+    const loader = button.querySelector('.disconnect-loader');
+    const buttonText = button.querySelector('.disconnect-text');
+    const card = document.querySelector(`[data-platform="${platformName}"]`);
+    const status = card.querySelector('.platform-status');
+    
+    if (!confirm(`${getKoreanPlatformName(platformName)} 연결을 해제하시겠습니까?`)) {
+        return;
+    }
+    
+    // 버튼 상태 변경
+    button.disabled = true;
+    buttonText.textContent = '해제 중...';
+    loader.style.display = 'flex';
+    
+    try {
+        // 실제 연결 해제 로직 시뮬레이션
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // 상태 업데이트
+        status.className = 'platform-status disconnected';
+        status.innerHTML = '<span class="status-dot"></span>연결되지 않음';
+        
+        // 버튼을 연결 버튼으로 변경
+        button.className = 'platform-connect-btn';
+        button.setAttribute('onclick', `connectPlatform('${platformName}')`);
+        buttonText.textContent = '연결하기';
+        
+        // 통계 업데이트
+        updateConnectionStats();
+        
+        showNotification(`${getKoreanPlatformName(platformName)} 연결 해제 완료`, 'success');
+    } catch (error) {
+        console.error('연결 해제 중 오류:', error);
+        showNotification('연결 해제 중 오류가 발생했습니다.', 'error');
+    }
+    
+    // 상태 복원
+    setTimeout(() => {
+        button.disabled = false;
+        if (button.className === 'platform-disconnect-btn') {
+            buttonText.textContent = '연결 해제';
+        }
+        loader.style.display = 'none';
+    }, 500);
+}
+
 // 원클릭 연동하기 기능
 async function connectAllPlatforms() {
     const button = document.getElementById('one-click-btn');
@@ -336,40 +480,31 @@ async function connectAllPlatforms() {
     buttonIcon.style.display = 'none';
     loader.style.display = 'flex';
     
-    // 플랫폼 순서대로 연결 시도
-    const platforms = ['notion', 'google', 'apple', 'outlook', 'slack'];
+    // 연결되지 않은 플랫폼들만 연결 시도
+    const disconnectedPlatforms = document.querySelectorAll('.platform-status.disconnected');
+    const platforms = Array.from(disconnectedPlatforms).map(status => 
+        status.closest('.platform-card').getAttribute('data-platform')
+    );
+    
     let successCount = 0;
     
     try {
         for (const platform of platforms) {
+            await connectPlatform(platform);
+            // 연결 성공 여부 확인
             const card = document.querySelector(`[data-platform="${platform}"]`);
             const status = card.querySelector('.platform-status');
-            
-            // 연결 시도 애니메이션
-            card.style.transform = 'scale(1.02)';
-            card.style.boxShadow = '0 8px 25px rgba(59, 130, 246, 0.15)';
-            
-            // 실제 연결 로직 (시뮬레이션)
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
-            // 성공 시뮬레이션 (실제로는 API 호출)
-            if (Math.random() > 0.3) { // 70% 성공률
-                status.className = 'platform-status connected';
-                status.innerHTML = '<span class="status-dot"></span>연결됨';
+            if (status.classList.contains('connected')) {
                 successCount++;
             }
-            
-            // 애니메이션 복원
-            card.style.transform = '';
-            card.style.boxShadow = '';
+            await new Promise(resolve => setTimeout(resolve, 500)); // 0.5초 간격
         }
-        
-        // 통계 업데이트
-        document.getElementById('connected-count').textContent = successCount;
         
         // 성공 메시지
         if (successCount > 0) {
             showNotification(`${successCount}개 플랫폼 연결 완료!`, 'success');
+        } else if (platforms.length === 0) {
+            showNotification('모든 플랫폼이 이미 연결되어 있습니다.', 'info');
         } else {
             showNotification('연결에 실패했습니다. 다시 시도해주세요.', 'error');
         }
@@ -386,6 +521,18 @@ async function connectAllPlatforms() {
         buttonIcon.style.display = 'inline';
         loader.style.display = 'none';
     }, 1000);
+}
+
+// 플랫폼 이름 한국어 변환
+function getKoreanPlatformName(platform) {
+    const names = {
+        'notion': 'Notion',
+        'google': 'Google Calendar', 
+        'apple': 'Apple Calendar',
+        'outlook': 'Outlook',
+        'slack': 'Slack'
+    };
+    return names[platform] || platform;
 }
 
 // 알림 표시 함수
