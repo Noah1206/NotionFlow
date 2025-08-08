@@ -7,6 +7,7 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}?v={{ range(100000, 999999) | random }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/settings-redesign.css') }}?v={{ range(100000, 999999) | random }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/api-keys-redesign.css') }}?v={{ range(100000, 999999) | random }}">
 <style>
     /* Settings-specific CSS variables for theme support */
     :root,
@@ -1439,343 +1440,94 @@ font-size: 12px;
 
     <!-- End of content -->
 
-    <!-- API Keys Management Section -->
+    <!-- 플랫폼 연결 섹션 -->
     <div class="metrics-section">
         <h2 class="section-title" data-translate="section.platform_connections">플랫폼 연결</h2>
-
-        <!-- Progress Tracking System -->
-        <div class="connection-progress-section">
-            <div class="progress-header">
-                <div class="progress-text" id="progress-text">
-                    <span class="progress-count">0 of 5</span> 개 플랫폼 연결됨
-                </div>
-                <div class="progress-percentage" id="progress-percentage">0%</div>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progress-fill"></div>
-            </div>
-        </div>
-
-        <div class="api-keys-grid" id="apiKeysGrid">
-            <!-- Notion Platform -->
-            <div class="api-key-card" data-platform="notion">
-                <div class="api-key-header">
+        <p class="section-description">API 키 관리 페이지에서 플랫폼을 연결하세요</p>
+        
+        <div class="platforms-section">
+            <!-- Notion 연결 카드 -->
+            <div class="platform-card" data-platform="notion">
+                <div class="platform-header">
                     <div class="platform-info">
-                        <div class="platform-label notion">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046 1.121-.56 1.121-1.167V6.354c0-.606-.233-.933-.747-.887l-15.177.887c-.56.047-.934.373-.934 1.027zm13.748.327c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.139c-.093-.514.28-.887.747-.933zM1.936 1.035l13.31-.98c1.634-.14 2.055-.047 3.082.7l4.249 2.986c.7.513.934.653.934 1.213v16.378c0 1.026-.373 1.634-1.68 1.726l-15.458.934c-.98.047-1.448-.093-1.962-.747l-3.129-4.06c-.56-.747-.793-1.306-.793-1.96V2.667c0-.839.374-1.54 1.447-1.632z"/>
+                        <div class="platform-icon notion">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046 1.121-.56 1.121-1.167V6.354c0-.606-.233-.933-.747-.887l-15.177.887c-.56.047-.934.373-.934 1.027zm13.748.327c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.139c-.093-.514.28-.887.747-.933z"/>
                             </svg>
                         </div>
                         <div class="platform-details">
                             <h3 class="platform-name">Notion</h3>
-                            <p class="platform-description">노트, 데이터베이스, 프로젝트 관리를 위한 완전한 워크스페이스</p>
+                            <p class="platform-description">페이지와 데이터베이스를 캘린더로 동기화</p>
+                            <div class="platform-status disconnected">
+                                <span class="status-dot"></span>
+                                연결되지 않음
+                            </div>
                         </div>
                     </div>
-                    <div class="connection-status" id="notion-status">
-                        <span class="status-dot disconnected"></span>
-                        <span class="status-text">연결되지 않음</span>
-                    </div>
-                </div>
-
-                <div class="api-key-input-section">
-                    <label class="input-label" for="notion-key-input">
-                        <span class="label-text">키</span>
-                        Notion 통합 토큰
-                    </label>
-                    <div class="input-container">
-                        <input type="password" class="api-key-input" id="notion-key-input"
-                            placeholder="secret_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" data-platform="notion">
-                        <button class="visibility-toggle" onclick="toggleKeyVisibility('notion')" type="button">
-                            <span class="eye-text">표시</span>
-                        </button>
-                    </div>
-                    <div class="input-help">
-                        Notion 워크스페이스 설정에서 이 토큰을 생성하세요
-                        <a href="/setup/notion" target="_blank" class="help-link">설정 가이드</a>
-                    </div>
-                </div>
-
-                <div class="api-key-actions">
-                    <button class="btn-connect" onclick="saveApiKey('notion')" id="notion-connect-btn">
-                        <span class="btn-text">연결</span>
-                        Notion 연결
-                    </button>
-                    <button class="btn-test" onclick="testConnection('notion')" id="notion-test-btn">
-                        <span class="btn-text">테스트</span>
-                        연결 테스트
-                    </button>
-                </div>
-
-                <div class="connection-details" id="notion-details" style="display: none;">
-                    <div class="detail-row">
-                        <span class="detail-label">마지막 동기화:</span>
-                        <span class="detail-value">2분 전</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">상태:</span>
-                        <span class="detail-value success">활성</span>
-                    </div>
+                    <a href="/dashboard/api-keys" class="platform-action-btn">
+                        <span class="btn-text">연결하기</span>
+                        <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M7 17l9.2-9.2M17 17V7H7"/>
+                        </svg>
+                    </a>
                 </div>
             </div>
 
-            <!-- Google Calendar Platform -->
-            <div class="api-key-card" data-platform="google">
-                <div class="api-key-header">
+            <!-- Google Calendar 연결 카드 -->
+            <div class="platform-card" data-platform="google">
+                <div class="platform-header">
                     <div class="platform-info">
-                        <div class="platform-label google">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                        <div class="platform-icon google">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
                             </svg>
                         </div>
                         <div class="platform-details">
                             <h3 class="platform-name">Google Calendar</h3>
-                            <p class="platform-description">스마트 스케줄링 기능이 있는 고급 캘린더 통합</p>
+                            <p class="platform-description">구글 캘린더와 실시간 동기화</p>
+                            <div class="platform-status connected">
+                                <span class="status-dot"></span>
+                                연결됨
+                            </div>
                         </div>
                     </div>
-                    <div class="connection-status" id="google-status">
-                        <span class="status-dot disconnected"></span>
-                        <span class="status-text">연결되지 않음</span>
-                    </div>
-                </div>
-
-                <div class="api-key-input-section">
-                    <label class="input-label" for="google-key-input">
-                        <span class="label-text">키</span>
-                        Google Calendar API 키
-                    </label>
-                    <div class="input-container">
-                        <input type="password" class="api-key-input" id="google-key-input"
-                            placeholder="AIzaSyxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" data-platform="google">
-                        <button class="visibility-toggle" onclick="toggleKeyVisibility('google')" type="button">
-                            <span class="eye-text">표시</span>
-                        </button>
-                    </div>
-                    <div class="input-help">
-                        Calendar API가 활성화된 Google Cloud Console에서 API 키를 생성하세요
-                        <a href="/setup/google" target="_blank" class="help-link">설정 가이드</a>
-                    </div>
-                </div>
-
-                <div class="api-key-actions">
-                    <button class="btn-connect" onclick="saveApiKey('google')" id="google-connect-btn">
-                        <span class="btn-text">연결</span>
-                        Google 연결
-                    </button>
-                    <button class="btn-test" onclick="testConnection('google')" id="google-test-btn">
-                        <span class="btn-text">테스트</span>
-                        연결 테스트
-                    </button>
-                </div>
-
-                <div class="connection-details" id="google-details" style="display: none;">
-                    <div class="detail-row">
-                        <span class="detail-label">마지막 동기화:</span>
-                        <span class="detail-value">15분 전</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">상태:</span>
-                        <span class="detail-value warning">주의 필요</span>
-                    </div>
+                    <a href="/dashboard/api-keys" class="platform-action-btn connected">
+                        <span class="btn-text">관리하기</span>
+                        <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M7 17l9.2-9.2M17 17V7H7"/>
+                        </svg>
+                    </a>
                 </div>
             </div>
 
-            <!-- Apple Calendar Platform -->
-            <div class="api-key-card" data-platform="apple">
-                <div class="api-key-header">
+            <!-- Apple Calendar 연결 카드 -->
+            <div class="platform-card" data-platform="apple">
+                <div class="platform-header">
                     <div class="platform-info">
-                        <div class="platform-label apple">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                        <div class="platform-icon apple">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19.5 4h-1.44a2.04 2.04 0 0 0-1.98 1.22l-1.58 4.49c-.25.7-.91 1.16-1.65 1.16-.73 0-1.39-.46-1.64-1.16l-1.58-4.49A2.04 2.04 0 0 0 7.62 4H6.5C5.67 4 5 4.67 5 5.5S5.67 7 6.5 7h1.12c.14 0 .27.09.32.22l1.58 4.49c.5 1.4 1.82 2.29 3.31 2.29s2.81-.89 3.31-2.29L17.72 7.22c.05-.13.18-.22.32-.22H19.5c.83 0 1.5-.67 1.5-1.5S20.33 4 19.5 4z"/>
                             </svg>
                         </div>
                         <div class="platform-details">
                             <h3 class="platform-name">Apple Calendar</h3>
-                            <p class="platform-description">원활한 기기 동기화를 제공하는 네이티브 iCloud 캘린더 통합</p>
+                            <p class="platform-description">iCloud 캘린더와 동기화</p>
+                            <div class="platform-status disconnected">
+                                <span class="status-dot"></span>
+                                연결되지 않음
+                            </div>
                         </div>
                     </div>
-                    <div class="connection-status" id="apple-status">
-                        <span class="status-dot disconnected"></span>
-                        <span class="status-text">연결되지 않음</span>
-                    </div>
-                </div>
-
-                <div class="api-key-input-section">
-                    <label class="input-label" for="apple-key-input">
-                        <span class="label-text">키</span>
-                        앱 암호
-                    </label>
-                    <div class="input-container">
-                        <input type="password" class="api-key-input" id="apple-key-input"
-                            placeholder="xxxx-xxxx-xxxx-xxxx" data-platform="apple">
-                        <button class="visibility-toggle" onclick="toggleKeyVisibility('apple')" type="button">
-                            <span class="eye-text">표시</span>
-                        </button>
-                    </div>
-                    <div class="input-help">
-                        Apple ID 설정에서 앱 암호를 생성하세요
-                        <a href="/setup/apple" target="_blank" class="help-link">설정 가이드</a>
-                    </div>
-                </div>
-
-                <div class="api-key-actions">
-                    <button class="btn-connect" onclick="saveApiKey('apple')" id="apple-connect-btn">
-                        <span class="btn-text">연결</span>
-                        Apple 연결
-                    </button>
-                    <button class="btn-test" onclick="testConnection('apple')" id="apple-test-btn">
-                        <span class="btn-text">테스트</span>
-                        연결 테스트
-                    </button>
-                </div>
-
-                <div class="connection-details" id="apple-details" style="display: none;">
-                    <div class="detail-row">
-                        <span class="detail-label">마지막 동기화:</span>
-                        <span class="detail-value">1시간 전</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">상태:</span>
-                        <span class="detail-value success">활성</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Outlook Platform -->
-            <div class="api-key-card" data-platform="outlook">
-                <div class="api-key-header">
-                    <div class="platform-info">
-                        <div class="platform-label outlook">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" fill="#0078D4"/>
-                                <path d="M12 2V22L2 17V7L12 2Z" fill="#0078D4"/>
-                                <path d="M12 2L22 7V17L12 22V2Z" fill="#28A8EA"/>
-                                <path d="M12 7V17L22 12V7L12 7Z" fill="#50D9FF"/>
-                                <path d="M12 7L2 12V17L12 17V7Z" fill="#0364B8"/>
-                                <path d="M7 9.5C7 8.67157 7.67157 8 8.5 8H15.5C16.3284 8 17 8.67157 17 9.5V14.5C17 15.3284 16.3284 16 15.5 16H8.5C7.67157 16 7 15.3284 7 14.5V9.5Z" fill="white"/>
-                                <path d="M12 10C10.8954 10 10 10.8954 10 12C10 13.1046 10.8954 14 12 14C13.1046 14 14 13.1046 14 12C14 10.8954 13.1046 10 12 10Z" fill="#0078D4"/>
-                            </svg>
-                        </div>
-                        <div class="platform-details">
-                            <h3 class="platform-name">Microsoft Outlook</h3>
-                            <p class="platform-description">Microsoft Graph API를 활용한 전문적인 이메일 및 캘린더 통합</p>
-                        </div>
-                    </div>
-                    <div class="connection-status" id="outlook-status">
-                        <span class="status-dot disconnected"></span>
-                        <span class="status-text">연결되지 않음</span>
-                    </div>
-                </div>
-
-                <div class="api-key-input-section">
-                    <label class="input-label" for="outlook-key-input">
-                        <span class="label-text">키</span>
-                        Microsoft Graph API 키
-                    </label>
-                    <div class="input-container">
-                        <input type="password" class="api-key-input" id="outlook-key-input"
-                            placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" data-platform="outlook">
-                        <button class="visibility-toggle" onclick="toggleKeyVisibility('outlook')" type="button">
-                            <span class="eye-text">표시</span>
-                        </button>
-                    </div>
-                    <div class="input-help">
-                        Azure Portal에서 Graph API 권한으로 앱 등록을 생성하세요
-                        <a href="/setup/outlook" target="_blank" class="help-link">설정 가이드</a>
-                    </div>
-                </div>
-
-                <div class="api-key-actions">
-                    <button class="btn-connect" onclick="saveApiKey('outlook')" id="outlook-connect-btn">
-                        <span class="btn-text">연결</span>
-                        Outlook 연결
-                    </button>
-                    <button class="btn-test" onclick="testConnection('outlook')" id="outlook-test-btn">
-                        <span class="btn-text">테스트</span>
-                        연결 테스트
-                    </button>
-                </div>
-
-                <div class="connection-details" id="outlook-details" style="display: none;">
-                    <div class="detail-row">
-                        <span class="detail-label">마지막 동기화:</span>
-                        <span class="detail-value">5시간 전</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">상태:</span>
-                        <span class="detail-value error">연결 실패</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Slack Platform -->
-            <div class="api-key-card" data-platform="slack">
-                <div class="api-key-header">
-                    <div class="platform-info">
-                        <div class="platform-label slack">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313z" fill="#E01E5A"/>
-                                <path d="M8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312z" fill="#36C5F0"/>
-                                <path d="M18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312z" fill="#2EB67D"/>
-                                <path d="M15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z" fill="#ECB22E"/>
-                            </svg>
-                        </div>
-                        <div class="platform-details">
-                            <h3 class="platform-name">Slack</h3>
-                            <p class="platform-description">워크플로우 자동화 기능이 있는 팀 커뮤니케이션 허브</p>
-                        </div>
-                    </div>
-                    <div class="connection-status" id="slack-status">
-                        <span class="status-dot disconnected"></span>
-                        <span class="status-text">연결되지 않음</span>
-                    </div>
-                </div>
-
-                <div class="api-key-input-section">
-                    <label class="input-label" for="slack-key-input">
-                        <span class="label-text">키</span>
-                        Slack 웹훅 URL
-                    </label>
-                    <div class="input-container">
-                        <input type="password" class="api-key-input" id="slack-key-input"
-                            placeholder="https://hooks.slack.com/services/..." data-platform="slack">
-                        <button class="visibility-toggle" onclick="toggleKeyVisibility('slack')" type="button">
-                            <span class="eye-text">표시</span>
-                        </button>
-                    </div>
-                    <div class="input-help">
-                        Slack 워크스페이스 설정에서 웹훅 URL을 생성하세요
-                        <a href="/setup/slack" target="_blank" class="help-link">설정 가이드</a>
-                    </div>
-                </div>
-
-                <div class="api-key-actions">
-                    <button class="btn-connect" onclick="saveApiKey('slack')" id="slack-connect-btn">
-                        <span class="btn-text">연결</span>
-                        Slack 연결
-                    </button>
-                    <button class="btn-test" onclick="testConnection('slack')" id="slack-test-btn">
-                        <span class="btn-text">테스트</span>
-                        연결 테스트
-                    </button>
-                </div>
-
-                <div class="connection-details" id="slack-details" style="display: none;">
-                    <div class="detail-row">
-                        <span class="detail-label">마지막 동기화:</span>
-                        <span class="detail-value">3시간 전</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">상태:</span>
-                        <span class="detail-value success">활성</span>
-                    </div>
+                    <a href="/dashboard/api-keys" class="platform-action-btn">
+                        <span class="btn-text">연결하기</span>
+                        <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M7 17l9.2-9.2M17 17V7H7"/>
+                        </svg>
+                    </a>
                 </div>
             </div>
         </div>
     </div>
-
     <!-- Quick Actions Section -->
     <div class="metrics-section">
         <h2 class="section-title" data-translate="section.quick_actions">빠른 작업</h2>
