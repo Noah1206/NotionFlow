@@ -9,6 +9,14 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/variables.css') }}?v={{ range(100000, 999999) | random }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}?v={{ range(100000, 999999) | random }}">
     
+    <style>
+    /* Force sidebar border override */
+    .sidebar {
+        border: 1px solid #F5F5F5 !important;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+    }
+    </style>
+    
     <!-- Extra CSS from blocks -->
     {% block extra_css %}{% endblock %}
     
