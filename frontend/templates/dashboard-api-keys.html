@@ -1,528 +1,205 @@
-<!DOCTYPE html>
-<html lang="ko" data-theme="light">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Keys - NotionFlow</title>
-    <meta name="description" content="Connect NotionFlow with your favorite platforms for seamless calendar synchronization. All credentials are encrypted and stored securely.">
-    
-    <!-- CSS Files -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/variables.css') }}?v={{ range(100000, 999999) | random }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}?v={{ range(100000, 999999) | random }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/api-keys-redesign.css') }}?v={{ range(100000, 999999) | random }}">
-    
-    <style>
-        /* API Keys 페이지용 사이드바 및 레이아웃 */
-        .sidebar {
-            position: fixed !important;
-            left: 16px !important;
-            top: 16px !important;
-            bottom: 16px !important;
-            width: 240px !important;
-            height: calc(100vh - 32px) !important;
-            background: #ffffff !important;
-            border: 1px solid #e5e7eb !important;
-            border-radius: 16px !important;
-            z-index: 999999 !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            display: block !important;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05) !important;
-            overflow: hidden !important;
-        }
-        
-        body {
-            background: #f5f5f5 !important;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            color: #000000 !important;
-        }
-        
-        .main-content {
-            margin-left: 272px !important;
-            padding: 0 !important;
-            min-height: 100vh !important;
-            background: #ffffff !important;
-        }
-        
-        /* API Keys 컨테이너 조정 */
-        .api-container {
-            background: #ffffff !important;
-            color: #000000 !important;
-            padding: 2rem !important;
-        }
-    </style>
-</head>
+{% extends "base_dashboard.html" %}
 
-<body class="api-keys-page">
-    <!-- 사이드바 직접 포함 -->
-    <div class="sidebar" id="sidebar">
-        {% include 'components/sidebar.html' %}
+{% block title %}API Keys - NotionFlow{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/api-keys-redesign.css') }}?v={{ range(100000, 999999) | random }}">
+{% endblock %}
+
+{% block content %}
+<!-- API 키 관리 메인 컨테이너 -->
+<div class="api-container">
+    
+    <!-- 헤더 섹션 -->
+    <div class="api-header-container">
+        <div class="api-header">
+            <div class="api-title-section">
+                <h1 class="api-main-title">🔑 API 키 관리</h1>
+                <p class="api-subtitle">플랫폼과 안전하게 연결하고 캘린더를 동기화하세요</p>
+            </div>
+            
+            <!-- 상태 요약 카드 -->
+            <div class="api-status-cards">
+                <div class="status-card active">
+                    <div class="status-number" id="connected-count">0</div>
+                    <div class="status-label">연결된 플랫폼</div>
+                </div>
+                <div class="status-card">
+                    <div class="status-number" id="sync-count">0</div>
+                    <div class="status-label">동기화된 이벤트</div>
+                </div>
+                <div class="status-card">
+                    <div class="status-number success" id="success-rate">100%</div>
+                    <div class="status-label">성공률</div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- 메인 콘텐츠 -->
-    <div class="main-content">
-        <!-- Header Section -->
-        <div class="page-header">
-            <div class="header-top">
-                <div class="header-info">
-                    <h1 class="page-title">🔑 API Keys & Integrations</h1>
-                    <p class="page-description">연결된 플랫폼과 API 키를 관리하여 워크플로우를 향상시키세요</p>
+    <!-- 플랫폼 연결 섹션 -->
+    <div class="platforms-section">
+        
+        <!-- Notion 연결 카드 -->
+        <div class="platform-card" data-platform="notion">
+            <div class="platform-header">
+                <div class="platform-info">
+                    <div class="platform-icon notion">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046 1.121-.56 1.121-1.167V6.354c0-.606-.233-.933-.747-.887l-15.177.887c-.56.047-.934.373-.934 1.027zm13.748.327c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.139c-.093-.514.28-.887.747-.933z"/>
+                        </svg>
+                    </div>
+                    <div class="platform-details">
+                        <h3 class="platform-name">Notion</h3>
+                        <p class="platform-description">페이지와 데이터베이스를 캘린더로 동기화</p>
+                        <div class="platform-status disconnected">
+                            <span class="status-dot"></span>
+                            연결되지 않음
+                        </div>
+                    </div>
                 </div>
-                <a href="/dashboard" class="back-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="m15 18-6-6 6-6"/>
+                <button class="platform-action-btn" onclick="togglePlatformDetails('notion')">
+                    <span class="btn-text">연결하기</span>
+                    <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 9l6 6 6-6"/>
                     </svg>
-                    <span>대시보드</span>
-                </a>
+                </button>
+            </div>
+            
+            <!-- 연결 상세 폼 -->
+            <div class="platform-details-form" id="notion-details" style="display: none;">
+                <div class="form-group">
+                    <label for="notion-token">Internal Integration Token</label>
+                    <input type="password" id="notion-token" name="notion-token" placeholder="secret_으로 시작하는 토큰을 입력하세요">
+                    <small class="form-help">
+                        <a href="https://www.notion.so/my-integrations" target="_blank" class="help-link">
+                            📖 토큰 발급받기
+                        </a>
+                        | 페이지 접근 권한 필요
+                    </small>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-secondary" onclick="togglePlatformDetails('notion')">취소</button>
+                    <button class="btn btn-primary" onclick="connectPlatform('notion')">
+                        <span class="loading-spinner" style="display: none;"></span>
+                        연결하기
+                    </button>
+                </div>
             </div>
         </div>
 
-        <!-- Platforms Grid -->
-        <div class="platforms-container">
-            <div class="platforms-grid">
-            <!-- Notion Card -->
-            <div class="platform-card" id="notion-card">
-                <div class="card-header">
-                    <div class="platform-info">
-                        <div class="platform-icon notion-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046.935-.56.935-1.167V6.354c0-.606-.233-.933-.748-.887l-15.177.887c-.56.047-.747.327-.747.933zm14.337.745c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.139c-.093-.514.28-.887.747-.933zM1.936 1.035l13.31-.98c1.634-.14 2.055-.047 3.082.7l4.249 2.986c.7.513.934.747.934 1.213v16.378c0 1.026-.373 1.634-1.68 1.726l-15.458.934c-.98.047-1.448-.093-1.962-.747l-3.129-4.06c-.56-.747-.793-1.306-.793-1.96V2.667c0-.839.374-1.54 1.447-1.632z"/>
-                            </svg>
-                        </div>
-                        <div class="platform-details">
-                            <h3>Notion</h3>
-                            <p>워크스페이스 통합 & 데이터베이스 동기화</p>
-                            <div class="status-badge status-offline">
-                                <span class="status-dot"></span>
-                                <span>연결 안됨</span>
-                            </div>
+        <!-- Google Calendar 연결 카드 -->
+        <div class="platform-card" data-platform="google">
+            <div class="platform-header">
+                <div class="platform-info">
+                    <div class="platform-icon google">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+                        </svg>
+                    </div>
+                    <div class="platform-details">
+                        <h3 class="platform-name">Google Calendar</h3>
+                        <p class="platform-description">구글 캘린더와 실시간 동기화</p>
+                        <div class="platform-status connected">
+                            <span class="status-dot"></span>
+                            연결됨
                         </div>
                     </div>
                 </div>
-                
-                <div class="card-stats">
-                    <div class="stat-item">
-                        <span class="stat-number">—</span>
-                        <span class="stat-label">데이터베이스</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-number">—</span>
-                        <span class="stat-label">페이지</span>
-                    </div>
-                </div>
-
-                <div class="card-actions">
-                    <button class="btn-connect" onclick="connectPlatformOneClick('notion')" data-platform="notion">
-                        <span class="btn-icon">⚡</span>
-                        <span>빠른 연결</span>
-                    </button>
-                    <button class="btn-config" onclick="configurePlatform('notion')">
-                        <span class="btn-icon">⚙️</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Google Calendar Card -->
-            <div class="platform-card" id="google-card">
-                <div class="card-header">
-                    <div class="platform-info">
-                        <div class="platform-icon google-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                            </svg>
-                        </div>
-                        <div class="platform-details">
-                            <h3>Google Calendar</h3>
-                            <p>캘린더 이벤트 & 일정 동기화</p>
-                            <div class="status-badge status-offline">
-                                <span class="status-dot"></span>
-                                <span>연결 안됨</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card-stats">
-                    <div class="stat-item">
-                        <span class="stat-number">—</span>
-                        <span class="stat-label">이벤트</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-number">—</span>
-                        <span class="stat-label">캘린더</span>
-                    </div>
-                </div>
-
-                <div class="card-actions">
-                    <button class="btn-connect" onclick="connectPlatformOneClick('google')" data-platform="google">
-                        <span class="btn-icon">⚡</span>
-                        <span>빠른 연결</span>
-                    </button>
-                    <button class="btn-config" onclick="configurePlatform('google')">
-                        <span class="btn-icon">⚙️</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Slack Card -->
-            <div class="platform-card" id="slack-card">
-                <div class="card-header">
-                    <div class="platform-info">
-                        <div class="platform-icon slack-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/>
-                            </svg>
-                        </div>
-                        <div class="platform-details">
-                            <h3>Slack</h3>
-                            <p>팀 커뮤니케이션 & 알림</p>
-                            <div class="status-badge status-offline">
-                                <span class="status-dot"></span>
-                                <span>연결 안됨</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card-stats">
-                    <div class="stat-item">
-                        <span class="stat-number">—</span>
-                        <span class="stat-label">채널</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-number">—</span>
-                        <span class="stat-label">메시지</span>
-                    </div>
-                </div>
-
-                <div class="card-actions">
-                    <button class="btn-connect" onclick="connectPlatformOneClick('slack')" data-platform="slack">
-                        <span class="btn-icon">⚡</span>
-                        <span>빠른 연결</span>
-                    </button>
-                    <button class="btn-config" onclick="configurePlatform('slack')">
-                        <span class="btn-icon">⚙️</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Outlook Card -->
-            <div class="platform-card" id="outlook-card">
-                <div class="card-header">
-                    <div class="platform-info">
-                        <div class="platform-icon outlook-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M7.462 0h9.962a.538.538 0 0 1 .538.538v2.769L24 1.84v20.32l-6.038-1.467v2.769a.538.538 0 0 1-.538.538H7.462a.538.538 0 0 1-.538-.538V.538a.538.538 0 0 1 .538-.538zM12 5.5a6.5 6.5 0 1 0 6.5 6.5A6.508 6.508 0 0 0 12 5.5zm0 10.77a4.27 4.27 0 1 1 4.27-4.27A4.275 4.275 0 0 1 12 16.27z"/>
-                            </svg>
-                        </div>
-                        <div class="platform-details">
-                            <h3>Outlook</h3>
-                            <p>이메일 & 캘린더 통합</p>
-                            <div class="status-badge status-offline">
-                                <span class="status-dot"></span>
-                                <span>연결 안됨</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card-stats">
-                    <div class="stat-item">
-                        <span class="stat-number">—</span>
-                        <span class="stat-label">이메일</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-number">—</span>
-                        <span class="stat-label">이벤트</span>
-                    </div>
-                </div>
-
-                <div class="card-actions">
-                    <button class="btn-connect" onclick="connectPlatformOneClick('outlook')" data-platform="outlook">
-                        <span class="btn-icon">⚡</span>
-                        <span>빠른 연결</span>
-                    </button>
-                    <button class="btn-config" onclick="configurePlatform('outlook')">
-                        <span class="btn-icon">⚙️</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Apple Calendar Card -->
-            <div class="platform-card" id="apple-card">
-                <div class="card-header">
-                    <div class="platform-info">
-                        <div class="platform-icon apple-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12.017 0C8.396 0 8.396 3.125 8.396 3.125s3.621-0.75 3.621 0.375S8.396 6.125 8.396 6.125s3.621-0.75 3.621 0.375S8.396 9.125 8.396 9.125s3.621-0.75 3.621 0.375v9.75s0 3.375-3.621 3.375S4.775 22.625 4.775 19.25V9.5s0-3.375 3.621-3.375S12.017 9.5 12.017 9.5v-6s0-3.5 3.621-3.5S19.259 3.5 19.259 7v12.25s0 3.375-3.621 3.375S12.017 19.25 12.017 19.25z"/>
-                            </svg>
-                        </div>
-                        <div class="platform-details">
-                            <h3>Apple Calendar</h3>
-                            <p>iCloud 캘린더 & 이벤트 동기화</p>
-                            <div class="status-badge status-offline">
-                                <span class="status-dot"></span>
-                                <span>연결 안됨</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card-stats">
-                    <div class="stat-item">
-                        <span class="stat-number">—</span>
-                        <span class="stat-label">이벤트</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-number">—</span>
-                        <span class="stat-label">캘린더</span>
-                    </div>
-                </div>
-
-                <div class="card-actions">
-                    <button class="btn-connect" onclick="connectPlatformOneClick('apple')" data-platform="apple">
-                        <span class="btn-icon">⚡</span>
-                        <span>빠른 연결</span>
-                    </button>
-                    <button class="btn-config" onclick="configurePlatform('apple')">
-                        <span class="btn-icon">⚙️</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- GitHub Card -->
-            <div class="platform-card" id="github-card">
-                <div class="card-header">
-                    <div class="platform-info">
-                        <div class="platform-icon github-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                            </svg>
-                        </div>
-                        <div class="platform-details">
-                            <h3>GitHub</h3>
-                            <p>리포지토리 & 이슈 추적</p>
-                            <div class="status-badge status-offline">
-                                <span class="status-dot"></span>
-                                <span>연결 안됨</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card-stats">
-                    <div class="stat-item">
-                        <span class="stat-number">—</span>
-                        <span class="stat-label">리포</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-number">—</span>
-                        <span class="stat-label">이슈</span>
-                    </div>
-                </div>
-
-                <div class="card-actions">
-                    <button class="btn-connect" onclick="connectPlatformOneClick('github')" data-platform="github">
-                        <span class="btn-icon">⚡</span>
-                        <span>빠른 연결</span>
-                    </button>
-                    <button class="btn-config" onclick="configurePlatform('github')">
-                        <span class="btn-icon">⚙️</span>
-                    </button>
-                </div>
-            </div>
+                <button class="platform-action-btn connected" onclick="disconnectPlatform('google')">
+                    <span class="btn-text">연결 해제</span>
+                </button>
             </div>
         </div>
 
-        <!-- Security Notice -->
-        <div class="security-notice">
-            <div class="security-icon">🔒</div>
-            <div class="security-content">
-                <h3>엔터프라이즈급 보안</h3>
-                <p>모든 API 키는 AES-256 암호화로 안전하게 저장됩니다. 귀하의 데이터 프라이버시와 보안이 최우선입니다.</p>
+        <!-- Apple Calendar 연결 카드 -->
+        <div class="platform-card" data-platform="apple">
+            <div class="platform-header">
+                <div class="platform-info">
+                    <div class="platform-icon apple">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19.5 4h-1.44a2.04 2.04 0 0 0-1.98 1.22l-1.58 4.49c-.25.7-.91 1.16-1.65 1.16-.73 0-1.39-.46-1.64-1.16l-1.58-4.49A2.04 2.04 0 0 0 7.62 4H6.5C5.67 4 5 4.67 5 5.5S5.67 7 6.5 7h1.12c.14 0 .27.09.32.22l1.58 4.49c.5 1.4 1.82 2.29 3.31 2.29s2.81-.89 3.31-2.29L17.72 7.22c.05-.13.18-.22.32-.22H19.5c.83 0 1.5-.67 1.5-1.5S20.33 4 19.5 4z"/>
+                        </svg>
+                    </div>
+                    <div class="platform-details">
+                        <h3 class="platform-name">Apple Calendar</h3>
+                        <p class="platform-description">iCloud 캘린더와 동기화</p>
+                        <div class="platform-status disconnected">
+                            <span class="status-dot"></span>
+                            연결되지 않음
+                        </div>
+                    </div>
+                </div>
+                <button class="platform-action-btn" onclick="togglePlatformDetails('apple')">
+                    <span class="btn-text">연결하기</span>
+                    <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- 연결 상세 폼 -->
+            <div class="platform-details-form" id="apple-details" style="display: none;">
+                <div class="form-group">
+                    <label for="apple-username">Apple ID</label>
+                    <input type="email" id="apple-username" name="apple-username" placeholder="your-apple-id@icloud.com">
+                </div>
+                <div class="form-group">
+                    <label for="apple-password">앱 전용 암호</label>
+                    <input type="password" id="apple-password" name="apple-password" placeholder="앱 전용 암호">
+                    <small class="form-help">
+                        <a href="https://support.apple.com/en-us/HT204397" target="_blank" class="help-link">
+                            📖 앱 전용 암호 만들기
+                        </a>
+                        | 2단계 인증 필요
+                    </small>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-secondary" onclick="togglePlatformDetails('apple')">취소</button>
+                    <button class="btn btn-primary" onclick="connectPlatform('apple')">
+                        <span class="loading-spinner" style="display: none;"></span>
+                        연결하기
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- 보안 및 개인정보 보호 섹션 -->
+    <div class="security-section">
+        <div class="security-header">
+            <h2 class="security-title">🔐 보안 및 개인정보</h2>
+            <p class="security-subtitle">모든 연결과 데이터는 최고 수준의 보안으로 보호됩니다</p>
+        </div>
+        
+        <div class="security-features">
+            <div class="security-feature">
+                <div class="feature-icon">🔒</div>
+                <div class="feature-content">
+                    <h4>엔드투엔드 암호화</h4>
+                    <p>모든 API 키와 데이터는 AES-256 암호화로 보호됩니다</p>
+                </div>
+            </div>
+            <div class="security-feature">
+                <div class="feature-icon">🚫</div>
+                <div class="feature-content">
+                    <h4>무로그 정책</h4>
+                    <p>개인 캘린더 데이터는 저장하지 않으며 실시간으로만 동기화합니다</p>
+                </div>
+            </div>
+            <div class="security-feature">
+                <div class="feature-icon">🛡️</div>
+                <div class="feature-content">
+                    <h4>읽기 전용 접근</h4>
+                    <p>최소 권한 원칙에 따라 필요한 권한만 요청합니다</p>
+                </div>
             </div>
         </div>
     </div>
 
-<script>
-    // 🎯 Simple Platform Connection Functions
-    let connectionStates = {};
-    
-    function connectPlatformOneClick(platform) {
-        console.log(`🚀 Starting connection for ${platform}...`);
-        
-        const card = document.getElementById(`${platform}-card`);
-        const connectBtn = card.querySelector('.btn-connect');
-        const statusBadge = card.querySelector('.status-badge');
-        const statusText = statusBadge.querySelector('span:last-child');
-        
-        // Update UI to show connecting state
-        const originalText = connectBtn.innerHTML;
-        connectBtn.innerHTML = '<span class="btn-icon">🔄</span><span>연결 중...</span>';
-        connectBtn.disabled = true;
-        statusBadge.className = 'status-badge status-connecting';
-        statusText.textContent = '연결 중';
-        
-        // Add loading class to card
-        card.classList.add('loading');
-        
-        // Simulate API connection
-        const connectionTime = Math.random() * 2000 + 1000; // 1-3 seconds
-        
-        setTimeout(() => {
-            // Success state
-            connectBtn.innerHTML = '<span class="btn-icon">✅</span><span>연결됨</span>';
-            connectBtn.style.background = '#198754';
-            statusBadge.className = 'status-badge status-online';
-            statusText.textContent = '연결됨';
-            
-            // Add connected class to card
-            card.classList.remove('loading');
-            card.classList.add('connected');
-            
-            // Update stats with mock data
-            updatePlatformStats(platform);
-            
-            // Store connection state
-            connectionStates[platform] = true;
-            
-            // Reset button after delay
-            setTimeout(() => {
-                connectBtn.innerHTML = '<span class="btn-icon">🔄</span><span>재연결</span>';
-                connectBtn.disabled = false;
-                connectBtn.style.background = '#0d6efd';
-            }, 3000);
-            
-        }, connectionTime);
-    }
-    
-    function configurePlatform(platform) {
-        console.log(`⚙️ Configuring ${platform}...`);
-        
-        const platformNames = {
-            notion: 'Notion',
-            google: 'Google Calendar',
-            slack: 'Slack',
-            outlook: 'Outlook',
-            apple: 'Apple Calendar',
-            github: 'GitHub'
-        };
-        
-        // Create modern modal-style notification
-        const modal = document.createElement('div');
-        modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            animation: fadeIn 0.3s ease;
-        `;
-        
-        const modalContent = document.createElement('div');
-        modalContent.style.cssText = `
-            background: white;
-            padding: 32px;
-            border-radius: 16px;
-            max-width: 400px;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            animation: slideUp 0.3s ease;
-        `;
-        
-        modalContent.innerHTML = `
-            <div style="font-size: 48px; margin-bottom: 16px;">⚙️</div>
-            <h3 style="font-size: 18px; font-weight: 600; color: #212529; margin: 0 0 12px 0;">
-                ${platformNames[platform]} 설정
-            </h3>
-            <p style="color: #6c757d; margin: 0 0 24px 0; line-height: 1.5;">
-                이 기능은 다음 업데이트에서 제공될 예정입니다.
-            </p>
-            <button onclick="this.closest('[style*=\"position: fixed\"]').remove()" 
-                    style="background: #0d6efd; color: white; border: none; padding: 12px 24px; 
-                           border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
-                확인
-            </button>
-        `;
-        
-        modal.appendChild(modalContent);
-        document.body.appendChild(modal);
-        
-        // Add CSS animations
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-            @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        `;
-        document.head.appendChild(style);
-        
-        // Remove on click outside
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.remove();
-        });
-    }
-    
-    function updatePlatformStats(platform) {
-        const card = document.getElementById(`${platform}-card`);
-        const statNumbers = card.querySelectorAll('.stat-number');
-        
-        // Mock data for different platforms
-        const mockData = {
-            notion: ['12', '156'],
-            google: ['24', '3'],
-            slack: ['8', '1.2K'],
-            outlook: ['45', '18'],
-            apple: ['15', '2'],
-            github: ['7', '23']
-        };
-        
-        const data = mockData[platform] || ['—', '—'];
-        if (statNumbers[0]) {
-            // Animate number update
-            statNumbers[0].style.transform = 'scale(1.1)';
-            statNumbers[0].textContent = data[0];
-            setTimeout(() => {
-                statNumbers[0].style.transform = 'scale(1)';
-            }, 200);
-        }
-        if (statNumbers[1]) {
-            // Animate number update
-            statNumbers[1].style.transform = 'scale(1.1)';
-            statNumbers[1].textContent = data[1];
-            setTimeout(() => {
-                statNumbers[1].style.transform = 'scale(1)';
-            }, 200);
-        }
-    }
-    
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize connection states
-        const platforms = ['notion', 'google', 'slack', 'outlook', 'apple', 'github'];
-        platforms.forEach(platform => {
-            connectionStates[platform] = false;
-        });
-        
-        console.log('✅ API Keys page loaded successfully');
-    });
-    
-    // Make functions globally available
-    window.connectPlatformOneClick = connectPlatformOneClick;
-    window.configurePlatform = configurePlatform;
-</script>
+</div>
+{% endblock %}
 
-    </div>
-
-    <!-- JavaScript for functionality -->
-    <script src="{{ url_for('static', filename='js/sidebar.js') }}?v={{ range(100000, 999999) | random }}"></script>
-    <script src="{{ url_for('static', filename='js/supabaseAuth.js') }}?v={{ range(100000, 999999) | random }}"></script>
-</body>
-</html>
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/api-keys.js') }}?v={{ range(100000, 999999) | random }}"></script>
+{% endblock %}
