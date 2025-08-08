@@ -226,7 +226,7 @@ def calendar_list():
     
     # Load real calendar data from database
     calendar_context = {
-        'current_page': 'calendar-refined',
+        'current_page': 'calendar-list',
         'user_id': user_id,
         'personal_calendars': [],
         'shared_calendars': [],
@@ -291,12 +291,12 @@ def calendar_list():
     
     return render_template('calendar_list.html', **calendar_context)
 
-# Alternative route for calendar management
+# Alternative route for calendar management (legacy redirects)
 @app.route('/calendar-refined')
 @app.route('/calendar-management') 
 def calendar_refined():
-    """Direct access to refined calendar management"""
-    return calendar_list()
+    """Legacy route - redirect to main calendar list"""
+    return redirect('/dashboard/calendar-list')
 
 # 📅 Calendar Management API Endpoints
 @app.route('/api/calendar/create', methods=['POST'])
