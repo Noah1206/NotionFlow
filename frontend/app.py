@@ -289,7 +289,7 @@ def calendar_list():
         # Keep default empty data on error
         pass
     
-    return render_template('calendar_refined.html', **calendar_context)
+    return render_template('calendar_list.html', **calendar_context)
 
 # Alternative route for calendar management
 @app.route('/calendar-refined')
