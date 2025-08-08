@@ -3,7 +3,13 @@
 {% block title %}프로필 - NotionFlow{% endblock %}
 
 {% block head %}
-<link rel="stylesheet" href="/static/css/profile-redesign.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile-redesign.css') }}?v={{ range(1, 10000) | random }}">
+<style>
+/* Force override any existing styles */
+body {
+    background: #FFFFFF !important;
+}
+</style>
 {% endblock %}
 
 {% block content %}
