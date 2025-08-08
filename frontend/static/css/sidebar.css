@@ -26,8 +26,8 @@
     width: 240px !important;
     background: #ffffff !important;
     background-color: #ffffff !important;
-    border: 1px solid #e5e7eb !important; /* 얇은 회색 테두리 */
-    border-radius: 16px !important; /* 더 둥근 모서리 */
+    border: 2px solid #000000 !important; /* 두꺼운 검은색 테두리 */
+    border-radius: 20px !important; /* 더 둥근 모서리 */
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: fixed !important;
     top: 10px !important;
@@ -51,8 +51,8 @@ div.sidebar,
 .sidebar,
 nav.sidebar,
 aside.sidebar {
-    border: 1px solid #e5e7eb !important;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05) !important;
+    border: 2px solid #000000 !important; /* 두꺼운 검은색 테두리 */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07) !important; /* 부드러운 그림자 */
     background: #ffffff !important;
     background-color: #ffffff !important;
     opacity: 1 !important;
@@ -73,8 +73,8 @@ div.sidebar.collapsed {
     /* 가로 스크롤 완전 차단, 세로만 허용 */
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    border: 1px solid #e5e7eb !important; /* 얇은 회색 테두리 유지 */
-    border-radius: 16px !important; /* 둥근 모서리 */
+    border: 2px solid #000000 !important; /* 두꺼운 검은색 테두리 유지 */
+    border-radius: 20px !important; /* 둥근 모서리 */
     /* 접힌 상태에서도 부드러운 그림자 효과 */
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05) !important;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
@@ -748,29 +748,34 @@ span.nav-icon svg {
     left: 0 !important;
     right: 0 !important;
     height: 60px !important;
-    background: #ffffff !important;
-    border-bottom: 1px solid #e2e8f0 !important;
-    border-radius: 12px 12px 0 0 !important;
+    background: transparent !important; /* 투명 배경 */
+    border-bottom: none !important; /* border 제거 */
+    border-radius: 20px 20px 0 0 !important;
     justify-content: space-between !important;
     align-items: center !important;
-    padding: 12px 16px !important;
+    padding: 16px 20px !important;
     box-sizing: border-box !important;
     z-index: 99999 !important; /* 네비게이션보다 낮게 */
 }
 
 .expanded-toggle-btn {
-    background: #ffffff !important;
-    border: 2px solid #1e293b !important;
-    border-radius: 6px !important;
-    padding: 8px !important;
+    background: transparent !important; /* 투명 배경 */
+    border: 1px solid #d1d5db !important; /* 연한 회색 테두리 */
+    border-radius: 8px !important;
+    padding: 6px !important;
     cursor: pointer !important;
-    width: 36px !important;
-    height: 36px !important;
+    width: 32px !important;
+    height: 32px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    color: #1e293b !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    color: #6b7280 !important;
+    transition: all 0.2s ease !important;
+}
+
+.expanded-toggle-btn:hover {
+    background: #f3f4f6 !important;
+    border-color: #9ca3af !important;
 }
 
 .expanded-toggle-btn svg {
@@ -809,10 +814,10 @@ span.nav-icon svg {
 }
 
 .logo-text {
-    font-size: 1.125rem !important;
-    font-weight: 600 !important;
-    color: #1e293b !important;
-    letter-spacing: -0.02em !important;
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    color: #111827 !important;
+    letter-spacing: -0.025em !important;
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
