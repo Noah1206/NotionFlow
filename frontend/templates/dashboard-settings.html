@@ -1400,24 +1400,48 @@ font-size: 12px;
         <h2 class="section-title" data-translate="section.platform_status">플랫폼 상태</h2>
         <div class="metrics-grid">
             <div class="metric-card">
+                <div class="metric-icon events">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M17 12H7l6.5-7.5L17 12z"/>
+                        <path d="M7 12h10l-6.5 7.5L7 12z"/>
+                        <path d="M8 3h8c1.1 0 2 .9 2 2v14c0 1.1-.9 2-2 2H8c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2zm0 2v14h8V5H8zm2 2h4v2h-4V7zm0 4h4v2h-4v-2z"/>
+                    </svg>
+                </div>
                 <div class="metric-number">1,247</div>
                 <div class="metric-label">동기화된 이벤트</div>
                 <div class="metric-description">이번 달 모든 플랫폼에서 동기화된 총 이벤트 수</div>
             </div>
 
             <div class="metric-card">
+                <div class="metric-icon coverage">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                </div>
                 <div class="metric-number">60%</div>
                 <div class="metric-label">플랫폼 커버리지</div>
                 <div class="metric-description">연결된 플랫폼: Notion, Google Calendar, Apple Calendar</div>
             </div>
 
             <div class="metric-card">
+                <div class="metric-icon time-saved">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/>
+                        <path d="m12.5 7-1 0v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                    </svg>
+                </div>
                 <div class="metric-number">24.5h</div>
                 <div class="metric-label">절약된 시간</div>
                 <div class="metric-description">이번 주 자동화를 통해 절약된 예상 시간</div>
             </div>
 
             <div class="metric-card">
+                <div class="metric-icon success-rate">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
                 <div class="metric-number">92%</div>
                 <div class="metric-label">동기화 성공률</div>
                 <div class="metric-description">지난 30일간 성공적인 동기화 비율</div>
@@ -1433,7 +1457,13 @@ font-size: 12px;
         </div>
         <div class="sync-activity-content">
             <div class="sync-activity-empty">
+                <div class="chart-icon">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M3 3v18h18V3H3zm16 16H5V5h14v14zM7 17h2v-6H7v6zm4-8h2v8h-2V9zm4-2h2v10h-2V7z"/>
+                    </svg>
+                </div>
                 <p class="sync-activity-empty-text">동기화 활동 차트 시각화</p>
+                <p class="chart-subtitle">Chart.js로 구현된 인터랙티브 차트가 여기에 표시됩니다</p>
             </div>
         </div>
     </div>
