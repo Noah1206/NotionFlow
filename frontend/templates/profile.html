@@ -1,86 +1,77 @@
 {% extends "base_dashboard.html" %}
 
-{% block title %}프로필 관리 - NotionFlow{% endblock %}
+{% block title %}프로필 - NotionFlow{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="/static/css/profile-redesign.css">
+{% endblock %}
 
 {% block content %}
-<div class="profile-container">
-    <!-- 프로필 헤더 -->
-    <div class="profile-header">
-        <div class="profile-header-content">
-            <div class="profile-avatar-section">
-                <div class="profile-avatar-container">
-                    <img id="profile-avatar" src="{{ profile.avatar_url or '/static/images/default-avatar.svg' }}" alt="프로필 사진" class="profile-avatar">
-                    <div class="avatar-upload-overlay" onclick="triggerAvatarUpload()">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<div class="profile-page-container">
+    <div class="profile-minimal-container">
+        <!-- Profile Header Card -->
+        <div class="profile-header-card">
+            <div class="profile-header-left">
+                <div class="profile-avatar-wrapper">
+                    <img id="profile-avatar" 
+                         src="{{ profile.avatar_url or '/static/images/default-avatar.svg' }}" 
+                         alt="프로필 사진" 
+                         class="profile-avatar-img">
+                    <div class="profile-avatar-upload" onclick="triggerAvatarUpload()">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                             <circle cx="12" cy="13" r="4"/>
                         </svg>
                     </div>
                     <input type="file" id="avatar-upload" accept="image/*" style="display: none;" onchange="uploadAvatar()">
                 </div>
-                <div class="profile-basic-info">
-                    <h1 class="profile-display-name">{{ profile.display_name or '이름 없음' }}</h1>
+                <div class="profile-info">
+                    <h1 class="profile-name">{{ profile.display_name or '이름 없음' }}</h1>
                     <p class="profile-username">@{{ profile.username or 'username' }}</p>
-                    <span class="profile-join-date">가입일: {{ profile.created_at[:10] if profile.created_at else '알 수 없음' }}</span>
                 </div>
             </div>
-            <div class="profile-actions">
-                <button class="btn btn-primary" onclick="openEditModal()">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                        <path d="m18.5 2.5 a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                    </svg>
-                    프로필 편집
-                </button>
-            </div>
+            <button class="profile-edit-btn" onclick="openEditModal()">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="m18.5 2.5 a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                프로필 편집
+            </button>
         </div>
-    </div>
 
-    <!-- 프로필 상세 정보 -->
-    <div class="profile-details">
-        <div class="profile-section">
-            <h3 class="section-title">기본 정보</h3>
-            <div class="profile-info-grid">
-                <div class="profile-info-item">
-                    <label>사용자명</label>
-                    <div class="profile-info-value">
-                        <span class="username-display">@{{ profile.username or 'username' }}</span>
-                        <span class="info-note">고유한 사용자명으로 다른 사용자들이 찾을 수 있습니다</span>
-                    </div>
+        <!-- Basic Information Section -->
+        <div class="profile-info-section">
+            <h2 class="section-header">기본 정보</h2>
+            <div class="info-items-grid">
+                <div class="info-item">
+                    <span class="info-label">사용자명</span>
+                    <span class="info-value username-value">@{{ profile.username or 'username' }}</span>
                 </div>
-                <div class="profile-info-item">
-                    <label>표시 이름</label>
-                    <div class="profile-info-value">
-                        <span>{{ profile.display_name or '설정되지 않음' }}</span>
-                        <span class="info-note">대시보드와 공유 캘린더에 표시되는 이름입니다</span>
-                    </div>
+                <div class="info-item">
+                    <span class="info-label">표시 이름</span>
+                    <span class="info-value">{{ profile.display_name or '설정되지 않음' }}</span>
                 </div>
-                <div class="profile-info-item">
-                    <label>이메일</label>
-                    <div class="profile-info-value">
-                        <span>{{ profile.email or '설정되지 않음' }}</span>
-                        <span class="info-note">로그인과 알림에 사용되는 이메일입니다</span>
-                    </div>
+                <div class="info-item">
+                    <span class="info-label">이메일</span>
+                    <span class="info-value">{{ profile.email or '설정되지 않음' }}</span>
                 </div>
-                <div class="profile-info-item">
-                    <label>소개</label>
-                    <div class="profile-info-value">
-                        <span>{{ profile.bio or '소개가 없습니다' }}</span>
-                        <span class="info-note">자신을 소개하는 간단한 메시지입니다</span>
-                    </div>
+                <div class="info-item">
+                    <span class="info-label">소개</span>
+                    <span class="info-value">{{ profile.bio or '소개가 없습니다' }}</span>
                 </div>
             </div>
         </div>
 
-        <div class="profile-section">
-            <h3 class="section-title">개인정보 설정</h3>
-            <div class="profile-privacy">
-                <div class="privacy-option">
-                    <div class="privacy-info">
+        <!-- Privacy Settings Section -->
+        <div class="profile-info-section">
+            <h2 class="section-header">개인정보 설정</h2>
+            <div class="privacy-settings">
+                <div class="privacy-item">
+                    <div class="privacy-item-info">
                         <h4>공개 프로필</h4>
                         <p>다른 사용자들이 내 프로필을 볼 수 있습니다</p>
                     </div>
-                    <label class="privacy-toggle">
+                    <label class="toggle-switch">
                         <input type="checkbox" id="is-public" {{ 'checked' if profile.is_public else '' }}>
                         <span class="toggle-slider"></span>
                     </label>
@@ -90,598 +81,74 @@
     </div>
 </div>
 
-<!-- 프로필 편집 모달 -->
-<div id="edit-profile-modal" class="modal-overlay" style="display: none;">
-    <div class="modal-container">
-        <div class="modal-header">
-            <h2>프로필 편집</h2>
-            <button class="modal-close" onclick="closeEditModal()">×</button>
+<!-- Edit Profile Modal -->
+<div id="edit-profile-modal" class="profile-modal-overlay" style="display: none;">
+    <div class="profile-modal">
+        <div class="profile-modal-header">
+            <h2 class="profile-modal-title">프로필 편집</h2>
+            <button class="profile-modal-close" onclick="closeEditModal()">×</button>
         </div>
-        <form id="profile-form" class="modal-body">
-            <div class="form-group">
-                <label for="edit-username">사용자명</label>
-                <div class="username-input-container">
-                    <span class="username-prefix">@</span>
-                    <input type="text" id="edit-username" name="username" value="{{ profile.username or '' }}" 
-                           placeholder="사용자명 입력" maxlength="20" pattern="[a-zA-Z0-9_]{3,20}">
-                    <button type="button" class="btn-check-username" onclick="checkUsername()">중복 확인</button>
+        <form id="profile-form" class="profile-modal-body">
+            <div class="profile-form-group">
+                <label class="profile-form-label" for="edit-username">사용자명</label>
+                <div class="profile-username-group">
+                    <span class="profile-username-prefix">@</span>
+                    <input type="text" 
+                           id="edit-username" 
+                           name="username" 
+                           class="profile-form-input"
+                           value="{{ profile.username or '' }}" 
+                           placeholder="사용자명 입력" 
+                           maxlength="20" 
+                           pattern="[a-zA-Z0-9_]{3,20}"
+                           style="flex: 1;">
+                    <button type="button" class="profile-check-btn" onclick="checkUsername()">중복 확인</button>
                 </div>
-                <div id="username-feedback" class="input-feedback"></div>
-                <div class="form-help">3-20자, 영문/숫자/언더스코어만 사용 가능</div>
+                <div id="username-feedback" class="profile-form-help"></div>
+                <div class="profile-form-help">3-20자, 영문/숫자/언더스코어만 사용 가능</div>
             </div>
 
-            <div class="form-group">
-                <label for="edit-display-name">표시 이름</label>
-                <input type="text" id="edit-display-name" name="display_name" value="{{ profile.display_name or '' }}" 
-                       placeholder="표시 이름 입력" maxlength="50">
-                <div class="form-help">대시보드에 표시될 이름입니다</div>
+            <div class="profile-form-group">
+                <label class="profile-form-label" for="edit-display-name">표시 이름</label>
+                <input type="text" 
+                       id="edit-display-name" 
+                       name="display_name" 
+                       class="profile-form-input"
+                       value="{{ profile.display_name or '' }}" 
+                       placeholder="표시 이름 입력" 
+                       maxlength="50">
+                <div class="profile-form-help">대시보드에 표시될 이름입니다</div>
             </div>
 
-            <div class="form-group">
-                <label for="edit-bio">소개</label>
-                <textarea id="edit-bio" name="bio" placeholder="자신을 간단히 소개해주세요" 
-                         maxlength="500" rows="4">{{ profile.bio or '' }}</textarea>
-                <div class="form-help">최대 500자까지 입력할 수 있습니다</div>
+            <div class="profile-form-group">
+                <label class="profile-form-label" for="edit-bio">소개</label>
+                <textarea id="edit-bio" 
+                          name="bio" 
+                          class="profile-form-textarea"
+                          placeholder="자신을 간단히 소개해주세요" 
+                          maxlength="500" 
+                          rows="4">{{ profile.bio or '' }}</textarea>
+                <div class="profile-form-help">최대 500자까지 입력할 수 있습니다</div>
             </div>
 
-            <div class="form-group">
-                <label class="checkbox-label">
+            <div class="profile-form-group">
+                <label class="toggle-switch" style="display: inline-flex; align-items: center; gap: 12px; cursor: pointer;">
                     <input type="checkbox" id="edit-is-public" name="is_public" {{ 'checked' if profile.is_public else '' }}>
-                    <span class="checkbox-custom"></span>
-                    공개 프로필로 설정
+                    <span class="toggle-slider"></span>
+                    <span style="font-size: 14px; color: var(--text-primary);">공개 프로필로 설정</span>
                 </label>
-                <div class="form-help">다른 사용자들이 내 프로필을 볼 수 있습니다</div>
+                <div class="profile-form-help">다른 사용자들이 내 프로필을 볼 수 있습니다</div>
             </div>
         </form>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="closeEditModal()">취소</button>
-            <button type="button" class="btn btn-primary" onclick="saveProfile()">
+        <div class="profile-modal-footer">
+            <button type="button" class="profile-btn profile-btn-secondary" onclick="closeEditModal()">취소</button>
+            <button type="button" class="profile-btn profile-btn-primary" onclick="saveProfile()">
                 <span class="btn-text">저장</span>
-                <span class="btn-loading" style="display: none;">
-                    <svg class="loading-spinner" width="16" height="16" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2" 
-                               stroke-linecap="round" stroke-dasharray="31.416" stroke-dashoffset="31.416">
-                            <animate attributeName="stroke-dasharray" dur="2s" values="0 31.416;15.708 15.708;0 31.416" repeatCount="indefinite"/>
-                            <animate attributeName="stroke-dashoffset" dur="2s" values="0;-15.708;-31.416" repeatCount="indefinite"/>
-                        </circle>
-                    </svg>
-                    저장 중...
-                </span>
+                <span class="btn-loading" style="display: none;">저장 중...</span>
             </button>
         </div>
     </div>
 </div>
-
-<style>
-.profile-container {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 2rem;
-    background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
-    min-height: calc(100vh - 4rem);
-}
-
-.profile-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 16px;
-    padding: 3rem 2rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-    position: relative;
-    overflow: hidden;
-}
-
-.profile-header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 200px;
-    height: 200px;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-    border-radius: 50%;
-    transform: translate(50px, -50px);
-}
-
-.profile-header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 2rem;
-    position: relative;
-    z-index: 1;
-}
-
-.profile-avatar-section {
-    display: flex;
-    gap: 1.5rem;
-    align-items: center;
-}
-
-.profile-avatar-container {
-    position: relative;
-}
-
-.profile-avatar {
-    width: 130px;
-    height: 130px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 4px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-    transition: transform 0.3s ease;
-}
-
-.profile-avatar:hover {
-    transform: scale(1.05);
-}
-
-.avatar-upload-overlay {
-    position: absolute;
-    bottom: 5px;
-    right: 5px;
-    width: 42px;
-    height: 42px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: white;
-    transition: all 0.3s ease;
-    border: 3px solid rgba(255, 255, 255, 0.9);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.avatar-upload-overlay:hover {
-    background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
-    transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-}
-
-.profile-basic-info h1 {
-    margin: 0 0 0.5rem 0;
-    font-size: 2.2rem;
-    font-weight: 700;
-    color: white;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.profile-username {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 1.1rem;
-    margin: 0 0 0.5rem 0;
-    font-weight: 500;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 0.3rem 0.8rem;
-    border-radius: 20px;
-    display: inline-block;
-}
-
-.profile-join-date {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 0.9rem;
-}
-
-.profile-actions .btn {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    border-radius: 25px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    background: rgba(255, 255, 255, 0.95);
-    color: #667eea;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.profile-actions .btn:hover {
-    background: white;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-    border-color: rgba(255, 255, 255, 0.8);
-}
-
-.profile-details {
-    display: grid;
-    gap: 2rem;
-}
-
-.profile-section {
-    background: white;
-    border-radius: 16px;
-    padding: 2.5rem;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(102, 126, 234, 0.08);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.profile-section:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
-}
-
-.section-title {
-    margin: 0 0 2rem 0;
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #1a1a1a;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.section-title::before {
-    content: '';
-    width: 4px;
-    height: 24px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 2px;
-}
-
-.profile-info-grid {
-    display: grid;
-    gap: 1.5rem;
-}
-
-.profile-info-item {
-    display: grid;
-    grid-template-columns: 120px 1fr;
-    gap: 1rem;
-    align-items: start;
-}
-
-.profile-info-item label {
-    font-weight: 500;
-    color: #333;
-    padding-top: 0.25rem;
-}
-
-.profile-info-value {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.profile-info-value > span:first-child {
-    font-weight: 500;
-    color: #1a1a1a;
-}
-
-.info-note {
-    font-size: 0.85rem;
-    color: #666;
-    line-height: 1.4;
-}
-
-.username-display {
-    color: #4285f4 !important;
-    font-family: 'Monaco', 'Menlo', monospace;
-}
-
-.profile-privacy {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.privacy-option {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    border: 1px solid #e5e5e5;
-    border-radius: 8px;
-}
-
-.privacy-info h4 {
-    margin: 0 0 0.25rem 0;
-    font-size: 1rem;
-    font-weight: 500;
-}
-
-.privacy-info p {
-    margin: 0;
-    color: #666;
-    font-size: 0.9rem;
-}
-
-.privacy-toggle {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 24px;
-}
-
-.privacy-toggle input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.toggle-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: 0.3s;
-    border-radius: 24px;
-}
-
-.toggle-slider:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: 0.3s;
-    border-radius: 50%;
-}
-
-.privacy-toggle input:checked + .toggle-slider {
-    background-color: #4285f4;
-}
-
-.privacy-toggle input:checked + .toggle-slider:before {
-    transform: translateX(26px);
-}
-
-/* 모달 스타일 */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10000;
-}
-
-.modal-container {
-    background: white;
-    border-radius: 12px;
-    max-width: 500px;
-    width: 90%;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem 2rem;
-    border-bottom: 1px solid #e5e5e5;
-}
-
-.modal-header h2 {
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: 600;
-}
-
-.modal-close {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #666;
-    padding: 0.5rem;
-    line-height: 1;
-}
-
-.modal-body {
-    padding: 2rem;
-}
-
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    padding: 1.5rem 2rem;
-    border-top: 1px solid #e5e5e5;
-}
-
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-    color: #333;
-}
-
-.form-group input,
-.form-group textarea {
-    width: 100%;
-    padding: 0.75rem;
-    border: 2px solid #e5e5e5;
-    border-radius: 6px;
-    font-size: 1rem;
-    transition: border-color 0.2s ease;
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
-    outline: none;
-    border-color: #4285f4;
-}
-
-.username-input-container {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.username-prefix {
-    font-weight: 500;
-    color: #666;
-    font-size: 1rem;
-}
-
-.username-input-container input {
-    flex: 1;
-}
-
-.btn-check-username {
-    padding: 0.5rem 1rem;
-    background: #f0f0f0;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    white-space: nowrap;
-}
-
-.btn-check-username:hover {
-    background: #e5e5e5;
-}
-
-.input-feedback {
-    margin-top: 0.5rem;
-    font-size: 0.9rem;
-    font-weight: 500;
-}
-
-.input-feedback.success {
-    color: #10b981;
-}
-
-.input-feedback.error {
-    color: #ef4444;
-}
-
-.form-help {
-    margin-top: 0.25rem;
-    font-size: 0.85rem;
-    color: #666;
-}
-
-.checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    cursor: pointer;
-    margin-bottom: 0 !important;
-}
-
-.checkbox-custom {
-    width: 20px;
-    height: 20px;
-    border: 2px solid #ddd;
-    border-radius: 4px;
-    position: relative;
-    transition: all 0.2s ease;
-}
-
-.checkbox-label input:checked + .checkbox-custom {
-    background: #4285f4;
-    border-color: #4285f4;
-}
-
-.checkbox-label input:checked + .checkbox-custom::after {
-    content: '✓';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    font-size: 0.8rem;
-    font-weight: bold;
-}
-
-.checkbox-label input {
-    display: none;
-}
-
-.btn {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 6px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.btn-primary {
-    background: #4285f4;
-    color: white;
-}
-
-.btn-primary:hover {
-    background: #3367d6;
-}
-
-.btn-secondary {
-    background: #f0f0f0;
-    color: #333;
-}
-
-.btn-secondary:hover {
-    background: #e5e5e5;
-}
-
-.loading-spinner {
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-/* 반응형 */
-@media (max-width: 768px) {
-    .profile-container {
-        padding: 1rem;
-    }
-    
-    .profile-header-content {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-    }
-    
-    .profile-avatar-section {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .profile-info-item {
-        grid-template-columns: 1fr;
-        gap: 0.5rem;
-    }
-    
-    .modal-container {
-        width: 95%;
-    }
-    
-    .modal-body,
-    .modal-header,
-    .modal-footer {
-        padding: 1rem;
-    }
-}
-</style>
 
 <script>
 let usernameCheckTimeout;
@@ -729,13 +196,13 @@ async function uploadAvatar() {
                 sidebarAvatar.src = result.avatar_url;
             }
             
-            alert('프로필 사진이 업데이트되었습니다.');
+            showToast('프로필 사진이 업데이트되었습니다.', 'success');
         } else {
-            alert(result.error || '아바타 업로드에 실패했습니다.');
+            showToast(result.error || '아바타 업로드에 실패했습니다.', 'error');
         }
     } catch (error) {
         console.error('Avatar upload error:', error);
-        alert('아바타 업로드 중 오류가 발생했습니다.');
+        showToast('아바타 업로드 중 오류가 발생했습니다.', 'error');
     }
 }
 
@@ -747,7 +214,7 @@ function closeEditModal() {
     document.getElementById('edit-profile-modal').style.display = 'none';
     // 피드백 초기화
     document.getElementById('username-feedback').innerHTML = '';
-    document.getElementById('username-feedback').className = 'input-feedback';
+    document.getElementById('username-feedback').className = 'profile-form-help';
 }
 
 async function checkUsername() {
@@ -757,14 +224,14 @@ async function checkUsername() {
     
     if (!username) {
         feedback.innerHTML = '';
-        feedback.className = 'input-feedback';
+        feedback.className = 'profile-form-help';
         return;
     }
     
     // 형식 체크
     if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
         feedback.innerHTML = '3-20자의 영문, 숫자, 언더스코어만 사용 가능합니다.';
-        feedback.className = 'input-feedback error';
+        feedback.style.color = '#EF4444';
         return;
     }
     
@@ -781,15 +248,15 @@ async function checkUsername() {
         
         if (result.available) {
             feedback.innerHTML = result.message;
-            feedback.className = 'input-feedback success';
+            feedback.style.color = '#10B981';
         } else {
             feedback.innerHTML = result.message;
-            feedback.className = 'input-feedback error';
+            feedback.style.color = '#EF4444';
         }
     } catch (error) {
         console.error('Username check error:', error);
         feedback.innerHTML = '사용자명 확인 중 오류가 발생했습니다.';
-        feedback.className = 'input-feedback error';
+        feedback.style.color = '#EF4444';
     }
 }
 
@@ -802,17 +269,48 @@ document.addEventListener('DOMContentLoaded', function() {
             usernameCheckTimeout = setTimeout(checkUsername, 500);
         });
     }
+    
+    // 개인정보 설정 토글
+    const publicToggle = document.getElementById('is-public');
+    if (publicToggle) {
+        publicToggle.addEventListener('change', async function() {
+            try {
+                const response = await fetch('/api/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        is_public: this.checked
+                    })
+                });
+                
+                const result = await response.json();
+                if (!result.success) {
+                    // 실패시 원래 상태로 되돌리기
+                    this.checked = !this.checked;
+                    showToast(result.error || '설정 변경에 실패했습니다.', 'error');
+                } else {
+                    showToast('개인정보 설정이 변경되었습니다.', 'success');
+                }
+            } catch (error) {
+                console.error('Privacy setting error:', error);
+                this.checked = !this.checked;
+                showToast('설정 변경 중 오류가 발생했습니다.', 'error');
+            }
+        });
+    }
 });
 
 async function saveProfile() {
     const form = document.getElementById('profile-form');
-    const saveBtn = document.querySelector('.modal-footer .btn-primary');
+    const saveBtn = document.querySelector('.profile-btn-primary');
     const btnText = saveBtn.querySelector('.btn-text');
     const btnLoading = saveBtn.querySelector('.btn-loading');
     
     // 로딩 상태
     btnText.style.display = 'none';
-    btnLoading.style.display = 'flex';
+    btnLoading.style.display = 'inline';
     saveBtn.disabled = true;
     
     try {
@@ -838,11 +336,11 @@ async function saveProfile() {
             // 페이지 새로고침하여 업데이트된 정보 표시
             window.location.reload();
         } else {
-            alert(result.error || '프로필 업데이트에 실패했습니다.');
+            showToast(result.error || '프로필 업데이트에 실패했습니다.', 'error');
         }
     } catch (error) {
         console.error('Profile save error:', error);
-        alert('프로필 저장 중 오류가 발생했습니다.');
+        showToast('프로필 저장 중 오류가 발생했습니다.', 'error');
     } finally {
         // 로딩 상태 해제
         btnText.style.display = 'inline';
@@ -851,35 +349,52 @@ async function saveProfile() {
     }
 }
 
-// 개인정보 설정 토글
-document.addEventListener('DOMContentLoaded', function() {
-    const publicToggle = document.getElementById('is-public');
-    if (publicToggle) {
-        publicToggle.addEventListener('change', async function() {
-            try {
-                const response = await fetch('/api/profile', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        is_public: this.checked
-                    })
-                });
-                
-                const result = await response.json();
-                if (!result.success) {
-                    // 실패시 원래 상태로 되돌리기
-                    this.checked = !this.checked;
-                    alert(result.error || '설정 변경에 실패했습니다.');
-                }
-            } catch (error) {
-                console.error('Privacy setting error:', error);
-                this.checked = !this.checked;
-                alert('설정 변경 중 오류가 발생했습니다.');
-            }
-        });
+// Simple toast notification function
+function showToast(message, type = 'info') {
+    // Create toast element if it doesn't exist
+    let toast = document.getElementById('profile-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'profile-toast';
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 10001;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
+        `;
+        document.body.appendChild(toast);
     }
-});
+    
+    // Set colors based on type
+    const colors = {
+        success: { bg: '#10B981', text: '#FFFFFF' },
+        error: { bg: '#EF4444', text: '#FFFFFF' },
+        info: { bg: '#2563EB', text: '#FFFFFF' }
+    };
+    
+    const color = colors[type] || colors.info;
+    toast.style.backgroundColor = color.bg;
+    toast.style.color = color.text;
+    toast.textContent = message;
+    
+    // Show toast
+    setTimeout(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+    }, 10);
+    
+    // Hide toast after 3 seconds
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(20px)';
+    }, 3000);
+}
 </script>
 {% endblock %}
