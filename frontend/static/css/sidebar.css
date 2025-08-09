@@ -27,9 +27,9 @@
 
 /* 사이드바 축소 상태 */
 .sidebar.collapsed {
-    width: 50px !important;
-    min-width: 50px !important;
-    max-width: 50px !important;
+    width: 60px !important;
+    min-width: 60px !important;
+    max-width: 60px !important;
 }
 
 /* 🚨 펼쳐진 상태 헤더 */
@@ -173,6 +173,11 @@
     padding: 0 12px;
 }
 
+/* 접힌 상태에서 네비게이션 패딩 조정 */
+.sidebar.collapsed .sidebar-main-nav {
+    padding: 0 8px;
+}
+
 /* 네비게이션 섹션 */
 .nav-section {
     margin-bottom: 8px;
@@ -234,15 +239,14 @@
 
 /* 접힌 상태에서 레이블 숨기기 */
 .sidebar.collapsed .nav-label {
-    opacity: 0;
-    width: 0;
-    overflow: hidden;
+    display: none;
 }
 
 .sidebar.collapsed .nav-item {
     justify-content: center;
-    padding: 12px 8px;
-    margin: 2px 4px;
+    padding: 12px 4px;
+    margin: 2px 0;
+    width: 100%;
 }
 
 /* 프로필 네비게이션 아이템 */
@@ -287,6 +291,12 @@
     border-radius: 8px;
     text-transform: uppercase;
     letter-spacing: 0.025em;
+}
+
+/* 접힌 상태에서 배지 숨기기 */
+.sidebar.collapsed .count-badge,
+.sidebar.collapsed .premium-badge {
+    display: none;
 }
 
 /* 스크롤바 스타일 */
@@ -341,7 +351,7 @@
 /* 사이드바가 접혔을 때 메인 콘텐츠 조정을 위한 CSS 변수 */
 :root {
     --sidebar-width: 240px;
-    --sidebar-collapsed-width: 50px;
+    --sidebar-collapsed-width: 60px;
     --sidebar-gap: 16px;
 }
 
