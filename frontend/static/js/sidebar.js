@@ -143,13 +143,11 @@ class SidebarManager {
             }
         }
         
-        // body 클래스 관리 - 캘린더 페이지에서 사이드바 상태 반영
-        if (document.body.classList.contains('calendar-page')) {
-            if (this.sidebar.classList.contains('collapsed')) {
-                document.body.classList.add('sidebar-collapsed');
-            } else {
-                document.body.classList.remove('sidebar-collapsed');
-            }
+        // body 클래스 관리 - 모든 대시보드 페이지에서 사이드바 상태 반영
+        if (this.sidebar.classList.contains('collapsed')) {
+            document.body.classList.add('sidebar-collapsed');
+        } else {
+            document.body.classList.remove('sidebar-collapsed');
         }
         
         // 토글 아이콘 업데이트
@@ -342,10 +340,8 @@ class SidebarManager {
                 sidebarContainer.classList.add('sidebar-collapsed');
             }
             
-            // body 클래스 관리 - 캘린더 페이지에서 사이드바 상태 반영
-            if (document.body.classList.contains('calendar-page')) {
-                document.body.classList.add('sidebar-collapsed');
-            }
+            // body 클래스 관리 - 모든 대시보드 페이지에서 사이드바 상태 반영
+            document.body.classList.add('sidebar-collapsed');
         }
     }
 
