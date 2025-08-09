@@ -70,8 +70,8 @@
 
         /* 사이드바 축소 시 메인 콘텐츠 조정 - sidebar.js가 처리 */
         body.sidebar-collapsed .main-content {
-            left: 88px !important;
-            width: calc(100vw - 98px) !important;
+            left: 80px !important;  /* 60px (collapsed width) + 20px (gap) */
+            width: calc(100vw - 90px) !important;  /* 100vw - (60px + 20px + 10px margin) */
         }
         
         /* 모든 섹션과 콘텐츠가 최대 너비를 사용하도록 */
