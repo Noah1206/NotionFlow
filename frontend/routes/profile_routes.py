@@ -208,6 +208,81 @@ def upload_avatar():
         print(f"Error uploading avatar: {e}")
         return jsonify({'error': 'Failed to upload avatar'}), 500
 
+@profile_bp.route('/api/profile/initial-setup', methods=['POST'])
+@require_auth
+def initial_setup():
+    """초기 설정 - 이름과 생년월일 저장"""
+    try:
+        user_id = AuthManager.get_current_user_id()
+        if not user_id:
+            return jsonify({'error': 'User not authenticated'}), 401
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        # 필수 필드 체크
+        display_name = data.get('display_name', '').strip()
+        birthdate = data.get('birthdate', '').strip()
+        
+        if not display_name or not birthdate:
+            return jsonify({'error': 'Name and birthdate are required'}), 400
+        
+        # 선택 필드
+        email = data.get('email', '').strip() if data.get('email') else None
+        
+        # 이메일 형식 검증 (제공된 경우)
+        if email:
+            import re
+            email_pattern = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
+            if not re.match(email_pattern, email):
+                return jsonify({'error': 'Invalid email format'}), 400
+        
+        # 데이터베이스 연결
+        from supabase import create_client
+        SUPABASE_URL = os.getenv('SUPABASE_URL')
+        SUPABASE_KEY = os.getenv('SUPABASE_API_KEY')
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        
+        # 프로필 업데이트 또는 생성
+        profile_data = {
+            'display_name': display_name,
+            'birthdate': birthdate,
+            'updated_at': datetime.now().isoformat()
+        }
+        
+        if email:
+            profile_data['email'] = email
+        
+        # 기존 프로필 확인
+        existing = supabase.table('user_profiles').select('id').eq('user_id', user_id).execute()
+        
+        if existing.data:
+            # 업데이트
+            result = supabase.table('user_profiles').update(profile_data).eq('user_id', user_id).execute()
+        else:
+            # 새로 생성
+            profile_data['user_id'] = user_id
+            profile_data['username'] = f'user_{user_id[:8]}'
+            profile_data['bio'] = ''
+            profile_data['is_public'] = False
+            profile_data['created_at'] = datetime.now().isoformat()
+            
+            result = supabase.table('user_profiles').insert(profile_data).execute()
+        
+        if result.data:
+            return jsonify({
+                'success': True,
+                'message': 'Initial setup completed successfully',
+                'profile': result.data[0]
+            })
+        else:
+            return jsonify({'error': 'Failed to save initial setup'}), 500
+            
+    except Exception as e:
+        print(f"Error in initial setup: {e}")
+        return jsonify({'error': 'Failed to complete initial setup'}), 500
+
 @profile_bp.route('/api/profile/email', methods=['PUT'])
 @require_auth
 def update_email():

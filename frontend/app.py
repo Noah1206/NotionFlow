@@ -1,7 +1,8 @@
 import os
 import re
 import sys
-from datetime import datetime
+import datetime
+from datetime import datetime as dt
 from flask import Flask, render_template, redirect, url_for, request, jsonify, session
 from dotenv import load_dotenv
 
@@ -146,6 +147,32 @@ else:
 # Import User Profile Management Functions
 from utils.user_profile_manager import UserProfileManager
 
+# Import AuthManager for profile operations
+try:
+    from utils.auth_manager import AuthManager
+except ImportError:
+    AuthManager = None
+    print("⚠️ AuthManager not available")
+
+def get_dashboard_context(user_id, current_page='dashboard'):
+    """Get common dashboard context including user profile"""
+    context = {
+        'current_page': current_page,
+        'user_id': user_id,
+        'profile': None,
+        'current_date': datetime.date.today().isoformat()
+    }
+    
+    # Get user profile if AuthManager is available
+    if AuthManager:
+        try:
+            profile = AuthManager.get_user_profile(user_id)
+            context['profile'] = profile
+        except Exception as e:
+            print(f"Error loading user profile: {e}")
+    
+    return context
+
 # 🏠 Basic Routes
 @app.route('/')
 def index():
@@ -224,14 +251,15 @@ def calendar_list():
     if not user_id:
         return redirect('/login?from=calendar-list')
     
-    # Load real calendar data from database
-    calendar_context = {
-        'current_page': 'calendar-list',
-        'user_id': user_id,
+    # Get common dashboard context including profile
+    calendar_context = get_dashboard_context(user_id, 'calendar-list')
+    
+    # Add calendar-specific data
+    calendar_context.update({
         'personal_calendars': [],
         'shared_calendars': [],
         'summary': {'total_calendars': 0, 'personal_calendars': 0, 'shared_calendars': 0}
-    }
+    })
     
     try:
         # Get user's actual calendar data from database
@@ -419,13 +447,14 @@ def dashboard_api_keys():
     if not user_id:
         return redirect('/login?from=dashboard')
     
-    # Load API keys data
-    dashboard_context = {
-        'current_page': 'api-keys',
-        'user_id': user_id,
+    # Get common dashboard context including profile
+    dashboard_context = get_dashboard_context(user_id, 'api-keys')
+    
+    # Add API keys specific data
+    dashboard_context.update({
         'platforms': {},
         'summary': {'total_platforms': 5, 'configured_platforms': 0, 'enabled_platforms': 0}
-    }
+    })
     
     try:
         from utils.dashboard_data import dashboard_data
@@ -451,14 +480,16 @@ def dashboard_settings():
     if not user_id:
         return redirect('/login?from=dashboard')
     
-    # Load settings data
-    dashboard_context = {
-        'current_page': 'settings',
+    # Get common dashboard context including profile
+    dashboard_context = get_dashboard_context(user_id, 'settings')
+    
+    # Add settings specific data
+    dashboard_context.update({
         'encrypted_email': None,
         'user_profile': None,
         'platforms': {},
         'sync_status': {}
-    }
+    })
     
     if user_id:
         try:

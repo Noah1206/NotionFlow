@@ -21,6 +21,134 @@
     {% block extra_css %}{% endblock %}
     
     <style>
+        /* Initial Setup Modal Styles */
+        .setup-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            backdrop-filter: blur(4px);
+        }
+        
+        .setup-modal {
+            background: #FFFFFF;
+            border-radius: 16px;
+            max-width: 480px;
+            width: 90%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+        
+        .setup-modal-header {
+            padding: 32px 32px 24px;
+            text-align: center;
+            border-bottom: 1px solid #F0F0F0;
+        }
+        
+        .setup-welcome-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #000000;
+            margin: 0 0 8px 0;
+            letter-spacing: -0.02em;
+        }
+        
+        .setup-welcome-subtitle {
+            font-size: 16px;
+            color: #6B7280;
+            margin: 0;
+        }
+        
+        .setup-modal-body {
+            padding: 32px;
+        }
+        
+        .setup-form-group {
+            margin-bottom: 24px;
+        }
+        
+        .setup-form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #000000;
+            margin-bottom: 8px;
+        }
+        
+        .setup-form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #E5E5E5;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            background: #FFFFFF;
+        }
+        
+        .setup-form-input:focus {
+            outline: none;
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .setup-form-help {
+            font-size: 13px;
+            color: #9CA3AF;
+            margin-top: 6px;
+        }
+        
+        .setup-modal-footer {
+            display: flex;
+            gap: 12px;
+            padding: 24px 32px 32px;
+            justify-content: flex-end;
+        }
+        
+        .setup-btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            min-width: 100px;
+        }
+        
+        .setup-btn-skip {
+            background: #FFFFFF;
+            color: #6B7280;
+            border: 1px solid #E5E5E5;
+        }
+        
+        .setup-btn-skip:hover {
+            background: #F9FAFB;
+            color: #000000;
+        }
+        
+        .setup-btn-primary {
+            background: #3B82F6;
+            color: #FFFFFF;
+        }
+        
+        .setup-btn-primary:hover {
+            background: #2563EB;
+        }
+        
+        .setup-btn-primary:disabled {
+            background: #9CA3AF;
+            cursor: not-allowed;
+        }
+    </style>
+    
+    <style>
         /* 🌟 Reset & Base */
         * {
             margin: 0;
@@ -199,6 +327,61 @@
         </main>
     </div>
 
+    <!-- Initial Setup Modal -->
+    {% if not profile or not profile.display_name or not profile.birthdate %}
+    <div id="initial-setup-modal" class="setup-modal-overlay" style="display: none;">
+        <div class="setup-modal">
+            <div class="setup-modal-header">
+                <h2 class="setup-welcome-title">NotionFlow에 오신 것을 환영합니다! 👋</h2>
+                <p class="setup-welcome-subtitle">시작하기 전에 간단한 정보를 입력해주세요</p>
+            </div>
+            <form id="initial-setup-form" class="setup-modal-body">
+                <div class="setup-form-group">
+                    <label class="setup-form-label" for="setup-name">이름</label>
+                    <input type="text" 
+                           id="setup-name" 
+                           name="display_name" 
+                           class="setup-form-input"
+                           placeholder="홍길동" 
+                           value="{{ profile.display_name if profile and profile.display_name else '' }}"
+                           required>
+                    <div class="setup-form-help">대시보드에 표시될 이름입니다</div>
+                </div>
+                
+                <div class="setup-form-group">
+                    <label class="setup-form-label" for="setup-birthdate">생년월일</label>
+                    <input type="date" 
+                           id="setup-birthdate" 
+                           name="birthdate" 
+                           class="setup-form-input"
+                           value="{{ profile.birthdate if profile and profile.birthdate else '' }}"
+                           max="{{ current_date }}"
+                           required>
+                    <div class="setup-form-help">캘린더 일정 추천에 사용됩니다</div>
+                </div>
+                
+                <div class="setup-form-group">
+                    <label class="setup-form-label" for="setup-email">이메일 (선택)</label>
+                    <input type="email" 
+                           id="setup-email" 
+                           name="email" 
+                           class="setup-form-input"
+                           placeholder="example@email.com"
+                           value="{{ profile.email if profile and profile.email else '' }}">
+                    <div class="setup-form-help">알림 및 공유 기능에 사용됩니다</div>
+                </div>
+            </form>
+            <div class="setup-modal-footer">
+                <button type="button" class="setup-btn setup-btn-skip" onclick="skipInitialSetup()">나중에 하기</button>
+                <button type="button" class="setup-btn setup-btn-primary" onclick="saveInitialSetup()">
+                    <span class="btn-text">시작하기</span>
+                    <span class="btn-loading" style="display: none;">저장 중...</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Core JavaScript -->
     <script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
     <script src="{{ url_for('static', filename='js/theme-manager.js') }}"></script>
@@ -208,7 +391,77 @@
         document.addEventListener('DOMContentLoaded', function () {
             // 사이드바 매니저가 모든 포지셔닝을 처리하므로 여기서는 기본 초기화만
             console.log('✅ Dashboard initialized - sidebar handled by sidebar.js');
+            
+            // Show initial setup modal if needed
+            {% if not profile or not profile.display_name or not profile.birthdate %}
+            const setupModal = document.getElementById('initial-setup-modal');
+            if (setupModal && !sessionStorage.getItem('setup_skipped')) {
+                setTimeout(() => {
+                    setupModal.style.display = 'flex';
+                }, 500);
+            }
+            {% endif %}
         });
+        
+        async function saveInitialSetup() {
+            const form = document.getElementById('initial-setup-form');
+            const saveBtn = document.querySelector('.setup-btn-primary');
+            const btnText = saveBtn.querySelector('.btn-text');
+            const btnLoading = saveBtn.querySelector('.btn-loading');
+            
+            // Get form data
+            const formData = new FormData(form);
+            const data = {
+                display_name: formData.get('display_name'),
+                birthdate: formData.get('birthdate'),
+                email: formData.get('email')
+            };
+            
+            // Validation
+            if (!data.display_name || !data.birthdate) {
+                alert('이름과 생년월일은 필수 입력 항목입니다.');
+                return;
+            }
+            
+            // Loading state
+            btnText.style.display = 'none';
+            btnLoading.style.display = 'inline';
+            saveBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/profile/initial-setup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Close modal and refresh page
+                    document.getElementById('initial-setup-modal').style.display = 'none';
+                    sessionStorage.removeItem('setup_skipped');
+                    window.location.reload();
+                } else {
+                    alert(result.error || '설정 저장에 실패했습니다.');
+                }
+            } catch (error) {
+                console.error('Initial setup error:', error);
+                alert('설정 저장 중 오류가 발생했습니다.');
+            } finally {
+                // Reset loading state
+                btnText.style.display = 'inline';
+                btnLoading.style.display = 'none';
+                saveBtn.disabled = false;
+            }
+        }
+        
+        function skipInitialSetup() {
+            document.getElementById('initial-setup-modal').style.display = 'none';
+            sessionStorage.setItem('setup_skipped', 'true');
+        }
     </script>
 
     <!-- 페이지별 JavaScript -->
