@@ -14,7 +14,7 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', system-ui, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #F5F5F5;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -27,14 +27,15 @@
             border-radius: 20px;
             max-width: 500px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            border: 1px solid #E5E5E5;
             overflow: hidden;
         }
         
         .setup-header {
             padding: 40px 40px 32px;
             text-align: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #000000;
             color: white;
         }
         
@@ -70,7 +71,7 @@
         
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            background: #000000;
             width: 30%;
             transition: width 0.3s ease;
         }
@@ -105,8 +106,8 @@
         
         .form-input:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #000000;
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
         }
         
         .form-help {
@@ -145,13 +146,14 @@
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #000000;
             color: #FFFFFF;
         }
         
         .btn-primary:hover {
+            background: #1F2937;
             transform: translateY(-1px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
         }
         
         .btn-primary:disabled {
