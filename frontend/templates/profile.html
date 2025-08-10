@@ -34,32 +34,50 @@ body {
     <div class="profile-minimal-container">
         <!-- Profile Header Card -->
         <div class="profile-header-card">
-            <div class="profile-header-left">
-                <div class="profile-avatar-wrapper">
-                    <img id="profile-avatar" 
-                         src="{{ profile.avatar_url or '/static/images/default-avatar.svg' }}" 
-                         alt="프로필 사진" 
-                         class="profile-avatar-img">
-                    <div class="profile-avatar-upload" onclick="triggerAvatarUpload()">
-                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                            <circle cx="12" cy="13" r="4"/>
-                        </svg>
+            <div class="profile-top-section">
+                <div class="profile-avatar-section">
+                    <div class="profile-avatar-wrapper">
+                        <img id="profile-avatar" 
+                             src="{{ profile.avatar_url or '/static/images/default-avatar.svg' }}" 
+                             alt="프로필 사진" 
+                             class="profile-avatar-img">
+                        <div class="profile-avatar-upload" onclick="triggerAvatarUpload()">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                                <circle cx="12" cy="13" r="4"/>
+                            </svg>
+                        </div>
+                        <input type="file" id="avatar-upload" accept="image/*" style="display: none;" onchange="uploadAvatar()">
                     </div>
-                    <input type="file" id="avatar-upload" accept="image/*" style="display: none;" onchange="uploadAvatar()">
                 </div>
-                <div class="profile-info">
-                    <h1 class="profile-name">{{ profile.display_name or '이름 없음' }}</h1>
-                    <p class="profile-username">{{ profile.username or 'username' }}</p>
+                
+                <div class="profile-info-section">
+                    <div class="profile-header-row">
+                        <h1 class="profile-username-main">{{ profile.username or 'username' }}</h1>
+                        <button class="profile-edit-btn" onclick="openEditModal()">프로필 편집</button>
+                    </div>
+                    
+                    <div class="profile-stats-row">
+                        <div class="profile-stat">
+                            <span class="stat-number">{{ profile.posts_count or 42 }}</span>
+                            <span class="stat-label">게시물</span>
+                        </div>
+                        <div class="profile-stat">
+                            <span class="stat-number">{{ profile.connections_count or 24 }}</span>
+                            <span class="stat-label">연결</span>
+                        </div>
+                        <div class="profile-stat">
+                            <span class="stat-number">{{ profile.projects_count or 12 }}</span>
+                            <span class="stat-label">프로젝트</span>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-details">
+                        <div class="profile-display-name">{{ profile.display_name or '이름 없음' }}</div>
+                        <div class="profile-bio">{{ profile.bio or '소개가 없습니다.' }}</div>
+                    </div>
                 </div>
             </div>
-            <button class="profile-edit-btn" onclick="openEditModal()">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                    <path d="m18.5 2.5 a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                </svg>
-                프로필 편집
-            </button>
         </div>
 
         <!-- Basic Information Section -->

@@ -144,16 +144,21 @@
     padding: var(--spacing-lg);
     margin-bottom: var(--spacing-lg);
     box-shadow: var(--shadow-xs);
+}
+
+.profile-top-section {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    align-items: flex-start;
     gap: var(--spacing-lg);
 }
 
-.profile-header-left {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
+.profile-avatar-section {
+    flex-shrink: 0;
+}
+
+.profile-info-section {
+    flex: 1;
+    min-width: 0;
 }
 
 .profile-avatar-wrapper {
@@ -161,8 +166,8 @@
 }
 
 .profile-avatar-img {
-    width: 80px;
-    height: 80px;
+    width: 150px;
+    height: 150px;
     border-radius: var(--radius-full);
     border: 2px solid var(--border-light);
     object-fit: cover;
@@ -171,10 +176,10 @@
 
 .profile-avatar-upload {
     position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 28px;
-    height: 28px;
+    bottom: 8px;
+    right: 8px;
+    width: 36px;
+    height: 36px;
     background: var(--bg-primary);
     border: 1px solid var(--border-light);
     border-radius: var(--radius-full);
@@ -183,6 +188,7 @@
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
 }
 
 .profile-avatar-upload:hover {
@@ -191,30 +197,25 @@
 }
 
 .profile-avatar-upload svg {
-    width: 14px;
-    height: 14px;
+    width: 18px;
+    height: 18px;
     color: var(--text-secondary);
 }
 
-.profile-info {
+/* ===== Profile Info Section ===== */
+.profile-header-row {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
 }
 
-.profile-name {
-    font-size: 20px;
-    font-weight: 700;
+.profile-username-main {
+    font-size: 28px;
+    font-weight: 300;
     color: var(--text-primary);
     margin: 0;
-    letter-spacing: -0.02em;
-}
-
-.profile-username {
-    font-size: 14px;
-    color: var(--text-secondary);
-    margin: 0;
-    font-family: var(--font-mono);
+    letter-spacing: -0.01em;
 }
 
 .profile-edit-btn {
@@ -227,19 +228,61 @@
     color: var(--text-primary);
     cursor: pointer;
     transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
+    height: 32px;
 }
 
 .profile-edit-btn:hover {
     background: var(--bg-secondary);
 }
 
-.profile-edit-btn svg {
-    width: 14px;
-    height: 14px;
+/* ===== Instagram-style Stats Row ===== */
+.profile-stats-row {
+    display: flex;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
 }
+
+.profile-stat {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.stat-number {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.stat-label {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--text-primary);
+}
+
+/* ===== Profile Details ===== */
+.profile-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.profile-display-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.profile-bio {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1.4;
+    white-space: pre-wrap;
+}
+
 
 /* ===== Information Sections ===== */
 .profile-info-section {
@@ -547,14 +590,49 @@
 
 /* ===== Responsive Design ===== */
 @media (max-width: 768px) {
-    .profile-header-card {
+    .profile-top-section {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: center;
+        text-align: center;
+        gap: var(--spacing-md);
+    }
+    
+    .profile-avatar-img {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .profile-avatar-upload {
+        width: 32px;
+        height: 32px;
+        bottom: 6px;
+        right: 6px;
+    }
+    
+    .profile-avatar-upload svg {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .profile-header-row {
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+    
+    .profile-username-main {
+        font-size: 24px;
     }
     
     .profile-edit-btn {
         width: 100%;
+        max-width: 200px;
         justify-content: center;
+    }
+    
+    .profile-stats-row {
+        justify-content: center;
+        gap: var(--spacing-xl);
     }
     
     .info-item {
