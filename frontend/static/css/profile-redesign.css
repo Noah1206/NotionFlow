@@ -238,7 +238,7 @@
 /* ===== Instagram-style Stats Row ===== */
 .profile-stats-row {
     display: flex;
-    gap: var(--spacing-lg);
+    gap: var(--spacing-xl);
     margin-bottom: var(--spacing-md);
 }
 
@@ -264,7 +264,8 @@
 .profile-details {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--spacing-xs);
+    margin-top: var(--spacing-sm);
 }
 
 .profile-display-name {
@@ -279,8 +280,10 @@
     font-weight: 400;
     color: var(--text-primary);
     margin: 0;
-    line-height: 1.4;
+    line-height: 1.5;
     white-space: pre-wrap;
+    max-width: 400px;
+    word-break: break-word;
 }
 
 
