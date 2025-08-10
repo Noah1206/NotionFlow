@@ -429,13 +429,13 @@
             
             <div class="setting-card">
                 <div class="setting-header">
-                    <h3 class="setting-title">다크 모드</h3>
+                    <h3 class="setting-title">이메일 알림</h3>
                     <label class="switch">
-                        <input type="checkbox" id="darkModeToggle">
+                        <input type="checkbox" checked>
                         <span class="slider"></span>
                     </label>
                 </div>
-                <p class="setting-description">눈이 편안한 다크 테마를 사용합니다</p>
+                <p class="setting-description">중요한 업데이트를 이메일로 받습니다</p>
             </div>
             
             <div class="setting-card">
@@ -524,16 +524,7 @@ const weeklyChart = new Chart(ctx, {
     }
 });
 
-// Dark mode toggle
-const darkModeToggle = document.getElementById('darkModeToggle');
-darkModeToggle.addEventListener('change', function() {
-    document.documentElement.setAttribute('data-theme', this.checked ? 'dark' : 'light');
-    localStorage.setItem('theme', this.checked ? 'dark' : 'light');
-});
-
-// Load saved theme
-const savedTheme = localStorage.getItem('theme') || 'light';
-document.documentElement.setAttribute('data-theme', savedTheme);
-darkModeToggle.checked = savedTheme === 'dark';
+// Initialize light theme
+document.documentElement.setAttribute('data-theme', 'light');
 </script>
 {% endblock %}
