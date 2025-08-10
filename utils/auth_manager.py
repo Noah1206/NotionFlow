@@ -22,7 +22,7 @@ def validate_email(email: str) -> bool:
 # Initialize Supabase
 SUPABASE_URL = os.getenv('SUPABASE_URL')
 SUPABASE_KEY = os.getenv('SUPABASE_API_KEY')
-SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_KEY')  # Service role key for admin operations
+SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY')  # Service role key for admin operations
 
 if not SUPABASE_URL:
     raise ValueError("SUPABASE_URL environment variable is required")
@@ -373,7 +373,8 @@ class AuthManager:
                 # (user might already exist in auth.users)
                 user_data = {
                     'id': user_id,
-                    'email': email,
+                    'email': email or '',
+                    'name': display_name or (email.split('@')[0] if email else f"User {user_id[:8]}"),
                     'created_at': datetime.now().isoformat()
                 }
                 supabase.table('users').insert(user_data).execute()

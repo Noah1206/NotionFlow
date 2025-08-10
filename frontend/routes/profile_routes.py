@@ -217,6 +217,16 @@ def initial_setup():
         if not user_id:
             return jsonify({'error': 'User not authenticated'}), 401
         
+        # 이미 설정이 완료된 사용자인지 체크
+        existing_profile = AuthManager.get_user_profile(user_id)
+        if existing_profile and existing_profile.get('display_name') and (existing_profile.get('birthdate') or 'birthdate:' in str(existing_profile.get('bio', ''))):
+            return jsonify({
+                'success': True,
+                'message': 'Initial setup already completed',
+                'profile': existing_profile,
+                'already_completed': True
+            })
+        
         data = request.get_json()
         if not data:
             return jsonify({'error': 'No data provided'}), 400
@@ -241,18 +251,17 @@ def initial_setup():
         # 데이터베이스 연결 - 서비스 키 사용으로 RLS 우회
         from supabase import create_client
         SUPABASE_URL = os.getenv('SUPABASE_URL')
-        SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_KEY')  # 서비스 키 사용
+        SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY')  # 서비스 키 사용
         SUPABASE_KEY = os.getenv('SUPABASE_API_KEY')
         
-        # 서비스 키가 있으면 사용 (RLS 우회), 없으면 일반 키 사용
-        key_to_use = SUPABASE_SERVICE_KEY if SUPABASE_SERVICE_KEY else SUPABASE_KEY
-        
-        if not SUPABASE_URL or not key_to_use:
-            print("Missing Supabase credentials")
-            return jsonify({'error': 'Database configuration error'}), 500
+        # 반드시 서비스 키를 사용 (RLS 우회를 위해)
+        if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+            print("Missing Supabase service key - required for initial setup")
+            return jsonify({'error': 'Database configuration error - service key required'}), 500
             
-        supabase = create_client(SUPABASE_URL, key_to_use)
-        print(f"Supabase client created with {'service' if SUPABASE_SERVICE_KEY else 'anon'} key")
+        # 서비스 키로 새로운 클라이언트 생성
+        supabase_admin = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+        print(f"Supabase admin client created with service key")
         
         # 프로필 업데이트 또는 생성 (먼저 birthdate 포함하여 시도)
         profile_data = {
@@ -272,11 +281,41 @@ def initial_setup():
         existing_profile = AuthManager.get_user_profile(user_id)
         print(f"Existing profile: {existing_profile}")
         
-        # 프로필이 없으면 먼저 생성
+        # 프로필이 없으면 먼저 생성 - 서비스 키로 직접 생성
         if not existing_profile:
-            print("No existing profile, creating new one via AuthManager")
-            # AuthManager의 _create_user_profile을 사용하여 기본 프로필 생성
-            AuthManager._create_user_profile(user_id, None, display_name, email)
+            print("No existing profile, creating new one directly with admin privileges")
+            try:
+                # 사용자 먼저 생성 (필요한 경우)
+                try:
+                    user_data = {
+                        'id': user_id,
+                        'email': email or '',
+                        'name': display_name,
+                        'created_at': datetime.now().isoformat()
+                    }
+                    supabase_admin.table('users').insert(user_data).execute()
+                    print(f"Created user record for {user_id}")
+                except Exception as user_error:
+                    print(f"User creation skipped (may already exist): {user_error}")
+                
+                # 프로필 생성
+                username = f"user_{user_id[:8]}"
+                profile_data_create = {
+                    'user_id': user_id,
+                    'username': username,
+                    'display_name': display_name,
+                    'email': email,
+                    'is_public': False,
+                    'created_at': datetime.now().isoformat(),
+                    'updated_at': datetime.now().isoformat()
+                }
+                
+                create_result = supabase_admin.table('user_profiles').insert(profile_data_create).execute()
+                print(f"Created profile result: {create_result}")
+                
+            except Exception as create_error:
+                print(f"Profile creation error: {create_error}")
+                # 계속 진행하여 업데이트 시도
         
         # 직접 데이터베이스 업데이트 시도 (서비스 키 사용)
         try:
@@ -288,11 +327,11 @@ def initial_setup():
             if email:
                 update_data['email'] = email
             
-            # birthdate 컬럼 추가 시도 (있으면 업데이트, 없으면 무시)
+            # birthdate 컬럼 추가 시도 (있으면 업데이트, 없으면 무시) - 서비스 키로 실행
             try:
                 update_data['birthdate'] = birthdate
                 print(f"Updating profile with birthdate: {update_data}")
-                result = supabase.table('user_profiles').update(update_data).eq('user_id', user_id).execute()
+                result = supabase_admin.table('user_profiles').update(update_data).eq('user_id', user_id).execute()
                 print(f"Update with birthdate result: {result}")
             except Exception as birthdate_error:
                 print(f"Birthdate column not found, updating without it: {birthdate_error}")
@@ -301,13 +340,13 @@ def initial_setup():
                 if 'birthdate' in update_data_no_birthdate:
                     del update_data_no_birthdate['birthdate']
                 
-                result = supabase.table('user_profiles').update(update_data_no_birthdate).eq('user_id', user_id).execute()
+                result = supabase_admin.table('user_profiles').update(update_data_no_birthdate).eq('user_id', user_id).execute()
                 print(f"Update without birthdate result: {result}")
                 
                 # birthdate를 bio에 메타데이터로 저장
                 try:
                     bio_with_birthdate = f"birthdate:{birthdate}"
-                    supabase.table('user_profiles').update({'bio': bio_with_birthdate}).eq('user_id', user_id).execute()
+                    supabase_admin.table('user_profiles').update({'bio': bio_with_birthdate}).eq('user_id', user_id).execute()
                     print(f"Stored birthdate in bio field: {bio_with_birthdate}")
                 except Exception as bio_error:
                     print(f"Failed to store birthdate in bio: {bio_error}")
