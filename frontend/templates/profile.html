@@ -50,7 +50,7 @@ body {
                 </div>
                 <div class="profile-info">
                     <h1 class="profile-name">{{ profile.display_name or '이름 없음' }}</h1>
-                    <p class="profile-username">@{{ profile.username or 'username' }}</p>
+                    <p class="profile-username">{{ profile.username or 'username' }}</p>
                 </div>
             </div>
             <button class="profile-edit-btn" onclick="openEditModal()">
@@ -68,7 +68,7 @@ body {
             <div class="info-items-grid">
                 <div class="info-item">
                     <span class="info-label">사용자명</span>
-                    <span class="info-value username-value">@{{ profile.username or 'username' }}</span>
+                    <span class="info-value username-value">{{ profile.username or 'username' }}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">표시 이름</span>
