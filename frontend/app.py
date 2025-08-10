@@ -218,9 +218,26 @@ def user_dashboard_subpath(username, subpath):
     return redirect(f'/dashboard/{subpath}')
 
 # 🔄 Dashboard Routes
+@app.route('/initial-setup')
+def initial_setup():
+    """Initial setup page for new users"""
+    user_id = session.get('user_id')
+    
+    if not user_id:
+        return redirect('/login?from=initial-setup')
+    
+    # Check if user already completed setup
+    if AuthManager:
+        profile = AuthManager.get_user_profile(user_id)
+        if profile and profile.get('display_name') and profile.get('birthdate'):
+            # Already completed, redirect to dashboard
+            return redirect('/dashboard')
+    
+    return render_template('initial-setup.html')
+
 @app.route('/dashboard')
 def dashboard():
-    """Dashboard route - redirect to Calendar List page"""
+    """Dashboard route - check setup completion first"""
     print("🔍 Dashboard route accessed!")
     
     # Get current user ID
@@ -231,6 +248,14 @@ def dashboard():
     if not user_id:
         print("⚠️ No user session found, redirecting to login")
         return redirect('/login?from=dashboard')
+    
+    # Check if initial setup is complete
+    if AuthManager:
+        profile = AuthManager.get_user_profile(user_id)
+        if not profile or not profile.get('display_name') or not profile.get('birthdate'):
+            # Setup not complete, redirect to initial setup
+            print("🔄 Redirecting to initial setup page")
+            return redirect('/initial-setup')
     
     # 🔄 Always redirect to Calendar List (dashboard.html deleted)
     print("🔄 Dashboard redirecting to Calendar List page")

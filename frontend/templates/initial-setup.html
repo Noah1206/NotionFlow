@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>초기 설정 - NotionFlow</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .setup-container {
+            background: #FFFFFF;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        .setup-header {
+            padding: 40px 40px 32px;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .setup-logo {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            letter-spacing: -0.03em;
+        }
+        
+        .setup-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .setup-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .setup-body {
+            padding: 40px;
+        }
+        
+        .progress-bar {
+            height: 4px;
+            background: #E5E5E5;
+            border-radius: 2px;
+            margin-bottom: 32px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 30%;
+            transition: width 0.3s ease;
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 8px;
+        }
+        
+        .form-label.required::after {
+            content: " *";
+            color: #EF4444;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #E5E5E5;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            background: #FFFFFF;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-help {
+            font-size: 13px;
+            color: #6B7280;
+            margin-top: 6px;
+        }
+        
+        .form-footer {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 14px 24px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            font-family: inherit;
+        }
+        
+        .btn-secondary {
+            background: #FFFFFF;
+            color: #6B7280;
+            border: 1px solid #E5E5E5;
+        }
+        
+        .btn-secondary:hover {
+            background: #F9FAFB;
+            color: #1F2937;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #FFFFFF;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-primary:disabled {
+            background: #9CA3AF;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading {
+            display: none;
+        }
+        
+        .btn-primary:disabled .btn-text {
+            display: none;
+        }
+        
+        .btn-primary:disabled .loading {
+            display: inline;
+        }
+        
+        @media (max-width: 640px) {
+            .setup-header {
+                padding: 32px 24px 24px;
+            }
+            
+            .setup-body {
+                padding: 24px;
+            }
+            
+            .setup-logo {
+                font-size: 28px;
+            }
+            
+            .setup-title {
+                font-size: 20px;
+            }
+            
+            .setup-subtitle {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <div class="setup-header">
+            <div class="setup-logo">NotionFlow</div>
+            <h1 class="setup-title">환영합니다! 👋</h1>
+            <p class="setup-subtitle">시작하기 전에 간단한 정보를 입력해주세요</p>
+        </div>
+        
+        <form id="setup-form" class="setup-body">
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label required" for="display_name">이름</label>
+                <input type="text" 
+                       id="display_name" 
+                       name="display_name" 
+                       class="form-input"
+                       placeholder="홍길동" 
+                       required
+                       autofocus>
+                <div class="form-help">대시보드에 표시될 이름입니다</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label required" for="birthdate">생년월일</label>
+                <input type="date" 
+                       id="birthdate" 
+                       name="birthdate" 
+                       class="form-input"
+                       max=""
+                       required>
+                <div class="form-help">캘린더 일정 추천에 사용됩니다</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="email">이메일</label>
+                <input type="email" 
+                       id="email" 
+                       name="email" 
+                       class="form-input"
+                       placeholder="example@email.com">
+                <div class="form-help">알림 및 공유 기능에 사용됩니다 (선택)</div>
+            </div>
+            
+            <div class="form-footer">
+                <button type="button" class="btn btn-secondary" onclick="skipSetup()">
+                    나중에 하기
+                </button>
+                <button type="submit" class="btn btn-primary" id="submit-btn">
+                    <span class="btn-text">시작하기</span>
+                    <span class="loading">저장 중...</span>
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <script>
+        // Set max date to today
+        document.getElementById('birthdate').max = new Date().toISOString().split('T')[0];
+        
+        // Update progress bar as user fills form
+        const inputs = document.querySelectorAll('.form-input');
+        function updateProgress() {
+            const filled = Array.from(inputs).filter(input => input.value).length;
+            const progress = (filled / 3) * 100;
+            document.querySelector('.progress-fill').style.width = progress + '%';
+        }
+        
+        inputs.forEach(input => {
+            input.addEventListener('input', updateProgress);
+        });
+        
+        // Handle form submission
+        document.getElementById('setup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submit-btn');
+            const formData = new FormData(e.target);
+            
+            const data = {
+                display_name: formData.get('display_name'),
+                birthdate: formData.get('birthdate'),
+                email: formData.get('email')
+            };
+            
+            // Validation
+            if (!data.display_name || !data.birthdate) {
+                alert('이름과 생년월일은 필수 입력 항목입니다.');
+                return;
+            }
+            
+            // Loading state
+            submitBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/profile/initial-setup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Mark setup as complete and redirect
+                    sessionStorage.setItem('setup_complete', 'true');
+                    window.location.href = '/dashboard';
+                } else {
+                    alert(result.error || '설정 저장에 실패했습니다.');
+                    submitBtn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Setup error:', error);
+                alert('설정 저장 중 오류가 발생했습니다.');
+                submitBtn.disabled = false;
+            }
+        });
+        
+        function skipSetup() {
+            sessionStorage.setItem('setup_skipped', 'true');
+            window.location.href = '/dashboard';
+        }
+    </script>
+</body>
+</html>
