@@ -14,6 +14,18 @@
     .sidebar {
         border: 1px solid #F5F5F5 !important;
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+        z-index: 100 !important; /* Below modal */
+    }
+    
+    /* When modal is active, ensure sidebar stays behind */
+    .setup-modal-overlay ~ .dashboard-container .sidebar,
+    body:has(.setup-modal-overlay[style*="flex"]) .sidebar {
+        z-index: 50 !important;
+    }
+    
+    /* Ensure all sidebar children also stay behind modal */
+    .sidebar * {
+        z-index: auto !important;
     }
     </style>
     
