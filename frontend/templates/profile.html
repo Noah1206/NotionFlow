@@ -86,11 +86,24 @@ body {
                 </div>
                 <div class="info-item">
                     <span class="info-label">표시 이름</span>
-                    <span class="info-value">{{ profile.display_name or '설정되지 않음' }}</span>
+                    <span class="info-value">{{ profile.display_name or profile.username or 'username' }}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">이메일</span>
-                    <span class="info-value">{{ profile.email or '설정되지 않음' }}</span>
+                    {% if profile.email %}
+                        <span class="info-value">{{ profile.email }}</span>
+                    {% else %}
+                        <div class="email-input-container">
+                            <input type="email" 
+                                   id="email-input" 
+                                   class="email-input-field" 
+                                   placeholder="이메일 주소 입력" 
+                                   value="">
+                            <button type="button" 
+                                    class="email-save-btn" 
+                                    onclick="saveEmail()">저장</button>
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="info-item">
                     <span class="info-label">소개</span>
@@ -382,6 +395,57 @@ async function saveProfile() {
         // 로딩 상태 해제
         btnText.style.display = 'inline';
         btnLoading.style.display = 'none';
+        saveBtn.disabled = false;
+    }
+}
+
+async function saveEmail() {
+    const emailInput = document.getElementById('email-input');
+    const saveBtn = document.querySelector('.email-save-btn');
+    const email = emailInput.value.trim();
+    
+    if (!email) {
+        showToast('이메일 주소를 입력해주세요.', 'error');
+        return;
+    }
+    
+    // 간단한 이메일 형식 체크
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        showToast('올바른 이메일 형식을 입력해주세요.', 'error');
+        return;
+    }
+    
+    // 로딩 상태
+    const originalText = saveBtn.textContent;
+    saveBtn.textContent = '저장 중...';
+    saveBtn.disabled = true;
+    
+    try {
+        const response = await fetch('/api/profile/email', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email: email })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // 성공시 입력 필드를 텍스트로 변경
+            const container = emailInput.parentElement;
+            container.innerHTML = `<span class="info-value">${email}</span>`;
+            showToast('이메일이 저장되었습니다.', 'success');
+        } else {
+            showToast(result.error || '이메일 저장에 실패했습니다.', 'error');
+        }
+    } catch (error) {
+        console.error('Email save error:', error);
+        showToast('이메일 저장 중 오류가 발생했습니다.', 'error');
+    } finally {
+        // 로딩 상태 해제
+        saveBtn.textContent = originalText;
         saveBtn.disabled = false;
     }
 }

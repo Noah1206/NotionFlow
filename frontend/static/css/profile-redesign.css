@@ -343,6 +343,58 @@
     font-family: var(--font-mono);
 }
 
+/* ===== Email Input Styling ===== */
+.email-input-container {
+    display: flex;
+    gap: var(--spacing-xs);
+    align-items: center;
+    width: 100%;
+}
+
+.email-input-field {
+    flex: 1;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-family: var(--font-sans);
+    transition: all 0.2s ease;
+    background: var(--bg-primary);
+    min-width: 0;
+}
+
+.email-input-field:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px var(--accent-blue-light);
+}
+
+.email-input-field::placeholder {
+    color: var(--text-secondary);
+}
+
+.email-save-btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: var(--accent-blue);
+    color: var(--bg-primary);
+    border: none;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.email-save-btn:hover {
+    background: var(--accent-blue-hover);
+}
+
+.email-save-btn:disabled {
+    background: var(--text-secondary);
+    cursor: not-allowed;
+}
+
 /* ===== Privacy Settings ===== */
 .privacy-settings {
     display: flex;
@@ -641,6 +693,18 @@
     .info-item {
         grid-template-columns: 1fr;
         gap: 4px;
+    }
+    
+    .email-input-container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-xs);
+    }
+    
+    .email-save-btn {
+        width: 100%;
+        max-width: 120px;
+        align-self: flex-end;
     }
     
     .privacy-item {
