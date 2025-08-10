@@ -242,33 +242,61 @@ def initial_setup():
         from supabase import create_client
         SUPABASE_URL = os.getenv('SUPABASE_URL')
         SUPABASE_KEY = os.getenv('SUPABASE_API_KEY')
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
         
-        # 프로필 업데이트 또는 생성
+        if not SUPABASE_URL or not SUPABASE_KEY:
+            print("Missing Supabase credentials")
+            return jsonify({'error': 'Database configuration error'}), 500
+            
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        print(f"Supabase client created successfully")
+        
+        # 프로필 업데이트 또는 생성 (먼저 birthdate 포함하여 시도)
         profile_data = {
             'display_name': display_name,
             'birthdate': birthdate,
             'updated_at': datetime.now().isoformat()
         }
+        print(f"Profile data: {profile_data}")
         
         if email:
             profile_data['email'] = email
         
         # 기존 프로필 확인
+        print(f"Checking existing profile for user_id: {user_id}")
         existing = supabase.table('user_profiles').select('id').eq('user_id', user_id).execute()
+        print(f"Existing profile check result: {existing}")
         
-        if existing.data:
-            # 업데이트
-            result = supabase.table('user_profiles').update(profile_data).eq('user_id', user_id).execute()
-        else:
-            # 새로 생성
-            profile_data['user_id'] = user_id
-            profile_data['username'] = f'user_{user_id[:8]}'
-            profile_data['bio'] = ''
-            profile_data['is_public'] = False
-            profile_data['created_at'] = datetime.now().isoformat()
+        # Try database operation with fallback for birthdate column
+        try:
+            if existing.data:
+                # 업데이트
+                print(f"Updating existing profile with data: {profile_data}")
+                result = supabase.table('user_profiles').update(profile_data).eq('user_id', user_id).execute()
+                print(f"Update result: {result}")
+            else:
+                # 새로 생성
+                profile_data['user_id'] = user_id
+                profile_data['username'] = f'user_{user_id[:8]}'
+                profile_data['bio'] = ''
+                profile_data['is_public'] = False
+                profile_data['created_at'] = datetime.now().isoformat()
+                
+                print(f"Creating new profile with data: {profile_data}")
+                result = supabase.table('user_profiles').insert(profile_data).execute()
+                print(f"Insert result: {result}")
+                
+        except Exception as db_error:
+            print(f"Database error with birthdate field: {db_error}")
+            # Retry without birthdate field if it doesn't exist
+            profile_data_fallback = profile_data.copy()
+            del profile_data_fallback['birthdate']
+            print(f"Retrying without birthdate field: {profile_data_fallback}")
             
-            result = supabase.table('user_profiles').insert(profile_data).execute()
+            if existing.data:
+                result = supabase.table('user_profiles').update(profile_data_fallback).eq('user_id', user_id).execute()
+            else:
+                result = supabase.table('user_profiles').insert(profile_data_fallback).execute()
+            print(f"Fallback result: {result}")
         
         if result.data:
             return jsonify({
@@ -281,7 +309,11 @@ def initial_setup():
             
     except Exception as e:
         print(f"Error in initial setup: {e}")
-        return jsonify({'error': 'Failed to complete initial setup'}), 500
+        print(f"Error type: {type(e)}")
+        print(f"Error details: {str(e)}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
+        return jsonify({'error': f'Failed to complete initial setup: {str(e)}'}), 500
 
 @profile_bp.route('/api/profile/email', methods=['PUT'])
 @require_auth
