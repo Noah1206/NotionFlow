@@ -62,6 +62,52 @@ body {
             </button>
         </div>
 
+        <!-- Connection Stats Section -->
+        <div class="profile-info-section">
+            <h2 class="section-header">연결 현황</h2>
+            <div class="connection-stats-grid">
+                <div class="connection-stat-card">
+                    <div class="connection-stat-icon">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                    </div>
+                    <div class="connection-stat-content">
+                        <div class="connection-stat-number">{{ profile.followers_count or 0 }}</div>
+                        <div class="connection-stat-label">팔로워</div>
+                    </div>
+                </div>
+                <div class="connection-stat-card">
+                    <div class="connection-stat-icon">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                    </div>
+                    <div class="connection-stat-content">
+                        <div class="connection-stat-number">{{ profile.following_count or 0 }}</div>
+                        <div class="connection-stat-label">팔로잉</div>
+                    </div>
+                </div>
+                <div class="connection-stat-card">
+                    <div class="connection-stat-icon">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M17 20h5v-2a3 3 0 0 0-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 0 1 5.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 0 1 9.288 0M15 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm6 3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM7 10a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/>
+                        </svg>
+                    </div>
+                    <div class="connection-stat-content">
+                        <div class="connection-stat-number">{{ profile.connections_count or 0 }}</div>
+                        <div class="connection-stat-label">연결</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Basic Information Section -->
         <div class="profile-info-section">
             <h2 class="section-header">기본 정보</h2>

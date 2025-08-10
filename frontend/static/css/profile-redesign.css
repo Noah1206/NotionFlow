@@ -47,9 +47,82 @@
     width: 100%;
 }
 
+/* ===== Connection Stats Section ===== */
+.connection-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-xl);
+}
+
+.connection-stat-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    transition: all 0.2s ease;
+}
+
+.connection-stat-card:hover {
+    border-color: var(--accent-blue);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.connection-stat-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--accent-blue-light);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-blue);
+    flex-shrink: 0;
+}
+
+.connection-stat-content {
+    flex: 1;
+}
+
+.connection-stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.connection-stat-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
 @media (max-width: 768px) {
     .profile-page-container {
         padding: var(--spacing-md);
+    }
+    
+    .connection-stats-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-sm);
+    }
+    
+    .connection-stat-card {
+        padding: var(--spacing-sm);
+    }
+    
+    .connection-stat-icon {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .connection-stat-number {
+        font-size: 1.5rem;
     }
 }
 
