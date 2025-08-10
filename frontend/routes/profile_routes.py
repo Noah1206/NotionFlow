@@ -70,7 +70,7 @@ def update_profile():
             return jsonify({'error': 'No data provided'}), 400
         
         # 업데이트 가능한 필드들
-        allowed_fields = ['username', 'display_name', 'bio', 'is_public']
+        allowed_fields = ['username', 'display_name', 'bio', 'is_public', 'email']
         update_data = {}
         
         for field in allowed_fields:
@@ -207,6 +207,74 @@ def upload_avatar():
     except Exception as e:
         print(f"Error uploading avatar: {e}")
         return jsonify({'error': 'Failed to upload avatar'}), 500
+
+@profile_bp.route('/api/profile/email', methods=['PUT'])
+@require_auth
+def update_email():
+    """사용자 이메일 업데이트"""
+    try:
+        user_id = AuthManager.get_current_user_id()
+        if not user_id:
+            return jsonify({'error': 'User not authenticated'}), 401
+        
+        data = request.get_json()
+        if not data or 'email' not in data:
+            return jsonify({'error': 'Email is required'}), 400
+        
+        email = data['email'].strip()
+        
+        # 이메일 형식 검증
+        import re
+        email_pattern = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
+        if not re.match(email_pattern, email):
+            return jsonify({'error': 'Invalid email format'}), 400
+        
+        # 데이터베이스 업데이트
+        from supabase import create_client
+        SUPABASE_URL = os.getenv('SUPABASE_URL')
+        SUPABASE_KEY = os.getenv('SUPABASE_API_KEY')
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        
+        # user_profiles 테이블에 이메일 업데이트
+        result = supabase.table('user_profiles').update({
+            'email': email,
+            'updated_at': datetime.now().isoformat()
+        }).eq('user_id', user_id).execute()
+        
+        if result.data:
+            return jsonify({
+                'success': True,
+                'message': 'Email updated successfully',
+                'email': email
+            })
+        else:
+            # 프로필이 없으면 생성
+            user_info = session.get('user_info', {})
+            profile_data = {
+                'user_id': user_id,
+                'username': f'user_{user_id[:8]}',
+                'display_name': email.split('@')[0],
+                'email': email,
+                'bio': '',
+                'is_public': False,
+                'created_at': datetime.now().isoformat(),
+                'updated_at': datetime.now().isoformat()
+            }
+            
+            result = supabase.table('user_profiles').insert(profile_data).execute()
+            
+            if result.data:
+                return jsonify({
+                    'success': True,
+                    'message': 'Email saved successfully',
+                    'email': email
+                })
+            else:
+                return jsonify({'error': 'Failed to save email'}), 500
+            
+    except Exception as e:
+        print(f"Error updating email: {e}")
+        return jsonify({'error': 'Failed to update email'}), 500
 
 @profile_bp.route('/api/profile/username/check', methods=['POST'])
 @require_auth
