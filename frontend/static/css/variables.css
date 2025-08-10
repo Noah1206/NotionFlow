@@ -261,7 +261,7 @@ body {
 /* Default body background (light mode) */
 body {
     color: var(--text-primary) !important;
-    background: var(--bg-primary) !important;
+    background: #ffffff !important;
     background-image: none !important;
 }
 
