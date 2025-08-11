@@ -17,17 +17,6 @@
                 <h1 class="api-main-title">🔑 API 키 관리</h1>
                 <p class="api-subtitle">플랫폼과 안전하게 연결하고 캘린더를 동기화하세요</p>
             </div>
-            
-            <!-- 원클릭 연동하기 버튼 -->
-            <div class="one-click-integration">
-                <button class="one-click-btn" onclick="connectAllPlatforms()" id="one-click-btn">
-                    <span class="btn-icon">⚡</span>
-                    <span class="btn-text">원클릭 연동하기</span>
-                    <div class="btn-loader" id="btn-loader" style="display: none;">
-                        <div class="loader-spinner"></div>
-                    </div>
-                </button>
-            </div>
         </div>
         
         <!-- 상태 요약 카드 -->
@@ -502,61 +491,6 @@ async function disconnectPlatform(platformName) {
     }, 500);
 }
 
-// 원클릭 연동하기 기능
-async function connectAllPlatforms() {
-    const button = document.getElementById('one-click-btn');
-    const loader = document.getElementById('btn-loader');
-    const buttonText = button.querySelector('.btn-text');
-    const buttonIcon = button.querySelector('.btn-icon');
-    
-    // 버튼 상태 변경
-    button.disabled = true;
-    buttonText.textContent = '연동 중...';
-    buttonIcon.style.display = 'none';
-    loader.style.display = 'flex';
-    
-    // 연결되지 않은 플랫폼들만 연결 시도
-    const disconnectedPlatforms = document.querySelectorAll('.platform-status.disconnected');
-    const platforms = Array.from(disconnectedPlatforms).map(status => 
-        status.closest('.platform-card').getAttribute('data-platform')
-    );
-    
-    let successCount = 0;
-    
-    try {
-        for (const platform of platforms) {
-            await connectPlatform(platform);
-            // 연결 성공 여부 확인
-            const card = document.querySelector(`[data-platform="${platform}"]`);
-            const status = card.querySelector('.platform-status');
-            if (status.classList.contains('connected')) {
-                successCount++;
-            }
-            await new Promise(resolve => setTimeout(resolve, 500)); // 0.5초 간격
-        }
-        
-        // 성공 메시지
-        if (successCount > 0) {
-            showNotification(`${successCount}개 플랫폼 연결 완료!`, 'success');
-        } else if (platforms.length === 0) {
-            showNotification('모든 플랫폼이 이미 연결되어 있습니다.', 'info');
-        } else {
-            showNotification('연결에 실패했습니다. 다시 시도해주세요.', 'error');
-        }
-        
-    } catch (error) {
-        console.error('연동 중 오류:', error);
-        showNotification('연동 중 오류가 발생했습니다.', 'error');
-    }
-    
-    // 버튼 상태 복원
-    setTimeout(() => {
-        button.disabled = false;
-        buttonText.textContent = '원클릭 연동하기';
-        buttonIcon.style.display = 'inline';
-        loader.style.display = 'none';
-    }, 1000);
-}
 
 // 플랫폼 이름 한국어 변환
 function getKoreanPlatformName(platform) {
