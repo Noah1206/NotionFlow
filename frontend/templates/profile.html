@@ -91,7 +91,14 @@ body {
                 <div class="info-item">
                     <span class="info-label">생년월일</span>
                     {% if profile.birthdate %}
-                        <span class="info-value">{{ profile.birthdate }}</span>
+                        <span class="info-value">
+                            {% set birthdate_parts = profile.birthdate.split('-') %}
+                            {% if birthdate_parts|length == 3 %}
+                                {{ birthdate_parts[0] }}년 **월 **일
+                            {% else %}
+                                ****년 **월 **일
+                            {% endif %}
+                        </span>
                     {% else %}
                         <span class="info-value" style="color: #999;">설정되지 않음</span>
                     {% endif %}
