@@ -386,6 +386,8 @@
 
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/api-keys.js') }}?v={{ range(100000, 999999) | random }}"></script>
+<script src="{{ url_for('static', filename='js/apple-setup-wizard.js') }}?v={{ range(100000, 999999) | random }}"></script>
+<script src="{{ url_for('static', filename='js/platform-health.js') }}?v={{ range(100000, 999999) | random }}"></script>
 <script>
 // 개별 플랫폼 연동 기능
 async function connectPlatform(platformName) {
@@ -549,6 +551,17 @@ function updateConnectionStats() {
 
 // 개별 플랫폼 원클릭 연동 기능
 async function oneClickConnect(platform) {
+    // Apple의 경우 스마트 마법사 실행
+    if (platform === 'apple') {
+        if (window.appleWizard) {
+            window.appleWizard.start(platform);
+        } else {
+            console.error('Apple Setup Wizard not loaded');
+            alert('Apple 설정 마법사를 불러오는 중 오류가 발생했습니다.');
+        }
+        return;
+    }
+    
     const button = document.querySelector(`[data-platform="${platform}"] .one-click-btn-small`);
     const loader = button.querySelector('.btn-loader');
     const buttonText = button.querySelector('.btn-text');

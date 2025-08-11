@@ -1,0 +1,514 @@
+/* 🔗 PlatformCard Component Styles */
+/* Modern, clean design following existing NotionFlow patterns */
+
+/* ===== Container & Grid ===== */
+.platform-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+@media (max-width: 768px) {
+    .platform-cards-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+}
+
+/* ===== Platform Registration Card ===== */
+.platform-registration-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    overflow: hidden;
+    position: relative;
+}
+
+.platform-registration-card:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+    transform: translateY(-2px);
+}
+
+.platform-registration-card.registered {
+    border-color: #10b981;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.02) 0%, rgba(16, 185, 129, 0.01) 100%);
+}
+
+.platform-registration-card.unregistered {
+    border-color: #e5e7eb;
+}
+
+/* ===== Card Header ===== */
+.platform-card-header {
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.platform-card-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+    min-width: 0;
+}
+
+/* ===== Platform Icon ===== */
+.platform-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.platform-registration-card:hover .platform-card-icon {
+    transform: scale(1.05);
+}
+
+.platform-card-icon svg {
+    width: 28px;
+    height: 28px;
+}
+
+/* Platform-specific colors */
+.platform-card-icon.notion {
+    background: #000000;
+    color: #ffffff;
+}
+
+.platform-card-icon.google {
+    background: #f8f9fa;
+    color: #4285f4;
+    border: 1px solid #e5e7eb;
+}
+
+.platform-card-icon.apple {
+    background: #000000;
+    color: #ffffff;
+}
+
+.platform-card-icon.outlook {
+    background: #f8f9fa;
+    color: #0078d4;
+    border: 1px solid #e5e7eb;
+}
+
+.platform-card-icon.slack {
+    background: #4a154b;
+    color: #ffffff;
+}
+
+/* ===== Card Details ===== */
+.platform-card-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.platform-card-name {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 4px 0;
+    line-height: 1.4;
+}
+
+.platform-card-description {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0 0 8px 0;
+    line-height: 1.4;
+}
+
+/* ===== Status Indicator ===== */
+.platform-card-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.platform-card-status.healthy {
+    background: #ecfdf5;
+    color: #10b981;
+}
+
+.platform-card-status.error {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+.platform-card-status.warning {
+    background: #fffbeb;
+    color: #f59e0b;
+}
+
+.platform-card-status.not_registered {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.status-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+/* ===== Action Buttons ===== */
+.platform-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-register-platform,
+.btn-toggle-form,
+.btn-test-connection,
+.btn-unregister,
+.btn-connect-to-calendar {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 8px;
+    border: none;
+    font-family: inherit;
+    min-width: auto;
+    justify-content: center;
+}
+
+.btn-register-platform {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+}
+
+.btn-register-platform:hover {
+    background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.btn-toggle-form {
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+}
+
+.btn-toggle-form:hover {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.btn-test-connection {
+    background: #dbeafe;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+}
+
+.btn-test-connection:hover {
+    background: #bfdbfe;
+    color: #1e40af;
+}
+
+.btn-unregister {
+    background: #fef2f2;
+    color: #ef4444;
+    border: 1px solid #fecaca;
+}
+
+.btn-unregister:hover {
+    background: #fecaca;
+    color: #dc2626;
+}
+
+.btn-connect-to-calendar {
+    background: #ecfdf5;
+    color: #10b981;
+    border: 1px solid #a7f3d0;
+}
+
+.btn-connect-to-calendar:hover {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.btn-icon {
+    font-size: 0.875rem;
+}
+
+/* ===== Registration Form ===== */
+.platform-registration-form {
+    border-top: 1px solid #e5e7eb;
+    padding: 24px;
+    background: #f9fafb;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-header {
+    margin-bottom: 20px;
+}
+
+.form-header h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 4px 0;
+}
+
+.form-header p {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+/* ===== Form Elements ===== */
+.registration-form .form-group {
+    margin-bottom: 16px;
+}
+
+.registration-form .form-group label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.registration-form .form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #374151;
+    font-size: 0.875rem;
+    font-family: 'SF Mono', monospace;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.registration-form .form-group input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.registration-form .form-group input::placeholder {
+    color: #9ca3af;
+}
+
+/* ===== Form Actions ===== */
+.form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.btn-cancel,
+.btn-register-submit {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.btn-cancel {
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+}
+
+.btn-cancel:hover {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.btn-register-submit {
+    background: #3b82f6;
+    color: #ffffff;
+    border: 1px solid #3b82f6;
+    position: relative;
+}
+
+.btn-register-submit:hover {
+    background: #2563eb;
+    border-color: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25);
+}
+
+.btn-register-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-loader {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: inherit;
+    border-radius: inherit;
+}
+
+.loader-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ===== Form Help ===== */
+.form-help {
+    margin-top: 16px;
+    padding: 12px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+}
+
+.form-help p {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #1d4ed8;
+    margin: 0 0 8px 0;
+}
+
+.form-help ul {
+    margin: 0;
+    padding-left: 16px;
+    font-size: 0.75rem;
+    color: #1e40af;
+    line-height: 1.5;
+}
+
+.form-help li {
+    margin-bottom: 4px;
+}
+
+/* ===== Notifications ===== */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 16px 24px;
+    border-radius: 12px;
+    color: white;
+    font-weight: 500;
+    z-index: 10000;
+    transform: translateX(400px);
+    transition: transform 0.3s ease;
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.notification.success {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.notification.error {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.notification.info {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.notification.warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 768px) {
+    .platform-card-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+    
+    .platform-card-actions {
+        justify-content: center;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .btn-cancel,
+    .btn-register-submit {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ===== Accessibility ===== */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Focus states for accessibility */
+.btn-register-platform:focus,
+.btn-toggle-form:focus,
+.btn-test-connection:focus,
+.btn-unregister:focus,
+.btn-connect-to-calendar:focus,
+.btn-cancel:focus,
+.btn-register-submit:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}

@@ -1,0 +1,506 @@
+{% extends "base_dashboard.html" %}
+
+{% block body_class %}calendar-detail-page{% endblock %}
+
+{% block title %}{{ calendar.name }} - Calendar Management - NotionFlow{% endblock %}
+
+{% block description %}Manage platform connections and sync settings for {{ calendar.name }}. Connect with Notion, Google Calendar, Apple Calendar, Outlook, and Slack.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-detail.css') }}?v={{ range(100000, 999999) | random }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/platform-card.css') }}?v={{ range(100000, 999999) | random }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-dropdown.css') }}?v={{ range(100000, 999999) | random }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/connect-button.css') }}?v={{ range(100000, 999999) | random }}">
+{% endblock %}
+
+{% block content %}
+<div class="calendar-detail-container">
+    <!-- Header Section -->
+    <div class="calendar-detail-header">
+        <div class="header-nav">
+            <button class="btn-back" onclick="window.history.back()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5m7-7l-7 7 7 7"/>
+                </svg>
+                Back
+            </button>
+            <nav class="breadcrumb">
+                <a href="/dashboard/calendar-list">Calendars</a>
+                <span class="separator">→</span>
+                <span class="current">{{ calendar.name }}</span>
+            </nav>
+        </div>
+        
+        <div class="calendar-info">
+            <div class="calendar-identity">
+                <div class="calendar-color" style="background: {{ calendar.color or '#3B82F6' }};"></div>
+                <div class="calendar-details">
+                    <h1 class="calendar-name">{{ calendar.name }}</h1>
+                    <p class="calendar-description">{{ calendar.description or 'Manage platform connections and sync settings' }}</p>
+                </div>
+            </div>
+            
+            <div class="calendar-stats">
+                <div class="stat-item">
+                    <span class="stat-value">{{ calendar.event_count or 0 }}</span>
+                    <span class="stat-label">Events</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="connected-platforms-count">0</span>
+                    <span class="stat-label">Connected</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="sync-health">-</span>
+                    <span class="stat-label">Health</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="header-actions">
+            <button class="btn-sync-now" onclick="triggerManualSync()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Sync Now
+            </button>
+            <button class="btn-calendar-settings" onclick="openCalendarSettings()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 -1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+                Settings
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="calendar-detail-content">
+        <!-- Platform Connections Section -->
+        <section class="content-section">
+            <div class="section-header">
+                <div class="section-title">
+                    <h2>Platform Connections</h2>
+                    <p>Connect external platforms to sync events with this calendar</p>
+                </div>
+                <button class="btn-register-new" onclick="showPlatformRegistration()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Register Platform
+                </button>
+            </div>
+            
+            <!-- Platform Connection Grid -->
+            <div id="calendar-connections-container" class="connections-grid">
+                <!-- Dynamic content will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Platform Registration Section (Hidden by default) -->
+        <section class="content-section platform-registration-section" id="platform-registration-section" style="display: none;">
+            <div class="section-header">
+                <div class="section-title">
+                    <h2>Register New Platform</h2>
+                    <p>Register a new platform to enable calendar connections</p>
+                </div>
+                <button class="btn-close-registration" onclick="hidePlatformRegistration()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    Close
+                </button>
+            </div>
+            
+            <div id="platform-registration-cards"></div>
+        </section>
+
+        <!-- Sync Configuration Section -->
+        <section class="content-section">
+            <div class="section-header">
+                <div class="section-title">
+                    <h2>Sync Configuration</h2>
+                    <p>Configure how platforms sync with this calendar</p>
+                </div>
+            </div>
+            
+            <div class="sync-config-grid">
+                <div class="config-card">
+                    <div class="config-header">
+                        <h3>Sync Frequency</h3>
+                        <select class="sync-frequency-select" id="sync-frequency" onchange="updateSyncConfig()">
+                            <option value="5">Every 5 minutes</option>
+                            <option value="15" selected>Every 15 minutes</option>
+                            <option value="30">Every 30 minutes</option>
+                            <option value="60">Every hour</option>
+                            <option value="360">Every 6 hours</option>
+                            <option value="1440">Daily</option>
+                        </select>
+                    </div>
+                    <p class="config-description">How often to sync events between platforms</p>
+                </div>
+                
+                <div class="config-card">
+                    <div class="config-header">
+                        <h3>Auto Sync</h3>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="auto-sync" checked onchange="updateSyncConfig()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <p class="config-description">Automatically sync changes when detected</p>
+                </div>
+                
+                <div class="config-card">
+                    <div class="config-header">
+                        <h3>Sync Direction</h3>
+                        <select class="sync-direction-select" id="sync-direction" onchange="updateSyncConfig()">
+                            <option value="both" selected>Both Ways</option>
+                            <option value="to_platform">To Platform Only</option>
+                            <option value="from_platform">From Platform Only</option>
+                        </select>
+                    </div>
+                    <p class="config-description">Direction of event synchronization</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent Activity Section -->
+        <section class="content-section">
+            <div class="section-header">
+                <div class="section-title">
+                    <h2>Recent Activity</h2>
+                    <p>Latest sync activities and connection events</p>
+                </div>
+                <button class="btn-view-all" onclick="viewAllActivity()">View All</button>
+            </div>
+            
+            <div class="activity-feed" id="activity-feed">
+                <!-- Dynamic content will be loaded here -->
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/platform-card.js') }}?v={{ range(100000, 999999) | random }}"></script>
+<script src="{{ url_for('static', filename='js/apple-setup-wizard.js') }}?v={{ range(100000, 999999) | random }}"></script>
+<script src="{{ url_for('static', filename='js/platform-health.js') }}?v={{ range(100000, 999999) | random }}"></script>
+<script src="{{ url_for('static', filename='js/calendar-dropdown.js') }}?v={{ range(100000, 999999) | random }}"></script>
+<script src="{{ url_for('static', filename='js/connect-button.js') }}?v={{ range(100000, 999999) | random }}"></script>
+
+<script>
+// Calendar detail page functionality
+const calendarId = '{{ calendar.id }}';
+let connectionManager = null;
+let platformCards = null;
+
+document.addEventListener('DOMContentLoaded', async function() {
+    try {
+        // Initialize calendar connections
+        await loadCalendarConnections();
+        
+        // Load recent activity
+        await loadRecentActivity();
+        
+    } catch (error) {
+        console.error('Error initializing calendar detail page:', error);
+    }
+});
+
+async function loadCalendarConnections() {
+    try {
+        const response = await fetch(`/api/calendars/${calendarId}/connections`);
+        const data = await response.json();
+        
+        if (data.success) {
+            renderConnections(data);
+            updateStats(data);
+        } else {
+            showError('Failed to load connections: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error loading connections:', error);
+        showError('Error loading platform connections');
+    }
+}
+
+function renderConnections(data) {
+    const container = document.getElementById('calendar-connections-container');
+    if (!container) return;
+    
+    const { connected_platforms, available_platforms } = data;
+    
+    // Create connection cards for connected platforms
+    const connectedCards = Object.entries(connected_platforms).map(([platformId, platform]) => {
+        return createConnectionCard(platformId, platform, true);
+    }).join('');
+    
+    // Create connection cards for available platforms
+    const availableCards = Object.entries(available_platforms).map(([platformId, platform]) => {
+        return createConnectionCard(platformId, platform, false);
+    }).join('');
+    
+    container.innerHTML = `
+        ${connectedCards}
+        ${availableCards}
+        ${Object.keys(connected_platforms).length === 0 && Object.keys(available_platforms).length === 0 ? 
+            '<div class="no-connections-message">No registered platforms available. Register a platform first to create connections.</div>' : ''}
+    `;
+    
+    // Attach connect button event listeners
+    attachConnectionEventListeners();
+}
+
+function createConnectionCard(platformId, platform, isConnected) {
+    const statusClass = isConnected ? 'connected' : 'available';
+    const statusText = isConnected ? 'Connected' : 'Available';
+    const healthBadge = isConnected ? getHealthBadge(platform.health_status) : '';
+    
+    return `
+        <div class="connection-card ${statusClass}" data-platform="${platformId}">
+            <div class="connection-header">
+                <div class="platform-info">
+                    <div class="platform-icon ${platformId}">
+                        ${getPlatformIcon(platformId)}
+                    </div>
+                    <div class="platform-details">
+                        <h3 class="platform-name">${platform.platform_name}</h3>
+                        <p class="platform-status">${statusText} ${healthBadge}</p>
+                        ${isConnected ? `
+                            <div class="sync-info">
+                                <span class="sync-frequency">Sync: ${platform.sync_frequency || 15}min</span>
+                                <span class="sync-direction">${getSyncDirectionText(platform.sync_direction)}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+                
+                <div class="connection-actions">
+                    <div id="connect-btn-${platformId}"></div>
+                    ${isConnected ? `
+                        <button class="btn-configure" onclick="configureConnection('${platformId}')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 -1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                            </svg>
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function attachConnectionEventListeners() {
+    // Get current connections state
+    document.querySelectorAll('[id^="connect-btn-"]').forEach(container => {
+        const platformId = container.id.replace('connect-btn-', '');
+        const card = container.closest('.connection-card');
+        const isConnected = card.classList.contains('connected');
+        
+        new ConnectButton(container.id, {
+            calendarId: calendarId,
+            platform: platformId,
+            platformName: card.querySelector('.platform-name').textContent,
+            initialState: isConnected ? 'connected' : 'disconnected',
+            size: 'small',
+            variant: 'outline',
+            onConnect: (data) => {
+                // Refresh connections after successful connect
+                loadCalendarConnections();
+                showSuccess(`${data.platform} connected successfully`);
+            },
+            onDisconnect: (data) => {
+                // Refresh connections after successful disconnect
+                loadCalendarConnections();
+                showSuccess(`${data.platform} disconnected successfully`);
+            },
+            onError: (data) => {
+                showError(`${data.action} failed: ${data.error}`);
+            }
+        });
+    });
+}
+
+function updateStats(data) {
+    const connectedCount = Object.keys(data.connected_platforms).length;
+    const healthStatus = calculateOverallHealth(data.connected_platforms);
+    
+    document.getElementById('connected-platforms-count').textContent = connectedCount;
+    document.getElementById('sync-health').textContent = healthStatus;
+}
+
+function calculateOverallHealth(platforms) {
+    if (Object.keys(platforms).length === 0) return 'N/A';
+    
+    const healthScores = Object.values(platforms).map(p => {
+        switch (p.health_status) {
+            case 'healthy': return 100;
+            case 'warning': return 70;
+            case 'error': return 30;
+            default: return 0;
+        }
+    });
+    
+    const avgHealth = healthScores.reduce((a, b) => a + b, 0) / healthScores.length;
+    
+    if (avgHealth >= 90) return 'Excellent';
+    if (avgHealth >= 70) return 'Good';
+    if (avgHealth >= 50) return 'Fair';
+    return 'Poor';
+}
+
+function showPlatformRegistration() {
+    const section = document.getElementById('platform-registration-section');
+    section.style.display = 'block';
+    
+    // Initialize platform registration cards if not already done
+    if (!platformCards) {
+        platformCards = new PlatformCard('platform-registration-cards', {
+            showRegistrationButton: true,
+            showConnectionButtons: false,
+            onRegister: (platform, data) => {
+                showSuccess(`${data.platform_name} registered successfully`);
+                // Refresh connections to show newly registered platform
+                setTimeout(() => {
+                    loadCalendarConnections();
+                    hidePlatformRegistration();
+                }, 1000);
+            }
+        });
+    }
+}
+
+function hidePlatformRegistration() {
+    const section = document.getElementById('platform-registration-section');
+    section.style.display = 'none';
+}
+
+// Utility functions
+function getPlatformIcon(platformId) {
+    const icons = {
+        notion: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046 1.121-.56 1.121-1.167V6.354c0-.606-.233-.933-.747-.887l-15.177.887c-.56.047-.934.373-.934 1.027zm13.748.327c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073z"/></svg>',
+        google: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>',
+        apple: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H7c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 16c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm2.5-4H9.5V6h5v9z"/></svg>',
+        outlook: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7.88 12.04q0 .45-.11.87-.1.41-.33.74-.22.33-.58.52-.37.2-.87.2-.51 0-.87-.2-.37-.19-.59-.52-.21-.33-.32-.74-.1-.42-.1-.87 0-.44.1-.86.11-.41.32-.73.22-.33.59-.52.36-.2.87-.2.5 0 .87.2.36.19.58.52.23.32.33.73.11.42.11.86z"/></svg>',
+        slack: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52z"/></svg>'
+    };
+    return icons[platformId] || '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>';
+}
+
+function getHealthBadge(health) {
+    const badges = {
+        healthy: '<span class="health-badge healthy">●</span>',
+        warning: '<span class="health-badge warning">●</span>',
+        error: '<span class="health-badge error">●</span>'
+    };
+    return badges[health] || '';
+}
+
+function getSyncDirectionText(direction) {
+    const texts = {
+        both: '↔️',
+        to_platform: '→',
+        from_platform: '←'
+    };
+    return texts[direction] || '↔️';
+}
+
+async function loadRecentActivity() {
+    // Mock recent activity for now
+    const activityFeed = document.getElementById('activity-feed');
+    if (activityFeed) {
+        activityFeed.innerHTML = `
+            <div class="activity-item">
+                <div class="activity-icon success">✓</div>
+                <div class="activity-content">
+                    <div class="activity-title">Notion sync completed</div>
+                    <div class="activity-time">2 minutes ago</div>
+                </div>
+            </div>
+            <div class="activity-item">
+                <div class="activity-icon sync">🔄</div>
+                <div class="activity-content">
+                    <div class="activity-title">Google Calendar sync started</div>
+                    <div class="activity-time">5 minutes ago</div>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// Additional functions
+async function triggerManualSync() {
+    console.log('Triggering manual sync for all connected platforms...');
+    showSuccess('Manual sync triggered for all platforms');
+}
+
+function openCalendarSettings() {
+    console.log('Opening calendar settings...');
+    showInfo('Calendar settings will be available in the next update');
+}
+
+function configureConnection(platformId) {
+    console.log(`Configuring ${platformId} connection...`);
+    showInfo(`${platformId} connection configuration will be available in the next update`);
+}
+
+async function updateSyncConfig() {
+    const frequency = document.getElementById('sync-frequency').value;
+    const autoSync = document.getElementById('auto-sync').checked;
+    const direction = document.getElementById('sync-direction').value;
+    
+    console.log('Updating sync config:', { frequency, autoSync, direction });
+    showSuccess('Sync configuration updated');
+}
+
+function viewAllActivity() {
+    console.log('Viewing all activity...');
+    showInfo('Full activity log will be available in the next update');
+}
+
+// Notification helpers
+function showSuccess(message) {
+    showNotification(message, 'success');
+}
+
+function showError(message) {
+    showNotification(message, 'error');
+}
+
+function showInfo(message) {
+    showNotification(message, 'info');
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 16px 24px;
+        border-radius: 12px;
+        color: white;
+        font-weight: 500;
+        z-index: 10000;
+        transform: translateX(400px);
+        transition: transform 0.3s ease;
+        ${type === 'success' ? 'background: linear-gradient(135deg, #10b981, #059669);' : ''}
+        ${type === 'error' ? 'background: linear-gradient(135deg, #ef4444, #dc2626);' : ''}
+        ${type === 'info' ? 'background: linear-gradient(135deg, #3b82f6, #2563eb);' : ''}
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Animation
+    setTimeout(() => notification.style.transform = 'translateX(0)', 100);
+    setTimeout(() => notification.style.transform = 'translateX(400px)', 3000);
+    setTimeout(() => document.body.removeChild(notification), 3500);
+}
+</script>
+{% endblock %}

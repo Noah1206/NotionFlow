@@ -32,6 +32,9 @@
     <!-- Extra CSS from blocks -->
     {% block extra_css %}{% endblock %}
     
+    <!-- Core notification system -->
+    <script src="{{ url_for('static', filename='js/notification-utils.js') }}?v={{ range(100000, 999999) | random }}"></script>
+    
     <style>
         /* Initial Setup Modal Styles */
         .setup-modal-overlay {

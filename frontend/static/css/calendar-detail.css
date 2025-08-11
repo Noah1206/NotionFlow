@@ -1,0 +1,727 @@
+/* 📅 Calendar Detail Page Styles */
+/* Comprehensive calendar management interface */
+
+/* ===== Container & Layout ===== */
+.calendar-detail-container {
+    background: #ffffff;
+    min-height: calc(100vh - 2px);
+    padding: 32px;
+    position: fixed;
+    top: 1px;
+    left: calc(272px + 1px);
+    right: 1px;
+    bottom: 1px;
+    overflow-y: auto;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', system-ui, sans-serif;
+}
+
+@media (max-width: 768px) {
+    .calendar-detail-container {
+        position: fixed;
+        top: 1px;
+        left: 1px;
+        right: 1px;
+        bottom: 1px;
+        padding: 16px;
+    }
+}
+
+/* ===== Header Section ===== */
+.calendar-detail-header {
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.header-nav {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-back:hover {
+    background: #e5e7eb;
+    color: #374151;
+    border-color: #9ca3af;
+}
+
+.btn-back svg {
+    width: 16px;
+    height: 16px;
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+}
+
+.breadcrumb a {
+    color: #6b7280;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.breadcrumb a:hover {
+    color: #374151;
+}
+
+.breadcrumb .separator {
+    color: #d1d5db;
+}
+
+.breadcrumb .current {
+    color: #111827;
+    font-weight: 500;
+}
+
+/* ===== Calendar Info ===== */
+.calendar-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.calendar-identity {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+}
+
+.calendar-color {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.calendar-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.calendar-name {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 8px 0;
+    line-height: 1.2;
+}
+
+.calendar-description {
+    font-size: 1rem;
+    color: #6b7280;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* ===== Calendar Stats ===== */
+.calendar-stats {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 12px 16px;
+    background: #f9fafb;
+    border-radius: 8px;
+    min-width: 80px;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+}
+
+/* ===== Header Actions ===== */
+.header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.btn-sync-now,
+.btn-calendar-settings {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-sync-now {
+    background: #3b82f6;
+    color: white;
+    border: 1px solid #3b82f6;
+}
+
+.btn-sync-now:hover {
+    background: #2563eb;
+    border-color: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.25);
+}
+
+.btn-calendar-settings {
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+}
+
+.btn-calendar-settings:hover {
+    background: #e5e7eb;
+    color: #374151;
+    border-color: #9ca3af;
+}
+
+.btn-sync-now svg,
+.btn-calendar-settings svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* ===== Content Sections ===== */
+.calendar-detail-content {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.content-section {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.section-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    gap: 16px;
+}
+
+.section-title h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 4px 0;
+    line-height: 1.4;
+}
+
+.section-title p {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.btn-register-new,
+.btn-close-registration,
+.btn-view-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-register-new {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    border: none;
+}
+
+.btn-register-new:hover {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.25);
+}
+
+.btn-close-registration {
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+}
+
+.btn-close-registration:hover {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.btn-view-all {
+    background: transparent;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+}
+
+.btn-view-all:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.btn-register-new svg,
+.btn-close-registration svg,
+.btn-view-all svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* ===== Connection Cards ===== */
+.connections-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+.connection-card {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.2s ease;
+}
+
+.connection-card:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.connection-card.connected {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.02) 0%, rgba(16, 185, 129, 0.01) 100%);
+    border-color: #a7f3d0;
+}
+
+.connection-card.available {
+    background: #f9fafb;
+    border-color: #e5e7eb;
+}
+
+.connection-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.platform-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+    min-width: 0;
+}
+
+.platform-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.connection-card:hover .platform-icon {
+    transform: scale(1.05);
+}
+
+.platform-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* Platform-specific colors */
+.platform-icon.notion {
+    background: #000000;
+    color: #ffffff;
+}
+
+.platform-icon.google {
+    background: #f8f9fa;
+    color: #4285f4;
+    border: 1px solid #e5e7eb;
+}
+
+.platform-icon.apple {
+    background: #000000;
+    color: #ffffff;
+}
+
+.platform-icon.outlook {
+    background: #f8f9fa;
+    color: #0078d4;
+    border: 1px solid #e5e7eb;
+}
+
+.platform-icon.slack {
+    background: #4a154b;
+    color: #ffffff;
+}
+
+.platform-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.platform-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 4px 0;
+    line-height: 1.4;
+}
+
+.platform-status {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0 0 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.health-badge {
+    font-size: 0.75rem;
+}
+
+.health-badge.healthy {
+    color: #10b981;
+}
+
+.health-badge.warning {
+    color: #f59e0b;
+}
+
+.health-badge.error {
+    color: #ef4444;
+}
+
+.sync-info {
+    display: flex;
+    gap: 12px;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.sync-frequency,
+.sync-direction {
+    padding: 2px 6px;
+    background: #e5e7eb;
+    border-radius: 4px;
+}
+
+/* ===== Connection Actions ===== */
+.connection-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-configure {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-configure:hover {
+    background: #e5e7eb;
+    color: #374151;
+    border-color: #9ca3af;
+}
+
+.btn-configure svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* ===== Platform Registration Section ===== */
+.platform-registration-section {
+    border: 2px dashed #d1d5db;
+    background: #f9fafb;
+}
+
+/* ===== Sync Configuration ===== */
+.sync-config-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.config-card {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.config-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.config-header h3 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.sync-frequency-select,
+.sync-direction-select {
+    padding: 6px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    background: #ffffff;
+    font-size: 0.8125rem;
+    color: #374151;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #d1d5db;
+    transition: 0.2s;
+    border-radius: 24px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.2s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: #3b82f6;
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(20px);
+}
+
+.config-description {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* ===== Activity Feed ===== */
+.activity-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #f9fafb;
+    border-radius: 8px;
+}
+
+.activity-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.activity-icon.success {
+    background: #ecfdf5;
+    color: #10b981;
+}
+
+.activity-icon.sync {
+    background: #eff6ff;
+    color: #3b82f6;
+}
+
+.activity-icon.error {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #111827;
+    margin: 0 0 2px 0;
+}
+
+.activity-time {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+/* ===== No Connections Message ===== */
+.no-connections-message {
+    text-align: center;
+    padding: 48px 24px;
+    color: #6b7280;
+    font-size: 0.875rem;
+    background: #f9fafb;
+    border: 1px dashed #d1d5db;
+    border-radius: 8px;
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 768px) {
+    .calendar-info {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+    
+    .calendar-stats {
+        justify-content: space-between;
+    }
+    
+    .header-actions {
+        flex-direction: column;
+        width: 100%;
+        gap: 8px;
+    }
+    
+    .btn-sync-now,
+    .btn-calendar-settings {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .connections-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .sync-config-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .connection-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    
+    .connection-actions {
+        justify-content: space-between;
+    }
+}
+
+/* ===== Accessibility ===== */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Focus styles for accessibility */
+.btn-back:focus,
+.btn-sync-now:focus,
+.btn-calendar-settings:focus,
+.btn-register-new:focus,
+.btn-close-registration:focus,
+.btn-view-all:focus,
+.btn-configure:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}

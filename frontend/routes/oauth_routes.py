@@ -5,6 +5,8 @@ import base64
 import hashlib
 import requests
 import sys
+import jwt
+import time
 from datetime import datetime, timedelta
 from urllib.parse import urlencode
 from supabase import create_client
@@ -32,6 +34,22 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # OAuth Configuration
 OAUTH_CONFIG = {
+    'google': {
+        'client_id': os.environ.get('GOOGLE_CLIENT_ID'),
+        'client_secret': os.environ.get('GOOGLE_CLIENT_SECRET'),
+        'authorize_url': 'https://accounts.google.com/o/oauth2/auth',
+        'token_url': 'https://oauth2.googleapis.com/token',
+        'scope': 'https://www.googleapis.com/auth/calendar openid email profile',
+        'user_info_url': 'https://www.googleapis.com/oauth2/v2/userinfo'
+    },
+    'notion': {
+        'client_id': os.environ.get('NOTION_CLIENT_ID'),
+        'client_secret': os.environ.get('NOTION_CLIENT_SECRET'),
+        'authorize_url': 'https://api.notion.com/v1/oauth/authorize',
+        'token_url': 'https://api.notion.com/v1/oauth/token',
+        'scope': '',
+        'user_info_url': 'https://api.notion.com/v1/users/me'
+    },
     'slack': {
         'client_id': os.environ.get('SLACK_CLIENT_ID'),
         'client_secret': os.environ.get('SLACK_CLIENT_SECRET'),
@@ -46,7 +64,19 @@ OAUTH_CONFIG = {
         'tenant_id': os.environ.get('OUTLOOK_TENANT_ID', 'common'),
         'authorize_url': 'https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize',
         'token_url': 'https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token',
-        'scope': 'https://graph.microsoft.com/Calendars.ReadWrite offline_access'
+        'scope': 'https://graph.microsoft.com/Calendars.ReadWrite offline_access',
+        'user_info_url': 'https://graph.microsoft.com/v1.0/me'
+    },
+    'apple': {
+        'client_id': os.environ.get('APPLE_CLIENT_ID'),
+        'client_secret': None,  # Apple uses private key JWT
+        'team_id': os.environ.get('APPLE_TEAM_ID'),
+        'key_id': os.environ.get('APPLE_KEY_ID'),
+        'private_key': os.environ.get('APPLE_PRIVATE_KEY'),
+        'authorize_url': 'https://appleid.apple.com/auth/authorize',
+        'token_url': 'https://appleid.apple.com/auth/token',
+        'scope': 'name email',
+        'user_info_url': None  # Apple doesn't provide user info endpoint
     }
 }
 
@@ -57,6 +87,47 @@ def generate_pkce_codes():
         hashlib.sha256(code_verifier.encode('utf-8')).digest()
     ).decode('utf-8').rstrip('=')
     return code_verifier, code_challenge
+
+def generate_apple_client_secret():
+    """Generate Apple Sign In client secret using JWT"""
+    try:
+        config = OAUTH_CONFIG['apple']
+        team_id = config.get('team_id')
+        key_id = config.get('key_id')
+        client_id = config.get('client_id')
+        private_key = config.get('private_key')
+        
+        if not all([team_id, key_id, client_id, private_key]):
+            print("Missing Apple OAuth configuration")
+            return None
+        
+        # Clean private key format
+        if '\\n' in private_key:
+            private_key = private_key.replace('\\n', '\n')
+        
+        # JWT headers
+        headers = {
+            'kid': key_id,
+            'alg': 'ES256'
+        }
+        
+        # JWT payload
+        now = int(time.time())
+        payload = {
+            'iss': team_id,
+            'iat': now,
+            'exp': now + 3600,  # 1 hour expiration
+            'aud': 'https://appleid.apple.com',
+            'sub': client_id
+        }
+        
+        # Generate JWT
+        client_secret = jwt.encode(payload, private_key, algorithm='ES256', headers=headers)
+        return client_secret
+        
+    except Exception as e:
+        print(f"Error generating Apple client secret: {e}")
+        return None
 
 def store_oauth_state(user_id, provider, state, code_verifier=None):
     """Store OAuth state in database for security"""
@@ -91,6 +162,624 @@ def verify_oauth_state(state, provider):
     except Exception as e:
         print(f"Error verifying OAuth state: {e}")
         return None
+
+def get_user_info_from_provider(platform, access_token):
+    """Get user information from OAuth provider"""
+    try:
+        config = OAUTH_CONFIG[platform]
+        headers = {'Authorization': f'Bearer {access_token}'}
+        
+        if platform == 'notion':
+            headers['Notion-Version'] = '2022-06-28'
+        
+        user_info_url = config.get('user_info_url')
+        if not user_info_url:
+            return None
+            
+        response = requests.get(user_info_url, headers=headers)
+        if response.status_code == 200:
+            return response.json()
+        return None
+    except Exception as e:
+        print(f"Error getting user info from {platform}: {e}")
+        return None
+
+def store_platform_registration(user_id, platform, token_data, user_info=None):
+    """Store platform registration in registered_platforms table"""
+    try:
+        # Get user info if not provided
+        if not user_info and token_data.get('access_token'):
+            user_info = get_user_info_from_provider(platform, token_data['access_token'])
+        
+        # Calculate token expiration
+        expires_at = None
+        if token_data.get('expires_in'):
+            expires_at = (datetime.utcnow() + timedelta(seconds=int(token_data['expires_in']))).isoformat()
+        
+        # Prepare registration data
+        registration_data = {
+            'user_id': user_id,
+            'platform': platform,
+            'platform_name': platform.title(),
+            'encrypted_credentials': json.dumps({
+                'access_token': token_data.get('access_token'),
+                'refresh_token': token_data.get('refresh_token'),
+                'token_type': token_data.get('token_type', 'Bearer'),
+                'scope': token_data.get('scope'),
+                'expires_at': expires_at
+            }),
+            'platform_user_id': get_platform_user_id(platform, user_info) if user_info else None,
+            'platform_user_email': get_platform_user_email(platform, user_info) if user_info else None,
+            'platform_user_name': get_platform_user_name(platform, user_info) if user_info else None,
+            'is_active': True,
+            'created_at': datetime.utcnow().isoformat(),
+            'updated_at': datetime.utcnow().isoformat(),
+            'expires_at': expires_at
+        }
+        
+        # Upsert registration
+        result = supabase.table('registered_platforms').upsert(
+            registration_data,
+            on_conflict='user_id,platform'
+        ).execute()
+        
+        return bool(result.data)
+    except Exception as e:
+        print(f"Error storing platform registration: {e}")
+        return False
+
+def get_platform_user_id(platform, user_info):
+    """Extract user ID from platform-specific user info"""
+    if not user_info:
+        return None
+    if platform == 'google':
+        return user_info.get('id')
+    elif platform == 'notion':
+        return user_info.get('id')
+    elif platform == 'slack':
+        return user_info.get('authed_user', {}).get('id')
+    elif platform == 'outlook':
+        return user_info.get('id')
+    elif platform == 'apple':
+        return user_info.get('sub')  # Apple uses 'sub' field
+    return None
+
+def get_platform_user_email(platform, user_info):
+    """Extract user email from platform-specific user info"""
+    if not user_info:
+        return None
+    if platform == 'google':
+        return user_info.get('email')
+    elif platform == 'notion':
+        person = user_info.get('person', {})
+        return person.get('email') if person else user_info.get('email')
+    elif platform == 'slack':
+        return user_info.get('authed_user', {}).get('email')
+    elif platform == 'outlook':
+        return user_info.get('mail') or user_info.get('userPrincipalName')
+    elif platform == 'apple':
+        return user_info.get('email')
+    return None
+
+def get_platform_user_name(platform, user_info):
+    """Extract user name from platform-specific user info"""
+    if not user_info:
+        return None
+    if platform == 'google':
+        return user_info.get('name')
+    elif platform == 'notion':
+        return user_info.get('name')
+    elif platform == 'slack':
+        return user_info.get('authed_user', {}).get('name')
+    elif platform == 'outlook':
+        return user_info.get('displayName')
+    elif platform == 'apple':
+        # Apple provides name in a different structure
+        name_obj = user_info.get('name', {})
+        if isinstance(name_obj, dict):
+            first_name = name_obj.get('firstName', '')
+            last_name = name_obj.get('lastName', '')
+            return f"{first_name} {last_name}".strip() if first_name or last_name else None
+        return None
+    return None
+
+@oauth_bp.route('/<platform>/authorize')
+def generic_oauth_authorize(platform):
+    """Generic OAuth authorization for supported platforms"""
+    if platform not in OAUTH_CONFIG:
+        return jsonify({'error': 'Unsupported platform'}), 400
+    
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    config = OAUTH_CONFIG[platform]
+    state = secrets.token_urlsafe(32)
+    
+    # Generate PKCE for platforms that support it
+    code_verifier = None
+    if platform in ['google', 'notion', 'apple']:
+        code_verifier, code_challenge = generate_pkce_codes()
+        store_oauth_state(user_id, platform, state, code_verifier)
+    else:
+        store_oauth_state(user_id, platform, state)
+    
+    # Build authorization parameters
+    params = {
+        'client_id': config['client_id'],
+        'response_type': 'code',
+        'redirect_uri': url_for('oauth.generic_oauth_callback', platform=platform, _external=True),
+        'state': state,
+        'scope': config['scope']
+    }
+    
+    # Platform-specific parameters
+    if platform == 'google':
+        params['access_type'] = 'offline'
+        params['prompt'] = 'consent'
+        if code_verifier:
+            params['code_challenge'] = code_challenge
+            params['code_challenge_method'] = 'S256'
+    elif platform == 'notion':
+        params['response_type'] = 'code'
+        # Notion doesn't use PKCE in practice, but we'll include it
+    elif platform == 'slack':
+        params['user_scope'] = config.get('user_scope', '')
+    elif platform == 'outlook':
+        auth_url = config['authorize_url'].format(tenant=config['tenant_id'])
+        params['response_mode'] = 'query'
+        if code_verifier:
+            params['code_challenge'] = code_challenge
+            params['code_challenge_method'] = 'S256'
+    elif platform == 'apple':
+        params['response_mode'] = 'form_post'
+        params['response_type'] = 'code id_token'
+        if code_verifier:
+            params['code_challenge'] = code_challenge
+            params['code_challenge_method'] = 'S256'
+    
+    # Build final URL
+    if platform == 'outlook':
+        auth_url = config['authorize_url'].format(tenant=config['tenant_id'])
+    else:
+        auth_url = config['authorize_url']
+    
+    final_url = f"{auth_url}?{urlencode(params)}"
+    
+    # Return popup-friendly HTML
+    popup_html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Connect {platform.title()}</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            body {{
+                font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                margin: 0;
+                background: #f9fafb;
+                color: #374151;
+            }}
+            .loading {{
+                text-align: center;
+                max-width: 400px;
+                padding: 40px;
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            }}
+            .spinner {{
+                width: 40px;
+                height: 40px;
+                border: 3px solid #e5e7eb;
+                border-top: 3px solid #3b82f6;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin: 0 auto 20px;
+            }}
+            @keyframes spin {{
+                0% {{ transform: rotate(0deg); }}
+                100% {{ transform: rotate(360deg); }}
+            }}
+            .platform-name {{
+                font-size: 18px;
+                font-weight: 600;
+                margin-bottom: 8px;
+                color: #111827;
+            }}
+            .redirect-info {{
+                color: #6b7280;
+                font-size: 14px;
+                margin-bottom: 20px;
+            }}
+            .manual-link {{
+                display: inline-block;
+                padding: 10px 20px;
+                background: #3b82f6;
+                color: white;
+                text-decoration: none;
+                border-radius: 8px;
+                font-weight: 500;
+                transition: background 0.2s;
+            }}
+            .manual-link:hover {{
+                background: #2563eb;
+            }}
+        </style>
+        <script>
+            // Redirect to OAuth provider
+            setTimeout(function() {{
+                window.location.href = '{final_url}';
+            }}, 1000);
+        </script>
+    </head>
+    <body>
+        <div class="loading">
+            <div class="spinner"></div>
+            <div class="platform-name">Connecting to {platform.title()}</div>
+            <div class="redirect-info">Redirecting to {platform.title()} for authorization...</div>
+            <a href="{final_url}" class="manual-link">Continue manually if not redirected</a>
+        </div>
+    </body>
+    </html>
+    """
+    return popup_html
+
+@oauth_bp.route('/<platform>/callback')
+def generic_oauth_callback(platform):
+    """Generic OAuth callback handler"""
+    if platform not in OAUTH_CONFIG:
+        return handle_callback_error('Unsupported platform')
+    
+    code = request.args.get('code')
+    state = request.args.get('state')
+    error = request.args.get('error')
+    
+    if error:
+        return handle_callback_error(f'OAuth error: {error}')
+    
+    if not code or not state:
+        return handle_callback_error('Missing authorization code or state')
+    
+    # Verify state
+    state_data = verify_oauth_state(state, platform)
+    if not state_data:
+        return handle_callback_error('Invalid or expired state')
+    
+    try:
+        # Exchange code for tokens
+        token_data = exchange_code_for_tokens(platform, code, state_data)
+        if not token_data:
+            return handle_callback_error('Failed to exchange authorization code for tokens')
+        
+        # Get user info
+        user_info = None
+        if platform == 'apple':
+            # Apple provides user info in ID token
+            id_token = token_data.get('id_token')
+            if id_token:
+                try:
+                    # Decode JWT (Apple ID token is signed, but we can extract payload for basic info)
+                    # Note: In production, you should verify the signature
+                    import base64
+                    payload = id_token.split('.')[1]
+                    # Add padding if needed
+                    payload += '=' * (4 - len(payload) % 4)
+                    decoded = base64.urlsafe_b64decode(payload)
+                    user_info = json.loads(decoded.decode('utf-8'))
+                except Exception as e:
+                    print(f"Error decoding Apple ID token: {e}")
+                    user_info = {'sub': 'apple_user', 'email': 'unknown@apple.com'}
+        elif token_data.get('access_token'):
+            user_info = get_user_info_from_provider(platform, token_data['access_token'])
+        
+        # Store platform registration
+        success = store_platform_registration(state_data['user_id'], platform, token_data, user_info)
+        if not success:
+            return handle_callback_error('Failed to save platform registration')
+        
+        # Track the connection event
+        sync_tracker.track_sync_event(
+            user_id=state_data['user_id'],
+            event_type=EventType.PLATFORM_CONNECTED,
+            platform=platform,
+            status='success',
+            metadata={
+                'user_email': get_platform_user_email(platform, user_info),
+                'user_name': get_platform_user_name(platform, user_info),
+                'connection_method': 'oauth'
+            }
+        )
+        
+        # Clean up OAuth state
+        supabase.table('oauth_states').delete().eq('state', state).execute()
+        
+        return handle_callback_success(platform, user_info)
+        
+    except Exception as e:
+        print(f"OAuth callback error for {platform}: {e}")
+        return handle_callback_error(f'OAuth processing failed: {str(e)}')
+
+def exchange_code_for_tokens(platform, code, state_data):
+    """Exchange authorization code for access tokens"""
+    config = OAUTH_CONFIG[platform]
+    
+    # Prepare token request data
+    token_data = {
+        'client_id': config['client_id'],
+        'client_secret': config['client_secret'],
+        'code': code,
+        'grant_type': 'authorization_code',
+        'redirect_uri': url_for('oauth.generic_oauth_callback', platform=platform, _external=True)
+    }
+    
+    # Platform-specific modifications
+    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+    
+    if platform == 'google':
+        # Google supports PKCE
+        if state_data.get('code_verifier'):
+            token_data['code_verifier'] = state_data['code_verifier']
+    elif platform == 'notion':
+        # Notion uses JSON format
+        headers = {'Content-Type': 'application/json'}
+        token_data = json.dumps(token_data)
+    elif platform == 'outlook':
+        # Outlook with PKCE
+        token_url = config['token_url'].format(tenant=config['tenant_id'])
+        if state_data.get('code_verifier'):
+            token_data['code_verifier'] = state_data['code_verifier']
+        config = {**config, 'token_url': token_url}
+    elif platform == 'apple':
+        # Apple uses client secret JWT
+        client_secret = generate_apple_client_secret()
+        if not client_secret:
+            return None
+        token_data['client_secret'] = client_secret
+        if state_data.get('code_verifier'):
+            token_data['code_verifier'] = state_data['code_verifier']
+    
+    # Make token request
+    response = requests.post(config['token_url'], data=token_data, headers=headers)
+    
+    if response.status_code != 200:
+        print(f"Token exchange failed for {platform}: {response.status_code} {response.text}")
+        return None
+    
+    result = response.json()
+    
+    # Check for errors in response
+    if platform == 'slack' and not result.get('ok'):
+        print(f"Slack token exchange error: {result.get('error')}")
+        return None
+    elif 'error' in result:
+        print(f"Token exchange error for {platform}: {result.get('error')}")
+        return None
+    
+    return result
+
+def handle_callback_success(platform, user_info):
+    """Handle successful OAuth callback"""
+    user_name = get_platform_user_name(platform, user_info) or get_platform_user_email(platform, user_info) or 'Unknown User'
+    
+    success_html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Connected Successfully</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            body {{
+                font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                margin: 0;
+                background: #f9fafb;
+            }}
+            .success {{
+                text-align: center;
+                background: white;
+                padding: 40px;
+                border-radius: 12px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+                max-width: 400px;
+                width: 90%;
+            }}
+            .success-icon {{
+                width: 64px;
+                height: 64px;
+                margin: 0 auto 24px;
+                background: linear-gradient(135deg, #10b981, #059669);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 28px;
+                font-weight: bold;
+            }}
+            .success-title {{
+                margin: 0 0 8px;
+                color: #111827;
+                font-size: 24px;
+                font-weight: 600;
+            }}
+            .success-subtitle {{
+                margin: 0 0 16px;
+                color: #6b7280;
+                font-size: 16px;
+            }}
+            .user-info {{
+                padding: 16px;
+                background: #f3f4f6;
+                border-radius: 8px;
+                margin: 20px 0;
+            }}
+            .user-name {{
+                font-weight: 600;
+                color: #111827;
+                font-size: 16px;
+                margin: 0;
+            }}
+            .close-info {{
+                margin-top: 24px;
+                font-size: 14px;
+                color: #6b7280;
+                padding: 12px;
+                background: #f9fafb;
+                border-radius: 6px;
+                border: 1px solid #e5e7eb;
+            }}
+        </style>
+        <script>
+            // Notify parent window of success
+            if (window.opener && !window.opener.closed) {{
+                window.opener.postMessage({{
+                    type: 'oauth_success',
+                    platform: '{platform}',
+                    user_info: {json.dumps(user_info) if user_info else 'null'}
+                }}, '*');
+            }}
+            
+            // Auto-close after delay
+            let countdown = 3;
+            const countdownElement = document.getElementById('countdown');
+            const timer = setInterval(() => {{
+                countdown--;
+                if (countdownElement) {{
+                    countdownElement.textContent = countdown;
+                }}
+                if (countdown <= 0) {{
+                    clearInterval(timer);
+                    window.close();
+                }}
+            }}, 1000);
+        </script>
+    </head>
+    <body>
+        <div class="success">
+            <div class="success-icon">✓</div>
+            <h1 class="success-title">{platform.title()} Connected!</h1>
+            <p class="success-subtitle">Successfully connected your {platform.title()} account.</p>
+            <div class="user-info">
+                <div class="user-name">{user_name}</div>
+            </div>
+            <div class="close-info">
+                This window will close automatically in <span id="countdown">3</span> seconds.
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    return success_html
+
+def handle_callback_error(error_message):
+    """Handle OAuth callback error"""
+    error_html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Connection Failed</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            body {{
+                font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                margin: 0;
+                background: #f9fafb;
+            }}
+            .error {{
+                text-align: center;
+                background: white;
+                padding: 40px;
+                border-radius: 12px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+                max-width: 400px;
+                width: 90%;
+            }}
+            .error-icon {{
+                width: 64px;
+                height: 64px;
+                margin: 0 auto 24px;
+                background: linear-gradient(135deg, #ef4444, #dc2626);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 28px;
+                font-weight: bold;
+            }}
+            .error-title {{
+                margin: 0 0 8px;
+                color: #111827;
+                font-size: 24px;
+                font-weight: 600;
+            }}
+            .error-subtitle {{
+                margin: 0 0 16px;
+                color: #6b7280;
+                font-size: 16px;
+            }}
+            .error-details {{
+                margin: 20px 0;
+                padding: 16px;
+                background: #fef2f2;
+                border-radius: 8px;
+                font-size: 14px;
+                color: #991b1b;
+                border: 1px solid #fecaca;
+                word-break: break-word;
+            }}
+            .close-info {{
+                margin-top: 24px;
+                font-size: 14px;
+                color: #6b7280;
+            }}
+        </style>
+        <script>
+            // Notify parent window of error
+            if (window.opener && !window.opener.closed) {{
+                window.opener.postMessage({{
+                    type: 'oauth_error',
+                    error: '{error_message}'
+                }}, '*');
+            }}
+            
+            // Auto-close after delay
+            setTimeout(() => {{
+                window.close();
+            }}, 5000);
+        </script>
+    </head>
+    <body>
+        <div class="error">
+            <div class="error-icon">✗</div>
+            <h1 class="error-title">Connection Failed</h1>
+            <p class="error-subtitle">Unable to connect your account.</p>
+            <div class="error-details">
+                {error_message}
+            </div>
+            <div class="close-info">
+                This window will close automatically in 5 seconds.
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    return error_html
 
 @oauth_bp.route('/slack/authorize')
 def slack_authorize():
@@ -149,63 +838,34 @@ def slack_callback():
         token_data = response.json()
         
         if not token_data.get('ok'):
-            return redirect(f'/setup/slack?error={token_data.get("error", "token_exchange_failed")}')
+            return redirect(f'/dashboard?oauth_error={token_data.get("error", "token_exchange_failed")}')
         
-        # Store tokens in database
-        connection_data = {
-            'user_id': state_data['user_id'],
-            'platform': 'slack',
-            'access_token': token_data.get('access_token'),
-            'refresh_token': token_data.get('refresh_token'),
-            'token_type': token_data.get('token_type', 'Bearer'),
-            'scope': token_data.get('scope'),
-            'team': token_data.get('team'),
-            'authed_user': token_data.get('authed_user'),
-            'expires_at': None,  # Slack tokens don't expire
-            'raw_data': token_data,
-            'created_at': datetime.utcnow().isoformat(),
-            'updated_at': datetime.utcnow().isoformat()
-        }
+        # Store platform registration using new integrated system
+        success = store_platform_registration(state_data['user_id'], 'slack', token_data, token_data)
         
-        # Upsert connection
-        supabase.table('platform_connections').upsert(
-            connection_data,
-            on_conflict='user_id,platform'
-        ).execute()
-        
-        # Track platform connection event
-        sync_tracker.track_sync_event(
-            user_id=state_data['user_id'],
-            event_type=EventType.PLATFORM_CONNECTED,
-            platform='slack',
-            status='success',
-            metadata={
-                'team_name': token_data.get('team', {}).get('name'),
-                'team_id': token_data.get('team', {}).get('id')
-            }
-        )
-        
-        # Track user activity
-        sync_tracker.track_user_activity(
-            user_id=state_data['user_id'],
-            activity_type=ActivityType.PLATFORM_CONNECTED,
-            platform='slack',
-            details={
-                'team_name': token_data.get('team', {}).get('name'),
-                'connection_method': 'oauth'
-            },
-            ip_address=request.remote_addr,
-            user_agent=request.headers.get('User-Agent')
-        )
-        
-        # Clean up OAuth state
-        supabase.table('oauth_states').delete().eq('state', state).execute()
-        
-        return redirect('/setup/slack?success=true')
+        if success:
+            # Track platform connection event
+            sync_tracker.track_sync_event(
+                user_id=state_data['user_id'],
+                event_type=EventType.PLATFORM_CONNECTED,
+                platform='slack',
+                status='success',
+                metadata={
+                    'team_name': token_data.get('team', {}).get('name'),
+                    'team_id': token_data.get('team', {}).get('id'),
+                    'connection_method': 'oauth'
+                }
+            )
+            
+            # Clean up OAuth state
+            supabase.table('oauth_states').delete().eq('state', state).execute()
+            return redirect('/dashboard?oauth_success=slack')
+        else:
+            return redirect('/dashboard?oauth_error=registration_failed')
         
     except Exception as e:
         print(f"Slack OAuth error: {e}")
-        return redirect('/setup/slack?error=token_exchange_error')
+        return redirect('/dashboard?oauth_error=token_exchange_error')
 
 @oauth_bp.route('/outlook/authorize')
 def outlook_authorize():
@@ -271,77 +931,35 @@ def outlook_callback():
         token_data = response.json()
         
         if 'error' in token_data:
-            return redirect(f'/setup/outlook?error={token_data.get("error")}')
+            return redirect(f'/dashboard?oauth_error={token_data.get("error")}')
         
-        # Calculate token expiration
-        expires_in = token_data.get('expires_in', 3600)
-        expires_at = (datetime.utcnow() + timedelta(seconds=expires_in)).isoformat()
+        # Store platform registration using new integrated system
+        user_info = get_user_info_from_provider('outlook', token_data['access_token'])
+        success = store_platform_registration(state_data['user_id'], 'outlook', token_data, user_info)
         
-        # Get user info from Microsoft Graph
-        user_info = None
-        try:
-            headers = {'Authorization': f"Bearer {token_data['access_token']}"}
-            user_response = requests.get('https://graph.microsoft.com/v1.0/me', headers=headers)
-            if user_response.status_code == 200:
-                user_info = user_response.json()
-        except:
-            pass
-        
-        # Store tokens in database
-        connection_data = {
-            'user_id': state_data['user_id'],
-            'platform': 'outlook',
-            'access_token': token_data.get('access_token'),
-            'refresh_token': token_data.get('refresh_token'),
-            'token_type': token_data.get('token_type', 'Bearer'),
-            'scope': token_data.get('scope'),
-            'expires_at': expires_at,
-            'user_info': user_info,
-            'raw_data': token_data,
-            'created_at': datetime.utcnow().isoformat(),
-            'updated_at': datetime.utcnow().isoformat()
-        }
-        
-        # Upsert connection
-        supabase.table('platform_connections').upsert(
-            connection_data,
-            on_conflict='user_id,platform'
-        ).execute()
-        
-        # Track platform connection event
-        sync_tracker.track_sync_event(
-            user_id=state_data['user_id'],
-            event_type=EventType.PLATFORM_CONNECTED,
-            platform='outlook',
-            status='success',
-            metadata={
-                'user_email': user_info.get('mail') if user_info else None,
-                'user_name': user_info.get('displayName') if user_info else None,
-                'tenant_id': user_info.get('id') if user_info else None
-            }
-        )
-        
-        # Track user activity
-        sync_tracker.track_user_activity(
-            user_id=state_data['user_id'],
-            activity_type=ActivityType.PLATFORM_CONNECTED,
-            platform='outlook',
-            details={
-                'user_email': user_info.get('mail') if user_info else None,
-                'connection_method': 'oauth'
-            },
-            ip_address=request.remote_addr,
-            user_agent=request.headers.get('User-Agent')
-        )
-        
-        # Clean up OAuth state
-        supabase.table('oauth_states').delete().eq('state', state).execute()
-        
-        return redirect('/setup/outlook?success=true')
+        if success:
+            # Track platform connection event
+            sync_tracker.track_sync_event(
+                user_id=state_data['user_id'],
+                event_type=EventType.PLATFORM_CONNECTED,
+                platform='outlook',
+                status='success',
+                metadata={
+                    'user_email': get_platform_user_email('outlook', user_info),
+                    'user_name': get_platform_user_name('outlook', user_info),
+                    'connection_method': 'oauth'
+                }
+            )
+            
+            # Clean up OAuth state
+            supabase.table('oauth_states').delete().eq('state', state).execute()
+            return redirect('/dashboard?oauth_success=outlook')
+        else:
+            return redirect('/dashboard?oauth_error=registration_failed')
         
     except Exception as e:
         print(f"Outlook OAuth error: {e}")
-        return redirect('/setup/outlook?error=token_exchange_error')
+        return redirect('/dashboard?oauth_error=token_exchange_error')
 
 @oauth_bp.route('/refresh/<platform>')
 def refresh_token(platform):
@@ -350,29 +968,37 @@ def refresh_token(platform):
     if not user_id:
         return jsonify({'error': 'Not authenticated'}), 401
     
-    if platform not in ['outlook']:  # Slack doesn't use refresh tokens
+    if platform not in OAUTH_CONFIG:
         return jsonify({'error': 'Invalid platform'}), 400
     
+    # Slack tokens don't expire, skip refresh
+    if platform == 'slack':
+        return jsonify({'success': True, 'message': 'Slack tokens do not expire'})
+    
     try:
-        # Get current connection
-        result = supabase.table('platform_connections').select('*').eq('user_id', user_id).eq('platform', platform).single().execute()
+        # Get current registration
+        result = supabase.table('registered_platforms').select('*').eq('user_id', user_id).eq('platform', platform).single().execute()
         if not result.data:
-            return jsonify({'error': 'No connection found'}), 404
+            return jsonify({'error': 'No platform registration found'}), 404
         
-        connection = result.data
-        refresh_token = connection.get('refresh_token')
+        # Decrypt credentials
+        credentials = json.loads(result.data['encrypted_credentials'])
+        refresh_token_value = credentials.get('refresh_token')
         
-        if not refresh_token:
+        if not refresh_token_value:
             return jsonify({'error': 'No refresh token available'}), 400
         
         config = OAUTH_CONFIG[platform]
-        token_url = config['token_url'].format(tenant=config.get('tenant_id', 'common'))
+        token_url = config['token_url']
+        
+        if platform == 'outlook':
+            token_url = token_url.format(tenant=config.get('tenant_id', 'common'))
         
         # Request new tokens
         response = requests.post(token_url, data={
             'client_id': config['client_id'],
             'client_secret': config['client_secret'],
-            'refresh_token': refresh_token,
+            'refresh_token': refresh_token_value,
             'grant_type': 'refresh_token'
         })
         
@@ -381,18 +1007,23 @@ def refresh_token(platform):
         if 'error' in token_data:
             return jsonify({'error': token_data.get('error_description', 'Token refresh failed')}), 400
         
-        # Update tokens
+        # Update credentials
         expires_in = token_data.get('expires_in', 3600)
         expires_at = (datetime.utcnow() + timedelta(seconds=expires_in)).isoformat()
         
-        update_data = {
+        updated_credentials = {
+            **credentials,
             'access_token': token_data.get('access_token'),
-            'refresh_token': token_data.get('refresh_token', refresh_token),  # May get new refresh token
-            'expires_at': expires_at,
-            'updated_at': datetime.utcnow().isoformat()
+            'refresh_token': token_data.get('refresh_token', refresh_token_value),
+            'expires_at': expires_at
         }
         
-        supabase.table('platform_connections').update(update_data).eq('user_id', user_id).eq('platform', platform).execute()
+        # Update registration
+        supabase.table('registered_platforms').update({
+            'encrypted_credentials': json.dumps(updated_credentials),
+            'expires_at': expires_at,
+            'updated_at': datetime.utcnow().isoformat()
+        }).eq('user_id', user_id).eq('platform', platform).execute()
         
         return jsonify({'success': True, 'expires_at': expires_at})
         
@@ -408,13 +1039,19 @@ def disconnect_platform(platform):
         return jsonify({'error': 'Not authenticated'}), 401
     
     try:
-        # Delete connection
+        # Delete platform registration
+        supabase.table('registered_platforms').delete().eq('user_id', user_id).eq('platform', platform).execute()
+        
+        # Delete platform connections
         supabase.table('platform_connections').delete().eq('user_id', user_id).eq('platform', platform).execute()
         
-        # Clean up any related data (sync settings, etc.)
+        # Clean up calendar connections
+        supabase.table('calendar_connections').delete().eq('user_id', user_id).eq('platform', platform).execute()
+        
+        # Clean up sync settings
         supabase.table('sync_settings').delete().eq('user_id', user_id).eq('platform', platform).execute()
         
-        return jsonify({'success': True})
+        return jsonify({'success': True, 'message': f'{platform.title()} disconnected successfully'})
         
     except Exception as e:
         print(f"Disconnect error: {e}")
@@ -428,22 +1065,26 @@ def oauth_status():
         return jsonify({'authenticated': False}), 200
     
     try:
-        # Get all platform connections for user
-        result = supabase.table('platform_connections').select('platform,expires_at,team,user_info').eq('user_id', user_id).execute()
+        # Get all platform registrations for user
+        result = supabase.table('registered_platforms').select('*').eq('user_id', user_id).eq('is_active', True).execute()
         
-        connections = {}
-        for conn in result.data:
-            platform = conn['platform']
-            connections[platform] = {
-                'connected': True,
-                'expires_at': conn.get('expires_at'),
-                'user_info': conn.get('team') or conn.get('user_info')
+        platforms = {}
+        for registration in result.data:
+            platform = registration['platform']
+            platforms[platform] = {
+                'registered': True,
+                'platform_name': registration.get('platform_name'),
+                'user_name': registration.get('platform_user_name'),
+                'user_email': registration.get('platform_user_email'),
+                'expires_at': registration.get('expires_at'),
+                'created_at': registration.get('created_at')
             }
         
         return jsonify({
             'authenticated': True,
             'user_id': user_id,
-            'connections': connections
+            'platforms': platforms,
+            'total_registered': len(platforms)
         })
         
     except Exception as e:

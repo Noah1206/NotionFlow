@@ -1337,7 +1337,10 @@ blueprints_to_register = [
     ('routes.enhanced_features_routes', 'enhanced_bp', '🚀 Enhanced Features'),
     ('routes.dashboard_api_routes', 'dashboard_api_bp', '📊 Dashboard API'),
     ('routes.user_visit_routes', 'visit_bp', '🚀 User Visit Tracking'),
-    ('routes.profile_routes', 'profile_bp', '👤 Profile Management')
+    ('routes.profile_routes', 'profile_bp', '👤 Profile Management'),
+    ('routes.platform_registration_routes', 'platform_reg_bp', '🔗 Platform Registration'),
+    ('routes.calendar_connection_routes', 'calendar_conn_bp', '📅 Calendar Connections'),
+    ('routes.health_check_routes', 'health_bp', '🔍 Platform Health Check')
 ]
 
 registered_blueprints = []
