@@ -298,8 +298,26 @@ def initial_setup():
                 except Exception as user_error:
                     print(f"User creation skipped (may already exist): {user_error}")
                 
-                # 프로필 생성
-                username = f"user_{user_id[:8]}"
+                # 프로필 생성 - username을 display_name 기반으로 생성
+                import re
+                # display_name에서 영문자, 숫자만 추출하여 username 생성
+                base_username = re.sub(r'[^a-zA-Z0-9]', '', display_name.lower())
+                if not base_username:
+                    base_username = f"user{user_id[:8]}"
+                
+                # username 중복 체크 및 고유 username 생성
+                username = base_username
+                counter = 1
+                while True:
+                    try:
+                        existing = supabase_admin.table('user_profiles').select('id').eq('username', username).execute()
+                        if not existing.data:
+                            break
+                        username = f"{base_username}{counter}"
+                        counter += 1
+                    except:
+                        break
+                
                 profile_data_create = {
                     'user_id': user_id,
                     'username': username,
@@ -323,6 +341,29 @@ def initial_setup():
                 'display_name': display_name,
                 'updated_at': datetime.now().isoformat()
             }
+            
+            # username도 display_name 기반으로 업데이트 (기존 프로필이 있는 경우)
+            if existing_profile and (not existing_profile.get('username') or existing_profile.get('username').startswith('user_')):
+                import re
+                base_username = re.sub(r'[^a-zA-Z0-9]', '', display_name.lower())
+                if not base_username:
+                    base_username = f"user{user_id[:8]}"
+                
+                # username 중복 체크
+                username = base_username
+                counter = 1
+                while True:
+                    try:
+                        existing = supabase_admin.table('user_profiles').select('id').eq('username', username).neq('user_id', user_id).execute()
+                        if not existing.data:
+                            break
+                        username = f"{base_username}{counter}"
+                        counter += 1
+                    except:
+                        break
+                
+                update_data['username'] = username
+                print(f"Updating username to: {username}")
             
             if email:
                 update_data['email'] = email
