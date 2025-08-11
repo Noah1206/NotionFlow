@@ -113,6 +113,8 @@ class AuthManager:
                         if len(bio_parts) > 1:
                             birthdate = bio_parts[1].strip()
                             profile['birthdate'] = birthdate
+                            # Remove birthdate from bio for display
+                            profile['bio'] = bio_parts[0].strip() if bio_parts[0].strip() else None
                     except Exception as e:
                         print(f"Error parsing birthdate from bio: {e}")
                 
@@ -137,6 +139,8 @@ class AuthManager:
                             if len(bio_parts) > 1:
                                 birthdate = bio_parts[1].strip()
                                 profile['birthdate'] = birthdate
+                                # Remove birthdate from bio for display
+                                profile['bio'] = bio_parts[0].strip() if bio_parts[0].strip() else None
                         except Exception as e:
                             print(f"Error parsing birthdate from bio: {e}")
                     

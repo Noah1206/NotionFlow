@@ -89,6 +89,14 @@ body {
                     <span class="info-value">{{ profile.display_name or profile.username or 'username' }}</span>
                 </div>
                 <div class="info-item">
+                    <span class="info-label">생년월일</span>
+                    {% if profile.birthdate %}
+                        <span class="info-value">{{ profile.birthdate }}</span>
+                    {% else %}
+                        <span class="info-value" style="color: #999;">설정되지 않음</span>
+                    {% endif %}
+                </div>
+                <div class="info-item">
                     <span class="info-label">이메일</span>
                     {% if profile.email %}
                         <span class="info-value">{{ profile.email }}</span>

@@ -551,17 +551,25 @@ def profile():
             'bio': '소개가 없습니다',
             'is_public': False,
             'avatar_url': None,
-            'created_at': None
+            'created_at': None,
+            'birthdate': None
         }
     }
     
     try:
-        from utils.dashboard_data import dashboard_data
-        if dashboard_data and dashboard_data.supabase:
-            # Try to get user profile from user_profiles table (correct table name)
-            result = dashboard_data.supabase.table('user_profiles').select('*').eq('user_id', user_id).single().execute()
-            if result.data:
-                profile_context['profile'] = result.data
+        # Use AuthManager to get profile (includes birthdate parsing)
+        if AuthManager:
+            profile_data = AuthManager.get_user_profile(user_id)
+            if profile_data:
+                profile_context['profile'] = profile_data
+                print(f"Profile loaded with birthdate: {profile_data.get('birthdate')}")
+        else:
+            # Fallback to direct database query
+            from utils.dashboard_data import dashboard_data
+            if dashboard_data and dashboard_data.supabase:
+                result = dashboard_data.supabase.table('user_profiles').select('*').eq('user_id', user_id).single().execute()
+                if result.data:
+                    profile_context['profile'] = result.data
     except Exception as e:
         print(f"Error loading profile data: {e}")
         # Use default data if database fails
