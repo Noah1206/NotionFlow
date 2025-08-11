@@ -4,11 +4,11 @@
 /* ✨ 사이드바 기본 구조 */
 .sidebar {
     position: fixed !important;
-    top: 15px !important;
+    top: 30px !important;
     left: 10px !important;
-    bottom: 15px !important;
+    bottom: 30px !important;
     width: 240px !important;
-    height: calc(100vh - 30px) !important;
+    height: calc(100vh - 60px) !important;
     background: #ffffff !important;
     border: 1px solid rgba(0, 0, 0, 0.06) !important;
     border-radius: 20px !important;
