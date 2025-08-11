@@ -85,6 +85,13 @@
                     </div>
                 </div>
                 <div class="platform-actions">
+                    <button class="one-click-btn-small" onclick="oneClickConnect('notion')" data-platform="notion">
+                        <span class="btn-icon">⚡</span>
+                        <span class="btn-text">원클릭</span>
+                        <div class="btn-loader" style="display: none;">
+                            <div class="loader-spinner"></div>
+                        </div>
+                    </button>
                     <button class="platform-connect-btn" onclick="connectPlatform('notion')" data-platform="notion">
                         <span class="connect-text">연결하기</span>
                         <div class="connect-loader" style="display: none;">
@@ -140,6 +147,13 @@
                     </div>
                 </div>
                 <div class="platform-actions">
+                    <button class="one-click-btn-small" onclick="oneClickConnect('google')" data-platform="google">
+                        <span class="btn-icon">⚡</span>
+                        <span class="btn-text">원클릭</span>
+                        <div class="btn-loader" style="display: none;">
+                            <div class="loader-spinner"></div>
+                        </div>
+                    </button>
                     <button class="platform-disconnect-btn" onclick="disconnectPlatform('google')" data-platform="google">
                         <span class="disconnect-text">연결 해제</span>
                         <div class="disconnect-loader" style="display: none;">
@@ -169,6 +183,13 @@
                     </div>
                 </div>
                 <div class="platform-actions">
+                    <button class="one-click-btn-small" onclick="oneClickConnect('apple')" data-platform="apple">
+                        <span class="btn-icon">⚡</span>
+                        <span class="btn-text">원클릭</span>
+                        <div class="btn-loader" style="display: none;">
+                            <div class="loader-spinner"></div>
+                        </div>
+                    </button>
                     <button class="platform-connect-btn" onclick="connectPlatform('apple')" data-platform="apple">
                         <span class="connect-text">연결하기</span>
                         <div class="connect-loader" style="display: none;">
@@ -228,6 +249,13 @@
                     </div>
                 </div>
                 <div class="platform-actions">
+                    <button class="one-click-btn-small" onclick="oneClickConnect('outlook')" data-platform="outlook">
+                        <span class="btn-icon">⚡</span>
+                        <span class="btn-text">원클릭</span>
+                        <div class="btn-loader" style="display: none;">
+                            <div class="loader-spinner"></div>
+                        </div>
+                    </button>
                     <button class="platform-connect-btn" onclick="connectPlatform('outlook')" data-platform="outlook">
                         <span class="connect-text">연결하기</span>
                         <div class="connect-loader" style="display: none;">
@@ -287,6 +315,13 @@
                     </div>
                 </div>
                 <div class="platform-actions">
+                    <button class="one-click-btn-small" onclick="oneClickConnect('slack')" data-platform="slack">
+                        <span class="btn-icon">⚡</span>
+                        <span class="btn-text">원클릭</span>
+                        <div class="btn-loader" style="display: none;">
+                            <div class="loader-spinner"></div>
+                        </div>
+                    </button>
                     <button class="platform-connect-btn" onclick="connectPlatform('slack')" data-platform="slack">
                         <span class="connect-text">연결하기</span>
                         <div class="connect-loader" style="display: none;">
@@ -576,6 +611,47 @@ function updateConnectionStats() {
     // 동기화된 이벤트 수 시뮬레이션
     const eventCount = connectedPlatforms.length * Math.floor(Math.random() * 100) + 50;
     document.getElementById('sync-count').textContent = eventCount;
+}
+
+// 개별 플랫폼 원클릭 연동 기능
+async function oneClickConnect(platform) {
+    const button = document.querySelector(`[data-platform="${platform}"] .one-click-btn-small`);
+    const loader = button.querySelector('.btn-loader');
+    const buttonText = button.querySelector('.btn-text');
+    const buttonIcon = button.querySelector('.btn-icon');
+    
+    // 버튼 상태 변경
+    button.disabled = true;
+    buttonText.style.display = 'none';
+    buttonIcon.style.display = 'none';
+    loader.style.display = 'flex';
+    
+    try {
+        // 플랫폼별 연결 시도
+        await connectPlatform(platform);
+        
+        // 연결 성공 확인
+        const card = document.querySelector(`[data-platform="${platform}"]`);
+        const status = card.querySelector('.platform-status');
+        
+        if (status.classList.contains('connected')) {
+            showNotification(`${getPlatformName(platform)} 연결 완료!`, 'success');
+        } else {
+            showNotification(`${getPlatformName(platform)} 연결에 실패했습니다.`, 'error');
+        }
+        
+    } catch (error) {
+        console.error(`${platform} 연동 중 오류:`, error);
+        showNotification(`${getPlatformName(platform)} 연동 중 오류가 발생했습니다.`, 'error');
+    } finally {
+        // 버튼 상태 복원
+        setTimeout(() => {
+            button.disabled = false;
+            buttonText.style.display = 'inline';
+            buttonIcon.style.display = 'inline';
+            loader.style.display = 'none';
+        }, 1000);
+    }
 }
 </script>
 {% endblock %}
