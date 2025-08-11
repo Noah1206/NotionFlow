@@ -103,7 +103,20 @@ class AuthManager:
         try:
             result = supabase.table('user_profiles').select('*').eq('user_id', user_id).execute()
             if result.data and len(result.data) > 0:
-                return result.data[0]
+                profile = result.data[0]
+                
+                # Extract birthdate from bio field if it exists
+                if profile.get('bio') and 'birthdate:' in profile['bio']:
+                    try:
+                        # Parse birthdate from bio field (format: "birthdate:YYYY-MM-DD")
+                        bio_parts = profile['bio'].split('birthdate:')
+                        if len(bio_parts) > 1:
+                            birthdate = bio_parts[1].strip()
+                            profile['birthdate'] = birthdate
+                    except Exception as e:
+                        print(f"Error parsing birthdate from bio: {e}")
+                
+                return profile
             else:
                 print(f"No user profile found for user_id: {user_id}")
                 # 프로필이 없으면 기본 프로필 생성
@@ -115,7 +128,19 @@ class AuthManager:
                 # 다시 조회해서 반환
                 result = supabase.table('user_profiles').select('*').eq('user_id', user_id).execute()
                 if result.data and len(result.data) > 0:
-                    return result.data[0]
+                    profile = result.data[0]
+                    
+                    # Extract birthdate from bio field if it exists
+                    if profile.get('bio') and 'birthdate:' in profile['bio']:
+                        try:
+                            bio_parts = profile['bio'].split('birthdate:')
+                            if len(bio_parts) > 1:
+                                birthdate = bio_parts[1].strip()
+                                profile['birthdate'] = birthdate
+                        except Exception as e:
+                            print(f"Error parsing birthdate from bio: {e}")
+                    
+                    return profile
                 return None
         except Exception as e:
             print(f"Error getting user profile: {e}")
