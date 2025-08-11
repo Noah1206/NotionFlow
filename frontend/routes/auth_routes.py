@@ -78,6 +78,17 @@ def login():
             # Get user profile
             profile = AuthManager.get_user_profile(user_data['id'])
             
+            # Check if initial setup is required
+            needs_initial_setup = False
+            if profile:
+                # Check if display_name or birthdate is missing
+                if not profile.get('display_name') or not profile.get('birthdate'):
+                    needs_initial_setup = True
+                    print(f"User {user_data['id']} needs initial setup - display_name: {profile.get('display_name')}, birthdate: {profile.get('birthdate')}")
+            else:
+                needs_initial_setup = True
+                print(f"User {user_data['id']} needs initial setup - no profile found")
+            
             return jsonify({
                 'success': True,
                 'message': 'Login successful',
@@ -88,7 +99,8 @@ def login():
                     'display_name': profile.get('display_name') if profile else None
                 },
                 'token': token,
-                'session_info': SessionManager.get_session_info()
+                'session_info': SessionManager.get_session_info(),
+                'needs_initial_setup': needs_initial_setup
             })
         else:
             return jsonify({

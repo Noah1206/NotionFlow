@@ -527,10 +527,17 @@
                         // 🎯 Success notification
                         showNotification(result.message, 'success');
 
-                        // 🏠 Redirect to dashboard with replace to prevent back button issues
+                        // 🏠 Redirect based on initial setup status
                         setTimeout(() => {
-                            const dashboardURL = '/dashboard';
-                            console.log('Redirecting to:', dashboardURL);
+                            let dashboardURL = '/dashboard';
+                            
+                            // Check if initial setup is needed
+                            if (result.needs_initial_setup) {
+                                dashboardURL = '/initial-setup';
+                                console.log('User needs initial setup, redirecting to:', dashboardURL);
+                            } else {
+                                console.log('User setup complete, redirecting to:', dashboardURL);
+                            }
                             
                             // Use replace instead of href to prevent back button loops
                             window.location.replace(dashboardURL);
