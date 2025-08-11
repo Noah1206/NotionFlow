@@ -59,11 +59,11 @@ body {
                     
                     <div class="profile-stats-row">
                         <div class="profile-stat">
-                            <span class="stat-number">{{ profile.posts_count or 42 }}</span>
+                            <span class="stat-number">{{ calendar_count | default(0) }}</span>
                             <span class="stat-label">캘린더</span>
                         </div>
                         <div class="profile-stat">
-                            <span class="stat-number">{{ profile.connections_count or 24 }}</span>
+                            <span class="stat-number">{{ connector_count | default(0) }}</span>
                             <span class="stat-label">커넥터</span>
                         </div>
                     </div>

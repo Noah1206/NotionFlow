@@ -570,6 +570,29 @@ def profile():
                 result = dashboard_data.supabase.table('user_profiles').select('*').eq('user_id', user_id).single().execute()
                 if result.data:
                     profile_context['profile'] = result.data
+        
+        # Get calendar and connector counts
+        from utils.dashboard_data import dashboard_data
+        if dashboard_data and dashboard_data.supabase:
+            try:
+                # Get calendar count
+                calendars_result = dashboard_data.supabase.table('calendar_events').select('id').eq('user_id', user_id).execute()
+                calendar_count = len(calendars_result.data) if calendars_result.data else 0
+                
+                # Get connector count (platform connections)
+                connectors_result = dashboard_data.supabase.table('platform_connections').select('id').eq('user_id', user_id).execute()
+                connector_count = len(connectors_result.data) if connectors_result.data else 0
+                
+                # Add to profile context
+                profile_context['calendar_count'] = calendar_count
+                profile_context['connector_count'] = connector_count
+                
+                print(f"User {user_id} has {calendar_count} calendars and {connector_count} connectors")
+            except Exception as stats_error:
+                print(f"Error loading user stats: {stats_error}")
+                profile_context['calendar_count'] = 0
+                profile_context['connector_count'] = 0
+                
     except Exception as e:
         print(f"Error loading profile data: {e}")
         # Use default data if database fails
