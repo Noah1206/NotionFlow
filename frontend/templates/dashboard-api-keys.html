@@ -385,7 +385,8 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/api-keys.js') }}?v={{ range(100000, 999999) | random }}"></script>
+<!-- Core notification system이 먼저 로드되어야 함 -->
+<script src="{{ url_for('static', filename='js/notification-utils.js') }}?v={{ range(100000, 999999) | random }}"></script>
 <script src="{{ url_for('static', filename='js/apple-setup-wizard.js') }}?v={{ range(100000, 999999) | random }}"></script>
 <script src="{{ url_for('static', filename='js/platform-health.js') }}?v={{ range(100000, 999999) | random }}"></script>
 <script>
@@ -506,34 +507,13 @@ function getKoreanPlatformName(platform) {
     return names[platform] || platform;
 }
 
-// 알림 표시 함수
+// 알림 표시 함수 - NotificationUtils 사용
 function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.textContent = message;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 16px 24px;
-        border-radius: 12px;
-        color: white;
-        font-weight: 500;
-        z-index: 10000;
-        transform: translateX(400px);
-        transition: transform 0.3s ease;
-        ${type === 'success' ? 'background: linear-gradient(135deg, #10b981, #059669);' : ''}
-        ${type === 'error' ? 'background: linear-gradient(135deg, #ef4444, #dc2626);' : ''}
-        ${type === 'info' ? 'background: linear-gradient(135deg, #3b82f6, #2563eb);' : ''}
-        ${type === 'warning' ? 'background: linear-gradient(135deg, #f59e0b, #d97706);' : ''}
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // 애니메이션
-    setTimeout(() => notification.style.transform = 'translateX(0)', 100);
-    setTimeout(() => notification.style.transform = 'translateX(400px)', 3000);
-    setTimeout(() => document.body.removeChild(notification), 3500);
+    if (window.NotificationUtils) {
+        return window.NotificationUtils.show(message, type);
+    }
+    // Fallback if NotificationUtils not loaded
+    console.log(`[${type}] ${message}`);
 }
 
 // 페이지 로드 시 통계 업데이트
