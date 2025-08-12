@@ -781,6 +781,28 @@ def handle_callback_error(error_message):
     """
     return error_html
 
+@oauth_bp.route('/<platform>/check')
+def check_oauth_config(platform):
+    """Check if OAuth is configured for a platform"""
+    if platform not in OAUTH_CONFIG:
+        return jsonify({'configured': False, 'error': 'Unsupported platform'})
+    
+    config = OAUTH_CONFIG[platform]
+    
+    # Check required configuration
+    if platform == 'apple':
+        required_fields = ['client_id', 'team_id', 'key_id', 'private_key']
+        configured = all(config.get(field) and config[field] != f'your_{platform}_{field}_here' for field in required_fields)
+    else:
+        required_fields = ['client_id', 'client_secret']
+        configured = all(config.get(field) and config[field] != f'your_{platform}_{field}_here' for field in required_fields)
+    
+    return jsonify({
+        'configured': configured,
+        'platform': platform,
+        'missing_fields': [field for field in required_fields if not config.get(field) or config[field] == f'your_{platform}_{field}_here']
+    })
+
 @oauth_bp.route('/slack/authorize')
 def slack_authorize():
     """Initiate Slack OAuth flow"""
