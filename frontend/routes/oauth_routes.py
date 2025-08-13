@@ -7,6 +7,7 @@ import requests
 import sys
 import jwt
 import time
+import json
 from datetime import datetime, timedelta
 from urllib.parse import urlencode
 from supabase import create_client
@@ -59,9 +60,9 @@ OAUTH_CONFIG = {
         'user_scope': 'channels:read,channels:write,chat:write'
     },
     'outlook': {
-        'client_id': os.environ.get('OUTLOOK_CLIENT_ID'),
-        'client_secret': os.environ.get('OUTLOOK_CLIENT_SECRET'),
-        'tenant_id': os.environ.get('OUTLOOK_TENANT_ID', 'common'),
+        'client_id': os.environ.get('MICROSOFT_CLIENT_ID') or os.environ.get('OUTLOOK_CLIENT_ID'),
+        'client_secret': os.environ.get('MICROSOFT_CLIENT_SECRET') or os.environ.get('OUTLOOK_CLIENT_SECRET'),
+        'tenant_id': os.environ.get('MICROSOFT_TENANT_ID') or os.environ.get('OUTLOOK_TENANT_ID', 'common'),
         'authorize_url': 'https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize',
         'token_url': 'https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token',
         'scope': 'https://graph.microsoft.com/Calendars.ReadWrite offline_access',
@@ -140,10 +141,13 @@ def store_oauth_state(user_id, provider, state, code_verifier=None):
             'created_at': datetime.utcnow().isoformat(),
             'expires_at': (datetime.utcnow() + timedelta(minutes=10)).isoformat()
         }
-        supabase.table('oauth_states').insert(data).execute()
+        result = supabase.table('oauth_states').insert(data).execute()
+        print(f"OAuth state stored successfully for {provider}: {state[:8]}...")
         return True
     except Exception as e:
-        print(f"Error storing OAuth state: {e}")
+        print(f"Error storing OAuth state for {provider}: {e}")
+        print(f"User ID: {user_id}, Provider: {provider}")
+        print(f"Supabase URL: {SUPABASE_URL}")
         return False
 
 def verify_oauth_state(state, provider):
@@ -287,13 +291,23 @@ def get_platform_user_name(platform, user_info):
 def generic_oauth_authorize(platform):
     """Generic OAuth authorization for supported platforms"""
     if platform not in OAUTH_CONFIG:
-        return jsonify({'error': 'Unsupported platform'}), 400
+        print(f"Unsupported platform requested: {platform}")
+        return jsonify({'error': f'Unsupported platform: {platform}'}), 400
     
     user_id = session.get('user_id')
     if not user_id:
+        print(f"OAuth authorization attempt without authentication for {platform}")
         return jsonify({'error': 'Not authenticated'}), 401
     
     config = OAUTH_CONFIG[platform]
+    
+    # Check if OAuth is properly configured
+    if not config.get('client_id') or not config.get('client_secret'):
+        print(f"OAuth not configured for {platform}")
+        print(f"Client ID: {config.get('client_id')[:10]}..." if config.get('client_id') else "Missing")
+        print(f"Client Secret: {'Set' if config.get('client_secret') else 'Missing'}")
+        return jsonify({'error': f'OAuth not configured for {platform}'}), 500
+    
     state = secrets.token_urlsafe(32)
     
     # Generate PKCE for platforms that support it
