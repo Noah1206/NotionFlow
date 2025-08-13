@@ -35,15 +35,12 @@ class AppleSetupWizard {
     
     /**
      * Apple OAuth 설정 확인
+     * 개발자 계정이 없으므로 항상 false 반환하여 3-클릭 마법사 사용
      */
     async checkAppleOAuth() {
-        try {
-            const response = await fetch('/api/oauth/apple/check');
-            const data = await response.json();
-            return data.configured || false;
-        } catch {
-            return false;
-        }
+        // Apple 개발자 계정이 없으므로 OAuth는 사용하지 않음
+        // 항상 3-클릭 설정 마법사를 사용
+        return false;
     }
     
     /**

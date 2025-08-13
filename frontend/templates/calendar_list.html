@@ -2,9 +2,9 @@
 
 {% block body_class %}calendar-list-page{% endblock %}
 
-{% block title %}Calendar List - NotionFlow{% endblock %}
+{% block title %}캘린더 목록 - NotionFlow{% endblock %}
 
-{% block description %}Manage your calendars and events in one unified view. Create, organize, and sync your personal and shared calendars.{% endblock %}
+{% block description %}하나의 통합 뷰에서 캘린더와 이벤트를 관리하세요. 개인 및 공유 캘린더를 생성, 조직화, 동기화하세요.{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-list.css') }}">
@@ -15,15 +15,15 @@
     <!-- Minimal Header -->
     <div class="calendar-header-refined">
         <div class="header-left">
-            <h1 class="page-title">Calendars</h1>
-            <p class="page-subtitle">Manage your schedules and events</p>
+            <h1 class="page-title">캘린더</h1>
+            <p class="page-subtitle">일정과 이벤트를 관리하세요</p>
         </div>
         <div class="header-actions">
             <button class="btn-new-calendar" onclick="createNewCalendar()">
                 <svg class="btn-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
-                <span>New</span>
+                <span>새로 만들기</span>
             </button>
             <div class="view-toggle">
                 <button class="view-btn active" data-view="grid">
@@ -53,7 +53,7 @@
                     <svg class="section-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                     </svg>
-                    Personal
+                    개인
                 </h2>
                 <span class="section-count-refined">{{ summary.personal_calendars }}</span>
             </div>
@@ -66,7 +66,7 @@
                             <div class="calendar-color-refined" style="background: {{ calendar.color }};"></div>
                             <div class="calendar-info-refined">
                                 <h3 class="calendar-name-refined">{{ calendar.name }}</h3>
-                                <p class="calendar-meta">{{ calendar.event_count }} events • {{ calendar.last_sync_display }}</p>
+                                <p class="calendar-meta">{{ calendar.event_count }}개 이벤트 • {{ calendar.last_sync_display }}</p>
                             </div>
                         </div>
                         <div class="card-actions-hover">
@@ -79,7 +79,7 @@
                                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                                 </svg>
-                                Open
+                                열기
                             </button>
                         </div>
                     </div>
@@ -88,17 +88,17 @@
                         <svg class="sync-icon" width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
-                        <span>Synced</span>
+                        <span>동기화됨</span>
                         {% elif calendar.sync_status == 'syncing' %}
                         <svg class="sync-icon rotating" width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                         </svg>
-                        <span>Syncing</span>
+                        <span>동기화 중</span>
                         {% else %}
                         <svg class="sync-icon" width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"/>
                         </svg>
-                        <span>Inactive</span>
+                        <span>비활성</span>
                         {% endif %}
                     </div>
                 </div>
@@ -111,8 +111,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/>
                             </svg>
                         </div>
-                        <h3 class="new-calendar-title-refined">Create Your First Calendar</h3>
-                        <p class="new-calendar-description-refined">Start organizing your events</p>
+                        <h3 class="new-calendar-title-refined">첫 번째 캘린더 만들기</h3>
+                        <p class="new-calendar-description-refined">이벤트 조직화를 시작하세요</p>
                     </div>
                 </div>
                 {% endfor %}
@@ -126,7 +126,7 @@
                     <svg class="section-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                     </svg>
-                    Shared
+                    공유
                 </h2>
                 <span class="section-count-refined">{{ summary.shared_calendars }}</span>
             </div>
@@ -139,7 +139,7 @@
                             <div class="calendar-color-refined" style="background: {{ calendar.color }};"></div>
                             <div class="calendar-info-refined">
                                 <h3 class="calendar-name-refined">{{ calendar.name }}</h3>
-                                <p class="calendar-meta">{{ calendar.event_count }} events • Shared with {{ calendar.shared_with_count }} members</p>
+                                <p class="calendar-meta">{{ calendar.event_count }}개 이벤트 • {{ calendar.shared_with_count }}명과 공유 중</p>
                             </div>
                         </div>
                         <div class="card-actions-hover">
@@ -157,7 +157,7 @@
                                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                                 </svg>
-                                Open
+                                열기
                             </button>
                         </div>
                     </div>
@@ -166,24 +166,24 @@
                         <svg class="sync-icon" width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
-                        <span>Synced</span>
+                        <span>동기화됨</span>
                         {% elif calendar.sync_status == 'syncing' %}
                         <svg class="sync-icon rotating" width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                         </svg>
-                        <span>Syncing</span>
+                        <span>동기화 중</span>
                         {% else %}
                         <svg class="sync-icon" width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"/>
                         </svg>
-                        <span>Inactive</span>
+                        <span>비활성</span>
                         {% endif %}
                     </div>
                 </div>
                 {% else %}
                 <!-- No shared calendars message -->
                 <div style="text-align: center; padding: 2rem; color: var(--color-gray-500);">
-                    <p>No shared calendars yet</p>
+                    <p>아직 공유된 캘린더가 없습니다</p>
                 </div>
                 {% endfor %}
             </div>
@@ -197,8 +197,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/>
                             </svg>
                         </div>
-                        <h3 class="new-calendar-title-refined">Create Calendar</h3>
-                        <p class="new-calendar-description-refined">Start organizing your events</p>
+                        <h3 class="new-calendar-title-refined">캘린더 만듨기</h3>
+                        <p class="new-calendar-description-refined">이벤트 조직화를 시작하세요</p>
                     </div>
                 </div>
     </div>
@@ -209,19 +209,19 @@
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
             </svg>
-            <span>Sync All</span>
+            <span>전체 동기화</span>
         </button>
         <button class="quick-action-refined" onclick="exportCalendars()">
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
-            <span>Export</span>
+            <span>내보내기</span>
         </button>
         <button class="quick-action-refined" onclick="importCalendar()">
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
             </svg>
-            <span>Import</span>
+            <span>가져오기</span>
         </button>
     </div>
 </div>
@@ -232,10 +232,10 @@ async function createNewCalendar() {
     console.log('Creating new calendar...');
     
     // Simple calendar creation form (could be replaced with modal)
-    const name = prompt('Calendar name:', 'My New Calendar');
+    const name = prompt('캘린더 이름:', '내 새 캘린더');
     if (!name || name.trim() === '') return;
     
-    const platform = prompt('Platform (notion/google/apple/outlook/custom):', 'custom');
+    const platform = prompt('플랫폼 (notion/google/apple/outlook/custom):', 'custom');
     const colors = ['#2563eb', '#059669', '#d97706', '#7c3aed', '#dc2626', '#6b7280'];
     const color = colors[Math.floor(Math.random() * colors.length)];
     
@@ -256,20 +256,20 @@ async function createNewCalendar() {
         const result = await response.json();
         
         if (result.success) {
-            alert('Calendar created successfully!');
+            alert('캘린더가 성공적으로 생성되었습니다!');
             window.location.reload(); // Reload to show new calendar
         } else {
-            alert('Error creating calendar: ' + result.error);
+            alert('캘린더 생성 오류: ' + result.error);
         }
     } catch (error) {
         console.error('Error creating calendar:', error);
-        alert('Error creating calendar. Please try again.');
+        alert('캘린더 생성 오류. 다시 시도해주세요.');
     }
 }
 
 function importCalendar() {
     console.log('Importing calendar...');
-    alert('Calendar import feature will be available in the next update!');
+    alert('캘린더 가져오기 기능은 다음 업데이트에서 제공될 예정입니다!');
 }
 
 async function syncAllCalendars() {
@@ -278,13 +278,13 @@ async function syncAllCalendars() {
     // Show sync status
     const syncBtn = document.querySelector('[onclick="syncAllCalendars()"]');
     const originalText = syncBtn.innerHTML;
-    syncBtn.innerHTML = '<svg class="rotating" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span>Syncing...</span>';
+    syncBtn.innerHTML = '<svg class="rotating" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span>동기화 중...</span>';
     
     try {
         // Simulate sync process (replace with actual sync API calls)
         await new Promise(resolve => setTimeout(resolve, 2000));
         
-        syncBtn.innerHTML = '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>Synced</span>';
+        syncBtn.innerHTML = '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>동기화 완료</span>';
         
         setTimeout(() => {
             syncBtn.innerHTML = originalText;
@@ -293,23 +293,23 @@ async function syncAllCalendars() {
     } catch (error) {
         console.error('Sync error:', error);
         syncBtn.innerHTML = originalText;
-        alert('Sync failed. Please try again.');
+        alert('동기화에 실패했습니다. 다시 시도해주세요.');
     }
 }
 
 function exportCalendars() {
     console.log('Exporting calendars...');
-    alert('Export feature will be available in the next update!');
+    alert('내보내기 기능은 다음 업데이트에서 제공될 예정입니다!');
 }
 
 function calendarSettings() {
     console.log('Opening calendar settings...');
-    alert('Calendar settings will be available in the next update!');
+    alert('캘린더 설정은 다음 업데이트에서 제공될 예정입니다!');
 }
 
 function viewAnalytics() {
     console.log('Viewing calendar analytics...');
-    alert('Calendar analytics will be available in the next update!');
+    alert('캘린더 분석은 다음 업데이트에서 제공될 예정입니다!');
 }
 
 // View Switcher

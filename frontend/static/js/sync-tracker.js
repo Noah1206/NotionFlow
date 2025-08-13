@@ -190,7 +190,7 @@ class SyncTracker {
         
         // Show notification for important events
         if (event.event_type === 'sync_failed' || event.status === 'failed') {
-            this.showNotification(`Sync failed for ${event.platform}`, 'error');
+            this.showNotification(`${event.platform} 동기화 실패`, 'error');
         }
     }
 

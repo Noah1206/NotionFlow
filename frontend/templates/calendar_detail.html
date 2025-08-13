@@ -2,9 +2,9 @@
 
 {% block body_class %}calendar-detail-page{% endblock %}
 
-{% block title %}{{ calendar.name }} - Calendar Management - NotionFlow{% endblock %}
+{% block title %}{{ calendar.name }} - 캘린더 관리 - NotionFlow{% endblock %}
 
-{% block description %}Manage platform connections and sync settings for {{ calendar.name }}. Connect with Notion, Google Calendar, Apple Calendar, Outlook, and Slack.{% endblock %}
+{% block description %}{{ calendar.name }}에 대한 플랫폼 연결 및 동기화 설정을 관리하세요. Notion, Google 캘린더, Apple 캘린더, Outlook, Slack과 연결하세요.{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-detail.css') }}?v={{ range(100000, 999999) | random }}">
@@ -22,10 +22,10 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M19 12H5m7-7l-7 7 7 7"/>
                 </svg>
-                Back
+                뒤로
             </button>
             <nav class="breadcrumb">
-                <a href="/dashboard/calendar-list">Calendars</a>
+                <a href="/dashboard/calendar-list">캘린더</a>
                 <span class="separator">→</span>
                 <span class="current">{{ calendar.name }}</span>
             </nav>
@@ -36,22 +36,22 @@
                 <div class="calendar-color" style="background: {{ calendar.color or '#3B82F6' }};"></div>
                 <div class="calendar-details">
                     <h1 class="calendar-name">{{ calendar.name }}</h1>
-                    <p class="calendar-description">{{ calendar.description or 'Manage platform connections and sync settings' }}</p>
+                    <p class="calendar-description">{{ calendar.description or '플랫폼 연결 및 동기화 설정을 관리하세요' }}</p>
                 </div>
             </div>
             
             <div class="calendar-stats">
                 <div class="stat-item">
                     <span class="stat-value">{{ calendar.event_count or 0 }}</span>
-                    <span class="stat-label">Events</span>
+                    <span class="stat-label">이벤트</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-value" id="connected-platforms-count">0</span>
-                    <span class="stat-label">Connected</span>
+                    <span class="stat-label">연결됨</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-value" id="sync-health">-</span>
-                    <span class="stat-label">Health</span>
+                    <span class="stat-label">상태</span>
                 </div>
             </div>
         </div>
@@ -61,14 +61,14 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                 </svg>
-                Sync Now
+                지금 동기화
             </button>
             <button class="btn-calendar-settings" onclick="openCalendarSettings()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="3"></circle>
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 -1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                 </svg>
-                Settings
+                설정
             </button>
         </div>
     </div>
@@ -79,15 +79,15 @@
         <section class="content-section">
             <div class="section-header">
                 <div class="section-title">
-                    <h2>Platform Connections</h2>
-                    <p>Connect external platforms to sync events with this calendar</p>
+                    <h2>플랫폼 연결</h2>
+                    <p>이 캘린더와 이벤트를 동기화하기 위해 외부 플랫폼을 연결하세요</p>
                 </div>
                 <button class="btn-register-new" onclick="showPlatformRegistration()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="12" y1="5" x2="12" y2="19"></line>
                         <line x1="5" y1="12" x2="19" y2="12"></line>
                     </svg>
-                    Register Platform
+                    플랫폼 등록
                 </button>
             </div>
             
@@ -101,15 +101,15 @@
         <section class="content-section platform-registration-section" id="platform-registration-section" style="display: none;">
             <div class="section-header">
                 <div class="section-title">
-                    <h2>Register New Platform</h2>
-                    <p>Register a new platform to enable calendar connections</p>
+                    <h2>새 플랫폼 등록</h2>
+                    <p>캘린더 연결을 활성화하기 위해 새 플랫폼을 등록하세요</p>
                 </div>
                 <button class="btn-close-registration" onclick="hidePlatformRegistration()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
-                    Close
+                    닫기
                 </button>
             </div>
             
@@ -120,48 +120,48 @@
         <section class="content-section">
             <div class="section-header">
                 <div class="section-title">
-                    <h2>Sync Configuration</h2>
-                    <p>Configure how platforms sync with this calendar</p>
+                    <h2>동기화 구성</h2>
+                    <p>플랫폼이 이 캘린더와 동기화하는 방법을 구성하세요</p>
                 </div>
             </div>
             
             <div class="sync-config-grid">
                 <div class="config-card">
                     <div class="config-header">
-                        <h3>Sync Frequency</h3>
+                        <h3>동기화 빈도</h3>
                         <select class="sync-frequency-select" id="sync-frequency" onchange="updateSyncConfig()">
-                            <option value="5">Every 5 minutes</option>
-                            <option value="15" selected>Every 15 minutes</option>
-                            <option value="30">Every 30 minutes</option>
-                            <option value="60">Every hour</option>
-                            <option value="360">Every 6 hours</option>
-                            <option value="1440">Daily</option>
+                            <option value="5">5분마다</option>
+                            <option value="15" selected>15분마다</option>
+                            <option value="30">30분마다</option>
+                            <option value="60">1시간마다</option>
+                            <option value="360">6시간마다</option>
+                            <option value="1440">매일</option>
                         </select>
                     </div>
-                    <p class="config-description">How often to sync events between platforms</p>
+                    <p class="config-description">플랫폼 간 이벤트 동기화 빈도</p>
                 </div>
                 
                 <div class="config-card">
                     <div class="config-header">
-                        <h3>Auto Sync</h3>
+                        <h3>자동 동기화</h3>
                         <label class="toggle-switch">
                             <input type="checkbox" id="auto-sync" checked onchange="updateSyncConfig()">
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
-                    <p class="config-description">Automatically sync changes when detected</p>
+                    <p class="config-description">변경 사항이 감지되면 자동으로 동기화</p>
                 </div>
                 
                 <div class="config-card">
                     <div class="config-header">
-                        <h3>Sync Direction</h3>
+                        <h3>동기화 방향</h3>
                         <select class="sync-direction-select" id="sync-direction" onchange="updateSyncConfig()">
-                            <option value="both" selected>Both Ways</option>
-                            <option value="to_platform">To Platform Only</option>
-                            <option value="from_platform">From Platform Only</option>
+                            <option value="both" selected>양방향</option>
+                            <option value="to_platform">플랫폼으로만</option>
+                            <option value="from_platform">플랫폼에서만</option>
                         </select>
                     </div>
-                    <p class="config-description">Direction of event synchronization</p>
+                    <p class="config-description">이벤트 동기화 방향</p>
                 </div>
             </div>
         </section>
@@ -170,10 +170,10 @@
         <section class="content-section">
             <div class="section-header">
                 <div class="section-title">
-                    <h2>Recent Activity</h2>
-                    <p>Latest sync activities and connection events</p>
+                    <h2>최근 활동</h2>
+                    <p>최근 동기화 활동 및 연결 이벤트</p>
                 </div>
-                <button class="btn-view-all" onclick="viewAllActivity()">View All</button>
+                <button class="btn-view-all" onclick="viewAllActivity()">모두 보기</button>
             </div>
             
             <div class="activity-feed" id="activity-feed">
