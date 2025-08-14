@@ -230,7 +230,7 @@
 }
 
 .pricing-card.single-plan {
-    width: 420px;
+    width: 480px;
     min-height: 580px;
     border-width: 4px;
 }
@@ -365,15 +365,16 @@
     left: -1px;
     background: linear-gradient(45deg, #f97316 0%, #ea580c 100%);
     color: #ffffff;
-    padding: 0.6rem 1.2rem;
-    font-size: 0.75rem;
+    padding: 0.8rem 2rem;
+    font-size: 0.875rem;
     font-weight: 800;
     letter-spacing: 1px;
     text-transform: uppercase;
-    clip-path: polygon(0 0, 80% 0, 100% 100%, 0 100%);
+    clip-path: polygon(0 0, 85% 0, 100% 100%, 0 100%);
     animation: slideInRight 0.6s ease-out 1s both;
     box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
     z-index: 10;
+    min-width: 140px;
 }
 
 /* 찢어진 종이 효과 추가 */
