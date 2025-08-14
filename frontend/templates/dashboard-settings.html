@@ -461,6 +461,15 @@
                 }
             }
 
+            // 최근 활동 가져오기
+            const activityResponse = await fetch('/api/dashboard/activity?limit=4');
+            if (activityResponse.ok) {
+                const activityData = await activityResponse.json();
+                if (activityData.success && activityData.activity) {
+                    updateActivityLog(activityData.activity);
+                }
+            }
+
         } catch (error) {
             console.error('Error updating settings data:', error);
             // 에러 시 모든 값을 0으로 설정
@@ -517,6 +526,167 @@
                 }
             }
         });
+    }
+
+    // 활동 로그 업데이트
+    function updateActivityLog(activities) {
+        const activityList = document.querySelector('.activity-list');
+        if (!activities || activities.length === 0) {
+            // 활동이 없으면 "활동 없음" 메시지 표시
+            activityList.innerHTML = `
+                <div class="activity-item">
+                    <div class="activity-icon neutral">
+                        <i class="fas fa-info"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">활동 기록이 없습니다</div>
+                        <div class="activity-meta">
+                            <span class="activity-time">-</span>
+                            <span class="activity-platform">System</span>
+                        </div>
+                    </div>
+                    <div class="activity-status neutral">대기중</div>
+                </div>
+            `;
+            return;
+        }
+        
+        activityList.innerHTML = ''; // 기존 내용 클리어
+        
+        activities.slice(0, 4).forEach(activity => {
+            const activityItem = document.createElement('div');
+            activityItem.className = 'activity-item';
+            
+            // 활동 타입에 따른 제목 생성
+            let activityTitle = activity.description || getActivityTitle(activity.event_type, activity.platform);
+            
+            // 상태에 따른 클래스 및 아이콘 설정
+            const statusClass = getStatusClass(activity.status);
+            const statusIcon = getStatusIcon(activity.status);
+            const statusText = getStatusText(activity.status);
+            
+            activityItem.innerHTML = `
+                <div class="activity-icon ${statusClass}">
+                    <i class="fas ${statusIcon}"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-title">${activityTitle}</div>
+                    <div class="activity-meta">
+                        <span class="activity-time">${formatTimeAgo(activity.created_at)}</span>
+                        <span class="activity-platform">${getPlatformDisplayName(activity.platform)}</span>
+                    </div>
+                </div>
+                <div class="activity-status ${statusClass}">${statusText}</div>
+            `;
+            
+            activityList.appendChild(activityItem);
+        });
+    }
+
+    // 활동 제목 생성
+    function getActivityTitle(eventType, platform) {
+        const platformName = getPlatformDisplayName(platform);
+        
+        switch (eventType) {
+            case 'sync_started':
+                return `${platformName} 동기화 시작`;
+            case 'sync_completed':
+                return `${platformName} 동기화 완료`;
+            case 'sync_failed':
+                return `${platformName} 동기화 실패`;
+            case 'connection_established':
+                return `${platformName} 연결 완료`;
+            case 'connection_failed':
+                return `${platformName} 연결 실패`;
+            case 'data_imported':
+                return `${platformName} 데이터 가져오기 완료`;
+            case 'backup_created':
+                return `${platformName} 백업 생성`;
+            default:
+                return `${platformName} 활동`;
+        }
+    }
+
+    // 플랫폼 표시명 반환
+    function getPlatformDisplayName(platform) {
+        const platformNames = {
+            'notion': 'Notion',
+            'google': 'Google Calendar',
+            'apple': 'Apple Calendar',
+            'outlook': 'Outlook',
+            'slack': 'Slack',
+            'system': 'System'
+        };
+        return platformNames[platform] || platform || 'Unknown';
+    }
+
+    // 상태 클래스 반환
+    function getStatusClass(status) {
+        switch (status) {
+            case 'success':
+            case 'completed':
+                return 'success';
+            case 'error':
+            case 'failed':
+                return 'error';
+            case 'warning':
+            case 'partial':
+                return 'warning';
+            default:
+                return 'neutral';
+        }
+    }
+
+    // 상태 아이콘 반환
+    function getStatusIcon(status) {
+        switch (status) {
+            case 'success':
+            case 'completed':
+                return 'fa-check';
+            case 'error':
+            case 'failed':
+                return 'fa-times';
+            case 'warning':
+            case 'partial':
+                return 'fa-exclamation';
+            default:
+                return 'fa-info';
+        }
+    }
+
+    // 상태 텍스트 반환
+    function getStatusText(status) {
+        switch (status) {
+            case 'success':
+            case 'completed':
+                return '성공';
+            case 'error':
+            case 'failed':
+                return '실패';
+            case 'warning':
+            case 'partial':
+                return '부분 성공';
+            default:
+                return '대기중';
+        }
+    }
+
+    // 시간 포맷 함수
+    function formatTimeAgo(timestamp) {
+        if (!timestamp) return '-';
+        
+        const now = new Date();
+        const time = new Date(timestamp);
+        const diffMs = now - time;
+        const diffMins = Math.floor(diffMs / (1000 * 60));
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        
+        if (diffMins < 1) return '방금 전';
+        if (diffMins < 60) return `${diffMins}분 전`;
+        if (diffHours < 24) return `${diffHours}시간 전`;
+        if (diffDays < 7) return `${diffDays}일 전`;
+        return time.toLocaleDateString('ko-KR');
     }
 
     // 페이지 로드 시 데이터 업데이트
