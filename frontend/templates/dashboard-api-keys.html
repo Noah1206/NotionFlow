@@ -24,28 +24,28 @@
             <div class="status-card active">
                 <div class="status-icon">🔗</div>
                 <div class="status-content">
-                    <div class="status-number" id="connected-count">2</div>
+                    <div class="status-number" id="connected-count">0</div>
                     <div class="status-label">연결된 플랫폼</div>
                 </div>
             </div>
             <div class="status-card">
                 <div class="status-icon">📅</div>
                 <div class="status-content">
-                    <div class="status-number" id="sync-count">214</div>
+                    <div class="status-number" id="sync-count">0</div>
                     <div class="status-label">동기화된 이벤트</div>
                 </div>
             </div>
             <div class="status-card">
                 <div class="status-icon">✅</div>
                 <div class="status-content">
-                    <div class="status-number success" id="success-rate">100%</div>
+                    <div class="status-number success" id="success-rate">0%</div>
                     <div class="status-label">성공률</div>
                 </div>
             </div>
             <div class="status-card">
                 <div class="status-icon">⚡</div>
                 <div class="status-content">
-                    <div class="status-number" id="sync-speed">2.4s</div>
+                    <div class="status-number" id="sync-speed">N/A</div>
                     <div class="status-label">평균 동기화 시간</div>
                 </div>
             </div>
@@ -129,9 +129,9 @@
                     <div class="platform-details">
                         <h3 class="platform-name">Google Calendar</h3>
                         <p class="platform-description">구글 캘린더와 실시간 동기화</p>
-                        <div class="platform-status connected">
+                        <div class="platform-status disconnected">
                             <span class="status-dot"></span>
-                            연결됨
+                            연결되지 않음
                         </div>
                     </div>
                 </div>
@@ -143,9 +143,9 @@
                             <div class="loader-spinner"></div>
                         </div>
                     </button>
-                    <button class="platform-disconnect-btn" onclick="disconnectPlatform('google')" data-platform="google">
-                        <span class="disconnect-text">연결 해제</span>
-                        <div class="disconnect-loader" style="display: none;">
+                    <button class="platform-connect-btn" onclick="connectPlatform('google')" data-platform="google">
+                        <span class="connect-text">연결하기</span>
+                        <div class="connect-loader" style="display: none;">
                             <div class="loader-dot"></div>
                         </div>
                     </button>
@@ -518,16 +518,61 @@ function showNotification(message, type = 'info') {
 
 // 페이지 로드 시 통계 업데이트
 document.addEventListener('DOMContentLoaded', function() {
+    // Initial stats load
     updateConnectionStats();
+    
+    // Update stats every 30 seconds for real-time data
+    setInterval(updateConnectionStats, 30000);
+    
+    // Update stats when user becomes active (tab focus)
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            updateConnectionStats();
+        }
+    });
 });
 
-function updateConnectionStats() {
-    const connectedPlatforms = document.querySelectorAll('.platform-status.connected');
-    document.getElementById('connected-count').textContent = connectedPlatforms.length;
-    
-    // 동기화된 이벤트 수 시뮬레이션
-    const eventCount = connectedPlatforms.length * Math.floor(Math.random() * 100) + 50;
-    document.getElementById('sync-count').textContent = eventCount;
+async function updateConnectionStats() {
+    try {
+        // Get real statistics from API
+        const response = await fetch('/api/dashboard/stats');
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            if (data.success && data.stats) {
+                const stats = data.stats;
+                
+                // Update all stat elements with real data
+                document.getElementById('connected-count').textContent = stats.connected_platforms;
+                document.getElementById('sync-count').textContent = stats.synced_events;
+                document.getElementById('success-rate').textContent = stats.success_rate;
+                document.getElementById('sync-speed').textContent = stats.avg_sync_time;
+                
+                console.log('Dashboard stats updated with real data:', stats);
+            } else {
+                throw new Error(data.error || 'Failed to load stats');
+            }
+        } else {
+            throw new Error('Failed to fetch dashboard stats');
+        }
+    } catch (error) {
+        console.error('Error updating dashboard stats:', error);
+        
+        // Fallback: Use DOM-based counting for connected platforms
+        const connectedPlatforms = document.querySelectorAll('.platform-status.connected');
+        document.getElementById('connected-count').textContent = connectedPlatforms.length;
+        
+        // Show 0 for other stats when no data available
+        if (connectedPlatforms.length === 0) {
+            document.getElementById('sync-count').textContent = '0';
+            document.getElementById('success-rate').textContent = '0%';
+            document.getElementById('sync-speed').textContent = 'N/A';
+        } else {
+            // Keep existing values on error if platforms are connected
+            console.log('Using fallback stats due to API error');
+        }
+    }
 }
 
 // 개별 플랫폼 원클릭 연동 기능
