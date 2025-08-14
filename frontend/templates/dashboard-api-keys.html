@@ -444,8 +444,9 @@
                 button.setAttribute('onclick', `disconnectPlatform('${platformName}')`);
                 buttonText.textContent = '연결 해제';
 
-                // 통계 업데이트
+                // 통계 및 플랫폼 상태 업데이트
                 updateConnectionStats();
+                updatePlatformStatus();
 
                 showNotification(`${getKoreanPlatformName(platformName)} 연결 완료!`, 'success');
             } else {
@@ -498,8 +499,9 @@
             button.setAttribute('onclick', `connectPlatform('${platformName}')`);
             buttonText.textContent = '연결하기';
 
-            // 통계 업데이트
+            // 통계 및 플랫폼 상태 업데이트
             updateConnectionStats();
+            updatePlatformStatus();
 
             showNotification(`${getKoreanPlatformName(platformName)} 연결 해제 완료`, 'success');
         } catch (error) {
@@ -539,18 +541,83 @@
         console.log(`[${type}] ${message}`);
     }
 
+    // 실제 플랫폼 연결 상태 업데이트
+    async function updatePlatformStatus() {
+        try {
+            const response = await fetch('/api/dashboard/platforms');
+            
+            if (response.ok) {
+                const data = await response.json();
+                
+                if (data.success && data.platforms) {
+                    const platforms = data.platforms;
+                    
+                    // 각 플랫폼별 상태 업데이트
+                    Object.keys(platforms).forEach(platformName => {
+                        const platform = platforms[platformName];
+                        const platformCard = document.querySelector(`[data-platform="${platformName}"]`);
+                        
+                        if (platformCard) {
+                            const statusElement = platformCard.querySelector('.platform-status');
+                            const connectBtn = platformCard.querySelector('.platform-connect-btn');
+                            
+                            if (statusElement && platform.configured && platform.enabled) {
+                                // 연결된 상태
+                                statusElement.className = 'platform-status connected';
+                                statusElement.innerHTML = '<span class="status-dot"></span>연결됨';
+                                
+                                if (connectBtn) {
+                                    connectBtn.className = 'platform-disconnect-btn';
+                                    connectBtn.setAttribute('onclick', `disconnectPlatform('${platformName}')`);
+                                    connectBtn.innerHTML = `
+                                        <span class="disconnect-text">연결 해제</span>
+                                        <div class="disconnect-loader" style="display: none;">
+                                            <div class="loader-dot"></div>
+                                        </div>
+                                    `;
+                                }
+                            } else {
+                                // 연결되지 않은 상태
+                                statusElement.className = 'platform-status disconnected';
+                                statusElement.innerHTML = '<span class="status-dot"></span>연결되지 않음';
+                                
+                                if (connectBtn && connectBtn.className !== 'platform-connect-btn') {
+                                    connectBtn.className = 'platform-connect-btn';
+                                    connectBtn.setAttribute('onclick', `connectPlatform('${platformName}')`);
+                                    connectBtn.innerHTML = `
+                                        <span class="connect-text">연결하기</span>
+                                        <div class="connect-loader" style="display: none;">
+                                            <div class="loader-dot"></div>
+                                        </div>
+                                    `;
+                                }
+                            }
+                        }
+                    });
+                    
+                    console.log('Platform status updated with real data:', platforms);
+                }
+            }
+        } catch (error) {
+            console.error('Error updating platform status:', error);
+        }
+    }
+
     // 페이지 로드 시 통계 업데이트
     document.addEventListener('DOMContentLoaded', function () {
-        // Initial stats load
+        // Initial stats and platform status load
         updateConnectionStats();
+        updatePlatformStatus();
 
         // Update stats every 30 seconds for real-time data
         setInterval(updateConnectionStats, 30000);
+        setInterval(updatePlatformStatus, 30000);
 
         // Update stats when user becomes active (tab focus)
         document.addEventListener('visibilitychange', function () {
             if (!document.hidden) {
                 updateConnectionStats();
+                updatePlatformStatus();
             }
         });
     });
@@ -699,6 +766,7 @@
                             updatePlatformStatus(event.data.platform, 'connected');
                             showNotification(`${getKoreanPlatformName(event.data.platform)} 연결 성공!`, 'success');
                             updateConnectionStats();
+                            updatePlatformStatus();
                             resolve(event.data);
                         } else if (event.data.type === 'oauth_error') {
                             cleanup();
