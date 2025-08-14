@@ -131,28 +131,79 @@ def generate_apple_client_secret():
         return None
 
 def store_oauth_state(user_id, provider, state, code_verifier=None):
-    """Store OAuth state - always use session for simplicity"""
+    """Store OAuth state in database for security"""
     try:
-        # Always use session storage for reliability
-        session[f'oauth_state_{state}'] = {
+        # Prepare data for database insertion
+        data = {
             'user_id': user_id,
             'provider': provider,
+            'state': state,
             'code_verifier': code_verifier,
-            'created_at': datetime.utcnow().isoformat()
+            'created_at': datetime.utcnow().isoformat(),
+            'expires_at': (datetime.utcnow() + timedelta(minutes=10)).isoformat()
         }
-        print(f"OAuth state stored in session for {provider}: {state[:8]}...")
-        return True
+        
+        # Insert into oauth_states table
+        result = supabase.table('oauth_states').insert(data).execute()
+        
+        if result.data:
+            print(f"OAuth state stored successfully in database for {provider}: {state[:8]}...")
+            return True
+        else:
+            print(f"Failed to store OAuth state in database for {provider}")
+            # Fallback to session storage if database fails
+            session[f'oauth_state_{state}'] = {
+                'user_id': user_id,
+                'provider': provider,
+                'code_verifier': code_verifier,
+                'created_at': datetime.utcnow().isoformat()
+            }
+            print(f"Fallback: OAuth state stored in session for {provider}")
+            return True
             
     except Exception as e:
         print(f"Error storing OAuth state for {provider}: {e}")
         print(f"User ID: {user_id}, Provider: {provider}")
-        print(f"Session keys: {list(session.keys())}")
-        return False
+        
+        # Fallback to session storage on database error
+        try:
+            session[f'oauth_state_{state}'] = {
+                'user_id': user_id,
+                'provider': provider,
+                'code_verifier': code_verifier,
+                'created_at': datetime.utcnow().isoformat()
+            }
+            print(f"Fallback: OAuth state stored in session after database error")
+            return True
+        except Exception as session_error:
+            print(f"Session storage also failed: {session_error}")
+            return False
 
 def verify_oauth_state(state, provider):
-    """Verify OAuth state from session"""
+    """Verify OAuth state from database"""
     try:
-        # Only use session for simplicity
+        # First, clean up any expired states
+        cleanup_expired_oauth_states()
+        
+        # Try to get state from database
+        result = supabase.table('oauth_states').select('*').eq('state', state).eq('provider', provider).single().execute()
+        
+        if result.data:
+            state_data = result.data
+            # Check if state is not expired
+            expires_at = datetime.fromisoformat(state_data['expires_at'])
+            if datetime.utcnow() <= expires_at:
+                # Delete the state after successful verification (one-time use)
+                supabase.table('oauth_states').delete().eq('state', state).execute()
+                print(f"OAuth state verified and cleaned from database for {provider}")
+                return state_data
+            else:
+                # Clean up expired state
+                supabase.table('oauth_states').delete().eq('state', state).execute()
+                print(f"OAuth state expired for {provider}: {state[:8]}...")
+                return None
+        
+        # Fallback: check session storage if database lookup fails
         session_key = f'oauth_state_{state}'
         if session_key in session:
             state_data = session[session_key]
@@ -162,6 +213,7 @@ def verify_oauth_state(state, provider):
                 if datetime.utcnow() - created_at < timedelta(minutes=10):
                     # Clean up after use
                     del session[session_key]
+                    print(f"OAuth state verified from session fallback for {provider}")
                     return state_data
                 else:
                     # Clean up expired session state
@@ -169,9 +221,39 @@ def verify_oauth_state(state, provider):
         
         print(f"OAuth state not found for {provider}: {state[:8]}...")
         return None
+        
     except Exception as e:
-        print(f"Error verifying OAuth state: {e}")
+        print(f"Error verifying OAuth state from database: {e}")
+        
+        # Fallback to session verification on database error
+        try:
+            session_key = f'oauth_state_{state}'
+            if session_key in session:
+                state_data = session[session_key]
+                if state_data['provider'] == provider:
+                    created_at = datetime.fromisoformat(state_data['created_at'])
+                    if datetime.utcnow() - created_at < timedelta(minutes=10):
+                        del session[session_key]
+                        print(f"OAuth state verified from session after database error")
+                        return state_data
+                    else:
+                        del session[session_key]
+        except Exception as session_error:
+            print(f"Session verification also failed: {session_error}")
+        
         return None
+
+def cleanup_expired_oauth_states():
+    """Clean up expired OAuth states from database"""
+    try:
+        # Delete states older than 10 minutes
+        current_time = datetime.utcnow().isoformat()
+        result = supabase.table('oauth_states').delete().lt('expires_at', current_time).execute()
+        if result.data:
+            print(f"Cleaned up {len(result.data)} expired OAuth states")
+    except Exception as e:
+        print(f"Error cleaning up expired OAuth states: {e}")
+        # Non-critical error, continue execution
 
 def get_user_info_from_provider(platform, access_token):
     """Get user information from OAuth provider"""
@@ -1143,3 +1225,107 @@ def oauth_status():
     except Exception as e:
         print(f"OAuth status error: {e}")
         return jsonify({'authenticated': False, 'error': str(e)}), 500
+
+@oauth_bp.route('/cleanup')
+def cleanup_oauth_states_route():
+    """Endpoint to manually trigger cleanup of expired OAuth states"""
+    try:
+        # Clean up expired states
+        current_time = datetime.utcnow().isoformat()
+        result = supabase.table('oauth_states').delete().lt('expires_at', current_time).execute()
+        
+        cleaned_count = len(result.data) if result.data else 0
+        
+        # Also clean up states older than 1 hour regardless of expires_at
+        one_hour_ago = (datetime.utcnow() - timedelta(hours=1)).isoformat()
+        old_result = supabase.table('oauth_states').delete().lt('created_at', one_hour_ago).execute()
+        
+        old_cleaned_count = len(old_result.data) if old_result.data else 0
+        total_cleaned = cleaned_count + old_cleaned_count
+        
+        return jsonify({
+            'success': True,
+            'message': f'Cleaned up {total_cleaned} expired OAuth states',
+            'expired_states_cleaned': cleaned_count,
+            'old_states_cleaned': old_cleaned_count,
+            'timestamp': datetime.utcnow().isoformat()
+        })
+        
+    except Exception as e:
+        print(f"Error in OAuth cleanup: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@oauth_bp.route('/health')
+def oauth_health_check():
+    """Health check endpoint to verify OAuth system and database connectivity"""
+    try:
+        health_status = {
+            'oauth_system': 'healthy',
+            'database_connection': 'unknown',
+            'oauth_states_table': 'unknown',
+            'registered_platforms_table': 'unknown',
+            'timestamp': datetime.utcnow().isoformat()
+        }
+        
+        # Test database connection by querying oauth_states table
+        try:
+            # Count states in the table (limit 1 for performance)
+            states_result = supabase.table('oauth_states').select('id', count='exact').limit(1).execute()
+            health_status['database_connection'] = 'connected'
+            health_status['oauth_states_table'] = 'accessible'
+            
+            # Get count of current states
+            if hasattr(states_result, 'count'):
+                health_status['current_oauth_states'] = states_result.count
+            
+        except Exception as db_error:
+            health_status['database_connection'] = 'error'
+            health_status['oauth_states_table'] = f'error: {str(db_error)}'
+        
+        # Test registered_platforms table
+        try:
+            platforms_result = supabase.table('registered_platforms').select('id', count='exact').limit(1).execute()
+            health_status['registered_platforms_table'] = 'accessible'
+            
+            if hasattr(platforms_result, 'count'):
+                health_status['registered_platforms_count'] = platforms_result.count
+                
+        except Exception as platform_error:
+            health_status['registered_platforms_table'] = f'error: {str(platform_error)}'
+        
+        # Check OAuth provider configurations
+        configured_providers = []
+        for provider, config in OAUTH_CONFIG.items():
+            if provider == 'apple':
+                # Apple uses JWT, check for team_id and key_id
+                if config.get('team_id') and config.get('key_id'):
+                    configured_providers.append(provider)
+            else:
+                # Other providers need client_id and client_secret
+                if config.get('client_id') and config.get('client_secret'):
+                    configured_providers.append(provider)
+        
+        health_status['configured_providers'] = configured_providers
+        health_status['total_providers_configured'] = len(configured_providers)
+        
+        # Determine overall health
+        is_healthy = (
+            health_status['database_connection'] == 'connected' and
+            health_status['oauth_states_table'] == 'accessible' and
+            len(configured_providers) > 0
+        )
+        
+        status_code = 200 if is_healthy else 503
+        
+        return jsonify(health_status), status_code
+        
+    except Exception as e:
+        print(f"Error in OAuth health check: {e}")
+        return jsonify({
+            'oauth_system': 'error',
+            'error': str(e),
+            'timestamp': datetime.utcnow().isoformat()
+        }), 500
