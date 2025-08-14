@@ -3,13 +3,14 @@
 {% block title %}API Keys - NotionFlow{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/api-keys-redesign.css') }}?v={{ range(100000, 999999) | random }}">
+<link rel="stylesheet"
+    href="{{ url_for('static', filename='css/api-keys-redesign.css') }}?v={{ range(100000, 999999) | random }}">
 {% endblock %}
 
 {% block content %}
 <!-- API 키 관리 메인 컨테이너 -->
 <div class="api-container">
-    
+
     <!-- 헤더 섹션 -->
     <div class="api-header-container">
         <div class="api-header">
@@ -18,7 +19,7 @@
                 <p class="api-subtitle">플랫폼과 안전하게 연결하고 캘린더를 동기화하세요</p>
             </div>
         </div>
-        
+
         <!-- 상태 요약 카드 -->
         <div class="api-status-cards">
             <div class="status-card active">
@@ -55,12 +56,6 @@
     <!-- 캘린더 생성 안내 섹션 -->
     <div class="calendar-setup-guide" id="calendar-setup-guide">
         <div class="guide-card">
-            <div class="torn-badge">50% 할인</div>
-            <div class="guide-icon">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
-                </svg>
-            </div>
             <div class="guide-content">
                 <h3 class="guide-title">🎯 시작하기 전에</h3>
                 <p class="guide-description">
@@ -83,8 +78,10 @@
                 </div>
                 <div class="guide-actions">
                     <a href="/calendar" class="guide-btn primary">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path
+                                d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" />
                         </svg>
                         캘린더 생성하기
                     </a>
@@ -95,7 +92,7 @@
             </div>
             <button class="guide-close" onclick="hideCalendarGuide()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M18 6l-12 12M6 6l12 12"/>
+                    <path d="M18 6l-12 12M6 6l12 12" />
                 </svg>
             </button>
         </div>
@@ -103,14 +100,15 @@
 
     <!-- 플랫폼 연결 섹션 -->
     <div class="platforms-section">
-        
+
         <!-- Notion 연결 카드 -->
         <div class="platform-card" data-platform="notion">
             <div class="platform-header">
                 <div class="platform-info">
                     <div class="platform-icon notion">
                         <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046 1.121-.56 1.121-1.167V6.354c0-.606-.233-.933-.747-.887l-15.177.887c-.56.047-.934.373-.934 1.027zm13.748.327c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.139c-.093-.514.28-.887.747-.933z"/>
+                            <path
+                                d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046 1.121-.56 1.121-1.167V6.354c0-.606-.233-.933-.747-.887l-15.177.887c-.56.047-.934.373-.934 1.027zm13.748.327c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.139c-.093-.514.28-.887.747-.933z" />
                         </svg>
                     </div>
                     <div class="platform-details">
@@ -138,12 +136,12 @@
                     </button>
                     <button class="platform-expand-btn" onclick="togglePlatformDetails('notion')">
                         <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M6 9l6 6 6-6"/>
+                            <path d="M6 9l6 6 6-6" />
                         </svg>
                     </button>
                 </div>
             </div>
-            
+
             <!-- 연결 상세 폼 -->
             <div class="platform-details-form" id="notion-details" style="display: none;">
                 <div class="form-group">
@@ -172,7 +170,8 @@
                 <div class="platform-info">
                     <div class="platform-icon google">
                         <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+                            <path
+                                d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z" />
                         </svg>
                     </div>
                     <div class="platform-details">
@@ -208,7 +207,8 @@
                 <div class="platform-info">
                     <div class="platform-icon apple">
                         <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M19.5 4h-1.44a2.04 2.04 0 0 0-1.98 1.22l-1.58 4.49c-.25.7-.91 1.16-1.65 1.16-.73 0-1.39-.46-1.64-1.16l-1.58-4.49A2.04 2.04 0 0 0 7.62 4H6.5C5.67 4 5 4.67 5 5.5S5.67 7 6.5 7h1.12c.14 0 .27.09.32.22l1.58 4.49c.5 1.4 1.82 2.29 3.31 2.29s2.81-.89 3.31-2.29L17.72 7.22c.05-.13.18-.22.32-.22H19.5c.83 0 1.5-.67 1.5-1.5S20.33 4 19.5 4z"/>
+                            <path
+                                d="M19.5 4h-1.44a2.04 2.04 0 0 0-1.98 1.22l-1.58 4.49c-.25.7-.91 1.16-1.65 1.16-.73 0-1.39-.46-1.64-1.16l-1.58-4.49A2.04 2.04 0 0 0 7.62 4H6.5C5.67 4 5 4.67 5 5.5S5.67 7 6.5 7h1.12c.14 0 .27.09.32.22l1.58 4.49c.5 1.4 1.82 2.29 3.31 2.29s2.81-.89 3.31-2.29L17.72 7.22c.05-.13.18-.22.32-.22H19.5c.83 0 1.5-.67 1.5-1.5S20.33 4 19.5 4z" />
                         </svg>
                     </div>
                     <div class="platform-details">
@@ -236,17 +236,18 @@
                     </button>
                     <button class="platform-expand-btn" onclick="togglePlatformDetails('apple')">
                         <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M6 9l6 6 6-6"/>
+                            <path d="M6 9l6 6 6-6" />
                         </svg>
                     </button>
                 </div>
             </div>
-            
+
             <!-- 연결 상세 폼 -->
             <div class="platform-details-form" id="apple-details" style="display: none;">
                 <div class="form-group">
                     <label for="apple-username">Apple ID</label>
-                    <input type="email" id="apple-username" name="apple-username" placeholder="your-apple-id@icloud.com">
+                    <input type="email" id="apple-username" name="apple-username"
+                        placeholder="your-apple-id@icloud.com">
                 </div>
                 <div class="form-group">
                     <label for="apple-password">앱 전용 암호</label>
@@ -274,7 +275,8 @@
                 <div class="platform-info">
                     <div class="platform-icon outlook">
                         <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M7.88 12.04q0 .45-.11.87-.1.41-.33.74-.22.33-.58.52-.37.2-.87.2-.51 0-.87-.2-.37-.19-.59-.52-.21-.33-.32-.74-.1-.42-.1-.87 0-.44.1-.86.11-.41.32-.73.22-.33.59-.52.36-.2.87-.2.5 0 .87.2.36.19.58.52.23.32.33.73.11.42.11.86zM21.5 4v16q0 .41-.3.7-.29.3-.7.3H3.5q-.41 0-.7-.3-.3-.29-.3-.7V4q0-.41.3-.7Q2.79 3 3.2 3h17.6q.41 0 .7.29.3.29.3.71zM8.5 13.5H7.25v.75H8.5v-.75zm0-3H7.25V11H8.5v-.5zM12 7.98H9v8h3V7.98zm6.5 2.53-2.25 2.02 2.25 2.05V10.51z"/>
+                            <path
+                                d="M7.88 12.04q0 .45-.11.87-.1.41-.33.74-.22.33-.58.52-.37.2-.87.2-.51 0-.87-.2-.37-.19-.59-.52-.21-.33-.32-.74-.1-.42-.1-.87 0-.44.1-.86.11-.41.32-.73.22-.33.59-.52.36-.2.87-.2.5 0 .87.2.36.19.58.52.23.32.33.73.11.42.11.86zM21.5 4v16q0 .41-.3.7-.29.3-.7.3H3.5q-.41 0-.7-.3-.3-.29-.3-.7V4q0-.41.3-.7Q2.79 3 3.2 3h17.6q.41 0 .7.29.3.29.3.71zM8.5 13.5H7.25v.75H8.5v-.75zm0-3H7.25V11H8.5v-.5zM12 7.98H9v8h3V7.98zm6.5 2.53-2.25 2.02 2.25 2.05V10.51z" />
                         </svg>
                     </div>
                     <div class="platform-details">
@@ -302,12 +304,12 @@
                     </button>
                     <button class="platform-expand-btn" onclick="togglePlatformDetails('outlook')">
                         <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M6 9l6 6 6-6"/>
+                            <path d="M6 9l6 6 6-6" />
                         </svg>
                     </button>
                 </div>
             </div>
-            
+
             <!-- 연결 상세 폼 -->
             <div class="platform-details-form" id="outlook-details" style="display: none;">
                 <div class="form-group">
@@ -316,7 +318,8 @@
                 </div>
                 <div class="form-group">
                     <label for="outlook-client-id">클라이언트 ID</label>
-                    <input type="text" id="outlook-client-id" name="outlook-client-id" placeholder="Azure 앱 등록에서 발급받은 클라이언트 ID">
+                    <input type="text" id="outlook-client-id" name="outlook-client-id"
+                        placeholder="Azure 앱 등록에서 발급받은 클라이언트 ID">
                     <small class="form-help">
                         <a href="https://portal.azure.com/" target="_blank" class="help-link">
                             📖 Azure Portal에서 앱 등록하기
@@ -340,7 +343,8 @@
                 <div class="platform-info">
                     <div class="platform-icon slack">
                         <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.521-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.523 2.521h-2.521V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.521A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.523v-2.521h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/>
+                            <path
+                                d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.521-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.523 2.521h-2.521V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.521A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.523v-2.521h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z" />
                         </svg>
                     </div>
                     <div class="platform-details">
@@ -368,17 +372,18 @@
                     </button>
                     <button class="platform-expand-btn" onclick="togglePlatformDetails('slack')">
                         <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M6 9l6 6 6-6"/>
+                            <path d="M6 9l6 6 6-6" />
                         </svg>
                     </button>
                 </div>
             </div>
-            
+
             <!-- 연결 상세 폼 -->
             <div class="platform-details-form" id="slack-details" style="display: none;">
                 <div class="form-group">
                     <label for="slack-webhook">Webhook URL</label>
-                    <input type="url" id="slack-webhook" name="slack-webhook" placeholder="https://hooks.slack.com/services/...">
+                    <input type="url" id="slack-webhook" name="slack-webhook"
+                        placeholder="https://hooks.slack.com/services/...">
                     <small class="form-help">
                         <a href="https://api.slack.com/messaging/webhooks" target="_blank" class="help-link">
                             📖 Slack Webhook 만들기
@@ -395,479 +400,448 @@
                 </div>
             </div>
         </div>
-        
-    </div>
 
-    <!-- 보안 및 개인정보 보호 섹션 -->
-    <div class="security-section">
-        <div class="security-header">
-            <h2 class="security-title">🔐 보안 및 개인정보</h2>
-            <p class="security-subtitle">모든 연결과 데이터는 최고 수준의 보안으로 보호됩니다</p>
-        </div>
-        
-        <div class="security-features">
-            <div class="security-feature">
-                <div class="feature-icon">🔒</div>
-                <div class="feature-content">
-                    <h4>엔드투엔드 암호화</h4>
-                    <p>모든 API 키와 데이터는 <span class="highlight">AES-256</span> 암호화로 보호됩니다</p>
-                </div>
-            </div>
-            <div class="security-feature">
-                <div class="feature-icon">🚫</div>
-                <div class="feature-content">
-                    <h4>무로그 정책</h4>
-                    <p>개인 캘린더 데이터는 저장하지 않으며 <span class="highlight">실시간</span>으로만 동기화합니다</p>
-                </div>
-            </div>
-            <div class="security-feature">
-                <div class="feature-icon">🛡️</div>
-                <div class="feature-content">
-                    <h4>최소 권한 원칙</h4>
-                    <p><span class="highlight">읽기 전용</span> 접근으로 필요한 권한만 요청합니다</p>
-                </div>
-            </div>
-        </div>
     </div>
-
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <!-- Core notification system이 먼저 로드되어야 함 -->
-<script src="{{ url_for('static', filename='js/notification-utils.js') }}?v={{ range(100000, 999999) | random }}"></script>
-<script src="{{ url_for('static', filename='js/apple-setup-wizard.js') }}?v={{ range(100000, 999999) | random }}"></script>
+<script
+    src="{{ url_for('static', filename='js/notification-utils.js') }}?v={{ range(100000, 999999) | random }}"></script>
+<script
+    src="{{ url_for('static', filename='js/apple-setup-wizard.js') }}?v={{ range(100000, 999999) | random }}"></script>
 <script src="{{ url_for('static', filename='js/platform-health.js') }}?v={{ range(100000, 999999) | random }}"></script>
 <script>
-// 개별 플랫폼 연동 기능
-async function connectPlatform(platformName) {
-    const button = document.querySelector(`[data-platform="${platformName}"]`);
-    const loader = button.querySelector('.connect-loader');
-    const buttonText = button.querySelector('.connect-text');
-    const card = document.querySelector(`[data-platform="${platformName}"]`);
-    const status = card.querySelector('.platform-status');
-    
-    // 버튼 상태 변경
-    button.disabled = true;
-    buttonText.textContent = '연결 중...';
-    loader.style.display = 'flex';
-    
-    // 카드 애니메이션
-    card.style.transform = 'scale(1.02)';
-    card.style.boxShadow = 'var(--shadow-lg)';
-    
-    try {
-        // 실제 연결 로직 시뮬레이션
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // 성공 시뮬레이션 (실제로는 API 호출)
-        if (Math.random() > 0.2) { // 80% 성공률
-            status.className = 'platform-status connected';
-            status.innerHTML = '<span class="status-dot"></span>연결됨';
-            
-            // 버튼을 연결해제 버튼으로 변경
-            button.className = 'platform-disconnect-btn';
-            button.setAttribute('onclick', `disconnectPlatform('${platformName}')`);
-            buttonText.textContent = '연결 해제';
-            
-            // 통계 업데이트
-            updateConnectionStats();
-            
-            showNotification(`${getKoreanPlatformName(platformName)} 연결 완료!`, 'success');
-        } else {
-            showNotification('연결에 실패했습니다. 다시 시도해주세요.', 'error');
-        }
-    } catch (error) {
-        console.error('연결 중 오류:', error);
-        showNotification('연결 중 오류가 발생했습니다.', 'error');
-    }
-    
-    // 애니메이션 및 상태 복원
-    setTimeout(() => {
-        button.disabled = false;
-        if (button.className === 'platform-connect-btn') {
-            buttonText.textContent = '연결하기';
-        }
-        loader.style.display = 'none';
-        card.style.transform = '';
-        card.style.boxShadow = '';
-    }, 500);
-}
+    // 개별 플랫폼 연동 기능
+    async function connectPlatform(platformName) {
+        const button = document.querySelector(`[data-platform="${platformName}"]`);
+        const loader = button.querySelector('.connect-loader');
+        const buttonText = button.querySelector('.connect-text');
+        const card = document.querySelector(`[data-platform="${platformName}"]`);
+        const status = card.querySelector('.platform-status');
 
-// 개별 플랫폼 연결 해제 기능
-async function disconnectPlatform(platformName) {
-    const button = document.querySelector(`[data-platform="${platformName}"]`);
-    const loader = button.querySelector('.disconnect-loader');
-    const buttonText = button.querySelector('.disconnect-text');
-    const card = document.querySelector(`[data-platform="${platformName}"]`);
-    const status = card.querySelector('.platform-status');
-    
-    if (!confirm(`${getKoreanPlatformName(platformName)} 연결을 해제하시겠습니까?`)) {
-        return;
-    }
-    
-    // 버튼 상태 변경
-    button.disabled = true;
-    buttonText.textContent = '해제 중...';
-    loader.style.display = 'flex';
-    
-    try {
-        // 실제 연결 해제 로직 시뮬레이션
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        // 상태 업데이트
-        status.className = 'platform-status disconnected';
-        status.innerHTML = '<span class="status-dot"></span>연결되지 않음';
-        
-        // 버튼을 연결 버튼으로 변경
-        button.className = 'platform-connect-btn';
-        button.setAttribute('onclick', `connectPlatform('${platformName}')`);
-        buttonText.textContent = '연결하기';
-        
-        // 통계 업데이트
-        updateConnectionStats();
-        
-        showNotification(`${getKoreanPlatformName(platformName)} 연결 해제 완료`, 'success');
-    } catch (error) {
-        console.error('연결 해제 중 오류:', error);
-        showNotification('연결 해제 중 오류가 발생했습니다.', 'error');
-    }
-    
-    // 상태 복원
-    setTimeout(() => {
-        button.disabled = false;
-        if (button.className === 'platform-disconnect-btn') {
-            buttonText.textContent = '연결 해제';
-        }
-        loader.style.display = 'none';
-    }, 500);
-}
+        // 버튼 상태 변경
+        button.disabled = true;
+        buttonText.textContent = '연결 중...';
+        loader.style.display = 'flex';
 
+        // 카드 애니메이션
+        card.style.transform = 'scale(1.02)';
+        card.style.boxShadow = 'var(--shadow-lg)';
 
-// 플랫폼 이름 한국어 변환
-function getKoreanPlatformName(platform) {
-    const names = {
-        'notion': 'Notion',
-        'google': 'Google Calendar', 
-        'apple': 'Apple Calendar',
-        'outlook': 'Outlook',
-        'slack': 'Slack'
-    };
-    return names[platform] || platform;
-}
+        try {
+            // 실제 연결 로직 시뮬레이션
+            await new Promise(resolve => setTimeout(resolve, 2000));
 
-// 알림 표시 함수 - NotificationUtils 사용
-function showNotification(message, type = 'info') {
-    if (window.NotificationUtils) {
-        return window.NotificationUtils.show(message, type);
-    }
-    // Fallback if NotificationUtils not loaded
-    console.log(`[${type}] ${message}`);
-}
+            // 성공 시뮬레이션 (실제로는 API 호출)
+            if (Math.random() > 0.2) { // 80% 성공률
+                status.className = 'platform-status connected';
+                status.innerHTML = '<span class="status-dot"></span>연결됨';
 
-// 페이지 로드 시 통계 업데이트
-document.addEventListener('DOMContentLoaded', function() {
-    // Initial stats load
-    updateConnectionStats();
-    
-    // Update stats every 30 seconds for real-time data
-    setInterval(updateConnectionStats, 30000);
-    
-    // Update stats when user becomes active (tab focus)
-    document.addEventListener('visibilitychange', function() {
-        if (!document.hidden) {
-            updateConnectionStats();
-        }
-    });
-});
+                // 버튼을 연결해제 버튼으로 변경
+                button.className = 'platform-disconnect-btn';
+                button.setAttribute('onclick', `disconnectPlatform('${platformName}')`);
+                buttonText.textContent = '연결 해제';
 
-async function updateConnectionStats() {
-    try {
-        // Get real statistics from API
-        const response = await fetch('/api/dashboard/stats');
-        
-        if (response.ok) {
-            const data = await response.json();
-            
-            if (data.success && data.stats) {
-                const stats = data.stats;
-                
-                // Update all stat elements with real data
-                document.getElementById('connected-count').textContent = stats.connected_platforms;
-                document.getElementById('sync-count').textContent = stats.synced_events;
-                document.getElementById('success-rate').textContent = stats.success_rate;
-                document.getElementById('sync-speed').textContent = stats.avg_sync_time;
-                
-                console.log('Dashboard stats updated with real data:', stats);
+                // 통계 업데이트
+                updateConnectionStats();
+
+                showNotification(`${getKoreanPlatformName(platformName)} 연결 완료!`, 'success');
             } else {
-                throw new Error(data.error || 'Failed to load stats');
+                showNotification('연결에 실패했습니다. 다시 시도해주세요.', 'error');
             }
-        } else {
-            throw new Error('Failed to fetch dashboard stats');
+        } catch (error) {
+            console.error('연결 중 오류:', error);
+            showNotification('연결 중 오류가 발생했습니다.', 'error');
         }
-    } catch (error) {
-        console.error('Error updating dashboard stats:', error);
-        
-        // Fallback: Use DOM-based counting for connected platforms
-        const connectedPlatforms = document.querySelectorAll('.platform-status.connected');
-        document.getElementById('connected-count').textContent = connectedPlatforms.length;
-        
-        // Show 0 for other stats when no data available
-        if (connectedPlatforms.length === 0) {
-            document.getElementById('sync-count').textContent = '0';
-            document.getElementById('success-rate').textContent = '0%';
-            document.getElementById('sync-speed').textContent = 'N/A';
-        } else {
-            // Keep existing values on error if platforms are connected
-            console.log('Using fallback stats due to API error');
-        }
-    }
-}
 
-// 개별 플랫폼 원클릭 연동 기능
-async function oneClickConnect(platform) {
-    // Apple의 경우 스마트 마법사 실행
-    if (platform === 'apple') {
-        if (window.appleWizard) {
-            window.appleWizard.start(platform);
-        } else {
-            console.error('Apple Setup Wizard not loaded');
-            showNotification('Apple 설정 마법사를 불러오는 중 오류가 발생했습니다.', 'error');
-        }
-        return;
-    }
-    
-    const button = document.querySelector(`[data-platform="${platform}"] .one-click-btn-small`);
-    const loader = button.querySelector('.btn-loader');
-    const buttonText = button.querySelector('.btn-text');
-    const buttonIcon = button.querySelector('.btn-icon');
-    
-    // 버튼 상태 변경
-    button.disabled = true;
-    buttonText.style.display = 'none';
-    buttonIcon.style.display = 'none';
-    loader.style.display = 'flex';
-    
-    try {
-        // OAuth 지원 플랫폼들
-        const oauthPlatforms = ['google', 'notion', 'slack', 'outlook'];
-        
-        if (oauthPlatforms.includes(platform)) {
-            // OAuth 플로우 실행
-            await performOAuthConnection(platform);
-        } else {
-            // 일반 API 키 방식
-            showNotification(`${getKoreanPlatformName(platform)} 연결을 위해 설정 폼을 작성해주세요.`, 'info');
-            togglePlatformDetails(platform);
-        }
-        
-    } catch (error) {
-        console.error(`${platform} 연동 중 오류:`, error);
-        showNotification(`${getKoreanPlatformName(platform)} 연동 중 오류가 발생했습니다.`, 'error');
-    } finally {
-        // 버튼 상태 복원
+        // 애니메이션 및 상태 복원
         setTimeout(() => {
             button.disabled = false;
-            buttonText.style.display = 'inline';
-            buttonIcon.style.display = 'inline';
+            if (button.className === 'platform-connect-btn') {
+                buttonText.textContent = '연결하기';
+            }
             loader.style.display = 'none';
-        }, 1000);
+            card.style.transform = '';
+            card.style.boxShadow = '';
+        }, 500);
     }
-}
 
-// OAuth 연결 수행
-async function performOAuthConnection(platform) {
-    try {
-        // OAuth 설정 확인
-        const configCheck = await fetch(`/oauth/${platform}/check`);
-        const configData = await configCheck.json();
-        
-        if (!configData.configured) {
-            showNotification(
-                `${getKoreanPlatformName(platform)} OAuth가 설정되지 않았습니다. 수동 설정을 사용해주세요.`,
-                'warning'
-            );
-            // 수동 설정 폼 표시
-            togglePlatformDetails(platform);
+    // 개별 플랫폼 연결 해제 기능
+    async function disconnectPlatform(platformName) {
+        const button = document.querySelector(`[data-platform="${platformName}"]`);
+        const loader = button.querySelector('.disconnect-loader');
+        const buttonText = button.querySelector('.disconnect-text');
+        const card = document.querySelector(`[data-platform="${platformName}"]`);
+        const status = card.querySelector('.platform-status');
+
+        if (!confirm(`${getKoreanPlatformName(platformName)} 연결을 해제하시겠습니까?`)) {
             return;
         }
-        
-        const width = 500;
-        const height = 700;
-        const left = (screen.width - width) / 2;
-        const top = (screen.height - height) / 2;
-        
-        const popup = window.open(
-            `/oauth/${platform}/authorize`,
-            `oauth_${platform}`,
-            `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`
-        );
-        
-        if (!popup) {
-            throw new Error('팝업이 차단되었습니다. OAuth 인증을 위해 팝업을 허용해주세요.');
+
+        // 버튼 상태 변경
+        button.disabled = true;
+        buttonText.textContent = '해제 중...';
+        loader.style.display = 'flex';
+
+        try {
+            // 실제 연결 해제 로직 시뮬레이션
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            // 상태 업데이트
+            status.className = 'platform-status disconnected';
+            status.innerHTML = '<span class="status-dot"></span>연결되지 않음';
+
+            // 버튼을 연결 버튼으로 변경
+            button.className = 'platform-connect-btn';
+            button.setAttribute('onclick', `connectPlatform('${platformName}')`);
+            buttonText.textContent = '연결하기';
+
+            // 통계 업데이트
+            updateConnectionStats();
+
+            showNotification(`${getKoreanPlatformName(platformName)} 연결 해제 완료`, 'success');
+        } catch (error) {
+            console.error('연결 해제 중 오류:', error);
+            showNotification('연결 해제 중 오류가 발생했습니다.', 'error');
         }
-        
-        // OAuth 완료 대기
-        return new Promise((resolve, reject) => {
-            const checkInterval = 500;
-            let timeoutCount = 0;
-            const maxTimeout = 240; // 2분 타임아웃
-            
-            // 팝업으로부터 메시지 수신 대기
-            const messageHandler = (event) => {
-                if (event.origin !== window.location.origin) {
-                    return;
+
+        // 상태 복원
+        setTimeout(() => {
+            button.disabled = false;
+            if (button.className === 'platform-disconnect-btn') {
+                buttonText.textContent = '연결 해제';
+            }
+            loader.style.display = 'none';
+        }, 500);
+    }
+
+
+    // 플랫폼 이름 한국어 변환
+    function getKoreanPlatformName(platform) {
+        const names = {
+            'notion': 'Notion',
+            'google': 'Google Calendar',
+            'apple': 'Apple Calendar',
+            'outlook': 'Outlook',
+            'slack': 'Slack'
+        };
+        return names[platform] || platform;
+    }
+
+    // 알림 표시 함수 - NotificationUtils 사용
+    function showNotification(message, type = 'info') {
+        if (window.NotificationUtils) {
+            return window.NotificationUtils.show(message, type);
+        }
+        // Fallback if NotificationUtils not loaded
+        console.log(`[${type}] ${message}`);
+    }
+
+    // 페이지 로드 시 통계 업데이트
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initial stats load
+        updateConnectionStats();
+
+        // Update stats every 30 seconds for real-time data
+        setInterval(updateConnectionStats, 30000);
+
+        // Update stats when user becomes active (tab focus)
+        document.addEventListener('visibilitychange', function () {
+            if (!document.hidden) {
+                updateConnectionStats();
+            }
+        });
+    });
+
+    async function updateConnectionStats() {
+        try {
+            // Get real statistics from API
+            const response = await fetch('/api/dashboard/stats');
+
+            if (response.ok) {
+                const data = await response.json();
+
+                if (data.success && data.stats) {
+                    const stats = data.stats;
+
+                    // Update all stat elements with real data
+                    document.getElementById('connected-count').textContent = stats.connected_platforms;
+                    document.getElementById('sync-count').textContent = stats.synced_events;
+                    document.getElementById('success-rate').textContent = stats.success_rate;
+                    document.getElementById('sync-speed').textContent = stats.avg_sync_time;
+
+                    console.log('Dashboard stats updated with real data:', stats);
+                } else {
+                    throw new Error(data.error || 'Failed to load stats');
                 }
-                
-                if (event.data && event.data.type) {
-                    if (event.data.type === 'oauth_success') {
-                        cleanup();
-                        updatePlatformStatus(event.data.platform, 'connected');
-                        showNotification(`${getKoreanPlatformName(event.data.platform)} 연결 성공!`, 'success');
-                        updateConnectionStats();
-                        resolve(event.data);
-                    } else if (event.data.type === 'oauth_error') {
-                        cleanup();
-                        showNotification(`연결 실패: ${event.data.error}`, 'error');
-                        reject(new Error(event.data.error || 'OAuth 인증에 실패했습니다'));
+            } else {
+                throw new Error('Failed to fetch dashboard stats');
+            }
+        } catch (error) {
+            console.error('Error updating dashboard stats:', error);
+
+            // Fallback: Use DOM-based counting for connected platforms
+            const connectedPlatforms = document.querySelectorAll('.platform-status.connected');
+            document.getElementById('connected-count').textContent = connectedPlatforms.length;
+
+            // Show 0 for other stats when no data available
+            if (connectedPlatforms.length === 0) {
+                document.getElementById('sync-count').textContent = '0';
+                document.getElementById('success-rate').textContent = '0%';
+                document.getElementById('sync-speed').textContent = 'N/A';
+            } else {
+                // Keep existing values on error if platforms are connected
+                console.log('Using fallback stats due to API error');
+            }
+        }
+    }
+
+    // 개별 플랫폼 원클릭 연동 기능
+    async function oneClickConnect(platform) {
+        // Apple의 경우 스마트 마법사 실행
+        if (platform === 'apple') {
+            if (window.appleWizard) {
+                window.appleWizard.start(platform);
+            } else {
+                console.error('Apple Setup Wizard not loaded');
+                showNotification('Apple 설정 마법사를 불러오는 중 오류가 발생했습니다.', 'error');
+            }
+            return;
+        }
+
+        const button = document.querySelector(`[data-platform="${platform}"] .one-click-btn-small`);
+        const loader = button.querySelector('.btn-loader');
+        const buttonText = button.querySelector('.btn-text');
+        const buttonIcon = button.querySelector('.btn-icon');
+
+        // 버튼 상태 변경
+        button.disabled = true;
+        buttonText.style.display = 'none';
+        buttonIcon.style.display = 'none';
+        loader.style.display = 'flex';
+
+        try {
+            // OAuth 지원 플랫폼들
+            const oauthPlatforms = ['google', 'notion', 'slack', 'outlook'];
+
+            if (oauthPlatforms.includes(platform)) {
+                // OAuth 플로우 실행
+                await performOAuthConnection(platform);
+            } else {
+                // 일반 API 키 방식
+                showNotification(`${getKoreanPlatformName(platform)} 연결을 위해 설정 폼을 작성해주세요.`, 'info');
+                togglePlatformDetails(platform);
+            }
+
+        } catch (error) {
+            console.error(`${platform} 연동 중 오류:`, error);
+            showNotification(`${getKoreanPlatformName(platform)} 연동 중 오류가 발생했습니다.`, 'error');
+        } finally {
+            // 버튼 상태 복원
+            setTimeout(() => {
+                button.disabled = false;
+                buttonText.style.display = 'inline';
+                buttonIcon.style.display = 'inline';
+                loader.style.display = 'none';
+            }, 1000);
+        }
+    }
+
+    // OAuth 연결 수행
+    async function performOAuthConnection(platform) {
+        try {
+            // OAuth 설정 확인
+            const configCheck = await fetch(`/oauth/${platform}/check`);
+            const configData = await configCheck.json();
+
+            if (!configData.configured) {
+                showNotification(
+                    `${getKoreanPlatformName(platform)} OAuth가 설정되지 않았습니다. 수동 설정을 사용해주세요.`,
+                    'warning'
+                );
+                // 수동 설정 폼 표시
+                togglePlatformDetails(platform);
+                return;
+            }
+
+            const width = 500;
+            const height = 700;
+            const left = (screen.width - width) / 2;
+            const top = (screen.height - height) / 2;
+
+            const popup = window.open(
+                `/oauth/${platform}/authorize`,
+                `oauth_${platform}`,
+                `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`
+            );
+
+            if (!popup) {
+                throw new Error('팝업이 차단되었습니다. OAuth 인증을 위해 팝업을 허용해주세요.');
+            }
+
+            // OAuth 완료 대기
+            return new Promise((resolve, reject) => {
+                const checkInterval = 500;
+                let timeoutCount = 0;
+                const maxTimeout = 240; // 2분 타임아웃
+
+                // 팝업으로부터 메시지 수신 대기
+                const messageHandler = (event) => {
+                    if (event.origin !== window.location.origin) {
+                        return;
                     }
-                }
-            };
-            
-            // 팝업 닫힘 감지
-            const checkClosed = setInterval(() => {
-                if (popup.closed) {
-                    cleanup();
-                    reject(new Error('OAuth 인증이 취소되었습니다'));
-                    return;
-                }
-                
-                timeoutCount++;
-                if (timeoutCount >= maxTimeout) {
-                    cleanup();
+
+                    if (event.data && event.data.type) {
+                        if (event.data.type === 'oauth_success') {
+                            cleanup();
+                            updatePlatformStatus(event.data.platform, 'connected');
+                            showNotification(`${getKoreanPlatformName(event.data.platform)} 연결 성공!`, 'success');
+                            updateConnectionStats();
+                            resolve(event.data);
+                        } else if (event.data.type === 'oauth_error') {
+                            cleanup();
+                            showNotification(`연결 실패: ${event.data.error}`, 'error');
+                            reject(new Error(event.data.error || 'OAuth 인증에 실패했습니다'));
+                        }
+                    }
+                };
+
+                // 팝업 닫힘 감지
+                const checkClosed = setInterval(() => {
+                    if (popup.closed) {
+                        cleanup();
+                        reject(new Error('OAuth 인증이 취소되었습니다'));
+                        return;
+                    }
+
+                    timeoutCount++;
+                    if (timeoutCount >= maxTimeout) {
+                        cleanup();
+                        if (!popup.closed) {
+                            popup.close();
+                        }
+                        reject(new Error('OAuth 인증 시간이 초과되었습니다'));
+                    }
+                }, checkInterval);
+
+                const cleanup = () => {
+                    window.removeEventListener('message', messageHandler);
+                    clearInterval(checkClosed);
                     if (!popup.closed) {
                         popup.close();
                     }
-                    reject(new Error('OAuth 인증 시간이 초과되었습니다'));
-                }
-            }, checkInterval);
-            
-            const cleanup = () => {
-                window.removeEventListener('message', messageHandler);
-                clearInterval(checkClosed);
-                if (!popup.closed) {
-                    popup.close();
-                }
-            };
-            
-            window.addEventListener('message', messageHandler);
-        });
-    } catch (error) {
-        console.error('OAuth 연결 실패:', error);
-        throw error;
-    }
-}
+                };
 
-// 플랫폼 상태 업데이트
-function updatePlatformStatus(platform, status) {
-    const card = document.querySelector(`[data-platform="${platform}"]`);
-    if (!card) return;
-    
-    const statusElement = card.querySelector('.platform-status');
-    const connectBtn = card.querySelector('.platform-connect-btn');
-    const disconnectBtn = card.querySelector('.platform-disconnect-btn');
-    
-    if (status === 'connected') {
-        statusElement.className = 'platform-status connected';
-        statusElement.innerHTML = '<span class="status-dot"></span>연결됨';
-        
-        // 연결 버튼을 연결해제 버튼으로 변경
-        if (connectBtn) {
-            connectBtn.className = 'platform-disconnect-btn';
-            connectBtn.setAttribute('onclick', `disconnectPlatform('${platform}')`);
-            connectBtn.innerHTML = `
+                window.addEventListener('message', messageHandler);
+            });
+        } catch (error) {
+            console.error('OAuth 연결 실패:', error);
+            throw error;
+        }
+    }
+
+    // 플랫폼 상태 업데이트
+    function updatePlatformStatus(platform, status) {
+        const card = document.querySelector(`[data-platform="${platform}"]`);
+        if (!card) return;
+
+        const statusElement = card.querySelector('.platform-status');
+        const connectBtn = card.querySelector('.platform-connect-btn');
+        const disconnectBtn = card.querySelector('.platform-disconnect-btn');
+
+        if (status === 'connected') {
+            statusElement.className = 'platform-status connected';
+            statusElement.innerHTML = '<span class="status-dot"></span>연결됨';
+
+            // 연결 버튼을 연결해제 버튼으로 변경
+            if (connectBtn) {
+                connectBtn.className = 'platform-disconnect-btn';
+                connectBtn.setAttribute('onclick', `disconnectPlatform('${platform}')`);
+                connectBtn.innerHTML = `
                 <span class="disconnect-text">연결 해제</span>
                 <div class="disconnect-loader" style="display: none;">
                     <div class="loader-dot"></div>
                 </div>
             `;
-        }
-    } else {
-        statusElement.className = 'platform-status disconnected';
-        statusElement.innerHTML = '<span class="status-dot"></span>연결되지 않음';
-        
-        // 연결해제 버튼을 연결 버튼으로 변경
-        if (disconnectBtn) {
-            disconnectBtn.className = 'platform-connect-btn';
-            disconnectBtn.setAttribute('onclick', `connectPlatform('${platform}')`);
-            disconnectBtn.innerHTML = `
+            }
+        } else {
+            statusElement.className = 'platform-status disconnected';
+            statusElement.innerHTML = '<span class="status-dot"></span>연결되지 않음';
+
+            // 연결해제 버튼을 연결 버튼으로 변경
+            if (disconnectBtn) {
+                disconnectBtn.className = 'platform-connect-btn';
+                disconnectBtn.setAttribute('onclick', `connectPlatform('${platform}')`);
+                disconnectBtn.innerHTML = `
                 <span class="connect-text">연결하기</span>
                 <div class="connect-loader" style="display: none;">
                     <div class="loader-dot"></div>
                 </div>
             `;
+            }
         }
     }
-}
 
-// 플랫폼 세부사항 토글
-function togglePlatformDetails(platform) {
-    const details = document.getElementById(`${platform}-details`);
-    if (details) {
-        const isVisible = details.style.display !== 'none';
-        details.style.display = isVisible ? 'none' : 'block';
-        
-        const expandBtn = document.querySelector(`[data-platform="${platform}"] .platform-expand-btn`);
-        if (expandBtn) {
-            expandBtn.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
+    // 플랫폼 세부사항 토글
+    function togglePlatformDetails(platform) {
+        const details = document.getElementById(`${platform}-details`);
+        if (details) {
+            const isVisible = details.style.display !== 'none';
+            details.style.display = isVisible ? 'none' : 'block';
+
+            const expandBtn = document.querySelector(`[data-platform="${platform}"] .platform-expand-btn`);
+            if (expandBtn) {
+                expandBtn.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
+            }
         }
     }
-}
 
-// 캘린더 안내 관련 함수들
-function hideCalendarGuide() {
-    const guide = document.getElementById('calendar-setup-guide');
-    if (guide) {
-        guide.style.animation = 'slideOutUp 0.3s ease-in forwards';
-        setTimeout(() => {
-            guide.classList.add('hidden');
-        }, 300);
-        
-        // 로컬 스토리지에 숨김 상태 저장
-        localStorage.setItem('calendar_guide_hidden', 'true');
+    // 캘린더 안내 관련 함수들
+    function hideCalendarGuide() {
+        const guide = document.getElementById('calendar-setup-guide');
+        if (guide) {
+            guide.style.animation = 'slideOutUp 0.3s ease-in forwards';
+            setTimeout(() => {
+                guide.classList.add('hidden');
+            }, 300);
+
+            // 로컬 스토리지에 숨김 상태 저장
+            localStorage.setItem('calendar_guide_hidden', 'true');
+        }
     }
-}
 
-// 연결된 플랫폼이 있으면 자동으로 안내 숨기기
-function checkAndHideGuide() {
-    const connectedCount = document.getElementById('connected-count');
-    const guide = document.getElementById('calendar-setup-guide');
-    
-    if (connectedCount && guide) {
-        const count = parseInt(connectedCount.textContent) || 0;
-        const isHidden = localStorage.getItem('calendar_guide_hidden') === 'true';
-        
-        // 테스트를 위해 임시로 항상 표시
-        // if (count > 0 || isHidden) {
-        //     guide.classList.add('hidden');
-        // }
-        
-        // 임시로 항상 보이도록 설정
-        guide.classList.remove('hidden');
+    // 연결된 플랫폼이 있으면 자동으로 안내 숨기기
+    function checkAndHideGuide() {
+        const connectedCount = document.getElementById('connected-count');
+        const guide = document.getElementById('calendar-setup-guide');
+
+        if (connectedCount && guide) {
+            const count = parseInt(connectedCount.textContent) || 0;
+            const isHidden = localStorage.getItem('calendar_guide_hidden') === 'true';
+
+            // 테스트를 위해 임시로 항상 표시
+            // if (count > 0 || isHidden) {
+            //     guide.classList.add('hidden');
+            // }
+
+            // 임시로 항상 보이도록 설정
+            guide.classList.remove('hidden');
+        }
     }
-}
 
-// 페이지 로드 시 확인
-document.addEventListener('DOMContentLoaded', function() {
-    checkAndHideGuide();
-    
-    // 통계 업데이트 후에도 확인
-    setTimeout(checkAndHideGuide, 1000);
-});
+    // 페이지 로드 시 확인
+    document.addEventListener('DOMContentLoaded', function () {
+        checkAndHideGuide();
 
-// slideOutUp 애니메이션 추가
-const style = document.createElement('style');
-style.textContent = `
+        // 통계 업데이트 후에도 확인
+        setTimeout(checkAndHideGuide, 1000);
+    });
+
+    // slideOutUp 애니메이션 추가
+    const style = document.createElement('style');
+    style.textContent = `
     @keyframes slideOutUp {
         from {
             opacity: 1;
@@ -879,6 +853,6 @@ style.textContent = `
         }
     }
 `;
-document.head.appendChild(style);
+    document.head.appendChild(style);
 </script>
 {% endblock %}
