@@ -276,12 +276,12 @@
 }
 
 .pricing-card.featured {
-    background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 25%, #dcfce7 50%, #86efac 100%);
+    background: #ffffff;
     color: #000000;
-    border: none;
+    border: 3px solid #000000;
     transform: scale(1.02) translateY(-5px);
     z-index: 2;
-    box-shadow: 0 20px 50px rgba(34, 197, 94, 0.3);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
     position: relative;
     overflow: hidden;
 }
@@ -341,21 +341,22 @@
 }
 
 .pricing-card.featured .plan-button.primary {
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-    color: #92400e;
-    border: none;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-radius: 50px;
+    background: #000000;
+    color: #ffffff;
+    border: 2px solid #000000;
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: 0;
+    border-radius: 8px;
     padding: 1.2rem 2.5rem;
-    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .pricing-card.featured .plan-button.primary:hover {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    transform: translateY(-3px);
-    box-shadow: 0 12px 35px rgba(245, 158, 11, 0.4);
+    background: #1a1a1a;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
 .popular-badge {
@@ -372,11 +373,50 @@
     clip-path: polygon(0 0, 80% 0, 100% 100%, 0 100%);
     animation: slideInRight 0.6s ease-out 1s both;
     box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
+    z-index: 10;
+}
+
+/* 찢어진 종이 효과 추가 */
+.popular-badge::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(45deg, #f97316 0%, #ea580c 100%);
+    clip-path: polygon(
+        0% 0%,
+        5% 100%,
+        10% 0%,
+        15% 100%,
+        20% 0%,
+        25% 100%,
+        30% 0%,
+        35% 100%,
+        40% 0%,
+        45% 100%,
+        50% 0%,
+        55% 100%,
+        60% 0%,
+        65% 100%,
+        70% 0%,
+        75% 100%,
+        80% 0%,
+        85% 100%,
+        90% 0%,
+        95% 100%,
+        100% 0%
+    );
 }
 
 .pricing-card.featured .popular-badge {
-    background: #ffffff;
-    color: #000000;
+    background: linear-gradient(45deg, #f97316 0%, #ea580c 100%);
+    color: #ffffff;
+}
+
+.pricing-card.featured .popular-badge::after {
+    background: linear-gradient(45deg, #f97316 0%, #ea580c 100%);
 }
 
 .plan-name {
