@@ -131,37 +131,43 @@ def generate_apple_client_secret():
         return None
 
 def store_oauth_state(user_id, provider, state, code_verifier=None):
-    """Store OAuth state in database for security"""
+    """Store OAuth state - always use session for simplicity"""
     try:
-        data = {
+        # Always use session storage for reliability
+        session[f'oauth_state_{state}'] = {
             'user_id': user_id,
             'provider': provider,
-            'state': state,
             'code_verifier': code_verifier,
-            'created_at': datetime.utcnow().isoformat(),
-            'expires_at': (datetime.utcnow() + timedelta(minutes=10)).isoformat()
+            'created_at': datetime.utcnow().isoformat()
         }
-        result = supabase.table('oauth_states').insert(data).execute()
-        print(f"OAuth state stored successfully for {provider}: {state[:8]}...")
+        print(f"OAuth state stored in session for {provider}: {state[:8]}...")
         return True
+            
     except Exception as e:
         print(f"Error storing OAuth state for {provider}: {e}")
         print(f"User ID: {user_id}, Provider: {provider}")
-        print(f"Supabase URL: {SUPABASE_URL}")
+        print(f"Session keys: {list(session.keys())}")
         return False
 
 def verify_oauth_state(state, provider):
-    """Verify OAuth state from database"""
+    """Verify OAuth state from session"""
     try:
-        result = supabase.table('oauth_states').select('*').eq('state', state).eq('provider', provider).single().execute()
-        if result.data:
-            # Check if state is expired
-            expires_at = datetime.fromisoformat(result.data['expires_at'])
-            if datetime.utcnow() > expires_at:
-                # Clean up expired state
-                supabase.table('oauth_states').delete().eq('state', state).execute()
-                return None
-            return result.data
+        # Only use session for simplicity
+        session_key = f'oauth_state_{state}'
+        if session_key in session:
+            state_data = session[session_key]
+            if state_data['provider'] == provider:
+                # Check if not expired (10 minute timeout)
+                created_at = datetime.fromisoformat(state_data['created_at'])
+                if datetime.utcnow() - created_at < timedelta(minutes=10):
+                    # Clean up after use
+                    del session[session_key]
+                    return state_data
+                else:
+                    # Clean up expired session state
+                    del session[session_key]
+        
+        print(f"OAuth state not found for {provider}: {state[:8]}...")
         return None
     except Exception as e:
         print(f"Error verifying OAuth state: {e}")
@@ -297,26 +303,37 @@ def generic_oauth_authorize(platform):
     user_id = session.get('user_id')
     if not user_id:
         print(f"OAuth authorization attempt without authentication for {platform}")
-        return jsonify({'error': 'Not authenticated'}), 401
+        print(f"Session data: {dict(session)}")
+        # Try to get user_id from different possible session keys
+        user_id = session.get('user') or session.get('user_email') or session.get('email')
+        if not user_id:
+            return jsonify({'error': 'Not authenticated - Please login first'}), 401
     
     config = OAUTH_CONFIG[platform]
     
-    # Check if OAuth is properly configured
-    if not config.get('client_id') or not config.get('client_secret'):
-        print(f"OAuth not configured for {platform}")
-        print(f"Client ID: {config.get('client_id')[:10]}..." if config.get('client_id') else "Missing")
-        print(f"Client Secret: {'Set' if config.get('client_secret') else 'Missing'}")
-        return jsonify({'error': f'OAuth not configured for {platform}'}), 500
+    # Check if OAuth is properly configured (skip for Apple which uses JWT)
+    if platform != 'apple':
+        if not config.get('client_id') or not config.get('client_secret'):
+            print(f"OAuth not configured for {platform}")
+            print(f"Client ID: {config.get('client_id')[:10]}..." if config.get('client_id') else "Missing")
+            print(f"Client Secret: {'Set' if config.get('client_secret') else 'Missing'}")
+            error_msg = f'OAuth not configured for {platform}. Client ID: {"Set" if config.get("client_id") else "Missing"}, Secret: {"Set" if config.get("client_secret") else "Missing"}'
+            return jsonify({'error': error_msg}), 500
     
     state = secrets.token_urlsafe(32)
     
     # Generate PKCE for platforms that support it
     code_verifier = None
-    if platform in ['google', 'notion', 'apple']:
+    code_challenge = None
+    if platform in ['google', 'notion', 'apple', 'outlook']:
         code_verifier, code_challenge = generate_pkce_codes()
-        store_oauth_state(user_id, platform, state, code_verifier)
+        success = store_oauth_state(user_id, platform, state, code_verifier)
     else:
-        store_oauth_state(user_id, platform, state)
+        success = store_oauth_state(user_id, platform, state)
+    
+    if not success:
+        print(f"Failed to store OAuth state for {platform}")
+        return jsonify({'error': 'Failed to initiate OAuth flow - Database connection issue'}), 500
     
     # Build authorization parameters
     params = {
