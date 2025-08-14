@@ -11,7 +11,8 @@
 <!-- 접힌 상태 전용 햄버거 버튼 -->
 <div class="collapsed-header">
     <button class="collapsed-toggle-btn" onclick="toggleSidebar()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
             <line x1="3" y1="6" x2="21" y2="6"></line>
             <line x1="3" y1="12" x2="21" y2="12"></line>
             <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -25,7 +26,8 @@
         <span class="logo-text">NodeFlow</span>
     </div>
     <button class="expanded-toggle-btn" onclick="toggleSidebar()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
         </svg>
@@ -40,8 +42,7 @@
         <div class="nav-section">
             <!-- 프로필 -->
             <div class="nav-item profile-nav-item {{ 'active' if current_page == 'profile' else '' }}"
-                data-section="profile"
-                onclick="handleSidebarItemClick('profile')">
+                data-section="profile" onclick="handleSidebarItemClick('profile')">
                 <span class="nav-icon profile-avatar-icon">
                     <img id="sidebar-profile-avatar" src="/static/images/default-avatar.svg" alt="프로필"
                         class="sidebar-avatar">
@@ -57,10 +58,10 @@
                 <span class="nav-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                        <line x1="16" y1="2" x2="16" y2="6"/>
-                        <line x1="8" y1="2" x2="8" y2="6"/>
-                        <line x1="3" y1="10" x2="21" y2="10"/>
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
                     </svg>
                 </span>
                 <span class="nav-label">캘린더 목록</span>
@@ -69,31 +70,6 @@
 
         <!-- 기타 기능 섹션 -->
         <div class="nav-section">
-            <div class="nav-item {{ 'active' if current_page == 'overview' else '' }}" data-section="overview"
-                onclick="handleSidebarItemClick('overview')">
-                <span class="nav-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                        <polyline points="9,22 9,12 15,12 15,22" />
-                    </svg>
-                </span>
-                <span class="nav-label">홈</span>
-            </div>
-
-            <div class="nav-item {{ 'active' if current_page == 'sync' else '' }}" data-section="sync"
-                onclick="handleSidebarItemClick('sync')">
-                <span class="nav-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c2.12 0 4.07.74 5.6 1.99" />
-                        <path d="m16 8 5-5" />
-                        <path d="m21 3h-5v5" />
-                    </svg>
-                </span>
-                <span class="nav-label">동기화 상태</span>
-            </div>
-
             <!-- AI 알림 수신함 (프리미엄 기능) -->
             <div class="nav-item" onclick="handleSidebarItemClick('inbox')">
                 <span class="nav-icon">
@@ -1012,7 +988,8 @@
             margin: 0 auto !important;
             width: 36px !important;
             height: 36px !important;
-            z-index: 10003 !important; /* 헤더보다 위에 표시 */
+            z-index: 10003 !important;
+            /* 헤더보다 위에 표시 */
             position: relative !important;
         }
 
@@ -1023,10 +1000,11 @@
             min-height: 32px !important;
             max-width: 32px !important;
             max-height: 32px !important;
-            z-index: 10003 !important; /* 헤더보다 위에 표시 */
+            z-index: 10003 !important;
+            /* 헤더보다 위에 표시 */
             position: relative !important;
         }
-        
+
         /* 접힌 상태에서 모든 네비게이션 아이템들을 헤더 위에 표시 */
         .sidebar.collapsed .nav-item {
             z-index: 10003 !important;
@@ -1484,37 +1462,37 @@
             }
 
             // 펼쳐져 있으면 원래 기능 실행
-            switch(section) {
+            switch (section) {
                 case 'profile':
-                    if(typeof navigateToSection === 'function') { 
-                        navigateToSection('profile'); 
-                    } else { 
-                        window.location.href = '/profile'; 
+                    if (typeof navigateToSection === 'function') {
+                        navigateToSection('profile');
+                    } else {
+                        window.location.href = '/profile';
                     }
                     break;
                 case 'overview':
-                    if(typeof navigateToSection === 'function') { 
-                        navigateToSection('overview'); 
+                    if (typeof navigateToSection === 'function') {
+                        navigateToSection('overview');
                     }
                     break;
                 case 'sync':
-                    if(typeof navigateToSection === 'function') { 
-                        navigateToSection('sync'); 
+                    if (typeof navigateToSection === 'function') {
+                        navigateToSection('sync');
                     }
                     break;
                 case 'inbox':
-                    if(typeof openInbox === 'function') { 
-                        openInbox(); 
+                    if (typeof openInbox === 'function') {
+                        openInbox();
                     }
                     break;
                 case 'friends':
-                    if(typeof navigateToSection === 'function') { 
-                        navigateToSection('friends'); 
+                    if (typeof navigateToSection === 'function') {
+                        navigateToSection('friends');
                     }
                     break;
                 case 'api-keys':
-                    if(typeof navigateToApiKeys === 'function') { 
-                        navigateToApiKeys(); 
+                    if (typeof navigateToApiKeys === 'function') {
+                        navigateToApiKeys();
                     }
                     break;
                 case 'calendar-list':
