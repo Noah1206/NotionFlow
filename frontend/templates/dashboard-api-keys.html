@@ -52,6 +52,54 @@
         </div>
     </div>
 
+    <!-- 캘린더 생성 안내 섹션 -->
+    <div class="calendar-setup-guide" id="calendar-setup-guide">
+        <div class="guide-card">
+            <div class="guide-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+                </svg>
+            </div>
+            <div class="guide-content">
+                <h3 class="guide-title">🎯 시작하기 전에</h3>
+                <p class="guide-description">
+                    플랫폼을 연결하기 전에 먼저 <strong>캘린더를 생성</strong>해야 합니다.<br>
+                    캘린더가 있어야 각 플랫폼의 이벤트를 동기화할 수 있어요!
+                </p>
+                <div class="guide-steps">
+                    <div class="step-item">
+                        <span class="step-number">1</span>
+                        <span class="step-text">캘린더 생성하기</span>
+                    </div>
+                    <div class="step-item">
+                        <span class="step-number">2</span>
+                        <span class="step-text">플랫폼 연결하기</span>
+                    </div>
+                    <div class="step-item">
+                        <span class="step-number">3</span>
+                        <span class="step-text">자동 동기화 시작</span>
+                    </div>
+                </div>
+                <div class="guide-actions">
+                    <a href="/calendar" class="guide-btn primary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+                        </svg>
+                        캘린더 생성하기
+                    </a>
+                    <button class="guide-btn secondary" onclick="hideCalendarGuide()">
+                        나중에 하기
+                    </button>
+                </div>
+            </div>
+            <button class="guide-close" onclick="hideCalendarGuide()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6l-12 12M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
     <!-- 플랫폼 연결 섹션 -->
     <div class="platforms-section">
         
@@ -774,5 +822,58 @@ function togglePlatformDetails(platform) {
         }
     }
 }
+
+// 캘린더 안내 관련 함수들
+function hideCalendarGuide() {
+    const guide = document.getElementById('calendar-setup-guide');
+    if (guide) {
+        guide.style.animation = 'slideOutUp 0.3s ease-in forwards';
+        setTimeout(() => {
+            guide.classList.add('hidden');
+        }, 300);
+        
+        // 로컬 스토리지에 숨김 상태 저장
+        localStorage.setItem('calendar_guide_hidden', 'true');
+    }
+}
+
+// 연결된 플랫폼이 있으면 자동으로 안내 숨기기
+function checkAndHideGuide() {
+    const connectedCount = document.getElementById('connected-count');
+    const guide = document.getElementById('calendar-setup-guide');
+    
+    if (connectedCount && guide) {
+        const count = parseInt(connectedCount.textContent) || 0;
+        const isHidden = localStorage.getItem('calendar_guide_hidden') === 'true';
+        
+        if (count > 0 || isHidden) {
+            guide.classList.add('hidden');
+        }
+    }
+}
+
+// 페이지 로드 시 확인
+document.addEventListener('DOMContentLoaded', function() {
+    checkAndHideGuide();
+    
+    // 통계 업데이트 후에도 확인
+    setTimeout(checkAndHideGuide, 1000);
+});
+
+// slideOutUp 애니메이션 추가
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideOutUp {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+    }
+`;
+document.head.appendChild(style);
 </script>
 {% endblock %}
