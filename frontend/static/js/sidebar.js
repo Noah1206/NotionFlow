@@ -330,18 +330,21 @@ class SidebarManager {
     restoreSidebarState() {
         const savedState = localStorage.getItem('sidebar-collapsed');
         
-        if (savedState === 'true' && this.sidebar) {
-            this.sidebar.classList.add('collapsed');
-            this.updateToggleIcon();
-            
-            // 사이드바 컨테이너 클래스 관리 - floating 버튼 표시/숨김용
-            const sidebarContainer = document.querySelector('.sidebar-container');
-            if (sidebarContainer) {
-                sidebarContainer.classList.add('sidebar-collapsed');
+        // 저장된 상태가 없으면 기본적으로 접힌 상태로 시작
+        if (savedState === null || savedState === 'true') {
+            if (this.sidebar) {
+                this.sidebar.classList.add('collapsed');
+                this.updateToggleIcon();
+                
+                // 사이드바 컨테이너 클래스 관리 - floating 버튼 표시/숨김용
+                const sidebarContainer = document.querySelector('.sidebar-container');
+                if (sidebarContainer) {
+                    sidebarContainer.classList.add('sidebar-collapsed');
+                }
+                
+                // body 클래스 관리 - 모든 대시보드 페이지에서 사이드바 상태 반영
+                document.body.classList.add('sidebar-collapsed');
             }
-            
-            // body 클래스 관리 - 모든 대시보드 페이지에서 사이드바 상태 반영
-            document.body.classList.add('sidebar-collapsed');
         }
     }
 
