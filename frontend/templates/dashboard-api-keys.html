@@ -847,9 +847,13 @@ function checkAndHideGuide() {
         const count = parseInt(connectedCount.textContent) || 0;
         const isHidden = localStorage.getItem('calendar_guide_hidden') === 'true';
         
-        if (count > 0 || isHidden) {
-            guide.classList.add('hidden');
-        }
+        // 테스트를 위해 임시로 항상 표시
+        // if (count > 0 || isHidden) {
+        //     guide.classList.add('hidden');
+        // }
+        
+        // 임시로 항상 보이도록 설정
+        guide.classList.remove('hidden');
     }
 }
 
