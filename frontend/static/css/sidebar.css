@@ -10,7 +10,7 @@
     height: 80vh !important;
     max-height: 600px !important;
     background: #ffffff !important;
-    border: 3px solid rgba(0, 0, 0, 0.25) !important;
+    border: 3px solid #000000 !important;
     border-radius: 20px !important;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     overflow-y: auto !important;
