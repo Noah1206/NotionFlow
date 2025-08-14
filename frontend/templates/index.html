@@ -1005,15 +1005,39 @@
         }
 
         .pricing-preview-card.featured {
-            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
-            color: #ffffff;
+            background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 25%, #dcfce7 50%, #86efac 100%);
+            color: #065f46;
+            border: none;
             transform: scale(1.02) translateY(-5px);
             z-index: 2;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 20px 50px rgba(34, 197, 94, 0.3);
+            position: relative;
+            overflow: hidden;
         }
 
         .pricing-preview-card.featured::before {
             background: #ffffff;
+        }
+
+        /* 플랜 아이콘 스타일 */
+        .plan-icon {
+            position: absolute;
+            left: 2rem;
+            top: 2rem;
+            width: 80px;
+            height: 80px;
+            background: #ffffff;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .plan-icon svg {
+            color: #059669;
+            width: 48px;
+            height: 48px;
         }
 
         .pricing-preview-card.featured::after {
@@ -1028,20 +1052,21 @@
         .pricing-preview-badge {
             position: absolute;
             top: -1px;
-            right: -1px;
-            background: #000000;
+            left: -1px;
+            background: linear-gradient(45deg, #f97316 0%, #ea580c 100%);
             color: #ffffff;
-            padding: 0.5rem 1rem;
-            font-size: 0.7rem;
-            font-weight: 700;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.75rem;
+            font-weight: 800;
             letter-spacing: 1px;
             text-transform: uppercase;
-            clip-path: polygon(0 0, 100% 0, 100% 100%, 20% 100%);
+            clip-path: polygon(0 0, 80% 0, 100% 100%, 0 100%);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
         }
 
         .pricing-preview-card.featured .pricing-preview-badge {
-            background: #ffffff;
-            color: #000000;
+            background: linear-gradient(45deg, #f97316 0%, #ea580c 100%);
+            color: #ffffff;
         }
 
         .pricing-preview-plan {
@@ -1054,7 +1079,7 @@
         }
 
         .pricing-preview-card.featured .pricing-preview-plan {
-            color: #ffffff;
+            color: #065f46;
         }
 
         .plan-tagline {
@@ -1066,7 +1091,7 @@
         }
 
         .pricing-preview-card.featured .plan-tagline {
-            color: rgba(255, 255, 255, 0.8);
+            color: #065f46;
         }
 
         .pricing-preview-price {
@@ -1105,7 +1130,7 @@
         }
 
         .pricing-preview-card.featured .pricing-preview-price .period {
-            color: rgba(255, 255, 255, 0.8);
+            color: rgba(255, 255, 255, 0.9);
         }
 
         .price-note {
@@ -1116,7 +1141,7 @@
         }
 
         .pricing-preview-card.featured .price-note {
-            color: rgba(255, 255, 255, 0.8);
+            color: rgba(255, 255, 255, 0.9);
         }
 
         .pricing-preview-features {
@@ -1208,12 +1233,14 @@
 
         .pricing-preview-card.featured .plan-button.primary {
             background: #ffffff;
-            color: #000000;
+            color: #065f46;
             border-color: #ffffff;
+            font-weight: 700;
         }
 
         .pricing-preview-card.featured .plan-button.primary:hover {
-            background: rgba(255, 255, 255, 0.9);
+            background: #f0fdf4;
+            color: #065f46;
             transform: translateY(-2px);
         }
 
@@ -1914,10 +1941,15 @@
                     </p>
                     <div class="pricing-preview-cards">
                         <div class="pricing-preview-card featured single-plan">
-                            <div class="pricing-preview-badge">추천</div>
+                            <div class="pricing-preview-badge">50% 할인</div>
+                            <div class="plan-icon">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+                                </svg>
+                            </div>
                             <div class="plan-header">
-                                <h3 class="pricing-preview-plan">프로</h3>
-                                <p class="plan-tagline">모든 기능을 포함한 완전한 캘린더 통합 솔루션</p>
+                                <h3 class="pricing-preview-plan">캘린더 통합</h3>
+                                <p class="plan-tagline">모든 기능을 포함한 완전한 캘린더 동기화 솔루션</p>
                             </div>
                             <div class="pricing-preview-price">
                                 <span class="currency">$</span>
