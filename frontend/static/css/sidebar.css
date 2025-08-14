@@ -4,7 +4,7 @@
 /* ✨ 사이드바 기본 구조 */
 .sidebar {
     position: fixed !important;
-    top: 30px !important;
+    top: 50px !important;
     left: 10px !important;
     width: 240px !important;
     height: 80vh !important;
