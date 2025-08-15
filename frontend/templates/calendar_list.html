@@ -63,7 +63,7 @@
 
             <div class="calendars-container-refined">
                 {% for calendar in personal_calendars %}
-                <div class="calendar-card-refined" data-calendar="{{ calendar.id }}">
+                <div class="calendar-card-refined" data-calendar="{{ calendar.id }}" onclick="openCalendar('{{ calendar.id }}')">
                     <div class="card-header-refined">
                         <div class="calendar-identity">
                             <div class="calendar-color-refined" style="background: {{ calendar.color }};"></div>
@@ -74,13 +74,13 @@
                             </div>
                         </div>
                         <div class="card-actions-hover">
-                            <button class="card-menu-btn">
+                            <button class="card-menu-btn" onclick="event.stopPropagation();">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zM12 13a1 1 0 110-2 1 1 0 010 2zM12 20a1 1 0 110-2 1 1 0 010 2z" />
                                 </svg>
                             </button>
-                            <button class="btn-open-calendar">
+                            <button class="btn-open-calendar" onclick="event.stopPropagation(); openCalendar('{{ calendar.id }}');">
                                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -148,7 +148,7 @@
 
             <div class="calendars-container-refined">
                 {% for calendar in shared_calendars %}
-                <div class="calendar-card-refined shared-calendar-refined" data-calendar="{{ calendar.id }}">
+                <div class="calendar-card-refined shared-calendar-refined" data-calendar="{{ calendar.id }}" onclick="openCalendar('{{ calendar.id }}')">
                     <div class="card-header-refined">
                         <div class="calendar-identity">
                             <div class="calendar-color-refined" style="background: {{ calendar.color }};"></div>
@@ -165,13 +165,13 @@
                                         d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                 </svg>
                             </div>
-                            <button class="card-menu-btn">
+                            <button class="card-menu-btn" onclick="event.stopPropagation();">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zM12 13a1 1 0 110-2 1 1 0 010 2zM12 20a1 1 0 110-2 1 1 0 010 2z" />
                                 </svg>
                             </button>
-                            <button class="btn-open-calendar">
+                            <button class="btn-open-calendar" onclick="event.stopPropagation(); openCalendar('{{ calendar.id }}');">
                                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -756,6 +756,17 @@
     background: #fee2e2;
     border-color: #fca5a5;
 }
+
+/* Make calendar cards clickable */
+.calendar-card-refined {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.calendar-card-refined:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
 </style>
 
 <script>
@@ -1055,6 +1066,11 @@
                 handleFileSelect(files[0]);
             }
         });
+    }
+
+    // Navigate to individual calendar view
+    function openCalendar(calendarId) {
+        window.location.href = `/dashboard/calendar/${calendarId}/view`;
     }
 </script>
 {% endblock %}

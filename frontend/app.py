@@ -267,18 +267,96 @@ def dashboard_index():
     """Main dashboard route - redirect to unified dashboard"""
     return redirect('/dashboard')
 
-# Calendar list route - main calendar view page  
+# Calendar list route - main calendar list page  
 @app.route('/dashboard/calendar-list')
 def calendar_list():
-    """Calendar View Page - Notion Style Calendar"""
+    """Calendar List Management Page - Original Design"""
     # Get current user ID from session
     user_id = session.get('user_id')
     
     if not user_id:
         return redirect('/login?from=calendar-list')
     
-    # 새로운 캘린더 뷰 페이지로 렌더링
-    return render_template('calendar_view.html')
+    # Get common dashboard context including profile
+    calendar_context = get_dashboard_context(user_id, 'calendar-list')
+    
+    # Add calendar-specific data
+    calendar_context.update({
+        'personal_calendars': [],
+        'shared_calendars': [],
+        'summary': {'total_calendars': 0, 'personal_calendars': 0, 'shared_calendars': 0}
+    })
+    
+    try:
+        # Get user's actual calendar data from database
+        if dashboard_data_available:
+            calendar_data = dashboard_data.get_user_calendars(user_id)
+            calendar_context.update({
+                'personal_calendars': calendar_data['personal_calendars'],
+                'shared_calendars': calendar_data['shared_calendars'],
+                'summary': calendar_data['summary']
+            })
+            print(f"📅 Loaded {calendar_data['summary']['total_calendars']} calendars for user {user_id}")
+        else:
+            print("⚠️ Dashboard data not available, using sample data")
+            # Provide sample data for demonstration
+            calendar_context.update({
+                'personal_calendars': [
+                    {
+                        'id': 'todo_list',
+                        'name': 'To Do List',
+                        'platform': 'notion',
+                        'color': '#2563eb',
+                        'event_count': 24,
+                        'sync_status': 'synced',
+                        'last_sync_display': 'Synced 2 min ago',
+                        'is_enabled': True
+                    },
+                    {
+                        'id': 'personal_calendar',
+                        'name': 'Personal Calendar',
+                        'platform': 'google',
+                        'color': '#059669',
+                        'event_count': 18,
+                        'sync_status': 'synced',
+                        'last_sync_display': 'Synced 5 min ago',
+                        'is_enabled': True
+                    }
+                ],
+                'shared_calendars': [
+                    {
+                        'id': 'team_calendar',
+                        'name': 'Team Calendar',
+                        'platform': 'outlook',
+                        'color': '#7c3aed',
+                        'event_count': 31,
+                        'sync_status': 'synced',
+                        'last_sync_display': 'Synced 1 min ago',
+                        'is_enabled': True,
+                        'shared_with_count': 5
+                    }
+                ],
+                'summary': {'total_calendars': 3, 'personal_calendars': 2, 'shared_calendars': 1, 'total_events': 73}
+            })
+    except Exception as e:
+        print(f"❌ Error loading calendar data: {e}")
+        # Keep default empty data on error
+        pass
+    
+    return render_template('calendar_list.html', **calendar_context)
+
+# Calendar view route - Notion style calendar view
+@app.route('/dashboard/calendar/<calendar_id>/view')
+def calendar_view(calendar_id):
+    """Calendar View Page - Notion Style Calendar"""
+    # Get current user ID from session
+    user_id = session.get('user_id')
+    
+    if not user_id:
+        return redirect(f'/login?from=calendar/{calendar_id}/view')
+    
+    # 캘린더 뷰 페이지로 렌더링
+    return render_template('calendar_view.html', calendar_id=calendar_id)
 
 # Calendar Detail Page
 @app.route('/dashboard/calendar/<calendar_id>')
