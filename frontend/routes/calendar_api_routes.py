@@ -64,24 +64,24 @@ def create_calendar():
     print(f"Content-Type: {request.content_type}")
     print(f"Request Headers: {dict(request.headers)}")
     
-    # JSON 요청만 처리 (간단한 캘린더 생성)
-    if not request.is_json:
-        return jsonify({
-            'success': False,
-            'error': 'Content-Type must be application/json'
-        }), 415
-    
-    data = request.get_json()
-    name = data.get('name')
-    platform = data.get('platform', 'custom')
-    color = data.get('color', '#3B82F6')
-    is_shared = data.get('is_shared', False)
-    media_filename = data.get('media_filename')  # 파일명만 받음
-    
-    # 파일 업로드는 별도 API로 분리 예정
-    media_file = None
-    media_file_path = None
-    media_file_type = None
+    # multipart/form-data와 JSON 모두 지원
+    if request.is_json:
+        # JSON 요청 (파일 없음)
+        data = request.get_json()
+        name = data.get('name')
+        platform = data.get('platform', 'custom')
+        color = data.get('color', '#3B82F6')
+        is_shared = data.get('is_shared', False)
+        media_filename = data.get('media_filename')
+        media_file = None
+    else:
+        # Form 요청 (파일 포함 가능)
+        name = request.form.get('name')
+        platform = request.form.get('platform', 'custom')
+        color = request.form.get('color', '#3B82F6')
+        is_shared = request.form.get('is_shared', 'false').lower() == 'true'
+        media_filename = request.form.get('media_filename')
+        media_file = request.files.get('media_file')
     
     # 임시로 인증 체크 비활성화 (테스트용)
     # auth_error = require_auth()
@@ -109,16 +109,56 @@ def create_calendar():
                 'error': 'Calendar name is required'
             }), 400
         
-        # 파일 업로드는 나중에 별도 API로 구현
+        # 파일 처리
+        media_file_path = None
+        media_file_type = None
         
-        # 캘린더 데이터 생성 (파일 필드 제거)
+        if media_file and media_file.filename:
+            # 파일 유효성 검사
+            is_allowed, file_type = allowed_file(media_file.filename)
+            if not is_allowed:
+                return jsonify({
+                    'success': False,
+                    'error': 'Unsupported file type. Please upload MP3, MP4, MOV, AVI, WMV, WAV, or M4A files.'
+                }), 400
+            
+            # 파일 크기 검사 (50MB 제한)
+            media_file.seek(0, 2)  # 파일 끝으로 이동
+            file_size = media_file.tell()
+            media_file.seek(0)  # 파일 시작으로 돌아가기
+            
+            if file_size > 50 * 1024 * 1024:  # 50MB
+                return jsonify({
+                    'success': False,
+                    'error': 'File size must be less than 50MB'
+                }), 400
+            
+            # 고유한 파일명 생성
+            file_extension = media_file.filename.rsplit('.', 1)[1].lower()
+            unique_filename = f"{uuid.uuid4().hex}.{file_extension}"
+            
+            # 파일 저장
+            upload_folder = get_upload_folder()
+            file_path = os.path.join(upload_folder, unique_filename)
+            media_file.save(file_path)
+            
+            media_file_path = unique_filename
+            media_file_type = file_type
+            
+            # 사용자가 지정한 파일명이 없으면 원본 파일명 사용
+            if not media_filename:
+                media_filename = media_file.filename
+        
+        # 캘린더 데이터 생성 (파일 필드 포함)
         calendar_data = {
             'user_id': user_id,
             'name': name,
             'platform': platform,
             'color': color,
             'is_shared': is_shared,
-            'media_filename': media_filename,  # 파일명만 저장
+            'media_filename': media_filename,
+            'media_file_path': media_file_path,
+            'media_file_type': media_file_type,
             'created_at': datetime.now().isoformat(),
             'updated_at': datetime.now().isoformat()
         }
