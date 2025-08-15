@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Dump - NotionFlow | 할일 관리</title>
+    <meta name="description" content="NotionFlow Task Dump에서 할일을 추가하고 관리하세요.">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="16x16" href="{{ url_for('static', filename='images/favicon-16x16.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="32x32" href="{{ url_for('static', filename='images/favicon-32x32.svg') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='images/apple-touch-icon.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="192x192" href="{{ url_for('static', filename='images/icon-192x192.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="512x512" href="{{ url_for('static', filename='images/icon-512x512.svg') }}">
+    
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#3B82F6">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: #f5f5f5;
+            --text-primary: #000000;
+            --text-secondary: #666666;
+            --text-tertiary: #999999;
+            --accent-primary: #3B82F6;
+            --accent-secondary: #e3f2fd;
+            --border-color: #e5e5e5;
+            --border-light: #f0f0f0;
+            --shadow-light: rgba(0, 0, 0, 0.1);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding-top: 80px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            transition: color 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: var(--accent-primary);
+        }
+
+        .page-header {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px var(--shadow-light);
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .title-icon {
+            background: #ff4757;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .task-list {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px var(--shadow-light);
+            overflow: hidden;
+        }
+
+        .task-list-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-list-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .add-task-btn {
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .add-task-btn:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .task-input-container {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: none;
+        }
+
+        .task-input-container.active {
+            display: block;
+        }
+
+        .task-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: none;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .task-input:focus {
+            border-color: var(--accent-primary);
+        }
+
+        .task-input-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .tasks {
+            padding: 1rem 0;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            transition: background 0.2s ease;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .task-item:hover {
+            background: var(--bg-secondary);
+        }
+
+        .task-item:last-child {
+            border-bottom: none;
+        }
+
+        .task-checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            margin-top: 0.1rem;
+        }
+
+        .task-checkbox.completed {
+            background: var(--success-color);
+            border-color: var(--success-color);
+        }
+
+        .task-checkbox.completed::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-text {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+
+        .task-text.completed {
+            text-decoration: line-through;
+            color: var(--text-secondary);
+        }
+
+        .task-meta {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .task-item:hover .task-actions {
+            opacity: 1;
+        }
+
+        .task-action-btn {
+            background: none;
+            border: none;
+            padding: 0.25rem;
+            border-radius: 4px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .task-action-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .task-action-btn.delete:hover {
+            color: var(--error-color);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1rem;
+            opacity: 0.5;
+        }
+
+        .stats {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 1.5rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+        }
+
+        .stat {
+            flex: 1;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--accent-primary);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .page-header {
+                padding: 1.5rem;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .task-item {
+                padding: 0.75rem 1rem;
+            }
+
+            .stats {
+                margin: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'components/header.html' %}
+
+    <div class="container">
+        <a href="/dashboard/calendar-list" class="back-link">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19L5 12L12 5"/>
+            </svg>
+            캘린더로 돌아가기
+        </a>
+
+        <div class="page-header">
+            <h1 class="page-title">
+                <div class="title-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 7L9 13L21 1"/>
+                    </svg>
+                </div>
+                Task Dump
+            </h1>
+            <p class="page-subtitle">할일을 빠르게 추가하고 관리하세요</p>
+        </div>
+
+        <div class="task-list">
+            <div class="task-list-header">
+                <div class="task-list-title">할일 목록</div>
+                <button class="add-task-btn" onclick="toggleTaskInput()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 4V20M4 12H20"/>
+                    </svg>
+                    Add
+                </button>
+            </div>
+
+            <div class="task-input-container" id="taskInputContainer">
+                <textarea class="task-input" id="taskInput" placeholder="새로운 할일을 입력하세요..." rows="3"></textarea>
+                <div class="task-input-actions">
+                    <button class="btn btn-primary" onclick="addTask()">추가</button>
+                    <button class="btn btn-secondary" onclick="cancelTaskInput()">취소</button>
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-number" id="totalTasks">0</div>
+                    <div class="stat-label">총 할일</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="completedTasks">0</div>
+                    <div class="stat-label">완료됨</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="pendingTasks">0</div>
+                    <div class="stat-label">진행중</div>
+                </div>
+            </div>
+
+            <div class="tasks" id="tasksList">
+                <!-- 샘플 할일들 -->
+                <div class="task-item" data-id="1">
+                    <div class="task-checkbox" onclick="toggleTask(1)"></div>
+                    <div class="task-content">
+                        <div class="task-text">언젠가 해야 할 일 목록1</div>
+                        <div class="task-meta">추가됨: 오늘</div>
+                    </div>
+                    <div class="task-actions">
+                        <button class="task-action-btn" onclick="editTask(1)">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4A2 2 0 0 0 2 6V20A2 2 0 0 0 4 22H18A2 2 0 0 0 20 20V13"/>
+                                <path d="M18.5 2.5A2.121 2.121 0 0 1 21 5L13 13L9 14L10 10L18.5 2.5Z"/>
+                            </svg>
+                        </button>
+                        <button class="task-action-btn delete" onclick="deleteTask(1)">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3,6 5,6 21,6"/>
+                                <path d="M19 6V20A2 2 0 0 1 17 22H7A2 2 0 0 1 5 20V6M8 6V4A2 2 0 0 1 10 2H14A2 2 0 0 1 16 4V6"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="task-item" data-id="2">
+                    <div class="task-checkbox" onclick="toggleTask(2)"></div>
+                    <div class="task-content">
+                        <div class="task-text">당장은 아니지만 나중에 하긴 해야되는 일 2</div>
+                        <div class="task-meta">추가됨: 어제</div>
+                    </div>
+                    <div class="task-actions">
+                        <button class="task-action-btn" onclick="editTask(2)">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4A2 2 0 0 0 2 6V20A2 2 0 0 0 4 22H18A2 2 0 0 0 20 20V13"/>
+                                <path d="M18.5 2.5A2.121 2.121 0 0 1 21 5L13 13L9 14L10 10L18.5 2.5Z"/>
+                            </svg>
+                        </button>
+                        <button class="task-action-btn delete" onclick="deleteTask(2)">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3,6 5,6 21,6"/>
+                                <path d="M19 6V20A2 2 0 0 1 17 22H7A2 2 0 0 1 5 20V6M8 6V4A2 2 0 0 1 10 2H14A2 2 0 0 1 16 4V6"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="task-item" data-id="3">
+                    <div class="task-checkbox" onclick="toggleTask(3)"></div>
+                    <div class="task-content">
+                        <div class="task-text">외( ˊ ω ˋ )_/:*.☆ ♪</div>
+                        <div class="task-meta">추가됨: 1주일 전</div>
+                    </div>
+                    <div class="task-actions">
+                        <button class="task-action-btn" onclick="editTask(3)">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4A2 2 0 0 0 2 6V20A2 2 0 0 0 4 22H18A2 2 0 0 0 20 20V13"/>
+                                <path d="M18.5 2.5A2.121 2.121 0 0 1 21 5L13 13L9 14L10 10L18.5 2.5Z"/>
+                            </svg>
+                        </button>
+                        <button class="task-action-btn delete" onclick="deleteTask(3)">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3,6 5,6 21,6"/>
+                                <path d="M19 6V20A2 2 0 0 1 17 22H7A2 2 0 0 1 5 20V6M8 6V4A2 2 0 0 1 10 2H14A2 2 0 0 1 16 4V6"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let tasks = [
+            { id: 1, text: '언젠가 해야 할 일 목록1', completed: false, createdAt: '오늘' },
+            { id: 2, text: '당장은 아니지만 나중에 하긴 해야되는 일 2', completed: false, createdAt: '어제' },
+            { id: 3, text: '외( ˊ ω ˋ )_/:*.☆ ♪', completed: false, createdAt: '1주일 전' }
+        ];
+
+        function updateStats() {
+            const total = tasks.length;
+            const completed = tasks.filter(task => task.completed).length;
+            const pending = total - completed;
+
+            document.getElementById('totalTasks').textContent = total;
+            document.getElementById('completedTasks').textContent = completed;
+            document.getElementById('pendingTasks').textContent = pending;
+        }
+
+        function toggleTaskInput() {
+            const container = document.getElementById('taskInputContainer');
+            const input = document.getElementById('taskInput');
+            
+            container.classList.add('active');
+            input.focus();
+        }
+
+        function cancelTaskInput() {
+            const container = document.getElementById('taskInputContainer');
+            const input = document.getElementById('taskInput');
+            
+            container.classList.remove('active');
+            input.value = '';
+        }
+
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            const text = input.value.trim();
+
+            if (!text) {
+                alert('할일을 입력해주세요.');
+                return;
+            }
+
+            const newTask = {
+                id: Date.now(),
+                text: text,
+                completed: false,
+                createdAt: '방금 전'
+            };
+
+            tasks.unshift(newTask);
+            renderTasks();
+            cancelTaskInput();
+        }
+
+        function toggleTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                renderTasks();
+            }
+        }
+
+        function editTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                const newText = prompt('할일을 수정하세요:', task.text);
+                if (newText && newText.trim()) {
+                    task.text = newText.trim();
+                    renderTasks();
+                }
+            }
+        }
+
+        function deleteTask(id) {
+            if (confirm('이 할일을 삭제하시겠습니까?')) {
+                tasks = tasks.filter(t => t.id !== id);
+                renderTasks();
+            }
+        }
+
+        function renderTasks() {
+            const tasksList = document.getElementById('tasksList');
+            
+            if (tasks.length === 0) {
+                tasksList.innerHTML = `
+                    <div class="empty-state">
+                        <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 11L12 14L22 4"/>
+                            <path d="M21 12V19A2 2 0 0 1 19 21H5A2 2 0 0 1 3 19V5A2 2 0 0 1 5 3H16"/>
+                        </svg>
+                        <p>할일이 없습니다. 새로운 할일을 추가해보세요!</p>
+                    </div>
+                `;
+            } else {
+                tasksList.innerHTML = tasks.map(task => `
+                    <div class="task-item" data-id="${task.id}">
+                        <div class="task-checkbox ${task.completed ? 'completed' : ''}" onclick="toggleTask(${task.id})"></div>
+                        <div class="task-content">
+                            <div class="task-text ${task.completed ? 'completed' : ''}">${task.text}</div>
+                            <div class="task-meta">추가됨: ${task.createdAt}</div>
+                        </div>
+                        <div class="task-actions">
+                            <button class="task-action-btn" onclick="editTask(${task.id})">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4A2 2 0 0 0 2 6V20A2 2 0 0 0 4 22H18A2 2 0 0 0 20 20V13"/>
+                                    <path d="M18.5 2.5A2.121 2.121 0 0 1 21 5L13 13L9 14L10 10L18.5 2.5Z"/>
+                                </svg>
+                            </button>
+                            <button class="task-action-btn delete" onclick="deleteTask(${task.id})">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3,6 5,6 21,6"/>
+                                    <path d="M19 6V20A2 2 0 0 1 17 22H7A2 2 0 0 1 5 20V6M8 6V4A2 2 0 0 1 10 2H14A2 2 0 0 1 16 4V6"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            updateStats();
+        }
+
+        // Enter 키로 할일 추가
+        document.getElementById('taskInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                addTask();
+            } else if (e.key === 'Escape') {
+                cancelTaskInput();
+            }
+        });
+
+        // 초기 렌더링
+        updateStats();
+    </script>
+</body>
+</html>

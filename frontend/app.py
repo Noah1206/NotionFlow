@@ -2,6 +2,7 @@ import os
 import re
 import sys
 import datetime
+import uuid
 from datetime import datetime as dt
 from flask import Flask, render_template, redirect, url_for, request, jsonify, session
 from dotenv import load_dotenv
@@ -266,83 +267,18 @@ def dashboard_index():
     """Main dashboard route - redirect to unified dashboard"""
     return redirect('/dashboard')
 
-# Calendar list route - main calendar list page  
+# Calendar list route - main calendar view page  
 @app.route('/dashboard/calendar-list')
 def calendar_list():
-    """Calendar List Management Page - New Refined Design"""
+    """Calendar View Page - Notion Style Calendar"""
     # Get current user ID from session
     user_id = session.get('user_id')
     
     if not user_id:
         return redirect('/login?from=calendar-list')
     
-    # Get common dashboard context including profile
-    calendar_context = get_dashboard_context(user_id, 'calendar-list')
-    
-    # Add calendar-specific data
-    calendar_context.update({
-        'personal_calendars': [],
-        'shared_calendars': [],
-        'summary': {'total_calendars': 0, 'personal_calendars': 0, 'shared_calendars': 0}
-    })
-    
-    try:
-        # Get user's actual calendar data from database
-        if dashboard_data_available:
-            calendar_data = dashboard_data.get_user_calendars(user_id)
-            calendar_context.update({
-                'personal_calendars': calendar_data['personal_calendars'],
-                'shared_calendars': calendar_data['shared_calendars'],
-                'summary': calendar_data['summary']
-            })
-            print(f"📅 Loaded {calendar_data['summary']['total_calendars']} calendars for user {user_id}")
-        else:
-            print("⚠️ Dashboard data not available, using sample data")
-            # Provide sample data for demonstration
-            calendar_context.update({
-                'personal_calendars': [
-                    {
-                        'id': 'sample_work',
-                        'name': 'Work Calendar',
-                        'platform': 'notion',
-                        'color': '#2563eb',
-                        'event_count': 24,
-                        'sync_status': 'synced',
-                        'last_sync_display': 'Synced 2 min ago',
-                        'is_enabled': True
-                    },
-                    {
-                        'id': 'sample_personal',
-                        'name': 'Personal Life',
-                        'platform': 'google',
-                        'color': '#059669',
-                        'event_count': 18,
-                        'sync_status': 'synced',
-                        'last_sync_display': 'Synced 5 min ago',
-                        'is_enabled': True
-                    }
-                ],
-                'shared_calendars': [
-                    {
-                        'id': 'sample_team',
-                        'name': 'Team Meetings',
-                        'platform': 'outlook',
-                        'color': '#7c3aed',
-                        'event_count': 31,
-                        'sync_status': 'synced',
-                        'last_sync_display': 'Synced 1 min ago',
-                        'is_enabled': True,
-                        'shared_with_count': 5
-                    }
-                ],
-                'summary': {'total_calendars': 3, 'personal_calendars': 2, 'shared_calendars': 1, 'total_events': 73}
-            })
-    except Exception as e:
-        print(f"❌ Error loading calendar data: {e}")
-        # Keep default empty data on error
-        pass
-    
-    return render_template('calendar_list.html', **calendar_context)
+    # 새로운 캘린더 뷰 페이지로 렌더링
+    return render_template('calendar_view.html')
 
 # Calendar Detail Page
 @app.route('/dashboard/calendar/<calendar_id>')
@@ -496,6 +432,130 @@ def toggle_calendar(calendar_id):
             
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+# 캘린더 이벤트 관리 API
+@app.route('/api/events', methods=['GET'])
+def get_events():
+    """이벤트 목록 조회"""
+    try:
+        user_id = session.get('user_id', 'temp_user')
+        
+        # 날짜 범위 파라미터
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        
+        # 임시 샘플 데이터
+        sample_events = {
+            '2025-01-01': [
+                {'id': 1, 'title': 'Task2', 'subtitle': '오후', 'type': 'task', 'completed': False, 'status': 'D-1일'}
+            ],
+            '2025-01-08': [
+                {'id': 2, 'title': 'Task3', 'subtitle': '오후', 'type': 'task', 'completed': False}
+            ],
+            '2025-01-14': [
+                {'id': 3, 'title': 'Task 1', 'subtitle': '개인', 'type': 'task', 'completed': True, 'status': 'D-28일'}
+            ]
+        }
+        
+        return jsonify({
+            'success': True,
+            'events': sample_events
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/events', methods=['POST'])
+def create_event():
+    """새 이벤트 생성"""
+    try:
+        user_id = session.get('user_id', 'temp_user')
+        data = request.get_json()
+        
+        # 필수 필드 검증
+        required_fields = ['title', 'date']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({
+                    'success': False,
+                    'error': f'Missing required field: {field}'
+                }), 400
+        
+        # 이벤트 생성 로직 (실제로는 DB에 저장)
+        new_event = {
+            'id': uuid.uuid4().hex[:8],
+            'title': data['title'],
+            'subtitle': data.get('subtitle', ''),
+            'type': data.get('type', 'task'),
+            'completed': False,
+            'date': data['date'],
+            'user_id': user_id
+        }
+        
+        return jsonify({
+            'success': True,
+            'event': new_event,
+            'message': '이벤트가 생성되었습니다.'
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/events/<event_id>', methods=['PUT'])
+def update_event(event_id):
+    """이벤트 수정"""
+    try:
+        user_id = session.get('user_id', 'temp_user')
+        data = request.get_json()
+        
+        # 이벤트 업데이트 로직 (실제로는 DB에서 업데이트)
+        
+        return jsonify({
+            'success': True,
+            'message': '이벤트가 수정되었습니다.'
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/events/<event_id>', methods=['DELETE'])
+def delete_event(event_id):
+    """이벤트 삭제"""
+    try:
+        user_id = session.get('user_id', 'temp_user')
+        
+        # 이벤트 삭제 로직 (실제로는 DB에서 삭제)
+        
+        return jsonify({
+            'success': True,
+            'message': '이벤트가 삭제되었습니다.'
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/events/<event_id>/toggle', methods=['POST'])
+def toggle_event_status(event_id):
+    """이벤트 완료 상태 토글"""
+    try:
+        user_id = session.get('user_id', 'temp_user')
+        
+        # 완료 상태 토글 로직 (실제로는 DB에서 업데이트)
+        
+        return jsonify({
+            'success': True,
+            'completed': True,  # 실제로는 토글된 상태
+            'message': '이벤트 상태가 변경되었습니다.'
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# Task Dump 페이지
+@app.route('/task-dump')
+def task_dump():
+    """Task Dump 할일 관리 페이지"""
+    return render_template('task_dump.html')
 
 @app.route('/dashboard/api-keys')
 def dashboard_api_keys():
@@ -1438,6 +1498,356 @@ except ImportError as e:
     pass
 
 # Removed duplicate health endpoint
+
+# ====== 💳 PAYMENT SYSTEM ROUTES ======
+# 결제 시스템 라우트 구현
+
+try:
+    from utils.payment_manager import PaymentManager
+    payment_manager = PaymentManager()
+    print("✅ Payment manager initialized")
+except ImportError as e:
+    print(f"⚠️ Payment manager not available: {e}")
+    payment_manager = None
+
+@app.route('/payment')
+def payment_page():
+    """결제 페이지"""
+    return render_template('payment.html')
+
+@app.route('/api/payment/create-order', methods=['POST'])
+def create_payment_order():
+    """결제 주문 생성 API"""
+    try:
+        if not payment_manager:
+            return jsonify({
+                'success': False,
+                'error': 'Payment system not available'
+            }), 503
+        
+        data = request.get_json()
+        
+        # 필수 필드 검증
+        required_fields = ['orderId', 'amount', 'orderName', 'customerEmail', 'customerName', 'billingCycle']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({
+                    'success': False,
+                    'error': f'Missing required field: {field}'
+                }), 400
+        
+        # 임시 사용자 ID (실제로는 세션에서 가져와야 함)
+        user_id = session.get('user_id', 'temp_user_' + str(uuid.uuid4())[:8])
+        
+        # 주문 생성
+        result = payment_manager.create_order(
+            user_id=user_id,
+            plan_code='CALENDAR_INTEGRATION',
+            billing_cycle=data['billingCycle'],
+            customer_email=data['customerEmail'],
+            customer_name=data['customerName']
+        )
+        
+        if result['success']:
+            return jsonify({
+                'success': True,
+                'orderId': result['order_id'],
+                'amount': result['amount'],
+                'trialEndDate': result['trial_end_date'].isoformat(),
+                'message': result['message']
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': result['error'],
+                'message': result['message']
+            }), 400
+            
+    except Exception as e:
+        print(f"Error creating payment order: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'message': '주문 생성 중 오류가 발생했습니다.'
+        }), 500
+
+@app.route('/payment/success')
+def payment_success():
+    """결제 성공 페이지"""
+    try:
+        if not payment_manager:
+            return render_template('payment_error.html', 
+                                 error="Payment system not available"), 503
+        
+        # URL 파라미터에서 결제 정보 추출
+        payment_key = request.args.get('paymentKey')
+        order_id = request.args.get('orderId')
+        amount = request.args.get('amount')
+        
+        if not all([payment_key, order_id, amount]):
+            return render_template('payment_error.html', 
+                                 error="결제 정보가 올바르지 않습니다."), 400
+        
+        # 결제 검증
+        result = payment_manager.verify_payment(
+            payment_key=payment_key,
+            order_id=order_id,
+            amount=int(amount)
+        )
+        
+        if result['success']:
+            return render_template('payment_success.html', 
+                                 payment_data=result['payment_data'],
+                                 subscription=result['subscription'])
+        else:
+            return render_template('payment_error.html', 
+                                 error=result['message']), 400
+            
+    except Exception as e:
+        print(f"Error processing payment success: {e}")
+        return render_template('payment_error.html', 
+                             error="결제 처리 중 오류가 발생했습니다."), 500
+
+@app.route('/payment/fail')
+def payment_fail():
+    """결제 실패 페이지"""
+    try:
+        # URL 파라미터에서 실패 정보 추출
+        code = request.args.get('code')
+        message = request.args.get('message')
+        order_id = request.args.get('orderId')
+        
+        # 실패 정보를 로그로 기록
+        print(f"Payment failed - Order ID: {order_id}, Code: {code}, Message: {message}")
+        
+        return render_template('payment_fail.html', 
+                             error_code=code,
+                             error_message=message,
+                             order_id=order_id)
+                             
+    except Exception as e:
+        print(f"Error processing payment failure: {e}")
+        return render_template('payment_fail.html', 
+                             error_code="UNKNOWN",
+                             error_message="결제 처리 중 오류가 발생했습니다.")
+
+@app.route('/api/payment/webhook', methods=['POST'])
+def payment_webhook():
+    """토스페이먼츠 웹훅 처리"""
+    try:
+        if not payment_manager:
+            return jsonify({'success': False}), 503
+        
+        # 웹훅 데이터 받기
+        webhook_data = request.get_json()
+        
+        # 웹훅 로깅
+        print(f"Payment webhook received: {webhook_data}")
+        
+        # 웹훅 데이터를 DB에 저장
+        if payment_manager.supabase:
+            payment_manager.supabase.table('payment_webhooks').insert({
+                'event_type': webhook_data.get('eventType'),
+                'payment_key': webhook_data.get('data', {}).get('paymentKey'),
+                'order_id': webhook_data.get('data', {}).get('orderId'),
+                'webhook_data': webhook_data,
+                'processed': False,
+                'created_at': datetime.now().isoformat()
+            }).execute()
+        
+        # 웹훅 처리 로직 (결제 상태 업데이트 등)
+        # 실제로는 백그라운드 작업으로 처리하는 것이 좋습니다
+        
+        return jsonify({'success': True}), 200
+        
+    except Exception as e:
+        print(f"Error processing webhook: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/subscription/status', methods=['GET'])
+def get_subscription_status():
+    """사용자 구독 상태 조회 API"""
+    try:
+        if not payment_manager:
+            return jsonify({
+                'success': False,
+                'error': 'Payment system not available'
+            }), 503
+        
+        # 임시 사용자 ID (실제로는 세션에서 가져와야 함)
+        user_id = session.get('user_id', 'temp_user_123')
+        
+        # 구독 상태 확인
+        result = payment_manager.check_subscription_status(user_id)
+        
+        return jsonify({
+            'success': True,
+            'status': result['status'],
+            'subscription': result.get('subscription'),
+            'trial_ends_at': result.get('trial_ends_at'),
+            'current_period_end': result.get('current_period_end'),
+            'message': result['message']
+        })
+        
+    except Exception as e:
+        print(f"Error getting subscription status: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'message': '구독 상태 조회 중 오류가 발생했습니다.'
+        }), 500
+
+@app.route('/api/payment/history', methods=['GET'])
+def get_payment_history():
+    """사용자 결제 내역 조회 API"""
+    try:
+        if not payment_manager:
+            return jsonify({
+                'success': False,
+                'error': 'Payment system not available'
+            }), 503
+        
+        # 임시 사용자 ID (실제로는 세션에서 가져와야 함)
+        user_id = session.get('user_id', 'temp_user_123')
+        
+        # 결제 내역 조회
+        payments = payment_manager.get_payment_history(user_id)
+        
+        return jsonify({
+            'success': True,
+            'payments': payments,
+            'message': '결제 내역을 성공적으로 조회했습니다.'
+        })
+        
+    except Exception as e:
+        print(f"Error getting payment history: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'message': '결제 내역 조회 중 오류가 발생했습니다.'
+        }), 500
+
+@app.route('/subscription')
+def subscription_dashboard():
+    """구독 관리 대시보드 페이지"""
+    return render_template('subscription_dashboard.html')
+
+@app.route('/api/subscription/auto-renew', methods=['POST'])
+def toggle_subscription_auto_renew():
+    """구독 자동 갱신 설정 토글 API"""
+    try:
+        if not payment_manager:
+            return jsonify({
+                'success': False,
+                'error': 'Payment system not available'
+            }), 503
+        
+        # 임시 사용자 ID (실제로는 세션에서 가져와야 함)
+        user_id = session.get('user_id', 'temp_user_123')
+        
+        # 자동 갱신 토글
+        result = payment_manager.toggle_auto_renew(user_id)
+        
+        if result['success']:
+            return jsonify({
+                'success': True,
+                'auto_renew': result['auto_renew'],
+                'message': result['message']
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': result['error'],
+                'message': result['message']
+            }), 400
+            
+    except Exception as e:
+        print(f"Error toggling auto-renew: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'message': '자동 갱신 설정 변경 중 오류가 발생했습니다.'
+        }), 500
+
+@app.route('/api/subscription/cancel', methods=['POST'])
+def cancel_user_subscription():
+    """구독 취소 API"""
+    try:
+        if not payment_manager:
+            return jsonify({
+                'success': False,
+                'error': 'Payment system not available'
+            }), 503
+        
+        # 임시 사용자 ID (실제로는 세션에서 가져와야 함)
+        user_id = session.get('user_id', 'temp_user_123')
+        
+        # 취소 사유 가져오기
+        data = request.get_json() or {}
+        cancel_reason = data.get('reason', '사용자 요청')
+        
+        # 구독 취소
+        result = payment_manager.cancel_subscription(user_id, cancel_reason)
+        
+        if result['success']:
+            return jsonify({
+                'success': True,
+                'cancelled_at': result['cancelled_at'],
+                'current_period_end': result['current_period_end'],
+                'message': result['message']
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': result['error'],
+                'message': result['message']
+            }), 400
+            
+    except Exception as e:
+        print(f"Error cancelling subscription: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'message': '구독 취소 중 오류가 발생했습니다.'
+        }), 500
+
+@app.route('/api/subscription/reactivate', methods=['POST'])
+def reactivate_user_subscription():
+    """구독 재활성화 API"""
+    try:
+        if not payment_manager:
+            return jsonify({
+                'success': False,
+                'error': 'Payment system not available'
+            }), 503
+        
+        # 임시 사용자 ID (실제로는 세션에서 가져와야 함)
+        user_id = session.get('user_id', 'temp_user_123')
+        
+        # 구독 재활성화
+        result = payment_manager.reactivate_subscription(user_id)
+        
+        if result['success']:
+            return jsonify({
+                'success': True,
+                'reactivated_at': result['reactivated_at'],
+                'current_period_end': result['current_period_end'],
+                'message': result['message']
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': result['error'],
+                'message': result['message']
+            }), 400
+            
+    except Exception as e:
+        print(f"Error reactivating subscription: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'message': '구독 재활성화 중 오류가 발생했습니다.'
+        }), 500
 
 # Add error handlers for production debugging
 @app.errorhandler(404)

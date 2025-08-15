@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>결제 완료 - NotionFlow | 구독이 시작되었습니다!</title>
+    <meta name="description" content="NotionFlow 구독 결제가 성공적으로 완료되었습니다. 14일 무료 체험을 시작하세요!">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="16x16" href="{{ url_for('static', filename='images/favicon-16x16.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="32x32" href="{{ url_for('static', filename='images/favicon-32x32.svg') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='images/apple-touch-icon.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="192x192" href="{{ url_for('static', filename='images/icon-192x192.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="512x512" href="{{ url_for('static', filename='images/icon-512x512.svg') }}">
+    
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#3B82F6">
+
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --text-primary: #000000;
+            --text-secondary: #666666;
+            --text-tertiary: #999999;
+            --accent-primary: #3B82F6;
+            --success-color: #10b981;
+            --border-color: #e5e5e5;
+            --shadow-light: rgba(0, 0, 0, 0.1);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+            --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .success-container {
+            background: var(--bg-primary);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px var(--shadow-light);
+            overflow: hidden;
+            max-width: 600px;
+            width: 100%;
+            margin: 2rem;
+            text-align: center;
+        }
+
+        .success-header {
+            background: var(--gradient-success);
+            color: white;
+            padding: 3rem 2rem 2rem;
+            position: relative;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .success-icon svg {
+            width: 40px;
+            height: 40px;
+            stroke: white;
+            stroke-width: 3;
+        }
+
+        .success-title {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .success-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .success-body {
+            padding: 2.5rem;
+        }
+
+        .trial-info {
+            background: #f0f9ff;
+            border: 2px solid #0ea5e9;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .trial-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #0369a1;
+            margin-bottom: 0.5rem;
+        }
+
+        .trial-description {
+            color: #0284c7;
+            font-size: 0.95rem;
+        }
+
+        .payment-details {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .detail-value {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .next-steps {
+            text-align: left;
+            margin-bottom: 2rem;
+        }
+
+        .steps-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .steps-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .steps-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+            padding: 0.5rem 0;
+        }
+
+        .step-number {
+            width: 24px;
+            height: 24px;
+            background: var(--accent-primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 0.1rem;
+        }
+
+        .step-text {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 0.875rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow-medium);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+            transform: translateY(-1px);
+        }
+
+        .receipt-info {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--border-color);
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .security-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            color: var(--text-tertiary);
+            font-size: 0.875rem;
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .success-container {
+                margin: 1rem;
+            }
+
+            .success-header {
+                padding: 2rem 1.5rem 1.5rem;
+            }
+
+            .success-body {
+                padding: 2rem 1.5rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* 애니메이션 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success-container {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes checkmark {
+            0% {
+                stroke-dasharray: 0 100;
+            }
+            100% {
+                stroke-dasharray: 100 100;
+            }
+        }
+
+        .checkmark {
+            stroke-dasharray: 0 100;
+            animation: checkmark 0.8s ease-out 0.3s forwards;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="success-container">
+        <div class="success-header">
+            <div class="success-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path class="checkmark" d="M20 6L9 17l-5-5"/>
+                </svg>
+            </div>
+            <h1 class="success-title">결제가 완료되었습니다!</h1>
+            <p class="success-subtitle">NotionFlow 구독이 성공적으로 시작되었습니다</p>
+        </div>
+
+        <div class="success-body">
+            <div class="trial-info">
+                <h3 class="trial-title">🎉 14일 무료 체험 시작!</h3>
+                <p class="trial-description">
+                    지금부터 14일 동안 모든 기능을 무료로 사용하실 수 있습니다.<br>
+                    체험 기간 종료 후 자동으로 유료 구독이 시작됩니다.
+                </p>
+            </div>
+
+            {% if payment_data %}
+            <div class="payment-details">
+                <div class="detail-row">
+                    <span class="detail-label">주문번호</span>
+                    <span class="detail-value">{{ payment_data.orderId }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">결제금액</span>
+                    <span class="detail-value">₩{{ "{:,}".format(payment_data.totalAmount) }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">결제수단</span>
+                    <span class="detail-value">
+                        {% if payment_data.method == 'CARD' %}
+                            {{ payment_data.card.company if payment_data.card else '카드' }}
+                        {% else %}
+                            {{ payment_data.method }}
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">결제일시</span>
+                    <span class="detail-value">{{ payment_data.approvedAt[:16].replace('T', ' ') if payment_data.approvedAt else '방금' }}</span>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="next-steps">
+                <h3 class="steps-title">다음 단계</h3>
+                <ol class="steps-list">
+                    <li>
+                        <div class="step-number">1</div>
+                        <div class="step-text">대시보드에서 첫 번째 캘린더를 연결해보세요</div>
+                    </li>
+                    <li>
+                        <div class="step-number">2</div>
+                        <div class="step-text">Google, Apple, Notion 등 원하는 플랫폼을 설정하세요</div>
+                    </li>
+                    <li>
+                        <div class="step-number">3</div>
+                        <div class="step-text">실시간 동기화를 통해 모든 일정을 한곳에서 관리하세요</div>
+                    </li>
+                    <li>
+                        <div class="step-number">4</div>
+                        <div class="step-text">고급 분석 기능으로 생산성을 극대화하세요</div>
+                    </li>
+                </ol>
+            </div>
+
+            <div class="action-buttons">
+                <a href="/dashboard" class="btn btn-primary">
+                    대시보드로 이동
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12H19M12 5L19 12L12 19"/>
+                    </svg>
+                </a>
+                <a href="/" class="btn btn-secondary">
+                    홈으로 돌아가기
+                </a>
+            </div>
+
+            {% if payment_data and payment_data.receipt and payment_data.receipt.url %}
+            <div class="receipt-info">
+                <p>📧 결제 영수증이 등록하신 이메일로 발송되었습니다.</p>
+                <a href="{{ payment_data.receipt.url }}" target="_blank" style="color: var(--accent-primary); text-decoration: none;">
+                    영수증 다운로드 →
+                </a>
+            </div>
+            {% endif %}
+
+            <div class="security-badge">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1Z"/>
+                </svg>
+                토스페이먼츠를 통한 안전한 결제가 완료되었습니다
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 페이지 로드 시 자동으로 대시보드 이동 제안 (5초 후)
+        setTimeout(() => {
+            if (confirm('대시보드로 이동하여 첫 번째 캘린더를 설정하시겠습니까?')) {
+                window.location.href = '/dashboard';
+            }
+        }, 5000);
+    </script>
+</body>
+</html>
