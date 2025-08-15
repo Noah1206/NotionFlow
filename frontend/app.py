@@ -1932,7 +1932,7 @@ def not_found_error(error):
     return render_template('404.html'), 404
 
 @app.route('/api/calendar/simple-create', methods=['POST'])
-def create_calendar():
+def create_simple_calendar():
     """Create a new calendar"""
     user_id = session.get('user_id')
     
