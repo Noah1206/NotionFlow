@@ -131,9 +131,23 @@ def get_dashboard_stats():
         
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
         
-        # Get connected platforms count
+        # Get connected platforms count - only platforms with actual API keys configured
         platforms_result = supabase.table('registered_platforms').select('*').eq('user_id', user_id).eq('is_active', True).execute()
-        connected_platforms_count = len(platforms_result.data) if platforms_result.data else 0
+        
+        # Filter to only include platforms that have API keys configured
+        connected_platforms_count = 0
+        if platforms_result.data:
+            for platform in platforms_result.data:
+                platform_name = platform.get('platform_name', '')
+                
+                # Check if the platform has API keys configured
+                api_key_result = supabase.table('api_keys').select('*').eq('user_id', user_id).eq('platform', platform_name).execute()
+                
+                if api_key_result.data:
+                    # Check if API key is not empty
+                    api_key_data = api_key_result.data[0]
+                    if api_key_data.get('api_key') and api_key_data.get('api_key').strip():
+                        connected_platforms_count += 1
         
         # Get sync events from sync_tracking table if it exists
         try:
