@@ -389,7 +389,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 10000;
+    z-index: 999999 !important;
     backdrop-filter: blur(4px);
 }
 
@@ -401,6 +401,8 @@
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    position: relative;
+    z-index: 999999 !important;
 }
 
 .modal-header {
@@ -761,10 +763,12 @@
     function createNewCalendar() {
         // 모달 열기
         document.getElementById('calendar-create-modal').style.display = 'flex';
+        document.body.classList.add('modal-open');
     }
 
     function closeCreateModal() {
         document.getElementById('calendar-create-modal').style.display = 'none';
+        document.body.classList.remove('modal-open');
         // 폼 초기화
         document.getElementById('calendar-name').value = '내 새 캘린더';
         document.querySelector('.type-option.active').classList.remove('active');
