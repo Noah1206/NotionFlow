@@ -884,7 +884,14 @@
                 closeCreateModal();
                 // 성공 알림 (모달 대신 토스트 알림으로 개선 가능)
                 alert('캘린더가 성공적으로 생성되었습니다!');
-                window.location.reload(); // 새 캘린더 표시를 위해 새로고침
+                
+                // 생성된 캘린더 상세 페이지로 이동
+                if (result.calendar && result.calendar.id) {
+                    window.location.href = `/dashboard/calendar/${result.calendar.id}`;
+                } else {
+                    // ID가 없으면 새로고침
+                    window.location.reload();
+                }
             } else {
                 alert('캘린더 생성 오류: ' + result.error);
             }

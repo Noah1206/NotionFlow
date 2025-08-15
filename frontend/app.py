@@ -344,6 +344,40 @@ def calendar_list():
     
     return render_template('calendar_list.html', **calendar_context)
 
+# Calendar Detail Page
+@app.route('/dashboard/calendar/<calendar_id>')
+def calendar_detail(calendar_id):
+    """Individual Calendar Detail Page"""
+    user_id = session.get('user_id')
+    
+    if not user_id:
+        return redirect(f'/login?from=calendar/{calendar_id}')
+    
+    # Get common dashboard context
+    context = get_dashboard_context(user_id, 'calendar-detail')
+    
+    # 임시 캘린더 데이터 (실제로는 DB에서 가져와야 함)
+    calendar = {
+        'id': calendar_id,
+        'name': f'캘린더 {calendar_id[:8]}',
+        'description': '새로 생성된 캘린더입니다',
+        'color': '#3B82F6',
+        'platform': 'custom',
+        'is_shared': False,
+        'media_filename': None,
+        'media_file_path': None,
+        'media_file_type': None,
+        'event_count': 0,
+        'sync_status': 'active'
+    }
+    
+    context.update({
+        'calendar': calendar,
+        'page_title': f'{calendar["name"]} - 캘린더 상세'
+    })
+    
+    return render_template('calendar_detail.html', **context)
+
 # Alternative route for calendar management (legacy redirects)
 @app.route('/calendar-refined')
 @app.route('/calendar-management') 
