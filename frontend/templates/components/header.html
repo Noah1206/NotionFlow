@@ -10,21 +10,9 @@
                 <div class="nav-links">
                     <a href="/#platforms" class="nav-link">플랫폼</a>
                     <a href="/#features" class="nav-link">기능</a>
-                    <a href="/pricing" class="nav-link">가격</a>
                 </div>
 
                 <div class="nav-actions">
-                    <button id="theme-toggle" class="theme-toggle" title="테마 변경">
-                        <svg class="theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none">
-                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor" />
-                        </svg>
-                        <svg class="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none">
-                            <path
-                                d="M12 3V1M12 23V21M4.22 4.22L5.64 5.64M18.36 18.36L19.78 19.78M1 12H3M21 12H23M4.22 19.78L5.64 18.36M18.36 5.64L19.78 4.22"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                        </svg>
-                    </button>
-
                     <a href="/login" class="nav-link login-link">로그인</a>
 
                     <!-- Fixed CTA Button with Arrow -->
@@ -178,50 +166,6 @@
         gap: 1rem;
     }
 
-    /* Theme Toggle */
-    .theme-toggle {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 44px;
-        height: 44px;
-        background: #f5f5f5;
-        border: 1px solid #e5e5e5;
-        border-radius: 8px;
-        color: #737373;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    [data-theme="dark"] .theme-toggle {
-        background: #1a1a1a;
-        border: 1px solid #333333;
-        color: #cccccc;
-    }
-
-    .theme-toggle:hover {
-        background: #eeeeee;
-        color: #000000;
-        transform: translateY(-1px);
-    }
-
-    [data-theme="dark"] .theme-toggle:hover {
-        background: #2a2a2a;
-        color: #ffffff;
-    }
-
-    [data-theme="dark"] .theme-icon-sun {
-        display: none;
-    }
-
-    [data-theme="light"] .theme-icon-moon,
-    .theme-icon-moon {
-        display: none;
-    }
-
-    [data-theme="dark"] .theme-icon-moon {
-        display: block;
-    }
 
     /* Login Link */
     .login-link {
@@ -425,32 +369,8 @@
         }
     });
 
-    // Theme toggle functionality
+    // Mobile menu toggle
     document.addEventListener('DOMContentLoaded', function () {
-        const themeToggle = document.getElementById('theme-toggle');
-        const html = document.documentElement;
-
-        // Get saved theme or default to light
-        const currentTheme = localStorage.getItem('theme') || 'light';
-        html.setAttribute('data-theme', currentTheme);
-
-        if (themeToggle) {
-            themeToggle.addEventListener('click', function (e) {
-                const currentTheme = html.getAttribute('data-theme');
-                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
-                html.setAttribute('data-theme', newTheme);
-                localStorage.setItem('theme', newTheme);
-
-                // Add click animation
-                themeToggle.style.transform = 'scale(0.9)';
-                setTimeout(() => {
-                    themeToggle.style.transform = 'scale(1)';
-                }, 150);
-            });
-        }
-
-        // Mobile menu toggle
         const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
         if (mobileMenuToggle) {
             mobileMenuToggle.addEventListener('click', function () {
