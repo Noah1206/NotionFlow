@@ -76,3 +76,7 @@ coverage.xml
 # Documentation builds
 docs/_build/
 
+# Uploaded Media Files
+uploads/media/*
+!uploads/media/.gitkeep
+

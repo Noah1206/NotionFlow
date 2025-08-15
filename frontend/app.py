@@ -1340,6 +1340,7 @@ blueprints_to_register = [
     ('routes.profile_routes', 'profile_bp', '👤 Profile Management'),
     ('routes.platform_registration_routes', 'platform_reg_bp', '🔗 Platform Registration'),
     ('routes.calendar_connection_routes', 'calendar_conn_bp', '📅 Calendar Connections'),
+    ('routes.calendar_api_routes', 'calendar_api_bp', '🗓️ Calendar API'),
     ('routes.health_check_routes', 'health_bp', '🔍 Platform Health Check')
 ]
 
