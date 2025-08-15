@@ -676,6 +676,221 @@
     100% { transform: rotate(360deg); }
 }
 
+/* 새로운 버튼 디자인 스타일 */
+.one-click-btn-small {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 12px;
+    position: relative;
+    min-width: 100px;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    overflow: hidden;
+    letter-spacing: 0.3px;
+}
+
+.one-click-btn-small::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 0;
+}
+
+.one-click-btn-small:hover::before {
+    opacity: 1;
+}
+
+.one-click-btn-small:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+}
+
+.one-click-btn-small .btn-icon {
+    font-size: 16px;
+    position: relative;
+    z-index: 1;
+    animation: pulse 2s infinite;
+}
+
+.one-click-btn-small .btn-text {
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.platform-connect-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 12px;
+    position: relative;
+    min-width: 110px;
+    justify-content: center;
+    background: #ffffff;
+    color: #1a1a1a;
+    border: 2px solid #e5e7eb;
+    overflow: hidden;
+}
+
+.platform-connect-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease;
+    z-index: 0;
+}
+
+.platform-connect-btn:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.platform-connect-btn:hover {
+    color: white;
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.platform-connect-btn .connect-text {
+    position: relative;
+    z-index: 1;
+    transition: color 0.3s ease;
+}
+
+.platform-connect-btn:hover .connect-text {
+    color: white;
+}
+
+.platform-disconnect-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 12px;
+    position: relative;
+    min-width: 110px;
+    justify-content: center;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%);
+    color: white;
+    border: none;
+}
+
+.platform-disconnect-btn:hover {
+    background: linear-gradient(135deg, #ff5252 0%, #ff6b6b 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+}
+
+/* 연결하기 버튼 로딩 상태 */
+.platform-connect-btn.loading {
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.connect-loader {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: inherit;
+    border-radius: inherit;
+}
+
+.loader-dot {
+    width: 8px;
+    height: 8px;
+    background: #667eea;
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.loader-dot::before,
+.loader-dot::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: #667eea;
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.loader-dot::before {
+    left: -16px;
+    animation-delay: -0.32s;
+}
+
+.loader-dot::after {
+    left: 16px;
+    animation-delay: -0.16s;
+}
+
+@keyframes bounce {
+    0%, 80%, 100% {
+        transform: scale(0);
+    }
+    40% {
+        transform: scale(1);
+    }
+}
+
+/* 플랫폼별 버튼 색상 커스터마이징 */
+.platform-card[data-platform="notion"] .one-click-btn-small {
+    background: linear-gradient(135deg, #000000 0%, #333333 100%);
+}
+
+.platform-card[data-platform="google"] .one-click-btn-small {
+    background: linear-gradient(135deg, #4285f4 0%, #1a73e8 100%);
+}
+
+.platform-card[data-platform="apple"] .one-click-btn-small {
+    background: linear-gradient(135deg, #000000 0%, #333333 100%);
+}
+
+.platform-card[data-platform="outlook"] .one-click-btn-small {
+    background: linear-gradient(135deg, #0078d4 0%, #0063b1 100%);
+}
+
+.platform-card[data-platform="slack"] .one-click-btn-small {
+    background: linear-gradient(135deg, #4a154b 0%, #611f69 100%);
+}
+
 /* 캘린더가 없을 때 플랫폼 카드 비활성화 스타일 */
 .platform-card.disabled {
     opacity: 0.5;
