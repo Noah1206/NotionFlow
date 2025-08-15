@@ -675,6 +675,54 @@
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* 캘린더가 없을 때 플랫폼 카드 비활성화 스타일 */
+.platform-card.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    position: relative;
+}
+
+.platform-card.disabled::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    cursor: not-allowed;
+}
+
+.platform-card.disabled .platform-actions button {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.no-calendar-notice {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: 1px solid #fbbf24;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    display: none;
+}
+
+.platform-card.disabled:hover .no-calendar-notice {
+    display: block;
+}
+
+.no-calendar-notice-text {
+    color: #92400e;
+    font-size: 14px;
+    font-weight: 500;
+}
 </style>
 {% endblock %}
 
@@ -1110,8 +1158,78 @@
         }
     }
 
+    // 캘린더 개수 확인 및 플랫폼 카드 상태 업데이트
+    async function checkCalendarsAndUpdatePlatforms() {
+        try {
+            // API에서 캘린더 목록 가져오기
+            const response = await fetch('/api/dashboard/calendars');
+            let hasCalendars = false;
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.calendars && data.calendars.length > 0) {
+                    hasCalendars = true;
+                }
+            }
+            
+            // 모든 플랫폼 카드 선택
+            const platformCards = document.querySelectorAll('.platform-card');
+            
+            platformCards.forEach(card => {
+                if (!hasCalendars) {
+                    // 캘린더가 없으면 카드 비활성화
+                    card.classList.add('disabled');
+                    
+                    // 안내 메시지 추가 (아직 없으면)
+                    if (!card.querySelector('.no-calendar-notice')) {
+                        const notice = document.createElement('div');
+                        notice.className = 'no-calendar-notice';
+                        notice.innerHTML = '<div class="no-calendar-notice-text">📅 먼저 캘린더를 생성해주세요</div>';
+                        card.appendChild(notice);
+                    }
+                    
+                    // 버튼들 비활성화
+                    const buttons = card.querySelectorAll('button');
+                    buttons.forEach(btn => {
+                        btn.disabled = true;
+                        btn.style.pointerEvents = 'none';
+                    });
+                } else {
+                    // 캘린더가 있으면 카드 활성화
+                    card.classList.remove('disabled');
+                    
+                    // 안내 메시지 제거
+                    const notice = card.querySelector('.no-calendar-notice');
+                    if (notice) {
+                        notice.remove();
+                    }
+                    
+                    // 버튼들 활성화
+                    const buttons = card.querySelectorAll('button');
+                    buttons.forEach(btn => {
+                        btn.disabled = false;
+                        btn.style.pointerEvents = '';
+                    });
+                }
+            });
+            
+            return hasCalendars;
+        } catch (error) {
+            console.error('Error checking calendars:', error);
+            // 에러 시 기본적으로 비활성화
+            const platformCards = document.querySelectorAll('.platform-card');
+            platformCards.forEach(card => {
+                card.classList.add('disabled');
+            });
+            return false;
+        }
+    }
+
     // 페이지 로드 시 통계 업데이트
     document.addEventListener('DOMContentLoaded', async function () {
+        // 먼저 캘린더 개수 확인
+        await checkCalendarsAndUpdatePlatforms();
+        
         // 플랫폼 상태를 먼저 업데이트하고, 완료된 후 통계 업데이트
         // 이렇게 하면 순서 문제를 방지할 수 있음
         try {
@@ -1128,6 +1246,7 @@
 
         // Update stats every 30 seconds for real-time data
         setInterval(async () => {
+            await checkCalendarsAndUpdatePlatforms();
             await updatePlatformStatus();
             await updateConnectionStats();
         }, 30000);
@@ -1135,6 +1254,7 @@
         // Update stats when user becomes active (tab focus)
         document.addEventListener('visibilitychange', async function () {
             if (!document.hidden) {
+                await checkCalendarsAndUpdatePlatforms();
                 await updatePlatformStatus();
                 await updateConnectionStats();
             }
