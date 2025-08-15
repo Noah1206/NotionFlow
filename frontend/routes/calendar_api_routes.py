@@ -16,6 +16,56 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../utils'))
 
 calendar_api_bp = Blueprint('calendar_api', __name__, url_prefix='/api')
 
+# 임시 테스트 엔드포인트
+@calendar_api_bp.route('/test', methods=['GET'])
+def test_endpoint():
+    return jsonify({
+        'success': True,
+        'message': 'API is working',
+        'timestamp': datetime.now().isoformat()
+    })
+
+# 간단한 캘린더 생성 엔드포인트 (파일 없이)
+@calendar_api_bp.route('/calendar/simple-create', methods=['POST'])
+def simple_create_calendar():
+    """간단한 캘린더 생성 (JSON만, 파일 없음)"""
+    try:
+        # JSON 데이터만 받음
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'JSON data required'
+            }), 400
+        
+        name = data.get('name', '새 캘린더')
+        platform = data.get('platform', 'custom')
+        color = data.get('color', '#3B82F6')
+        is_shared = data.get('is_shared', False)
+        
+        # 임시 사용자 ID
+        user_id = str(uuid.uuid4())
+        
+        # Supabase 없이 성공 응답만 반환
+        return jsonify({
+            'success': True,
+            'message': 'Calendar created successfully',
+            'calendar': {
+                'id': str(uuid.uuid4()),
+                'name': name,
+                'platform': platform,
+                'color': color,
+                'is_shared': is_shared,
+                'user_id': user_id
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Server error: {str(e)}'
+        }), 500
+
 def get_current_user_id():
     """Get current authenticated user ID from session"""
     return session.get('user_id')
