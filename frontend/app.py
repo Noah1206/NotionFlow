@@ -88,29 +88,38 @@ except ImportError:
             'decrypt_user_identifier': lambda self, x: x
         })()
 
-# ===== CALENDAR DATA PERSISTENCE =====
+# ===== CALENDAR DATABASE INTEGRATION =====
+# Import calendar database functions (temporarily disabled for stability)
+calendar_db_available = False
+calendar_db = None
+print("📁 Using JSON file storage for calendars (database disabled temporarily)")
+
+# ===== LEGACY CALENDAR FILE PERSISTENCE (FALLBACK) =====
 def get_calendars_file_path(user_id):
     """Get the path to user's calendars data file"""
     data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'calendars')
     os.makedirs(data_dir, exist_ok=True)
     return os.path.join(data_dir, f"{user_id}_calendars.json")
 
-def save_user_calendars(user_id, calendars):
-    """Save user calendars to file"""
+def save_user_calendars_legacy(user_id, calendars):
+    """Legacy: Save user calendars to file (fallback only)"""
     try:
         file_path = get_calendars_file_path(user_id)
+        print(f"💾 Saving calendars to file: {file_path}")
+        print(f"📊 Saving {len(calendars)} calendars: {calendars}")
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump(calendars, f, ensure_ascii=False, indent=2)
-        print(f"✅ Calendars saved for user {user_id}: {len(calendars)} calendars")
+        print(f"✅ Calendars saved to file for user {user_id}: {len(calendars)} calendars")
         return True
     except Exception as e:
-        print(f"❌ Failed to save calendars for user {user_id}: {e}")
+        print(f"❌ Failed to save calendars to file for user {user_id}: {e}")
         return False
 
-def load_user_calendars(user_id):
-    """Load user calendars from file"""
+def load_user_calendars_legacy(user_id):
+    """Legacy: Load user calendars from file (fallback only)"""
     try:
         file_path = get_calendars_file_path(user_id)
+        print(f"🔍 Looking for calendar file: {file_path}")
         if not os.path.exists(file_path):
             print(f"📁 No calendar file found for user {user_id}, returning empty list")
             return []
@@ -118,11 +127,61 @@ def load_user_calendars(user_id):
         with open(file_path, 'r', encoding='utf-8') as f:
             calendars = json.load(f)
         
-        print(f"✅ Calendars loaded for user {user_id}: {len(calendars)} calendars")
+        print(f"✅ Calendars loaded from file for user {user_id}: {len(calendars)} calendars")
+        print(f"📋 File contents: {calendars}")
         return calendars
     except Exception as e:
-        print(f"❌ Failed to load calendars for user {user_id}: {e}")
+        print(f"❌ Failed to load calendars from file for user {user_id}: {e}")
         return []
+
+# ===== UNIFIED CALENDAR PERSISTENCE (DATABASE + FALLBACK) =====
+def save_user_calendars(user_id, calendars):
+    """Save user calendars (database first, file fallback)"""
+    if calendar_db_available and calendar_db:
+        # Use database
+        try:
+            success = True
+            for calendar in calendars:
+                result = calendar_db.create_calendar(user_id, calendar)
+                if not result:
+                    success = False
+            return success
+        except Exception as e:
+            print(f"❌ Database save failed, trying file fallback: {e}")
+            return save_user_calendars_legacy(user_id, calendars)
+    else:
+        # Use file fallback
+        return save_user_calendars_legacy(user_id, calendars)
+
+def load_user_calendars(user_id):
+    """Load user calendars (database first, file fallback)"""
+    if calendar_db_available and calendar_db:
+        # Use database
+        try:
+            calendars = calendar_db.get_user_calendars(user_id)
+            
+            # If no calendars found in database, check if we have legacy file data
+            if not calendars:
+                legacy_calendars = load_user_calendars_legacy(user_id)
+                if legacy_calendars:
+                    print(f"🔄 Found legacy data, migrating {len(legacy_calendars)} calendars to database")
+                    # Migrate legacy data to database
+                    for calendar in legacy_calendars:
+                        calendar_db.create_calendar(user_id, calendar)
+                    # Return fresh data from database
+                    calendars = calendar_db.get_user_calendars(user_id)
+                else:
+                    # Create default calendar for new users
+                    calendar_db.create_default_calendar(user_id)
+                    calendars = calendar_db.get_user_calendars(user_id)
+            
+            return calendars
+        except Exception as e:
+            print(f"❌ Database load failed, trying file fallback: {e}")
+            return load_user_calendars_legacy(user_id)
+    else:
+        # Use file fallback
+        return load_user_calendars_legacy(user_id)
 
 # Create Flask app with absolute paths to frontend static and template folders
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -339,10 +398,14 @@ def calendar_list():
             
             # Load user calendars from file
             user_calendars = load_user_calendars(user_id)
+            print(f"📅 Loaded calendars for user {user_id}: {len(user_calendars)} total")
+            print(f"📋 Calendar data: {user_calendars}")
             
             # Separate personal and shared calendars
             personal_calendars = [cal for cal in user_calendars if not cal.get('is_shared', False)]
             shared_calendars = [cal for cal in user_calendars if cal.get('is_shared', False)]
+            print(f"👤 Personal calendars: {len(personal_calendars)}")
+            print(f"🤝 Shared calendars: {len(shared_calendars)}")
             
             # If no calendars exist, provide initial sample data and save it
             if not user_calendars:
@@ -2014,19 +2077,25 @@ def create_simple_calendar():
         if is_shared:
             calendar_data['shared_with_count'] = 0
         
-        # Load existing calendars from file
-        existing_calendars = load_user_calendars(user_id)
-        
-        # Add new calendar
-        existing_calendars.append(calendar_data)
-        
-        # Save to file
-        save_success = save_user_calendars(user_id, existing_calendars)
+        # Create calendar using database or legacy method
+        if calendar_db_available and calendar_db:
+            # Use database directly
+            calendar_id_result = calendar_db.create_calendar(user_id, calendar_data)
+            save_success = calendar_id_result is not None
+            if calendar_id_result:
+                calendar_data['id'] = str(calendar_id_result)  # Update with actual database ID
+        else:
+            # Use legacy file method
+            existing_calendars = load_user_calendars(user_id)
+            existing_calendars.append(calendar_data)
+            save_success = save_user_calendars(user_id, existing_calendars)
         
         if not save_success:
             return jsonify({'success': False, 'error': '캘린더 저장에 실패했습니다.'}), 500
         
         print(f"✅ Calendar created: {name} ({'shared' if is_shared else 'personal'})")
+        print(f"📄 Calendar data: {calendar_data}")
+        print(f"💾 Save success: {save_success}")
         
         return jsonify({
             'success': True,
