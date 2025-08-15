@@ -301,6 +301,22 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Load recent activity
         await loadRecentActivity();
         
+        // 미디어 파일이 있으면 자동 재생
+        {% if calendar.media_filename %}
+        setTimeout(() => {
+            openMediaPlayer();
+            // 플레이어가 열린 후 자동 재생 시작
+            setTimeout(() => {
+                const mediaElement = document.getElementById('media-element');
+                if (mediaElement) {
+                    mediaElement.play().catch(e => {
+                        console.log('자동 재생 실패 (사용자 상호작용 필요):', e);
+                    });
+                }
+            }, 500);
+        }, 1000);
+        {% endif %}
+        
     } catch (error) {
         console.error('Error initializing calendar detail page:', error);
     }
