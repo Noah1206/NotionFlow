@@ -63,6 +63,15 @@
         </div>
         
         <div class="header-actions">
+            <button class="btn-view-calendar" onclick="openCalendarView()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                캘린더 보기
+            </button>
             <button class="btn-sync-now" onclick="triggerManualSync()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
@@ -548,6 +557,11 @@ async function loadRecentActivity() {
 async function triggerManualSync() {
     console.log('Triggering manual sync for all connected platforms...');
     showSuccess('Manual sync triggered for all platforms');
+}
+
+function openCalendarView() {
+    console.log('Opening calendar view for calendar:', calendarId);
+    window.location.href = `/dashboard/calendar/${calendarId}/view`;
 }
 
 function openCalendarSettings() {
@@ -1047,4 +1061,94 @@ function editMediaFilename() {
     originalEditFunction();
 }
 </script>
+
+<style>
+/* Calendar View Button Style */
+.btn-view-calendar {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    min-width: 140px;
+    justify-content: center;
+}
+
+.btn-view-calendar:hover {
+    background: linear-gradient(135deg, #5855eb 0%, #7c3aed 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.btn-view-calendar svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2;
+}
+
+/* Adjust header actions layout */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-sync-now,
+.btn-calendar-settings {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #475569;
+    min-width: 120px;
+    justify-content: center;
+}
+
+.btn-sync-now:hover,
+.btn-calendar-settings:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #334155;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-sync-now svg,
+.btn-calendar-settings svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .header-actions {
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+    }
+    
+    .btn-view-calendar,
+    .btn-sync-now,
+    .btn-calendar-settings {
+        width: 100%;
+        min-width: auto;
+    }
+}
+</style>
 {% endblock %}
