@@ -767,6 +767,223 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
+
+/* New calendar card styles to match create calendar card */
+.new-calendar-card-refined {
+    min-height: 120px; /* Match existing calendar cards */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #e5e7eb;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #fafbfc;
+}
+
+.new-calendar-card-refined:hover {
+    border-color: #3b82f6;
+    background: #f0f7ff;
+    transform: translateY(-2px);
+}
+
+.new-calendar-content-refined {
+    text-align: center;
+    padding: 1rem;
+}
+
+.new-calendar-icon-refined {
+    width: 40px;
+    height: 40px;
+    background: #f3f4f6;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    color: #9ca3af;
+    transition: all 0.2s ease;
+}
+
+.new-calendar-card-refined:hover .new-calendar-icon-refined {
+    background: #3b82f6;
+    color: white;
+}
+
+.new-calendar-title-refined {
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    margin: 0 0 4px 0;
+}
+
+.new-calendar-description-refined {
+    font-size: 12px;
+    color: #9ca3af;
+    margin: 0;
+}
+
+/* Calendar card consistent sizing */
+.calendar-card-refined,
+.new-calendar-card-refined {
+    min-height: 120px;
+    margin-bottom: 12px;
+}
+
+.calendars-container-refined {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+/* Calendar card base styles */
+.calendar-card-refined {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.card-header-refined {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.calendar-identity {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex: 1;
+}
+
+.calendar-color-refined {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 4px;
+}
+
+.calendar-info-refined h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 4px 0;
+    line-height: 1.3;
+}
+
+.calendar-meta {
+    font-size: 13px;
+    color: #6b7280;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.card-actions-hover {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.calendar-card-refined:hover .card-actions-hover {
+    opacity: 1;
+}
+
+.card-menu-btn,
+.btn-open-calendar {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 4px;
+    cursor: pointer;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.card-menu-btn:hover,
+.btn-open-calendar:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.btn-open-calendar {
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    gap: 4px;
+}
+
+.sync-indicator-refined {
+    margin-top: 12px;
+    padding: 6px 8px;
+    background: #f9fafb;
+    border-radius: 6px;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #6b7280;
+}
+
+.sync-indicator-refined.active {
+    background: #f0f9ff;
+    color: #0369a1;
+}
+
+.sync-indicator-refined .sync-icon {
+    flex-shrink: 0;
+}
+
+.shared-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #7c3aed;
+}
+
+/* Section styles */
+.calendar-section-refined {
+    margin-bottom: 32px;
+}
+
+.section-header-refined {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.section-title-refined {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+}
+
+.section-icon {
+    color: #6b7280;
+}
+
+.section-count-refined {
+    background: #f3f4f6;
+    color: #6b7280;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
 </style>
 
 <script>
@@ -893,16 +1110,9 @@
 
             if (result.success) {
                 closeCreateModal();
-                // 성공 알림 (모달 대신 토스트 알림으로 개선 가능)
-                alert('캘린더가 성공적으로 생성되었습니다!');
                 
-                // 생성된 캘린더 상세 페이지로 이동
-                if (result.calendar && result.calendar.id) {
-                    window.location.href = `/dashboard/calendar/${result.calendar.id}`;
-                } else {
-                    // ID가 없으면 새로고침
-                    window.location.reload();
-                }
+                // 페이지 새로고침하여 새로 생성된 캘린더를 표시
+                window.location.reload();
             } else {
                 alert('캘린더 생성 오류: ' + result.error);
             }

@@ -298,10 +298,18 @@ def calendar_list():
             })
             print(f"📅 Loaded {calendar_data['summary']['total_calendars']} calendars for user {user_id}")
         else:
-            print("⚠️ Dashboard data not available, using sample data")
-            # Provide sample data for demonstration
-            calendar_context.update({
-                'personal_calendars': [
+            print("⚠️ Dashboard data not available, using session data")
+            
+            # Get user calendars from session
+            user_calendars = session.get('user_calendars', [])
+            
+            # Separate personal and shared calendars
+            personal_calendars = [cal for cal in user_calendars if not cal.get('is_shared', False)]
+            shared_calendars = [cal for cal in user_calendars if cal.get('is_shared', False)]
+            
+            # If no calendars exist in session, provide initial sample data
+            if not user_calendars:
+                personal_calendars = [
                     {
                         'id': 'todo_list',
                         'name': 'To Do List',
@@ -311,32 +319,19 @@ def calendar_list():
                         'sync_status': 'synced',
                         'last_sync_display': 'Synced 2 min ago',
                         'is_enabled': True
-                    },
-                    {
-                        'id': 'personal_calendar',
-                        'name': 'Personal Calendar',
-                        'platform': 'google',
-                        'color': '#059669',
-                        'event_count': 18,
-                        'sync_status': 'synced',
-                        'last_sync_display': 'Synced 5 min ago',
-                        'is_enabled': True
                     }
-                ],
-                'shared_calendars': [
-                    {
-                        'id': 'team_calendar',
-                        'name': 'Team Calendar',
-                        'platform': 'outlook',
-                        'color': '#7c3aed',
-                        'event_count': 31,
-                        'sync_status': 'synced',
-                        'last_sync_display': 'Synced 1 min ago',
-                        'is_enabled': True,
-                        'shared_with_count': 5
-                    }
-                ],
-                'summary': {'total_calendars': 3, 'personal_calendars': 2, 'shared_calendars': 1, 'total_events': 73}
+                ]
+                shared_calendars = []
+            
+            calendar_context.update({
+                'personal_calendars': personal_calendars,
+                'shared_calendars': shared_calendars,
+                'summary': {
+                    'total_calendars': len(personal_calendars) + len(shared_calendars),
+                    'personal_calendars': len(personal_calendars),
+                    'shared_calendars': len(shared_calendars),
+                    'total_events': sum(cal.get('event_count', 0) for cal in user_calendars)
+                }
             })
     except Exception as e:
         print(f"❌ Error loading calendar data: {e}")
@@ -1935,6 +1930,67 @@ def not_found_error(error):
         print(f"Method: {request.method}")
         print(f"Path: {request.path}")
     return render_template('404.html'), 404
+
+@app.route('/api/calendar/simple-create', methods=['POST'])
+def create_calendar():
+    """Create a new calendar"""
+    user_id = session.get('user_id')
+    
+    if not user_id:
+        return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+    
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        name = data.get('name', '').strip()
+        if not name:
+            return jsonify({'success': False, 'error': '캘린더 이름을 입력해주세요.'}), 400
+        
+        color = data.get('color', '#2563eb')
+        platform = data.get('platform', 'custom')
+        is_shared = data.get('is_shared', False)
+        
+        # Generate calendar ID
+        calendar_id = str(uuid.uuid4())
+        
+        # Create calendar data structure
+        calendar_data = {
+            'id': calendar_id,
+            'name': name,
+            'color': color,
+            'platform': platform,
+            'is_shared': is_shared,
+            'event_count': 0,
+            'sync_status': 'synced',
+            'last_sync_display': 'Just now',
+            'is_enabled': True,
+            'created_at': datetime.datetime.now().isoformat(),
+            'user_id': user_id
+        }
+        
+        # For shared calendars, add shared_with_count
+        if is_shared:
+            calendar_data['shared_with_count'] = 0
+        
+        # Store in session for demo purposes (in production, save to database)
+        if 'user_calendars' not in session:
+            session['user_calendars'] = []
+        
+        session['user_calendars'].append(calendar_data)
+        session.permanent = True
+        
+        print(f"✅ Calendar created: {name} ({'shared' if is_shared else 'personal'})")
+        
+        return jsonify({
+            'success': True,
+            'calendar': calendar_data,
+            'message': f'캘린더 "{name}"이(가) 성공적으로 생성되었습니다!'
+        })
+        
+    except Exception as e:
+        print(f"❌ Calendar creation error: {e}")
+        return jsonify({'success': False, 'error': '캘린더 생성 중 오류가 발생했습니다.'}), 500
 
 @app.errorhandler(500)
 def internal_error(error):
