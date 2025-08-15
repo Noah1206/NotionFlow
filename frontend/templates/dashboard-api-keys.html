@@ -1098,24 +1098,45 @@
             }
         } catch (error) {
             console.error('Error updating platform status:', error);
+            // API 에러 시 모든 플랫폼을 연결되지 않은 상태로 설정
+            const platformCards = document.querySelectorAll('.platform-card');
+            platformCards.forEach(card => {
+                const statusElement = card.querySelector('.platform-status');
+                if (statusElement) {
+                    statusElement.className = 'platform-status disconnected';
+                    statusElement.innerHTML = '<span class="status-dot"></span>연결되지 않음';
+                }
+            });
         }
     }
 
     // 페이지 로드 시 통계 업데이트
-    document.addEventListener('DOMContentLoaded', function () {
-        // Initial stats and platform status load
-        updateConnectionStats();
-        updatePlatformStatus();
+    document.addEventListener('DOMContentLoaded', async function () {
+        // 플랫폼 상태를 먼저 업데이트하고, 완료된 후 통계 업데이트
+        // 이렇게 하면 순서 문제를 방지할 수 있음
+        try {
+            await updatePlatformStatus();
+            await updateConnectionStats();
+        } catch (error) {
+            console.error('Error initializing dashboard:', error);
+            // 에러 시 모든 값을 0으로 설정
+            document.getElementById('connected-count').textContent = '0';
+            document.getElementById('sync-count').textContent = '0';
+            document.getElementById('success-rate').textContent = '0%';
+            document.getElementById('sync-speed').textContent = 'N/A';
+        }
 
         // Update stats every 30 seconds for real-time data
-        setInterval(updateConnectionStats, 30000);
-        setInterval(updatePlatformStatus, 30000);
+        setInterval(async () => {
+            await updatePlatformStatus();
+            await updateConnectionStats();
+        }, 30000);
 
         // Update stats when user becomes active (tab focus)
-        document.addEventListener('visibilitychange', function () {
+        document.addEventListener('visibilitychange', async function () {
             if (!document.hidden) {
-                updateConnectionStats();
-                updatePlatformStatus();
+                await updatePlatformStatus();
+                await updateConnectionStats();
             }
         });
     });
@@ -1147,19 +1168,12 @@
         } catch (error) {
             console.error('Error updating dashboard stats:', error);
 
-            // Fallback: Use DOM-based counting for connected platforms
-            const connectedPlatforms = document.querySelectorAll('.platform-status.connected');
-            document.getElementById('connected-count').textContent = connectedPlatforms.length;
-
-            // Show 0 for other stats when no data available
-            if (connectedPlatforms.length === 0) {
-                document.getElementById('sync-count').textContent = '0';
-                document.getElementById('success-rate').textContent = '0%';
-                document.getElementById('sync-speed').textContent = 'N/A';
-            } else {
-                // Keep existing values on error if platforms are connected
-                console.log('Using fallback stats due to API error');
-            }
+            // API 에러 시 기본값 0으로 설정 (DOM 기반 계산 제거)
+            document.getElementById('connected-count').textContent = '0';
+            document.getElementById('sync-count').textContent = '0';
+            document.getElementById('success-rate').textContent = '0%';
+            document.getElementById('sync-speed').textContent = 'N/A';
+            console.log('API error - showing zero stats');
         }
     }
 
