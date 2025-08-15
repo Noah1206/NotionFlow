@@ -876,9 +876,11 @@
                 formData.append('media_filename', uploadedFileName);
             }
 
+            // FormData로 요청 보내기 - headers를 설정하지 않음!
             const response = await fetch('/api/calendar/create', {
                 method: 'POST',
                 body: formData
+                // headers는 설정하지 않음 - 브라우저가 자동으로 multipart/form-data 설정
             });
 
             const result = await response.json();
