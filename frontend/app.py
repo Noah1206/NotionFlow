@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+import json
 import datetime
 import uuid
 from datetime import datetime as dt
@@ -86,6 +87,42 @@ except ImportError:
             'encrypt_user_identifier': lambda self, x: x,
             'decrypt_user_identifier': lambda self, x: x
         })()
+
+# ===== CALENDAR DATA PERSISTENCE =====
+def get_calendars_file_path(user_id):
+    """Get the path to user's calendars data file"""
+    data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'calendars')
+    os.makedirs(data_dir, exist_ok=True)
+    return os.path.join(data_dir, f"{user_id}_calendars.json")
+
+def save_user_calendars(user_id, calendars):
+    """Save user calendars to file"""
+    try:
+        file_path = get_calendars_file_path(user_id)
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(calendars, f, ensure_ascii=False, indent=2)
+        print(f"✅ Calendars saved for user {user_id}: {len(calendars)} calendars")
+        return True
+    except Exception as e:
+        print(f"❌ Failed to save calendars for user {user_id}: {e}")
+        return False
+
+def load_user_calendars(user_id):
+    """Load user calendars from file"""
+    try:
+        file_path = get_calendars_file_path(user_id)
+        if not os.path.exists(file_path):
+            print(f"📁 No calendar file found for user {user_id}, returning empty list")
+            return []
+        
+        with open(file_path, 'r', encoding='utf-8') as f:
+            calendars = json.load(f)
+        
+        print(f"✅ Calendars loaded for user {user_id}: {len(calendars)} calendars")
+        return calendars
+    except Exception as e:
+        print(f"❌ Failed to load calendars for user {user_id}: {e}")
+        return []
 
 # Create Flask app with absolute paths to frontend static and template folders
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -298,16 +335,16 @@ def calendar_list():
             })
             print(f"📅 Loaded {calendar_data['summary']['total_calendars']} calendars for user {user_id}")
         else:
-            print("⚠️ Dashboard data not available, using session data")
+            print("⚠️ Dashboard data not available, using file storage")
             
-            # Get user calendars from session
-            user_calendars = session.get('user_calendars', [])
+            # Load user calendars from file
+            user_calendars = load_user_calendars(user_id)
             
             # Separate personal and shared calendars
             personal_calendars = [cal for cal in user_calendars if not cal.get('is_shared', False)]
             shared_calendars = [cal for cal in user_calendars if cal.get('is_shared', False)]
             
-            # If no calendars exist in session, provide initial sample data
+            # If no calendars exist, provide initial sample data and save it
             if not user_calendars:
                 personal_calendars = [
                     {
@@ -318,10 +355,14 @@ def calendar_list():
                         'event_count': 24,
                         'sync_status': 'synced',
                         'last_sync_display': 'Synced 2 min ago',
-                        'is_enabled': True
+                        'is_enabled': True,
+                        'created_at': datetime.datetime.now().isoformat(),
+                        'user_id': user_id
                     }
                 ]
                 shared_calendars = []
+                # Save initial data to file
+                save_user_calendars(user_id, personal_calendars + shared_calendars)
             
             calendar_context.update({
                 'personal_calendars': personal_calendars,
@@ -1973,12 +2014,17 @@ def create_simple_calendar():
         if is_shared:
             calendar_data['shared_with_count'] = 0
         
-        # Store in session for demo purposes (in production, save to database)
-        if 'user_calendars' not in session:
-            session['user_calendars'] = []
+        # Load existing calendars from file
+        existing_calendars = load_user_calendars(user_id)
         
-        session['user_calendars'].append(calendar_data)
-        session.permanent = True
+        # Add new calendar
+        existing_calendars.append(calendar_data)
+        
+        # Save to file
+        save_success = save_user_calendars(user_id, existing_calendars)
+        
+        if not save_success:
+            return jsonify({'success': False, 'error': '캘린더 저장에 실패했습니다.'}), 500
         
         print(f"✅ Calendar created: {name} ({'shared' if is_shared else 'personal'})")
         

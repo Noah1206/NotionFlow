@@ -80,3 +80,7 @@ docs/_build/
 uploads/media/*
 !uploads/media/.gitkeep
 
+# User Data Files
+frontend/data/calendars/*
+!frontend/data/calendars/.gitkeep
+
