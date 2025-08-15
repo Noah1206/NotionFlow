@@ -122,7 +122,6 @@
                 </div>
                 <div class="platform-actions">
                     <button class="one-click-btn-small" onclick="oneClickConnect('notion')" data-platform="notion">
-                        <span class="btn-icon">⚡</span>
                         <span class="btn-text">원클릭</span>
                         <div class="btn-loader" style="display: none;">
                             <div class="loader-spinner"></div>
@@ -185,7 +184,6 @@
                 </div>
                 <div class="platform-actions">
                     <button class="one-click-btn-small" onclick="oneClickConnect('google')" data-platform="google">
-                        <span class="btn-icon">⚡</span>
                         <span class="btn-text">원클릭</span>
                         <div class="btn-loader" style="display: none;">
                             <div class="loader-spinner"></div>
@@ -222,7 +220,6 @@
                 </div>
                 <div class="platform-actions">
                     <button class="one-click-btn-small" onclick="oneClickConnect('apple')" data-platform="apple">
-                        <span class="btn-icon">⚡</span>
                         <span class="btn-text">원클릭</span>
                         <div class="btn-loader" style="display: none;">
                             <div class="loader-spinner"></div>
@@ -290,7 +287,6 @@
                 </div>
                 <div class="platform-actions">
                     <button class="one-click-btn-small" onclick="oneClickConnect('outlook')" data-platform="outlook">
-                        <span class="btn-icon">⚡</span>
                         <span class="btn-text">원클릭</span>
                         <div class="btn-loader" style="display: none;">
                             <div class="loader-spinner"></div>
@@ -358,7 +354,6 @@
                 </div>
                 <div class="platform-actions">
                     <button class="one-click-btn-small" onclick="oneClickConnect('slack')" data-platform="slack">
-                        <span class="btn-icon">⚡</span>
                         <span class="btn-text">원클릭</span>
                         <div class="btn-loader" style="display: none;">
                             <div class="loader-spinner"></div>
@@ -723,18 +718,11 @@
     font-size: 16px;
     position: relative;
     z-index: 1;
-    animation: pulse 2s infinite;
 }
 
 .one-click-btn-small .btn-text {
     position: relative;
     z-index: 1;
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); }
 }
 
 .platform-connect-btn {
@@ -870,26 +858,6 @@
     }
 }
 
-/* 플랫폼별 버튼 색상 커스터마이징 */
-.platform-card[data-platform="notion"] .one-click-btn-small {
-    background: linear-gradient(135deg, #000000 0%, #333333 100%);
-}
-
-.platform-card[data-platform="google"] .one-click-btn-small {
-    background: linear-gradient(135deg, #4285f4 0%, #1a73e8 100%);
-}
-
-.platform-card[data-platform="apple"] .one-click-btn-small {
-    background: linear-gradient(135deg, #000000 0%, #333333 100%);
-}
-
-.platform-card[data-platform="outlook"] .one-click-btn-small {
-    background: linear-gradient(135deg, #0078d4 0%, #0063b1 100%);
-}
-
-.platform-card[data-platform="slack"] .one-click-btn-small {
-    background: linear-gradient(135deg, #4a154b 0%, #611f69 100%);
-}
 
 /* 캘린더가 없을 때 플랫폼 카드 비활성화 스타일 */
 .platform-card.disabled {
