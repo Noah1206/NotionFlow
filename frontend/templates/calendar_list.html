@@ -1107,12 +1107,24 @@
             });
 
             const result = await response.json();
+            
+            // 디버깅을 위한 로그
+            console.log('API Response:', result);
+            console.log('Calendar object:', result.calendar);
+            console.log('Calendar ID:', result.calendar ? result.calendar.id : 'undefined');
 
             if (result.success) {
                 closeCreateModal();
                 
-                // 페이지 새로고침하여 새로 생성된 캘린더를 표시
-                window.location.reload();
+                // 생성된 캘린더의 상세 페이지로 이동
+                if (result.calendar && result.calendar.id) {
+                    console.log('Redirecting to:', `/dashboard/calendar/${result.calendar.id}`);
+                    window.location.href = `/dashboard/calendar/${result.calendar.id}`;
+                } else {
+                    // fallback: 캘린더 ID가 없으면 리스트 페이지 새로고침
+                    console.log('No calendar ID found, reloading page');
+                    window.location.reload();
+                }
             } else {
                 alert('캘린더 생성 오류: ' + result.error);
             }

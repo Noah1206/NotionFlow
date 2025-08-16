@@ -396,8 +396,8 @@ def calendar_list():
         else:
             print("⚠️ Dashboard data not available, using file storage")
             
-            # Load user calendars from file
-            user_calendars = load_user_calendars(user_id)
+            # Load user calendars from file (use legacy function directly)
+            user_calendars = load_user_calendars_legacy(user_id)
             print(f"📅 Loaded calendars for user {user_id}: {len(user_calendars)} total")
             print(f"📋 Calendar data: {user_calendars}")
             
@@ -425,7 +425,7 @@ def calendar_list():
                 ]
                 shared_calendars = []
                 # Save initial data to file
-                save_user_calendars(user_id, personal_calendars + shared_calendars)
+                save_user_calendars_legacy(user_id, personal_calendars + shared_calendars)
             
             calendar_context.update({
                 'personal_calendars': personal_calendars,
@@ -469,20 +469,30 @@ def calendar_detail(calendar_id):
     # Get common dashboard context
     context = get_dashboard_context(user_id, 'calendar-detail')
     
-    # 임시 캘린더 데이터 (실제로는 DB에서 가져와야 함)
-    calendar = {
-        'id': calendar_id,
-        'name': f'캘린더 {calendar_id[:8]}',
-        'description': '새로 생성된 캘린더입니다',
-        'color': '#3B82F6',
-        'platform': 'custom',
-        'is_shared': False,
-        'media_filename': None,
-        'media_file_path': None,
-        'media_file_type': None,
-        'event_count': 0,
-        'sync_status': 'active'
-    }
+    # Load user calendars and find the specific calendar
+    user_calendars = load_user_calendars_legacy(user_id)
+    calendar = None
+    
+    for cal in user_calendars:
+        if cal.get('id') == calendar_id:
+            calendar = cal
+            break
+    
+    # If calendar not found, create a default one
+    if not calendar:
+        calendar = {
+            'id': calendar_id,
+            'name': f'캘린더 {calendar_id[:8]}',
+            'description': '캘린더를 찾을 수 없습니다',
+            'color': '#3B82F6',
+            'platform': 'custom',
+            'is_shared': False,
+            'media_filename': None,
+            'media_file_path': None,
+            'media_file_type': None,
+            'event_count': 0,
+            'sync_status': 'inactive'
+        }
     
     context.update({
         'calendar': calendar,
@@ -554,6 +564,71 @@ def create_calendar():
             
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+# Simple calendar creation endpoint (no file upload)
+@app.route('/api/calendar/simple-create', methods=['POST'])
+def simple_create_calendar():
+    """Create a new calendar without file upload"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'User not authenticated'}), 401
+        
+        data = request.get_json()
+        calendar_name = data.get('name', 'New Calendar')
+        platform = data.get('platform', 'custom')
+        color = data.get('color', '#2563eb')
+        is_shared = data.get('is_shared', False)
+        
+        # Generate a unique calendar ID
+        import uuid
+        calendar_id = str(uuid.uuid4())
+        
+        # Load existing calendars
+        user_calendars = load_user_calendars_legacy(user_id)
+        
+        # Create new calendar object
+        new_calendar = {
+            'id': calendar_id,
+            'name': calendar_name,
+            'platform': platform,
+            'color': color,
+            'is_shared': is_shared,
+            'event_count': 0,
+            'sync_status': 'active',
+            'last_sync_display': 'Just created',
+            'is_enabled': True,
+            'created_at': datetime.datetime.now().isoformat(),
+            'user_id': user_id,
+            'description': f'{calendar_name} - Created on {datetime.datetime.now().strftime("%Y-%m-%d")}'
+        }
+        
+        # Add to user's calendars
+        user_calendars.append(new_calendar)
+        
+        # Save updated calendars
+        save_user_calendars_legacy(user_id, user_calendars)
+        
+        print(f"✅ Created calendar '{calendar_name}' with ID {calendar_id} for user {user_id}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'{calendar_name} created successfully',
+            'calendar': {
+                'id': calendar_id,
+                'name': calendar_name,
+                'platform': platform,
+                'color': color,
+                'is_shared': is_shared
+            }
+        })
+        
+    except Exception as e:
+        print(f"❌ Error in simple_create_calendar: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 @app.route('/api/calendar/<calendar_id>/delete', methods=['DELETE'])
 def delete_calendar(calendar_id):
@@ -2038,13 +2113,17 @@ def not_found_error(error):
 @app.route('/api/calendar/simple-create', methods=['POST'])
 def create_simple_calendar():
     """Create a new calendar"""
+    print("🔧 Calendar creation started")
     user_id = session.get('user_id')
+    print(f"👤 User ID from session: {user_id}")
     
     if not user_id:
+        print("❌ User not authenticated")
         return jsonify({'success': False, 'error': 'Not authenticated'}), 401
     
     try:
         data = request.get_json()
+        print(f"📥 Received data: {data}")
         
         # Validate required fields
         name = data.get('name', '').strip()
@@ -2085,10 +2164,12 @@ def create_simple_calendar():
             if calendar_id_result:
                 calendar_data['id'] = str(calendar_id_result)  # Update with actual database ID
         else:
-            # Use legacy file method
-            existing_calendars = load_user_calendars(user_id)
+            # Use legacy file method - directly save without going through save_user_calendars
+            existing_calendars = load_user_calendars_legacy(user_id)
+            print(f"📋 Existing calendars before adding: {len(existing_calendars)}")
             existing_calendars.append(calendar_data)
-            save_success = save_user_calendars(user_id, existing_calendars)
+            print(f"📋 Total calendars after adding: {len(existing_calendars)}")
+            save_success = save_user_calendars_legacy(user_id, existing_calendars)
         
         if not save_success:
             return jsonify({'success': False, 'error': '캘린더 저장에 실패했습니다.'}), 500
