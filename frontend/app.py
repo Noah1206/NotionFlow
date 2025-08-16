@@ -499,7 +499,7 @@ def calendar_detail(calendar_id):
         'page_title': f'{calendar["name"]} - 캘린더 상세'
     })
     
-    return render_template('calendar_detail.html', **context)
+    return render_template('calendar_detail_new.html', **context)
 
 # Alternative route for calendar management (legacy redirects)
 @app.route('/calendar-refined')
