@@ -532,6 +532,64 @@ def calendar_view(calendar_id):
     return render_template('calendar_view.html', calendar_id=calendar_id)
 
 # Calendar Detail Page - Notion Style Calendar View
+@app.route('/static/media/<filename>')
+def serve_media(filename):
+    """Serve media files"""
+    import os
+    from flask import send_from_directory
+    
+    # Define media directory paths
+    media_dirs = [
+        os.path.join(app.root_path, 'static', 'media'),
+        os.path.join(app.root_path, '..', 'media'),
+        '/tmp/calendar_media'  # Temporary storage for uploaded files
+    ]
+    
+    # Try to find the file in any of the media directories
+    for media_dir in media_dirs:
+        if os.path.exists(media_dir):
+            file_path = os.path.join(media_dir, filename)
+            if os.path.exists(file_path):
+                return send_from_directory(media_dir, filename)
+    
+    # File not found
+    return "Media file not found", 404
+
+@app.route('/api/calendar/<calendar_id>/media')
+def get_calendar_media(calendar_id):
+    """Get media files for a specific calendar"""
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    try:
+        # Try to get calendar from database
+        if calendar_db_available and calendar_db:
+            calendar_data = calendar_db.get_calendar_by_id(calendar_id, user_id)
+            if calendar_data:
+                # Get media files from calendar data
+                media_files = []
+                if 'media_url' in calendar_data and calendar_data['media_url']:
+                    # Parse media URL(s)
+                    if isinstance(calendar_data['media_url'], list):
+                        media_files = calendar_data['media_url']
+                    else:
+                        media_files = [{
+                            'title': 'Calendar Music',
+                            'artist': 'Background Music',
+                            'src': calendar_data['media_url']
+                        }]
+                
+                return jsonify({'media_files': media_files})
+        
+        # Fallback: check file storage
+        # This would check if there are any media files stored locally
+        return jsonify({'media_files': []})
+        
+    except Exception as e:
+        print(f"Error getting calendar media: {e}")
+        return jsonify({'error': 'Failed to get media files'}), 500
+
 @app.route('/dashboard/calendar/<calendar_id>')
 def calendar_detail(calendar_id):
     """Individual Calendar Detail Page"""
@@ -567,6 +625,17 @@ def calendar_detail(calendar_id):
             'event_count': 0,
             'sync_status': 'inactive'
         }
+    
+    # Prepare media URL if media file exists
+    media_url = ''
+    if calendar.get('media_file_path'):
+        # Convert file path to URL
+        media_url = f"/static/media/{calendar.get('media_filename', '')}"
+        # Or use the actual path if it's a full URL
+        if calendar['media_file_path'].startswith('http'):
+            media_url = calendar['media_file_path']
+    
+    calendar['media_url'] = media_url
     
     context.update({
         'calendar': calendar,

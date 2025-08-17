@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="calendar-workspace">
+<div class="calendar-workspace" data-calendar-id="{{ calendar.id }}" data-calendar-media="{{ calendar.media_url or '' }}">
     <!-- Top Navigation Bar -->
     <div class="calendar-topbar">
         <div class="topbar-left">

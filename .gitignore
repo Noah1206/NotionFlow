@@ -84,3 +84,8 @@ uploads/media/*
 frontend/data/calendars/*
 !frontend/data/calendars/.gitkeep
 
+node_modules/
+.next/
+dist/
+build/
+.DS_Store

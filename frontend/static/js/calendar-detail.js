@@ -104,7 +104,8 @@ function initializeMediaPlayer() {
     if (audioPlayer) {
         audioPlayer.addEventListener('loadedmetadata', updateTotalTime);
         audioPlayer.addEventListener('timeupdate', updateProgress);
-        audioPlayer.addEventListener('ended', nextTrack);
+        audioPlayer.addEventListener('ended', handleTrackEnd);
+        audioPlayer.addEventListener('error', handleMediaError);
         
         // Check if calendar has media files
         checkForMediaFiles();
@@ -112,27 +113,120 @@ function initializeMediaPlayer() {
 }
 
 function checkForMediaFiles() {
-    // This would check the calendar data for any attached media files
-    // For demo purposes, we'll show the player if calendar has media
-    const hasMediaFiles = true; // This should come from calendar data
+    // Get calendar media URL from data attribute
+    const workspace = document.querySelector('.calendar-workspace');
+    const calendarId = workspace?.dataset.calendarId;
+    const mediaUrl = workspace?.dataset.calendarMedia;
     
-    if (hasMediaFiles) {
+    // Check if we have media files associated with this calendar
+    if (mediaUrl && mediaUrl !== '') {
+        // Show the media player
         document.getElementById('media-player').style.display = 'flex';
-        // Load sample track
-        loadTrack({
-            title: '캘린더 배경음악',
-            artist: '집중음악',
-            src: '/static/audio/sample.mp3' // This would be actual media file path
+        
+        // Parse media URL (could be JSON string with multiple files)
+        try {
+            // If it's a JSON string with multiple files
+            const mediaFiles = JSON.parse(mediaUrl);
+            if (Array.isArray(mediaFiles) && mediaFiles.length > 0) {
+                currentPlaylist = mediaFiles;
+                loadTrack(mediaFiles[0]);
+            }
+        } catch (e) {
+            // If it's a single URL string
+            loadTrack({
+                title: '캘린더 배경음악',
+                artist: '집중음악',
+                src: mediaUrl
+            });
+        }
+    } else {
+        // Try to fetch media files from API
+        fetchCalendarMedia(calendarId);
+    }
+}
+
+function fetchCalendarMedia(calendarId) {
+    if (!calendarId) return;
+    
+    // Fetch media files from the server
+    fetch(`/api/calendar/${calendarId}/media`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.media_files && data.media_files.length > 0) {
+                document.getElementById('media-player').style.display = 'flex';
+                currentPlaylist = data.media_files;
+                loadTrack(currentPlaylist[0]);
+            }
+        })
+        .catch(error => {
+            console.log('No media files for this calendar');
         });
+}
+
+function handleMediaError(e) {
+    console.error('Media playback error:', e);
+    // Try next track if available
+    if (currentPlaylist.length > 1) {
+        nextTrack();
+    } else {
+        // Show error message
+        document.getElementById('media-title').textContent = '재생 오류';
+        document.getElementById('media-artist').textContent = '파일을 재생할 수 없습니다';
+    }
+}
+
+function handleTrackEnd() {
+    // Auto-play next track or loop
+    if (currentPlaylist.length > 0) {
+        nextTrack();
+    } else {
+        // Loop single track
+        audioPlayer.currentTime = 0;
+        if (isPlaying) {
+            audioPlayer.play();
+        }
     }
 }
 
 function loadTrack(track) {
     if (audioPlayer && track.src) {
+        // Pause current track if playing
+        if (isPlaying) {
+            audioPlayer.pause();
+        }
+        
+        // Set new source
         audioPlayer.src = track.src;
-        document.getElementById('media-title').textContent = track.title || 'Unknown';
-        document.getElementById('media-artist').textContent = track.artist || 'Unknown Artist';
+        
+        // Update UI with track info
+        document.getElementById('media-title').textContent = track.title || extractFileName(track.src);
+        document.getElementById('media-artist').textContent = track.artist || '캘린더 음악';
+        
+        // Reset progress
+        document.getElementById('progress-fill').style.width = '0%';
+        document.getElementById('current-time').textContent = '0:00';
+        
+        // Auto-play if was playing before
+        if (isPlaying) {
+            audioPlayer.play().catch(e => {
+                console.log('Auto-play prevented:', e);
+                isPlaying = false;
+                updatePlayButton();
+            });
+        }
     }
+}
+
+function extractFileName(url) {
+    // Extract filename from URL
+    const parts = url.split('/');
+    const filename = parts[parts.length - 1];
+    return filename.replace(/\.[^/.]+$/, ''); // Remove extension
+}
+
+function updatePlayButton() {
+    document.getElementById('play-icon').style.display = isPlaying ? 'none' : 'block';
+    document.getElementById('pause-icon').style.display = isPlaying ? 'block' : 'none';
 }
 
 function togglePlay() {
@@ -141,14 +235,15 @@ function togglePlay() {
     if (isPlaying) {
         audioPlayer.pause();
         isPlaying = false;
-        document.getElementById('play-icon').style.display = 'block';
-        document.getElementById('pause-icon').style.display = 'none';
     } else {
-        audioPlayer.play();
-        isPlaying = true;
-        document.getElementById('play-icon').style.display = 'none';
-        document.getElementById('pause-icon').style.display = 'block';
+        audioPlayer.play().then(() => {
+            isPlaying = true;
+        }).catch(e => {
+            console.error('Playback failed:', e);
+            alert('음원을 재생할 수 없습니다. 브라우저 설정을 확인해주세요.');
+        });
     }
+    updatePlayButton();
 }
 
 function previousTrack() {

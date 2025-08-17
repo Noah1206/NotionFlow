@@ -266,6 +266,8 @@
     cursor: pointer;
     transition: background-color 0.15s ease;
     min-height: 100px;
+    display: flex;
+    flex-direction: column;
 }
 
 .calendar-day:hover {
@@ -285,13 +287,18 @@
     font-size: 14px;
     font-weight: 500;
     color: #1e293b;
-    margin-bottom: 4px;
+    position: absolute;
+    top: 6px;
+    left: 8px;
+    line-height: 1;
 }
 
 .day-events {
     display: flex;
     flex-direction: column;
     gap: 2px;
+    margin-top: 24px; /* Leave space for the day number */
+    flex: 1;
 }
 
 .day-event {

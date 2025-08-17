@@ -344,14 +344,16 @@
 .compact-calendar-day {
     aspect-ratio: 1;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: flex-start;
+    justify-content: flex-start;
     font-size: 12px;
     color: #1e293b;
     cursor: pointer;
     border-radius: 3px;
     transition: all 0.15s ease;
     position: relative;
+    padding: 4px;
+    text-align: left;
 }
 
 .compact-calendar-day:hover {
