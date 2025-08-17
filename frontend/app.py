@@ -544,15 +544,14 @@ def create_calendar():
             if dashboard_data_available:
                 # Use Supabase to create calendar in the calendars table
                 result = dashboard_data.supabase.table('calendars').insert({
-                    'user_id': user_id,
+                    'owner_id': user_id,  # user_id → owner_id
                     'name': calendar_name,
                     'color': calendar_color,
-                    'platform': platform,
-                    'is_shared': is_shared,
-                    'event_count': 0,
-                    'sync_status': 'synced',
-                    'last_sync_display': 'Just created',
-                    'is_enabled': True
+                    'type': platform,  # platform → type
+                    'description': f'{calendar_name} - Created on {datetime.datetime.now().strftime("%Y-%m-%d")}',
+                    'is_active': True,  # is_enabled → is_active
+                    'public_access': is_shared,  # is_shared → public_access
+                    'allow_editing': True
                 }).execute()
                 
                 calendar_id = result.data[0]['id'] if result.data else f"{platform}_{user_id}"
@@ -704,7 +703,7 @@ def delete_calendar(calendar_id):
         
         if dashboard_data_available:
             # Delete from calendars table
-            result = dashboard_data.supabase.table('calendars').delete().eq('id', calendar_id).eq('user_id', user_id).execute()
+            result = dashboard_data.supabase.table('calendars').delete().eq('id', calendar_id).eq('owner_id', user_id).execute()
             
             # Also delete associated events
             dashboard_data.supabase.table('calendar_events').delete().eq('user_id', user_id).eq('calendar_id', calendar_id).execute()
@@ -729,12 +728,12 @@ def toggle_calendar(calendar_id):
         
         if dashboard_data_available:
             # Get current status
-            current = dashboard_data.supabase.table('calendars').select('is_enabled').eq('id', calendar_id).eq('user_id', user_id).single().execute()
+            current = dashboard_data.supabase.table('calendars').select('is_active').eq('id', calendar_id).eq('owner_id', user_id).single().execute()
             
             if current.data:
-                new_status = not current.data['is_enabled']
+                new_status = not current.data['is_active']
                 # Update status
-                dashboard_data.supabase.table('calendars').update({'is_enabled': new_status}).eq('id', calendar_id).eq('user_id', user_id).execute()
+                dashboard_data.supabase.table('calendars').update({'is_active': new_status}).eq('id', calendar_id).eq('owner_id', user_id).execute()
                 
                 return jsonify({
                     'success': True,
