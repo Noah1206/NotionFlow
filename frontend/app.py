@@ -89,10 +89,23 @@ except ImportError:
         })()
 
 # ===== CALENDAR DATABASE INTEGRATION =====
-# Import calendar database functions (temporarily disabled for stability)
+# Import calendar database functions
 calendar_db_available = False
 calendar_db = None
-print("📁 Using JSON file storage for calendars (database disabled temporarily)")
+
+try:
+    from utils.calendar_db import calendar_db
+    if calendar_db.is_available():
+        calendar_db_available = True
+        print("✅ Calendar database connection successful")
+    else:
+        print("⚠️ Calendar database not available - using file fallback")
+except ImportError as e:
+    print(f"⚠️ Calendar database module not found: {e}")
+    print("📁 Using JSON file storage for calendars (database import failed)")
+except Exception as e:
+    print(f"❌ Calendar database connection failed: {e}")
+    print("📁 Using JSON file storage for calendars (database connection failed)")
 
 # ===== LEGACY CALENDAR FILE PERSISTENCE (FALLBACK) =====
 def get_calendars_file_path(user_id):
@@ -393,6 +406,8 @@ def dashboard_index():
 @app.route('/dashboard/calendar-list')
 def calendar_list():
     """Calendar List Management Page - Original Design"""
+    global dashboard_data_available
+    
     # Get current user ID from session
     user_id = session.get('user_id')
     
@@ -410,29 +425,60 @@ def calendar_list():
     })
     
     try:
-        # Try DB first, fallback to file storage for loading calendars
-        print(f"🔍 Loading calendars for user: {user_id}, dashboard_data_available: {dashboard_data_available}")
+        # Try calendar database first, then dashboard data, then file storage
+        print(f"🔍 Loading calendars for user: {user_id}, calendar_db_available: {calendar_db_available}, dashboard_data_available: {dashboard_data_available}")
         
-        if dashboard_data_available:
+        # Try calendar database first
+        if calendar_db_available and calendar_db:
             try:
-                print(f"🔍 Attempting to load calendars from Supabase for user: {user_id}")
+                print(f"🔍 Attempting to load calendars from calendar database for user: {user_id}")
+                user_calendars = calendar_db.get_user_calendars(user_id)
+                print(f"🔍 Raw calendar data from database: {user_calendars}")
+                
+                # Separate personal and shared calendars
+                personal_calendars = [cal for cal in user_calendars if not cal.get('is_shared', False)]
+                shared_calendars = [cal for cal in user_calendars if cal.get('is_shared', False)]
+                
+                calendar_context.update({
+                    'personal_calendars': personal_calendars,
+                    'shared_calendars': shared_calendars,
+                    'summary': {
+                        'total_calendars': len(user_calendars),
+                        'personal_calendars': len(personal_calendars),
+                        'shared_calendars': len(shared_calendars),
+                        'total_events': sum(cal.get('event_count', 0) for cal in user_calendars)
+                    }
+                })
+                print(f"📅 Loaded {len(user_calendars)} calendars from database for user {user_id}")
+                print(f"📅 Personal: {len(personal_calendars)}, Shared: {len(shared_calendars)}")
+            except Exception as e:
+                print(f"⚠️ Calendar DB load failed, trying dashboard data: {e}")
+                import traceback
+                traceback.print_exc()
+                calendar_db_available = False
+        
+        # Fallback to dashboard data
+        elif dashboard_data_available:
+            try:
+                print(f"🔍 Attempting to load calendars from dashboard data for user: {user_id}")
                 calendar_data = dashboard_data.get_user_calendars(user_id)
-                print(f"🔍 Raw calendar data from Supabase: {calendar_data}")
+                print(f"🔍 Raw calendar data from dashboard data: {calendar_data}")
                 
                 calendar_context.update({
                     'personal_calendars': calendar_data['personal_calendars'],
                     'shared_calendars': calendar_data['shared_calendars'],
                     'summary': calendar_data['summary']
                 })
-                print(f"📅 Loaded {calendar_data['summary']['total_calendars']} calendars from DB for user {user_id}")
+                print(f"📅 Loaded {calendar_data['summary']['total_calendars']} calendars from dashboard data for user {user_id}")
                 print(f"📅 Personal: {len(calendar_data['personal_calendars'])}, Shared: {len(calendar_data['shared_calendars'])}")
             except Exception as e:
-                print(f"⚠️ DB load failed, using file storage: {e}")
+                print(f"⚠️ Dashboard data load failed, using file storage: {e}")
                 import traceback
                 traceback.print_exc()
                 dashboard_data_available = False
         
-        if not dashboard_data_available:
+        # Final fallback to file storage
+        if not calendar_db_available and not dashboard_data_available:
             print("📁 Using file storage for calendar list")
             
             # Load user calendars from file
@@ -465,6 +511,9 @@ def calendar_list():
         print(f"❌ Error loading calendar data: {e}")
         # Keep default empty data on error
         pass
+    
+    # Add dashboard_data_available to template context for debugging
+    calendar_context['dashboard_data_available'] = dashboard_data_available
     
     return render_template('calendar_list.html', **calendar_context)
 

@@ -1071,6 +1071,8 @@
     }
 
     async function createCalendarFromModal() {
+        console.log('🔍 createCalendarFromModal() called');
+        
         const createBtn = document.querySelector('[onclick="createCalendarFromModal()"]');
         const createText = createBtn.querySelector('.create-text');
         const createLoader = createBtn.querySelector('.create-loader');
@@ -1087,10 +1089,19 @@
             const color = document.querySelector('.color-option.active').dataset.color;
             const platform = document.getElementById('calendar-platform').value;
 
+            console.log('🔍 Form data collected:', {
+                name: name,
+                isShared: isShared,
+                color: color,
+                platform: platform
+            });
+
             if (!name) {
                 alert('캘린더 이름을 입력해주세요.');
                 return;
             }
+
+            console.log('🔍 Sending request to /api/calendar/create...');
 
             // Use the main calendar creation API
             const response = await fetch('/api/calendar/create', {
@@ -1106,26 +1117,35 @@
                 })
             });
 
+            console.log('🔍 Response status:', response.status);
             const result = await response.json();
             
             // 디버깅을 위한 로그
-            console.log('API Response:', result);
+            console.log('🔍 API Response:', result);
             console.log('Calendar object:', result.calendar);
             console.log('Calendar ID:', result.calendar ? result.calendar.id : 'undefined');
 
             if (result.success) {
+                console.log('🔍 Calendar creation successful!');
                 closeCreateModal();
                 
                 // 생성된 캘린더의 상세 페이지로 이동
                 if (result.calendar && result.calendar.id) {
-                    console.log('Redirecting to:', `/dashboard/calendar/${result.calendar.id}`);
-                    window.location.href = `/dashboard/calendar/${result.calendar.id}`;
+                    console.log('🔍 Redirecting to calendar detail:', `/dashboard/calendar/${result.calendar.id}`);
+                    
+                    // Add a small delay to ensure server state is updated
+                    setTimeout(() => {
+                        window.location.href = `/dashboard/calendar/${result.calendar.id}`;
+                    }, 100);
                 } else {
                     // fallback: 캘린더 ID가 없으면 리스트 페이지 새로고침
-                    console.log('No calendar ID found, reloading page');
-                    window.location.reload();
+                    console.log('🔍 No calendar ID found, reloading page');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 100);
                 }
             } else {
+                console.log('🔍 Calendar creation failed:', result.error);
                 alert('캘린더 생성 오류: ' + result.error);
             }
         } catch (error) {
@@ -1294,5 +1314,34 @@
     function openCalendar(calendarId) {
         window.location.href = `/dashboard/calendar/${calendarId}`;
     }
+
+    // 🔍 Debug logging for calendar data
+    console.log('🔍 Calendar List Debug Info:');
+    console.log('🔍 Personal calendars:', {{ personal_calendars | tojson }});
+    console.log('🔍 Shared calendars:', {{ shared_calendars | tojson }});
+    console.log('🔍 Summary:', {{ summary | tojson }});
+    
+    // 🔍 Check if data is being passed correctly
+    const personalCount = {{ personal_calendars | length }};
+    const sharedCount = {{ shared_calendars | length }};
+    
+    console.log('🔍 Personal calendars count:', personalCount);
+    console.log('🔍 Shared calendars count:', sharedCount);
+    
+    if (personalCount === 0 && sharedCount === 0) {
+        console.log('⚠️ No calendars found! This might be the issue.');
+        console.log('🔍 Check if dashboard_data_available in backend:', '{{ dashboard_data_available }}');
+    }
+    
+    // 🔍 Monitor for page refresh/navigation
+    window.addEventListener('beforeunload', function() {
+        console.log('🔍 Page is being refreshed/navigated away');
+    });
+    
+    // 🔍 Log when page is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🔍 Calendar list page fully loaded');
+        console.log('🔍 Current URL:', window.location.href);
+    });
 </script>
 {% endblock %}
