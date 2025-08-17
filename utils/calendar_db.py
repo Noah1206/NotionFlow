@@ -37,7 +37,7 @@ class CalendarDatabase:
             return []
         
         try:
-            result = self.supabase.table('calendars').select('*').eq('user_id', user_id).execute()
+            result = self.supabase.table('calendars').select('*').eq('owner_id', user_id).execute()
             
             calendars = result.data if result.data else []
             print(f"✅ Loaded {len(calendars)} calendars from database for user {user_id}")
@@ -49,18 +49,19 @@ class CalendarDatabase:
                     'id': str(cal['id']),
                     'name': cal['name'],
                     'color': cal['color'],
-                    'platform': cal['platform'],
-                    'is_shared': cal['is_shared'],
-                    'event_count': cal['event_count'],
-                    'sync_status': cal['sync_status'],
-                    'last_sync_display': cal['last_sync_display'],
-                    'is_enabled': cal['is_enabled'],
-                    'user_id': cal['user_id'],
-                    'created_at': cal['created_at']
+                    'platform': cal.get('type', 'personal'),  # type -> platform mapping
+                    'is_shared': cal.get('public_access', False),  # public_access -> is_shared
+                    'event_count': cal.get('event_count', 0),
+                    'sync_status': 'synced' if cal.get('is_active', True) else 'inactive',
+                    'last_sync_display': 'Synced recently',
+                    'is_enabled': cal.get('is_active', True),  # is_active -> is_enabled
+                    'user_id': cal['owner_id'],
+                    'created_at': cal['created_at'],
+                    'description': cal.get('description', '')
                 }
                 
                 # Add shared_with_count for shared calendars
-                if cal['is_shared']:
+                if formatted_cal['is_shared']:
                     formatted_cal['shared_with_count'] = cal.get('shared_with_count', 0)
                     
                 formatted_calendars.append(formatted_cal)
@@ -81,19 +82,17 @@ class CalendarDatabase:
             # Generate UUID if not provided
             calendar_id = calendar_data.get('id', str(uuid.uuid4()))
             
-            # Prepare database data
+            # Prepare database data - map to actual schema
             db_data = {
                 'id': calendar_id,
-                'user_id': user_id,
+                'owner_id': user_id,
                 'name': calendar_data['name'],
                 'color': calendar_data.get('color', '#2563eb'),
-                'platform': calendar_data.get('platform', 'custom'),
-                'is_shared': calendar_data.get('is_shared', False),
-                'event_count': calendar_data.get('event_count', 0),
-                'sync_status': calendar_data.get('sync_status', 'synced'),
-                'last_sync_display': calendar_data.get('last_sync_display', 'Just now'),
-                'is_enabled': calendar_data.get('is_enabled', True),
-                'shared_with_count': calendar_data.get('shared_with_count', 0)
+                'type': calendar_data.get('platform', 'personal'),  # platform -> type
+                'description': calendar_data.get('description', f"{calendar_data['name']} - Created by user"),
+                'is_active': calendar_data.get('is_enabled', True),  # is_enabled -> is_active
+                'public_access': calendar_data.get('is_shared', False),  # is_shared -> public_access
+                'allow_editing': True
             }
             
             # Insert into database
@@ -141,7 +140,7 @@ class CalendarDatabase:
         
         try:
             # Delete with user verification for security
-            result = self.supabase.table('calendars').delete().eq('id', calendar_id).eq('user_id', user_id).execute()
+            result = self.supabase.table('calendars').delete().eq('id', calendar_id).eq('owner_id', user_id).execute()
             
             if result.data:
                 print(f"✅ Calendar deleted: {calendar_id}")
@@ -161,7 +160,7 @@ class CalendarDatabase:
             return None
         
         try:
-            result = self.supabase.table('calendars').select('*').eq('id', calendar_id).eq('user_id', user_id).single().execute()
+            result = self.supabase.table('calendars').select('*').eq('id', calendar_id).eq('owner_id', user_id).single().execute()
             
             if result.data:
                 cal = result.data
@@ -175,7 +174,7 @@ class CalendarDatabase:
                     'sync_status': cal['sync_status'],
                     'last_sync_display': cal['last_sync_display'],
                     'is_enabled': cal['is_enabled'],
-                    'user_id': cal['user_id'],
+                    'user_id': cal['owner_id'],
                     'created_at': cal['created_at'],
                     'shared_with_count': cal.get('shared_with_count', 0) if cal['is_shared'] else None
                 }

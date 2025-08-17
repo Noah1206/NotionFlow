@@ -455,7 +455,7 @@ def calendar_list():
                 print(f"⚠️ Calendar DB load failed, trying dashboard data: {e}")
                 import traceback
                 traceback.print_exc()
-                calendar_db_available = False
+                # Don't modify global variables, just continue to next option
         
         # Fallback to dashboard data
         elif dashboard_data_available:
@@ -475,10 +475,11 @@ def calendar_list():
                 print(f"⚠️ Dashboard data load failed, using file storage: {e}")
                 import traceback
                 traceback.print_exc()
-                dashboard_data_available = False
+                # Continue to file storage fallback
         
         # Final fallback to file storage
-        if not calendar_db_available and not dashboard_data_available:
+        # Use file storage if no calendars were loaded from database sources
+        if not calendar_context.get('personal_calendars') and not calendar_context.get('shared_calendars'):
             print("📁 Using file storage for calendar list")
             
             # Load user calendars from file
