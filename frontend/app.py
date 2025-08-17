@@ -541,13 +541,13 @@ def create_calendar():
         
         # Try DB first, fallback to file storage
         try:
-            if dashboard_data_available:
+            if dashboard_data_available and False:  # Temporarily disabled due to schema mismatch
                 # Use Supabase to create calendar config
                 result = dashboard_data.supabase.table('calendar_sync_configs').insert({
                     'user_id': user_id,
                     'platform': platform,
-                    'calendar_name': calendar_name,
-                    'color': calendar_color,  # Changed from calendar_color to color
+                    'name': calendar_name,  # Try 'name' instead of 'calendar_name'
+                    'color': calendar_color,
                     'is_enabled': True,
                     'is_shared': is_shared,
                     'sync_frequency_minutes': 15,
