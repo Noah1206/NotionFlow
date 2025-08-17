@@ -543,11 +543,21 @@ def create_calendar():
         try:
             if dashboard_data_available:
                 # Use Supabase admin client to create calendar (bypasses RLS)
+                # Map platform to allowed type values
+                type_mapping = {
+                    'notion': 'personal',
+                    'google': 'google',
+                    'apple': 'apple', 
+                    'outlook': 'outlook',
+                    'custom': 'personal'
+                }
+                calendar_type = type_mapping.get(platform, 'personal')
+                
                 result = dashboard_data.admin_client.table('calendars').insert({
                     'owner_id': user_id,  # user_id → owner_id
                     'name': calendar_name,
                     'color': calendar_color,
-                    'type': platform,  # platform → type
+                    'type': calendar_type,  # Use mapped type value
                     'description': f'{calendar_name} - Created on {datetime.datetime.now().strftime("%Y-%m-%d")}',
                     'is_active': True,  # is_enabled → is_active
                     'public_access': is_shared,  # is_shared → public_access
