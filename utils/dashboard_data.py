@@ -129,75 +129,56 @@ class DashboardDataManager:
             return []
     
     def get_user_calendars(self, user_id: str) -> Dict[str, Any]:
-        """Get user's calendar list with counts and metadata"""
+        """Get user's calendar list from new calendars table"""
         try:
-            # Get calendar configurations from sync configs
-            result = self.supabase.table('calendar_sync_configs').select('''
-                platform, is_enabled, last_sync_at, consecutive_failures, 
-                sync_frequency_minutes, created_at, calendar_name, 
-                calendar_color, is_shared, shared_with_count
-            ''').eq('user_id', user_id).execute()
+            # Get calendars from new calendars table using admin client
+            result = self.admin_client.table('calendars').select('''
+                id, name, color, type, description, is_active, 
+                public_access, allow_editing, created_at, updated_at
+            ''').eq('owner_id', user_id).execute()
             
             personal_calendars = []
             shared_calendars = []
             total_events_count = 0
             
-            # Get platform configurations
-            platform_configs = {
-                'notion': {'name': 'Notion Calendar', 'default_color': '#2563eb'},
-                'google': {'name': 'Google Calendar', 'default_color': '#059669'},
-                'apple': {'name': 'Apple Calendar', 'default_color': '#d97706'},
-                'outlook': {'name': 'Microsoft Outlook', 'default_color': '#7c3aed'},
-                'slack': {'name': 'Slack Calendar', 'default_color': '#dc2626'}
-            }
-            
-            for config in result.data:
-                platform = config['platform']
-                platform_info = platform_configs.get(platform, {})
-                
+            # Process each calendar
+            for calendar in result.data:
                 # Get event count for this calendar
-                events_result = self.supabase.table('calendar_events').select('id', count='exact').eq('user_id', user_id).eq('source_platform', platform).execute()
+                events_result = self.admin_client.table('calendar_events').select('id', count='exact').eq('user_id', user_id).eq('calendar_id', calendar['id']).execute()
                 event_count = events_result.count if events_result.count else 0
                 total_events_count += event_count
                 
-                # Determine sync status
-                if config['consecutive_failures'] == 0 and config['is_enabled']:
-                    sync_status = 'synced'
-                elif config['is_enabled'] and config['consecutive_failures'] > 0:
-                    sync_status = 'syncing'
-                else:
-                    sync_status = 'inactive'
-                
-                # Format last sync time
-                last_sync_display = "Never"
-                if config['last_sync_at']:
+                # Format created time for last sync display
+                last_sync_display = "Just created"
+                if calendar.get('updated_at'):
                     try:
                         from datetime import datetime
-                        last_sync = datetime.fromisoformat(config['last_sync_at'].replace('Z', '+00:00'))
-                        time_diff = datetime.now() - last_sync.replace(tzinfo=None)
+                        updated_at = datetime.fromisoformat(calendar['updated_at'].replace('Z', '+00:00'))
+                        time_diff = datetime.now() - updated_at.replace(tzinfo=None)
                         if time_diff.total_seconds() < 120:  # Less than 2 minutes
-                            last_sync_display = f"Synced {int(time_diff.total_seconds()//60)} min ago"
+                            last_sync_display = f"Updated {int(time_diff.total_seconds()//60)} min ago"
                         elif time_diff.total_seconds() < 3600:  # Less than 1 hour
-                            last_sync_display = f"Synced {int(time_diff.total_seconds()//60)} min ago"
+                            last_sync_display = f"Updated {int(time_diff.total_seconds()//60)} min ago"
                         else:
-                            last_sync_display = f"Synced {int(time_diff.total_seconds()//3600)} hours ago"
+                            last_sync_display = f"Updated {int(time_diff.total_seconds()//3600)} hours ago"
                     except:
-                        last_sync_display = "Recently synced"
+                        last_sync_display = "Recently updated"
                 
                 calendar_data = {
-                    'id': f"{platform}_{user_id}",
-                    'name': config.get('calendar_name') or platform_info.get('name', platform.title()),
-                    'platform': platform,
-                    'color': config.get('calendar_color') or platform_info.get('default_color', '#6b7280'),
+                    'id': calendar['id'],
+                    'name': calendar['name'],
+                    'platform': calendar['type'],  # type maps to platform
+                    'color': calendar['color'] or '#2563eb',
                     'event_count': event_count,
-                    'sync_status': sync_status,
+                    'sync_status': 'active' if calendar['is_active'] else 'inactive',
                     'last_sync_display': last_sync_display,
-                    'is_enabled': config['is_enabled'],
-                    'shared_with_count': config.get('shared_with_count', 0)
+                    'is_enabled': calendar['is_active'],
+                    'is_shared': calendar.get('public_access', False),
+                    'shared_with_count': 0  # TODO: implement sharing count
                 }
                 
                 # Categorize calendar
-                if config.get('is_shared', False) or config.get('shared_with_count', 0) > 0:
+                if calendar.get('public_access', False):
                     shared_calendars.append(calendar_data)
                 else:
                     personal_calendars.append(calendar_data)
