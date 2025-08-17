@@ -542,8 +542,8 @@ def create_calendar():
         # Try DB first, fallback to file storage
         try:
             if dashboard_data_available:
-                # Use Supabase to create calendar in the calendars table
-                result = dashboard_data.supabase.table('calendars').insert({
+                # Use Supabase admin client to create calendar (bypasses RLS)
+                result = dashboard_data.admin_client.table('calendars').insert({
                     'owner_id': user_id,  # user_id → owner_id
                     'name': calendar_name,
                     'color': calendar_color,
@@ -702,11 +702,11 @@ def delete_calendar(calendar_id):
             return jsonify({'success': False, 'error': 'User not authenticated'}), 401
         
         if dashboard_data_available:
-            # Delete from calendars table
-            result = dashboard_data.supabase.table('calendars').delete().eq('id', calendar_id).eq('owner_id', user_id).execute()
+            # Delete from calendars table using admin client
+            result = dashboard_data.admin_client.table('calendars').delete().eq('id', calendar_id).eq('owner_id', user_id).execute()
             
             # Also delete associated events
-            dashboard_data.supabase.table('calendar_events').delete().eq('user_id', user_id).eq('calendar_id', calendar_id).execute()
+            dashboard_data.admin_client.table('calendar_events').delete().eq('user_id', user_id).eq('calendar_id', calendar_id).execute()
             
             return jsonify({
                 'success': True,
@@ -727,13 +727,13 @@ def toggle_calendar(calendar_id):
             return jsonify({'success': False, 'error': 'User not authenticated'}), 401
         
         if dashboard_data_available:
-            # Get current status
-            current = dashboard_data.supabase.table('calendars').select('is_active').eq('id', calendar_id).eq('owner_id', user_id).single().execute()
+            # Get current status using admin client
+            current = dashboard_data.admin_client.table('calendars').select('is_active').eq('id', calendar_id).eq('owner_id', user_id).single().execute()
             
             if current.data:
                 new_status = not current.data['is_active']
-                # Update status
-                dashboard_data.supabase.table('calendars').update({'is_active': new_status}).eq('id', calendar_id).eq('owner_id', user_id).execute()
+                # Update status using admin client
+                dashboard_data.admin_client.table('calendars').update({'is_active': new_status}).eq('id', calendar_id).eq('owner_id', user_id).execute()
                 
                 return jsonify({
                     'success': True,
