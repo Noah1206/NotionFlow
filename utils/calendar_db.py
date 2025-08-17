@@ -42,6 +42,10 @@ class CalendarDatabase:
             calendars = result.data if result.data else []
             print(f"✅ Loaded {len(calendars)} calendars from database for user {user_id}")
             
+            # Debug: Print actual calendar names from database
+            for i, cal in enumerate(calendars):
+                print(f"📋 Calendar {i+1}: name='{cal.get('name', 'NO_NAME')}', id={cal.get('id', 'NO_ID')}")
+            
             # Convert database format to JSON format for compatibility
             formatted_calendars = []
             for cal in calendars:
@@ -186,14 +190,16 @@ class CalendarDatabase:
             return None
     
     def create_default_calendar(self, user_id: str) -> Optional[str]:
-        """Create default calendar for new users"""
+        """Create default calendar for new users with unique name"""
+        import datetime
+        
+        # Create unique name based on timestamp
+        timestamp = datetime.datetime.now().strftime("%m월 %d일")
         default_calendar = {
-            'name': 'Todo List',
-            'platform': 'notion',
+            'name': f'내 캘린더 ({timestamp})',
+            'platform': 'personal',
             'color': '#2563eb',
-            'event_count': 24,
-            'sync_status': 'synced',
-            'last_sync_display': 'Synced 2 min ago',
+            'description': f'기본 캘린더 - {timestamp} 생성',
             'is_enabled': True
         }
         

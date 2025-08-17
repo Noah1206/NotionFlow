@@ -1,4 +1,4 @@
-// Calendar Detail New - Notion Style Calendar
+// Calendar Detail - Modern Notion Style
 let currentDate = new Date();
 let currentView = 'month';
 let selectedDate = null;
@@ -9,15 +9,23 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeCalendar();
     loadEvents();
     setupEventListeners();
+    initializeMiniCalendar();
 });
 
 function initializeCalendar() {
-    updateMonthDisplay();
-    renderCalendar();
+    updateDateDisplay();
+    renderMonthView();
     updateStats();
 }
 
 function setupEventListeners() {
+    // View switcher
+    document.querySelectorAll('.view-option').forEach(option => {
+        option.addEventListener('click', function() {
+            switchView(this.dataset.view);
+        });
+    });
+
     // Color picker for events
     document.querySelectorAll('.color-option').forEach(option => {
         option.addEventListener('click', function() {
@@ -44,24 +52,64 @@ function setupEventListeners() {
     }
 }
 
-// Calendar rendering
-function renderCalendar() {
-    const grid = document.getElementById('calendar-grid');
+function updateDateDisplay() {
+    const dateElement = document.getElementById('current-date');
+    if (dateElement) {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth() + 1;
+        dateElement.textContent = `${year}년 ${month}월`;
+    }
+}
+
+function switchView(viewType) {
+    // Update active button
+    document.querySelectorAll('.view-option').forEach(btn => btn.classList.remove('active'));
+    document.querySelector(`[data-view="${viewType}"]`).classList.add('active');
+    
+    // Hide all views
+    document.querySelectorAll('.calendar-view-container').forEach(view => {
+        view.classList.remove('active');
+    });
+    
+    // Show selected view
+    const targetView = document.getElementById(`${viewType}-view`);
+    if (targetView) {
+        targetView.classList.add('active');
+        currentView = viewType;
+        
+        // Render appropriate content
+        switch(viewType) {
+            case 'month':
+                renderMonthView();
+                break;
+            case 'week':
+                renderWeekView();
+                break;
+            case 'agenda':
+                renderAgendaView();
+                break;
+        }
+    }
+}
+
+// Month view rendering
+function renderMonthView() {
+    const grid = document.getElementById('month-grid');
     if (!grid) return;
 
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     
+    // Clear previous content
+    grid.innerHTML = '';
+    
     // Get first day of month and number of days
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
     const startDate = new Date(firstDay);
     startDate.setDate(startDate.getDate() - firstDay.getDay());
-
-    grid.innerHTML = '';
-
-    // Render 6 weeks (42 days)
+    
+    // Generate 42 cells (6 weeks)
     for (let i = 0; i < 42; i++) {
         const cellDate = new Date(startDate);
         cellDate.setDate(startDate.getDate() + i);
@@ -75,13 +123,15 @@ function createDayCell(date, currentMonth) {
     const cell = document.createElement('div');
     cell.className = 'calendar-day';
     
-    const isToday = isDateToday(date);
     const isCurrentMonth = date.getMonth() === currentMonth;
-    const isSelected = selectedDate && isSameDate(date, selectedDate);
+    const isToday = isDateToday(date);
     
-    if (!isCurrentMonth) cell.classList.add('other-month');
-    if (isToday) cell.classList.add('today');
-    if (isSelected) cell.classList.add('selected');
+    if (!isCurrentMonth) {
+        cell.classList.add('other-month');
+    }
+    if (isToday) {
+        cell.classList.add('today');
+    }
     
     // Day number
     const dayNumber = document.createElement('div');
@@ -93,221 +143,190 @@ function createDayCell(date, currentMonth) {
     const eventsContainer = document.createElement('div');
     eventsContainer.className = 'day-events';
     
-    // Add events for this day
+    // Add sample events for demo
     const dayEvents = getEventsForDate(date);
-    const maxVisibleEvents = 3;
-    
-    dayEvents.slice(0, maxVisibleEvents).forEach(event => {
+    dayEvents.forEach(event => {
         const eventElement = document.createElement('div');
-        eventElement.className = `event-item ${getEventColorClass(event.color)}`;
+        eventElement.className = 'day-event';
         eventElement.textContent = event.title;
-        eventElement.addEventListener('click', (e) => {
-            e.stopPropagation();
-            openEventDetail(event);
-        });
+        eventElement.style.background = event.color || '#dbeafe';
         eventsContainer.appendChild(eventElement);
     });
     
-    // Show "more" indicator if there are more events
-    if (dayEvents.length > maxVisibleEvents) {
-        const moreElement = document.createElement('div');
-        moreElement.className = 'more-events';
-        moreElement.textContent = `+${dayEvents.length - maxVisibleEvents} more`;
-        eventsContainer.appendChild(moreElement);
-    }
-    
     cell.appendChild(eventsContainer);
     
-    // Click handler for day
-    cell.addEventListener('click', () => openDayModal(date));
+    // Click handler
+    cell.addEventListener('click', () => {
+        selectedDate = new Date(date);
+        openDayModal(date);
+    });
     
     return cell;
 }
 
-// Date utilities
-function isDateToday(date) {
-    const today = new Date();
-    return isSameDate(date, today);
+function renderWeekView() {
+    const container = document.getElementById('week-days-grid');
+    if (!container) return;
+    
+    container.innerHTML = '<div class="week-view-placeholder">주간 뷰는 개발 중입니다.</div>';
 }
 
-function isSameDate(date1, date2) {
-    return date1.getFullYear() === date2.getFullYear() &&
-           date1.getMonth() === date2.getMonth() &&
-           date1.getDate() === date2.getDate();
+function renderAgendaView() {
+    // Agenda view is already populated in HTML template
+    console.log('Agenda view rendered');
 }
 
-function formatDate(date) {
-    return date.toLocaleDateString('ko-KR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
+// Mini Calendar
+function initializeMiniCalendar() {
+    renderMiniCalendar();
 }
 
-function formatDateTime(date) {
-    return date.toLocaleString('ko-KR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
+function renderMiniCalendar() {
+    const miniDays = document.getElementById('mini-days');
+    if (!miniDays) return;
+    
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    // Update mini calendar title
+    const title = document.querySelector('.mini-month-title');
+    if (title) {
+        title.textContent = `${month + 1}월 ${year}`;
+    }
+    
+    // Clear previous content
+    miniDays.innerHTML = '';
+    
+    // Get first day of month
+    const firstDay = new Date(year, month, 1);
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - firstDay.getDay());
+    
+    // Generate mini calendar days
+    for (let i = 0; i < 42; i++) {
+        const cellDate = new Date(startDate);
+        cellDate.setDate(startDate.getDate() + i);
+        
+        const dayElement = document.createElement('div');
+        dayElement.className = 'mini-day';
+        dayElement.textContent = cellDate.getDate();
+        
+        if (cellDate.getMonth() !== month) {
+            dayElement.style.color = '#cbd5e1';
+        }
+        
+        if (isDateToday(cellDate)) {
+            dayElement.classList.add('today');
+        }
+        
+        dayElement.addEventListener('click', () => {
+            currentDate = new Date(cellDate);
+            updateDateDisplay();
+            renderMonthView();
+            renderMiniCalendar();
+        });
+        
+        miniDays.appendChild(dayElement);
+    }
 }
 
-// Navigation
+// Navigation functions
+function changeMonth(direction) {
+    currentDate.setMonth(currentDate.getMonth() + direction);
+    updateDateDisplay();
+    renderMonthView();
+    renderMiniCalendar();
+}
+
+function changeMiniMonth(direction) {
+    changeMonth(direction);
+}
+
 function goToToday() {
     currentDate = new Date();
-    updateMonthDisplay();
-    renderCalendar();
-}
-
-function changeMonth(delta) {
-    currentDate.setMonth(currentDate.getMonth() + delta);
-    updateMonthDisplay();
-    renderCalendar();
-}
-
-function updateMonthDisplay() {
-    const monthElement = document.getElementById('current-month');
-    if (monthElement) {
-        monthElement.textContent = currentDate.toLocaleDateString('ko-KR', {
-            year: 'numeric',
-            month: 'long'
-        });
-    }
-}
-
-// View switching
-function switchView(view) {
-    currentView = view;
-    
-    // Update active button
-    document.querySelectorAll('.view-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.dataset.view === view) {
-            btn.classList.add('active');
-        }
-    });
-    
-    // Show/hide views
-    document.querySelectorAll('.calendar-view').forEach(viewEl => {
-        viewEl.classList.remove('active');
-    });
-    
-    const targetView = document.getElementById(`${view}-view`);
-    if (targetView) {
-        targetView.classList.add('active');
-    }
-    
-    // Render appropriate view
-    switch (view) {
-        case 'month':
-            renderCalendar();
-            break;
-        case 'week':
-            renderWeekView();
-            break;
-        case 'day':
-            renderDayView();
-            break;
-        case 'list':
-            renderListView();
-            break;
-    }
+    updateDateDisplay();
+    renderMonthView();
+    renderMiniCalendar();
 }
 
 // Event management
 function loadEvents() {
-    // Mock events data
+    // Sample events for demo
     calendarEvents = [
         {
             id: 1,
             title: '팀 미팅',
-            start: new Date(2025, 7, 17, 14, 0), // August 17, 2025, 2:00 PM
-            end: new Date(2025, 7, 17, 15, 30),
-            description: '주간 팀 미팅',
-            color: '#3B82F6',
-            allDay: false
+            date: new Date(2025, 2, 21), // March 21, 2025
+            time: '14:00',
+            color: '#dbeafe'
         },
         {
             id: 2,
             title: '프로젝트 발표',
-            start: new Date(2025, 7, 20, 10, 0),
-            end: new Date(2025, 7, 20, 12, 0),
-            description: 'Q3 프로젝트 최종 발표',
-            color: '#10B981',
-            allDay: false
-        },
-        {
-            id: 3,
-            title: '휴가',
-            start: new Date(2025, 7, 25),
-            end: new Date(2025, 7, 27),
-            description: '여름 휴가',
-            color: '#F59E0B',
-            allDay: true
+            date: new Date(2025, 2, 25), // March 25, 2025
+            time: '10:00',
+            color: '#dcfce7'
         }
     ];
-    
-    renderCalendar();
-    updateSidebarEvents();
 }
 
 function getEventsForDate(date) {
-    return calendarEvents.filter(event => {
-        if (event.allDay) {
-            return date >= new Date(event.start.getFullYear(), event.start.getMonth(), event.start.getDate()) &&
-                   date <= new Date(event.end.getFullYear(), event.end.getMonth(), event.end.getDate());
-        } else {
-            return isSameDate(date, event.start);
+    return calendarEvents.filter(event => 
+        event.date.getDate() === date.getDate() &&
+        event.date.getMonth() === date.getMonth() &&
+        event.date.getFullYear() === date.getFullYear()
+    );
+}
+
+function isDateToday(date) {
+    const today = new Date();
+    return date.getDate() === today.getDate() &&
+           date.getMonth() === today.getMonth() &&
+           date.getFullYear() === today.getFullYear();
+}
+
+// Modal functions
+function openEventModal() {
+    const modal = document.getElementById('event-modal');
+    if (modal) {
+        modal.style.display = 'flex';
+        
+        // Set default date if a date is selected
+        if (selectedDate) {
+            const startInput = document.getElementById('event-start');
+            const endInput = document.getElementById('event-end');
+            if (startInput && endInput) {
+                const dateStr = selectedDate.toISOString().slice(0, 16);
+                startInput.value = dateStr;
+                endInput.value = dateStr;
+            }
         }
-    });
-}
-
-function getEventColorClass(color) {
-    const colorMap = {
-        '#3B82F6': 'blue',
-        '#10B981': 'green',
-        '#F59E0B': 'yellow',
-        '#EF4444': 'red',
-        '#8B5CF6': 'purple',
-        '#EC4899': 'pink'
-    };
-    return colorMap[color] || 'blue';
-}
-
-// Modals
-function openDayModal(date) {
-    selectedDate = date;
-    const modal = document.getElementById('day-modal');
-    const dateTitle = document.getElementById('modal-date');
-    const eventsContainer = document.getElementById('day-events');
-    
-    if (!modal || !dateTitle || !eventsContainer) return;
-    
-    dateTitle.textContent = formatDate(date);
-    
-    // Load events for this day
-    const dayEvents = getEventsForDate(date);
-    eventsContainer.innerHTML = '';
-    
-    if (dayEvents.length === 0) {
-        eventsContainer.innerHTML = '<div class="no-events">이 날짜에 일정이 없습니다</div>';
-    } else {
-        dayEvents.forEach(event => {
-            const eventElement = document.createElement('div');
-            eventElement.className = 'event-item';
-            eventElement.innerHTML = `
-                <div class="event-time">${formatDateTime(event.start)}</div>
-                <div class="event-title">${event.title}</div>
-            `;
-            eventElement.addEventListener('click', () => openEventDetail(event));
-            eventsContainer.appendChild(eventElement);
-        });
     }
+}
+
+function closeEventModal() {
+    const modal = document.getElementById('event-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        clearEventForm();
+    }
+}
+
+function openDayModal(date) {
+    const modal = document.getElementById('day-modal');
+    const title = document.getElementById('modal-date');
     
-    modal.style.display = 'flex';
-    renderCalendar(); // Re-render to show selected date
+    if (modal && title) {
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        
+        title.textContent = `${year}년 ${month}월 ${day}일`;
+        modal.style.display = 'flex';
+        
+        // Load events for this day
+        loadDayEvents(date);
+    }
 }
 
 function closeDayModal() {
@@ -315,241 +334,129 @@ function closeDayModal() {
     if (modal) {
         modal.style.display = 'none';
     }
-    selectedDate = null;
-    renderCalendar();
 }
 
-function openEventModal(date = null) {
-    const modal = document.getElementById('event-modal');
-    if (!modal) return;
+function loadDayEvents(date) {
+    const container = document.getElementById('day-events');
+    if (!container) return;
     
-    // Reset form
-    document.getElementById('event-title').value = '';
-    document.getElementById('event-description').value = '';
-    document.getElementById('event-allday').checked = false;
+    const events = getEventsForDate(date);
     
-    // Set default date
-    if (date || selectedDate) {
-        const targetDate = date || selectedDate;
-        const dateStr = targetDate.toISOString().slice(0, 16);
-        document.getElementById('event-start').value = dateStr;
-        
-        // Set end time 1 hour later
-        const endDate = new Date(targetDate);
-        endDate.setHours(endDate.getHours() + 1);
-        document.getElementById('event-end').value = endDate.toISOString().slice(0, 16);
-    }
-    
-    modal.style.display = 'flex';
-}
-
-function closeEventModal() {
-    const modal = document.getElementById('event-modal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-}
-
-function addEventToDay() {
-    if (selectedDate) {
-        closeDayModal();
-        openEventModal(selectedDate);
+    if (events.length === 0) {
+        container.innerHTML = '<div class="no-events">이 날짜에 일정이 없습니다.</div>';
+    } else {
+        container.innerHTML = events.map(event => `
+            <div class="day-event-item">
+                <div class="event-time">${event.time}</div>
+                <div class="event-title">${event.title}</div>
+            </div>
+        `).join('');
     }
 }
 
 function saveEvent() {
-    const title = document.getElementById('event-title').value.trim();
+    const title = document.getElementById('event-title').value;
     const start = document.getElementById('event-start').value;
     const end = document.getElementById('event-end').value;
-    const description = document.getElementById('event-description').value.trim();
+    const description = document.getElementById('event-description').value;
     const allDay = document.getElementById('event-allday').checked;
-    const color = document.querySelector('.color-option.active').dataset.color;
+    const color = document.querySelector('.color-option.active')?.style.background || '#dbeafe';
     
-    if (!title || !start || !end) {
-        alert('제목, 시작시간, 종료시간을 모두 입력해주세요.');
+    if (!title || !start) {
+        alert('제목과 시작일은 필수입니다.');
         return;
     }
     
     const newEvent = {
         id: Date.now(),
-        title,
-        start: new Date(start),
-        end: new Date(end),
-        description,
-        color,
-        allDay
+        title: title,
+        date: new Date(start),
+        time: allDay ? '종일' : new Date(start).toLocaleTimeString('ko-KR', {hour: '2-digit', minute: '2-digit'}),
+        description: description,
+        color: color,
+        allDay: allDay
     };
     
     calendarEvents.push(newEvent);
-    
+    renderMonthView();
     closeEventModal();
-    renderCalendar();
-    updateSidebarEvents();
     updateStats();
     
-    showNotification('이벤트가 성공적으로 추가되었습니다.', 'success');
+    // Show success message
+    showNotification('이벤트가 추가되었습니다.');
 }
 
-function openEventDetail(event) {
-    // Implementation for event detail modal
-    console.log('Opening event detail:', event);
+function clearEventForm() {
+    document.getElementById('event-title').value = '';
+    document.getElementById('event-start').value = '';
+    document.getElementById('event-end').value = '';
+    document.getElementById('event-description').value = '';
+    document.getElementById('event-allday').checked = false;
+    
+    // Reset color picker
+    document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('active'));
+    document.querySelector('.color-option').classList.add('active');
 }
 
-// Sidebar updates
-function updateSidebarEvents() {
-    updateTodayEvents();
-    updateUpcomingEvents();
+function addEventToDay() {
+    closeEventModal();
+    openEventModal();
 }
 
-function updateTodayEvents() {
-    const container = document.getElementById('today-events');
-    if (!container) return;
-    
-    const today = new Date();
-    const todayEvents = getEventsForDate(today);
-    
-    container.innerHTML = '';
-    
-    if (todayEvents.length === 0) {
-        container.innerHTML = '<div class="no-events">오늘 일정이 없습니다</div>';
-    } else {
-        todayEvents.forEach(event => {
-            const eventElement = document.createElement('div');
-            eventElement.className = 'event-item';
-            eventElement.innerHTML = `
-                <div class="event-time">${event.allDay ? '종일' : formatDateTime(event.start)}</div>
-                <div class="event-title">${event.title}</div>
-            `;
-            eventElement.addEventListener('click', () => openEventDetail(event));
-            container.appendChild(eventElement);
-        });
-    }
-}
-
-function updateUpcomingEvents() {
-    const container = document.getElementById('upcoming-events');
-    if (!container) return;
-    
-    const today = new Date();
-    const nextWeek = new Date(today);
-    nextWeek.setDate(today.getDate() + 7);
-    
-    const upcomingEvents = calendarEvents.filter(event => {
-        return event.start > today && event.start <= nextWeek;
-    }).sort((a, b) => a.start - b.start);
-    
-    container.innerHTML = '';
-    
-    if (upcomingEvents.length === 0) {
-        container.innerHTML = '<div class="no-events">다가오는 일정이 없습니다</div>';
-    } else {
-        upcomingEvents.forEach(event => {
-            const eventElement = document.createElement('div');
-            eventElement.className = 'event-item';
-            eventElement.innerHTML = `
-                <div class="event-time">${formatDateTime(event.start)}</div>
-                <div class="event-title">${event.title}</div>
-            `;
-            eventElement.addEventListener('click', () => openEventDetail(event));
-            container.appendChild(eventElement);
-        });
-    }
-}
-
+// Stats and utility functions
 function updateStats() {
-    // Update month events count
-    const monthEventsEl = document.getElementById('month-events');
-    if (monthEventsEl) {
-        const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-        const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-        
-        const monthEvents = calendarEvents.filter(event => {
-            return event.start >= monthStart && event.start <= monthEnd;
-        });
-        
-        monthEventsEl.textContent = monthEvents.length;
+    const monthEvents = document.getElementById('month-events');
+    const weekEvents = document.getElementById('week-events');
+    
+    if (monthEvents) {
+        const thisMonth = calendarEvents.filter(event => 
+            event.date.getMonth() === currentDate.getMonth() &&
+            event.date.getFullYear() === currentDate.getFullYear()
+        ).length;
+        monthEvents.textContent = thisMonth;
     }
     
-    // Update week events count
-    const weekEventsEl = document.getElementById('week-events');
-    if (weekEventsEl) {
-        const today = new Date();
-        const weekStart = new Date(today);
-        weekStart.setDate(today.getDate() - today.getDay());
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekStart.getDate() + 6);
-        
-        const weekEvents = calendarEvents.filter(event => {
-            return event.start >= weekStart && event.start <= weekEnd;
-        });
-        
-        weekEventsEl.textContent = weekEvents.length;
+    if (weekEvents) {
+        weekEvents.textContent = '3'; // Sample data
     }
 }
 
-// Other view renders (simplified for now)
-function renderWeekView() {
-    console.log('Rendering week view');
-}
-
-function renderDayView() {
-    console.log('Rendering day view');
-}
-
-function renderListView() {
-    console.log('Rendering list view');
-}
-
-// Action handlers
-function syncCalendar() {
-    showNotification('캘린더 동기화를 시작합니다...', 'info');
-    
-    // Simulate sync
-    setTimeout(() => {
-        showNotification('캘린더 동기화가 완료되었습니다.', 'success');
-    }, 2000);
-}
-
-function openSettings() {
-    showNotification('설정 페이지는 곧 제공될 예정입니다.', 'info');
-}
-
-// Notification system
-function showNotification(message, type = 'info') {
+function showNotification(message) {
+    // Create and show a simple notification
     const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.textContent = message;
     notification.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
-        padding: 16px 24px;
-        border-radius: 12px;
+        background: #10b981;
         color: white;
-        font-weight: 500;
-        z-index: 10000;
-        transform: translateX(400px);
-        transition: transform 0.3s ease;
-        ${type === 'success' ? 'background: linear-gradient(135deg, #10b981, #059669);' : ''}
-        ${type === 'error' ? 'background: linear-gradient(135deg, #ef4444, #dc2626);' : ''}
-        ${type === 'info' ? 'background: linear-gradient(135deg, #3b82f6, #2563eb);' : ''}
+        padding: 12px 20px;
+        border-radius: 6px;
+        z-index: 2000;
+        font-size: 14px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     `;
+    notification.textContent = message;
     
     document.body.appendChild(notification);
     
-    // Animation
-    setTimeout(() => notification.style.transform = 'translateX(0)', 100);
-    setTimeout(() => notification.style.transform = 'translateX(400px)', 3000);
-    setTimeout(() => document.body.removeChild(notification), 3500);
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
 }
 
-// Close modals when clicking outside
+// Close modals when clicking overlay
 document.addEventListener('click', function(e) {
     if (e.target.classList.contains('modal-overlay')) {
         e.target.style.display = 'none';
-        if (e.target.id === 'day-modal') {
-            selectedDate = null;
-            renderCalendar();
-        }
     }
 });
+
+// Sync and settings functions (placeholder)
+function syncCalendar() {
+    showNotification('캘린더 동기화 완료');
+}
+
+function openSettings() {
+    showNotification('설정 기능은 개발 중입니다.');
+}
