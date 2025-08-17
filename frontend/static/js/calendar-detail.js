@@ -261,13 +261,9 @@ function checkForMediaFiles() {
         // Try to fetch media files from API
         fetchCalendarMedia(calendarId);
         
-        // Show compact player anyway for demo
+        // Show compact player but don't load demo track without actual media
         showCompactMediaPlayer();
-        loadTrack({
-            title: '캘린더 배경음악',
-            artist: '집중 음악',
-            src: '/static/media/demo.mp3'
-        });
+        // Only load demo if we actually have media files
     }
 }
 
@@ -280,24 +276,50 @@ function fetchCalendarMedia(calendarId) {
         .then(data => {
             if (data.media_files && data.media_files.length > 0) {
                 document.getElementById('media-player').style.display = 'flex';
+                showCompactMediaPlayer();
                 currentPlaylist = data.media_files;
                 loadTrack(currentPlaylist[0]);
+            } else {
+                // Hide media players if no media files
+                const mainPlayer = document.getElementById('media-player');
+                const compactPlayer = document.getElementById('sidebar-media-player');
+                if (mainPlayer) mainPlayer.style.display = 'none';
+                if (compactPlayer) compactPlayer.style.display = 'none';
             }
         })
         .catch(error => {
             console.log('No media files for this calendar');
+            // Hide media players on error
+            const mainPlayer = document.getElementById('media-player');
+            const compactPlayer = document.getElementById('sidebar-media-player');
+            if (mainPlayer) mainPlayer.style.display = 'none';
+            if (compactPlayer) compactPlayer.style.display = 'none';
         });
 }
 
 function handleMediaError(e) {
     console.error('Media playback error:', e);
+    
+    // Update both players with error message
+    const mediaTitle = document.getElementById('media-title');
+    const mediaArtist = document.getElementById('media-artist');
+    const compactTitle = document.getElementById('compact-media-title');
+    const compactArtist = document.getElementById('compact-media-artist');
+    
+    if (mediaTitle) mediaTitle.textContent = '재생 오류';
+    if (mediaArtist) mediaArtist.textContent = '파일을 재생할 수 없습니다';
+    if (compactTitle) compactTitle.textContent = '재생 오류';
+    if (compactArtist) compactArtist.textContent = '파일을 재생할 수 없습니다';
+    
     // Try next track if available
-    if (currentPlaylist.length > 1) {
+    if (currentPlaylist && currentPlaylist.length > 1) {
         nextTrack();
     } else {
-        // Show error message
-        document.getElementById('media-title').textContent = '재생 오류';
-        document.getElementById('media-artist').textContent = '파일을 재생할 수 없습니다';
+        // Hide players if no playable media
+        const mainPlayer = document.getElementById('media-player');
+        const compactPlayer = document.getElementById('sidebar-media-player');
+        if (mainPlayer) mainPlayer.style.display = 'none';
+        if (compactPlayer) compactPlayer.style.display = 'none';
     }
 }
 
@@ -315,7 +337,12 @@ function handleTrackEnd() {
 }
 
 function loadTrack(track) {
-    if (audioPlayer && track.src) {
+    if (!audioPlayer || !track || !track.src) {
+        console.warn('Cannot load track: missing audioPlayer or track data');
+        return;
+    }
+    
+    try {
         // Pause current track if playing
         if (isPlaying) {
             audioPlayer.pause();
@@ -327,13 +354,27 @@ function loadTrack(track) {
         // Update compact player info
         updateCompactPlayerInfo(track);
         
-        // Update UI with track info
-        document.getElementById('media-title').textContent = track.title || extractFileName(track.src);
-        document.getElementById('media-artist').textContent = track.artist || '캘린더 음악';
+        // Update UI with track info safely
+        const mediaTitle = document.getElementById('media-title');
+        const mediaArtist = document.getElementById('media-artist');
         
-        // Reset progress
-        document.getElementById('progress-fill').style.width = '0%';
-        document.getElementById('current-time').textContent = '0:00';
+        if (mediaTitle) {
+            mediaTitle.textContent = track.title || extractFileName(track.src) || 'Unknown Track';
+        }
+        if (mediaArtist) {
+            mediaArtist.textContent = track.artist || '캘린더 음악';
+        }
+        
+        // Reset progress safely
+        const progressFill = document.getElementById('progress-fill');
+        const currentTimeElement = document.getElementById('current-time');
+        const compactProgressFill = document.getElementById('compact-progress-fill');
+        const compactCurrentTime = document.getElementById('compact-current-time');
+        
+        if (progressFill) progressFill.style.width = '0%';
+        if (currentTimeElement) currentTimeElement.textContent = '0:00';
+        if (compactProgressFill) compactProgressFill.style.width = '0%';
+        if (compactCurrentTime) compactCurrentTime.textContent = '0:00';
         
         // Auto-play if was playing before
         if (isPlaying) {
@@ -341,16 +382,27 @@ function loadTrack(track) {
                 console.log('Auto-play prevented:', e);
                 isPlaying = false;
                 updatePlayButton();
+                updateCompactPlayButton();
             });
         }
+    } catch (error) {
+        console.error('Error loading track:', error);
+        handleMediaError(error);
     }
 }
 
 function extractFileName(url) {
-    // Extract filename from URL
-    const parts = url.split('/');
-    const filename = parts[parts.length - 1];
-    return filename.replace(/\.[^/.]+$/, ''); // Remove extension
+    // Extract filename from URL safely
+    if (!url || typeof url !== 'string') return 'Unknown';
+    
+    try {
+        const parts = url.split('/');
+        const filename = parts[parts.length - 1];
+        return filename ? filename.replace(/\.[^/.]+$/, '') : 'Unknown'; // Remove extension
+    } catch (error) {
+        console.warn('Error extracting filename from URL:', error);
+        return 'Unknown';
+    }
 }
 
 function updatePlayButton() {
@@ -1080,11 +1132,17 @@ function createHabitElement(habit, index) {
     habitItem.dataset.id = habit.id;
     habitItem.dataset.index = index;
     
+    // Safely handle emoji and other properties
+    const emoji = habit.emoji || '📌';
+    const name = habit.name || 'Unknown Habit';
+    const currentDays = habit.currentDays || 0;
+    const targetDays = habit.targetDays || 0;
+    
     habitItem.innerHTML = `
-        <span class="habit-emoji">${habit.emoji}</span>
-        <span class="habit-name">${habit.name}</span>
+        <span class="habit-emoji">${emoji}</span>
+        <span class="habit-name">${name}</span>
         <div class="habit-progress">
-            <span class="current-days">${habit.currentDays || 0}</span>/<span class="target-days">${habit.targetDays}</span>
+            <span class="current-days">${currentDays}</span>/<span class="target-days">${targetDays}</span>
         </div>
         <button class="habit-delete-btn" onclick="deleteHabit(this)" title="삭제">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -1337,11 +1395,18 @@ function showCompactMediaPlayer() {
 }
 
 function updateCompactPlayerInfo(track) {
+    if (!track) {
+        console.warn('No track data provided to updateCompactPlayerInfo');
+        return;
+    }
+    
     const titleElement = document.getElementById('compact-media-title');
     const artistElement = document.getElementById('compact-media-artist');
     
-    if (titleElement && artistElement) {
+    if (titleElement) {
         titleElement.textContent = track.title || 'Unknown Track';
+    }
+    if (artistElement) {
         artistElement.textContent = track.artist || 'Unknown Artist';
     }
 }
@@ -1491,10 +1556,19 @@ function formatTime(seconds) {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
 
-// Add event listeners for compact player updates
-if (audioPlayer) {
-    audioPlayer.addEventListener('timeupdate', updateCompactProgress);
-    audioPlayer.addEventListener('volumechange', updateCompactVolume);
-    audioPlayer.addEventListener('play', updateCompactPlayButton);
-    audioPlayer.addEventListener('pause', updateCompactPlayButton);
+// Add event listeners for compact player updates safely
+function addCompactPlayerListeners() {
+    if (audioPlayer && audioPlayer.addEventListener) {
+        try {
+            audioPlayer.addEventListener('timeupdate', updateCompactProgress);
+            audioPlayer.addEventListener('volumechange', updateCompactVolume);
+            audioPlayer.addEventListener('play', updateCompactPlayButton);
+            audioPlayer.addEventListener('pause', updateCompactPlayButton);
+        } catch (error) {
+            console.warn('Error adding compact player listeners:', error);
+        }
+    }
 }
+
+// Call this after audioPlayer is initialized
+setTimeout(addCompactPlayerListeners, 100);
