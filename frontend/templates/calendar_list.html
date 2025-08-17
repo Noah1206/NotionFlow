@@ -1092,8 +1092,8 @@
                 return;
             }
 
-            // 임시로 간단한 JSON API 사용 (파일 업로드 없이)
-            const response = await fetch('/api/calendar/simple-create', {
+            // Use the main calendar creation API
+            const response = await fetch('/api/calendar/create', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

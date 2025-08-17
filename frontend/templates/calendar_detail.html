@@ -2,287 +2,262 @@
 
 {% block body_class %}calendar-detail-page{% endblock %}
 
-{% block title %}{{ calendar.name }} - 캘린더 관리 - NotionFlow{% endblock %}
-
-{% block description %}{{ calendar.name }}에 대한 플랫폼 연결 및 동기화 설정을 관리하세요. Notion, Google 캘린더, Apple 캘린더, Outlook, Slack과 연결하세요.{% endblock %}
+{% block title %}{{ calendar.name }} - 캘린더 - NotionFlow{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-detail.css') }}?v={{ range(100000, 999999) | random }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/platform-card.css') }}?v={{ range(100000, 999999) | random }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-dropdown.css') }}?v={{ range(100000, 999999) | random }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/connect-button.css') }}?v={{ range(100000, 999999) | random }}">
 {% endblock %}
 
 {% block content %}
-<div class="calendar-detail-container">
-    <!-- Header Section -->
-    <div class="calendar-detail-header">
-        <div class="header-nav">
-            <button class="btn-back" onclick="window.history.back()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M19 12H5m7-7l-7 7 7 7"/>
+<div class="calendar-container">
+    <!-- Calendar Header -->
+    <div class="calendar-header">
+        <div class="header-left">
+            <button class="btn-back" onclick="window.location.href='/dashboard/calendar-list'">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
                 </svg>
-                뒤로
             </button>
-            <nav class="breadcrumb">
-                <a href="/dashboard/calendar-list">캘린더</a>
-                <span class="separator">→</span>
-                <span class="current">{{ calendar.name }}</span>
-            </nav>
-        </div>
-        
-        <div class="calendar-info">
-            <div class="calendar-identity">
-                <div class="calendar-color" style="background: {{ calendar.color or '#3B82F6' }};"></div>
-                <div class="calendar-details">
-                    <h1 class="calendar-name">{{ calendar.name }}</h1>
-                    {% if calendar.media_filename %}
-                    <div class="calendar-media-info">
-                        <span class="media-filename" id="media-filename" onclick="openMediaPlayer()" ondblclick="editMediaFilename()" title="클릭하여 재생, 더블클릭하여 편집">{{ calendar.media_filename }}</span>
-                        <input type="text" class="media-filename-input" id="media-filename-input" style="display: none;" value="{{ calendar.media_filename }}" onblur="saveMediaFilename()" onkeydown="handleMediaFilenameKeydown(event)">
-                    </div>
-                    {% endif %}
-                    <p class="calendar-description">{{ calendar.description or '플랫폼 연결 및 동기화 설정을 관리하세요' }}</p>
+            <div class="calendar-title-section">
+                <div class="calendar-icon" style="background: {{ calendar.color or '#3B82F6' }}">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                        <rect x="3" y="4" width="18" height="18" rx="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
                 </div>
+                <h1 class="calendar-title">{{ calendar.name }}</h1>
+                <span class="calendar-badge">{{ calendar.platform or 'Custom' }}</span>
+            </div>
+        </div>
+
+        <div class="header-center">
+            <button class="btn-today" onclick="goToToday()">오늘</button>
+            <div class="month-navigation">
+                <button class="btn-nav" onclick="changeMonth(-1)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M15 18l-6-6 6-6"/>
+                    </svg>
+                </button>
+                <h2 class="current-month" id="current-month">2025년 8월</h2>
+                <button class="btn-nav" onclick="changeMonth(1)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M9 18l6-6-6-6"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="header-right">
+            <div class="view-switcher">
+                <button class="view-btn active" data-view="month" onclick="switchView('month')">월</button>
+                <button class="view-btn" data-view="week" onclick="switchView('week')">주</button>
+                <button class="view-btn" data-view="day" onclick="switchView('day')">일</button>
+                <button class="view-btn" data-view="list" onclick="switchView('list')">목록</button>
             </div>
             
-            <div class="calendar-stats">
-                <div class="stat-item">
-                    <span class="stat-value">{{ calendar.event_count or 0 }}</span>
-                    <span class="stat-label">이벤트</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-value" id="connected-platforms-count">0</span>
-                    <span class="stat-label">연결됨</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-value" id="sync-health">-</span>
-                    <span class="stat-label">상태</span>
-                </div>
+            <div class="header-actions">
+                <button class="btn-add-event" onclick="openEventModal()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    이벤트 추가
+                </button>
+                
+                <button class="btn-sync" onclick="syncCalendar()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                </button>
+                
+                <button class="btn-settings" onclick="openSettings()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M12 1v6m0 6v6m3.22-13.152l1.516-.88 3.476 2.007-1.517.88m-5.95 12.29l1.517.88 3.476-2.007-1.516-.88M1 12h6m6 0h6"/>
+                    </svg>
+                </button>
             </div>
-        </div>
-        
-        <div class="header-actions">
-            <button class="btn-view-calendar" onclick="openCalendarView()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>
-                캘린더 보기
-            </button>
-            <button class="btn-sync-now" onclick="triggerManualSync()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                </svg>
-                지금 동기화
-            </button>
-            <button class="btn-calendar-settings" onclick="openCalendarSettings()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 -1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                </svg>
-                설정
-            </button>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="calendar-detail-content">
-        <!-- Platform Connections Section -->
-        <section class="content-section">
-            <div class="section-header">
-                <div class="section-title">
-                    <h2>플랫폼 연결</h2>
-                    <p>이 캘린더와 이벤트를 동기화하기 위해 외부 플랫폼을 연결하세요</p>
-                </div>
-                <button class="btn-register-new" onclick="showPlatformRegistration()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                    플랫폼 등록
-                </button>
+    <!-- Calendar Grid -->
+    <div class="calendar-main">
+        <!-- Month View -->
+        <div class="calendar-view active" id="month-view">
+            <div class="weekdays">
+                <div class="weekday">일</div>
+                <div class="weekday">월</div>
+                <div class="weekday">화</div>
+                <div class="weekday">수</div>
+                <div class="weekday">목</div>
+                <div class="weekday">금</div>
+                <div class="weekday">토</div>
             </div>
-            
-            <!-- Platform Connection Grid -->
-            <div id="calendar-connections-container" class="connections-grid">
-                <!-- Dynamic content will be loaded here -->
+            <div class="calendar-grid" id="calendar-grid">
+                <!-- Calendar days will be generated here -->
             </div>
-        </section>
+        </div>
 
-        <!-- Platform Registration Section (Hidden by default) -->
-        <section class="content-section platform-registration-section" id="platform-registration-section" style="display: none;">
-            <div class="section-header">
-                <div class="section-title">
-                    <h2>새 플랫폼 등록</h2>
-                    <p>캘린더 연결을 활성화하기 위해 새 플랫폼을 등록하세요</p>
+        <!-- Week View -->
+        <div class="calendar-view" id="week-view">
+            <div class="week-timeline">
+                <div class="time-labels">
+                    <div class="time-label">오전 12시</div>
+                    <div class="time-label">오전 6시</div>
+                    <div class="time-label">오후 12시</div>
+                    <div class="time-label">오후 6시</div>
                 </div>
-                <button class="btn-close-registration" onclick="hidePlatformRegistration()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                    닫기
-                </button>
+                <div class="week-days-container">
+                    <!-- Week view content -->
+                </div>
             </div>
-            
-            <div id="platform-registration-cards"></div>
-        </section>
+        </div>
 
-        <!-- Sync Configuration Section -->
-        <section class="content-section">
-            <div class="section-header">
-                <div class="section-title">
-                    <h2>동기화 구성</h2>
-                    <p>플랫폼이 이 캘린더와 동기화하는 방법을 구성하세요</p>
-                </div>
+        <!-- Day View -->
+        <div class="calendar-view" id="day-view">
+            <div class="day-timeline">
+                <!-- Day view content -->
             </div>
-            
-            <div class="sync-config-grid">
-                <div class="config-card">
-                    <div class="config-header">
-                        <h3>동기화 빈도</h3>
-                        <select class="sync-frequency-select" id="sync-frequency" onchange="updateSyncConfig()">
-                            <option value="5">5분마다</option>
-                            <option value="15" selected>15분마다</option>
-                            <option value="30">30분마다</option>
-                            <option value="60">1시간마다</option>
-                            <option value="360">6시간마다</option>
-                            <option value="1440">매일</option>
-                        </select>
-                    </div>
-                    <p class="config-description">플랫폼 간 이벤트 동기화 빈도</p>
-                </div>
-                
-                <div class="config-card">
-                    <div class="config-header">
-                        <h3>자동 동기화</h3>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="auto-sync" checked onchange="updateSyncConfig()">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    <p class="config-description">변경 사항이 감지되면 자동으로 동기화</p>
-                </div>
-                
-                <div class="config-card">
-                    <div class="config-header">
-                        <h3>동기화 방향</h3>
-                        <select class="sync-direction-select" id="sync-direction" onchange="updateSyncConfig()">
-                            <option value="both" selected>양방향</option>
-                            <option value="to_platform">플랫폼으로만</option>
-                            <option value="from_platform">플랫폼에서만</option>
-                        </select>
-                    </div>
-                    <p class="config-description">이벤트 동기화 방향</p>
-                </div>
-            </div>
-        </section>
+        </div>
 
-        <!-- Recent Activity Section -->
-        <section class="content-section">
-            <div class="section-header">
-                <div class="section-title">
-                    <h2>최근 활동</h2>
-                    <p>최근 동기화 활동 및 연결 이벤트</p>
+        <!-- List View -->
+        <div class="calendar-view" id="list-view">
+            <div class="events-list">
+                <!-- List view content -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="calendar-sidebar">
+        <div class="sidebar-section">
+            <h3 class="sidebar-title">오늘의 일정</h3>
+            <div class="today-events" id="today-events">
+                <div class="no-events">오늘 일정이 없습니다</div>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <h3 class="sidebar-title">다가오는 일정</h3>
+            <div class="upcoming-events" id="upcoming-events">
+                <div class="event-item">
+                    <div class="event-time">8월 20일 오후 2시</div>
+                    <div class="event-title">팀 미팅</div>
                 </div>
-                <button class="btn-view-all" onclick="viewAllActivity()">모두 보기</button>
+                <div class="event-item">
+                    <div class="event-time">8월 22일 오전 10시</div>
+                    <div class="event-title">프로젝트 발표</div>
+                </div>
             </div>
-            
-            <div class="activity-feed" id="activity-feed">
-                <!-- Dynamic content will be loaded here -->
+        </div>
+
+        <div class="sidebar-section">
+            <h3 class="sidebar-title">캘린더 통계</h3>
+            <div class="calendar-stats">
+                <div class="stat-item">
+                    <span class="stat-label">총 이벤트</span>
+                    <span class="stat-value">{{ calendar.event_count or 0 }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">이번 달</span>
+                    <span class="stat-value" id="month-events">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">이번 주</span>
+                    <span class="stat-value" id="week-events">0</span>
+                </div>
             </div>
-        </section>
+        </div>
     </div>
 </div>
 
-<!-- 미디어 플레이어 팝업 -->
-<div class="media-player-popup" id="media-player-popup" style="display: none;">
-    <div class="player-header">
-        <div class="player-title" id="player-title">미디어 재생</div>
-        <div class="player-controls-header">
-            <button class="btn-minimize" onclick="minimizePlayer()" title="최소화">
-                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+<!-- Day Detail Modal -->
+<div class="modal-overlay" id="day-modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title" id="modal-date">2025년 8월 17일</h2>
+            <button class="modal-close" onclick="closeDayModal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
-            <button class="btn-close-player" onclick="closeMediaPlayer()" title="닫기">
-                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </div>
+        
+        <div class="modal-body">
+            <div class="day-events" id="day-events">
+                <!-- Events for selected day -->
+            </div>
+            
+            <button class="btn-add-event-modal" onclick="addEventToDay()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
                 </svg>
+                이 날짜에 이벤트 추가
             </button>
         </div>
     </div>
-    
-    <div class="player-content" id="player-content">
-        <!-- 오디오 플레이어 -->
-        <div class="audio-player" id="audio-player" style="display: none;">
-            <div class="audio-info">
-                <div class="audio-icon">
-                    <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
-                    </svg>
-                </div>
-                <div class="audio-details">
-                    <div class="track-name" id="track-name">오디오 파일</div>
-                    <div class="track-time">
-                        <span id="current-time">0:00</span> / <span id="total-time">0:00</span>
-                    </div>
-                </div>
-            </div>
-            
-            <audio id="audio-element" controls style="display: none;"></audio>
-            
-            <div class="audio-controls">
-                <button class="btn-play-pause" id="btn-play-pause" onclick="togglePlayPause()">
-                    <svg class="play-icon" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M8 5v14l11-7z"/>
-                    </svg>
-                    <svg class="pause-icon" width="24" height="24" fill="currentColor" viewBox="0 0 24 24" style="display: none;">
-                        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
-                    </svg>
-                </button>
-                
-                <div class="progress-container">
-                    <input type="range" class="progress-bar" id="progress-bar" min="0" max="100" value="0" onchange="seekAudio()">
-                </div>
-                
-                <div class="volume-container">
-                    <button class="btn-mute" onclick="toggleMute()">
-                        <svg class="volume-icon" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-                        </svg>
-                        <svg class="mute-icon" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" style="display: none;">
-                            <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
-                        </svg>
-                    </button>
-                    <input type="range" class="volume-bar" id="volume-bar" min="0" max="100" value="50" onchange="changeVolume()">
-                </div>
-            </div>
-        </div>
-        
-        <!-- 비디오 플레이어 -->
-        <div class="video-player" id="video-player" style="display: none;">
-            <video id="video-element" controls style="width: 100%; height: 200px; border-radius: 8px;"></video>
-        </div>
-        
-        <!-- 로딩 상태 -->
-        <div class="player-loading" id="player-loading">
-            <div class="loading-spinner"></div>
-            <p>미디어 파일을 불러오는 중...</p>
-        </div>
-        
-        <!-- 오류 상태 -->
-        <div class="player-error" id="player-error" style="display: none;">
-            <div class="error-icon">
-                <svg width="32" height="32" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+</div>
+
+<!-- Event Creation Modal -->
+<div class="modal-overlay" id="event-modal" style="display: none;">
+    <div class="modal-content event-modal">
+        <div class="modal-header">
+            <h2 class="modal-title">새 이벤트</h2>
+            <button class="modal-close" onclick="closeEventModal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M6 18L18 6M6 6l12 12"/>
                 </svg>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="form-group">
+                <label>제목</label>
+                <input type="text" id="event-title" placeholder="이벤트 제목 입력">
             </div>
-            <p>파일을 불러올 수 없습니다.</p>
-            <button class="btn-retry" onclick="retryLoadMedia()">다시 시도</button>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>시작일</label>
+                    <input type="datetime-local" id="event-start">
+                </div>
+                <div class="form-group">
+                    <label>종료일</label>
+                    <input type="datetime-local" id="event-end">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>설명</label>
+                <textarea id="event-description" rows="4" placeholder="이벤트 설명 (선택사항)"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>색상</label>
+                <div class="color-picker">
+                    <button class="color-option active" data-color="#3B82F6" style="background: #3B82F6"></button>
+                    <button class="color-option" data-color="#10B981" style="background: #10B981"></button>
+                    <button class="color-option" data-color="#F59E0B" style="background: #F59E0B"></button>
+                    <button class="color-option" data-color="#EF4444" style="background: #EF4444"></button>
+                    <button class="color-option" data-color="#8B5CF6" style="background: #8B5CF6"></button>
+                    <button class="color-option" data-color="#EC4899" style="background: #EC4899"></button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="event-allday">
+                    <span>종일 이벤트</span>
+                </label>
+            </div>
+            
+            <div class="form-actions">
+                <button class="btn-cancel" onclick="closeEventModal()">취소</button>
+                <button class="btn-save" onclick="saveEvent()">저장</button>
+            </div>
         </div>
     </div>
 </div>
@@ -290,865 +265,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/platform-card.js') }}?v={{ range(100000, 999999) | random }}"></script>
-<script src="{{ url_for('static', filename='js/apple-setup-wizard.js') }}?v={{ range(100000, 999999) | random }}"></script>
-<script src="{{ url_for('static', filename='js/platform-health.js') }}?v={{ range(100000, 999999) | random }}"></script>
-<script src="{{ url_for('static', filename='js/calendar-dropdown.js') }}?v={{ range(100000, 999999) | random }}"></script>
-<script src="{{ url_for('static', filename='js/connect-button.js') }}?v={{ range(100000, 999999) | random }}"></script>
-
-<script>
-// Calendar detail page functionality
-const calendarId = '{{ calendar.id }}';
-let connectionManager = null;
-let platformCards = null;
-
-document.addEventListener('DOMContentLoaded', async function() {
-    try {
-        // Initialize calendar connections
-        await loadCalendarConnections();
-        
-        // Load recent activity
-        await loadRecentActivity();
-        
-        // 미디어 파일이 있으면 자동 재생
-        {% if calendar.media_filename %}
-        setTimeout(() => {
-            openMediaPlayer();
-            // 플레이어가 열린 후 자동 재생 시작
-            setTimeout(() => {
-                const mediaElement = document.getElementById('media-element');
-                if (mediaElement) {
-                    mediaElement.play().catch(e => {
-                        console.log('자동 재생 실패 (사용자 상호작용 필요):', e);
-                    });
-                }
-            }, 500);
-        }, 1000);
-        {% endif %}
-        
-    } catch (error) {
-        console.error('Error initializing calendar detail page:', error);
-    }
-});
-
-async function loadCalendarConnections() {
-    try {
-        const response = await fetch(`/api/calendars/${calendarId}/connections`);
-        const data = await response.json();
-        
-        if (data.success) {
-            renderConnections(data);
-            updateStats(data);
-        } else {
-            showError('Failed to load connections: ' + data.error);
-        }
-    } catch (error) {
-        console.error('Error loading connections:', error);
-        showError('Error loading platform connections');
-    }
-}
-
-function renderConnections(data) {
-    const container = document.getElementById('calendar-connections-container');
-    if (!container) return;
-    
-    const { connected_platforms, available_platforms } = data;
-    
-    // Create connection cards for connected platforms
-    const connectedCards = Object.entries(connected_platforms).map(([platformId, platform]) => {
-        return createConnectionCard(platformId, platform, true);
-    }).join('');
-    
-    // Create connection cards for available platforms
-    const availableCards = Object.entries(available_platforms).map(([platformId, platform]) => {
-        return createConnectionCard(platformId, platform, false);
-    }).join('');
-    
-    container.innerHTML = `
-        ${connectedCards}
-        ${availableCards}
-        ${Object.keys(connected_platforms).length === 0 && Object.keys(available_platforms).length === 0 ? 
-            '<div class="no-connections-message">No registered platforms available. Register a platform first to create connections.</div>' : ''}
-    `;
-    
-    // Attach connect button event listeners
-    attachConnectionEventListeners();
-}
-
-function createConnectionCard(platformId, platform, isConnected) {
-    const statusClass = isConnected ? 'connected' : 'available';
-    const statusText = isConnected ? 'Connected' : 'Available';
-    const healthBadge = isConnected ? getHealthBadge(platform.health_status) : '';
-    
-    return `
-        <div class="connection-card ${statusClass}" data-platform="${platformId}">
-            <div class="connection-header">
-                <div class="platform-info">
-                    <div class="platform-icon ${platformId}">
-                        ${getPlatformIcon(platformId)}
-                    </div>
-                    <div class="platform-details">
-                        <h3 class="platform-name">${platform.platform_name}</h3>
-                        <p class="platform-status">${statusText} ${healthBadge}</p>
-                        ${isConnected ? `
-                            <div class="sync-info">
-                                <span class="sync-frequency">Sync: ${platform.sync_frequency || 15}min</span>
-                                <span class="sync-direction">${getSyncDirectionText(platform.sync_direction)}</span>
-                            </div>
-                        ` : ''}
-                    </div>
-                </div>
-                
-                <div class="connection-actions">
-                    <div id="connect-btn-${platformId}"></div>
-                    ${isConnected ? `
-                        <button class="btn-configure" onclick="configureConnection('${platformId}')">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="3"></circle>
-                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 -1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                            </svg>
-                        </button>
-                    ` : ''}
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-function attachConnectionEventListeners() {
-    // Get current connections state
-    document.querySelectorAll('[id^="connect-btn-"]').forEach(container => {
-        const platformId = container.id.replace('connect-btn-', '');
-        const card = container.closest('.connection-card');
-        const isConnected = card.classList.contains('connected');
-        
-        new ConnectButton(container.id, {
-            calendarId: calendarId,
-            platform: platformId,
-            platformName: card.querySelector('.platform-name').textContent,
-            initialState: isConnected ? 'connected' : 'disconnected',
-            size: 'small',
-            variant: 'outline',
-            onConnect: (data) => {
-                // Refresh connections after successful connect
-                loadCalendarConnections();
-                showSuccess(`${data.platform} connected successfully`);
-            },
-            onDisconnect: (data) => {
-                // Refresh connections after successful disconnect
-                loadCalendarConnections();
-                showSuccess(`${data.platform} disconnected successfully`);
-            },
-            onError: (data) => {
-                showError(`${data.action} failed: ${data.error}`);
-            }
-        });
-    });
-}
-
-function updateStats(data) {
-    const connectedCount = Object.keys(data.connected_platforms).length;
-    const healthStatus = calculateOverallHealth(data.connected_platforms);
-    
-    document.getElementById('connected-platforms-count').textContent = connectedCount;
-    document.getElementById('sync-health').textContent = healthStatus;
-}
-
-function calculateOverallHealth(platforms) {
-    if (Object.keys(platforms).length === 0) return 'N/A';
-    
-    const healthScores = Object.values(platforms).map(p => {
-        switch (p.health_status) {
-            case 'healthy': return 100;
-            case 'warning': return 70;
-            case 'error': return 30;
-            default: return 0;
-        }
-    });
-    
-    const avgHealth = healthScores.reduce((a, b) => a + b, 0) / healthScores.length;
-    
-    if (avgHealth >= 90) return 'Excellent';
-    if (avgHealth >= 70) return 'Good';
-    if (avgHealth >= 50) return 'Fair';
-    return 'Poor';
-}
-
-function showPlatformRegistration() {
-    const section = document.getElementById('platform-registration-section');
-    section.style.display = 'block';
-    
-    // Initialize platform registration cards if not already done
-    if (!platformCards) {
-        platformCards = new PlatformCard('platform-registration-cards', {
-            showRegistrationButton: true,
-            showConnectionButtons: false,
-            onRegister: (platform, data) => {
-                showSuccess(`${data.platform_name} registered successfully`);
-                // Refresh connections to show newly registered platform
-                setTimeout(() => {
-                    loadCalendarConnections();
-                    hidePlatformRegistration();
-                }, 1000);
-            }
-        });
-    }
-}
-
-function hidePlatformRegistration() {
-    const section = document.getElementById('platform-registration-section');
-    section.style.display = 'none';
-}
-
-// Utility functions
-function getPlatformIcon(platformId) {
-    const icons = {
-        notion: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046 1.121-.56 1.121-1.167V6.354c0-.606-.233-.933-.747-.887l-15.177.887c-.56.047-.934.373-.934 1.027zm13.748.327c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073z"/></svg>',
-        google: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>',
-        apple: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H7c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 16c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm2.5-4H9.5V6h5v9z"/></svg>',
-        outlook: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7.88 12.04q0 .45-.11.87-.1.41-.33.74-.22.33-.58.52-.37.2-.87.2-.51 0-.87-.2-.37-.19-.59-.52-.21-.33-.32-.74-.1-.42-.1-.87 0-.44.1-.86.11-.41.32-.73.22-.33.59-.52.36-.2.87-.2.5 0 .87.2.36.19.58.52.23.32.33.73.11.42.11.86z"/></svg>',
-        slack: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52z"/></svg>'
-    };
-    return icons[platformId] || '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>';
-}
-
-function getHealthBadge(health) {
-    const badges = {
-        healthy: '<span class="health-badge healthy">●</span>',
-        warning: '<span class="health-badge warning">●</span>',
-        error: '<span class="health-badge error">●</span>'
-    };
-    return badges[health] || '';
-}
-
-function getSyncDirectionText(direction) {
-    const texts = {
-        both: '↔️',
-        to_platform: '→',
-        from_platform: '←'
-    };
-    return texts[direction] || '↔️';
-}
-
-async function loadRecentActivity() {
-    // Mock recent activity for now
-    const activityFeed = document.getElementById('activity-feed');
-    if (activityFeed) {
-        activityFeed.innerHTML = `
-            <div class="activity-item">
-                <div class="activity-icon success">✓</div>
-                <div class="activity-content">
-                    <div class="activity-title">Notion sync completed</div>
-                    <div class="activity-time">2 minutes ago</div>
-                </div>
-            </div>
-            <div class="activity-item">
-                <div class="activity-icon sync">🔄</div>
-                <div class="activity-content">
-                    <div class="activity-title">Google Calendar sync started</div>
-                    <div class="activity-time">5 minutes ago</div>
-                </div>
-            </div>
-        `;
-    }
-}
-
-// Additional functions
-async function triggerManualSync() {
-    console.log('Triggering manual sync for all connected platforms...');
-    showSuccess('Manual sync triggered for all platforms');
-}
-
-function openCalendarView() {
-    console.log('Opening calendar view for calendar:', calendarId);
-    window.location.href = `/dashboard/calendar/${calendarId}/view`;
-}
-
-function openCalendarSettings() {
-    console.log('Opening calendar settings...');
-    showInfo('Calendar settings will be available in the next update');
-}
-
-function configureConnection(platformId) {
-    console.log(`Configuring ${platformId} connection...`);
-    showInfo(`${platformId} connection configuration will be available in the next update`);
-}
-
-async function updateSyncConfig() {
-    const frequency = document.getElementById('sync-frequency').value;
-    const autoSync = document.getElementById('auto-sync').checked;
-    const direction = document.getElementById('sync-direction').value;
-    
-    console.log('Updating sync config:', { frequency, autoSync, direction });
-    showSuccess('Sync configuration updated');
-}
-
-function viewAllActivity() {
-    console.log('Viewing all activity...');
-    showInfo('Full activity log will be available in the next update');
-}
-
-// Notification helpers
-function showSuccess(message) {
-    showNotification(message, 'success');
-}
-
-function showError(message) {
-    showNotification(message, 'error');
-}
-
-function showInfo(message) {
-    showNotification(message, 'info');
-}
-
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.textContent = message;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 16px 24px;
-        border-radius: 12px;
-        color: white;
-        font-weight: 500;
-        z-index: 10000;
-        transform: translateX(400px);
-        transition: transform 0.3s ease;
-        ${type === 'success' ? 'background: linear-gradient(135deg, #10b981, #059669);' : ''}
-        ${type === 'error' ? 'background: linear-gradient(135deg, #ef4444, #dc2626);' : ''}
-        ${type === 'info' ? 'background: linear-gradient(135deg, #3b82f6, #2563eb);' : ''}
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Animation
-    setTimeout(() => notification.style.transform = 'translateX(0)', 100);
-    setTimeout(() => notification.style.transform = 'translateX(400px)', 3000);
-    setTimeout(() => document.body.removeChild(notification), 3500);
-}
-
-// 미디어 파일명 편집 기능
-function editMediaFilename() {
-    const filenameSpan = document.getElementById('media-filename');
-    const filenameInput = document.getElementById('media-filename-input');
-    
-    if (filenameSpan && filenameInput) {
-        filenameSpan.style.display = 'none';
-        filenameInput.style.display = 'inline-block';
-        filenameInput.focus();
-        filenameInput.select();
-    }
-}
-
-async function saveMediaFilename() {
-    const filenameSpan = document.getElementById('media-filename');
-    const filenameInput = document.getElementById('media-filename-input');
-    
-    if (!filenameSpan || !filenameInput) return;
-    
-    const newFilename = filenameInput.value.trim();
-    const originalFilename = filenameSpan.textContent.trim();
-    
-    // 변경사항이 없으면 편집 모드 종료
-    if (newFilename === originalFilename) {
-        filenameInput.style.display = 'none';
-        filenameSpan.style.display = 'inline';
-        return;
-    }
-    
-    // 빈 문자열 체크
-    if (!newFilename) {
-        alert('파일명을 입력해주세요.');
-        filenameInput.focus();
-        return;
-    }
-    
-    try {
-        const response = await fetch(`/api/calendars/${calendarId}/media-filename`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                media_filename: newFilename
-            })
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            filenameSpan.textContent = newFilename;
-            filenameInput.value = newFilename;
-            filenameInput.style.display = 'none';
-            filenameSpan.style.display = 'inline';
-            showSuccess('파일명이 성공적으로 업데이트되었습니다.');
-        } else {
-            alert('파일명 업데이트 실패: ' + result.error);
-            filenameInput.focus();
-        }
-    } catch (error) {
-        console.error('Error updating media filename:', error);
-        alert('파일명 업데이트 중 오류가 발생했습니다. 다시 시도해주세요.');
-        filenameInput.focus();
-    }
-}
-
-function handleMediaFilenameKeydown(event) {
-    if (event.key === 'Enter') {
-        event.preventDefault();
-        saveMediaFilename();
-    } else if (event.key === 'Escape') {
-        const filenameSpan = document.getElementById('media-filename');
-        const filenameInput = document.getElementById('media-filename-input');
-        
-        // 원래 값으로 복원
-        filenameInput.value = filenameSpan.textContent.trim();
-        filenameInput.style.display = 'none';
-        filenameSpan.style.display = 'inline';
-    }
-}
-
-// 미디어 플레이어 관련 변수
-let currentMedia = null;
-let isPlayerOpen = false;
-let isPlayerMinimized = false;
-let playerDragData = { isDragging: false, startX: 0, startY: 0, initialX: 0, initialY: 0 };
-
-// 미디어 플레이어 열기
-async function openMediaPlayer() {
-    const mediaFilename = document.getElementById('media-filename').textContent.trim();
-    
-    if (!mediaFilename) {
-        showError('재생할 미디어 파일이 없습니다.');
-        return;
-    }
-    
-    const popup = document.getElementById('media-player-popup');
-    const playerTitle = document.getElementById('player-title');
-    
-    // 팝업 표시
-    popup.style.display = 'block';
-    popup.classList.add('show');
-    playerTitle.textContent = mediaFilename;
-    isPlayerOpen = true;
-    
-    // 로딩 상태 표시
-    showPlayerState('loading');
-    
-    try {
-        // 미디어 파일 URL 생성 (실제 구현에서는 API에서 파일 URL을 받아와야 함)
-        const mediaUrl = `/api/calendars/${calendarId}/media/${encodeURIComponent(mediaFilename)}`;
-        
-        // 파일 확장자로 미디어 타입 판단
-        const fileExtension = mediaFilename.split('.').pop().toLowerCase();
-        const isVideo = ['mp4', 'mov', 'avi', 'wmv'].includes(fileExtension);
-        const isAudio = ['mp3', 'wav', 'm4a'].includes(fileExtension);
-        
-        if (isVideo) {
-            await loadVideoPlayer(mediaUrl, mediaFilename);
-        } else if (isAudio) {
-            await loadAudioPlayer(mediaUrl, mediaFilename);
-        } else {
-            throw new Error('지원되지 않는 파일 형식입니다.');
-        }
-        
-    } catch (error) {
-        console.error('Error loading media:', error);
-        showPlayerState('error');
-    }
-    
-    // 드래그 기능 설정
-    setupPlayerDrag();
-}
-
-// 오디오 플레이어 로드
-async function loadAudioPlayer(audioUrl, filename) {
-    const audioElement = document.getElementById('audio-element');
-    const trackName = document.getElementById('track-name');
-    
-    trackName.textContent = filename;
-    audioElement.src = audioUrl;
-    
-    // 메타데이터 로드 대기
-    await new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error('로딩 시간 초과')), 10000);
-        
-        audioElement.addEventListener('loadedmetadata', () => {
-            clearTimeout(timeout);
-            resolve();
-        }, { once: true });
-        
-        audioElement.addEventListener('error', () => {
-            clearTimeout(timeout);
-            reject(new Error('파일을 로드할 수 없습니다'));
-        }, { once: true });
-        
-        audioElement.load();
-    });
-    
-    // 오디오 플레이어 표시
-    showPlayerState('audio');
-    setupAudioEvents();
-    updateTimeDisplay();
-}
-
-// 비디오 플레이어 로드
-async function loadVideoPlayer(videoUrl, filename) {
-    const videoElement = document.getElementById('video-element');
-    const playerTitle = document.getElementById('player-title');
-    
-    playerTitle.textContent = filename;
-    videoElement.src = videoUrl;
-    
-    // 메타데이터 로드 대기
-    await new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error('로딩 시간 초과')), 10000);
-        
-        videoElement.addEventListener('loadedmetadata', () => {
-            clearTimeout(timeout);
-            resolve();
-        }, { once: true });
-        
-        videoElement.addEventListener('error', () => {
-            clearTimeout(timeout);
-            reject(new Error('파일을 로드할 수 없습니다'));
-        }, { once: true });
-        
-        videoElement.load();
-    });
-    
-    // 비디오 플레이어 표시
-    showPlayerState('video');
-}
-
-// 플레이어 상태 표시
-function showPlayerState(state) {
-    const loading = document.getElementById('player-loading');
-    const error = document.getElementById('player-error');
-    const audioPlayer = document.getElementById('audio-player');
-    const videoPlayer = document.getElementById('video-player');
-    
-    // 모든 상태 숨기기
-    loading.style.display = 'none';
-    error.style.display = 'none';
-    audioPlayer.style.display = 'none';
-    videoPlayer.style.display = 'none';
-    
-    // 해당 상태 표시
-    switch (state) {
-        case 'loading':
-            loading.style.display = 'flex';
-            break;
-        case 'error':
-            error.style.display = 'flex';
-            break;
-        case 'audio':
-            audioPlayer.style.display = 'block';
-            break;
-        case 'video':
-            videoPlayer.style.display = 'block';
-            break;
-    }
-}
-
-// 오디오 이벤트 설정
-function setupAudioEvents() {
-    const audioElement = document.getElementById('audio-element');
-    const progressBar = document.getElementById('progress-bar');
-    const volumeBar = document.getElementById('volume-bar');
-    
-    // 시간 업데이트
-    audioElement.addEventListener('timeupdate', updateTimeDisplay);
-    
-    // 재생 상태 변경
-    audioElement.addEventListener('play', () => updatePlayPauseButton(true));
-    audioElement.addEventListener('pause', () => updatePlayPauseButton(false));
-    
-    // 진행률 업데이트
-    audioElement.addEventListener('timeupdate', () => {
-        if (audioElement.duration) {
-            const progress = (audioElement.currentTime / audioElement.duration) * 100;
-            progressBar.value = progress;
-        }
-    });
-    
-    // 볼륨 설정
-    audioElement.volume = volumeBar.value / 100;
-}
-
-// 재생/일시정지 토글
-function togglePlayPause() {
-    const audioElement = document.getElementById('audio-element');
-    const videoElement = document.getElementById('video-element');
-    
-    const activeElement = audioElement.style.display !== 'none' ? audioElement : videoElement;
-    
-    if (activeElement.paused) {
-        activeElement.play();
-    } else {
-        activeElement.pause();
-    }
-}
-
-// 재생/일시정지 버튼 업데이트
-function updatePlayPauseButton(isPlaying) {
-    const playIcon = document.querySelector('.play-icon');
-    const pauseIcon = document.querySelector('.pause-icon');
-    
-    if (isPlaying) {
-        playIcon.style.display = 'none';
-        pauseIcon.style.display = 'block';
-    } else {
-        playIcon.style.display = 'block';
-        pauseIcon.style.display = 'none';
-    }
-}
-
-// 시간 표시 업데이트
-function updateTimeDisplay() {
-    const audioElement = document.getElementById('audio-element');
-    const currentTimeSpan = document.getElementById('current-time');
-    const totalTimeSpan = document.getElementById('total-time');
-    
-    if (audioElement && audioElement.duration) {
-        currentTimeSpan.textContent = formatTime(audioElement.currentTime);
-        totalTimeSpan.textContent = formatTime(audioElement.duration);
-    }
-}
-
-// 시간 포맷팅
-function formatTime(seconds) {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-}
-
-// 진행률 바 조작
-function seekAudio() {
-    const audioElement = document.getElementById('audio-element');
-    const progressBar = document.getElementById('progress-bar');
-    
-    if (audioElement.duration) {
-        const seekTime = (progressBar.value / 100) * audioElement.duration;
-        audioElement.currentTime = seekTime;
-    }
-}
-
-// 음소거 토글
-function toggleMute() {
-    const audioElement = document.getElementById('audio-element');
-    const volumeIcon = document.querySelector('.volume-icon');
-    const muteIcon = document.querySelector('.mute-icon');
-    
-    audioElement.muted = !audioElement.muted;
-    
-    if (audioElement.muted) {
-        volumeIcon.style.display = 'none';
-        muteIcon.style.display = 'block';
-    } else {
-        volumeIcon.style.display = 'block';
-        muteIcon.style.display = 'none';
-    }
-}
-
-// 볼륨 변경
-function changeVolume() {
-    const audioElement = document.getElementById('audio-element');
-    const volumeBar = document.getElementById('volume-bar');
-    
-    audioElement.volume = volumeBar.value / 100;
-}
-
-// 플레이어 최소화
-function minimizePlayer() {
-    const popup = document.getElementById('media-player-popup');
-    
-    if (isPlayerMinimized) {
-        popup.classList.remove('minimized');
-        isPlayerMinimized = false;
-    } else {
-        popup.classList.add('minimized');
-        isPlayerMinimized = true;
-    }
-}
-
-// 플레이어 닫기
-function closeMediaPlayer() {
-    const popup = document.getElementById('media-player-popup');
-    const audioElement = document.getElementById('audio-element');
-    const videoElement = document.getElementById('video-element');
-    
-    // 재생 중인 미디어 정지
-    audioElement.pause();
-    videoElement.pause();
-    audioElement.src = '';
-    videoElement.src = '';
-    
-    // 팝업 숨기기
-    popup.style.display = 'none';
-    popup.classList.remove('show', 'minimized');
-    
-    isPlayerOpen = false;
-    isPlayerMinimized = false;
-}
-
-// 미디어 다시 로드
-function retryLoadMedia() {
-    const mediaFilename = document.getElementById('media-filename').textContent.trim();
-    openMediaPlayer();
-}
-
-// 플레이어 드래그 기능 설정
-function setupPlayerDrag() {
-    const popup = document.getElementById('media-player-popup');
-    const header = popup.querySelector('.player-header');
-    
-    header.addEventListener('mousedown', startDrag);
-    document.addEventListener('mousemove', drag);
-    document.addEventListener('mouseup', endDrag);
-}
-
-function startDrag(e) {
-    const popup = document.getElementById('media-player-popup');
-    
-    if (isPlayerMinimized) return;
-    
-    playerDragData.isDragging = true;
-    playerDragData.startX = e.clientX;
-    playerDragData.startY = e.clientY;
-    
-    const rect = popup.getBoundingClientRect();
-    playerDragData.initialX = rect.left + rect.width / 2 - window.innerWidth / 2;
-    playerDragData.initialY = rect.top + rect.height / 2 - window.innerHeight / 2;
-    
-    popup.style.cursor = 'grabbing';
-}
-
-function drag(e) {
-    if (!playerDragData.isDragging) return;
-    
-    e.preventDefault();
-    
-    const popup = document.getElementById('media-player-popup');
-    const deltaX = e.clientX - playerDragData.startX;
-    const deltaY = e.clientY - playerDragData.startY;
-    
-    const newX = playerDragData.initialX + deltaX;
-    const newY = playerDragData.initialY + deltaY;
-    
-    popup.style.transform = `translate(calc(-50% + ${newX}px), calc(-50% + ${newY}px))`;
-}
-
-function endDrag() {
-    if (!playerDragData.isDragging) return;
-    
-    playerDragData.isDragging = false;
-    
-    const popup = document.getElementById('media-player-popup');
-    popup.style.cursor = 'move';
-}
-
-// 편집 모드 체크 (더블클릭과 단일클릭 구분)
-let clickTimeout = null;
-const originalEditFunction = editMediaFilename;
-
-function editMediaFilename() {
-    // 플레이어가 열려있으면 편집 모드 실행하지 않음
-    if (isPlayerOpen) return;
-    
-    originalEditFunction();
-}
-</script>
-
-<style>
-/* Calendar View Button Style */
-.btn-view-calendar {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 16px;
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-decoration: none;
-    min-width: 140px;
-    justify-content: center;
-}
-
-.btn-view-calendar:hover {
-    background: linear-gradient(135deg, #5855eb 0%, #7c3aed 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
-}
-
-.btn-view-calendar svg {
-    width: 16px;
-    height: 16px;
-    stroke-width: 2;
-}
-
-/* Adjust header actions layout */
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.btn-sync-now,
-.btn-calendar-settings {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 16px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    color: #475569;
-    min-width: 120px;
-    justify-content: center;
-}
-
-.btn-sync-now:hover,
-.btn-calendar-settings:hover {
-    background: #f1f5f9;
-    border-color: #cbd5e1;
-    color: #334155;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.btn-sync-now svg,
-.btn-calendar-settings svg {
-    width: 16px;
-    height: 16px;
-    stroke-width: 2;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .header-actions {
-        flex-direction: column;
-        gap: 8px;
-        width: 100%;
-    }
-    
-    .btn-view-calendar,
-    .btn-sync-now,
-    .btn-calendar-settings {
-        width: 100%;
-        min-width: auto;
-    }
-}
-</style>
+<script src="{{ url_for('static', filename='js/calendar-detail.js') }}?v={{ range(100000, 999999) | random }}"></script>
 {% endblock %}
