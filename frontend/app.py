@@ -541,6 +541,7 @@ def serve_media(filename):
     # Define media directory paths
     media_dirs = [
         os.path.join(app.root_path, 'static', 'media'),
+        os.path.join(app.root_path, '..', 'uploads', 'media'),
         os.path.join(app.root_path, '..', 'media'),
         '/tmp/calendar_media'  # Temporary storage for uploaded files
     ]
@@ -629,8 +630,8 @@ def calendar_detail(calendar_id):
     # Prepare media URL if media file exists
     media_url = ''
     if calendar.get('media_file_path'):
-        # Convert file path to URL
-        media_url = f"/static/media/{calendar.get('media_filename', '')}"
+        # Convert file path to URL - use the actual filename
+        media_url = f"/media/{calendar.get('media_file_path', '')}"
         # Or use the actual path if it's a full URL
         if calendar['media_file_path'].startswith('http'):
             media_url = calendar['media_file_path']

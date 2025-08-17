@@ -3,6 +3,121 @@ let currentDate = new Date();
 let currentView = 'month';
 let selectedDate = null;
 let calendarEvents = [];
+let todoList = [];
+let habitList = [];
+
+// Hobby categories and options
+const hobbyCategories = {
+    sports: {
+        name: '🏃‍♂️ 스포츠',
+        options: [
+            {id: 'running', name: '러닝', emoji: '🏃‍♂️'},
+            {id: 'cycling', name: '자전거', emoji: '🚴‍♂️'},
+            {id: 'swimming', name: '수영', emoji: '🏊‍♂️'},
+            {id: 'yoga', name: '요가', emoji: '🧘‍♀️'},
+            {id: 'gym', name: '헬스', emoji: '💪'},
+            {id: 'tennis', name: '테니스', emoji: '🎾'},
+            {id: 'basketball', name: '농구', emoji: '🏀'},
+            {id: 'soccer', name: '축구', emoji: '⚽'},
+            {id: 'baseball', name: '야구', emoji: '⚾'},
+            {id: 'badminton', name: '배드민턴', emoji: '🏸'},
+            {id: 'golf', name: '골프', emoji: '⛳'},
+            {id: 'boxing', name: '복싱', emoji: '🥊'},
+            {id: 'climbing', name: '클라이밍', emoji: '🧗‍♂️'}
+        ]
+    },
+    reading: {
+        name: '📚 독서/학습',
+        options: [
+            {id: 'book-reading', name: '독서', emoji: '📖'},
+            {id: 'online-course', name: '온라인 강의', emoji: '💻'},
+            {id: 'language-study', name: '언어 공부', emoji: '🗣️'},
+            {id: 'writing', name: '글쓰기', emoji: '✍️'},
+            {id: 'journal', name: '일기 쓰기', emoji: '📝'},
+            {id: 'coding', name: '코딩', emoji: '👨‍💻'},
+            {id: 'study', name: '공부', emoji: '📚'},
+            {id: 'podcast', name: '팟캐스트', emoji: '🎧'},
+            {id: 'audiobook', name: '오디오북', emoji: '🔊'}
+        ]
+    },
+    entertainment: {
+        name: '🎬 엔터테인먼트',
+        options: [
+            {id: 'movie', name: '영화 감상', emoji: '🎬'},
+            {id: 'drama', name: '드라마 시청', emoji: '📺'},
+            {id: 'music', name: '음악 감상', emoji: '🎵'},
+            {id: 'concert', name: '콘서트 관람', emoji: '🎤'},
+            {id: 'theater', name: '연극 관람', emoji: '🎭'},
+            {id: 'gaming', name: '게임', emoji: '🎮'},
+            {id: 'youtube', name: 'YouTube', emoji: '📱'},
+            {id: 'netflix', name: '넷플릭스', emoji: '📺'}
+        ]
+    },
+    creative: {
+        name: '🎨 창작활동',
+        options: [
+            {id: 'drawing', name: '그림 그리기', emoji: '🎨'},
+            {id: 'photography', name: '사진 촬영', emoji: '📸'},
+            {id: 'music-making', name: '음악 만들기', emoji: '🎼'},
+            {id: 'crafting', name: '수공예', emoji: '🧵'},
+            {id: 'cooking', name: '요리', emoji: '👨‍🍳'},
+            {id: 'baking', name: '베이킹', emoji: '🧁'},
+            {id: 'pottery', name: '도예', emoji: '🏺'},
+            {id: 'knitting', name: '뜨개질', emoji: '🧶'},
+            {id: 'origami', name: '종이접기', emoji: '📜'}
+        ]
+    },
+    health: {
+        name: '💪 건강관리',
+        options: [
+            {id: 'water', name: '물 마시기', emoji: '💧'},
+            {id: 'vitamins', name: '비타민 섭취', emoji: '💊'},
+            {id: 'meditation', name: '명상', emoji: '🧘'},
+            {id: 'stretching', name: '스트레칭', emoji: '🤸‍♀️'},
+            {id: 'sleep', name: '충분한 수면', emoji: '😴'},
+            {id: 'healthy-eating', name: '건강한 식사', emoji: '🥗'},
+            {id: 'walk', name: '산책', emoji: '🚶‍♂️'},
+            {id: 'breathing', name: '호흡 운동', emoji: '💨'}
+        ]
+    },
+    social: {
+        name: '👥 사회활동',
+        options: [
+            {id: 'friends', name: '친구 만나기', emoji: '👫'},
+            {id: 'family', name: '가족 시간', emoji: '👨‍👩‍👧‍👦'},
+            {id: 'dating', name: '데이트', emoji: '💕'},
+            {id: 'networking', name: '네트워킹', emoji: '🤝'},
+            {id: 'volunteer', name: '봉사활동', emoji: '🤲'},
+            {id: 'phone-call', name: '안부 전화', emoji: '📞'},
+            {id: 'meetup', name: '모임 참석', emoji: '🎉'}
+        ]
+    },
+    outdoor: {
+        name: '🌳 야외활동',
+        options: [
+            {id: 'hiking', name: '등산', emoji: '🥾'},
+            {id: 'camping', name: '캠핑', emoji: '⛺'},
+            {id: 'picnic', name: '피크닉', emoji: '🧺'},
+            {id: 'beach', name: '바다 가기', emoji: '🏖️'},
+            {id: 'park', name: '공원 산책', emoji: '🌳'},
+            {id: 'fishing', name: '낚시', emoji: '🎣'},
+            {id: 'gardening', name: '원예', emoji: '🌱'},
+            {id: 'stargazing', name: '별 보기', emoji: '⭐'}
+        ]
+    },
+    mindfulness: {
+        name: '🧘 마음챙김',
+        options: [
+            {id: 'meditation-daily', name: '일일 명상', emoji: '🧘'},
+            {id: 'gratitude', name: '감사 인사', emoji: '🙏'},
+            {id: 'reflection', name: '하루 돌아보기', emoji: '💭'},
+            {id: 'mindful-eating', name: '마음챙김 식사', emoji: '🍽️'},
+            {id: 'digital-detox', name: '디지털 디톡스', emoji: '📵'},
+            {id: 'nature-time', name: '자연과 시간', emoji: '🌿'},
+            {id: 'prayer', name: '기도', emoji: '🕯️'}
+        ]
+    }
+};
 
 // Calendar initialization
 document.addEventListener('DOMContentLoaded', function() {
@@ -11,6 +126,8 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
     initializeMiniCalendar();
     initializeMediaPlayer();
+    initializeTodoList();
+    initializeHabitTracker();
 });
 
 function initializeCalendar() {
@@ -120,8 +237,9 @@ function checkForMediaFiles() {
     
     // Check if we have media files associated with this calendar
     if (mediaUrl && mediaUrl !== '') {
-        // Show the media player
+        // Show both media players
         document.getElementById('media-player').style.display = 'flex';
+        showCompactMediaPlayer();
         
         // Parse media URL (could be JSON string with multiple files)
         try {
@@ -142,6 +260,14 @@ function checkForMediaFiles() {
     } else {
         // Try to fetch media files from API
         fetchCalendarMedia(calendarId);
+        
+        // Show compact player anyway for demo
+        showCompactMediaPlayer();
+        loadTrack({
+            title: '캘린더 배경음악',
+            artist: '집중 음악',
+            src: '/static/media/demo.mp3'
+        });
     }
 }
 
@@ -197,6 +323,9 @@ function loadTrack(track) {
         
         // Set new source
         audioPlayer.src = track.src;
+        
+        // Update compact player info
+        updateCompactPlayerInfo(track);
         
         // Update UI with track info
         document.getElementById('media-title').textContent = track.title || extractFileName(track.src);
@@ -745,4 +874,627 @@ function syncCalendar() {
 
 function openSettings() {
     showNotification('설정 기능은 개발 중입니다.');
+}
+
+// ============ TO DO LIST FUNCTIONALITY ============
+
+function initializeTodoList() {
+    // Update current month display
+    updateCurrentTodoMonth();
+    
+    // Load existing todos from localStorage or server
+    loadTodoList();
+}
+
+function updateCurrentTodoMonth() {
+    const monthElement = document.getElementById('current-todo-month');
+    if (monthElement) {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth() + 1;
+        monthElement.textContent = `${year}년 ${month}월`;
+    }
+}
+
+function loadTodoList() {
+    // Load from localStorage for now
+    const savedTodos = localStorage.getItem('calendar-todos');
+    if (savedTodos) {
+        todoList = JSON.parse(savedTodos);
+        renderTodoList();
+    }
+}
+
+function saveTodoListToStorage() {
+    localStorage.setItem('calendar-todos', JSON.stringify(todoList));
+}
+
+function renderTodoList() {
+    const container = document.getElementById('todo-list-container');
+    if (!container) return;
+    
+    // Clear existing items except the sample ones
+    container.innerHTML = '';
+    
+    todoList.forEach((todo, index) => {
+        const todoItem = createTodoElement(todo, index);
+        container.appendChild(todoItem);
+    });
+}
+
+function createTodoElement(todo, index) {
+    const todoItem = document.createElement('div');
+    todoItem.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+    todoItem.dataset.index = index;
+    
+    todoItem.innerHTML = `
+        <div class="todo-checkbox" onclick="toggleTodo(this)">${todo.completed ? '✓' : '○'}</div>
+        <div class="todo-text">${todo.text}</div>
+        <div class="todo-tag">${getPriorityTag(todo.priority)}</div>
+        <button class="todo-delete-btn" onclick="deleteTodo(this)" title="삭제">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    `;
+    
+    return todoItem;
+}
+
+function getPriorityTag(priority) {
+    switch(priority) {
+        case 'high': return '🔴 높음';
+        case 'medium': return '🟡 보통';
+        case 'low': return '🟢 낮음';
+        default: return '📌 일반';
+    }
+}
+
+function openTodoModal() {
+    const container = document.querySelector('.add-todo-input-container');
+    if (container) {
+        container.style.display = 'block';
+        const input = container.querySelector('.add-todo-input');
+        if (input) {
+            input.focus();
+            input.value = '';
+        }
+    }
+}
+
+function cancelTodoInput() {
+    const container = document.querySelector('.add-todo-input-container');
+    if (container) {
+        container.style.display = 'none';
+    }
+}
+
+function saveTodo() {
+    const input = document.querySelector('.add-todo-input');
+    if (!input || !input.value.trim()) {
+        showNotification('할 일을 입력해주세요.');
+        return;
+    }
+    
+    const newTodo = {
+        id: Date.now(),
+        text: input.value.trim(),
+        completed: false,
+        priority: 'normal',
+        createdAt: new Date().toISOString(),
+        month: currentDate.getMonth(),
+        year: currentDate.getFullYear()
+    };
+    
+    todoList.push(newTodo);
+    saveTodoListToStorage();
+    renderTodoList();
+    cancelTodoInput();
+    
+    showNotification('할 일이 추가되었습니다.');
+}
+
+function toggleTodo(checkbox) {
+    const todoItem = checkbox.closest('.todo-item');
+    const index = parseInt(todoItem.dataset.index);
+    
+    if (todoList[index]) {
+        todoList[index].completed = !todoList[index].completed;
+        todoItem.classList.toggle('completed');
+        checkbox.textContent = todoList[index].completed ? '✓' : '○';
+        
+        saveTodoListToStorage();
+        
+        const message = todoList[index].completed ? '할 일을 완료했습니다!' : '할 일을 미완료로 변경했습니다.';
+        showNotification(message);
+    }
+}
+
+function deleteTodo(deleteBtn) {
+    const todoItem = deleteBtn.closest('.todo-item');
+    const index = parseInt(todoItem.dataset.index);
+    
+    if (confirm('이 할 일을 삭제하시겠습니까?')) {
+        todoList.splice(index, 1);
+        saveTodoListToStorage();
+        renderTodoList();
+        showNotification('할 일이 삭제되었습니다.');
+    }
+}
+
+// Add keyboard support for todo input
+document.addEventListener('keydown', function(e) {
+    const input = document.querySelector('.add-todo-input');
+    if (input && document.activeElement === input) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            saveTodo();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            cancelTodoInput();
+        }
+    }
+});
+
+// ============ HABIT TRACKER FUNCTIONALITY ============
+
+function initializeHabitTracker() {
+    // Load existing habits from localStorage
+    loadHabitList();
+    
+    // Set current month as default
+    const currentMonth = new Date().getMonth() + 1;
+    const monthSelect = document.getElementById('target-month');
+    if (monthSelect) {
+        monthSelect.value = currentMonth;
+    }
+}
+
+function loadHabitList() {
+    const savedHabits = localStorage.getItem('calendar-habits');
+    if (savedHabits) {
+        habitList = JSON.parse(savedHabits);
+        renderHabitList();
+    }
+}
+
+function saveHabitListToStorage() {
+    localStorage.setItem('calendar-habits', JSON.stringify(habitList));
+}
+
+function renderHabitList() {
+    const container = document.getElementById('habit-list-container');
+    if (!container) return;
+    
+    // Clear existing items
+    container.innerHTML = '';
+    
+    habitList.forEach((habit, index) => {
+        const habitItem = createHabitElement(habit, index);
+        container.appendChild(habitItem);
+    });
+}
+
+function createHabitElement(habit, index) {
+    const habitItem = document.createElement('div');
+    habitItem.className = 'habit-item';
+    habitItem.dataset.id = habit.id;
+    habitItem.dataset.index = index;
+    
+    habitItem.innerHTML = `
+        <span class="habit-emoji">${habit.emoji}</span>
+        <span class="habit-name">${habit.name}</span>
+        <div class="habit-progress">
+            <span class="current-days">${habit.currentDays || 0}</span>/<span class="target-days">${habit.targetDays}</span>
+        </div>
+        <button class="habit-delete-btn" onclick="deleteHabit(this)" title="삭제">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    `;
+    
+    // Add click event for progress tracking
+    habitItem.addEventListener('click', function(e) {
+        if (!e.target.closest('.habit-delete-btn')) {
+            incrementHabitProgress(index);
+        }
+    });
+    
+    return habitItem;
+}
+
+function openHobbySelector() {
+    const modal = document.getElementById('hobby-selector');
+    if (modal) {
+        modal.style.display = 'block';
+        resetHobbyForm();
+    }
+}
+
+function closeHobbySelector() {
+    const modal = document.getElementById('hobby-selector');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function resetHobbyForm() {
+    document.getElementById('hobby-category').value = '';
+    document.getElementById('hobby-type').innerHTML = '<option value="">먼저 카테고리를 선택하세요</option>';
+    document.getElementById('target-month').value = new Date().getMonth() + 1;
+    document.getElementById('target-days').value = '3';
+    document.getElementById('custom-days').value = '';
+    document.getElementById('custom-days-group').style.display = 'none';
+    updateDaysSuggestion();
+}
+
+function updateHobbyOptions() {
+    const categorySelect = document.getElementById('hobby-category');
+    const hobbySelect = document.getElementById('hobby-type');
+    const selectedCategory = categorySelect.value;
+    
+    // Clear previous options
+    hobbySelect.innerHTML = '';
+    
+    if (selectedCategory && hobbyCategories[selectedCategory]) {
+        const category = hobbyCategories[selectedCategory];
+        category.options.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option.id;
+            optionElement.textContent = `${option.emoji} ${option.name}`;
+            optionElement.dataset.emoji = option.emoji;
+            hobbySelect.appendChild(optionElement);
+        });
+    } else {
+        hobbySelect.innerHTML = '<option value="">먼저 카테고리를 선택하세요</option>';
+    }
+    
+    updateSaveButtonState();
+}
+
+function updateDaysSuggestion() {
+    const monthSelect = document.getElementById('target-month');
+    const daysSelect = document.getElementById('target-days');
+    const customDaysGroup = document.getElementById('custom-days-group');
+    const suggestion = document.getElementById('days-suggestion');
+    
+    const selectedMonth = parseInt(monthSelect.value);
+    const selectedDays = daysSelect.value;
+    
+    // Show/hide custom days input
+    if (selectedDays === 'custom') {
+        customDaysGroup.style.display = 'block';
+    } else {
+        customDaysGroup.style.display = 'none';
+    }
+    
+    // Calculate days in month
+    const daysInMonth = new Date(2025, selectedMonth, 0).getDate();
+    const monthNames = ['', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+    
+    let suggestionText = `💡 ${monthNames[selectedMonth]}은 ${daysInMonth}일까지 있습니다. `;
+    
+    if (selectedDays === '3') {
+        const recommendedDays = Math.floor((daysInMonth / 7) * 3);
+        suggestionText += `주 3회 목표 시 약 ${recommendedDays}일 정도가 적당해요!`;
+    } else if (selectedDays === '5') {
+        const recommendedDays = Math.floor((daysInMonth / 7) * 5);
+        suggestionText += `주 5회 목표 시 약 ${recommendedDays}일 정도가 적당해요!`;
+    } else if (selectedDays === '7') {
+        suggestionText += `매일 목표라면 ${daysInMonth}일 모두 도전해보세요!`;
+    } else if (selectedDays === 'custom') {
+        suggestionText += `1일부터 ${daysInMonth}일 사이에서 선택하세요.`;
+    } else {
+        suggestionText += `월 ${selectedDays}회 목표로 설정됩니다.`;
+    }
+    
+    if (suggestion) {
+        suggestion.innerHTML = `<small>${suggestionText}</small>`;
+    }
+    
+    updateSaveButtonState();
+}
+
+function updateSaveButtonState() {
+    const saveBtn = document.querySelector('.save-hobby-btn');
+    const category = document.getElementById('hobby-category').value;
+    const hobby = document.getElementById('hobby-type').value;
+    const targetDays = document.getElementById('target-days').value;
+    const customDays = document.getElementById('custom-days').value;
+    
+    let isValid = category && hobby;
+    
+    if (targetDays === 'custom') {
+        isValid = isValid && customDays && parseInt(customDays) > 0;
+    }
+    
+    if (saveBtn) {
+        saveBtn.disabled = !isValid;
+    }
+}
+
+function saveNewHobby() {
+    const categorySelect = document.getElementById('hobby-category');
+    const hobbySelect = document.getElementById('hobby-type');
+    const monthSelect = document.getElementById('target-month');
+    const daysSelect = document.getElementById('target-days');
+    const customDaysInput = document.getElementById('custom-days');
+    
+    const selectedCategory = categorySelect.value;
+    const selectedHobby = hobbySelect.value;
+    const selectedMonth = parseInt(monthSelect.value);
+    let targetDays = parseInt(daysSelect.value);
+    
+    if (daysSelect.value === 'custom') {
+        targetDays = parseInt(customDaysInput.value);
+    }
+    
+    if (!selectedCategory || !selectedHobby || !targetDays) {
+        showNotification('모든 필드를 입력해주세요.');
+        return;
+    }
+    
+    // Find the hobby details
+    const categoryData = hobbyCategories[selectedCategory];
+    const hobbyData = categoryData.options.find(option => option.id === selectedHobby);
+    
+    if (!hobbyData) {
+        showNotification('선택한 취미를 찾을 수 없습니다.');
+        return;
+    }
+    
+    // Check if hobby already exists
+    const existingHabit = habitList.find(habit => habit.id === selectedHobby);
+    if (existingHabit) {
+        showNotification('이미 추가된 취미입니다.');
+        return;
+    }
+    
+    const newHabit = {
+        id: selectedHobby,
+        name: hobbyData.name,
+        emoji: hobbyData.emoji,
+        category: selectedCategory,
+        targetMonth: selectedMonth,
+        targetDays: targetDays,
+        currentDays: 0,
+        createdAt: new Date().toISOString(),
+        lastUpdated: new Date().toISOString()
+    };
+    
+    habitList.push(newHabit);
+    saveHabitListToStorage();
+    renderHabitList();
+    closeHobbySelector();
+    
+    showNotification(`${hobbyData.emoji} ${hobbyData.name} 취미가 추가되었습니다!`);
+}
+
+function incrementHabitProgress(index) {
+    if (habitList[index]) {
+        const habit = habitList[index];
+        
+        if (habit.currentDays < habit.targetDays) {
+            habit.currentDays++;
+            habit.lastUpdated = new Date().toISOString();
+            
+            saveHabitListToStorage();
+            renderHabitList();
+            
+            const progressText = habit.currentDays === habit.targetDays ? '목표 달성!' : `${habit.currentDays}/${habit.targetDays}`;
+            showNotification(`${habit.emoji} ${habit.name}: ${progressText}`);
+        } else {
+            showNotification('이미 목표를 달성했습니다! 🎉');
+        }
+    }
+}
+
+function deleteHabit(deleteBtn) {
+    const habitItem = deleteBtn.closest('.habit-item');
+    const index = parseInt(habitItem.dataset.index);
+    
+    if (confirm('이 취미를 삭제하시겠습니까?')) {
+        const deletedHabit = habitList[index];
+        habitList.splice(index, 1);
+        saveHabitListToStorage();
+        renderHabitList();
+        showNotification(`${deletedHabit.emoji} ${deletedHabit.name} 취미가 삭제되었습니다.`);
+    }
+}
+
+// Add event listeners for form updates
+document.addEventListener('change', function(e) {
+    if (e.target.id === 'target-days') {
+        updateDaysSuggestion();
+    } else if (e.target.id === 'target-month') {
+        updateDaysSuggestion();
+    } else if (e.target.id === 'custom-days') {
+        updateSaveButtonState();
+    } else if (e.target.id === 'hobby-category' || e.target.id === 'hobby-type') {
+        updateSaveButtonState();
+    }
+});
+
+// Close hobby selector when clicking outside
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('hobby-selector');
+    const addBtn = document.querySelector('.add-habit-btn');
+    
+    if (modal && modal.style.display === 'block' && 
+        !modal.contains(e.target) && 
+        !addBtn.contains(e.target)) {
+        closeHobbySelector();
+    }
+});
+
+// ============ COMPACT MEDIA PLAYER FUNCTIONALITY ============
+
+function showCompactMediaPlayer() {
+    const compactPlayer = document.getElementById('sidebar-media-player');
+    if (compactPlayer) {
+        compactPlayer.style.display = 'block';
+    }
+}
+
+function updateCompactPlayerInfo(track) {
+    const titleElement = document.getElementById('compact-media-title');
+    const artistElement = document.getElementById('compact-media-artist');
+    
+    if (titleElement && artistElement) {
+        titleElement.textContent = track.title || 'Unknown Track';
+        artistElement.textContent = track.artist || 'Unknown Artist';
+    }
+}
+
+function updateCompactProgress() {
+    if (!audioPlayer) return;
+    
+    const currentTime = audioPlayer.currentTime;
+    const duration = audioPlayer.duration;
+    
+    if (duration > 0) {
+        const percentage = (currentTime / duration) * 100;
+        
+        // Update compact progress bar
+        const compactProgressFill = document.getElementById('compact-progress-fill');
+        const compactProgressHandle = document.getElementById('compact-progress-handle');
+        
+        if (compactProgressFill) {
+            compactProgressFill.style.width = percentage + '%';
+        }
+        
+        if (compactProgressHandle) {
+            compactProgressHandle.style.left = percentage + '%';
+        }
+        
+        // Update compact time display
+        const compactCurrentTime = document.getElementById('compact-current-time');
+        const compactTotalTime = document.getElementById('compact-total-time');
+        
+        if (compactCurrentTime) {
+            compactCurrentTime.textContent = formatTime(currentTime);
+        }
+        
+        if (compactTotalTime) {
+            compactTotalTime.textContent = formatTime(duration);
+        }
+    }
+}
+
+function updateCompactPlayButton() {
+    const compactPlayIcon = document.getElementById('compact-play-icon');
+    const compactPauseIcon = document.getElementById('compact-pause-icon');
+    
+    if (compactPlayIcon && compactPauseIcon) {
+        if (isPlaying) {
+            compactPlayIcon.style.display = 'none';
+            compactPauseIcon.style.display = 'block';
+        } else {
+            compactPlayIcon.style.display = 'block';
+            compactPauseIcon.style.display = 'none';
+        }
+    }
+}
+
+function updateCompactVolume() {
+    if (!audioPlayer) return;
+    
+    const volumePercentage = audioPlayer.volume * 100;
+    const compactVolumeFill = document.getElementById('compact-volume-fill');
+    
+    if (compactVolumeFill) {
+        compactVolumeFill.style.width = volumePercentage + '%';
+    }
+    
+    // Update volume icon
+    const compactVolumeIcon = document.getElementById('compact-volume-icon');
+    if (compactVolumeIcon) {
+        if (audioPlayer.muted || audioPlayer.volume === 0) {
+            compactVolumeIcon.innerHTML = '<path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M23 9l-6 6"></path><path d="M17 9l6 6"></path>';
+        } else if (audioPlayer.volume < 0.5) {
+            compactVolumeIcon.innerHTML = '<path d="M11 5L6 9H2v6h4l5 4V5z"></path>';
+        } else {
+            compactVolumeIcon.innerHTML = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>';
+        }
+    }
+}
+
+// Update existing functions to sync with compact player
+function updateProgress() {
+    if (!audioPlayer) return;
+    
+    const currentTime = audioPlayer.currentTime;
+    const duration = audioPlayer.duration;
+    
+    if (duration > 0) {
+        const percentage = (currentTime / duration) * 100;
+        
+        // Update main progress bar
+        const progressFill = document.getElementById('progress-fill');
+        if (progressFill) {
+            progressFill.style.width = percentage + '%';
+        }
+        
+        // Update time display
+        const currentTimeElement = document.getElementById('current-time');
+        const totalTimeElement = document.getElementById('total-time');
+        
+        if (currentTimeElement) {
+            currentTimeElement.textContent = formatTime(currentTime);
+        }
+        
+        if (totalTimeElement) {
+            totalTimeElement.textContent = formatTime(duration);
+        }
+    }
+    
+    // Update compact player as well
+    updateCompactProgress();
+}
+
+function togglePlay() {
+    if (!audioPlayer) return;
+    
+    if (isPlaying) {
+        audioPlayer.pause();
+        isPlaying = false;
+    } else {
+        audioPlayer.play();
+        isPlaying = true;
+    }
+    
+    // Update both players
+    updatePlayButton();
+    updateCompactPlayButton();
+}
+
+function updatePlayButton() {
+    const playIcon = document.getElementById('play-icon');
+    const pauseIcon = document.getElementById('pause-icon');
+    
+    if (playIcon && pauseIcon) {
+        if (isPlaying) {
+            playIcon.style.display = 'none';
+            pauseIcon.style.display = 'block';
+        } else {
+            playIcon.style.display = 'block';
+            pauseIcon.style.display = 'none';
+        }
+    }
+}
+
+function formatTime(seconds) {
+    if (isNaN(seconds)) return '0:00';
+    
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
+// Add event listeners for compact player updates
+if (audioPlayer) {
+    audioPlayer.addEventListener('timeupdate', updateCompactProgress);
+    audioPlayer.addEventListener('volumechange', updateCompactVolume);
+    audioPlayer.addEventListener('play', updateCompactPlayButton);
+    audioPlayer.addEventListener('pause', updateCompactPlayButton);
 }

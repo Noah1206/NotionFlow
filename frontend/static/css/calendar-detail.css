@@ -1,5 +1,604 @@
 /* Calendar Detail Page - Modern Notion Style */
 
+/* To Do List Widget Enhancements */
+.todo-widget .widget-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.add-todo-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    background: transparent;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    opacity: 0.7;
+}
+
+.add-todo-btn:hover {
+    background: #f1f3f4;
+    color: #1e293b;
+    opacity: 1;
+}
+
+.todo-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    border-radius: 6px;
+    background: #ffffff;
+    border: 1px solid #e1e5e9;
+    transition: all 0.15s ease;
+}
+
+.todo-item:hover {
+    background: #f8f9fa;
+    border-color: #d1d9e0;
+}
+
+.todo-item:hover .todo-delete-btn {
+    opacity: 1;
+}
+
+.todo-checkbox {
+    cursor: pointer;
+    font-size: 14px;
+    width: 20px;
+    text-align: center;
+    transition: all 0.15s ease;
+}
+
+.todo-checkbox:hover {
+    transform: scale(1.1);
+}
+
+.todo-text {
+    flex: 1;
+    font-size: 13px;
+    color: #1e293b;
+    line-height: 1.4;
+}
+
+.todo-item.completed .todo-text {
+    text-decoration: line-through;
+    color: #64748b;
+}
+
+.todo-tag {
+    font-size: 11px;
+    color: #64748b;
+    background: #f1f3f4;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+.todo-delete-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.15s ease;
+}
+
+.todo-delete-btn:hover {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.add-todo-input-container {
+    margin-top: 8px;
+    padding: 12px;
+    background: #ffffff;
+    border: 1px solid #e1e5e9;
+    border-radius: 6px;
+}
+
+.add-todo-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #d1d9e0;
+    border-radius: 4px;
+    font-size: 13px;
+    outline: none;
+    transition: all 0.15s ease;
+}
+
+.add-todo-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.add-todo-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    justify-content: flex-end;
+}
+
+.save-todo-btn, .cancel-todo-btn {
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.save-todo-btn {
+    background: #3b82f6;
+    color: white;
+    border: none;
+}
+
+.save-todo-btn:hover {
+    background: #2563eb;
+}
+
+.cancel-todo-btn {
+    background: transparent;
+    color: #64748b;
+    border: 1px solid #d1d9e0;
+}
+
+.cancel-todo-btn:hover {
+    background: #f8f9fa;
+    color: #1e293b;
+}
+
+/* Habit Tracker Enhancements */
+.habit-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.add-habit-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    background: transparent;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    opacity: 0.7;
+}
+
+.add-habit-btn:hover {
+    background: #f1f3f4;
+    color: #1e293b;
+    opacity: 1;
+}
+
+.habit-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    border-radius: 6px;
+    background: #ffffff;
+    border: 1px solid #e1e5e9;
+    transition: all 0.15s ease;
+}
+
+.habit-item:hover {
+    background: #f8f9fa;
+    border-color: #d1d9e0;
+}
+
+.habit-item:hover .habit-delete-btn {
+    opacity: 1;
+}
+
+.habit-emoji {
+    font-size: 16px;
+    width: 24px;
+    text-align: center;
+}
+
+.habit-name {
+    flex: 1;
+    font-size: 13px;
+    color: #1e293b;
+    font-weight: 500;
+}
+
+.habit-progress {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 600;
+    background: #f1f3f4;
+    padding: 2px 8px;
+    border-radius: 12px;
+    min-width: 35px;
+    text-align: center;
+}
+
+.habit-delete-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.15s ease;
+}
+
+.habit-delete-btn:hover {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+/* Hobby Selector Modal */
+.hobby-selector-modal {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: #ffffff;
+    border: 1px solid #e1e5e9;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    margin-top: 8px;
+}
+
+.hobby-selector-content {
+    padding: 16px;
+}
+
+.hobby-selector-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.hobby-selector-header h5 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.close-hobby-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    background: transparent;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.close-hobby-selector:hover {
+    background: #f1f3f4;
+    color: #1e293b;
+}
+
+.hobby-form .form-group {
+    margin-bottom: 12px;
+}
+
+.hobby-form .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.hobby-form label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 4px;
+}
+
+.hobby-form select,
+.hobby-form input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #d1d9e0;
+    border-radius: 4px;
+    font-size: 12px;
+    outline: none;
+    transition: all 0.15s ease;
+}
+
+.hobby-form select:focus,
+.hobby-form input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.days-suggestion {
+    margin: 8px 0;
+    padding: 8px;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 4px;
+}
+
+.days-suggestion small {
+    color: #0369a1;
+    font-size: 11px;
+}
+
+.hobby-form-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    justify-content: flex-end;
+}
+
+.save-hobby-btn, .cancel-hobby-btn {
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.save-hobby-btn {
+    background: #3b82f6;
+    color: white;
+    border: none;
+}
+
+.save-hobby-btn:hover {
+    background: #2563eb;
+}
+
+.save-hobby-btn:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+}
+
+.cancel-hobby-btn {
+    background: transparent;
+    color: #64748b;
+    border: 1px solid #d1d9e0;
+}
+
+.cancel-hobby-btn:hover {
+    background: #f8f9fa;
+    color: #1e293b;
+}
+
+/* Compact Media Player */
+.compact-media-widget {
+    margin-bottom: 16px;
+}
+
+.compact-media-player {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    padding: 16px;
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.compact-media-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.compact-media-cover {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+}
+
+.media-cover-placeholder {
+    font-size: 18px;
+    opacity: 0.9;
+}
+
+.compact-media-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.compact-media-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.compact-media-artist {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.8);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.compact-media-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.compact-control-btn, .compact-play-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
+}
+
+.compact-play-btn {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.compact-control-btn:hover, .compact-play-btn:hover {
+    background: rgba(255, 255, 255, 0.4);
+    transform: scale(1.05);
+}
+
+.compact-control-btn:active, .compact-play-btn:active {
+    transform: scale(0.95);
+}
+
+.compact-media-progress-section {
+    margin-bottom: 10px;
+}
+
+.compact-progress-bar {
+    position: relative;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+    margin-bottom: 6px;
+    cursor: pointer;
+}
+
+.compact-progress-fill {
+    height: 100%;
+    background: white;
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.1s ease;
+}
+
+.compact-progress-handle {
+    position: absolute;
+    top: 50%;
+    left: 0%;
+    transform: translate(-50%, -50%);
+    width: 12px;
+    height: 12px;
+    background: white;
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.compact-progress-bar:hover .compact-progress-handle {
+    opacity: 1;
+}
+
+.compact-time-display {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.compact-volume-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.compact-volume-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 4px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.compact-volume-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.compact-volume-slider {
+    flex: 1;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 1.5px;
+    position: relative;
+    cursor: pointer;
+}
+
+.compact-volume-fill {
+    height: 100%;
+    background: white;
+    border-radius: 1.5px;
+    width: 70%;
+    transition: width 0.2s ease;
+}
+
+/* Animation effects */
+.compact-media-player {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .calendar-workspace {
     display: flex;
     flex-direction: column;
