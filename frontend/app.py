@@ -541,18 +541,18 @@ def create_calendar():
         
         # Try DB first, fallback to file storage
         try:
-            if dashboard_data_available and False:  # Temporarily disabled due to schema mismatch
-                # Use Supabase to create calendar config
-                result = dashboard_data.supabase.table('calendar_sync_configs').insert({
+            if dashboard_data_available:
+                # Use Supabase to create calendar in the calendars table
+                result = dashboard_data.supabase.table('calendars').insert({
                     'user_id': user_id,
-                    'platform': platform,
-                    'name': calendar_name,  # Try 'name' instead of 'calendar_name'
+                    'name': calendar_name,
                     'color': calendar_color,
-                    'is_enabled': True,
+                    'platform': platform,
                     'is_shared': is_shared,
-                    'sync_frequency_minutes': 15,
-                    'consecutive_failures': 0,
-                    'created_at': 'now()'
+                    'event_count': 0,
+                    'sync_status': 'synced',
+                    'last_sync_display': 'Just created',
+                    'is_enabled': True
                 }).execute()
                 
                 calendar_id = result.data[0]['id'] if result.data else f"{platform}_{user_id}"
@@ -703,11 +703,11 @@ def delete_calendar(calendar_id):
             return jsonify({'success': False, 'error': 'User not authenticated'}), 401
         
         if dashboard_data_available:
-            # Delete from calendar_sync_configs
-            result = dashboard_data.supabase.table('calendar_sync_configs').delete().eq('id', calendar_id).eq('user_id', user_id).execute()
+            # Delete from calendars table
+            result = dashboard_data.supabase.table('calendars').delete().eq('id', calendar_id).eq('user_id', user_id).execute()
             
             # Also delete associated events
-            dashboard_data.supabase.table('calendar_events').delete().eq('user_id', user_id).eq('source_platform', calendar_id.split('_')[0]).execute()
+            dashboard_data.supabase.table('calendar_events').delete().eq('user_id', user_id).eq('calendar_id', calendar_id).execute()
             
             return jsonify({
                 'success': True,
@@ -729,12 +729,12 @@ def toggle_calendar(calendar_id):
         
         if dashboard_data_available:
             # Get current status
-            current = dashboard_data.supabase.table('calendar_sync_configs').select('is_enabled').eq('id', calendar_id).eq('user_id', user_id).single().execute()
+            current = dashboard_data.supabase.table('calendars').select('is_enabled').eq('id', calendar_id).eq('user_id', user_id).single().execute()
             
             if current.data:
                 new_status = not current.data['is_enabled']
                 # Update status
-                dashboard_data.supabase.table('calendar_sync_configs').update({'is_enabled': new_status}).eq('id', calendar_id).eq('user_id', user_id).execute()
+                dashboard_data.supabase.table('calendars').update({'is_enabled': new_status}).eq('id', calendar_id).eq('user_id', user_id).execute()
                 
                 return jsonify({
                     'success': True,
