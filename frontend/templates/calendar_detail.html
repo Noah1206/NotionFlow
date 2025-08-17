@@ -6,6 +6,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-detail.css') }}?v={{ range(100000, 999999) | random }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-detail-new.css') }}?v={{ range(100000, 999999) | random }}">
 {% endblock %}
 
 {% block content %}
@@ -59,152 +60,240 @@
         </div>
     </div>
 
-    <!-- Main Calendar Area -->
+    <!-- Main Workspace Content -->
     <div class="calendar-workspace-content">
-        <!-- Calendar Grid -->
-        <div class="calendar-main-area">
-            <!-- Month View -->
-            <div class="calendar-view-container active" id="month-view">
-                <div class="month-header">
-                    <div class="weekday-labels">
-                        <div class="weekday-label">일</div>
-                        <div class="weekday-label">월</div>
-                        <div class="weekday-label">화</div>
-                        <div class="weekday-label">수</div>
-                        <div class="weekday-label">목</div>
-                        <div class="weekday-label">금</div>
-                        <div class="weekday-label">토</div>
+        <!-- Left Sidebar -->
+        <div class="left-sidebar">
+            <!-- Reminders Widget -->
+            <div class="sidebar-widget">
+                <div class="widget-header">
+                    <div class="widget-icon">📝</div>
+                    <h4>Reminders</h4>
+                </div>
+                <div class="reminders-list">
+                    <div class="reminder-item">
+                        <div class="reminder-text">중요한 일 메모</div>
+                        <div class="reminder-date">내일까지</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Buttons -->
+            <div class="sidebar-widget">
+                <div class="widget-header">
+                    <div class="widget-icon">⚡</div>
+                    <h4>Quick Button</h4>
+                </div>
+                <div class="quick-buttons">
+                    <button class="quick-btn">+ New 할 일</button>
+                    <button class="quick-btn">+ New 메모</button>
+                </div>
+            </div>
+
+            <!-- Daily Routine -->
+            <div class="sidebar-widget">
+                <div class="widget-header">
+                    <div class="widget-icon">🔄</div>
+                    <h4>Daily Routine</h4>
+                </div>
+                <div class="routine-list">
+                    <div class="routine-item">
+                        <span class="routine-time">06:00</span>
+                        <span class="routine-task">Wake up</span>
+                    </div>
+                    <div class="routine-item">
+                        <span class="routine-time">07:30</span>
+                        <span class="routine-task">Running</span>
+                    </div>
+                    <div class="routine-item">
+                        <span class="routine-time">09:00</span>
+                        <span class="routine-task">Work</span>
+                    </div>
+                    <div class="routine-item">
+                        <span class="routine-time">12:00</span>
+                        <span class="routine-task">Lunch</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Calendar Area -->
+        <div class="center-calendar-area">
+            <!-- Media Player Bar -->
+            <div class="media-player-bar" id="media-player" style="display: none;">
+                <div class="media-controls">
+                    <button class="media-btn secondary" onclick="previousTrack()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+                        </svg>
+                    </button>
+                    <button class="media-btn" id="play-pause-btn" onclick="togglePlay()">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" id="play-icon">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" id="pause-icon" style="display: none;">
+                            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                        </svg>
+                    </button>
+                    <button class="media-btn secondary" onclick="nextTrack()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="media-info">
+                    <div class="media-title" id="media-title">캘린더 음악</div>
+                    <div class="media-artist" id="media-artist">배경음악</div>
+                </div>
+                
+                <div class="media-progress">
+                    <span class="media-time" id="current-time">0:00</span>
+                    <div class="progress-bar" onclick="seekTo(event)">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <span class="media-time" id="total-time">0:00</span>
+                </div>
+                
+                <div class="media-volume">
+                    <button class="volume-btn" onclick="toggleMute()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" id="volume-icon">
+                            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+                        </svg>
+                    </button>
+                    <div class="volume-slider" onclick="setVolume(event)">
+                        <div class="volume-fill" id="volume-fill"></div>
                     </div>
                 </div>
                 
-                <div class="month-grid" id="month-grid">
-                    <!-- Calendar cells will be generated here -->
+                <audio id="audio-player" preload="metadata">
+                    <!-- Audio source will be set dynamically -->
+                </audio>
+            </div>
+
+            <!-- Mind Mover -->
+            <div class="mind-mover-widget">
+                <div class="widget-header">
+                    <div class="widget-icon">💭</div>
+                    <h4>Mind Mover</h4>
+                    <div class="edit-icon">✏️</div>
+                </div>
+                <div class="mind-text">지금 중요한 일일까 목적에 대한 자기다운 생각이 필요하세요 ✏️</div>
+            </div>
+
+            <!-- To Do List -->
+            <div class="todo-widget">
+                <div class="widget-header">
+                    <div class="widget-icon">📋</div>
+                    <h4>To Do List</h4>
+                </div>
+                <div class="todo-section">
+                    <div class="todo-date">2024년 1월</div>
+                    <div class="todo-item completed">
+                        <div class="todo-checkbox">✓</div>
+                        <div class="todo-text">Task2 완료</div>
+                        <div class="todo-tag">① 중요 ②</div>
+                    </div>
+                    <div class="todo-item">
+                        <div class="todo-checkbox">○</div>
+                        <div class="todo-text">Task3 예정</div>
+                        <div class="todo-tag">DONE</div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Week View -->
-            <div class="calendar-view-container" id="week-view">
-                <div class="week-container">
-                    <div class="time-column">
-                        <div class="time-slot">오전 9시</div>
-                        <div class="time-slot">오전 10시</div>
-                        <div class="time-slot">오전 11시</div>
-                        <div class="time-slot">오후 12시</div>
-                        <div class="time-slot">오후 1시</div>
-                        <div class="time-slot">오후 2시</div>
-                        <div class="time-slot">오후 3시</div>
-                        <div class="time-slot">오후 4시</div>
-                        <div class="time-slot">오후 5시</div>
-                        <div class="time-slot">오후 6시</div>
-                    </div>
-                    <div class="week-days-grid" id="week-days-grid">
-                        <!-- Week view content -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Agenda View -->
-            <div class="calendar-view-container" id="agenda-view">
-                <div class="agenda-container">
-                    <div class="agenda-header">
-                        <h3>다가오는 일정</h3>
-                    </div>
-                    <div class="agenda-list" id="agenda-list">
-                        <div class="agenda-day">
-                            <div class="agenda-date">
-                                <span class="day-number">21</span>
-                                <span class="day-name">목요일</span>
-                            </div>
-                            <div class="agenda-events">
-                                <div class="agenda-event">
-                                    <div class="event-time">오후 2:00</div>
-                                    <div class="event-info">
-                                        <div class="event-title">팀 미팅</div>
-                                        <div class="event-desc">주간 진행상황 공유</div>
-                                    </div>
-                                </div>
-                            </div>
+            <!-- Compact Calendar -->
+            <div class="compact-calendar-widget">
+                <div class="calendar-view-container active" id="month-view">
+                    <div class="compact-month-header">
+                        <div class="compact-weekday-labels">
+                            <div class="compact-weekday-label">일</div>
+                            <div class="compact-weekday-label">월</div>
+                            <div class="compact-weekday-label">화</div>
+                            <div class="compact-weekday-label">수</div>
+                            <div class="compact-weekday-label">목</div>
+                            <div class="compact-weekday-label">금</div>
+                            <div class="compact-weekday-label">토</div>
                         </div>
-                        
-                        <div class="agenda-day">
-                            <div class="agenda-date">
-                                <span class="day-number">25</span>
-                                <span class="day-name">월요일</span>
-                            </div>
-                            <div class="agenda-events">
-                                <div class="agenda-event">
-                                    <div class="event-time">오전 10:00</div>
-                                    <div class="event-info">
-                                        <div class="event-title">프로젝트 발표</div>
-                                        <div class="event-desc">Q1 결과 보고</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    </div>
+                    
+                    <div class="compact-month-grid" id="month-grid">
+                        <!-- Calendar cells will be generated here -->
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Right Sidebar -->
-        <div class="calendar-sidebar-area">
-            <!-- Mini Calendar -->
+        <div class="right-sidebar">
+            <!-- Habit Tracker -->
             <div class="sidebar-widget">
-                <div class="widget-header">
-                    <h4>미니 캘린더</h4>
+                <div class="widget-header habit-header">
+                    <h4>🔥 Habit Tracker</h4>
                 </div>
-                <div class="mini-calendar" id="mini-calendar">
-                    <div class="mini-month-nav">
-                        <button class="mini-nav-btn" onclick="changeMiniMonth(-1)">‹</button>
-                        <span class="mini-month-title">3월 2025</span>
-                        <button class="mini-nav-btn" onclick="changeMiniMonth(1)">›</button>
+                <div class="habit-list">
+                    <div class="habit-item">
+                        <span class="habit-emoji">📖</span>
+                        <span class="habit-name">독서</span>
+                        <div class="habit-progress">5/7</div>
                     </div>
-                    <div class="mini-weekdays">
-                        <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+                    <div class="habit-item">
+                        <span class="habit-emoji">💪</span>
+                        <span class="habit-name">운동</span>
+                        <div class="habit-progress">3/7</div>
                     </div>
-                    <div class="mini-days" id="mini-days">
-                        <!-- Mini calendar days will be generated -->
+                    <div class="habit-item">
+                        <span class="habit-emoji">💧</span>
+                        <span class="habit-name">물 마시기</span>
+                        <div class="habit-progress">7/7</div>
+                    </div>
+                    <div class="habit-item">
+                        <span class="habit-emoji">🧘</span>
+                        <span class="habit-name">명상</span>
+                        <div class="habit-progress">2/7</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Today's Schedule -->
+            <!-- Priorities -->
             <div class="sidebar-widget">
-                <div class="widget-header">
-                    <h4>오늘 일정</h4>
-                    <span class="widget-badge">2</span>
+                <div class="widget-header priorities-header">
+                    <h4>⭐ Priorities</h4>
                 </div>
-                <div class="today-schedule">
-                    <div class="schedule-item">
-                        <div class="schedule-time">오후 2:00</div>
-                        <div class="schedule-title">팀 미팅</div>
-                        <div class="schedule-type">회의</div>
+                <div class="priorities-list">
+                    <div class="priority-item">
+                        <div class="priority-checkbox">☑️</div>
+                        <div class="priority-text">Task2</div>
                     </div>
-                    <div class="schedule-item">
-                        <div class="schedule-time">오후 4:30</div>
-                        <div class="schedule-title">클라이언트 통화</div>
-                        <div class="schedule-type">업무</div>
+                    <div class="priority-item">
+                        <div class="priority-checkbox">☑️</div>
+                        <div class="priority-text">운동하기</div>
+                    </div>
+                    <div class="priority-item">
+                        <div class="priority-checkbox">☑️</div>
+                        <div class="priority-text">독서 30분</div>
+                    </div>
+                    <div class="priority-item">
+                        <div class="priority-checkbox">☑️</div>
+                        <div class="priority-text">물 8잔 마시기</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Quick Stats -->
+            <!-- Weekly Goals -->
             <div class="sidebar-widget">
                 <div class="widget-header">
-                    <h4>통계</h4>
+                    <div class="widget-icon">🎯</div>
+                    <h4>이번 주 목표</h4>
                 </div>
-                <div class="quick-stats">
-                    <div class="stat-row">
-                        <span class="stat-label">이번 주</span>
-                        <span class="stat-value">8개</span>
+                <div class="goals-list">
+                    <div class="goal-item">
+                        <div class="goal-text">프로젝트 마무리</div>
+                        <div class="goal-progress">80%</div>
                     </div>
-                    <div class="stat-row">
-                        <span class="stat-label">이번 달</span>
-                        <span class="stat-value">{{ calendar.event_count or 0 }}개</span>
-                    </div>
-                    <div class="stat-row">
-                        <span class="stat-label">완료율</span>
-                        <span class="stat-value">75%</span>
+                    <div class="goal-item">
+                        <div class="goal-text">새로운 기술 학습</div>
+                        <div class="goal-progress">60%</div>
                     </div>
                 </div>
             </div>

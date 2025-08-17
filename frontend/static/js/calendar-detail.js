@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadEvents();
     setupEventListeners();
     initializeMiniCalendar();
+    initializeMediaPlayer();
 });
 
 function initializeCalendar() {
@@ -92,9 +93,169 @@ function switchView(viewType) {
     }
 }
 
-// Month view rendering
+// Media player functionality
+let audioPlayer = null;
+let currentPlaylist = [];
+let currentTrackIndex = 0;
+let isPlaying = false;
+
+function initializeMediaPlayer() {
+    audioPlayer = document.getElementById('audio-player');
+    if (audioPlayer) {
+        audioPlayer.addEventListener('loadedmetadata', updateTotalTime);
+        audioPlayer.addEventListener('timeupdate', updateProgress);
+        audioPlayer.addEventListener('ended', nextTrack);
+        
+        // Check if calendar has media files
+        checkForMediaFiles();
+    }
+}
+
+function checkForMediaFiles() {
+    // This would check the calendar data for any attached media files
+    // For demo purposes, we'll show the player if calendar has media
+    const hasMediaFiles = true; // This should come from calendar data
+    
+    if (hasMediaFiles) {
+        document.getElementById('media-player').style.display = 'flex';
+        // Load sample track
+        loadTrack({
+            title: '캘린더 배경음악',
+            artist: '집중음악',
+            src: '/static/audio/sample.mp3' // This would be actual media file path
+        });
+    }
+}
+
+function loadTrack(track) {
+    if (audioPlayer && track.src) {
+        audioPlayer.src = track.src;
+        document.getElementById('media-title').textContent = track.title || 'Unknown';
+        document.getElementById('media-artist').textContent = track.artist || 'Unknown Artist';
+    }
+}
+
+function togglePlay() {
+    if (!audioPlayer) return;
+    
+    if (isPlaying) {
+        audioPlayer.pause();
+        isPlaying = false;
+        document.getElementById('play-icon').style.display = 'block';
+        document.getElementById('pause-icon').style.display = 'none';
+    } else {
+        audioPlayer.play();
+        isPlaying = true;
+        document.getElementById('play-icon').style.display = 'none';
+        document.getElementById('pause-icon').style.display = 'block';
+    }
+}
+
+function previousTrack() {
+    if (currentPlaylist.length > 0) {
+        currentTrackIndex = (currentTrackIndex - 1 + currentPlaylist.length) % currentPlaylist.length;
+        loadTrack(currentPlaylist[currentTrackIndex]);
+        if (isPlaying) audioPlayer.play();
+    }
+}
+
+function nextTrack() {
+    if (currentPlaylist.length > 0) {
+        currentTrackIndex = (currentTrackIndex + 1) % currentPlaylist.length;
+        loadTrack(currentPlaylist[currentTrackIndex]);
+        if (isPlaying) audioPlayer.play();
+    }
+}
+
+function seekTo(event) {
+    if (!audioPlayer) return;
+    
+    const progressBar = event.currentTarget;
+    const clickX = event.offsetX;
+    const width = progressBar.offsetWidth;
+    const duration = audioPlayer.duration;
+    
+    if (duration) {
+        const newTime = (clickX / width) * duration;
+        audioPlayer.currentTime = newTime;
+    }
+}
+
+function updateProgress() {
+    if (!audioPlayer) return;
+    
+    const current = audioPlayer.currentTime;
+    const duration = audioPlayer.duration;
+    
+    if (duration) {
+        const percentage = (current / duration) * 100;
+        document.getElementById('progress-fill').style.width = percentage + '%';
+        document.getElementById('current-time').textContent = formatTime(current);
+    }
+}
+
+function updateTotalTime() {
+    if (!audioPlayer) return;
+    
+    const duration = audioPlayer.duration;
+    if (duration) {
+        document.getElementById('total-time').textContent = formatTime(duration);
+    }
+}
+
+function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
+function toggleMute() {
+    if (!audioPlayer) return;
+    
+    audioPlayer.muted = !audioPlayer.muted;
+    updateVolumeIcon();
+}
+
+function setVolume(event) {
+    if (!audioPlayer) return;
+    
+    const volumeBar = event.currentTarget;
+    const clickX = event.offsetX;
+    const width = volumeBar.offsetWidth;
+    const volume = clickX / width;
+    
+    audioPlayer.volume = volume;
+    document.getElementById('volume-fill').style.width = (volume * 100) + '%';
+    updateVolumeIcon();
+}
+
+function updateVolumeIcon() {
+    const volumeIcon = document.getElementById('volume-icon');
+    if (audioPlayer.muted || audioPlayer.volume === 0) {
+        volumeIcon.innerHTML = '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
+    } else if (audioPlayer.volume < 0.5) {
+        volumeIcon.innerHTML = '<path d="M18.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM5 9v6h4l5 5V4L9 9H5z"/>';
+    } else {
+        volumeIcon.innerHTML = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>';
+    }
+}
+
+// Month view rendering (both main and compact)
 function renderMonthView() {
+    renderMainCalendar();
+    renderCompactCalendar();
+}
+
+function renderMainCalendar() {
     const grid = document.getElementById('month-grid');
+    if (!grid) return;
+    
+    // This would render the main calendar view
+    // For now, we'll focus on the compact calendar
+}
+
+function renderCompactCalendar() {
+    const grid = document.querySelector('.compact-month-grid');
     if (!grid) return;
 
     const year = currentDate.getFullYear();
@@ -105,7 +266,6 @@ function renderMonthView() {
     
     // Get first day of month and number of days
     const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
     const startDate = new Date(firstDay);
     startDate.setDate(startDate.getDate() - firstDay.getDay());
     
@@ -114,9 +274,40 @@ function renderMonthView() {
         const cellDate = new Date(startDate);
         cellDate.setDate(startDate.getDate() + i);
         
-        const dayCell = createDayCell(cellDate, month);
+        const dayCell = createCompactDayCell(cellDate, month);
         grid.appendChild(dayCell);
     }
+}
+
+function createCompactDayCell(date, currentMonth) {
+    const cell = document.createElement('div');
+    cell.className = 'compact-calendar-day';
+    
+    const isCurrentMonth = date.getMonth() === currentMonth;
+    const isToday = isDateToday(date);
+    
+    if (!isCurrentMonth) {
+        cell.classList.add('other-month');
+    }
+    if (isToday) {
+        cell.classList.add('today');
+    }
+    
+    // Check if this date has events
+    const dayEvents = getEventsForDate(date);
+    if (dayEvents.length > 0) {
+        cell.classList.add('has-event');
+    }
+    
+    cell.textContent = date.getDate();
+    
+    // Click handler
+    cell.addEventListener('click', () => {
+        selectedDate = new Date(date);
+        openDayModal(date);
+    });
+    
+    return cell;
 }
 
 function createDayCell(date, currentMonth) {

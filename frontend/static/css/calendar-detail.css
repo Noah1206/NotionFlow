@@ -179,22 +179,39 @@
     background: #2563eb;
 }
 
-/* Main Content Area */
+/* Main Content Area - 3 Column Layout within main content area */
 .calendar-workspace-content {
-    display: flex;
+    display: grid;
+    grid-template-columns: 280px 1fr 280px;
+    gap: 20px;
     flex: 1;
     overflow: hidden;
+    padding: 20px;
+    /* This works within the existing sidebar layout */
 }
 
-.calendar-main-area {
-    flex: 1;
+/* Left Content Column */
+.left-sidebar {
     display: flex;
     flex-direction: column;
-    background: #ffffff;
-    margin: 12px 0 12px 12px;
-    border-radius: 8px;
-    border: 1px solid #e1e5e9;
-    overflow: hidden;
+    gap: 16px;
+    overflow-y: auto;
+}
+
+/* Center Calendar Area */
+.center-calendar-area {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+}
+
+/* Right Content Column */
+.right-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
 }
 
 /* Calendar Views */
@@ -730,26 +747,27 @@
 
 /* Responsive Design */
 @media (max-width: 1200px) {
-    .calendar-sidebar-area {
-        width: 240px;
+    .calendar-workspace-content {
+        grid-template-columns: 240px 1fr 240px;
+        gap: 16px;
+        padding: 16px;
     }
 }
 
 @media (max-width: 768px) {
     .calendar-workspace-content {
-        flex-direction: column;
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 16px;
     }
     
-    .calendar-sidebar-area {
-        width: 100%;
-        margin: 0 12px 12px 12px;
-        flex-direction: row;
-        overflow-x: auto;
-        gap: 12px;
+    .left-sidebar,
+    .right-sidebar {
+        order: 2;
     }
     
-    .sidebar-widget {
-        min-width: 200px;
+    .center-calendar-area {
+        order: 1;
     }
     
     .topbar-center {
