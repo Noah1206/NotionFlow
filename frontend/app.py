@@ -411,17 +411,25 @@ def calendar_list():
     
     try:
         # Try DB first, fallback to file storage for loading calendars
+        print(f"🔍 Loading calendars for user: {user_id}, dashboard_data_available: {dashboard_data_available}")
+        
         if dashboard_data_available:
             try:
+                print(f"🔍 Attempting to load calendars from Supabase for user: {user_id}")
                 calendar_data = dashboard_data.get_user_calendars(user_id)
+                print(f"🔍 Raw calendar data from Supabase: {calendar_data}")
+                
                 calendar_context.update({
                     'personal_calendars': calendar_data['personal_calendars'],
                     'shared_calendars': calendar_data['shared_calendars'],
                     'summary': calendar_data['summary']
                 })
                 print(f"📅 Loaded {calendar_data['summary']['total_calendars']} calendars from DB for user {user_id}")
+                print(f"📅 Personal: {len(calendar_data['personal_calendars'])}, Shared: {len(calendar_data['shared_calendars'])}")
             except Exception as e:
                 print(f"⚠️ DB load failed, using file storage: {e}")
+                import traceback
+                traceback.print_exc()
                 dashboard_data_available = False
         
         if not dashboard_data_available:

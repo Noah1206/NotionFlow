@@ -131,11 +131,18 @@ class DashboardDataManager:
     def get_user_calendars(self, user_id: str) -> Dict[str, Any]:
         """Get user's calendar list from new calendars table"""
         try:
+            print(f"🔍 get_user_calendars called for user_id: {user_id}")
+            print(f"🔍 admin_client available: {self.admin_client is not None}")
+            
             # Get calendars from new calendars table using admin client
             result = self.admin_client.table('calendars').select('''
                 id, name, color, type, description, is_active, 
                 public_access, allow_editing, created_at, updated_at
             ''').eq('owner_id', user_id).execute()
+            
+            print(f"🔍 Supabase query result: {result}")
+            print(f"🔍 Result data: {result.data}")
+            print(f"🔍 Number of calendars found: {len(result.data) if result.data else 0}")
             
             personal_calendars = []
             shared_calendars = []
