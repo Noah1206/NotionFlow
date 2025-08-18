@@ -1287,8 +1287,18 @@
         console.log('🔍 createCalendarFromModal() called');
         
         const createBtn = document.querySelector('[onclick="createCalendarFromModal()"]');
+        if (!createBtn) {
+            console.error('❌ Create button not found');
+            return;
+        }
+        
         const createText = createBtn.querySelector('.create-text');
         const createLoader = createBtn.querySelector('.create-loader');
+        
+        if (!createText || !createLoader) {
+            console.error('❌ Button elements not found');
+            return;
+        }
         
         // 로딩 상태 시작
         createBtn.disabled = true;
@@ -1393,10 +1403,16 @@
             console.error('Error creating calendar:', error);
             alert('캘린더 생성 중 오류가 발생했습니다. 다시 시도해주세요.');
         } finally {
-            // 로딩 상태 종료
-            createBtn.disabled = false;
-            createText.style.display = 'inline';
-            createLoader.style.display = 'none';
+            // 로딩 상태 종료 (안전하게 처리)
+            if (createBtn) {
+                createBtn.disabled = false;
+            }
+            if (createText) {
+                createText.style.display = 'inline';
+            }
+            if (createLoader) {
+                createLoader.style.display = 'none';
+            }
         }
     }
 
