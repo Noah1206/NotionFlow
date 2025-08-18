@@ -147,6 +147,35 @@ def load_user_calendars_legacy(user_id):
         print(f"❌ Failed to load calendars from file for user {user_id}: {e}")
         return []
 
+def save_media_file_locally(media_file, user_id):
+    """Save media file to local storage as fallback"""
+    try:
+        from werkzeug.utils import secure_filename
+        import uuid
+        
+        # Create media directory if it doesn't exist
+        media_dir = os.path.join(os.getcwd(), 'media', 'calendar')
+        os.makedirs(media_dir, exist_ok=True)
+        
+        # Generate secure filename
+        filename = secure_filename(media_file.filename)
+        file_ext = os.path.splitext(filename)[1]
+        unique_filename = f"{user_id}_{uuid.uuid4()}{file_ext}"
+        
+        # Full path for saving
+        file_path = os.path.join(media_dir, unique_filename)
+        
+        # Save file
+        media_file.save(file_path)
+        
+        print(f"✅ Media file saved locally: {file_path}")
+        
+        return filename, file_path, media_file.content_type
+        
+    except Exception as e:
+        print(f"❌ Failed to save media file locally: {e}")
+        return None, None, None
+
 # ===== UNIFIED CALENDAR PERSISTENCE (DATABASE + FALLBACK) =====
 def save_user_calendars(user_id, calendars):
     """Save user calendars (database first, file fallback)"""
@@ -740,6 +769,37 @@ def calendar_detail(calendar_id):
     
     return render_template('calendar_detail.html', **context)
 
+# Media file serving route
+@app.route('/media/calendar/<calendar_id>/<filename>')
+def serve_calendar_media(calendar_id, filename):
+    """Serve media files for calendars"""
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Authentication required'}), 401
+    
+    try:
+        # Get calendar to verify ownership
+        if calendar_db_available:
+            calendar = calendar_db.get_calendar_by_id(calendar_id, user_id)
+            if not calendar:
+                return jsonify({'error': 'Calendar not found'}), 404
+            
+            media_path = calendar.get('media_file_path')
+            if media_path and media_path.startswith('http'):
+                # Redirect to external URL (like Supabase storage)
+                return redirect(media_path)
+            elif media_path:
+                # Serve local file
+                import os
+                if os.path.exists(media_path):
+                    return send_file(media_path)
+        
+        return jsonify({'error': 'Media file not found'}), 404
+        
+    except Exception as e:
+        print(f"❌ Error serving media file: {e}")
+        return jsonify({'error': 'Failed to serve media file'}), 500
+
 # Alternative route for calendar management (legacy redirects)
 @app.route('/calendar-refined')
 @app.route('/calendar-management') 
@@ -791,6 +851,23 @@ def create_calendar():
                             # Read file content
                             file_content = media_file.read()
                             
+                            # Check if media bucket exists, create if not
+                            try:
+                                # Try to get bucket info first
+                                calendar_db.supabase.storage.get_bucket('media')
+                                print("✅ Media bucket exists")
+                            except Exception as bucket_error:
+                                print(f"⚠️ Media bucket doesn't exist, creating: {bucket_error}")
+                                try:
+                                    # Create the bucket
+                                    calendar_db.supabase.storage.create_bucket('media', {
+                                        'public': True,
+                                        'file_size_limit': 100 * 1024 * 1024  # 100MB limit
+                                    })
+                                    print("✅ Created media bucket")
+                                except Exception as create_error:
+                                    print(f"❌ Failed to create media bucket: {create_error}")
+                            
                             # Upload to Supabase Storage
                             result = calendar_db.supabase.storage.from_('media').upload(
                                 path=unique_filename,
@@ -811,13 +888,20 @@ def create_calendar():
                                 print(f"✅ Media file uploaded to Supabase Storage: {media_filename}")
                                 print(f"🔗 Public URL: {public_url}")
                             else:
-                                print("❌ Failed to upload to Supabase Storage")
+                                print("❌ Failed to upload to Supabase Storage, falling back to local storage")
+                                # Fallback to local storage
+                                media_file.seek(0)  # Reset file pointer
+                                media_filename, media_file_path, media_file_type = save_media_file_locally(media_file, user_id)
                         else:
-                            print("❌ Supabase Storage not available")
+                            print("❌ Supabase Storage not available, using local storage")
+                            # Fallback to local storage
+                            media_filename, media_file_path, media_file_type = save_media_file_locally(media_file, user_id)
                     except Exception as storage_error:
                         print(f"❌ Storage upload error: {storage_error}")
-                        # Continue without media file
-                        pass
+                        # Fallback to local storage on error
+                        print("⚠️ Storage error, falling back to local storage")
+                        media_file.seek(0)  # Reset file pointer
+                        media_filename, media_file_path, media_file_type = save_media_file_locally(media_file, user_id)
         else:
             # Handle JSON request (no file upload)
             data = request.get_json()

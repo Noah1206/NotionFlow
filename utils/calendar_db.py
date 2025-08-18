@@ -98,7 +98,7 @@ class CalendarDatabase:
                 'owner_id': user_id,
                 'name': calendar_data['name'],
                 'color': calendar_data.get('color', '#2563eb'),
-                'type': calendar_data.get('platform', 'personal'),  # platform -> type
+                'type': 'personal' if calendar_data.get('platform', 'personal') == 'custom' else calendar_data.get('platform', 'personal'),  # platform -> type, map 'custom' to 'personal'
                 'description': calendar_data.get('description', f"{calendar_data['name']} - Created by user"),
                 'is_active': calendar_data.get('is_enabled', True),  # is_enabled -> is_active
                 'public_access': calendar_data.get('is_shared', False),  # is_shared -> public_access
