@@ -219,10 +219,28 @@ let isPlaying = false;
 function initializeMediaPlayer() {
     audioPlayer = document.getElementById('audio-player');
     if (audioPlayer) {
+        // Prevent autoplay initially
+        audioPlayer.autoplay = false;
+        audioPlayer.preload = 'metadata';
+        
+        // Add event listeners safely
         audioPlayer.addEventListener('loadedmetadata', updateTotalTime);
         audioPlayer.addEventListener('timeupdate', updateProgress);
         audioPlayer.addEventListener('ended', handleTrackEnd);
         audioPlayer.addEventListener('error', handleMediaError);
+        
+        // Add additional event listeners for better error handling
+        audioPlayer.addEventListener('loadstart', () => {
+            console.log('Media loading started');
+        });
+        
+        audioPlayer.addEventListener('canplay', () => {
+            console.log('Media can play');
+        });
+        
+        audioPlayer.addEventListener('waiting', () => {
+            console.log('Media waiting for data');
+        });
         
         // Check if calendar has media files
         checkForMediaFiles();
@@ -262,22 +280,22 @@ function checkForMediaFiles() {
             });
         }
     } else {
-        // Load a demo track for display purposes
-        const demoTrack = {
-            title: '집중을 위한 음악',
-            artist: '캘린더 배경음악',
-            src: '#' // Placeholder since we don't have actual file
+        // Try to fetch from API first
+        fetchCalendarMedia(calendarId);
+        
+        // Show empty player state
+        const emptyTrack = {
+            title: 'No Media File',
+            artist: 'Upload a media file to play',
+            src: '' // Empty source
         };
         
-        // Update UI to show the player with demo info
-        updateCompactPlayerInfo(demoTrack);
+        // Update UI to show empty state
+        updateCompactPlayerInfo(emptyTrack);
         const mediaTitle = document.getElementById('media-title');
         const mediaArtist = document.getElementById('media-artist');
-        if (mediaTitle) mediaTitle.textContent = demoTrack.title;
-        if (mediaArtist) mediaArtist.textContent = demoTrack.artist;
-        
-        // Also try to fetch from API
-        fetchCalendarMedia(calendarId);
+        if (mediaTitle) mediaTitle.textContent = emptyTrack.title;
+        if (mediaArtist) mediaArtist.textContent = emptyTrack.artist;
     }
 }
 
@@ -344,54 +362,64 @@ function handleTrackEnd() {
 }
 
 function loadTrack(track) {
-    if (!audioPlayer || !track || !track.src) {
+    if (!audioPlayer || !track) {
         console.warn('Cannot load track: missing audioPlayer or track data');
         return;
     }
     
-    try {
-        // Pause current track if playing
-        if (isPlaying) {
-            audioPlayer.pause();
-        }
-        
-        // Set new source
-        audioPlayer.src = track.src;
-        
-        // Update compact player info
+    // Skip if no valid source or placeholder source
+    if (!track.src || track.src === '#' || track.src === '') {
+        console.log('No valid source for track, skipping load');
+        // Just update UI without trying to load audio
         updateCompactPlayerInfo(track);
-        
-        // Update UI with track info safely
         const mediaTitle = document.getElementById('media-title');
         const mediaArtist = document.getElementById('media-artist');
-        
-        if (mediaTitle) {
-            mediaTitle.textContent = track.title || extractFileName(track.src) || 'Unknown Track';
-        }
-        if (mediaArtist) {
-            mediaArtist.textContent = track.artist || '캘린더 음악';
-        }
-        
-        // Reset progress safely
-        const progressFill = document.getElementById('progress-fill');
-        const currentTimeElement = document.getElementById('current-time');
-        const compactProgressFill = document.getElementById('compact-progress-fill');
-        const compactCurrentTime = document.getElementById('compact-current-time');
-        
-        if (progressFill) progressFill.style.width = '0%';
-        if (currentTimeElement) currentTimeElement.textContent = '0:00';
-        if (compactProgressFill) compactProgressFill.style.width = '0%';
-        if (compactCurrentTime) compactCurrentTime.textContent = '0:00';
-        
-        // Auto-play if was playing before
+        if (mediaTitle) mediaTitle.textContent = track.title || 'No Media';
+        if (mediaArtist) mediaArtist.textContent = track.artist || 'No Media';
+        return;
+    }
+    
+    try {
+        // Pause and reset if playing
         if (isPlaying) {
-            audioPlayer.play().catch(e => {
-                console.log('Auto-play prevented:', e);
-                isPlaying = false;
-                updatePlayButton();
-                updateCompactPlayButton();
-            });
+            audioPlayer.pause();
+            isPlaying = false;
         }
+        
+        // Wait a bit before setting new source to avoid conflicts
+        setTimeout(() => {
+            // Set new source
+            audioPlayer.src = track.src;
+        
+            // Update compact player info
+            updateCompactPlayerInfo(track);
+            
+            // Update UI with track info safely
+            const mediaTitle = document.getElementById('media-title');
+            const mediaArtist = document.getElementById('media-artist');
+            
+            if (mediaTitle) {
+                mediaTitle.textContent = track.title || extractFileName(track.src) || 'Unknown Track';
+            }
+            if (mediaArtist) {
+                mediaArtist.textContent = track.artist || '캘린더 음악';
+            }
+            
+            // Reset progress safely
+            const progressFill = document.getElementById('progress-fill');
+            const currentTimeElement = document.getElementById('current-time');
+            const compactProgressFill = document.getElementById('compact-progress-fill');
+            const compactCurrentTime = document.getElementById('compact-current-time');
+            
+            if (progressFill) progressFill.style.width = '0%';
+            if (currentTimeElement) currentTimeElement.textContent = '0:00';
+            if (compactProgressFill) compactProgressFill.style.width = '0%';
+            if (compactCurrentTime) compactCurrentTime.textContent = '0:00';
+            
+            // Don't auto-play to avoid AbortError
+            updatePlayButton();
+            updateCompactPlayButton();
+        }, 100); // Small delay to avoid conflicts
     } catch (error) {
         console.error('Error loading track:', error);
         handleMediaError(error);
@@ -1525,14 +1553,48 @@ function updateProgress() {
 }
 
 function togglePlay() {
-    if (!audioPlayer) return;
+    if (!audioPlayer) {
+        console.warn('No audio player available');
+        return;
+    }
+    
+    // Check if we have a valid source
+    if (!audioPlayer.src || audioPlayer.src === '' || audioPlayer.src.endsWith('#')) {
+        console.warn('No valid media source to play');
+        showNotification('미디어 파일이 없습니다. 캘린더에 미디어를 추가해주세요.');
+        return;
+    }
     
     if (isPlaying) {
         audioPlayer.pause();
         isPlaying = false;
     } else {
-        audioPlayer.play();
-        isPlaying = true;
+        // Use promise to handle play errors
+        const playPromise = audioPlayer.play();
+        
+        if (playPromise !== undefined) {
+            playPromise
+                .then(() => {
+                    console.log('Playback started successfully');
+                    isPlaying = true;
+                    updatePlayButton();
+                    updateCompactPlayButton();
+                })
+                .catch(error => {
+                    console.error('Playback failed:', error);
+                    isPlaying = false;
+                    updatePlayButton();
+                    updateCompactPlayButton();
+                    
+                    if (error.name === 'AbortError') {
+                        console.log('Playback was interrupted');
+                    } else if (error.name === 'NotAllowedError') {
+                        showNotification('자동 재생이 차단되었습니다. 재생 버튼을 다시 클릭해주세요.');
+                    } else {
+                        showNotification('미디어 재생 중 오류가 발생했습니다.');
+                    }
+                });
+        }
     }
     
     // Update both players
