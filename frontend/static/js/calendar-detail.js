@@ -305,9 +305,12 @@ function checkForMediaFiles() {
             }
             showCompactMediaPlayer();
             
+            // Extract filename from URL for display
+            const filename = extractFileName(mediaUrl) || 'Unknown Track';
+            
             loadTrack({
-                title: '캘린더 배경음악',
-                artist: '나의 캘린더',
+                title: filename,
+                artist: '내 음악',
                 src: mediaUrl
             });
         }

@@ -629,9 +629,19 @@ def get_calendar_media(calendar_id):
                         filename = os.path.basename(media_path)
                         media_url = f"/media/calendar/{calendar_id}/{filename}"
                     
+                    # Use actual filename without extension for title
+                    if media_filename:
+                        # Remove file extension for cleaner display
+                        import os
+                        title = os.path.splitext(media_filename)[0]
+                    else:
+                        # Fallback: extract from URL
+                        import os
+                        title = os.path.splitext(os.path.basename(media_path))[0] if media_path else 'Unknown Track'
+                    
                     media_files = [{
-                        'title': media_filename or 'Calendar Music',
-                        'artist': calendar_data.get('name', 'My Calendar'),
+                        'title': title,
+                        'artist': '내 음악',
                         'src': media_url,
                         'type': calendar_data.get('media_file_type', 'audio/mpeg')
                     }]
