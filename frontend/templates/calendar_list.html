@@ -1550,13 +1550,6 @@
         console.log('🔍 Page is being refreshed/navigated away');
     });
     
-    // 🔍 Log when page is loaded
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('🔍 Calendar list page fully loaded');
-        console.log('🔍 Current URL:', window.location.href);
-    });
-</script>
-{% endblock %}
     // Delete Calendar Functions
     let calendarToDelete = null;
 
@@ -1703,3 +1696,10 @@
         }
     });
 
+    // 🔍 Log when page is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🔍 Calendar list page fully loaded');
+        console.log('🔍 Current URL:', window.location.href);
+    });
+</script>
+{% endblock %}
