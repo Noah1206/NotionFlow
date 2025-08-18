@@ -840,39 +840,76 @@ def simple_create_calendar():
 def delete_calendar(calendar_id):
     """Delete a calendar"""
     try:
+        print(f"🗑️ Delete calendar request: calendar_id={calendar_id}")
         user_id = session.get('user_id')
+        print(f"🗑️ User ID from session: {user_id}")
+        
         if not user_id:
+            print("❌ User not authenticated")
             return jsonify({'success': False, 'error': 'User not authenticated'}), 401
         
-        if dashboard_data_available:
-            # First, get calendar info to check for media files
-            calendar_result = dashboard_data.admin_client.table('calendars').select('media_file_path').eq('id', calendar_id).eq('owner_id', user_id).single().execute()
-            
-            # Clean up media file if it exists
-            if calendar_result.data and calendar_result.data.get('media_file_path'):
-                media_path = calendar_result.data['media_file_path']
-                try:
-                    import os
-                    if os.path.exists(media_path):
-                        os.remove(media_path)
-                        print(f"✅ Deleted media file: {media_path}")
-                except Exception as e:
-                    print(f"⚠️ Failed to delete media file: {e}")
-            
-            # Delete from calendars table using admin client
-            result = dashboard_data.admin_client.table('calendars').delete().eq('id', calendar_id).eq('owner_id', user_id).execute()
-            
-            # Also delete associated events
-            dashboard_data.admin_client.table('calendar_events').delete().eq('user_id', user_id).eq('calendar_id', calendar_id).execute()
-            
-            return jsonify({
-                'success': True,
-                'message': 'Calendar deleted successfully'
-            })
+        print(f"🗑️ Dashboard data available: {dashboard_data_available}")
+        
+        # Try calendar database first
+        if calendar_db_available:
+            print(f"🗑️ Using calendar database for deletion...")
+            success = calendar_db.delete_calendar(calendar_id, user_id)
+            if success:
+                print("✅ Calendar deletion completed successfully")
+                return jsonify({
+                    'success': True,
+                    'message': 'Calendar deleted successfully'
+                })
+            else:
+                print("❌ Calendar database deletion failed")
+                return jsonify({'success': False, 'error': 'Failed to delete calendar from database'}), 500
+        
+        # Fallback to dashboard data
+        elif dashboard_data_available:
+            try:
+                # First, get calendar info to check for media files
+                print(f"🗑️ Getting calendar info for media cleanup...")
+                calendar_result = dashboard_data.admin_client.table('calendars').select('media_file_path').eq('id', calendar_id).eq('owner_id', user_id).single().execute()
+                print(f"🗑️ Calendar query result: {calendar_result}")
+                
+                # Clean up media file if it exists
+                if calendar_result.data and calendar_result.data.get('media_file_path'):
+                    media_path = calendar_result.data['media_file_path']
+                    try:
+                        import os
+                        if os.path.exists(media_path):
+                            os.remove(media_path)
+                            print(f"✅ Deleted media file: {media_path}")
+                    except Exception as e:
+                        print(f"⚠️ Failed to delete media file: {e}")
+                
+                # Delete from calendars table using admin client
+                print(f"🗑️ Deleting calendar from database...")
+                result = dashboard_data.admin_client.table('calendars').delete().eq('id', calendar_id).eq('owner_id', user_id).execute()
+                print(f"🗑️ Calendar delete result: {result}")
+                
+                # Also delete associated events
+                print(f"🗑️ Deleting associated events...")
+                events_result = dashboard_data.admin_client.table('calendar_events').delete().eq('user_id', user_id).eq('calendar_id', calendar_id).execute()
+                print(f"🗑️ Events delete result: {events_result}")
+                
+                print("✅ Calendar deletion completed successfully")
+                return jsonify({
+                    'success': True,
+                    'message': 'Calendar deleted successfully'
+                })
+                
+            except Exception as db_error:
+                print(f"❌ Database error during deletion: {db_error}")
+                return jsonify({'success': False, 'error': f'Database error: {str(db_error)}'}), 500
         else:
+            print("❌ No database available")
             return jsonify({'success': False, 'error': 'Database not available'}), 500
             
     except Exception as e:
+        print(f"❌ General error in delete_calendar: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/calendar/<calendar_id>/toggle', methods=['POST'])
