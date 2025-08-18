@@ -801,30 +801,17 @@ def create_calendar():
             media_file_path = None
             media_file_type = None
         
-        # Try DB first, fallback to file storage
+        # Try calendar_db first, then dashboard_data, then file storage
         try:
-            if dashboard_data_available:
-                # Use Supabase admin client to create calendar (bypasses RLS)
-                # Map platform to allowed type values
-                type_mapping = {
-                    'notion': 'personal',
-                    'google': 'google',
-                    'apple': 'apple', 
-                    'outlook': 'outlook',
-                    'custom': 'personal'
-                }
-                calendar_type = type_mapping.get(platform, 'personal')
-                
-                # Include media file information in calendar creation
+            if calendar_db_available:
+                # Create calendar data
                 calendar_data = {
-                    'owner_id': user_id,  # user_id → owner_id
                     'name': calendar_name,
+                    'platform': platform,
                     'color': calendar_color,
-                    'type': calendar_type,  # Use mapped type value
-                    'description': f'{calendar_name} - Created on {datetime.datetime.now().strftime("%Y-%m-%d")}',
-                    'is_active': True,  # is_enabled → is_active
-                    'public_access': is_shared,  # is_shared → public_access
-                    'allow_editing': True
+                    'is_shared': is_shared,
+                    'is_enabled': True,
+                    'description': f'{calendar_name} - Created on {datetime.datetime.now().strftime("%Y-%m-%d")}'
                 }
                 
                 # Add media file information if uploaded
@@ -834,10 +821,13 @@ def create_calendar():
                     calendar_data['media_file_type'] = media_file_type
                     print(f"📎 Adding media file to calendar: {media_filename}")
                 
-                result = dashboard_data.admin_client.table('calendars').insert(calendar_data).execute()
+                # Use calendar_db to create calendar
+                calendar_id = calendar_db.create_calendar(user_id, calendar_data)
                 
-                calendar_id = result.data[0]['id'] if result.data else f"{platform}_{user_id}"
-                print(f"✅ Created calendar in DB: {calendar_name} (ID: {calendar_id})")
+                if calendar_id:
+                    print(f"✅ Created calendar in DB using calendar_db: {calendar_name} (ID: {calendar_id})")
+                else:
+                    raise Exception("Failed to create calendar in database")
                 
                 return jsonify({
                     'success': True,

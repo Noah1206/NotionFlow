@@ -103,6 +103,14 @@ class CalendarDatabase:
                 'allow_editing': True
             }
             
+            # Add media file information if provided
+            if 'media_filename' in calendar_data:
+                db_data['media_filename'] = calendar_data['media_filename']
+            if 'media_file_path' in calendar_data:
+                db_data['media_file_path'] = calendar_data['media_file_path']
+            if 'media_file_type' in calendar_data:
+                db_data['media_file_type'] = calendar_data['media_file_type']
+            
             # Insert into database
             result = self.supabase.table('calendars').insert(db_data).execute()
             
