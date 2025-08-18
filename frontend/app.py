@@ -641,60 +641,6 @@ def get_calendar_media(calendar_id):
         traceback.print_exc()
         return jsonify({'error': 'Failed to get media files'}), 500
 
-@app.route('/media/calendar/<calendar_id>/<filename>')
-def serve_calendar_media(calendar_id, filename):
-    """Serve media files for calendars"""
-    user_id = session.get('user_id')
-    if not user_id:
-        return "Unauthorized", 401
-    
-    try:
-        # Verify user owns this calendar
-        if calendar_db_available and calendar_db:
-            calendar_data = calendar_db.get_calendar_by_id(calendar_id, user_id)
-            if not calendar_data:
-                return "Calendar not found", 404
-            
-            # Get the media file path
-            media_path = calendar_data.get('media_file_path')
-            if not media_path:
-                return "Media file not found", 404
-            
-            # If it's a Supabase Storage URL, redirect to it
-            if media_path.startswith('http'):
-                from flask import redirect
-                print(f"🔗 Redirecting to Supabase Storage URL: {media_path}")
-                return redirect(media_path)
-            
-            # Legacy: try to serve local file (for backward compatibility)
-            import os
-            if os.path.exists(media_path):
-                # Get the directory and filename
-                directory = os.path.dirname(media_path)
-                file_name = os.path.basename(media_path)
-                
-                # Determine mime type
-                mime_type = 'audio/mpeg'
-                if media_path.endswith('.mp3'):
-                    mime_type = 'audio/mpeg'
-                elif media_path.endswith('.wav'):
-                    mime_type = 'audio/wav'
-                elif media_path.endswith('.m4a'):
-                    mime_type = 'audio/mp4'
-                elif media_path.endswith('.ogg'):
-                    mime_type = 'audio/ogg'
-                
-                from flask import send_from_directory
-                return send_from_directory(directory, file_name, mimetype=mime_type)
-            else:
-                print(f"Media file not found at path: {media_path}")
-                return "Media file not found", 404
-                
-    except Exception as e:
-        print(f"Error serving media file: {e}")
-        import traceback
-        traceback.print_exc()
-        return "Error serving media file", 500
 
 @app.route('/dashboard/calendar/<calendar_id>')
 def calendar_detail(calendar_id):
@@ -770,8 +716,8 @@ def calendar_detail(calendar_id):
     return render_template('calendar_detail.html', **context)
 
 # Media file serving route
-@app.route('/media/calendar/<calendar_id>/<filename>')
-def serve_calendar_media(calendar_id, filename):
+@app.route('/media/calendar/<calendar_id>/<filename>', endpoint='calendar_media_server')
+def serve_calendar_media_v2(calendar_id, filename):
     """Serve media files for calendars"""
     user_id = session.get('user_id')
     if not user_id:
