@@ -845,6 +845,20 @@ def delete_calendar(calendar_id):
             return jsonify({'success': False, 'error': 'User not authenticated'}), 401
         
         if dashboard_data_available:
+            # First, get calendar info to check for media files
+            calendar_result = dashboard_data.admin_client.table('calendars').select('media_file_path').eq('id', calendar_id).eq('owner_id', user_id).single().execute()
+            
+            # Clean up media file if it exists
+            if calendar_result.data and calendar_result.data.get('media_file_path'):
+                media_path = calendar_result.data['media_file_path']
+                try:
+                    import os
+                    if os.path.exists(media_path):
+                        os.remove(media_path)
+                        print(f"✅ Deleted media file: {media_path}")
+                except Exception as e:
+                    print(f"⚠️ Failed to delete media file: {e}")
+            
             # Delete from calendars table using admin client
             result = dashboard_data.admin_client.table('calendars').delete().eq('id', calendar_id).eq('owner_id', user_id).execute()
             
