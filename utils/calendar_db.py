@@ -176,15 +176,20 @@ class CalendarDatabase:
                     'id': str(cal['id']),
                     'name': cal['name'],
                     'color': cal['color'],
-                    'platform': cal['platform'],
-                    'is_shared': cal['is_shared'],
-                    'event_count': cal['event_count'],
-                    'sync_status': cal['sync_status'],
-                    'last_sync_display': cal['last_sync_display'],
-                    'is_enabled': cal['is_enabled'],
+                    'platform': cal.get('type', 'personal'),  # type -> platform mapping
+                    'is_shared': cal.get('public_access', False),  # public_access -> is_shared
+                    'event_count': cal.get('event_count', 0),
+                    'sync_status': 'synced' if cal.get('is_active', True) else 'inactive',
+                    'last_sync_display': 'Synced recently',
+                    'is_enabled': cal.get('is_active', True),  # is_active -> is_enabled
                     'user_id': cal['owner_id'],
                     'created_at': cal['created_at'],
-                    'shared_with_count': cal.get('shared_with_count', 0) if cal['is_shared'] else None
+                    'description': cal.get('description', ''),
+                    # Add media file fields
+                    'media_filename': cal.get('media_filename'),
+                    'media_file_path': cal.get('media_file_path'),
+                    'media_file_type': cal.get('media_file_type'),
+                    'shared_with_count': cal.get('shared_with_count', 0) if cal.get('public_access', False) else None
                 }
             else:
                 return None

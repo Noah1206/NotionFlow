@@ -602,14 +602,24 @@ def calendar_detail(calendar_id):
     # Get common dashboard context
     context = get_dashboard_context(user_id, 'calendar-detail')
     
-    # Load user calendars and find the specific calendar
-    user_calendars = load_user_calendars_legacy(user_id)
+    # Load calendar data - try database first, then file fallback
     calendar = None
     
-    for cal in user_calendars:
-        if cal.get('id') == calendar_id:
-            calendar = cal
-            break
+    # Try calendar database first
+    if calendar_db_available:
+        print(f"🎵 Loading calendar {calendar_id} from database...")
+        calendar = calendar_db.get_calendar_by_id(calendar_id, user_id)
+        if calendar:
+            print(f"✅ Calendar found in database: {calendar.get('name')}")
+    
+    # Fallback to legacy file loading
+    if not calendar:
+        print(f"🎵 Fallback: Loading calendar from file system...")
+        user_calendars = load_user_calendars_legacy(user_id)
+        for cal in user_calendars:
+            if cal.get('id') == calendar_id:
+                calendar = cal
+                break
     
     # If calendar not found, create a default one
     if not calendar:
