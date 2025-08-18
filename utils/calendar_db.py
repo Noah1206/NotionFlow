@@ -89,6 +89,8 @@ class CalendarDatabase:
         try:
             # Generate UUID if not provided
             calendar_id = calendar_data.get('id', str(uuid.uuid4()))
+            print(f"📝 Creating calendar with ID: {calendar_id}")
+            print(f"📝 Calendar data received: {calendar_data}")
             
             # Prepare database data - map to actual schema
             db_data = {
@@ -103,26 +105,36 @@ class CalendarDatabase:
                 'allow_editing': True
             }
             
-            # Add media file information if provided
-            if 'media_filename' in calendar_data:
-                db_data['media_filename'] = calendar_data['media_filename']
-            if 'media_file_path' in calendar_data:
-                db_data['media_file_path'] = calendar_data['media_file_path']
-            if 'media_file_type' in calendar_data:
-                db_data['media_file_type'] = calendar_data['media_file_type']
+            # Add media file information if provided (only if columns exist)
+            if 'media_filename' in calendar_data and calendar_data['media_filename']:
+                # For now, skip media fields if they cause issues
+                # db_data['media_filename'] = calendar_data['media_filename']
+                print(f"📎 Media filename provided: {calendar_data['media_filename']} (skipping for now)")
+            if 'media_file_path' in calendar_data and calendar_data['media_file_path']:
+                # db_data['media_file_path'] = calendar_data['media_file_path']
+                print(f"📎 Media file path provided: {calendar_data['media_file_path']} (skipping for now)")
+            if 'media_file_type' in calendar_data and calendar_data['media_file_type']:
+                # db_data['media_file_type'] = calendar_data['media_file_type']
+                print(f"📎 Media file type provided: {calendar_data['media_file_type']} (skipping for now)")
+            
+            print(f"📝 Database data to insert: {db_data}")
             
             # Insert into database
             result = self.supabase.table('calendars').insert(db_data).execute()
+            print(f"📝 Database insert result: {result}")
             
             if result.data:
                 print(f"✅ Calendar created in database: {calendar_data['name']}")
                 return calendar_id
             else:
                 print(f"❌ Failed to create calendar: no data returned")
+                print(f"❌ Result: {result}")
                 return None
                 
         except Exception as e:
             print(f"❌ Failed to create calendar: {e}")
+            import traceback
+            traceback.print_exc()
             return None
     
     def update_calendar(self, calendar_id: str, updates: Dict[str, Any]) -> bool:
