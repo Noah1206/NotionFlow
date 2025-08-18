@@ -631,7 +631,13 @@ def serve_calendar_media(calendar_id, filename):
             if not media_path:
                 return "Media file not found", 404
             
-            # Serve the file
+            # If it's a Supabase Storage URL, redirect to it
+            if media_path.startswith('http'):
+                from flask import redirect
+                print(f"🔗 Redirecting to Supabase Storage URL: {media_path}")
+                return redirect(media_path)
+            
+            # Legacy: try to serve local file (for backward compatibility)
             import os
             if os.path.exists(media_path):
                 # Get the directory and filename
@@ -750,7 +756,7 @@ def create_calendar():
         if not user_id:
             return jsonify({'success': False, 'error': 'User not authenticated'}), 401
         
-        # Check if it's a multipart form (file upload)
+        # Handle file upload with Supabase Storage for Render deployment
         if request.content_type and 'multipart/form-data' in request.content_type:
             # Handle file upload
             platform = request.form.get('platform', 'custom')
@@ -766,33 +772,58 @@ def create_calendar():
             if 'media_file' in request.files:
                 media_file = request.files['media_file']
                 if media_file and media_file.filename:
-                    # Save the media file
-                    import os
-                    import uuid
-                    from werkzeug.utils import secure_filename
-                    
-                    filename = secure_filename(media_file.filename)
-                    file_ext = os.path.splitext(filename)[1]
-                    
-                    # Create unique filename
-                    unique_filename = f"{uuid.uuid4()}{file_ext}"
-                    
-                    # Create media directory if it doesn't exist
-                    media_dir = os.path.join('data', 'media', user_id)
-                    os.makedirs(media_dir, exist_ok=True)
-                    
-                    # Save file
-                    file_path = os.path.join(media_dir, unique_filename)
-                    media_file.save(file_path)
-                    
-                    media_filename = filename  # Original filename
-                    media_file_path = file_path  # Full path to saved file
-                    media_file_type = media_file.content_type
-                    
-                    print(f"✅ Media file saved: {media_filename} at {media_file_path}")
+                    try:
+                        # Upload to Supabase Storage
+                        import os
+                        import uuid
+                        from werkzeug.utils import secure_filename
+                        
+                        filename = secure_filename(media_file.filename)
+                        file_ext = os.path.splitext(filename)[1]
+                        
+                        # Create unique filename for storage
+                        unique_filename = f"{user_id}/{uuid.uuid4()}{file_ext}"
+                        
+                        print(f"📎 Uploading to Supabase Storage: {unique_filename}")
+                        
+                        # Upload to Supabase Storage
+                        if calendar_db_available and calendar_db.supabase:
+                            # Read file content
+                            file_content = media_file.read()
+                            
+                            # Upload to Supabase Storage
+                            result = calendar_db.supabase.storage.from_('media').upload(
+                                path=unique_filename,
+                                file=file_content,
+                                file_options={"content-type": media_file.content_type}
+                            )
+                            
+                            print(f"📎 Storage upload result: {result}")
+                            
+                            if result:
+                                # Get public URL
+                                public_url = calendar_db.supabase.storage.from_('media').get_public_url(unique_filename)
+                                
+                                media_filename = filename  # Original filename
+                                media_file_path = public_url  # Public URL
+                                media_file_type = media_file.content_type
+                                
+                                print(f"✅ Media file uploaded to Supabase Storage: {media_filename}")
+                                print(f"🔗 Public URL: {public_url}")
+                            else:
+                                print("❌ Failed to upload to Supabase Storage")
+                        else:
+                            print("❌ Supabase Storage not available")
+                    except Exception as storage_error:
+                        print(f"❌ Storage upload error: {storage_error}")
+                        # Continue without media file
+                        pass
         else:
             # Handle JSON request (no file upload)
             data = request.get_json()
+            if not data:
+                return jsonify({'success': False, 'error': 'No data provided'}), 400
+            
             platform = data.get('platform', 'custom')
             calendar_name = data.get('name', f'{platform.title()} Calendar')
             calendar_color = data.get('color', '#6b7280')
@@ -800,6 +831,8 @@ def create_calendar():
             media_filename = None
             media_file_path = None
             media_file_type = None
+        
+        print(f"🔍 Creating calendar: {calendar_name}, platform: {platform}, color: {calendar_color}")
         
         # Try calendar_db first, then dashboard_data, then file storage
         try:
@@ -827,7 +860,8 @@ def create_calendar():
                 if calendar_id:
                     print(f"✅ Created calendar in DB using calendar_db: {calendar_name} (ID: {calendar_id})")
                 else:
-                    raise Exception("Failed to create calendar in database")
+                    print("❌ calendar_db.create_calendar returned None, falling back to file storage")
+                    raise Exception("Calendar DB creation failed")
                 
                 return jsonify({
                     'success': True,

@@ -105,17 +105,27 @@ class CalendarDatabase:
                 'allow_editing': True
             }
             
-            # Add media file information if provided (only if columns exist)
+            # Add media file information if provided
             if 'media_filename' in calendar_data and calendar_data['media_filename']:
-                # For now, skip media fields if they cause issues
-                # db_data['media_filename'] = calendar_data['media_filename']
-                print(f"📎 Media filename provided: {calendar_data['media_filename']} (skipping for now)")
+                try:
+                    db_data['media_filename'] = calendar_data['media_filename']
+                    print(f"📎 Added media_filename: {calendar_data['media_filename']}")
+                except Exception as e:
+                    print(f"⚠️ Could not add media_filename: {e}")
+                    
             if 'media_file_path' in calendar_data and calendar_data['media_file_path']:
-                # db_data['media_file_path'] = calendar_data['media_file_path']
-                print(f"📎 Media file path provided: {calendar_data['media_file_path']} (skipping for now)")
+                try:
+                    db_data['media_file_path'] = calendar_data['media_file_path']
+                    print(f"📎 Added media_file_path: {calendar_data['media_file_path']}")
+                except Exception as e:
+                    print(f"⚠️ Could not add media_file_path: {e}")
+                    
             if 'media_file_type' in calendar_data and calendar_data['media_file_type']:
-                # db_data['media_file_type'] = calendar_data['media_file_type']
-                print(f"📎 Media file type provided: {calendar_data['media_file_type']} (skipping for now)")
+                try:
+                    db_data['media_file_type'] = calendar_data['media_file_type']
+                    print(f"📎 Added media_file_type: {calendar_data['media_file_type']}")
+                except Exception as e:
+                    print(f"⚠️ Could not add media_file_type: {e}")
             
             print(f"📝 Database data to insert: {db_data}")
             
