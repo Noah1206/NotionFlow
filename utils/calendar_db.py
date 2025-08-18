@@ -147,7 +147,7 @@ class CalendarDatabase:
             traceback.print_exc()
             return None
     
-    def update_calendar(self, calendar_id: str, updates: Dict[str, Any]) -> bool:
+    def update_calendar(self, calendar_id: str, updates: Dict[str, Any], user_id: str = None) -> bool:
         """Update an existing calendar"""
         if not self.supabase:
             print("⚠️ Database not available")
@@ -157,7 +157,12 @@ class CalendarDatabase:
             # Add updated_at timestamp
             updates['updated_at'] = datetime.datetime.now().isoformat()
             
-            result = self.supabase.table('calendars').update(updates).eq('id', calendar_id).execute()
+            # Apply user verification if user_id provided (for security)
+            query = self.supabase.table('calendars').update(updates).eq('id', calendar_id)
+            if user_id:
+                query = query.eq('owner_id', user_id)
+            
+            result = query.execute()
             
             if result.data:
                 print(f"✅ Calendar updated: {calendar_id}")

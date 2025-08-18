@@ -302,11 +302,11 @@
                 <input type="text" id="calendar-name" class="form-input" placeholder="예: 업무 일정, 개인 스케줄" value="내 새 캘린더">
             </div>
 
-            <!-- 색상 선택 -->
+            <!-- 색상 선택 (선택사항) -->
             <div class="form-group">
-                <label class="form-label">색상</label>
+                <label class="form-label">색상 (선택사항)</label>
                 <div class="color-selector">
-                    <div class="color-option active" data-color="#2563eb" style="background: #2563eb;"></div>
+                    <div class="color-option" data-color="#2563eb" style="background: #2563eb;"></div>
                     <div class="color-option" data-color="#059669" style="background: #059669;"></div>
                     <div class="color-option" data-color="#d97706" style="background: #d97706;"></div>
                     <div class="color-option" data-color="#7c3aed" style="background: #7c3aed;"></div>
@@ -317,6 +317,7 @@
                     <div class="color-option" data-color="#8b5cf6" style="background: #8b5cf6;"></div>
                     <div class="color-option" data-color="#ef4444" style="background: #ef4444;"></div>
                 </div>
+                <p class="form-help">색상을 선택하지 않으면 자동으로 지정됩니다.</p>
             </div>
 
             <!-- 플랫폼 선택 (선택사항) -->
@@ -1298,7 +1299,12 @@
             // 폼 데이터 수집
             const name = document.getElementById('calendar-name').value.trim();
             const isShared = document.querySelector('.type-option.active').dataset.type === 'shared';
-            const color = document.querySelector('.color-option.active').dataset.color;
+            // 색상 선택 (선택사항) - 선택되지 않으면 기본 색상 배열에서 랜덤 선택
+            const activeColorOption = document.querySelector('.color-option.active');
+            const defaultColors = ['#2563eb', '#059669', '#d97706', '#7c3aed', '#dc2626', '#f59e0b', '#10b981', '#8b5cf6', '#ef4444'];
+            const color = activeColorOption ? 
+                activeColorOption.dataset.color : 
+                defaultColors[Math.floor(Math.random() * defaultColors.length)];
             const platform = document.getElementById('calendar-platform').value;
 
             console.log('🔍 Form data collected:', {

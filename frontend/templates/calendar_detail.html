@@ -57,6 +57,13 @@
                 </svg>
                 새 이벤트
             </button>
+            
+            <button class="btn-settings" onclick="openCalendarSettings()" title="캘린더 설정">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M12 1v6m0 10v6m11-7h-6m-10 0H1m15-4a3 3 0 11-6 0 3 3 0 016 0zm-8 8a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+            </button>
         </div>
     </div>
 
@@ -589,6 +596,73 @@
                 <button class="btn-cancel" onclick="closeEventModal()">취소</button>
                 <button class="btn-save" onclick="saveEvent()">저장</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- 캘린더 설정 모달 -->
+<div class="calendar-settings-overlay" id="calendar-settings-overlay" style="display: none;">
+    <div class="calendar-settings-modal">
+        <div class="modal-header">
+            <h3 class="modal-title">캘린더 설정</h3>
+            <button class="btn-close" onclick="closeCalendarSettings()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <!-- 기본 정보 -->
+            <div class="form-section">
+                <h4 class="section-title">기본 정보</h4>
+                <div class="form-group">
+                    <label class="form-label">캘린더 이름</label>
+                    <input type="text" id="settings-calendar-name" class="form-input" value="{{ calendar.name }}">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">색상</label>
+                    <div class="color-selector">
+                        <div class="color-option" data-color="#2563eb" style="background: #2563eb;"></div>
+                        <div class="color-option" data-color="#059669" style="background: #059669;"></div>
+                        <div class="color-option" data-color="#d97706" style="background: #d97706;"></div>
+                        <div class="color-option" data-color="#7c3aed" style="background: #7c3aed;"></div>
+                        <div class="color-option" data-color="#dc2626" style="background: #dc2626;"></div>
+                        <div class="color-option" data-color="#6b7280" style="background: #6b7280;"></div>
+                        <div class="color-option" data-color="#f59e0b" style="background: #f59e0b;"></div>
+                        <div class="color-option" data-color="#10b981" style="background: #10b981;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 플랫폼 연동 -->
+            <div class="form-section">
+                <h4 class="section-title">플랫폼 연동</h4>
+                <div class="form-group">
+                    <label class="form-label">연동할 플랫폼 선택</label>
+                    <select id="settings-platform" class="form-select">
+                        <option value="custom" {{ 'selected' if calendar.platform == 'custom' else '' }}>독립 캘린더</option>
+                        <option value="google" {{ 'selected' if calendar.platform == 'google' else '' }}>Google Calendar</option>
+                        <option value="notion" {{ 'selected' if calendar.platform == 'notion' else '' }}>Notion</option>
+                        <option value="outlook" {{ 'selected' if calendar.platform == 'outlook' else '' }}>Outlook</option>
+                        <option value="apple" {{ 'selected' if calendar.platform == 'apple' else '' }}>Apple Calendar</option>
+                    </select>
+                </div>
+                
+                <div class="platform-status">
+                    <div class="status-indicator" id="platform-status">
+                        <div class="status-dot"></div>
+                        <span>연동 상태를 확인 중...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeCalendarSettings()">취소</button>
+            <button class="btn-primary" onclick="saveCalendarSettings()">저장</button>
         </div>
     </div>
 </div>

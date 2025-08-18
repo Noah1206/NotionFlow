@@ -1178,6 +1178,74 @@ def delete_calendar(calendar_id):
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/calendar/<calendar_id>/update', methods=['PATCH'])
+def update_calendar_settings(calendar_id):
+    """Update calendar settings (name, color, platform)"""
+    try:
+        print(f"🔧 Update calendar settings request: calendar_id={calendar_id}")
+        user_id = session.get('user_id')
+        
+        if not user_id:
+            print("❌ User not authenticated")
+            return jsonify({'success': False, 'error': 'User not authenticated'}), 401
+        
+        # Get request data
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+        
+        print(f"🔧 Update data received: {data}")
+        
+        # Prepare update data
+        update_data = {}
+        if 'name' in data:
+            update_data['name'] = data['name'].strip()
+        if 'color' in data:
+            update_data['color'] = data['color']
+        if 'platform' in data:
+            # Map 'custom' to 'personal' for database schema compatibility
+            platform = data['platform']
+            update_data['platform'] = 'personal' if platform == 'custom' else platform
+        
+        print(f"🔧 Prepared update data: {update_data}")
+        
+        # Try calendar database first
+        if calendar_db_available:
+            print("🔧 Using calendar database for update...")
+            success = calendar_db.update_calendar(calendar_id, update_data, user_id)
+            if success:
+                print("✅ Calendar settings updated successfully")
+                return jsonify({
+                    'success': True,
+                    'message': 'Calendar settings updated successfully'
+                })
+            else:
+                print("❌ Calendar database update failed")
+                return jsonify({'success': False, 'error': 'Failed to update calendar settings'}), 500
+        
+        # Fallback to dashboard data
+        elif dashboard_data_available:
+            print("🔧 Using dashboard data for update...")
+            result = dashboard_data.admin_client.table('calendars').update(update_data).eq('id', calendar_id).eq('owner_id', user_id).execute()
+            
+            if result.data:
+                print("✅ Calendar settings updated successfully via dashboard")
+                return jsonify({
+                    'success': True,
+                    'message': 'Calendar settings updated successfully'
+                })
+            else:
+                return jsonify({'success': False, 'error': 'Calendar not found'}), 404
+        
+        else:
+            return jsonify({'success': False, 'error': 'Database not available'}), 500
+            
+    except Exception as e:
+        print(f"❌ Error updating calendar settings: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/calendar/<calendar_id>/toggle', methods=['POST'])
 def toggle_calendar(calendar_id):
     """Toggle calendar enabled/disabled status"""

@@ -1713,3 +1713,74 @@ function addCompactPlayerListeners() {
 
 // Call this after mediaPlayer is initialized
 setTimeout(addCompactPlayerListeners, 100);
+
+// Calendar Settings Functions
+function openCalendarSettings() {
+    const modal = document.getElementById('calendar-settings-overlay');
+    if (modal) {
+        modal.style.display = 'flex';
+        
+        // 현재 캘린더 색상을 선택 상태로 만들기
+        const currentColor = document.querySelector('.calendar-icon-small').style.backgroundColor;
+        const colorOptions = document.querySelectorAll('#calendar-settings-overlay .color-option');
+        colorOptions.forEach(option => {
+            option.classList.remove('active');
+            // RGB 색상을 hex로 변환해서 비교하거나, 데이터 속성으로 비교
+            if (option.style.backgroundColor === currentColor) {
+                option.classList.add('active');
+            }
+        });
+        
+        // 색상 선택 이벤트 리스너 추가
+        colorOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                colorOptions.forEach(opt => opt.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    }
+}
+
+function closeCalendarSettings() {
+    const modal = document.getElementById('calendar-settings-overlay');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+async function saveCalendarSettings() {
+    try {
+        const calendarId = document.querySelector('.calendar-workspace').dataset.calendarId;
+        const name = document.getElementById('settings-calendar-name').value.trim();
+        const platform = document.getElementById('settings-platform').value;
+        const activeColor = document.querySelector('#calendar-settings-overlay .color-option.active');
+        const color = activeColor ? activeColor.dataset.color : '#2563eb';
+        
+        if (!name) {
+            alert('캘린더 이름을 입력해주세요.');
+            return;
+        }
+        
+        const response = await fetch(`/api/calendar/${calendarId}/update`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                name: name,
+                platform: platform,
+                color: color
+            })
+        });
+        
+        if (response.ok) {
+            // 페이지 새로고침하여 변경사항 반영
+            window.location.reload();
+        } else {
+            alert('설정 저장 중 오류가 발생했습니다.');
+        }
+    } catch (error) {
+        console.error('Error saving calendar settings:', error);
+        alert('설정 저장 중 오류가 발생했습니다.');
+    }
+}
