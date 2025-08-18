@@ -168,9 +168,20 @@ def save_media_file_locally(media_file, user_id):
         # Save file
         media_file.save(file_path)
         
-        print(f"✅ Media file saved locally: {file_path}")
-        
-        return filename, file_path, media_file.content_type
+        # Verify file was saved correctly
+        if os.path.exists(file_path):
+            file_size = os.path.getsize(file_path)
+            print(f"✅ Media file saved locally: {file_path} ({file_size} bytes)")
+            
+            # Verify it's a valid media file by checking the first few bytes
+            with open(file_path, 'rb') as f:
+                header = f.read(12)
+                print(f"📁 File header (first 12 bytes): {header[:12].hex()}")
+            
+            return filename, file_path, media_file.content_type
+        else:
+            print(f"❌ File was not saved properly: {file_path}")
+            return None, None, None
         
     except Exception as e:
         print(f"❌ Failed to save media file locally: {e}")
@@ -758,10 +769,31 @@ def serve_calendar_media_v2(calendar_id, filename):
                         mimetype = 'audio/wav'
                     elif media_path.endswith('.m4a'):
                         mimetype = 'audio/mp4'
+                    elif media_path.endswith('.ogg'):
+                        mimetype = 'audio/ogg'
+                    elif media_path.endswith('.webm'):
+                        mimetype = 'audio/webm'
                     else:
                         mimetype = 'application/octet-stream'
                     
-                    return send_file(media_path, mimetype=mimetype)
+                    # Check file size for debugging
+                    file_size = os.path.getsize(media_path)
+                    print(f"📁 File size: {file_size} bytes")
+                    
+                    # Add cache control headers
+                    from flask import Response
+                    def generate():
+                        with open(media_path, 'rb') as f:
+                            data = f.read(1024)
+                            while data:
+                                yield data
+                                data = f.read(1024)
+                    
+                    response = Response(generate(), mimetype=mimetype)
+                    response.headers['Accept-Ranges'] = 'bytes'
+                    response.headers['Cache-Control'] = 'public, max-age=3600'
+                    response.headers['Content-Length'] = str(file_size)
+                    return response
                 else:
                     print(f"❌ File not found at path: {media_path}")
             else:

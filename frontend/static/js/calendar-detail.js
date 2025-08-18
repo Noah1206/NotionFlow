@@ -211,40 +211,59 @@ function switchView(viewType) {
 }
 
 // Media player functionality
-let audioPlayer = null;
+let mediaPlayer = null; // Supports both audio and video
 let currentPlaylist = [];
 let currentTrackIndex = 0;
 let isPlaying = false;
 
 function initializeMediaPlayer() {
-    audioPlayer = document.getElementById('audio-player');
-    if (audioPlayer) {
-        // Prevent autoplay initially
-        audioPlayer.autoplay = false;
-        audioPlayer.preload = 'metadata';
-        
-        // Add event listeners safely
-        audioPlayer.addEventListener('loadedmetadata', updateTotalTime);
-        audioPlayer.addEventListener('timeupdate', updateProgress);
-        audioPlayer.addEventListener('ended', handleTrackEnd);
-        audioPlayer.addEventListener('error', handleMediaError);
-        
-        // Add additional event listeners for better error handling
-        audioPlayer.addEventListener('loadstart', () => {
-            console.log('Media loading started');
-        });
-        
-        audioPlayer.addEventListener('canplay', () => {
-            console.log('Media can play');
-        });
-        
-        audioPlayer.addEventListener('waiting', () => {
-            console.log('Media waiting for data');
-        });
-        
-        // Check if calendar has media files
-        checkForMediaFiles();
+    // Create dynamic media element based on content
+    createMediaElement('audio'); // Start with audio by default
+}
+
+function createMediaElement(type) {
+    // Remove existing media element if any
+    if (mediaPlayer) {
+        mediaPlayer.remove();
     }
+    
+    // Create new media element
+    if (type === 'video') {
+        mediaPlayer = document.createElement('video');
+        mediaPlayer.style.display = 'none'; // Hide video element, just use for audio from MP4
+    } else {
+        mediaPlayer = document.createElement('audio');
+    }
+    
+    mediaPlayer.id = 'media-player-element';
+    mediaPlayer.autoplay = false;
+    mediaPlayer.preload = 'metadata';
+    mediaPlayer.controls = false; // We'll use custom controls
+    
+    // Append to body (hidden)
+    document.body.appendChild(mediaPlayer);
+    
+    // Add event listeners safely
+    mediaPlayer.addEventListener('loadedmetadata', updateTotalTime);
+    mediaPlayer.addEventListener('timeupdate', updateProgress);
+    mediaPlayer.addEventListener('ended', handleTrackEnd);
+    mediaPlayer.addEventListener('error', handleMediaError);
+    
+    // Add additional event listeners for better error handling
+    mediaPlayer.addEventListener('loadstart', () => {
+        console.log('Media loading started');
+    });
+    
+    mediaPlayer.addEventListener('canplay', () => {
+        console.log('Media can play');
+    });
+    
+    mediaPlayer.addEventListener('waiting', () => {
+        console.log('Media waiting for data');
+    });
+    
+    // Check if calendar has media files  
+    checkForMediaFiles();
 }
 
 function checkForMediaFiles() {
@@ -375,23 +394,23 @@ function handleTrackEnd() {
         nextTrack();
     } else {
         // Loop single track
-        audioPlayer.currentTime = 0;
+        mediaPlayer.currentTime = 0;
         if (isPlaying) {
-            audioPlayer.play();
+            mediaPlayer.play();
         }
     }
 }
 
 function loadTrack(track) {
-    if (!audioPlayer || !track) {
-        console.warn('Cannot load track: missing audioPlayer or track data');
+    if (!mediaPlayer || !track) {
+        console.warn('Cannot load track: missing mediaPlayer or track data');
         return;
     }
     
     // Skip if no valid source or placeholder source
     if (!track.src || track.src === '#' || track.src === '') {
         console.log('No valid source for track, skipping load');
-        // Just update UI without trying to load audio
+        // Just update UI without trying to load media
         updateCompactPlayerInfo(track);
         const mediaTitle = document.getElementById('media-title');
         const mediaArtist = document.getElementById('media-artist');
@@ -401,16 +420,45 @@ function loadTrack(track) {
     }
     
     try {
+        // Determine media type from file extension or MIME type
+        const isVideo = track.src.toLowerCase().includes('.mp4') || 
+                       track.src.toLowerCase().includes('.webm') || 
+                       track.src.toLowerCase().includes('.mov') ||
+                       (track.type && track.type.startsWith('video/'));
+        
+        // Create appropriate media element if needed
+        const currentType = mediaPlayer.tagName.toLowerCase();
+        const neededType = isVideo ? 'video' : 'audio';
+        
+        if (currentType !== neededType) {
+            console.log(`🎵 Switching from ${currentType} to ${neededType} player`);
+            createMediaElement(neededType);
+        }
+        
         // Pause and reset if playing
         if (isPlaying) {
-            audioPlayer.pause();
+            mediaPlayer.pause();
             isPlaying = false;
         }
         
         // Wait a bit before setting new source to avoid conflicts
         setTimeout(() => {
-            // Set new source
-            audioPlayer.src = track.src;
+            // Clear previous source
+            mediaPlayer.src = '';
+            mediaPlayer.load();
+            
+            // Set new source with error handling
+            mediaPlayer.src = track.src;
+            console.log('🎵 Loading media source:', track.src);
+            
+            // Add load event listener for this track
+            mediaPlayer.addEventListener('loadeddata', function() {
+                console.log('✅ Media data loaded successfully');
+            }, { once: true });
+            
+            mediaPlayer.addEventListener('canplay', function() {
+                console.log('✅ Media can play');
+            }, { once: true });
         
             // Update compact player info
             updateCompactPlayerInfo(track);
@@ -467,13 +515,13 @@ function updatePlayButton() {
 }
 
 function togglePlay() {
-    if (!audioPlayer) return;
+    if (!mediaPlayer) return;
     
     if (isPlaying) {
-        audioPlayer.pause();
+        mediaPlayer.pause();
         isPlaying = false;
     } else {
-        audioPlayer.play().then(() => {
+        mediaPlayer.play().then(() => {
             isPlaying = true;
         }).catch(e => {
             console.error('Playback failed:', e);
@@ -487,7 +535,7 @@ function previousTrack() {
     if (currentPlaylist.length > 0) {
         currentTrackIndex = (currentTrackIndex - 1 + currentPlaylist.length) % currentPlaylist.length;
         loadTrack(currentPlaylist[currentTrackIndex]);
-        if (isPlaying) audioPlayer.play();
+        if (isPlaying) mediaPlayer.play();
     }
 }
 
@@ -495,29 +543,29 @@ function nextTrack() {
     if (currentPlaylist.length > 0) {
         currentTrackIndex = (currentTrackIndex + 1) % currentPlaylist.length;
         loadTrack(currentPlaylist[currentTrackIndex]);
-        if (isPlaying) audioPlayer.play();
+        if (isPlaying) mediaPlayer.play();
     }
 }
 
 function seekTo(event) {
-    if (!audioPlayer) return;
+    if (!mediaPlayer) return;
     
     const progressBar = event.currentTarget;
     const clickX = event.offsetX;
     const width = progressBar.offsetWidth;
-    const duration = audioPlayer.duration;
+    const duration = mediaPlayer.duration;
     
     if (duration) {
         const newTime = (clickX / width) * duration;
-        audioPlayer.currentTime = newTime;
+        mediaPlayer.currentTime = newTime;
     }
 }
 
 function updateProgress() {
-    if (!audioPlayer) return;
+    if (!mediaPlayer) return;
     
-    const current = audioPlayer.currentTime;
-    const duration = audioPlayer.duration;
+    const current = mediaPlayer.currentTime;
+    const duration = mediaPlayer.duration;
     
     if (duration) {
         const percentage = (current / duration) * 100;
@@ -527,9 +575,9 @@ function updateProgress() {
 }
 
 function updateTotalTime() {
-    if (!audioPlayer) return;
+    if (!mediaPlayer) return;
     
-    const duration = audioPlayer.duration;
+    const duration = mediaPlayer.duration;
     if (duration) {
         document.getElementById('total-time').textContent = formatTime(duration);
     }
@@ -542,30 +590,30 @@ function formatTime(seconds) {
 }
 
 function toggleMute() {
-    if (!audioPlayer) return;
+    if (!mediaPlayer) return;
     
-    audioPlayer.muted = !audioPlayer.muted;
+    mediaPlayer.muted = !mediaPlayer.muted;
     updateVolumeIcon();
 }
 
 function setVolume(event) {
-    if (!audioPlayer) return;
+    if (!mediaPlayer) return;
     
     const volumeBar = event.currentTarget;
     const clickX = event.offsetX;
     const width = volumeBar.offsetWidth;
     const volume = clickX / width;
     
-    audioPlayer.volume = volume;
+    mediaPlayer.volume = volume;
     document.getElementById('volume-fill').style.width = (volume * 100) + '%';
     updateVolumeIcon();
 }
 
 function updateVolumeIcon() {
     const volumeIcon = document.getElementById('volume-icon');
-    if (audioPlayer.muted || audioPlayer.volume === 0) {
+    if (mediaPlayer.muted || mediaPlayer.volume === 0) {
         volumeIcon.innerHTML = '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
-    } else if (audioPlayer.volume < 0.5) {
+    } else if (mediaPlayer.volume < 0.5) {
         volumeIcon.innerHTML = '<path d="M18.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM5 9v6h4l5 5V4L9 9H5z"/>';
     } else {
         volumeIcon.innerHTML = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>';
@@ -1468,10 +1516,10 @@ function updateCompactPlayerInfo(track) {
 }
 
 function updateCompactProgress() {
-    if (!audioPlayer) return;
+    if (!mediaPlayer) return;
     
-    const currentTime = audioPlayer.currentTime;
-    const duration = audioPlayer.duration;
+    const currentTime = mediaPlayer.currentTime;
+    const duration = mediaPlayer.duration;
     
     if (duration > 0) {
         const percentage = (currentTime / duration) * 100;
@@ -1518,9 +1566,9 @@ function updateCompactPlayButton() {
 }
 
 function updateCompactVolume() {
-    if (!audioPlayer) return;
+    if (!mediaPlayer) return;
     
-    const volumePercentage = audioPlayer.volume * 100;
+    const volumePercentage = mediaPlayer.volume * 100;
     const compactVolumeFill = document.getElementById('compact-volume-fill');
     
     if (compactVolumeFill) {
@@ -1530,9 +1578,9 @@ function updateCompactVolume() {
     // Update volume icon
     const compactVolumeIcon = document.getElementById('compact-volume-icon');
     if (compactVolumeIcon) {
-        if (audioPlayer.muted || audioPlayer.volume === 0) {
+        if (mediaPlayer.muted || mediaPlayer.volume === 0) {
             compactVolumeIcon.innerHTML = '<path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M23 9l-6 6"></path><path d="M17 9l6 6"></path>';
-        } else if (audioPlayer.volume < 0.5) {
+        } else if (mediaPlayer.volume < 0.5) {
             compactVolumeIcon.innerHTML = '<path d="M11 5L6 9H2v6h4l5 4V5z"></path>';
         } else {
             compactVolumeIcon.innerHTML = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>';
@@ -1542,10 +1590,10 @@ function updateCompactVolume() {
 
 // Update existing functions to sync with compact player
 function updateProgress() {
-    if (!audioPlayer) return;
+    if (!mediaPlayer) return;
     
-    const currentTime = audioPlayer.currentTime;
-    const duration = audioPlayer.duration;
+    const currentTime = mediaPlayer.currentTime;
+    const duration = mediaPlayer.duration;
     
     if (duration > 0) {
         const percentage = (currentTime / duration) * 100;
@@ -1574,24 +1622,24 @@ function updateProgress() {
 }
 
 function togglePlay() {
-    if (!audioPlayer) {
+    if (!mediaPlayer) {
         console.warn('No audio player available');
         return;
     }
     
     // Check if we have a valid source
-    if (!audioPlayer.src || audioPlayer.src === '' || audioPlayer.src.endsWith('#')) {
+    if (!mediaPlayer.src || mediaPlayer.src === '' || mediaPlayer.src.endsWith('#')) {
         console.warn('No valid media source to play');
         showNotification('미디어 파일이 없습니다. 캘린더에 미디어를 추가해주세요.');
         return;
     }
     
     if (isPlaying) {
-        audioPlayer.pause();
+        mediaPlayer.pause();
         isPlaying = false;
     } else {
         // Use promise to handle play errors
-        const playPromise = audioPlayer.play();
+        const playPromise = mediaPlayer.play();
         
         if (playPromise !== undefined) {
             playPromise
@@ -1648,17 +1696,17 @@ function formatTime(seconds) {
 
 // Add event listeners for compact player updates safely
 function addCompactPlayerListeners() {
-    if (audioPlayer && audioPlayer.addEventListener) {
+    if (mediaPlayer && mediaPlayer.addEventListener) {
         try {
-            audioPlayer.addEventListener('timeupdate', updateCompactProgress);
-            audioPlayer.addEventListener('volumechange', updateCompactVolume);
-            audioPlayer.addEventListener('play', updateCompactPlayButton);
-            audioPlayer.addEventListener('pause', updateCompactPlayButton);
+            mediaPlayer.addEventListener('timeupdate', updateCompactProgress);
+            mediaPlayer.addEventListener('volumechange', updateCompactVolume);
+            mediaPlayer.addEventListener('play', updateCompactPlayButton);
+            mediaPlayer.addEventListener('pause', updateCompactPlayButton);
         } catch (error) {
             console.warn('Error adding compact player listeners:', error);
         }
     }
 }
 
-// Call this after audioPlayer is initialized
+// Call this after mediaPlayer is initialized
 setTimeout(addCompactPlayerListeners, 100);
