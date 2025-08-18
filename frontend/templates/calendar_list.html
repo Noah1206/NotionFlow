@@ -1208,15 +1208,42 @@
     }
 
     function closeCreateModal() {
-        document.getElementById('calendar-create-modal').style.display = 'none';
+        const modal = document.getElementById('calendar-create-modal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
         document.body.classList.remove('modal-open');
-        // 폼 초기화
-        document.getElementById('calendar-name').value = '내 새 캘린더';
-        document.querySelector('.type-option.active').classList.remove('active');
-        document.querySelector('.type-option[data-type="personal"]').classList.add('active');
-        document.querySelector('.color-option.active').classList.remove('active');
-        document.querySelector('.color-option[data-color="#2563eb"]').classList.add('active');
-        document.getElementById('calendar-platform').value = 'custom';
+        
+        // 폼 초기화 (안전하게)
+        const nameInput = document.getElementById('calendar-name');
+        if (nameInput) {
+            nameInput.value = '내 새 캘린더';
+        }
+        
+        const activeTypeOption = document.querySelector('.type-option.active');
+        if (activeTypeOption) {
+            activeTypeOption.classList.remove('active');
+        }
+        
+        const personalTypeOption = document.querySelector('.type-option[data-type="personal"]');
+        if (personalTypeOption) {
+            personalTypeOption.classList.add('active');
+        }
+        
+        const activeColorOption = document.querySelector('.color-option.active');
+        if (activeColorOption) {
+            activeColorOption.classList.remove('active');
+        }
+        
+        const defaultColorOption = document.querySelector('.color-option[data-color="#2563eb"]');
+        if (defaultColorOption) {
+            defaultColorOption.classList.add('active');
+        }
+        
+        const platformSelect = document.getElementById('calendar-platform');
+        if (platformSelect) {
+            platformSelect.value = 'custom';
+        }
         
         // 파일 업로드 초기화
         resetFileUpload();
@@ -1498,17 +1525,20 @@
         });
 
         // 모달 오버레이 클릭으로 닫기
-        document.getElementById('calendar-create-modal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeCreateModal();
-            }
-        });
+        const modal = document.getElementById('calendar-create-modal');
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeCreateModal();
+                }
+            });
+        }
 
         // ESC 키로 모달 닫기
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 const modal = document.getElementById('calendar-create-modal');
-                if (modal.style.display === 'flex') {
+                if (modal && modal.style.display === 'flex') {
                     closeCreateModal();
                 }
             }
