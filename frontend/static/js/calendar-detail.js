@@ -277,6 +277,15 @@ function checkForMediaFiles() {
         } catch (e) {
             // If it's a single URL string
             console.log('Loading single media file:', mediaUrl);
+            
+            // Show media players before loading track
+            const mediaPlayer = document.getElementById('media-player');
+            if (mediaPlayer) {
+                mediaPlayer.style.display = 'flex';
+                console.log('✅ Main media player shown');
+            }
+            showCompactMediaPlayer();
+            
             loadTrack({
                 title: '캘린더 배경음악',
                 artist: '나의 캘린더',
@@ -343,28 +352,21 @@ function hideMediaPlayers() {
 
 function handleMediaError(e) {
     console.error('Media playback error:', e);
+    console.log('Error details:', e.target?.error);
     
-    // Update both players with error message
+    // Update both players with error message but keep them visible
     const mediaTitle = document.getElementById('media-title');
     const mediaArtist = document.getElementById('media-artist');
     const compactTitle = document.getElementById('compact-media-title');
     const compactArtist = document.getElementById('compact-media-artist');
     
-    if (mediaTitle) mediaTitle.textContent = '재생 오류';
-    if (mediaArtist) mediaArtist.textContent = '파일을 재생할 수 없습니다';
-    if (compactTitle) compactTitle.textContent = '재생 오류';
-    if (compactArtist) compactArtist.textContent = '파일을 재생할 수 없습니다';
+    if (mediaTitle) mediaTitle.textContent = '미디어 로드 중...';
+    if (mediaArtist) mediaArtist.textContent = '잠시만 기다려주세요';
+    if (compactTitle) compactTitle.textContent = '미디어 로드 중...';
+    if (compactArtist) compactArtist.textContent = '잠시만 기다려주세요';
     
-    // Try next track if available
-    if (currentPlaylist && currentPlaylist.length > 1) {
-        nextTrack();
-    } else {
-        // Hide players if no playable media
-        const mainPlayer = document.getElementById('media-player');
-        const compactPlayer = document.getElementById('sidebar-media-player');
-        if (mainPlayer) mainPlayer.style.display = 'none';
-        if (compactPlayer) compactPlayer.style.display = 'none';
-    }
+    // Keep players visible and allow user interaction
+    console.log('🎵 Media error handled, keeping players visible for user interaction');
 }
 
 function handleTrackEnd() {

@@ -719,31 +719,62 @@ def calendar_detail(calendar_id):
 @app.route('/media/calendar/<calendar_id>/<filename>', endpoint='calendar_media_server')
 def serve_calendar_media_v2(calendar_id, filename):
     """Serve media files for calendars"""
+    print(f"🎵 Media request: calendar_id={calendar_id}, filename={filename}")
+    
     user_id = session.get('user_id')
     if not user_id:
+        print("❌ No user authentication")
         return jsonify({'error': 'Authentication required'}), 401
     
     try:
         # Get calendar to verify ownership
         if calendar_db_available:
             calendar = calendar_db.get_calendar_by_id(calendar_id, user_id)
+            print(f"🎵 Calendar found: {calendar is not None}")
+            
             if not calendar:
+                print("❌ Calendar not found in database")
                 return jsonify({'error': 'Calendar not found'}), 404
             
             media_path = calendar.get('media_file_path')
+            print(f"🎵 Media path from DB: {media_path}")
+            
             if media_path and media_path.startswith('http'):
                 # Redirect to external URL (like Supabase storage)
+                print(f"🔗 Redirecting to external URL: {media_path}")
                 return redirect(media_path)
             elif media_path:
                 # Serve local file
                 import os
+                print(f"🎵 Checking local file existence: {media_path}")
                 if os.path.exists(media_path):
-                    return send_file(media_path)
+                    print(f"✅ Serving local file: {media_path}")
+                    # Determine MIME type
+                    if media_path.endswith('.mp3'):
+                        mimetype = 'audio/mpeg'
+                    elif media_path.endswith('.mp4'):
+                        mimetype = 'video/mp4'
+                    elif media_path.endswith('.wav'):
+                        mimetype = 'audio/wav'
+                    elif media_path.endswith('.m4a'):
+                        mimetype = 'audio/mp4'
+                    else:
+                        mimetype = 'application/octet-stream'
+                    
+                    return send_file(media_path, mimetype=mimetype)
+                else:
+                    print(f"❌ File not found at path: {media_path}")
+            else:
+                print("❌ No media path found in calendar data")
+        else:
+            print("❌ Calendar DB not available")
         
         return jsonify({'error': 'Media file not found'}), 404
         
     except Exception as e:
         print(f"❌ Error serving media file: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': 'Failed to serve media file'}), 500
 
 # Alternative route for calendar management (legacy redirects)

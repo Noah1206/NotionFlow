@@ -1646,6 +1646,57 @@
         
         if (personalCount) personalCount.textContent = personalCards;
         if (sharedCount) sharedCount.textContent = sharedCards;
+        
+        // Show empty state UI when no calendars exist
+        showEmptyStateIfNeeded();
+    }
+
+    function showEmptyStateIfNeeded() {
+        const personalContainer = document.querySelector('.calendar-section-refined:first-child .calendars-container-refined');
+        const sharedContainer = document.querySelector('.calendar-section-refined:last-child .calendars-container-refined');
+        
+        const personalCards = document.querySelectorAll('.calendar-section-refined:first-child .calendar-card-refined').length;
+        const sharedCards = document.querySelectorAll('.calendar-section-refined:last-child .calendar-card-refined').length;
+        
+        // Handle personal calendars empty state
+        if (personalCards === 0 && personalContainer) {
+            // Remove existing empty state message if any
+            const existingEmpty = personalContainer.querySelector('.new-calendar-card-refined');
+            if (!existingEmpty) {
+                personalContainer.innerHTML = `
+                    <div class="new-calendar-card-refined" onclick="createNewCalendar()">
+                        <div class="new-calendar-content-refined">
+                            <div class="new-calendar-icon-refined">
+                                <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                        d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                            </div>
+                            <h3 class="new-calendar-title-refined">새 캘린더 만들기</h3>
+                            <p class="new-calendar-subtitle-refined">개인 작업과 일정을 관리하세요</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        // Handle shared calendars empty state
+        if (sharedCards === 0 && sharedContainer) {
+            // Remove existing empty state message if any
+            const existingEmpty = sharedContainer.querySelector('.empty-state-message');
+            if (!existingEmpty) {
+                sharedContainer.innerHTML = `
+                    <div class="empty-state-message" style="text-align: center; padding: 2rem; color: var(--color-gray-500);">
+                        <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin: 0 auto 1rem; opacity: 0.5;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <p>아직 공유된 캘린더가 없습니다</p>
+                        <p style="font-size: 0.875rem; margin-top: 0.5rem;">다른 사용자와 캘린더를 공유해보세요</p>
+                    </div>
+                `;
+            }
+        }
     }
 
     function showNotification(message, type = 'info') {
@@ -1729,6 +1780,9 @@
     document.addEventListener('DOMContentLoaded', function() {
         console.log('🔍 Calendar list page fully loaded');
         console.log('🔍 Current URL:', window.location.href);
+        
+        // Check and show empty state UI if needed
+        showEmptyStateIfNeeded();
     });
 </script>
 {% endblock %}
