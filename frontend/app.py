@@ -970,6 +970,9 @@ def create_calendar():
             media_file_type = None
         
         print(f"🔍 Creating calendar: {calendar_name}, platform: {platform}, color: {calendar_color}")
+        print(f"🔍 Debug - calendar_db_available: {calendar_db_available}")
+        print(f"🔍 Debug - calendar_db: {calendar_db}")
+        print(f"🔍 Debug - calendar_db.is_available(): {calendar_db.is_available() if calendar_db else 'N/A'}")
         
         # Try calendar_db first, then dashboard_data, then file storage
         try:
@@ -1062,14 +1065,26 @@ def create_calendar():
                         'error': 'Failed to save calendar to file'
                     }), 500
         except Exception as e:
-            print(f"Error creating calendar: {e}")
+            import traceback
+            error_traceback = traceback.format_exc()
+            print(f"❌ Error creating calendar: {e}")
+            print(f"❌ Traceback: {error_traceback}")
             return jsonify({
                 'success': False,
-                'error': f'Failed to create calendar: {str(e)}'
+                'error': f'Failed to create calendar: {str(e)}',
+                'details': error_traceback if app.debug else 'Check server logs for details'
             }), 500
             
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        import traceback
+        error_traceback = traceback.format_exc()
+        print(f"❌ Outer exception in create_calendar: {e}")
+        print(f"❌ Outer traceback: {error_traceback}")
+        return jsonify({
+            'success': False, 
+            'error': f'Calendar creation failed: {str(e)}',
+            'details': error_traceback if app.debug else 'Check server logs for details'
+        }), 500
 
 # Simple calendar creation endpoint (no file upload)
 @app.route('/api/calendar/simple-create', methods=['POST'])
