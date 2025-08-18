@@ -1602,7 +1602,13 @@
             },
         })
         .then(response => {
-            if (response.ok) {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
                 // Remove calendar card from UI
                 const calendarCard = document.querySelector(`[data-calendar="${calendarToDelete}"]`);
                 if (calendarCard) {
@@ -1618,7 +1624,7 @@
                 closeDeleteModal();
                 showNotification('캘린더가 성공적으로 삭제되었습니다.', 'success');
             } else {
-                throw new Error('Failed to delete calendar');
+                throw new Error(data.error || 'Failed to delete calendar');
             }
         })
         .catch(error => {

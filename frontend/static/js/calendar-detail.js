@@ -257,12 +257,15 @@ function checkForMediaFiles() {
     console.log('Calendar ID:', calendarId);
     console.log('Media URL from data attribute:', mediaUrl);
     
-    // Always show the media players for demo purposes
-    document.getElementById('media-player').style.display = 'flex';
-    showCompactMediaPlayer();
-    
     // Check if we have media files associated with this calendar
-    if (mediaUrl && mediaUrl !== '') {
+    if (mediaUrl && mediaUrl !== '' && mediaUrl !== 'None') {
+        // Show media players
+        const mediaPlayer = document.getElementById('media-player');
+        if (mediaPlayer) {
+            mediaPlayer.style.display = 'flex';
+        }
+        showCompactMediaPlayer();
+        
         // Parse media URL (could be JSON string with multiple files)
         try {
             // If it's a JSON string with multiple files
@@ -273,53 +276,69 @@ function checkForMediaFiles() {
             }
         } catch (e) {
             // If it's a single URL string
+            console.log('Loading single media file:', mediaUrl);
             loadTrack({
                 title: '캘린더 배경음악',
-                artist: '집중음악',
+                artist: '나의 캘린더',
                 src: mediaUrl
             });
         }
     } else {
-        // Try to fetch from API first
+        // Try to fetch from API
+        console.log('No media URL in data attribute, fetching from API...');
         fetchCalendarMedia(calendarId);
-        
-        // Show empty player state
-        const emptyTrack = {
-            title: 'No Media File',
-            artist: 'Upload a media file to play',
-            src: '' // Empty source
-        };
-        
-        // Update UI to show empty state
-        updateCompactPlayerInfo(emptyTrack);
-        const mediaTitle = document.getElementById('media-title');
-        const mediaArtist = document.getElementById('media-artist');
-        if (mediaTitle) mediaTitle.textContent = emptyTrack.title;
-        if (mediaArtist) mediaArtist.textContent = emptyTrack.artist;
     }
 }
 
 function fetchCalendarMedia(calendarId) {
-    if (!calendarId) return;
+    if (!calendarId) {
+        console.log('No calendar ID provided');
+        hideMediaPlayers();
+        return;
+    }
     
     // Fetch media files from the server
     fetch(`/api/calendar/${calendarId}/media`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('Media API response:', data);
             if (data.media_files && data.media_files.length > 0) {
-                document.getElementById('media-player').style.display = 'flex';
+                // Show media players
+                const mediaPlayer = document.getElementById('media-player');
+                if (mediaPlayer) {
+                    mediaPlayer.style.display = 'flex';
+                }
                 showCompactMediaPlayer();
+                
                 currentPlaylist = data.media_files;
                 loadTrack(currentPlaylist[0]);
+                console.log('✅ Media files loaded:', currentPlaylist);
             } else {
-                // Keep players visible even without media files for demo
-                console.log('No media files found, keeping player visible for demo');
+                console.log('No media files found for this calendar');
+                hideMediaPlayers();
             }
         })
         .catch(error => {
-            console.log('No media files for this calendar - keeping player visible for demo');
-            // Keep players visible for demo purposes
+            console.error('Error fetching media files:', error);
+            hideMediaPlayers();
         });
+}
+
+function hideMediaPlayers() {
+    const mainPlayer = document.getElementById('media-player');
+    const compactPlayer = document.getElementById('sidebar-media-player');
+    
+    if (mainPlayer) {
+        mainPlayer.style.display = 'none';
+    }
+    if (compactPlayer) {
+        compactPlayer.style.display = 'none';
+    }
 }
 
 function handleMediaError(e) {
