@@ -154,7 +154,7 @@ def save_media_file_locally(media_file, user_id):
         import uuid
         
         # Create media directory if it doesn't exist
-        media_dir = os.path.join(os.getcwd(), 'media', 'calendar')
+        media_dir = os.path.join(os.getcwd(), 'uploads', 'media', 'calendar')
         os.makedirs(media_dir, exist_ok=True)
         
         # Generate secure filename
@@ -741,8 +741,11 @@ def calendar_detail(calendar_id):
 def serve_calendar_media_v2(calendar_id, filename):
     """Serve media files for calendars"""
     print(f"🎵 Media request: calendar_id={calendar_id}, filename={filename}")
+    print(f"🎵 Request URL: {request.url}")
+    print(f"🎵 Request headers: {dict(request.headers)}")
     
     user_id = session.get('user_id')
+    print(f"🎵 User ID: {user_id}")
     if not user_id:
         print("❌ No user authentication")
         return jsonify({'error': 'Authentication required'}), 401
@@ -765,35 +768,51 @@ def serve_calendar_media_v2(calendar_id, filename):
                 print(f"🔗 Redirecting to external URL: {media_path}")
                 return redirect(media_path)
             elif media_path:
-                # Serve local file
+                # Serve local file - check multiple possible paths
                 import os
                 print(f"🎵 Checking local file existence: {media_path}")
-                if os.path.exists(media_path):
-                    print(f"✅ Serving local file: {media_path}")
+                
+                # List of possible file paths to check
+                possible_paths = [
+                    media_path,  # Original path from database
+                    os.path.join(os.getcwd(), 'uploads', 'media', 'calendar', filename),  # New uploads path
+                    os.path.join(os.getcwd(), 'media', 'calendar', filename),  # Old media path
+                ]
+                
+                actual_file_path = None
+                for path in possible_paths:
+                    print(f"🔍 Checking path: {path}")
+                    if os.path.exists(path):
+                        actual_file_path = path
+                        print(f"✅ Found file at: {path}")
+                        break
+                
+                if actual_file_path:
+                    print(f"✅ Serving local file: {actual_file_path}")
                     # Determine MIME type
-                    if media_path.endswith('.mp3'):
+                    if actual_file_path.endswith('.mp3'):
                         mimetype = 'audio/mpeg'
-                    elif media_path.endswith('.mp4'):
+                    elif actual_file_path.endswith('.mp4'):
                         mimetype = 'video/mp4'
-                    elif media_path.endswith('.wav'):
+                    elif actual_file_path.endswith('.wav'):
                         mimetype = 'audio/wav'
-                    elif media_path.endswith('.m4a'):
+                    elif actual_file_path.endswith('.m4a'):
                         mimetype = 'audio/mp4'
-                    elif media_path.endswith('.ogg'):
+                    elif actual_file_path.endswith('.ogg'):
                         mimetype = 'audio/ogg'
-                    elif media_path.endswith('.webm'):
+                    elif actual_file_path.endswith('.webm'):
                         mimetype = 'audio/webm'
                     else:
                         mimetype = 'application/octet-stream'
                     
                     # Check file size for debugging
-                    file_size = os.path.getsize(media_path)
+                    file_size = os.path.getsize(actual_file_path)
                     print(f"📁 File size: {file_size} bytes")
                     
                     # Add cache control headers
                     from flask import Response
                     def generate():
-                        with open(media_path, 'rb') as f:
+                        with open(actual_file_path, 'rb') as f:
                             data = f.read(1024)
                             while data:
                                 yield data
@@ -805,7 +824,22 @@ def serve_calendar_media_v2(calendar_id, filename):
                     response.headers['Content-Length'] = str(file_size)
                     return response
                 else:
-                    print(f"❌ File not found at path: {media_path}")
+                    print(f"❌ File not found in any of the checked paths")
+                    # List directory contents for debugging
+                    import os
+                    for path in possible_paths:
+                        parent_dir = os.path.dirname(path) if path else None
+                        if parent_dir and os.path.exists(parent_dir):
+                            print(f"📁 Directory {parent_dir} exists, contents: {os.listdir(parent_dir)}")
+                        else:
+                            print(f"📁 Directory doesn't exist: {parent_dir}")
+                    
+                    # Also check if uploads/media directory exists and what's in it
+                    uploads_media = os.path.join(os.getcwd(), 'uploads', 'media')
+                    if os.path.exists(uploads_media):
+                        print(f"📁 uploads/media exists, contents: {os.listdir(uploads_media)}")
+                    else:
+                        print(f"📁 uploads/media doesn't exist: {uploads_media}")
             else:
                 print("❌ No media path found in calendar data")
         else:

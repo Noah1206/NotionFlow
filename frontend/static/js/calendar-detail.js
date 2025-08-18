@@ -375,6 +375,16 @@ function hideMediaPlayers() {
 function handleMediaError(e) {
     console.error('Media playback error:', e);
     console.log('Error details:', e.target?.error);
+    console.log('Media element src:', e.target?.src);
+    console.log('Media element networkState:', e.target?.networkState);
+    console.log('Media element readyState:', e.target?.readyState);
+    
+    // Check if it's a network error (404, etc.)
+    if (e.target?.error?.code === 4) {
+        console.error('Media format error - file may not exist or be corrupted');
+    } else if (e.target?.error?.code === 2) {
+        console.error('Media network error - file may not be accessible');
+    }
     
     // Update both players with error message but keep them visible
     const mediaTitle = document.getElementById('media-title');
@@ -405,6 +415,7 @@ function handleTrackEnd() {
 }
 
 function loadTrack(track) {
+    console.log('🎵 loadTrack called with:', track);
     if (!mediaPlayer || !track) {
         console.warn('Cannot load track: missing mediaPlayer or track data');
         return;
@@ -453,6 +464,8 @@ function loadTrack(track) {
             // Set new source with error handling
             mediaPlayer.src = track.src;
             console.log('🎵 Loading media source:', track.src);
+            console.log('🎵 Media element type:', mediaPlayer.tagName);
+            console.log('🎵 Expected media type:', neededType);
             
             // Add load event listener for this track
             mediaPlayer.addEventListener('loadeddata', function() {
@@ -513,8 +526,15 @@ function extractFileName(url) {
 }
 
 function updatePlayButton() {
-    document.getElementById('play-icon').style.display = isPlaying ? 'none' : 'block';
-    document.getElementById('pause-icon').style.display = isPlaying ? 'block' : 'none';
+    const playIcon = document.getElementById('play-icon');
+    const pauseIcon = document.getElementById('pause-icon');
+    
+    if (playIcon && pauseIcon) {
+        playIcon.style.display = isPlaying ? 'none' : 'block';
+        pauseIcon.style.display = isPlaying ? 'block' : 'none';
+    } else {
+        console.warn('Play/pause icons not found');
+    }
 }
 
 function togglePlay() {
@@ -607,13 +627,30 @@ function setVolume(event) {
     const width = volumeBar.offsetWidth;
     const volume = clickX / width;
     
-    mediaPlayer.volume = volume;
-    document.getElementById('volume-fill').style.width = (volume * 100) + '%';
+    if (mediaPlayer) {
+        mediaPlayer.volume = volume;
+    }
+    
+    const volumeFill = document.getElementById('volume-fill');
+    if (volumeFill) {
+        volumeFill.style.width = (volume * 100) + '%';
+    }
+    
     updateVolumeIcon();
 }
 
 function updateVolumeIcon() {
     const volumeIcon = document.getElementById('volume-icon');
+    if (!volumeIcon) {
+        console.warn('Volume icon not found');
+        return;
+    }
+    
+    if (!mediaPlayer) {
+        console.warn('Media player not available');
+        return;
+    }
+    
     if (mediaPlayer.muted || mediaPlayer.volume === 0) {
         volumeIcon.innerHTML = '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
     } else if (mediaPlayer.volume < 0.5) {
@@ -1565,6 +1602,8 @@ function updateCompactPlayButton() {
             compactPlayIcon.style.display = 'block';
             compactPauseIcon.style.display = 'none';
         }
+    } else {
+        console.warn('Compact toggle icons not found');
     }
 }
 
@@ -1783,4 +1822,285 @@ async function saveCalendarSettings() {
         console.error('Error saving calendar settings:', error);
         alert('설정 저장 중 오류가 발생했습니다.');
     }
+}
+
+// Initialize media player when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🎵 Initializing calendar detail page...');
+    
+    // Get calendar media URL from data attribute
+    const calendarWorkspace = document.querySelector('.calendar-workspace');
+    if (calendarWorkspace) {
+        const mediaUrl = calendarWorkspace.dataset.calendarMedia;
+        console.log('🎵 Media URL from data attribute:', mediaUrl);
+        
+        if (mediaUrl && mediaUrl.trim() !== '') {
+            // Initialize media player with the URL
+            initializeMediaPlayer(mediaUrl);
+        } else {
+            console.log('🎵 No media file available for this calendar');
+        }
+    } else {
+        console.warn('Calendar workspace element not found');
+    }
+    
+    // Initialize other components
+    renderMonthView();
+    loadTodos();
+});
+
+function initializeMediaPlayer(mediaUrl) {
+    console.log('🎵 Initializing media player with URL:', mediaUrl);
+    
+    try {
+        // Create track object
+        const track = {
+            title: 'Calendar Background Music',
+            artist: 'My Music',
+            src: mediaUrl,
+            type: getMediaTypeFromUrl(mediaUrl)
+        };
+        
+        // Load the track
+        loadTrack(track);
+        
+    } catch (error) {
+        console.error('Error initializing media player:', error);
+        handleMediaError(error);
+    }
+}
+
+function getMediaTypeFromUrl(url) {
+    const extension = url.split('.').pop().toLowerCase();
+    if (['mp4', 'webm', 'mov'].includes(extension)) {
+        return 'video';
+    } else if (['mp3', 'wav', 'ogg', 'm4a'].includes(extension)) {
+        return 'audio';
+    }
+    return 'audio'; // default
+}
+
+// Todo Management Functions
+function loadTodos() {
+    console.log('📋 Loading todos for calendar detail page...');
+    
+    try {
+        // Load todos from localStorage or initialize with default data
+        const calendarId = document.querySelector('.calendar-workspace')?.dataset.calendarId;
+        const storageKey = `todos_${calendarId}`;
+        
+        let savedTodos = localStorage.getItem(storageKey);
+        
+        if (savedTodos) {
+            todoList = JSON.parse(savedTodos);
+            console.log(`📋 Loaded ${todoList.length} todos from storage`);
+        } else {
+            // Initialize with existing todos from HTML if any
+            todoList = getExistingTodosFromDOM();
+            console.log(`📋 Initialized with ${todoList.length} todos from DOM`);
+        }
+        
+        // Render todos
+        renderTodos();
+        updateTodoMonth();
+        
+    } catch (error) {
+        console.error('❌ Error loading todos:', error);
+        // Fallback to default todos
+        todoList = getExistingTodosFromDOM();
+        renderTodos();
+    }
+}
+
+function getExistingTodosFromDOM() {
+    const existingTodos = [];
+    const todoItems = document.querySelectorAll('.todo-item');
+    
+    todoItems.forEach((item, index) => {
+        const checkbox = item.querySelector('.todo-checkbox');
+        const textElement = item.querySelector('.todo-text');
+        const tagElement = item.querySelector('.todo-tag');
+        
+        if (textElement) {
+            const todo = {
+                id: `todo_${Date.now()}_${index}`,
+                text: textElement.textContent.trim(),
+                completed: checkbox ? checkbox.textContent.includes('✓') : false,
+                tag: tagElement ? tagElement.textContent.trim() : '',
+                createdAt: new Date().toISOString(),
+                priority: 'normal'
+            };
+            existingTodos.push(todo);
+        }
+    });
+    
+    return existingTodos;
+}
+
+function renderTodos() {
+    const todoContainer = document.getElementById('todo-list-container');
+    if (!todoContainer) {
+        console.warn('Todo container not found');
+        return;
+    }
+    
+    // Clear existing todos
+    todoContainer.innerHTML = '';
+    
+    // Render each todo
+    todoList.forEach(todo => {
+        const todoElement = createTodoElement(todo);
+        todoContainer.appendChild(todoElement);
+    });
+    
+    console.log(`📋 Rendered ${todoList.length} todos`);
+}
+
+function createTodoElement(todo) {
+    const todoDiv = document.createElement('div');
+    todoDiv.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+    todoDiv.dataset.todoId = todo.id;
+    
+    todoDiv.innerHTML = `
+        <div class="todo-checkbox" onclick="toggleTodo(this)">${todo.completed ? '✓' : '○'}</div>
+        <div class="todo-text">${todo.text}</div>
+        <div class="todo-tag">${todo.tag || getPriorityTag(todo.priority)}</div>
+        <button class="todo-delete-btn" onclick="deleteTodo(this)" title="삭제">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    `;
+    
+    return todoDiv;
+}
+
+function getPriorityTag(priority) {
+    switch(priority) {
+        case 'high': return '① 중요 ①';
+        case 'medium': return '② 보통 ②';
+        case 'low': return '③ 낮음 ③';
+        default: return 'TASK';
+    }
+}
+
+function updateTodoMonth() {
+    const monthElement = document.getElementById('current-todo-month');
+    if (monthElement) {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
+        monthElement.textContent = `${year}년 ${month}월`;
+    }
+}
+
+function toggleTodo(checkboxElement) {
+    const todoItem = checkboxElement.closest('.todo-item');
+    const todoId = todoItem.dataset.todoId;
+    
+    // Find todo in list
+    const todo = todoList.find(t => t.id === todoId);
+    if (todo) {
+        // Toggle completion status
+        todo.completed = !todo.completed;
+        
+        // Update UI
+        todoItem.classList.toggle('completed', todo.completed);
+        checkboxElement.textContent = todo.completed ? '✓' : '○';
+        
+        // Save to storage
+        saveTodos();
+        
+        console.log(`📋 Todo "${todo.text}" ${todo.completed ? 'completed' : 'uncompleted'}`);
+    }
+}
+
+function deleteTodo(deleteButton) {
+    const todoItem = deleteButton.closest('.todo-item');
+    const todoId = todoItem.dataset.todoId;
+    
+    // Remove from list
+    todoList = todoList.filter(t => t.id !== todoId);
+    
+    // Remove from DOM
+    todoItem.remove();
+    
+    // Save to storage
+    saveTodos();
+    
+    console.log(`📋 Todo deleted, ${todoList.length} remaining`);
+}
+
+function openTodoModal() {
+    const inputContainer = document.querySelector('.add-todo-input-container');
+    const todoInput = document.querySelector('.add-todo-input');
+    
+    if (inputContainer && todoInput) {
+        inputContainer.style.display = 'block';
+        todoInput.focus();
+        todoInput.value = '';
+    }
+}
+
+function saveTodo() {
+    const todoInput = document.querySelector('.add-todo-input');
+    const inputContainer = document.querySelector('.add-todo-input-container');
+    
+    if (!todoInput || !todoInput.value.trim()) {
+        alert('할 일을 입력해주세요.');
+        return;
+    }
+    
+    const newTodo = {
+        id: `todo_${Date.now()}`,
+        text: todoInput.value.trim(),
+        completed: false,
+        tag: '',
+        createdAt: new Date().toISOString(),
+        priority: 'normal'
+    };
+    
+    // Add to list
+    todoList.push(newTodo);
+    
+    // Add to DOM
+    const todoContainer = document.getElementById('todo-list-container');
+    if (todoContainer) {
+        const todoElement = createTodoElement(newTodo);
+        todoContainer.appendChild(todoElement);
+    }
+    
+    // Hide input
+    if (inputContainer) {
+        inputContainer.style.display = 'none';
+    }
+    
+    // Save to storage
+    saveTodos();
+    
+    console.log(`📋 New todo added: "${newTodo.text}"`);
+}
+
+function cancelTodoInput() {
+    const inputContainer = document.querySelector('.add-todo-input-container');
+    const todoInput = document.querySelector('.add-todo-input');
+    
+    if (inputContainer) {
+        inputContainer.style.display = 'none';
+    }
+    if (todoInput) {
+        todoInput.value = '';
+    }
+}
+
+function saveTodos() {
+    try {
+        const calendarId = document.querySelector('.calendar-workspace')?.dataset.calendarId;
+        const storageKey = `todos_${calendarId}`;
+        localStorage.setItem(storageKey, JSON.stringify(todoList));
+        console.log(`📋 Saved ${todoList.length} todos to storage`);
+    } catch (error) {
+        console.error('❌ Error saving todos:', error);
+    }
+}
 }
