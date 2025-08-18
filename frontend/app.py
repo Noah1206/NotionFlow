@@ -567,29 +567,99 @@ def get_calendar_media(calendar_id):
         # Try to get calendar from database
         if calendar_db_available and calendar_db:
             calendar_data = calendar_db.get_calendar_by_id(calendar_id, user_id)
+            print(f"🎵 API: Calendar data for {calendar_id}: {calendar_data}")
+            
             if calendar_data:
-                # Get media files from calendar data
                 media_files = []
-                if 'media_url' in calendar_data and calendar_data['media_url']:
-                    # Parse media URL(s)
-                    if isinstance(calendar_data['media_url'], list):
-                        media_files = calendar_data['media_url']
+                
+                # Check for media file path in calendar data
+                if calendar_data.get('media_file_path'):
+                    # Create proper media URL
+                    media_path = calendar_data['media_file_path']
+                    media_filename = calendar_data.get('media_filename', 'Unknown')
+                    
+                    # Construct the media URL based on the file path
+                    if media_path.startswith('http'):
+                        # It's already a URL
+                        media_url = media_path
                     else:
-                        media_files = [{
-                            'title': 'Calendar Music',
-                            'artist': 'Background Music',
-                            'src': calendar_data['media_url']
-                        }]
+                        # It's a local file path - serve it through Flask
+                        # Extract just the filename from the path
+                        import os
+                        filename = os.path.basename(media_path)
+                        media_url = f"/media/calendar/{calendar_id}/{filename}"
+                    
+                    media_files = [{
+                        'title': media_filename or 'Calendar Music',
+                        'artist': calendar_data.get('name', 'My Calendar'),
+                        'src': media_url,
+                        'type': calendar_data.get('media_file_type', 'audio/mpeg')
+                    }]
+                    
+                    print(f"🎵 API: Returning media files: {media_files}")
+                else:
+                    print(f"🎵 API: No media file path found for calendar {calendar_id}")
                 
                 return jsonify({'media_files': media_files})
         
-        # Fallback: check file storage
-        # This would check if there are any media files stored locally
+        # Fallback: no media files
+        print(f"🎵 API: No calendar found or database not available")
         return jsonify({'media_files': []})
         
     except Exception as e:
-        print(f"Error getting calendar media: {e}")
+        print(f"❌ Error getting calendar media: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': 'Failed to get media files'}), 500
+
+@app.route('/media/calendar/<calendar_id>/<filename>')
+def serve_calendar_media(calendar_id, filename):
+    """Serve media files for calendars"""
+    user_id = session.get('user_id')
+    if not user_id:
+        return "Unauthorized", 401
+    
+    try:
+        # Verify user owns this calendar
+        if calendar_db_available and calendar_db:
+            calendar_data = calendar_db.get_calendar_by_id(calendar_id, user_id)
+            if not calendar_data:
+                return "Calendar not found", 404
+            
+            # Get the media file path
+            media_path = calendar_data.get('media_file_path')
+            if not media_path:
+                return "Media file not found", 404
+            
+            # Serve the file
+            import os
+            if os.path.exists(media_path):
+                # Get the directory and filename
+                directory = os.path.dirname(media_path)
+                file_name = os.path.basename(media_path)
+                
+                # Determine mime type
+                mime_type = 'audio/mpeg'
+                if media_path.endswith('.mp3'):
+                    mime_type = 'audio/mpeg'
+                elif media_path.endswith('.wav'):
+                    mime_type = 'audio/wav'
+                elif media_path.endswith('.m4a'):
+                    mime_type = 'audio/mp4'
+                elif media_path.endswith('.ogg'):
+                    mime_type = 'audio/ogg'
+                
+                from flask import send_from_directory
+                return send_from_directory(directory, file_name, mimetype=mime_type)
+            else:
+                print(f"Media file not found at path: {media_path}")
+                return "Media file not found", 404
+                
+    except Exception as e:
+        print(f"Error serving media file: {e}")
+        import traceback
+        traceback.print_exc()
+        return "Error serving media file", 500
 
 @app.route('/dashboard/calendar/<calendar_id>')
 def calendar_detail(calendar_id):
@@ -642,11 +712,15 @@ def calendar_detail(calendar_id):
     print(f"🎵 Calendar media info - filename: {calendar.get('media_filename')}, path: {calendar.get('media_file_path')}, type: {calendar.get('media_file_type')}")
     
     if calendar.get('media_file_path'):
-        # Convert file path to URL - use the actual filename
-        media_url = f"/media/{calendar.get('media_file_path', '')}"
-        # Or use the actual path if it's a full URL
-        if calendar['media_file_path'].startswith('http'):
-            media_url = calendar['media_file_path']
+        media_path = calendar['media_file_path']
+        # Check if it's already a URL
+        if media_path.startswith('http'):
+            media_url = media_path
+        else:
+            # Create a proper URL for serving the file
+            import os
+            filename = os.path.basename(media_path)
+            media_url = f"/media/calendar/{calendar_id}/{filename}"
         print(f"🎵 Media URL set to: {media_url}")
     else:
         print(f"🎵 No media file path found for calendar {calendar.get('name')}")
@@ -670,17 +744,62 @@ def calendar_refined():
 # 📅 Calendar Management API Endpoints
 @app.route('/api/calendar/create', methods=['POST'])
 def create_calendar():
-    """Create a new calendar for user"""
+    """Create a new calendar for user with optional media file upload"""
     try:
         user_id = session.get('user_id')
         if not user_id:
             return jsonify({'success': False, 'error': 'User not authenticated'}), 401
         
-        data = request.get_json()
-        platform = data.get('platform', 'custom')
-        calendar_name = data.get('name', f'{platform.title()} Calendar')
-        calendar_color = data.get('color', '#6b7280')
-        is_shared = data.get('is_shared', False)
+        # Check if it's a multipart form (file upload)
+        if request.content_type and 'multipart/form-data' in request.content_type:
+            # Handle file upload
+            platform = request.form.get('platform', 'custom')
+            calendar_name = request.form.get('name', f'{platform.title()} Calendar')
+            calendar_color = request.form.get('color', '#6b7280')
+            is_shared = request.form.get('is_shared', 'false').lower() == 'true'
+            
+            # Handle media file upload
+            media_filename = None
+            media_file_path = None
+            media_file_type = None
+            
+            if 'media_file' in request.files:
+                media_file = request.files['media_file']
+                if media_file and media_file.filename:
+                    # Save the media file
+                    import os
+                    import uuid
+                    from werkzeug.utils import secure_filename
+                    
+                    filename = secure_filename(media_file.filename)
+                    file_ext = os.path.splitext(filename)[1]
+                    
+                    # Create unique filename
+                    unique_filename = f"{uuid.uuid4()}{file_ext}"
+                    
+                    # Create media directory if it doesn't exist
+                    media_dir = os.path.join('data', 'media', user_id)
+                    os.makedirs(media_dir, exist_ok=True)
+                    
+                    # Save file
+                    file_path = os.path.join(media_dir, unique_filename)
+                    media_file.save(file_path)
+                    
+                    media_filename = filename  # Original filename
+                    media_file_path = file_path  # Full path to saved file
+                    media_file_type = media_file.content_type
+                    
+                    print(f"✅ Media file saved: {media_filename} at {media_file_path}")
+        else:
+            # Handle JSON request (no file upload)
+            data = request.get_json()
+            platform = data.get('platform', 'custom')
+            calendar_name = data.get('name', f'{platform.title()} Calendar')
+            calendar_color = data.get('color', '#6b7280')
+            is_shared = data.get('is_shared', False)
+            media_filename = None
+            media_file_path = None
+            media_file_type = None
         
         # Try DB first, fallback to file storage
         try:
@@ -696,7 +815,8 @@ def create_calendar():
                 }
                 calendar_type = type_mapping.get(platform, 'personal')
                 
-                result = dashboard_data.admin_client.table('calendars').insert({
+                # Include media file information in calendar creation
+                calendar_data = {
                     'owner_id': user_id,  # user_id → owner_id
                     'name': calendar_name,
                     'color': calendar_color,
@@ -705,7 +825,16 @@ def create_calendar():
                     'is_active': True,  # is_enabled → is_active
                     'public_access': is_shared,  # is_shared → public_access
                     'allow_editing': True
-                }).execute()
+                }
+                
+                # Add media file information if uploaded
+                if media_filename:
+                    calendar_data['media_filename'] = media_filename
+                    calendar_data['media_file_path'] = media_file_path
+                    calendar_data['media_file_type'] = media_file_type
+                    print(f"📎 Adding media file to calendar: {media_filename}")
+                
+                result = dashboard_data.admin_client.table('calendars').insert(calendar_data).execute()
                 
                 calendar_id = result.data[0]['id'] if result.data else f"{platform}_{user_id}"
                 print(f"✅ Created calendar in DB: {calendar_name} (ID: {calendar_id})")
