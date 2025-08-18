@@ -629,12 +629,17 @@ def calendar_detail(calendar_id):
     
     # Prepare media URL if media file exists
     media_url = ''
+    print(f"🎵 Calendar media info - filename: {calendar.get('media_filename')}, path: {calendar.get('media_file_path')}, type: {calendar.get('media_file_type')}")
+    
     if calendar.get('media_file_path'):
         # Convert file path to URL - use the actual filename
         media_url = f"/media/{calendar.get('media_file_path', '')}"
         # Or use the actual path if it's a full URL
         if calendar['media_file_path'].startswith('http'):
             media_url = calendar['media_file_path']
+        print(f"🎵 Media URL set to: {media_url}")
+    else:
+        print(f"🎵 No media file path found for calendar {calendar.get('name')}")
     
     calendar['media_url'] = media_url
     

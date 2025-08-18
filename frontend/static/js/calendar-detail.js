@@ -235,12 +235,16 @@ function checkForMediaFiles() {
     const calendarId = workspace?.dataset.calendarId;
     const mediaUrl = workspace?.dataset.calendarMedia;
     
+    console.log('🎵 Checking for media files...');
+    console.log('Calendar ID:', calendarId);
+    console.log('Media URL from data attribute:', mediaUrl);
+    
+    // Always show the media players for demo purposes
+    document.getElementById('media-player').style.display = 'flex';
+    showCompactMediaPlayer();
+    
     // Check if we have media files associated with this calendar
     if (mediaUrl && mediaUrl !== '') {
-        // Show both media players
-        document.getElementById('media-player').style.display = 'flex';
-        showCompactMediaPlayer();
-        
         // Parse media URL (could be JSON string with multiple files)
         try {
             // If it's a JSON string with multiple files
@@ -258,12 +262,22 @@ function checkForMediaFiles() {
             });
         }
     } else {
-        // Try to fetch media files from API
-        fetchCalendarMedia(calendarId);
+        // Load a demo track for display purposes
+        const demoTrack = {
+            title: '집중을 위한 음악',
+            artist: '캘린더 배경음악',
+            src: '#' // Placeholder since we don't have actual file
+        };
         
-        // Show compact player but don't load demo track without actual media
-        showCompactMediaPlayer();
-        // Only load demo if we actually have media files
+        // Update UI to show the player with demo info
+        updateCompactPlayerInfo(demoTrack);
+        const mediaTitle = document.getElementById('media-title');
+        const mediaArtist = document.getElementById('media-artist');
+        if (mediaTitle) mediaTitle.textContent = demoTrack.title;
+        if (mediaArtist) mediaArtist.textContent = demoTrack.artist;
+        
+        // Also try to fetch from API
+        fetchCalendarMedia(calendarId);
     }
 }
 
@@ -280,20 +294,13 @@ function fetchCalendarMedia(calendarId) {
                 currentPlaylist = data.media_files;
                 loadTrack(currentPlaylist[0]);
             } else {
-                // Hide media players if no media files
-                const mainPlayer = document.getElementById('media-player');
-                const compactPlayer = document.getElementById('sidebar-media-player');
-                if (mainPlayer) mainPlayer.style.display = 'none';
-                if (compactPlayer) compactPlayer.style.display = 'none';
+                // Keep players visible even without media files for demo
+                console.log('No media files found, keeping player visible for demo');
             }
         })
         .catch(error => {
-            console.log('No media files for this calendar');
-            // Hide media players on error
-            const mainPlayer = document.getElementById('media-player');
-            const compactPlayer = document.getElementById('sidebar-media-player');
-            if (mainPlayer) mainPlayer.style.display = 'none';
-            if (compactPlayer) compactPlayer.style.display = 'none';
+            console.log('No media files for this calendar - keeping player visible for demo');
+            // Keep players visible for demo purposes
         });
 }
 

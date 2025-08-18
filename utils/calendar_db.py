@@ -61,7 +61,11 @@ class CalendarDatabase:
                     'is_enabled': cal.get('is_active', True),  # is_active -> is_enabled
                     'user_id': cal['owner_id'],
                     'created_at': cal['created_at'],
-                    'description': cal.get('description', '')
+                    'description': cal.get('description', ''),
+                    # Add media file fields
+                    'media_filename': cal.get('media_filename'),
+                    'media_file_path': cal.get('media_file_path'),
+                    'media_file_type': cal.get('media_file_type')
                 }
                 
                 # Add shared_with_count for shared calendars
