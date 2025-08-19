@@ -179,6 +179,118 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Priorities -->
+            <div class="sidebar-widget">
+                <div class="widget-header priorities-header">
+                    <h4>⭐ Priorities</h4>
+                </div>
+                <div class="priorities-list" id="priorities-list">
+                    <!-- Priorities will be loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Habit Tracker -->
+            <div class="sidebar-widget">
+                <div class="widget-header habit-header">
+                    <h4>🔥 Habit Tracker</h4>
+                    <button class="add-habit-btn" onclick="openHobbySelector()" title="취미 추가">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Hobby Selector Modal -->
+                <div class="hobby-selector-modal" id="hobby-selector" style="display: none;">
+                    <div class="hobby-selector-content">
+                        <div class="hobby-selector-header">
+                            <h5>새 취미 추가</h5>
+                            <button class="close-hobby-selector" onclick="closeHobbySelector()">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div class="hobby-form">
+                            <div class="form-group">
+                                <label>카테고리</label>
+                                <select id="hobby-category" onchange="updateHobbyOptions()">
+                                    <option value="">카테고리 선택</option>
+                                    <option value="sports">🏃‍♂️ 스포츠</option>
+                                    <option value="reading">📚 독서/학습</option>
+                                    <option value="entertainment">🎬 엔터테인먼트</option>
+                                    <option value="creative">🎨 창작활동</option>
+                                    <option value="health">💪 건강관리</option>
+                                    <option value="social">👥 사회활동</option>
+                                    <option value="outdoor">🌳 야외활동</option>
+                                    <option value="mindfulness">🧘 마음챙김</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>취미</label>
+                                <select id="hobby-type">
+                                    <option value="">먼저 카테고리를 선택하세요</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>목표 월</label>
+                                    <select id="target-month">
+                                        <option value="1">1월</option>
+                                        <option value="2">2월</option>
+                                        <option value="3">3월</option>
+                                        <option value="4">4월</option>
+                                        <option value="5">5월</option>
+                                        <option value="6">6월</option>
+                                        <option value="7">7월</option>
+                                        <option value="8" selected>8월</option>
+                                        <option value="9">9월</option>
+                                        <option value="10">10월</option>
+                                        <option value="11">11월</option>
+                                        <option value="12">12월</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>목표 일수</label>
+                                    <select id="target-days" onchange="updateDaysSuggestion()">
+                                        <option value="3">주 3회</option>
+                                        <option value="5">주 5회</option>
+                                        <option value="7">매일</option>
+                                        <option value="10">월 10회</option>
+                                        <option value="15">월 15회</option>
+                                        <option value="20">월 20회</option>
+                                        <option value="custom">직접 입력</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group" id="custom-days-group" style="display: none;">
+                                <label>목표 일수 (직접 입력)</label>
+                                <input type="number" id="custom-days" min="1" max="31" placeholder="1-31">
+                            </div>
+                            
+                            <div class="days-suggestion" id="days-suggestion">
+                                <small>💡 8월은 31일까지 있습니다. 주 3회 목표 시 약 13일 정도가 적당해요!</small>
+                            </div>
+                            
+                            <div class="hobby-form-actions">
+                                <button class="cancel-hobby-btn" onclick="closeHobbySelector()">취소</button>
+                                <button class="save-hobby-btn" onclick="saveNewHobby()">추가</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="habit-list" id="habit-list-container">
+                    <!-- Habits will be loaded dynamically -->
+                </div>
+            </div>
         </div>
 
         <!-- Center Calendar Area -->
@@ -312,184 +424,6 @@
         </div>
 
         <!-- Right Sidebar -->
-        <div class="right-sidebar">
-            <!-- Habit Tracker -->
-            <div class="sidebar-widget">
-                <div class="widget-header habit-header">
-                    <h4>🔥 Habit Tracker</h4>
-                    <button class="add-habit-btn" onclick="openHobbySelector()" title="취미 추가">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <line x1="12" y1="5" x2="12" y2="19"/>
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
-                    </button>
-                </div>
-                
-                <!-- Hobby Selector Modal -->
-                <div class="hobby-selector-modal" id="hobby-selector" style="display: none;">
-                    <div class="hobby-selector-content">
-                        <div class="hobby-selector-header">
-                            <h5>새 취미 추가</h5>
-                            <button class="close-hobby-selector" onclick="closeHobbySelector()">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <path d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
-                            </button>
-                        </div>
-                        
-                        <div class="hobby-form">
-                            <div class="form-group">
-                                <label>카테고리</label>
-                                <select id="hobby-category" onchange="updateHobbyOptions()">
-                                    <option value="">카테고리 선택</option>
-                                    <option value="sports">🏃‍♂️ 스포츠</option>
-                                    <option value="reading">📚 독서/학습</option>
-                                    <option value="entertainment">🎬 엔터테인먼트</option>
-                                    <option value="creative">🎨 창작활동</option>
-                                    <option value="health">💪 건강관리</option>
-                                    <option value="social">👥 사회활동</option>
-                                    <option value="outdoor">🌳 야외활동</option>
-                                    <option value="mindfulness">🧘 마음챙김</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>취미</label>
-                                <select id="hobby-type">
-                                    <option value="">먼저 카테고리를 선택하세요</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>목표 월</label>
-                                    <select id="target-month">
-                                        <option value="1">1월</option>
-                                        <option value="2">2월</option>
-                                        <option value="3">3월</option>
-                                        <option value="4">4월</option>
-                                        <option value="5">5월</option>
-                                        <option value="6">6월</option>
-                                        <option value="7">7월</option>
-                                        <option value="8" selected>8월</option>
-                                        <option value="9">9월</option>
-                                        <option value="10">10월</option>
-                                        <option value="11">11월</option>
-                                        <option value="12">12월</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label>목표 일수</label>
-                                    <select id="target-days" onchange="updateDaysSuggestion()">
-                                        <option value="3">주 3회</option>
-                                        <option value="5">주 5회</option>
-                                        <option value="7">매일</option>
-                                        <option value="10">월 10회</option>
-                                        <option value="15">월 15회</option>
-                                        <option value="20">월 20회</option>
-                                        <option value="custom">직접 입력</option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group" id="custom-days-group" style="display: none;">
-                                <label>목표 일수 (직접 입력)</label>
-                                <input type="number" id="custom-days" min="1" max="31" placeholder="1-31">
-                            </div>
-                            
-                            <div class="days-suggestion" id="days-suggestion">
-                                <small>💡 8월은 31일까지 있습니다. 주 3회 목표 시 약 13일 정도가 적당해요!</small>
-                            </div>
-                            
-                            <div class="hobby-form-actions">
-                                <button class="cancel-hobby-btn" onclick="closeHobbySelector()">취소</button>
-                                <button class="save-hobby-btn" onclick="saveNewHobby()">추가</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="habit-list" id="habit-list-container">
-                    <div class="habit-item" data-id="reading">
-                        <span class="habit-emoji">📖</span>
-                        <span class="habit-name">독서</span>
-                        <div class="habit-progress">
-                            <span class="current-days">5</span>/<span class="target-days">7</span>
-                        </div>
-                        <button class="habit-delete-btn" onclick="deleteHabit(this)" title="삭제">
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="habit-item" data-id="exercise">
-                        <span class="habit-emoji">💪</span>
-                        <span class="habit-name">운동</span>
-                        <div class="habit-progress">
-                            <span class="current-days">3</span>/<span class="target-days">7</span>
-                        </div>
-                        <button class="habit-delete-btn" onclick="deleteHabit(this)" title="삭제">
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="habit-item" data-id="water">
-                        <span class="habit-emoji">💧</span>
-                        <span class="habit-name">물 마시기</span>
-                        <div class="habit-progress">
-                            <span class="current-days">7</span>/<span class="target-days">7</span>
-                        </div>
-                        <button class="habit-delete-btn" onclick="deleteHabit(this)" title="삭제">
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="habit-item" data-id="meditation">
-                        <span class="habit-emoji">🧘</span>
-                        <span class="habit-name">명상</span>
-                        <div class="habit-progress">
-                            <span class="current-days">2</span>/<span class="target-days">7</span>
-                        </div>
-                        <button class="habit-delete-btn" onclick="deleteHabit(this)" title="삭제">
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Priorities -->
-            <div class="sidebar-widget">
-                <div class="widget-header priorities-header">
-                    <h4>⭐ Priorities</h4>
-                </div>
-                <div class="priorities-list" id="priorities-list">
-                    <!-- Priorities will be loaded dynamically -->
-                </div>
-            </div>
-
-            <!-- Weekly Goals -->
-            <div class="sidebar-widget">
-                <div class="widget-header">
-                    <div class="widget-icon">🎯</div>
-                    <h4>이번 주 목표</h4>
-                </div>
-                <div class="goals-list">
-                    <div class="goal-item">
-                        <div class="goal-text">프로젝트 마무리</div>
-                        <div class="goal-progress">80%</div>
-                    </div>
-                    <div class="goal-item">
-                        <div class="goal-text">새로운 기술 학습</div>
-                        <div class="goal-progress">60%</div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
