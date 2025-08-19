@@ -78,8 +78,8 @@
 
     <!-- Main Workspace Content -->
     <div class="calendar-workspace-content">
-        <!-- Collapsible Left Sidebar -->
-        <div class="left-sidebar collapsible-sidebar" id="left-sidebar">
+        <!-- Left Sidebar -->
+        <div class="left-sidebar" id="left-sidebar">
             <!-- Reminders Widget -->
             <div class="sidebar-widget">
                 <div class="widget-header">
@@ -304,78 +304,48 @@
 
         <!-- Center Calendar Area -->
         <div class="center-calendar-area">
-            <!-- Mini Calendar Widget -->
-            <div class="mini-calendar-widget">
-                <div class="calendar-view-container active" id="month-view">
-                    <div class="compact-month-header">
-                        <div class="compact-weekday-labels">
-                            <div class="compact-weekday-label">일</div>
-                            <div class="compact-weekday-label">월</div>
-                            <div class="compact-weekday-label">화</div>
-                            <div class="compact-weekday-label">수</div>
-                            <div class="compact-weekday-label">목</div>
-                            <div class="compact-weekday-label">금</div>
-                            <div class="compact-weekday-label">토</div>
+            <!-- Main Calendar Grid -->
+            <div class="main-calendar-container">
+                <div class="main-calendar-grid">
+                    <div class="calendar-header">
+                        <div class="weekday-labels">
+                            <div class="weekday-label">일</div>
+                            <div class="weekday-label">월</div>
+                            <div class="weekday-label">화</div>
+                            <div class="weekday-label">수</div>
+                            <div class="weekday-label">목</div>
+                            <div class="weekday-label">금</div>
+                            <div class="weekday-label">토</div>
                         </div>
                     </div>
                     
-                    <div class="compact-month-grid" id="month-grid">
-                        <!-- Calendar cells will be generated here -->
+                    <div class="main-month-grid" id="main-calendar-grid">
+                        <!-- Main calendar cells will be generated here -->
                     </div>
                 </div>
             </div>
-            <!-- Media Player Bar -->
-            <div class="media-player-bar" id="media-player" style="display: none;">
-                <div class="media-controls">
-                    <button class="media-btn secondary" onclick="previousTrack()">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
-                        </svg>
-                    </button>
-                    <button class="media-btn" id="play-pause-btn" onclick="togglePlay()">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" id="play-icon">
-                            <path d="M8 5v14l11-7z"/>
-                        </svg>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" id="pause-icon" style="display: none;">
-                            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
-                        </svg>
-                    </button>
-                    <button class="media-btn secondary" onclick="nextTrack()">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
-                        </svg>
-                    </button>
-                </div>
-                
-                <div class="media-info">
-                    <div class="media-title" id="media-title">미디어 로드 중...</div>
-                    <div class="media-artist" id="media-artist">내 음악</div>
-                </div>
-                
-                <div class="media-progress">
-                    <span class="media-time" id="current-time">0:00</span>
-                    <div class="progress-bar" onclick="seekTo(event)">
-                        <div class="progress-fill" id="progress-fill"></div>
-                    </div>
-                    <span class="media-time" id="total-time">0:00</span>
-                </div>
-                
-                <div class="media-volume">
-                    <button class="volume-btn" onclick="toggleMute()">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" id="volume-icon">
-                            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
-                        </svg>
-                    </button>
-                    <div class="volume-slider" onclick="setVolume(event)">
-                        <div class="volume-fill" id="volume-fill"></div>
+
+        </div>
+
+        <!-- Mini Calendar Widget (positioned outside) -->
+        <div class="mini-calendar-widget">
+            <div class="calendar-view-container active" id="month-view">
+                <div class="compact-month-header">
+                    <div class="compact-weekday-labels">
+                        <div class="compact-weekday-label">일</div>
+                        <div class="compact-weekday-label">월</div>
+                        <div class="compact-weekday-label">화</div>
+                        <div class="compact-weekday-label">수</div>
+                        <div class="compact-weekday-label">목</div>
+                        <div class="compact-weekday-label">금</div>
+                        <div class="compact-weekday-label">토</div>
                     </div>
                 </div>
                 
-                <!-- Media element will be created dynamically by JavaScript -->
+                <div class="compact-month-grid" id="month-grid">
+                    <!-- Calendar cells will be generated here -->
+                </div>
             </div>
-
-
-
         </div>
 
         <!-- Right Sidebar -->

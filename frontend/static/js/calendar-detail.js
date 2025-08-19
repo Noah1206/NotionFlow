@@ -745,11 +745,81 @@ function renderMonthView() {
 }
 
 function renderMainCalendar() {
-    const grid = document.getElementById('month-grid');
-    if (!grid) return;
+    const today = new Date();
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
     
-    // This would render the main calendar view
-    // For now, we'll focus on the compact calendar
+    // Get first day of month and number of days
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+    
+    // Get previous month's last few days
+    const prevMonth = new Date(year, month, 0);
+    const daysInPrevMonth = prevMonth.getDate();
+    
+    const mainGrid = document.getElementById('main-calendar-grid');
+    if (!mainGrid) return;
+    
+    mainGrid.innerHTML = '';
+    
+    // Calculate total cells needed (6 rows × 7 days = 42 cells)
+    const totalCells = 42;
+    let cellCount = 0;
+    
+    // Previous month's trailing days
+    for (let i = startingDayOfWeek - 1; i >= 0; i--) {
+        const day = daysInPrevMonth - i;
+        const cell = createMainCalendarCell(day, 'other-month', year, month - 1);
+        mainGrid.appendChild(cell);
+        cellCount++;
+    }
+    
+    // Current month days
+    for (let day = 1; day <= daysInMonth; day++) {
+        const isToday = today.getFullYear() === year && 
+                       today.getMonth() === month && 
+                       today.getDate() === day;
+        const cell = createMainCalendarCell(day, isToday ? 'today' : 'current-month', year, month);
+        mainGrid.appendChild(cell);
+        cellCount++;
+    }
+    
+    // Next month's leading days
+    let nextMonthDay = 1;
+    while (cellCount < totalCells) {
+        const cell = createMainCalendarCell(nextMonthDay, 'other-month', year, month + 1);
+        mainGrid.appendChild(cell);
+        nextMonthDay++;
+        cellCount++;
+    }
+}
+
+function createMainCalendarCell(day, type, year, month) {
+    const cell = document.createElement('div');
+    cell.className = `main-calendar-cell ${type}`;
+    cell.setAttribute('data-date', `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
+    
+    // Date number
+    const dateNumber = document.createElement('div');
+    dateNumber.className = 'date-number';
+    dateNumber.textContent = day;
+    cell.appendChild(dateNumber);
+    
+    // Events container (for future use)
+    const eventsContainer = document.createElement('div');
+    eventsContainer.className = 'events-container';
+    cell.appendChild(eventsContainer);
+    
+    // Click handler
+    cell.addEventListener('click', () => {
+        const dateStr = cell.getAttribute('data-date');
+        console.log('Date clicked:', dateStr);
+        // openDayModal(dateStr); // Enable when modal function is available
+    });
+    
+    return cell;
 }
 
 function renderCompactCalendar() {
@@ -2405,59 +2475,25 @@ function openNewMemoModal() {
 function toggleSidebar() {
     const sidebar = document.getElementById('left-sidebar');
     const toggleBtn = document.getElementById('sidebar-toggle');
+    const workspaceContent = document.querySelector('.calendar-workspace-content');
+    const body = document.body;
     
-    if (sidebar && toggleBtn) {
-        sidebar.classList.toggle('open');
+    if (sidebar && toggleBtn && workspaceContent) {
+        // Toggle sidebar collapsed state
+        sidebar.classList.toggle('collapsed');
+        workspaceContent.classList.toggle('sidebar-collapsed');
+        body.classList.toggle('sidebar-collapsed');
         
         // Update toggle button icon
-        const isOpen = sidebar.classList.contains('open');
-        toggleBtn.innerHTML = isOpen ? 
-            `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M6 18L18 6M6 6l12 12"/>
-            </svg>` :
+        const isCollapsed = sidebar.classList.contains('collapsed');
+        toggleBtn.innerHTML = isCollapsed ? 
             `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <line x1="3" y1="6" x2="21" y2="6"/>
                 <line x1="3" y1="12" x2="21" y2="12"/>
                 <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>` :
+            `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M6 18L18 6M6 6l12 12"/>
             </svg>`;
     }
 }
-
-// Close sidebar when clicking outside
-document.addEventListener('click', function(event) {
-    const sidebar = document.getElementById('left-sidebar');
-    const toggleBtn = document.getElementById('sidebar-toggle');
-    
-    if (sidebar && toggleBtn && sidebar.classList.contains('open')) {
-        // Check if click is outside sidebar and toggle button
-        if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
-            sidebar.classList.remove('open');
-            // Reset toggle button icon
-            toggleBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <line x1="3" y1="6" x2="21" y2="6"/>
-                <line x1="3" y1="12" x2="21" y2="12"/>
-                <line x1="3" y1="18" x2="21" y2="18"/>
-            </svg>`;
-        }
-    }
-});
-
-// ESC key to close sidebar
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape') {
-        const sidebar = document.getElementById('left-sidebar');
-        const toggleBtn = document.getElementById('sidebar-toggle');
-        
-        if (sidebar && sidebar.classList.contains('open')) {
-            sidebar.classList.remove('open');
-            // Reset toggle button icon
-            if (toggleBtn) {
-                toggleBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <line x1="3" y1="6" x2="21" y2="6"/>
-                    <line x1="3" y1="12" x2="21" y2="12"/>
-                    <line x1="3" y1="18" x2="21" y2="18"/>
-                </svg>`;
-            }
-        }
-    }
-});
