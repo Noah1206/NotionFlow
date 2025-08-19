@@ -508,11 +508,13 @@ body.sidebar-collapsed {
 }
 
 /* Show calendar-detail-only sections only on calendar detail page */
-body.calendar-detail-page .calendar-detail-only {
+body.calendar-detail-page .sidebar .calendar-detail-only,
+.calendar-detail-page .sidebar .calendar-detail-only {
     display: block !important;
 }
 
 /* Hide in collapsed state even on calendar detail page */
-body.calendar-detail-page .sidebar.collapsed .calendar-detail-only {
+body.calendar-detail-page .sidebar.collapsed .calendar-detail-only,
+.calendar-detail-page .sidebar.collapsed .calendar-detail-only {
     display: none !important;
 }

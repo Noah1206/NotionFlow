@@ -1598,9 +1598,12 @@
 
         // 현재 페이지 타입 가져오기
         function getCurrentPageType() {
-            if (document.body.classList.contains('calendar-detail-page')) {
+            if (document.body.classList.contains('calendar-detail-page') || 
+                window.location.pathname.includes('/calendar-detail') ||
+                document.querySelector('.calendar-workspace')) {
                 return 'calendar-detail';
-            } else if (document.body.classList.contains('calendar-list-page')) {
+            } else if (document.body.classList.contains('calendar-list-page') ||
+                      window.location.pathname.includes('/calendar-list')) {
                 return 'calendar-list';
             } else {
                 return 'default';
@@ -1740,8 +1743,12 @@
             ensureThemeToggleWorks();
 
             // Generate mini calendar only on calendar detail page
-            if (document.body.classList.contains('calendar-detail-page')) {
+            const currentPage = getCurrentPageType();
+            if (currentPage === 'calendar-detail') {
+                console.log('✅ Generating mini calendar for calendar detail page');
                 generateMiniCalendar();
+            } else {
+                console.log('ℹ️ Not generating mini calendar for page type:', currentPage);
             }
         });
 
