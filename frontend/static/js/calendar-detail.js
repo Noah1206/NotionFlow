@@ -813,11 +813,13 @@ function createMainCalendarCell(day, type, year, month) {
     cell.appendChild(eventsContainer);
     
     // Click handler
-    cell.addEventListener('click', () => {
-        const dateStr = cell.getAttribute('data-date');
-        console.log('Date clicked:', dateStr);
-        // openDayModal(dateStr); // Enable when modal function is available
-    });
+    if (type !== 'other-month') {
+        cell.style.cursor = 'pointer';
+        cell.addEventListener('click', () => {
+            const selectedDate = new Date(year, month, day);
+            openDayModal(selectedDate);
+        });
+    }
     
     return cell;
 }

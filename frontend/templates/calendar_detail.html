@@ -163,32 +163,6 @@
                 </div>
             </div>
 
-            <!-- Daily Routine -->
-            <div class="sidebar-widget">
-                <div class="widget-header">
-                    <div class="widget-icon">🔄</div>
-                    <h4>Daily Routine</h4>
-                </div>
-                <div class="routine-list">
-                    <div class="routine-item">
-                        <span class="routine-time">06:00</span>
-                        <span class="routine-task">Wake up</span>
-                    </div>
-                    <div class="routine-item">
-                        <span class="routine-time">07:30</span>
-                        <span class="routine-task">Running</span>
-                    </div>
-                    <div class="routine-item">
-                        <span class="routine-time">09:00</span>
-                        <span class="routine-task">Work</span>
-                    </div>
-                    <div class="routine-item">
-                        <span class="routine-time">12:00</span>
-                        <span class="routine-task">Lunch</span>
-                    </div>
-                </div>
-            </div>
-
             <!-- Priorities -->
             <div class="sidebar-widget">
                 <div class="widget-header priorities-header">
@@ -365,8 +339,41 @@
         </div>
         
         <div class="modal-body">
-            <div class="day-events" id="day-events">
-                <!-- Events for selected day -->
+            <!-- Daily Routine Section -->
+            <div class="daily-routine-section">
+                <div class="section-header">
+                    <span class="section-icon">🔄</span>
+                    <h3>Daily Routine</h3>
+                </div>
+                <div class="routine-list">
+                    <div class="routine-item">
+                        <span class="routine-time">06:00</span>
+                        <span class="routine-task">Wake up</span>
+                    </div>
+                    <div class="routine-item">
+                        <span class="routine-time">07:30</span>
+                        <span class="routine-task">Running</span>
+                    </div>
+                    <div class="routine-item">
+                        <span class="routine-time">09:00</span>
+                        <span class="routine-task">Work</span>
+                    </div>
+                    <div class="routine-item">
+                        <span class="routine-time">12:00</span>
+                        <span class="routine-task">Lunch</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Events Section -->
+            <div class="events-section">
+                <div class="section-header">
+                    <span class="section-icon">📅</span>
+                    <h3>Events</h3>
+                </div>
+                <div class="day-events" id="day-events">
+                    <!-- Events for selected day -->
+                </div>
             </div>
             
             <button class="btn-add-event-modal" onclick="addEventToDay()">

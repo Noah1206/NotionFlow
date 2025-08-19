@@ -358,3 +358,146 @@
 body.sidebar-collapsed {
     --sidebar-width: var(--sidebar-collapsed-width);
 }
+
+/* Reminders Section Styles */
+.reminders-section {
+    padding: 12px 16px !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+    background: rgba(0, 0, 0, 0.02) !important;
+}
+
+.reminders-header {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    margin-bottom: 8px !important;
+}
+
+.reminders-icon {
+    font-size: 14px !important;
+}
+
+.reminders-title {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #374151 !important;
+}
+
+.reminders-content {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 8px !important;
+    overflow-x: auto !important;
+    padding: 8px 0 !important;
+}
+
+.reminder-item {
+    background: #ffffff !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    border-radius: 8px !important;
+    padding: 6px 12px !important;
+    white-space: nowrap !important;
+    font-size: 12px !important;
+    color: #6b7280 !important;
+    flex-shrink: 0 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+.reminder-item:hover {
+    background: rgba(59, 130, 246, 0.05) !important;
+    border-color: rgba(59, 130, 246, 0.2) !important;
+    color: #3b82f6 !important;
+}
+
+.reminder-item.active {
+    background: #3b82f6 !important;
+    color: #ffffff !important;
+    border-color: #3b82f6 !important;
+}
+
+/* Hide reminders in collapsed state */
+.sidebar.collapsed .reminders-section {
+    display: none !important;
+}
+
+/* Mini Calendar Widget Styles */
+.mini-calendar-section {
+    padding: 12px 16px !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+.sidebar .mini-calendar-widget {
+    width: 100% !important;
+    background: rgba(0, 0, 0, 0.02) !important;
+    border-radius: 12px !important;
+    padding: 12px !important;
+    position: relative !important;
+    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+.sidebar .calendar-view-container {
+    width: 100% !important;
+}
+
+.sidebar .compact-month-header {
+    margin-bottom: 8px !important;
+}
+
+.sidebar .compact-weekday-labels {
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    gap: 2px !important;
+    margin-bottom: 8px !important;
+}
+
+.sidebar .compact-weekday-label {
+    text-align: center !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    color: #6b7280 !important;
+    padding: 2px !important;
+}
+
+.sidebar .compact-month-grid {
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    gap: 2px !important;
+}
+
+.sidebar .calendar-cell {
+    aspect-ratio: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 11px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    color: #374151 !important;
+    background: transparent !important;
+}
+
+.sidebar .calendar-cell:hover {
+    background: rgba(59, 130, 246, 0.1) !important;
+}
+
+.sidebar .calendar-cell.today {
+    background: #3b82f6 !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+.sidebar .calendar-cell.other-month {
+    color: #d1d5db !important;
+}
+
+.sidebar .calendar-cell.selected {
+    background: rgba(59, 130, 246, 0.2) !important;
+    border: 1px solid #3b82f6 !important;
+}
+
+/* Hide mini calendar in collapsed state */
+.sidebar.collapsed .mini-calendar-section {
+    display: none !important;
+}

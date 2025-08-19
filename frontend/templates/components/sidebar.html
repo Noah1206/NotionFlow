@@ -68,6 +68,42 @@
             </div>
         </div>
 
+        <!-- Reminders Section -->
+        <div class="nav-section reminders-section">
+            <div class="reminders-header">
+                <span class="reminders-icon">📝</span>
+                <span class="reminders-title">Reminders</span>
+            </div>
+            <div class="reminders-content">
+                <div class="reminder-item">
+                    <span class="reminder-text">리마인더가 없습니다</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mini Calendar Widget -->
+        <div class="nav-section mini-calendar-section">
+            <div class="mini-calendar-widget">
+                <div class="calendar-view-container active" id="month-view">
+                    <div class="compact-month-header">
+                        <div class="compact-weekday-labels">
+                            <div class="compact-weekday-label">일</div>
+                            <div class="compact-weekday-label">월</div>
+                            <div class="compact-weekday-label">화</div>
+                            <div class="compact-weekday-label">수</div>
+                            <div class="compact-weekday-label">목</div>
+                            <div class="compact-weekday-label">금</div>
+                            <div class="compact-weekday-label">토</div>
+                        </div>
+                    </div>
+                    
+                    <div class="compact-month-grid" id="month-grid">
+                        <!-- Calendar cells will be generated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- 기타 기능 섹션 -->
         <div class="nav-section">
             <!-- AI 알림 수신함 (프리미엄 기능) -->
@@ -1610,6 +1646,69 @@
             }
         }
 
+        // Mini Calendar Functions
+        function generateMiniCalendar() {
+            const monthGrid = document.getElementById('month-grid');
+            if (!monthGrid) return;
+
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const today = now.getDate();
+
+            // Get first day of month and total days
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+            monthGrid.innerHTML = '';
+
+            // Previous month days
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const day = daysInPrevMonth - i;
+                const cell = document.createElement('div');
+                cell.className = 'calendar-cell other-month';
+                cell.textContent = day;
+                monthGrid.appendChild(cell);
+            }
+
+            // Current month days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const cell = document.createElement('div');
+                cell.className = 'calendar-cell';
+                if (day === today) {
+                    cell.classList.add('today');
+                }
+                cell.textContent = day;
+                cell.onclick = () => handleMiniCalendarClick(year, month, day);
+                monthGrid.appendChild(cell);
+            }
+
+            // Next month days
+            const totalCells = monthGrid.children.length;
+            const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+            for (let day = 1; day <= remainingCells; day++) {
+                const cell = document.createElement('div');
+                cell.className = 'calendar-cell other-month';
+                cell.textContent = day;
+                monthGrid.appendChild(cell);
+            }
+        }
+
+        function handleMiniCalendarClick(year, month, day) {
+            // Open day modal with selected date
+            const selectedDate = new Date(year, month, day);
+            
+            // If we're on the calendar detail page, open the modal
+            if (typeof openDayModal === 'function') {
+                openDayModal(selectedDate);
+            } else {
+                // Otherwise, navigate to calendar detail page with date parameter
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                window.location.href = `/dashboard/calendar-detail?date=${dateStr}`;
+            }
+        }
+
         // Add DOM ready event listener
         document.addEventListener('DOMContentLoaded', function () {
             // 사이드바 상태 복원
@@ -1626,6 +1725,9 @@
 
             // Ensure theme toggle works with ThemeManager
             ensureThemeToggleWorks();
+
+            // Generate mini calendar
+            generateMiniCalendar();
         });
 
 
