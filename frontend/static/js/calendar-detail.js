@@ -131,6 +131,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeMediaPlayerFromWorkspace(); // Initialize media player from workspace data
     initializeTodoList();
     initializeHabitTracker();
+    loadPriorities(); // Load priority tasks
+    loadReminders(); // Load reminders
 });
 
 function initializeCalendar() {
@@ -234,19 +236,8 @@ function initializeMediaPlayer() {
     // Create dynamic media element based on content
     createMediaElement('audio'); // Start with audio by default
     
-    // Load a default track to initialize UI
-    const defaultTrack = {
-        title: '미디어 없음',
-        artist: '캘린더',
-        src: ''
-    };
-    
-    // Update UI with default info
-    updateCompactPlayerInfo(defaultTrack);
-    const mediaTitle = document.getElementById('media-title');
-    const mediaArtist = document.getElementById('media-artist');
-    if (mediaTitle) mediaTitle.textContent = defaultTrack.title;
-    if (mediaArtist) mediaArtist.textContent = defaultTrack.artist;
+    // Only set default if no media will be loaded
+    // Don't set default track info here - let initializeMediaPlayerFromWorkspace handle it
 }
 
 function createMediaElement(type) {
@@ -267,6 +258,7 @@ function createMediaElement(type) {
     mediaPlayer.autoplay = false;
     mediaPlayer.preload = 'metadata';
     mediaPlayer.controls = false; // We'll use custom controls
+    mediaPlayer.crossOrigin = 'anonymous'; // Enable CORS for Supabase Storage
     
     // Append to body (hidden)
     document.body.appendChild(mediaPlayer);
@@ -275,7 +267,14 @@ function createMediaElement(type) {
     mediaPlayer.addEventListener('loadedmetadata', updateTotalTime);
     mediaPlayer.addEventListener('timeupdate', updateProgress);
     mediaPlayer.addEventListener('ended', handleTrackEnd);
-    mediaPlayer.addEventListener('error', handleMediaError);
+    mediaPlayer.addEventListener('error', function(e) {
+        console.error('Media error event:', e);
+        console.error('Media error code:', mediaPlayer.error?.code);
+        console.error('Media error message:', mediaPlayer.error?.message);
+        console.error('Media src:', mediaPlayer.src);
+        console.error('Network state:', mediaPlayer.networkState);
+        handleMediaError(e);
+    });
     
     // Add additional event listeners for better error handling
     mediaPlayer.addEventListener('loadstart', () => {
@@ -495,13 +494,31 @@ function loadTrack(track) {
             console.log('🎵 Media element type:', mediaPlayer.tagName);
             console.log('🎵 Expected media type:', neededType);
             
+            // Force load the media
+            mediaPlayer.load();
+            
+            // Check network state after a short delay
+            setTimeout(() => {
+                console.log('🎵 Network state:', mediaPlayer.networkState);
+                console.log('🎵 Ready state:', mediaPlayer.readyState);
+                console.log('🎵 Error:', mediaPlayer.error);
+            }, 500);
+            
             // Add load event listener for this track
             mediaPlayer.addEventListener('loadeddata', function() {
                 console.log('✅ Media data loaded successfully');
+                console.log('🎵 Ready state after loadeddata:', mediaPlayer.readyState);
             }, { once: true });
             
             mediaPlayer.addEventListener('canplay', function() {
                 console.log('✅ Media can play');
+                console.log('🎵 Ready state after canplay:', mediaPlayer.readyState);
+            }, { once: true });
+            
+            mediaPlayer.addEventListener('loadedmetadata', function() {
+                console.log('✅ Media metadata loaded');
+                console.log('🎵 Duration:', mediaPlayer.duration);
+                updateTotalTime();
             }, { once: true });
         
             // Update compact player info
@@ -566,20 +583,53 @@ function updatePlayButton() {
 }
 
 function togglePlay() {
-    if (!mediaPlayer) return;
+    if (!mediaPlayer) {
+        console.warn('Media player not initialized');
+        return;
+    }
+    
+    // Check if there's a valid source
+    if (!mediaPlayer.src || mediaPlayer.src === '') {
+        console.warn('No media source loaded');
+        alert('재생할 미디어 파일이 없습니다.');
+        return;
+    }
     
     if (isPlaying) {
         mediaPlayer.pause();
         isPlaying = false;
     } else {
-        mediaPlayer.play().then(() => {
-            isPlaying = true;
-        }).catch(e => {
-            console.error('Playback failed:', e);
-            alert('음원을 재생할 수 없습니다. 브라우저 설정을 확인해주세요.');
-        });
+        console.log('🎵 Attempting to play, readyState:', mediaPlayer.readyState);
+        // Only try to play if media is ready
+        if (mediaPlayer.readyState >= 1) { // HAVE_METADATA or higher
+            mediaPlayer.play().then(() => {
+                isPlaying = true;
+                updatePlayButton();
+                updateCompactPlayButton();
+            }).catch(e => {
+                console.error('Playback failed:', e);
+                if (e.name === 'AbortError') {
+                    console.log('Play was interrupted, possibly by another action');
+                } else {
+                    alert('음원을 재생할 수 없습니다. 브라우저 설정을 확인해주세요.');
+                }
+            });
+        } else {
+            console.log('Media not ready yet, waiting...');
+            // Wait for media to be ready
+            mediaPlayer.addEventListener('canplay', () => {
+                mediaPlayer.play().then(() => {
+                    isPlaying = true;
+                    updatePlayButton();
+                    updateCompactPlayButton();
+                }).catch(e => {
+                    console.error('Playback failed after waiting:', e);
+                });
+            }, { once: true });
+        }
     }
     updatePlayButton();
+    updateCompactPlayButton();
 }
 
 function previousTrack() {
@@ -1862,11 +1912,22 @@ function initializeMediaPlayerFromWorkspace() {
         const mediaUrl = calendarWorkspace.dataset.calendarMedia;
         console.log('🎵 Media URL from data attribute:', mediaUrl);
         
-        if (mediaUrl && mediaUrl.trim() !== '') {
+        if (mediaUrl && mediaUrl.trim() !== '' && mediaUrl !== 'None') {
             // Initialize media player with the URL
             initializeMediaPlayerWithUrl(mediaUrl);
         } else {
             console.log('🎵 No media file available for this calendar');
+            // Set default no-media info
+            const defaultTrack = {
+                title: '미디어 없음',
+                artist: '캘린더',
+                src: ''
+            };
+            updateCompactPlayerInfo(defaultTrack);
+            const mediaTitle = document.getElementById('media-title');
+            const mediaArtist = document.getElementById('media-artist');
+            if (mediaTitle) mediaTitle.textContent = defaultTrack.title;
+            if (mediaArtist) mediaArtist.textContent = defaultTrack.artist;
         }
     } else {
         console.warn('Calendar workspace element not found');
@@ -1877,16 +1938,40 @@ function initializeMediaPlayerWithUrl(mediaUrl) {
     console.log('🎵 Initializing media player with URL:', mediaUrl);
     
     try {
+        // Check if the URL is a valid Supabase Storage URL
+        if (mediaUrl.includes('supabase.co')) {
+            console.log('🎵 Detected Supabase Storage URL');
+            // Ensure it's a public URL
+            if (!mediaUrl.includes('/storage/v1/object/public/')) {
+                console.warn('⚠️ URL may not be public, attempting to fix...');
+                // Try to convert to public URL format
+                mediaUrl = mediaUrl.replace('/storage/v1/object/', '/storage/v1/object/public/');
+            }
+        }
+        
+        // Extract filename from URL for title
+        const filename = extractFileName(mediaUrl) || 'Calendar Music';
+        
         // Create track object
         const track = {
-            title: 'Calendar Background Music',
-            artist: 'My Music',
+            title: filename,
+            artist: '내 캘린더 음악',
             src: mediaUrl,
             type: getMediaTypeFromUrl(mediaUrl)
         };
         
+        console.log('🎵 Track object created:', track);
+        console.log('🎵 Final media URL:', track.src);
+        
         // Load the track
         loadTrack(track);
+        
+        // Show media players
+        const mainPlayer = document.getElementById('media-player');
+        if (mainPlayer) {
+            mainPlayer.style.display = 'flex';
+        }
+        showCompactMediaPlayer();
         
     } catch (error) {
         console.error('Error initializing media player:', error);
@@ -2125,5 +2210,193 @@ function saveTodos() {
         console.log(`📋 Saved ${todoList.length} todos to storage`);
     } catch (error) {
         console.error('❌ Error saving todos:', error);
+    }
+}
+
+// ============ PRIORITIES FUNCTIONALITY ============
+let priorityList = [];
+
+function loadPriorities() {
+    try {
+        const calendarId = document.querySelector('.calendar-workspace')?.dataset.calendarId;
+        const storageKey = `priorities_${calendarId}`;
+        const savedPriorities = localStorage.getItem(storageKey);
+        
+        if (savedPriorities) {
+            priorityList = JSON.parse(savedPriorities);
+        } else {
+            // Default priorities (will be replaced with actual user data)
+            priorityList = [];
+        }
+        
+        renderPriorities();
+    } catch (error) {
+        console.error('Error loading priorities:', error);
+        priorityList = [];
+        renderPriorities();
+    }
+}
+
+function renderPriorities() {
+    const prioritiesContainer = document.getElementById('priorities-list');
+    if (!prioritiesContainer) return;
+    
+    if (priorityList.length === 0) {
+        // Show the actual todos that are marked as priority
+        const highPriorityTodos = todoList.filter(todo => todo.priority === 'high' && !todo.completed);
+        
+        if (highPriorityTodos.length === 0) {
+            prioritiesContainer.innerHTML = '<div class="empty-state">우선순위 작업이 없습니다</div>';
+        } else {
+            prioritiesContainer.innerHTML = highPriorityTodos.map(todo => `
+                <div class="priority-item" data-id="${todo.id}">
+                    <div class="priority-checkbox" onclick="togglePriority('${todo.id}')">
+                        ${todo.completed ? '☑️' : '⬜'}
+                    </div>
+                    <div class="priority-text">${todo.text}</div>
+                </div>
+            `).join('');
+        }
+    } else {
+        prioritiesContainer.innerHTML = priorityList.map(priority => `
+            <div class="priority-item" data-id="${priority.id}">
+                <div class="priority-checkbox" onclick="togglePriority('${priority.id}')">
+                    ${priority.completed ? '☑️' : '⬜'}
+                </div>
+                <div class="priority-text">${priority.text}</div>
+            </div>
+        `).join('');
+    }
+}
+
+function togglePriority(id) {
+    const priority = priorityList.find(p => p.id === id);
+    if (priority) {
+        priority.completed = !priority.completed;
+        savePriorities();
+        renderPriorities();
+    } else {
+        // Toggle from todo list
+        const todo = todoList.find(t => t.id === id);
+        if (todo) {
+            todo.completed = !todo.completed;
+            saveTodos();
+            renderTodos();
+            renderPriorities();
+        }
+    }
+}
+
+function savePriorities() {
+    try {
+        const calendarId = document.querySelector('.calendar-workspace')?.dataset.calendarId;
+        const storageKey = `priorities_${calendarId}`;
+        localStorage.setItem(storageKey, JSON.stringify(priorityList));
+    } catch (error) {
+        console.error('Error saving priorities:', error);
+    }
+}
+
+// ============ REMINDERS FUNCTIONALITY ============
+let reminderList = [];
+
+function loadReminders() {
+    try {
+        const calendarId = document.querySelector('.calendar-workspace')?.dataset.calendarId;
+        const storageKey = `reminders_${calendarId}`;
+        const savedReminders = localStorage.getItem(storageKey);
+        
+        if (savedReminders) {
+            reminderList = JSON.parse(savedReminders);
+        } else {
+            // Default empty state
+            reminderList = [];
+        }
+        
+        renderReminders();
+    } catch (error) {
+        console.error('Error loading reminders:', error);
+        reminderList = [];
+        renderReminders();
+    }
+}
+
+function renderReminders() {
+    const remindersContainer = document.getElementById('reminders-list');
+    if (!remindersContainer) return;
+    
+    if (reminderList.length === 0) {
+        remindersContainer.innerHTML = '<div class="empty-state">리마인더가 없습니다</div>';
+    } else {
+        remindersContainer.innerHTML = reminderList.map(reminder => `
+            <div class="reminder-item" data-id="${reminder.id}">
+                <div class="reminder-text">${reminder.text}</div>
+                <div class="reminder-date">${formatReminderDate(reminder.date)}</div>
+            </div>
+        `).join('');
+    }
+}
+
+function formatReminderDate(dateString) {
+    if (!dateString) return '';
+    
+    const date = new Date(dateString);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    if (date.toDateString() === today.toDateString()) {
+        return '오늘';
+    } else if (date.toDateString() === tomorrow.toDateString()) {
+        return '내일';
+    } else {
+        return `${date.getMonth() + 1}월 ${date.getDate()}일`;
+    }
+}
+
+function addReminder(text, date) {
+    const newReminder = {
+        id: Date.now().toString(),
+        text: text,
+        date: date,
+        created: new Date().toISOString()
+    };
+    
+    reminderList.push(newReminder);
+    saveReminders();
+    renderReminders();
+}
+
+function saveReminders() {
+    try {
+        const calendarId = document.querySelector('.calendar-workspace')?.dataset.calendarId;
+        const storageKey = `reminders_${calendarId}`;
+        localStorage.setItem(storageKey, JSON.stringify(reminderList));
+    } catch (error) {
+        console.error('Error saving reminders:', error);
+    }
+}
+
+// Quick action functions
+function openNewTodoModal() {
+    // Show the add todo input or modal
+    const addTodoBtn = document.querySelector('.add-todo-btn');
+    if (addTodoBtn) {
+        addTodoBtn.click();
+    } else {
+        // Create a simple prompt for now
+        const todoText = prompt('새로운 할 일을 입력하세요:');
+        if (todoText && todoText.trim()) {
+            addTodo(todoText.trim());
+        }
+    }
+}
+
+function openNewMemoModal() {
+    // Create a simple prompt for now
+    const memoText = prompt('새로운 메모를 입력하세요:');
+    if (memoText && memoText.trim()) {
+        const date = prompt('날짜를 입력하세요 (YYYY-MM-DD) 또는 비워두세요:');
+        addReminder(memoText.trim(), date || new Date().toISOString());
     }
 }

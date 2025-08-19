@@ -77,11 +77,8 @@
                     <div class="widget-icon">📝</div>
                     <h4>Reminders</h4>
                 </div>
-                <div class="reminders-list">
-                    <div class="reminder-item">
-                        <div class="reminder-text">중요한 일 메모</div>
-                        <div class="reminder-date">내일까지</div>
-                    </div>
+                <div class="reminders-list" id="reminders-list">
+                    <!-- Reminders will be loaded dynamically -->
                 </div>
             </div>
 
@@ -92,8 +89,8 @@
                     <h4>Quick Button</h4>
                 </div>
                 <div class="quick-buttons">
-                    <button class="quick-btn">+ New 할 일</button>
-                    <button class="quick-btn">+ New 메모</button>
+                    <button class="quick-btn" onclick="openNewTodoModal()">+ New 할 일</button>
+                    <button class="quick-btn" onclick="openNewMemoModal()">+ New 메모</button>
                 </div>
             </div>
 
@@ -470,23 +467,8 @@
                 <div class="widget-header priorities-header">
                     <h4>⭐ Priorities</h4>
                 </div>
-                <div class="priorities-list">
-                    <div class="priority-item">
-                        <div class="priority-checkbox">☑️</div>
-                        <div class="priority-text">Task2</div>
-                    </div>
-                    <div class="priority-item">
-                        <div class="priority-checkbox">☑️</div>
-                        <div class="priority-text">운동하기</div>
-                    </div>
-                    <div class="priority-item">
-                        <div class="priority-checkbox">☑️</div>
-                        <div class="priority-text">독서 30분</div>
-                    </div>
-                    <div class="priority-item">
-                        <div class="priority-checkbox">☑️</div>
-                        <div class="priority-text">물 8잔 마시기</div>
-                    </div>
+                <div class="priorities-list" id="priorities-list">
+                    <!-- Priorities will be loaded dynamically -->
                 </div>
             </div>
 
