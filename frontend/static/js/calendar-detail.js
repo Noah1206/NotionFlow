@@ -121,11 +121,14 @@ const hobbyCategories = {
 
 // Calendar initialization
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🎵 DOM loaded, initializing calendar detail page...');
+    
     initializeCalendar();
     loadEvents();
     setupEventListeners();
     initializeMiniCalendar();
     initializeMediaPlayer();
+    initializeMediaPlayerFromWorkspace(); // Initialize media player from workspace data
     initializeTodoList();
     initializeHabitTracker();
 });
@@ -217,8 +220,33 @@ let currentTrackIndex = 0;
 let isPlaying = false;
 
 function initializeMediaPlayer() {
+    console.log('🎵 Initializing media player...');
+    
+    // Always show media players
+    const mainPlayer = document.getElementById('media-player');
+    if (mainPlayer) {
+        mainPlayer.style.display = 'flex';
+        console.log('✅ Main media player shown');
+    }
+    
+    showCompactMediaPlayer();
+    
     // Create dynamic media element based on content
     createMediaElement('audio'); // Start with audio by default
+    
+    // Load a default track to initialize UI
+    const defaultTrack = {
+        title: '미디어 없음',
+        artist: '캘린더',
+        src: ''
+    };
+    
+    // Update UI with default info
+    updateCompactPlayerInfo(defaultTrack);
+    const mediaTitle = document.getElementById('media-title');
+    const mediaArtist = document.getElementById('media-artist');
+    if (mediaTitle) mediaTitle.textContent = defaultTrack.title;
+    if (mediaArtist) mediaArtist.textContent = defaultTrack.artist;
 }
 
 function createMediaElement(type) {
@@ -1824,9 +1852,9 @@ async function saveCalendarSettings() {
     }
 }
 
-// Initialize media player when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🎵 Initializing calendar detail page...');
+// Media player initialization logic (called from main DOMContentLoaded)
+function initializeMediaPlayerFromWorkspace() {
+    console.log('🎵 Initializing media player from workspace...');
     
     // Get calendar media URL from data attribute
     const calendarWorkspace = document.querySelector('.calendar-workspace');
@@ -1836,20 +1864,16 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (mediaUrl && mediaUrl.trim() !== '') {
             // Initialize media player with the URL
-            initializeMediaPlayer(mediaUrl);
+            initializeMediaPlayerWithUrl(mediaUrl);
         } else {
             console.log('🎵 No media file available for this calendar');
         }
     } else {
         console.warn('Calendar workspace element not found');
     }
-    
-    // Initialize other components
-    renderMonthView();
-    loadTodos();
-});
+}
 
-function initializeMediaPlayer(mediaUrl) {
+function initializeMediaPlayerWithUrl(mediaUrl) {
     console.log('🎵 Initializing media player with URL:', mediaUrl);
     
     try {
