@@ -501,3 +501,18 @@ body.sidebar-collapsed {
 .sidebar.collapsed .mini-calendar-section {
     display: none !important;
 }
+
+/* Hide calendar-detail-only sections by default */
+.calendar-detail-only {
+    display: none !important;
+}
+
+/* Show calendar-detail-only sections only on calendar detail page */
+body.calendar-detail-page .calendar-detail-only {
+    display: block !important;
+}
+
+/* Hide in collapsed state even on calendar detail page */
+body.calendar-detail-page .sidebar.collapsed .calendar-detail-only {
+    display: none !important;
+}

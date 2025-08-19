@@ -68,8 +68,8 @@
             </div>
         </div>
 
-        <!-- Reminders Section -->
-        <div class="nav-section reminders-section">
+        <!-- Reminders Section (Calendar Detail Page Only) -->
+        <div class="nav-section reminders-section calendar-detail-only">
             <div class="reminders-header">
                 <span class="reminders-icon">📝</span>
                 <span class="reminders-title">Reminders</span>
@@ -81,8 +81,8 @@
             </div>
         </div>
 
-        <!-- Mini Calendar Widget -->
-        <div class="nav-section mini-calendar-section">
+        <!-- Mini Calendar Widget (Calendar Detail Page Only) -->
+        <div class="nav-section mini-calendar-section calendar-detail-only">
             <div class="mini-calendar-widget">
                 <div class="calendar-view-container active" id="month-view">
                     <div class="compact-month-header">
@@ -1571,8 +1571,9 @@
             // 아이콘 업데이트
             updateToggleIcons(isCollapsed);
 
-            // 상태 저장
-            localStorage.setItem('sidebar-collapsed', isCollapsed);
+            // 페이지별 상태 저장
+            const currentPage = getCurrentPageType();
+            localStorage.setItem(`sidebar-collapsed-${currentPage}`, isCollapsed);
         }
 
         // 토글 아이콘 업데이트 함수
@@ -1595,11 +1596,23 @@
         }
 
 
+        // 현재 페이지 타입 가져오기
+        function getCurrentPageType() {
+            if (document.body.classList.contains('calendar-detail-page')) {
+                return 'calendar-detail';
+            } else if (document.body.classList.contains('calendar-list-page')) {
+                return 'calendar-list';
+            } else {
+                return 'default';
+            }
+        }
+
         // 페이지 로드 시 저장된 사이드바 상태 복원
         function restoreSidebarState() {
             console.log('🔄 Restoring sidebar state...');
 
-            const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+            const currentPage = getCurrentPageType();
+            const isCollapsed = localStorage.getItem(`sidebar-collapsed-${currentPage}`) === 'true';
             const sidebar = document.getElementById('sidebar');
 
             if (!sidebar) {
@@ -1726,8 +1739,10 @@
             // Ensure theme toggle works with ThemeManager
             ensureThemeToggleWorks();
 
-            // Generate mini calendar
-            generateMiniCalendar();
+            // Generate mini calendar only on calendar detail page
+            if (document.body.classList.contains('calendar-detail-page')) {
+                generateMiniCalendar();
+            }
         });
 
 
