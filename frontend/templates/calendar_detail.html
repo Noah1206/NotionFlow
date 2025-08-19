@@ -67,10 +67,19 @@
         </div>
     </div>
 
+    <!-- Collapsible Sidebar Toggle -->
+    <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+    </button>
+
     <!-- Main Workspace Content -->
     <div class="calendar-workspace-content">
-        <!-- Left Sidebar -->
-        <div class="left-sidebar">
+        <!-- Collapsible Left Sidebar -->
+        <div class="left-sidebar collapsible-sidebar" id="left-sidebar">
             <!-- Reminders Widget -->
             <div class="sidebar-widget">
                 <div class="widget-header">
@@ -345,61 +354,7 @@
                 <!-- Media element will be created dynamically by JavaScript -->
             </div>
 
-            <!-- Mind Mover -->
-            <div class="mind-mover-widget">
-                <div class="widget-header">
-                    <div class="widget-icon">💭</div>
-                    <h4>Mind Mover</h4>
-                    <div class="edit-icon">✏️</div>
-                </div>
-                <div class="mind-text">지금 중요한 일일까 목적에 대한 자기다운 생각이 필요하세요 ✏️</div>
-            </div>
 
-            <!-- To Do List -->
-            <div class="todo-widget">
-                <div class="widget-header">
-                    <div class="widget-icon">📋</div>
-                    <h4>To Do List</h4>
-                    <button class="add-todo-btn" onclick="openTodoModal()" title="할 일 추가">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <line x1="12" y1="5" x2="12" y2="19"/>
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
-                    </button>
-                </div>
-                <div class="todo-section">
-                    <div class="todo-date" id="current-todo-month">2025년 8월</div>
-                    <div id="todo-list-container">
-                        <div class="todo-item completed">
-                            <div class="todo-checkbox" onclick="toggleTodo(this)">✓</div>
-                            <div class="todo-text">Task2 완료</div>
-                            <div class="todo-tag">① 중요 ②</div>
-                            <button class="todo-delete-btn" onclick="deleteTodo(this)" title="삭제">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <path d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
-                            </button>
-                        </div>
-                        <div class="todo-item">
-                            <div class="todo-checkbox" onclick="toggleTodo(this)">○</div>
-                            <div class="todo-text">Task3 예정</div>
-                            <div class="todo-tag">DONE</div>
-                            <button class="todo-delete-btn" onclick="deleteTodo(this)" title="삭제">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <path d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="add-todo-input-container" style="display: none;">
-                        <input type="text" class="add-todo-input" placeholder="새 할 일을 입력하세요..." maxlength="100">
-                        <div class="add-todo-actions">
-                            <button class="save-todo-btn" onclick="saveTodo()">저장</button>
-                            <button class="cancel-todo-btn" onclick="cancelTodoInput()">취소</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <!-- Compact Calendar -->
             <div class="compact-calendar-widget">

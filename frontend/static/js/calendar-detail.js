@@ -2400,3 +2400,64 @@ function openNewMemoModal() {
         addReminder(memoText.trim(), date || new Date().toISOString());
     }
 }
+
+// ============ SIDEBAR FUNCTIONALITY ============
+function toggleSidebar() {
+    const sidebar = document.getElementById('left-sidebar');
+    const toggleBtn = document.getElementById('sidebar-toggle');
+    
+    if (sidebar && toggleBtn) {
+        sidebar.classList.toggle('open');
+        
+        // Update toggle button icon
+        const isOpen = sidebar.classList.contains('open');
+        toggleBtn.innerHTML = isOpen ? 
+            `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M6 18L18 6M6 6l12 12"/>
+            </svg>` :
+            `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <line x1="3" y1="12" x2="21" y2="12"/>
+                <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>`;
+    }
+}
+
+// Close sidebar when clicking outside
+document.addEventListener('click', function(event) {
+    const sidebar = document.getElementById('left-sidebar');
+    const toggleBtn = document.getElementById('sidebar-toggle');
+    
+    if (sidebar && toggleBtn && sidebar.classList.contains('open')) {
+        // Check if click is outside sidebar and toggle button
+        if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
+            sidebar.classList.remove('open');
+            // Reset toggle button icon
+            toggleBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <line x1="3" y1="12" x2="21" y2="12"/>
+                <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>`;
+        }
+    }
+});
+
+// ESC key to close sidebar
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        const sidebar = document.getElementById('left-sidebar');
+        const toggleBtn = document.getElementById('sidebar-toggle');
+        
+        if (sidebar && sidebar.classList.contains('open')) {
+            sidebar.classList.remove('open');
+            // Reset toggle button icon
+            if (toggleBtn) {
+                toggleBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <line x1="3" y1="12" x2="21" y2="12"/>
+                    <line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>`;
+            }
+        }
+    }
+});
