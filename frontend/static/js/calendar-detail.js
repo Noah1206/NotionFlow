@@ -264,30 +264,34 @@ function createMediaElement(type) {
     document.body.appendChild(mediaPlayer);
     
     // Add event listeners safely
-    mediaPlayer.addEventListener('loadedmetadata', updateTotalTime);
-    mediaPlayer.addEventListener('timeupdate', updateProgress);
-    mediaPlayer.addEventListener('ended', handleTrackEnd);
-    mediaPlayer.addEventListener('error', function(e) {
-        console.error('Media error event:', e);
-        console.error('Media error code:', mediaPlayer.error?.code);
-        console.error('Media error message:', mediaPlayer.error?.message);
-        console.error('Media src:', mediaPlayer.src);
-        console.error('Network state:', mediaPlayer.networkState);
-        handleMediaError(e);
-    });
+    if (mediaPlayer) {
+        mediaPlayer.addEventListener('loadedmetadata', updateTotalTime);
+        mediaPlayer.addEventListener('timeupdate', updateProgress);
+        mediaPlayer.addEventListener('ended', handleTrackEnd);
+        mediaPlayer.addEventListener('error', function(e) {
+            console.error('Media error event:', e);
+            console.error('Media error code:', mediaPlayer.error?.code);
+            console.error('Media error message:', mediaPlayer.error?.message);
+            console.error('Media src:', mediaPlayer.src);
+            console.error('Network state:', mediaPlayer.networkState);
+            handleMediaError(e);
+        });
+    }
     
     // Add additional event listeners for better error handling
-    mediaPlayer.addEventListener('loadstart', () => {
-        console.log('Media loading started');
-    });
-    
-    mediaPlayer.addEventListener('canplay', () => {
-        console.log('Media can play');
-    });
-    
-    mediaPlayer.addEventListener('waiting', () => {
-        console.log('Media waiting for data');
-    });
+    if (mediaPlayer) {
+        mediaPlayer.addEventListener('loadstart', () => {
+            console.log('Media loading started');
+        });
+        
+        mediaPlayer.addEventListener('canplay', () => {
+            console.log('Media can play');
+        });
+        
+        mediaPlayer.addEventListener('waiting', () => {
+            console.log('Media waiting for data');
+        });
+    }
     
     // Check if calendar has media files  
     checkForMediaFiles();
