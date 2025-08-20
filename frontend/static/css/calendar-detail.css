@@ -407,9 +407,11 @@
 .compact-media-player {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 12px;
-    padding: 16px;
+    padding: 12px;
     color: white;
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .compact-media-info {
@@ -1479,7 +1481,7 @@
 .sidebar-toggle {
     position: fixed;
     top: 100px; /* Below the topbar */
-    left: 260px; /* Position at edge of sidebar when open */
+    left: 280px; /* Position at edge of sidebar when open */
     z-index: 1001;
     background: #2d2d30;
     color: #ffffff;
@@ -1517,9 +1519,9 @@
 }
 
 .left-sidebar {
-    width: 260px;
-    min-width: 260px;
-    max-width: 260px;
+    width: 280px;
+    min-width: 280px;
+    max-width: 280px;
     height: calc(100vh - 56px);
     position: fixed;
     top: 56px; /* Below topbar */
@@ -1527,9 +1529,12 @@
     background: #f8fafc;
     border-right: 1px solid #e1e5e9;
     overflow-y: auto;
-    padding: 16px;
+    padding: 20px;
     transition: transform 0.3s ease;
     z-index: 999;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 .left-sidebar.collapsed {
@@ -1538,7 +1543,7 @@
 
 /* Calendar area adjustment for sidebar */
 .calendar-workspace-content {
-    margin-left: 260px;
+    margin-left: 280px;
 }
 
 .calendar-workspace-content.sidebar-collapsed {

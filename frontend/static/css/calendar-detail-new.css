@@ -5,7 +5,9 @@
     background: #ffffff;
     border: 1px solid #e1e5e9;
     border-radius: 8px;
-    padding: 16px;
+    padding: 14px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .widget-header {
