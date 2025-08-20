@@ -1568,6 +1568,7 @@
     align-items: center;
     gap: var(--spacing-lg);
     justify-content: center;
+    margin-bottom: var(--spacing-3xl);
 }
 
 .proof-logo {
