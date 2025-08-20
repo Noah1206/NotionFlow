@@ -620,14 +620,9 @@
     border-bottom: 1px solid #e1e5e9;
     z-index: 100;
     min-height: 56px;
-    position: relative;
+    position: sticky;
+    top: 0;
     transition: all 0.3s ease;
-}
-
-/* Adjust topbar when sidebar is collapsed */
-.sidebar-collapsed .calendar-topbar {
-    margin-left: 32px; /* Space for toggle button */
-    width: calc(100% - 32px);
 }
 
 .topbar-left {
@@ -1480,32 +1475,33 @@
 /* Sidebar Toggle Button */
 .sidebar-toggle {
     position: fixed;
-    top: 100px; /* Below the topbar */
+    top: 70px; /* Below the topbar */
     left: 280px; /* Position at edge of sidebar when open */
-    z-index: 1001;
-    background: #2d2d30;
+    z-index: 1002; /* Higher than sidebar */
+    background: #3b82f6;
     color: #ffffff;
     border: none;
-    border-radius: 0 8px 8px 0;
-    width: 32px;
-    height: 48px;
+    border-radius: 0 6px 6px 0;
+    width: 28px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+    transition: left 0.3s ease, transform 0.15s ease;
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
 }
 
 .sidebar-toggle:hover {
-    background: #404040;
-    width: 36px;
+    background: #2563eb;
+    transform: translateX(2px);
 }
 
 /* Sidebar collapsed state */
-.sidebar-collapsed .sidebar-toggle {
+.sidebar-collapsed .sidebar-toggle,
+.calendar-workspace-content.sidebar-collapsed .sidebar-toggle {
     left: 0;
-    border-radius: 0 8px 8px 0;
+    border-radius: 0 6px 6px 0;
 }
 
 /* Modified existing layout */
@@ -1516,6 +1512,7 @@
     transition: all 0.3s ease;
     width: 100%;
     position: relative;
+    padding-left: 280px; /* Space for sidebar */
 }
 
 .left-sidebar {
@@ -1529,12 +1526,13 @@
     background: #f8fafc;
     border-right: 1px solid #e1e5e9;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 20px;
     transition: transform 0.3s ease;
-    z-index: 999;
+    z-index: 1000;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
 }
 
 .left-sidebar.collapsed {
@@ -1542,27 +1540,24 @@
 }
 
 /* Calendar area adjustment for sidebar */
-.calendar-workspace-content {
-    margin-left: 280px;
-}
-
 .calendar-workspace-content.sidebar-collapsed {
-    margin-left: 32px; /* Space for toggle button only */
+    padding-left: 24px; /* Space for toggle button only */
 }
 
 .center-calendar-area {
     flex: 1;
     background: #ffffff;
     overflow-y: auto;
-    padding: 20px;
+    padding: 24px;
     position: relative;
     width: 100%;
     transition: all 0.3s ease;
+    max-width: 100%;
 }
 
 /* When sidebar is collapsed, expand calendar area */
 .sidebar-collapsed .center-calendar-area {
-    width: calc(100% - 32px); /* Full width minus toggle button */
+    width: 100%;
     margin-left: 0;
 }
 
