@@ -71,6 +71,11 @@
             --gradient-bg: linear-gradient(180deg, #191919 0%, #191919 100%);
             --blur-backdrop: blur(20px);
         }
+        
+        /* Dark mode hero background opacity adjustment */
+        [data-theme="dark"] .hero::before {
+            opacity: 0.08;
+        }
 
         /* Global Reset */
         * {
@@ -274,7 +279,18 @@
         }
 
         .hero::before {
-            display: none;
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('/static/images/calendar-background.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.15;
+            z-index: 1;
         }
 
 
