@@ -171,12 +171,174 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
     padding: 24px;
     max-width: 1400px;
     margin: 0 auto;
     width: 100%;
     background: #f8f9fa;
+}
+
+/* ============================================================================
+   WEEKLY CALENDAR SECTION
+   ============================================================================ */
+
+.weekly-calendar-section {
+    margin-bottom: 12px;
+}
+
+.week-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+}
+
+.day-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 12px;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    min-height: 120px;
+    position: relative;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.day-cell:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.day-cell.today {
+    background: #eff6ff;
+    border-color: #3b82f6;
+    border-width: 2px;
+}
+
+.day-cell.today:hover {
+    background: #dbeafe;
+}
+
+.day-header {
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.day-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.day-date {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.day-cell.today .day-date {
+    color: #1e40af;
+}
+
+.day-content {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+}
+
+/* 포스트잇 스타일 다짐 */
+.commitment-sticky {
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 11px;
+    line-height: 1.4;
+    color: #92400e;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);
+    position: relative;
+    max-width: 100%;
+    word-break: break-word;
+    transform: rotate(-1deg);
+    transition: all 0.2s ease;
+}
+
+.commitment-sticky:hover {
+    transform: rotate(0deg) scale(1.05);
+    box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3);
+}
+
+.commitment-sticky::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 6px;
+    background: #f59e0b;
+    border-radius: 0 0 4px 4px;
+    opacity: 0.6;
+}
+
+/* 빈 상태 메시지 */
+.empty-day-message {
+    font-size: 11px;
+    color: #9ca3af;
+    text-align: center;
+    font-style: italic;
+}
+
+/* 다른 날짜들의 포스트잇 색상 변형 */
+.commitment-sticky.variant-blue {
+    background: #dbeafe;
+    border-color: #3b82f6;
+    color: #1e40af;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.commitment-sticky.variant-blue::before {
+    background: #3b82f6;
+}
+
+.commitment-sticky.variant-green {
+    background: #dcfce7;
+    border-color: #22c55e;
+    color: #15803d;
+    box-shadow: 0 2px 4px rgba(34, 197, 94, 0.2);
+}
+
+.commitment-sticky.variant-green::before {
+    background: #22c55e;
+}
+
+.commitment-sticky.variant-pink {
+    background: #fce7f3;
+    border-color: #ec4899;
+    color: #be185d;
+    box-shadow: 0 2px 4px rgba(236, 72, 153, 0.2);
+}
+
+.commitment-sticky.variant-pink::before {
+    background: #ec4899;
 }
 
 /* Daily Commitment Section */
@@ -1652,6 +1814,64 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
     
     .commitment-content {
         padding: 20px 24px;
+    }
+    
+    /* Weekly calendar responsive */
+    .week-grid {
+        gap: 8px;
+        padding: 16px;
+    }
+    
+    .day-cell {
+        padding: 12px 8px;
+        min-height: 100px;
+    }
+    
+    .day-date {
+        font-size: 16px;
+    }
+    
+    .commitment-sticky {
+        font-size: 10px;
+        padding: 6px 8px;
+    }
+}
+
+@media (max-width: 768px) {
+    .calendar-day-content {
+        padding: 16px;
+        gap: 12px;
+    }
+    
+    .week-grid {
+        gap: 6px;
+        padding: 12px;
+    }
+    
+    .day-cell {
+        padding: 10px 6px;
+        min-height: 80px;
+    }
+    
+    .day-name {
+        font-size: 10px;
+    }
+    
+    .day-date {
+        font-size: 14px;
+    }
+    
+    .commitment-sticky {
+        font-size: 9px;
+        padding: 4px 6px;
+    }
+    
+    .commitment-widget .widget-header {
+        padding: 16px 20px 12px 20px;
+    }
+    
+    .commitment-content {
+        padding: 16px 20px;
     }
 }
 

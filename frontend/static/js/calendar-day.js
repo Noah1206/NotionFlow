@@ -16,6 +16,12 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log(`📅 Calendar ID: ${calendarId}, Selected Date: ${selectedDate}`);
     }
     
+    // Load saved data from localStorage
+    loadSavedData();
+    
+    // Generate weekly calendar
+    generateWeeklyCalendar();
+    
     // Set default datetime values for event modal
     initializeEventModal();
     
@@ -28,6 +34,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize real-time features
     initializeRealtimeFeatures();
+    
+    // Setup auto-save on input changes
+    setupAutoSave();
 });
 
 // Initialize real-time features
@@ -1320,6 +1329,9 @@ function deleteRoutine(routineId) {
             // Update progress stats
             updateProgressStats();
             
+            // Save to localStorage
+            saveToLocalStorage();
+            
             console.log(`🗑 Routine ${routineId} deleted`);
         }, 200);
     }
@@ -1347,6 +1359,9 @@ function clearAllRoutines() {
             
             // Update progress stats
             updateProgressStats();
+            
+            // Save to localStorage
+            saveToLocalStorage();
             
             console.log('🗑 All routines cleared');
         }, routineRows.length * 30 + 200);
@@ -1431,6 +1446,14 @@ function addRoutineItem() {
         const checkbox = newRoutineRow.querySelector('.routine-checkbox');
         checkbox.addEventListener('change', function() {
             updateProgressStats();
+            saveToLocalStorage();
+        });
+        
+        // Setup input change listeners for auto-save
+        const inputs = newRoutineRow.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('change', saveToLocalStorage);
+            input.addEventListener('input', debounce(saveToLocalStorage, 500));
         });
         
         // Focus on the title input
@@ -1440,6 +1463,9 @@ function addRoutineItem() {
         }
         
         routineIdCounter++;
+        
+        // Save to localStorage
+        saveToLocalStorage();
         console.log('✅ New routine added');
     }
 }
@@ -1488,7 +1514,8 @@ function saveCommitment() {
     const saveBtn = document.querySelector('.btn-save-commitment');
     
     if (textarea && saveBtn) {
-        // Here you would save to API
+        // Save to localStorage
+        saveToLocalStorage();
         console.log('💾 Saving commitment:', textarea.value);
         
         // Visual feedback
@@ -1509,6 +1536,9 @@ function clearCommitment() {
     if (textarea && confirm('오늘의 다짐을 지우시겠습니까?')) {
         textarea.value = '';
         textarea.focus();
+        
+        // Save to localStorage
+        saveToLocalStorage();
         console.log('🗑 Commitment cleared');
     }
 }
@@ -1570,6 +1600,16 @@ function addTaskItem() {
             } else {
                 taskRow.classList.remove('completed');
             }
+            
+            // Save to localStorage
+            saveToLocalStorage();
+        });
+        
+        // Setup input change listeners for auto-save
+        const inputs = newTaskRow.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            input.addEventListener('change', saveToLocalStorage);
+            input.addEventListener('input', debounce(saveToLocalStorage, 500));
         });
         
         // Focus on the title input
@@ -1579,6 +1619,9 @@ function addTaskItem() {
         }
         
         taskIdCounter++;
+        
+        // Save to localStorage
+        saveToLocalStorage();
         console.log('✅ New task added');
     }
 }
@@ -1602,6 +1645,8 @@ function deleteTask(taskId) {
                 tasksEmpty.style.display = 'flex';
             }
             
+            // Save to localStorage
+            saveToLocalStorage();
             console.log(`🗑 Task ${taskId} deleted`);
         }, 200);
     }
@@ -1627,6 +1672,8 @@ function clearAllTasks() {
                 tasksEmpty.style.display = 'flex';
             }
             
+            // Save to localStorage
+            saveToLocalStorage();
             console.log('🗑 All tasks cleared');
         }, taskRows.length * 30 + 200);
     }
@@ -1648,3 +1695,399 @@ document.addEventListener('DOMContentLoaded', function() {
     updateHeaderCurrentTime();
     setInterval(updateHeaderCurrentTime, 60000); // Update every minute
 });
+
+/* ============================================================================
+   LOCALSTORAGE FUNCTIONS FOR DATA PERSISTENCE
+   ============================================================================ */
+
+// Get storage key based on calendar and date
+function getStorageKey() {
+    return `calendar-day-${calendarId}-${selectedDate}`;
+}
+
+// Save all data to localStorage
+function saveToLocalStorage() {
+    const data = {
+        commitment: document.querySelector('.commitment-textarea')?.value || '',
+        routines: [],
+        tasks: []
+    };
+    
+    // Save routines
+    const routineRows = document.querySelectorAll('.routine-row');
+    routineRows.forEach((row) => {
+        const routineId = row.getAttribute('data-routine-id');
+        const timeInput = row.querySelector('.time-input');
+        const titleInput = row.querySelector('.activity-title-input');
+        const descInput = row.querySelector('.activity-desc-input');
+        const checkbox = row.querySelector('.routine-checkbox');
+        
+        if (timeInput && titleInput && descInput && checkbox) {
+            data.routines.push({
+                id: routineId,
+                time: timeInput.value,
+                title: titleInput.value,
+                description: descInput.value,
+                completed: checkbox.checked
+            });
+        }
+    });
+    
+    // Save tasks
+    const taskRows = document.querySelectorAll('.task-row');
+    taskRows.forEach((row) => {
+        const taskId = row.getAttribute('data-task-id');
+        const titleInput = row.querySelector('.task-title-input');
+        const descInput = row.querySelector('.task-desc-input');
+        const prioritySelect = row.querySelector('.priority-select');
+        const checkbox = row.querySelector('.task-checkbox');
+        
+        if (titleInput && descInput && prioritySelect && checkbox) {
+            data.tasks.push({
+                id: taskId,
+                title: titleInput.value,
+                description: descInput.value,
+                priority: prioritySelect.value,
+                completed: checkbox.checked
+            });
+        }
+    });
+    
+    localStorage.setItem(getStorageKey(), JSON.stringify(data));
+    
+    // Update weekly calendar with new commitment
+    updateCurrentDayCommitment(data.commitment);
+    
+    console.log('💾 Data saved to localStorage');
+}
+
+// Update current day's commitment in weekly calendar
+function updateCurrentDayCommitment(commitment) {
+    if (commitment && commitment.trim()) {
+        // Today gets the default yellow sticky note
+        updateDayCommitment(selectedDate, commitment, '');
+    } else {
+        // Clear the commitment
+        const dayContent = document.getElementById(`day-content-${selectedDate}`);
+        if (dayContent) {
+            dayContent.innerHTML = `<div class="empty-day-message">다짐을 적어보세요</div>`;
+        }
+    }
+}
+
+// Load saved data from localStorage
+function loadSavedData() {
+    const storageKey = getStorageKey();
+    const savedData = localStorage.getItem(storageKey);
+    
+    if (savedData) {
+        try {
+            const data = JSON.parse(savedData);
+            console.log('📂 Loading saved data:', data);
+            
+            // Load commitment
+            if (data.commitment) {
+                const commitmentTextarea = document.querySelector('.commitment-textarea');
+                if (commitmentTextarea) {
+                    commitmentTextarea.value = data.commitment;
+                }
+            }
+            
+            // Load routines
+            if (data.routines && data.routines.length > 0) {
+                const routineTableBody = document.getElementById('routine-table-body');
+                const routineEmpty = document.getElementById('routine-empty');
+                
+                if (routineTableBody) {
+                    routineTableBody.innerHTML = '';
+                    
+                    data.routines.forEach((routine) => {
+                        createRoutineRow(routine);
+                    });
+                    
+                    if (routineEmpty) {
+                        routineEmpty.style.display = 'none';
+                    }
+                }
+            }
+            
+            // Load tasks
+            if (data.tasks && data.tasks.length > 0) {
+                const tasksTableBody = document.getElementById('tasks-table-body');
+                const tasksEmpty = document.getElementById('tasks-empty');
+                
+                if (tasksTableBody) {
+                    tasksTableBody.innerHTML = '';
+                    
+                    data.tasks.forEach((task) => {
+                        createTaskRow(task);
+                    });
+                    
+                    if (tasksEmpty) {
+                        tasksEmpty.style.display = 'none';
+                    }
+                }
+            }
+            
+            // Update ID counters
+            if (data.routines.length > 0) {
+                const maxRoutineId = Math.max(...data.routines.map(r => parseInt(r.id))) + 1;
+                routineIdCounter = maxRoutineId;
+            }
+            
+            if (data.tasks.length > 0) {
+                const maxTaskId = Math.max(...data.tasks.map(t => parseInt(t.id))) + 1;
+                taskIdCounter = maxTaskId;
+            }
+            
+        } catch (e) {
+            console.error('Error loading saved data:', e);
+        }
+    }
+    
+    // Always check empty states after loading
+    checkEmptyStates();
+}
+
+// Create routine row from data
+function createRoutineRow(routine) {
+    const routineTableBody = document.getElementById('routine-table-body');
+    if (!routineTableBody) return;
+    
+    const newRoutineRow = document.createElement('div');
+    newRoutineRow.className = 'table-row routine-row';
+    newRoutineRow.draggable = true;
+    newRoutineRow.setAttribute('data-routine-id', routine.id);
+    
+    newRoutineRow.innerHTML = `
+        <div class="cell time-cell">
+            <input type="time" class="time-input" value="${routine.time}">
+        </div>
+        <div class="cell activity-cell">
+            <input type="text" class="activity-title-input" value="${routine.title}" placeholder="활동명...">
+            <input type="text" class="activity-desc-input" value="${routine.description}" placeholder="상세 설명...">
+        </div>
+        <div class="cell status-cell">
+            <input type="checkbox" class="routine-checkbox" ${routine.completed ? 'checked' : ''}>
+        </div>
+        <div class="cell action-cell">
+            <button class="action-btn delete-routine" onclick="deleteRoutine(${routine.id})" title="삭제">🗑</button>
+        </div>
+    `;
+    
+    routineTableBody.appendChild(newRoutineRow);
+    
+    // Setup interactions for loaded row
+    setupRowDragAndDrop(newRoutineRow, 'routine');
+    
+    // Setup checkbox event listener
+    const checkbox = newRoutineRow.querySelector('.routine-checkbox');
+    checkbox.addEventListener('change', function() {
+        saveToLocalStorage();
+    });
+    
+    // Setup input change listeners
+    const inputs = newRoutineRow.querySelectorAll('input');
+    inputs.forEach(input => {
+        input.addEventListener('change', saveToLocalStorage);
+        input.addEventListener('input', debounce(saveToLocalStorage, 500));
+    });
+}
+
+// Create task row from data
+function createTaskRow(task) {
+    const tasksTableBody = document.getElementById('tasks-table-body');
+    if (!tasksTableBody) return;
+    
+    const newTaskRow = document.createElement('div');
+    newTaskRow.className = `table-row task-row ${task.completed ? 'completed' : ''}`;
+    newTaskRow.draggable = true;
+    newTaskRow.setAttribute('data-task-id', task.id);
+    
+    newTaskRow.innerHTML = `
+        <div class="cell status-cell">
+            <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''}>
+        </div>
+        <div class="cell task-cell">
+            <input type="text" class="task-title-input" value="${task.title}" placeholder="작업명...">
+            <input type="text" class="task-desc-input" value="${task.description}" placeholder="상세 설명...">
+        </div>
+        <div class="cell priority-cell">
+            <select class="priority-select">
+                <option value="high" ${task.priority === 'high' ? 'selected' : ''}>🔥 중요</option>
+                <option value="medium" ${task.priority === 'medium' ? 'selected' : ''}>📋 보통</option>
+                <option value="low" ${task.priority === 'low' ? 'selected' : ''}>📝 낮음</option>
+            </select>
+        </div>
+        <div class="cell action-cell">
+            <button class="action-btn delete-task" onclick="deleteTask(${task.id})" title="삭제">🗑</button>
+        </div>
+    `;
+    
+    tasksTableBody.appendChild(newTaskRow);
+    
+    // Setup interactions for loaded row
+    setupRowDragAndDrop(newTaskRow, 'task');
+    
+    // Setup checkbox event listener
+    const checkbox = newTaskRow.querySelector('.task-checkbox');
+    checkbox.addEventListener('change', function() {
+        const taskRow = this.closest('.table-row');
+        
+        if (this.checked) {
+            taskRow.classList.add('completed');
+            
+            // Animate checkbox
+            this.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1)';
+            }, 200);
+        } else {
+            taskRow.classList.remove('completed');
+        }
+        
+        saveToLocalStorage();
+    });
+    
+    // Setup input change listeners
+    const inputs = newTaskRow.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        input.addEventListener('change', saveToLocalStorage);
+        input.addEventListener('input', debounce(saveToLocalStorage, 500));
+    });
+}
+
+// Setup auto-save on input changes
+function setupAutoSave() {
+    // Auto-save commitment
+    const commitmentTextarea = document.querySelector('.commitment-textarea');
+    if (commitmentTextarea) {
+        commitmentTextarea.addEventListener('input', debounce(saveToLocalStorage, 1000));
+    }
+}
+
+// Debounce function to limit save frequency
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+/* ============================================================================
+   WEEKLY CALENDAR FUNCTIONS
+   ============================================================================ */
+
+// Generate weekly calendar view
+function generateWeeklyCalendar() {
+    const weekGrid = document.getElementById('week-grid');
+    if (!weekGrid) return;
+    
+    const currentDate = new Date(selectedDate);
+    const startOfWeek = getStartOfWeek(currentDate);
+    
+    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+    const variants = ['', 'variant-blue', 'variant-green', 'variant-pink'];
+    
+    weekGrid.innerHTML = '';
+    
+    for (let i = 0; i < 7; i++) {
+        const dayDate = new Date(startOfWeek);
+        dayDate.setDate(startOfWeek.getDate() + i);
+        
+        const dateString = formatDateForStorage(dayDate);
+        const isToday = dateString === selectedDate;
+        
+        const dayCell = document.createElement('div');
+        dayCell.className = `day-cell ${isToday ? 'today' : ''}`;
+        dayCell.setAttribute('data-date', dateString);
+        
+        dayCell.innerHTML = `
+            <div class="day-header">
+                <div class="day-name">${dayNames[i]}</div>
+                <div class="day-date">${dayDate.getDate()}</div>
+            </div>
+            <div class="day-content" id="day-content-${dateString}">
+                <div class="empty-day-message">다짐을 적어보세요</div>
+            </div>
+        `;
+        
+        // Add click handler to navigate to that day
+        dayCell.addEventListener('click', () => {
+            if (!isToday) {
+                window.location.href = `/dashboard/calendar/${calendarId}/day/${dateString}`;
+            }
+        });
+        
+        weekGrid.appendChild(dayCell);
+    }
+    
+    // Load commitments for all days in the week
+    loadWeeklyCommitments(startOfWeek);
+}
+
+// Get start of week (Sunday)
+function getStartOfWeek(date) {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day;
+    return new Date(d.setDate(diff));
+}
+
+// Format date for storage key
+function formatDateForStorage(date) {
+    return date.toISOString().split('T')[0];
+}
+
+// Load commitments for the entire week
+function loadWeeklyCommitments(startOfWeek) {
+    const variants = ['', 'variant-blue', 'variant-green', 'variant-pink'];
+    
+    for (let i = 0; i < 7; i++) {
+        const dayDate = new Date(startOfWeek);
+        dayDate.setDate(startOfWeek.getDate() + i);
+        const dateString = formatDateForStorage(dayDate);
+        
+        // Get commitment for this date
+        const storageKey = `calendar-day-${calendarId}-${dateString}`;
+        const savedData = localStorage.getItem(storageKey);
+        
+        if (savedData) {
+            try {
+                const data = JSON.parse(savedData);
+                if (data.commitment && data.commitment.trim()) {
+                    updateDayCommitment(dateString, data.commitment, variants[i % variants.length]);
+                }
+            } catch (e) {
+                console.error('Error loading commitment for date:', dateString, e);
+            }
+        }
+    }
+}
+
+// Update commitment display for a specific day
+function updateDayCommitment(dateString, commitment, variant = '') {
+    const dayContent = document.getElementById(`day-content-${dateString}`);
+    if (!dayContent) return;
+    
+    // Truncate long commitments for display
+    const displayText = commitment.length > 50 ? commitment.substring(0, 47) + '...' : commitment;
+    
+    dayContent.innerHTML = `
+        <div class="commitment-sticky ${variant}">
+            ${displayText}
+        </div>
+    `;
+}
+
+// Update weekly calendar when commitment changes
+function updateWeeklyCalendar() {
+    const currentDate = new Date(selectedDate);
+    const startOfWeek = getStartOfWeek(currentDate);
+    loadWeeklyCommitments(startOfWeek);
+}
