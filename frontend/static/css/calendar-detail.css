@@ -16,6 +16,40 @@ body.calendar-detail-page .sidebar,
     display: none !important;
 }
 
+/* When calendar detail sidebar is collapsed, hide ALL other sidebars completely */
+.calendar-detail-page.sidebar-collapsed .sidebar,
+.calendar-detail-page .calendar-workspace-content.sidebar-collapsed ~ .sidebar,
+body.calendar-detail-page.sidebar-collapsed .sidebar,
+body.sidebar-collapsed.calendar-detail-page .sidebar,
+.sidebar-collapsed .sidebar:not(.left-sidebar),
+.calendar-detail-page .sidebar:not(.left-sidebar) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    z-index: -999 !important;
+    transform: translateX(-200%) !important;
+    pointer-events: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Hide any floating or overlay elements that might be related to other sidebars */
+.calendar-detail-page.sidebar-collapsed .sidebar-overlay,
+.calendar-detail-page.sidebar-collapsed .navigation-overlay,
+body.sidebar-collapsed.calendar-detail-page .sidebar-overlay {
+    display: none !important;
+}
+
+/* Also hide any navigation or menu components */
+.calendar-detail-page .calendar-workspace-content.sidebar-collapsed ~ nav,
+.calendar-detail-page .calendar-workspace-content.sidebar-collapsed ~ .navigation,
+.calendar-detail-page .calendar-workspace-content.sidebar-collapsed ~ .menu {
+    display: none !important;
+}
+
 /* Ensure calendar workspace takes full width when main sidebar is hidden */
 .calendar-detail-page .calendar-workspace-content {
     padding-left: 0 !important;
@@ -1526,6 +1560,8 @@ body.calendar-detail-page .sidebar,
 .calendar-workspace-content.sidebar-collapsed .sidebar-toggle {
     left: 0;
     border-radius: 0 6px 6px 0;
+    z-index: 1010; /* Above everything */
+    position: fixed;
 }
 
 /* When sidebar is collapsed, rotate toggle icon */
@@ -1546,7 +1582,7 @@ body.calendar-detail-page .sidebar,
 
 /* When calendar sidebar is collapsed */
 .calendar-workspace-content.sidebar-collapsed {
-    padding-left: 28px !important; /* Only space for toggle button */
+    padding-left: 0 !important; /* No padding when collapsed */
 }
 
 .left-sidebar {
@@ -1589,8 +1625,10 @@ body.calendar-detail-page .sidebar,
 
 /* When sidebar is collapsed, remove left padding from calendar area */
 .calendar-workspace-content.sidebar-collapsed .center-calendar-area {
-    padding-left: 0 !important;
+    padding: 80px 24px 24px 24px !important; /* Consistent padding on all sides */
     margin-left: 0 !important;
+    width: 100vw !important; /* Full viewport width */
+    max-width: 100% !important;
 }
 
 /* When sidebar is collapsed, expand calendar area */
@@ -1625,19 +1663,33 @@ body.calendar-detail-page .sidebar,
 /* When sidebar is collapsed, calendar grid uses full width */
 .calendar-workspace-content.sidebar-collapsed .main-calendar-grid {
     width: 100%;
-    border-radius: 0 12px 12px 0; /* Rounded only on right side */
+    border-radius: 12px; /* Full rounded corners when taking full width */
 }
 
 .calendar-header {
     background: #f8fafc;
     border-bottom: 1px solid #e1e5e9;
     padding: 16px 0;
+    width: 100%;
+}
+
+/* When sidebar is collapsed, calendar header uses full width */
+.calendar-workspace-content.sidebar-collapsed .calendar-header {
+    width: 100%;
+    margin: 0;
+    padding-left: 0;
 }
 
 .weekday-labels {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 0;
+    width: 100%;
+}
+
+/* When sidebar is collapsed, weekday labels use full width */
+.calendar-workspace-content.sidebar-collapsed .weekday-labels {
+    width: 100%;
 }
 
 .weekday-label {
