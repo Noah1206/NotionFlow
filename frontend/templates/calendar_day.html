@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ formatted_date }} - {{ calendar.name }} - NotionFlow</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="16x16" href="{{ url_for('static', filename='images/favicon-16x16.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="32x32" href="{{ url_for('static', filename='images/favicon-32x32.svg') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='images/apple-touch-icon.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="192x192" href="{{ url_for('static', filename='images/icon-192x192.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="512x512" href="{{ url_for('static', filename='images/icon-512x512.svg') }}">
+    
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#3B82F6">
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/variables.css') }}?v={{ range(100000, 999999) | random }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-day.css') }}?v={{ range(100000, 999999) | random }}">
+    
+    <!-- Core notification system -->
+    <script src="{{ url_for('static', filename='js/notification-utils.js') }}?v={{ range(100000, 999999) | random }}"></script>
+</head>
+
+<body class="calendar-day-page">
+
+<div class="calendar-day-workspace" data-calendar-id="{{ calendar.id }}" data-selected-date="{{ selected_date }}">
+    
+    <!-- Top Navigation Bar -->
+    <div class="calendar-topbar">
+        <div class="topbar-left">
+            <button class="btn-back" onclick="window.location.href='/dashboard/calendar/{{ calendar.id }}'">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <div class="calendar-header-info">
+                <div class="calendar-icon-small" style="background: {{ calendar.color or '#3B82F6' }}"></div>
+                <div class="header-text">
+                    <h1 class="calendar-name">{{ calendar.name }}</h1>
+                    <div class="date-info">
+                        <span class="formatted-date">{{ formatted_date }}</span>
+                        <span class="weekday">{{ weekday }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="topbar-right">
+            <button class="btn-add-event" onclick="openEventModal()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                새 이벤트
+            </button>
+            
+            <button class="btn-today" onclick="goToToday()">오늘</button>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="calendar-day-content">
+        <!-- Left Content: Daily Routine -->
+        <div class="daily-routine-section">
+            <div class="section-header">
+                <div class="section-icon">🔄</div>
+                <h3>Daily Routine</h3>
+                <button class="add-routine-btn" onclick="addRoutineItem()" title="루틴 추가">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="routine-timeline">
+                <div class="routine-item">
+                    <div class="routine-time">06:00</div>
+                    <div class="routine-content">
+                        <div class="routine-task">Wake up</div>
+                        <div class="routine-description">새로운 하루 시작</div>
+                    </div>
+                    <div class="routine-status">
+                        <input type="checkbox" class="routine-checkbox">
+                    </div>
+                </div>
+                
+                <div class="routine-item">
+                    <div class="routine-time">07:30</div>
+                    <div class="routine-content">
+                        <div class="routine-task">Running</div>
+                        <div class="routine-description">30분 조깅</div>
+                    </div>
+                    <div class="routine-status">
+                        <input type="checkbox" class="routine-checkbox">
+                    </div>
+                </div>
+                
+                <div class="routine-item">
+                    <div class="routine-time">09:00</div>
+                    <div class="routine-content">
+                        <div class="routine-task">Work</div>
+                        <div class="routine-description">업무 시작</div>
+                    </div>
+                    <div class="routine-status">
+                        <input type="checkbox" class="routine-checkbox">
+                    </div>
+                </div>
+                
+                <div class="routine-item">
+                    <div class="routine-time">12:00</div>
+                    <div class="routine-content">
+                        <div class="routine-task">Lunch</div>
+                        <div class="routine-description">점심 식사</div>
+                    </div>
+                    <div class="routine-status">
+                        <input type="checkbox" class="routine-checkbox">
+                    </div>
+                </div>
+                
+                <div class="routine-item">
+                    <div class="routine-time">18:00</div>
+                    <div class="routine-content">
+                        <div class="routine-task">Exercise</div>
+                        <div class="routine-description">운동</div>
+                    </div>
+                    <div class="routine-status">
+                        <input type="checkbox" class="routine-checkbox">
+                    </div>
+                </div>
+                
+                <div class="routine-item">
+                    <div class="routine-time">22:00</div>
+                    <div class="routine-content">
+                        <div class="routine-task">Reading</div>
+                        <div class="routine-description">독서 시간</div>
+                    </div>
+                    <div class="routine-status">
+                        <input type="checkbox" class="routine-checkbox">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Content: Events & Tasks -->
+        <div class="events-tasks-section">
+            <!-- Events Section -->
+            <div class="events-section">
+                <div class="section-header">
+                    <div class="section-icon">📅</div>
+                    <h3>Events</h3>
+                    <button class="add-event-btn" onclick="openEventModal()" title="이벤트 추가">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="day-events" id="day-events">
+                    <div class="no-events">
+                        <p>이 날짜에 일정이 없습니다.</p>
+                        <button class="btn-add-event-inline" onclick="openEventModal()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            이벤트 추가
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tasks Section -->
+            <div class="tasks-section">
+                <div class="section-header">
+                    <div class="section-icon">✅</div>
+                    <h3>Tasks</h3>
+                    <button class="add-task-btn" onclick="addTaskItem()" title="할 일 추가">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="task-list" id="task-list">
+                    <div class="task-item">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-title">팀 미팅 준비</div>
+                            <div class="task-description">프레젠테이션 자료 작성</div>
+                        </div>
+                        <div class="task-priority high">중요</div>
+                    </div>
+                    
+                    <div class="task-item">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-title">이메일 확인</div>
+                            <div class="task-description">중요한 메일 답장</div>
+                        </div>
+                        <div class="task-priority medium">보통</div>
+                    </div>
+                    
+                    <div class="task-item completed">
+                        <input type="checkbox" class="task-checkbox" checked>
+                        <div class="task-content">
+                            <div class="task-title">운동하기</div>
+                            <div class="task-description">아침 조깅 30분</div>
+                        </div>
+                        <div class="task-priority low">낮음</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Notes Section -->
+            <div class="notes-section">
+                <div class="section-header">
+                    <div class="section-icon">📝</div>
+                    <h3>Notes</h3>
+                </div>
+                
+                <div class="notes-area">
+                    <textarea class="notes-textarea" placeholder="오늘의 메모를 작성하세요..." rows="6"></textarea>
+                    <button class="save-notes-btn" onclick="saveNotes()">메모 저장</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Event Creation Modal -->
+<div class="modal-overlay" id="event-modal" style="display: none;">
+    <div class="modal-content event-modal">
+        <div class="modal-header">
+            <h2 class="modal-title">새 이벤트</h2>
+            <button class="modal-close" onclick="closeEventModal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="form-group">
+                <label>제목</label>
+                <input type="text" id="event-title" placeholder="이벤트 제목 입력">
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>시작일</label>
+                    <input type="datetime-local" id="event-start">
+                </div>
+                <div class="form-group">
+                    <label>종료일</label>
+                    <input type="datetime-local" id="event-end">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>설명</label>
+                <textarea id="event-description" rows="4" placeholder="이벤트 설명 (선택사항)"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>색상</label>
+                <div class="color-picker">
+                    <button class="color-option active" data-color="#3B82F6" style="background: #3B82F6"></button>
+                    <button class="color-option" data-color="#10B981" style="background: #10B981"></button>
+                    <button class="color-option" data-color="#F59E0B" style="background: #F59E0B"></button>
+                    <button class="color-option" data-color="#EF4444" style="background: #EF4444"></button>
+                    <button class="color-option" data-color="#8B5CF6" style="background: #8B5CF6"></button>
+                    <button class="color-option" data-color="#EC4899" style="background: #EC4899"></button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="event-allday">
+                    <span>종일 이벤트</span>
+                </label>
+            </div>
+            
+            <div class="form-actions">
+                <button class="btn-cancel" onclick="closeEventModal()">취소</button>
+                <button class="btn-save" onclick="saveEvent()">저장</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script src="{{ url_for('static', filename='js/calendar-day.js') }}?v={{ range(100000, 999999) | random }}"></script>
+
+</body>
+</html>

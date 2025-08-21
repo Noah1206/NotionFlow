@@ -736,6 +736,60 @@ def calendar_detail(calendar_id):
     
     return render_template('calendar_detail.html', **context)
 
+@app.route('/dashboard/calendar/<calendar_id>/day/<date>')
+def calendar_day(calendar_id, date):
+    """Individual Calendar Day Page"""
+    user_id = session.get('user_id')
+    
+    if not user_id:
+        return redirect(f'/login?from=calendar/{calendar_id}/day/{date}')
+    
+    # Get common dashboard context
+    context = get_dashboard_context(user_id, 'calendar-day')
+    
+    # Load calendar data
+    calendar = None
+    
+    # Try calendar database first
+    if calendar_db_available:
+        print(f"🗓️ Loading calendar {calendar_id} from database...")
+        calendar = calendar_db.get_calendar_by_id(calendar_id, user_id)
+        if calendar:
+            print(f"✅ Calendar found in database: {calendar.get('name')}")
+    
+    # If not found in database, create mock calendar
+    if not calendar:
+        print(f"⚠️ Calendar {calendar_id} not found, creating mock data")
+        calendar = {
+            'id': calendar_id,
+            'name': '내 캘린더',
+            'color': '#3B82F6',
+            'platform': 'custom',
+            'is_shared': False,
+            'is_enabled': True,
+            'description': 'Calendar not found in database'
+        }
+    
+    # Parse the date parameter
+    try:
+        from datetime import datetime
+        selected_date = datetime.strptime(date, '%Y-%m-%d')
+        formatted_date = selected_date.strftime('%Y년 %m월 %d일')
+        weekday = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'][selected_date.weekday()]
+    except ValueError:
+        # Invalid date format
+        return redirect(url_for('calendar_detail', calendar_id=calendar_id))
+    
+    context.update({
+        'calendar': calendar,
+        'selected_date': date,
+        'formatted_date': formatted_date,
+        'weekday': weekday,
+        'page_title': f'{calendar["name"]} - {formatted_date}'
+    })
+    
+    return render_template('calendar_day.html', **context)
+
 # Media file serving route
 @app.route('/media/calendar/<calendar_id>/<filename>', endpoint='calendar_media_server')
 def serve_calendar_media_v2(calendar_id, filename):

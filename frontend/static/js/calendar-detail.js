@@ -1028,20 +1028,25 @@ function closeEventModal() {
 }
 
 function openDayModal(date) {
-    const modal = document.getElementById('day-modal');
-    const title = document.getElementById('modal-date');
+    // Navigate to calendar day page instead of opening modal
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
     
-    if (modal && title) {
-        const year = date.getFullYear();
-        const month = date.getMonth() + 1;
-        const day = date.getDate();
-        
-        title.textContent = `${year}년 ${month}월 ${day}일`;
-        modal.style.display = 'flex';
-        
-        // Load events for this day
-        loadDayEvents(date);
+    const dateString = `${year}-${month}-${day}`;
+    const calendarId = getCurrentCalendarId();
+    
+    if (calendarId) {
+        window.location.href = `/dashboard/calendar/${calendarId}/day/${dateString}`;
+    } else {
+        console.error('Calendar ID not found');
     }
+}
+
+// Helper function to get current calendar ID
+function getCurrentCalendarId() {
+    const workspace = document.querySelector('.calendar-workspace');
+    return workspace ? workspace.dataset.calendarId : null;
 }
 
 function closeDayModal() {
