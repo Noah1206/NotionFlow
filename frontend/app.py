@@ -618,35 +618,54 @@ def get_calendar_media(calendar_id):
                     media_path = calendar_data['media_file_path']
                     media_filename = calendar_data.get('media_filename', 'Unknown')
                     
-                    # Construct the media URL based on the file path
+                    # Verify file exists before creating media response
+                    file_exists = False
+                    
                     if media_path.startswith('http'):
-                        # It's already a URL
+                        # It's already a URL - assume it exists (external file)
                         media_url = media_path
+                        file_exists = True
                     else:
-                        # It's a local file path - serve it through Flask
-                        # Extract just the filename from the path
+                        # It's a local file path - check if file actually exists
                         import os
-                        filename = os.path.basename(media_path)
-                        media_url = f"/media/calendar/{calendar_id}/{filename}"
+                        possible_paths = [
+                            media_path,  # Original path from database
+                            os.path.join(os.getcwd(), 'uploads', 'media', 'calendar', os.path.basename(media_path)),
+                            os.path.join(os.getcwd(), 'media', 'calendar', os.path.basename(media_path)),
+                        ]
+                        
+                        for path in possible_paths:
+                            if os.path.exists(path):
+                                file_exists = True
+                                filename = os.path.basename(path)
+                                media_url = f"/media/calendar/{calendar_id}/{filename}"
+                                print(f"🎵 API: Found media file at {path}")
+                                break
+                        
+                        if not file_exists:
+                            print(f"🎵 API: Media file not found in any expected location for calendar {calendar_id}")
                     
-                    # Use actual filename without extension for title
-                    if media_filename:
-                        # Remove file extension for cleaner display
-                        import os
-                        title = os.path.splitext(media_filename)[0]
+                    if file_exists:
+                        # Use actual filename without extension for title
+                        if media_filename:
+                            # Remove file extension for cleaner display
+                            import os
+                            title = os.path.splitext(media_filename)[0]
+                        else:
+                            # Fallback: extract from URL
+                            import os
+                            title = os.path.splitext(os.path.basename(media_path))[0] if media_path else 'Unknown Track'
+                        
+                        media_files = [{
+                            'title': title,
+                            'artist': '내 음악',
+                            'src': media_url,
+                            'type': calendar_data.get('media_file_type', 'audio/mpeg')
+                        }]
+                        
+                        print(f"🎵 API: Returning media files: {media_files}")
                     else:
-                        # Fallback: extract from URL
-                        import os
-                        title = os.path.splitext(os.path.basename(media_path))[0] if media_path else 'Unknown Track'
-                    
-                    media_files = [{
-                        'title': title,
-                        'artist': '내 음악',
-                        'src': media_url,
-                        'type': calendar_data.get('media_file_type', 'audio/mpeg')
-                    }]
-                    
-                    print(f"🎵 API: Returning media files: {media_files}")
+                        print(f"🎵 API: Media file path exists in DB but file not found on disk for calendar {calendar_id}")
                 else:
                     print(f"🎵 API: No media file path found for calendar {calendar_id}")
                 

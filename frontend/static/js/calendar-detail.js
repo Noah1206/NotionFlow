@@ -364,11 +364,15 @@ function fetchCalendarMedia(calendarId) {
     fetch(`/api/calendar/${calendarId}/media`)
         .then(response => {
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                console.warn(`Media API returned ${response.status}, hiding media players`);
+                hideMediaPlayers();
+                return null;
             }
             return response.json();
         })
         .then(data => {
+            if (!data) return; // Skip if no data (due to error)
+            
             console.log('Media API response:', data);
             if (data.media_files && data.media_files.length > 0) {
                 // Show media players
@@ -387,7 +391,7 @@ function fetchCalendarMedia(calendarId) {
             }
         })
         .catch(error => {
-            console.error('Error fetching media files:', error);
+            console.warn('Media files not available:', error.message);
             hideMediaPlayers();
         });
 }
