@@ -66,66 +66,227 @@
     <div class="calendar-day-content">
         <!-- Top Summary Section -->
         <div class="top-summary-section">
-            <!-- Quick Notes Widget -->
+            <!-- Quick Notes Widget - Excel Style -->
             <div class="quick-notes-widget excel-widget">
                 <div class="widget-header compact">
                     <div class="widget-icon">📝</div>
                     <h3>Quick Notes</h3>
-                    <button class="save-notes-btn compact" onclick="saveNotes()">저장</button>
+                    <div class="widget-controls">
+                        <button class="control-btn add-note" onclick="addNoteItem()" title="노트 추가">+</button>
+                        <button class="control-btn clear-notes" onclick="clearAllNotes()" title="모두 지우기">✕</button>
+                    </div>
                 </div>
-                <div class="notes-compact-container">
-                    <input type="text" class="notes-title compact" placeholder="오늘의 핵심..." value="🎯 오늘의 핵심 목표">
-                    <textarea class="notes-textarea compact" placeholder="간단한 메모..." rows="3">• Render 배포 환경 최적화 완료
-• 모바일 반응형 테스트 진행
-• 성능 모니터링 대시보드 구축</textarea>
+                <div class="excel-table notes-table">
+                    <div class="table-header">
+                        <div class="header-cell priority-column">우선순위</div>
+                        <div class="header-cell note-column">메모</div>
+                        <div class="header-cell action-column">작업</div>
+                    </div>
+                    <div class="table-body notes-table-body" id="notes-table-body">
+                        <div class="table-row note-row" data-note-id="1">
+                            <div class="cell priority-cell">
+                                <select class="priority-select">
+                                    <option value="high" selected>🔥 높음</option>
+                                    <option value="medium">📋 보통</option>
+                                    <option value="low">📝 낮음</option>
+                                </select>
+                            </div>
+                            <div class="cell note-cell">
+                                <input type="text" class="note-input" value="🎯 Render 배포 환경 최적화 완료" placeholder="새 메모 입력...">
+                            </div>
+                            <div class="cell action-cell">
+                                <button class="action-btn delete-note" onclick="deleteNote(1)" title="삭제">🗑</button>
+                            </div>
+                        </div>
+                        <div class="table-row note-row" data-note-id="2">
+                            <div class="cell priority-cell">
+                                <select class="priority-select">
+                                    <option value="high">🔥 높음</option>
+                                    <option value="medium" selected>📋 보통</option>
+                                    <option value="low">📝 낮음</option>
+                                </select>
+                            </div>
+                            <div class="cell note-cell">
+                                <input type="text" class="note-input" value="📱 모바일 반응형 테스트 진행 중" placeholder="새 메모 입력...">
+                            </div>
+                            <div class="cell action-cell">
+                                <button class="action-btn delete-note" onclick="deleteNote(2)" title="삭제">🗑</button>
+                            </div>
+                        </div>
+                        <div class="table-row note-row" data-note-id="3">
+                            <div class="cell priority-cell">
+                                <select class="priority-select">
+                                    <option value="high">🔥 높음</option>
+                                    <option value="medium">📋 보통</option>
+                                    <option value="low" selected>📝 낮음</option>
+                                </select>
+                            </div>
+                            <div class="cell note-cell">
+                                <input type="text" class="note-input" value="📊 성능 모니터링 대시보드 구축 예정" placeholder="새 메모 입력...">
+                            </div>
+                            <div class="cell action-cell">
+                                <button class="action-btn delete-note" onclick="deleteNote(3)" title="삭제">🗑</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="empty-state notes-empty" id="notes-empty" style="display: none;">
+                        <div class="empty-icon">📝</div>
+                        <div class="empty-message">오늘의 주요 메모를 추가해보세요</div>
+                        <button class="btn-add-first" onclick="addNoteItem()">첫 메모 추가</button>
+                    </div>
                 </div>
             </div>
             
-            <!-- Today's Stats Widget -->
+            <!-- Today's Progress Widget - Excel Style -->
             <div class="today-stats-widget excel-widget">
                 <div class="widget-header compact">
                     <div class="widget-icon">📊</div>
                     <h3>Today's Progress</h3>
+                    <div class="widget-controls">
+                        <button class="control-btn add-progress" onclick="addProgressItem()" title="지표 추가">+</button>
+                        <button class="control-btn refresh-progress" onclick="refreshProgress()" title="새로고침">⟳</button>
+                    </div>
                 </div>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-label">완료된 루틴</div>
-                        <div class="stat-value">8/15</div>
-                        <div class="stat-bar">
-                            <div class="stat-progress" style="width: 53%"></div>
+                <div class="excel-table progress-table">
+                    <div class="table-header">
+                        <div class="header-cell metric-column">지표</div>
+                        <div class="header-cell value-column">진행률</div>
+                        <div class="header-cell action-column">작업</div>
+                    </div>
+                    <div class="table-body progress-table-body" id="progress-table-body">
+                        <div class="table-row progress-row" data-progress-id="1">
+                            <div class="cell metric-cell">
+                                <input type="text" class="metric-input" value="완료된 루틴" placeholder="지표명 입력...">
+                            </div>
+                            <div class="cell value-cell">
+                                <div class="progress-input-group">
+                                    <input type="number" class="progress-current" value="8" min="0" max="99">
+                                    <span class="progress-separator">/</span>
+                                    <input type="number" class="progress-total" value="15" min="1" max="99">
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 53%"></div>
+                                </div>
+                            </div>
+                            <div class="cell action-cell">
+                                <button class="action-btn delete-progress" onclick="deleteProgress(1)" title="삭제">🗑</button>
+                            </div>
+                        </div>
+                        <div class="table-row progress-row" data-progress-id="2">
+                            <div class="cell metric-cell">
+                                <input type="text" class="metric-input" value="완료된 작업" placeholder="지표명 입력...">
+                            </div>
+                            <div class="cell value-cell">
+                                <div class="progress-input-group">
+                                    <input type="number" class="progress-current" value="2" min="0" max="99">
+                                    <span class="progress-separator">/</span>
+                                    <input type="number" class="progress-total" value="10" min="1" max="99">
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 20%"></div>
+                                </div>
+                            </div>
+                            <div class="cell action-cell">
+                                <button class="action-btn delete-progress" onclick="deleteProgress(2)" title="삭제">🗑</button>
+                            </div>
+                        </div>
+                        <div class="table-row progress-row" data-progress-id="3">
+                            <div class="cell metric-cell">
+                                <input type="text" class="metric-input" value="이벤트 참석" placeholder="지표명 입력...">
+                            </div>
+                            <div class="cell value-cell">
+                                <div class="progress-input-group">
+                                    <input type="number" class="progress-current" value="1" min="0" max="99">
+                                    <span class="progress-separator">/</span>
+                                    <input type="number" class="progress-total" value="3" min="1" max="99">
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 33%"></div>
+                                </div>
+                            </div>
+                            <div class="cell action-cell">
+                                <button class="action-btn delete-progress" onclick="deleteProgress(3)" title="삭제">🗑</button>
+                            </div>
                         </div>
                     </div>
-                    <div class="stat-item">
-                        <div class="stat-label">완료된 작업</div>
-                        <div class="stat-value">2/10</div>
-                        <div class="stat-bar">
-                            <div class="stat-progress" style="width: 20%"></div>
-                        </div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-label">이벤트 참석</div>
-                        <div class="stat-value">1/3</div>
-                        <div class="stat-bar">
-                            <div class="stat-progress" style="width: 33%"></div>
-                        </div>
+                    <div class="empty-state progress-empty" id="progress-empty" style="display: none;">
+                        <div class="empty-icon">📊</div>
+                        <div class="empty-message">오늘의 진행률을 추가해보세요</div>
+                        <button class="btn-add-first" onclick="addProgressItem()">첫 지표 추가</button>
                     </div>
                 </div>
             </div>
             
-            <!-- Time Overview Widget -->
+            <!-- Time Overview Widget - Excel Style -->
             <div class="time-overview-widget excel-widget">
                 <div class="widget-header compact">
                     <div class="widget-icon">⏰</div>
                     <h3>Time Overview</h3>
-                </div>
-                <div class="time-summary">
-                    <div class="current-time">
-                        <span class="time-label">현재 시간</span>
-                        <span class="time-display" id="current-time">14:30</span>
+                    <div class="widget-controls">
+                        <button class="control-btn add-time" onclick="addTimeItem()" title="시간 추가">+</button>
+                        <button class="control-btn sync-time" onclick="syncCurrentTime()" title="현재 시간">⟳</button>
                     </div>
-                    <div class="next-event">
-                        <span class="time-label">다음 일정</span>
-                        <span class="event-preview">15:30 - 1:1 코치 세션</span>
+                </div>
+                <div class="excel-table time-table">
+                    <div class="table-header">
+                        <div class="header-cell label-column">구분</div>
+                        <div class="header-cell time-column">시간/내용</div>
+                        <div class="header-cell action-column">작업</div>
+                    </div>
+                    <div class="table-body time-table-body" id="time-table-body">
+                        <div class="table-row time-row current-time-row" data-time-id="1">
+                            <div class="cell label-cell">
+                                <select class="time-type-select">
+                                    <option value="current" selected>⏰ 현재 시간</option>
+                                    <option value="next">📅 다음 일정</option>
+                                    <option value="deadline">⏳ 마감 시간</option>
+                                    <option value="reminder">🔔 알림</option>
+                                </select>
+                            </div>
+                            <div class="cell time-content-cell">
+                                <span class="time-display-live" id="current-time-display">14:30</span>
+                            </div>
+                            <div class="cell action-cell">
+                                <button class="action-btn delete-time" onclick="deleteTime(1)" title="삭제">🗑</button>
+                            </div>
+                        </div>
+                        <div class="table-row time-row" data-time-id="2">
+                            <div class="cell label-cell">
+                                <select class="time-type-select">
+                                    <option value="current">⏰ 현재 시간</option>
+                                    <option value="next" selected>📅 다음 일정</option>
+                                    <option value="deadline">⏳ 마감 시간</option>
+                                    <option value="reminder">🔔 알림</option>
+                                </select>
+                            </div>
+                            <div class="cell time-content-cell">
+                                <input type="text" class="time-content-input" value="15:30 - 1:1 코치 세션" placeholder="시간과 내용 입력...">
+                            </div>
+                            <div class="cell action-cell">
+                                <button class="action-btn delete-time" onclick="deleteTime(2)" title="삭제">🗑</button>
+                            </div>
+                        </div>
+                        <div class="table-row time-row" data-time-id="3">
+                            <div class="cell label-cell">
+                                <select class="time-type-select">
+                                    <option value="current">⏰ 현재 시간</option>
+                                    <option value="next">📅 다음 일정</option>
+                                    <option value="deadline" selected>⏳ 마감 시간</option>
+                                    <option value="reminder">🔔 알림</option>
+                                </select>
+                            </div>
+                            <div class="cell time-content-cell">
+                                <input type="text" class="time-content-input" value="18:00 - 코드 리뷰 완료" placeholder="시간과 내용 입력...">
+                            </div>
+                            <div class="cell action-cell">
+                                <button class="action-btn delete-time" onclick="deleteTime(3)" title="삭제">🗑</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="empty-state time-empty" id="time-empty" style="display: none;">
+                        <div class="empty-icon">⏰</div>
+                        <div class="empty-message">시간 정보를 추가해보세요</div>
+                        <button class="btn-add-first" onclick="addTimeItem()">첫 시간 추가</button>
                     </div>
                 </div>
             </div>
@@ -133,17 +294,16 @@
         
         <!-- Main Content Grid Container -->
         <div class="main-content-grid">
-            <!-- Daily Routine Section -->
+            <!-- Daily Routine Section - Excel Style Enhanced -->
             <div class="daily-routine-section excel-widget">
             <div class="widget-header">
                 <div class="widget-icon">🔄</div>
                 <h3>Daily Routine</h3>
-                <button class="add-btn" onclick="addRoutineItem()" title="루틴 추가">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <line x1="12" y1="5" x2="12" y2="19"/>
-                        <line x1="5" y1="12" x2="19" y2="12"/>
-                    </svg>
-                </button>
+                <div class="widget-controls">
+                    <button class="control-btn add-routine" onclick="addRoutineItem()" title="루틴 추가">+</button>
+                    <button class="control-btn clear-routine" onclick="clearAllRoutines()" title="모두 지우기">✕</button>
+                    <button class="control-btn sort-routine" onclick="sortRoutinesByTime()" title="시간순 정렬">↕</button>
+                </div>
             </div>
             
             <!-- Excel-style grid table -->
@@ -152,158 +312,89 @@
                     <div class="header-cell time-column">시간</div>
                     <div class="header-cell activity-column">활동</div>
                     <div class="header-cell status-column">완료</div>
+                    <div class="header-cell action-column">작업</div>
                 </div>
-                <div class="table-body">
-                    <div class="table-row routine-row" draggable="true">
-                        <div class="cell time-cell">06:00</div>
+                <div class="table-body routine-table-body" id="routine-table-body">
+                    <div class="table-row routine-row" draggable="true" data-routine-id="1">
+                        <div class="cell time-cell">
+                            <input type="time" class="time-input" value="06:00">
+                        </div>
                         <div class="cell activity-cell">
-                            <div class="activity-title">Morning Meditation</div>
-                            <div class="activity-description">10분 명상으로 마음 정리</div>
+                            <input type="text" class="activity-title-input" value="Morning Meditation" placeholder="활동명...">
+                            <input type="text" class="activity-desc-input" value="10분 명상으로 마음 정리" placeholder="상세 설명...">
                         </div>
                         <div class="cell status-cell">
                             <input type="checkbox" class="routine-checkbox">
                         </div>
+                        <div class="cell action-cell">
+                            <button class="action-btn delete-routine" onclick="deleteRoutine(1)" title="삭제">🗑</button>
+                        </div>
                     </div>
-                    <div class="table-row routine-row" draggable="true">
-                        <div class="cell time-cell">06:30</div>
+                    <div class="table-row routine-row" draggable="true" data-routine-id="2">
+                        <div class="cell time-cell">
+                            <input type="time" class="time-input" value="06:30">
+                        </div>
                         <div class="cell activity-cell">
-                            <div class="activity-title">Stretching & Water</div>
-                            <div class="activity-description">전신 스트레칭 + 물 500ml</div>
+                            <input type="text" class="activity-title-input" value="Stretching & Water" placeholder="활동명...">
+                            <input type="text" class="activity-desc-input" value="전신 스트레칭 + 물 500ml" placeholder="상세 설명...">
                         </div>
                         <div class="cell status-cell">
                             <input type="checkbox" class="routine-checkbox">
                         </div>
+                        <div class="cell action-cell">
+                            <button class="action-btn delete-routine" onclick="deleteRoutine(2)" title="삭제">🗑</button>
+                        </div>
                     </div>
-                    <div class="table-row routine-row" draggable="true">
-                        <div class="cell time-cell">07:00</div>
+                    <div class="table-row routine-row" draggable="true" data-routine-id="3">
+                        <div class="cell time-cell">
+                            <input type="time" class="time-input" value="07:00">
+                        </div>
                         <div class="cell activity-cell">
-                            <div class="activity-title">Morning Workout</div>
-                            <div class="activity-description">홈트레이닝 45분 (근력/유산소)</div>
+                            <input type="text" class="activity-title-input" value="Morning Workout" placeholder="활동명...">
+                            <input type="text" class="activity-desc-input" value="홈트레이닝 45분 (근력/유산소)" placeholder="상세 설명...">
                         </div>
                         <div class="cell status-cell">
                             <input type="checkbox" class="routine-checkbox">
                         </div>
+                        <div class="cell action-cell">
+                            <button class="action-btn delete-routine" onclick="deleteRoutine(3)" title="삭제">🗑</button>
+                        </div>
                     </div>
-                    <div class="table-row routine-row" draggable="true">
-                        <div class="cell time-cell">08:00</div>
+                    <div class="table-row routine-row" draggable="true" data-routine-id="4">
+                        <div class="cell time-cell">
+                            <input type="time" class="time-input" value="08:00">
+                        </div>
                         <div class="cell activity-cell">
-                            <div class="activity-title">Healthy Breakfast</div>
-                            <div class="activity-description">단백질 + 탄수화물 균형잡힌 아침식사</div>
+                            <input type="text" class="activity-title-input" value="Healthy Breakfast" placeholder="활동명...">
+                            <input type="text" class="activity-desc-input" value="단백질 + 탄수화물 균형잡힌 아침식사" placeholder="상세 설명...">
                         </div>
                         <div class="cell status-cell">
                             <input type="checkbox" class="routine-checkbox">
                         </div>
+                        <div class="cell action-cell">
+                            <button class="action-btn delete-routine" onclick="deleteRoutine(4)" title="삭제">🗑</button>
+                        </div>
                     </div>
-                    <div class="table-row routine-row" draggable="true">
-                        <div class="cell time-cell">09:00</div>
+                    <div class="table-row routine-row" draggable="true" data-routine-id="5">
+                        <div class="cell time-cell">
+                            <input type="time" class="time-input" value="09:00">
+                        </div>
                         <div class="cell activity-cell">
-                            <div class="activity-title">Deep Work Session #1</div>
-                            <div class="activity-description">가장 중요한 업무 2시간 집중</div>
+                            <input type="text" class="activity-title-input" value="Deep Work Session #1" placeholder="활동명...">
+                            <input type="text" class="activity-desc-input" value="가장 중요한 업무 2시간 집중" placeholder="상세 설명...">
                         </div>
                         <div class="cell status-cell">
                             <input type="checkbox" class="routine-checkbox">
                         </div>
-                    </div>
-                    <div class="table-row routine-row" draggable="true">
-                        <div class="cell time-cell">11:00</div>
-                        <div class="cell activity-cell">
-                            <div class="activity-title">Coffee Break & Review</div>
-                            <div class="activity-description">커피 + 오전 업무 정리</div>
-                        </div>
-                        <div class="cell status-cell">
-                            <input type="checkbox" class="routine-checkbox">
+                        <div class="cell action-cell">
+                            <button class="action-btn delete-routine" onclick="deleteRoutine(5)" title="삭제">🗑</button>
                         </div>
                     </div>
-                    <div class="table-row routine-row" draggable="true">
-                        <div class="cell time-cell">11:30</div>
-                        <div class="cell activity-cell">
-                            <div class="activity-title">Communication Time</div>
-                            <div class="activity-description">이메일/메신저 확인 및 답변</div>
-                        </div>
-                        <div class="cell status-cell">
-                            <input type="checkbox" class="routine-checkbox">
-                        </div>
-                    </div>
-                    <div class="table-row routine-row" draggable="true">
-                        <div class="cell time-cell">12:30</div>
-                        <div class="cell activity-cell">
-                            <div class="activity-title">Mindful Lunch</div>
-                            <div class="activity-description">천천히 음미하며 점심 식사</div>
-                        </div>
-                        <div class="cell status-cell">
-                            <input type="checkbox" class="routine-checkbox">
-                        </div>
-                    </div>
-                    <div class="table-row routine-row" draggable="true">
-                        <div class="cell time-cell">14:00</div>
-                        <div class="cell activity-cell">
-                            <div class="activity-title">Deep Work Session #2</div>
-                            <div class="activity-description">창의적 작업 및 문제 해결</div>
-                        </div>
-                        <div class="cell status-cell">
-                            <input type="checkbox" class="routine-checkbox">
-                        </div>
-                    </div>
-                    <div class="table-row routine-row" draggable="true">
-                        <div class="cell time-cell">16:00</div>
-                        <div class="cell activity-cell">
-                            <div class="activity-title">Learning Time</div>
-                            <div class="activity-description">새로운 스킬/지식 학습 1시간</div>
-                        </div>
-                        <div class="cell status-cell">
-                            <input type="checkbox" class="routine-checkbox">
-                        </div>
-                    </div>
-                    <div class="table-row routine-row" draggable="true">
-                        <div class="cell time-cell">17:30</div>
-                        <div class="cell activity-cell">
-                            <div class="activity-title">Daily Review</div>
-                            <div class="activity-description">오늘 성과 리뷰 + 내일 계획</div>
-                        </div>
-                        <div class="cell status-cell">
-                            <input type="checkbox" class="routine-checkbox">
-                        </div>
-                    </div>
-                    <div class="table-row routine-row" draggable="true">
-                        <div class="cell time-cell">19:00</div>
-                        <div class="cell activity-cell">
-                            <div class="activity-title">Personal Time</div>
-                            <div class="activity-description">취미활동/휴식/가족시간</div>
-                        </div>
-                        <div class="cell status-cell">
-                            <input type="checkbox" class="routine-checkbox">
-                        </div>
-                    </div>
-                    <div class="table-row routine-row" draggable="true">
-                        <div class="cell time-cell">21:00</div>
-                        <div class="cell activity-cell">
-                            <div class="activity-title">Evening Reading</div>
-                            <div class="activity-description">책 읽기 또는 업계 아티클</div>
-                        </div>
-                        <div class="cell status-cell">
-                            <input type="checkbox" class="routine-checkbox">
-                        </div>
-                    </div>
-                    <div class="table-row routine-row" draggable="true">
-                        <div class="cell time-cell">22:00</div>
-                        <div class="cell activity-cell">
-                            <div class="activity-title">Digital Detox</div>
-                            <div class="activity-description">모든 디지털 기기 OFF</div>
-                        </div>
-                        <div class="cell status-cell">
-                            <input type="checkbox" class="routine-checkbox">
-                        </div>
-                    </div>
-                    <div class="table-row routine-row" draggable="true">
-                        <div class="cell time-cell">22:30</div>
-                        <div class="cell activity-cell">
-                            <div class="activity-title">Night Routine</div>
-                            <div class="activity-description">세면 + 내일 옷 준비 + 감사일기</div>
-                        </div>
-                        <div class="cell status-cell">
-                            <input type="checkbox" class="routine-checkbox">
-                        </div>
-                    </div>
+                </div>
+                <div class="empty-state routine-empty" id="routine-empty" style="display: none;">
+                    <div class="empty-icon">🔄</div>
+                    <div class="empty-message">일일 루틴을 추가하여 하루를 체계적으로 관리해보세요</div>
+                    <button class="btn-add-first" onclick="addRoutineItem()">첫 루틴 추가</button>
                 </div>
             </div>
         </div>

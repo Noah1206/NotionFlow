@@ -383,6 +383,53 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
     font-size: 14px;
 }
 
+/* Widget Controls - Excel Style */
+.widget-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.control-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 5px;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.control-btn:hover {
+    background: #e5e7eb;
+    color: #374151;
+    border-color: #d1d5db;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.control-btn.add-note,
+.control-btn.add-progress,
+.control-btn.add-time,
+.control-btn.add-routine {
+    background: #dbeafe;
+    border-color: #3b82f6;
+    color: #1e40af;
+}
+
+.control-btn.clear-notes,
+.control-btn.clear-routine {
+    background: #fee2e2;
+    border-color: #ef4444;
+    color: #dc2626;
+}
+
 /* ============================================================================
    5. EXCEL WIDGET SYSTEM - MAIN CONTENT
    ============================================================================ */
@@ -512,12 +559,275 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
 }
 
 /* ============================================================================
-   6. DAILY ROUTINE TABLE - ENHANCED EXCEL STYLE
+   6. TOP WIDGETS - EXCEL STYLE TABLES
+   ============================================================================ */
+
+/* Quick Notes Table */
+.notes-table .table-header,
+.notes-table .table-row {
+    grid-template-columns: 90px 1fr 60px;
+}
+
+.notes-table .table-body {
+    max-height: 180px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Priority Select */
+.priority-select {
+    width: 100%;
+    padding: 4px 8px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    background: #ffffff;
+    font-size: 11px;
+    font-weight: 500;
+    outline: none;
+    cursor: pointer;
+}
+
+.priority-select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Note Input */
+.note-input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    background: #ffffff;
+    font-size: 12px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.note-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.note-input::placeholder {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+/* Progress Table */
+.progress-table .table-header,
+.progress-table .table-row {
+    grid-template-columns: 80px 1fr 60px;
+}
+
+.progress-table .table-body {
+    max-height: 180px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Metric Input */
+.metric-input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    background: #ffffff;
+    font-size: 12px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.metric-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Progress Input Group */
+.progress-input-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 6px;
+}
+
+.progress-current,
+.progress-total {
+    width: 30px;
+    padding: 3px 6px;
+    border: 1px solid #e5e7eb;
+    border-radius: 3px;
+    background: #ffffff;
+    font-size: 11px;
+    text-align: center;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.progress-current:focus,
+.progress-total:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.progress-separator {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background: #f3f4f6;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+/* Time Table */
+.time-table .table-header,
+.time-table .table-row {
+    grid-template-columns: 80px 1fr 60px;
+}
+
+.time-table .table-body {
+    max-height: 180px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Time Type Select */
+.time-type-select {
+    width: 100%;
+    padding: 4px 6px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    background: #ffffff;
+    font-size: 10px;
+    font-weight: 500;
+    outline: none;
+    cursor: pointer;
+}
+
+.time-type-select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Time Content */
+.time-display-live {
+    font-size: 16px;
+    font-weight: 700;
+    color: #3b82f6;
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+}
+
+.time-content-input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    background: #ffffff;
+    font-size: 11px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.time-content-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Action Buttons */
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    background: transparent;
+    border: 1px solid transparent;
+    color: #9ca3af;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 12px;
+}
+
+.action-btn:hover {
+    background: #fee2e2;
+    border-color: #fecaca;
+    color: #dc2626;
+    transform: scale(1.1);
+}
+
+.action-btn.delete-note,
+.action-btn.delete-progress,
+.action-btn.delete-time,
+.action-btn.delete-routine {
+    color: #ef4444;
+}
+
+/* Empty States */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+    background: #fafbfc;
+    border-top: 1px solid #e5e7eb;
+}
+
+.empty-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+    opacity: 0.6;
+}
+
+.empty-message {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 16px;
+    line-height: 1.5;
+}
+
+.btn-add-first {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: #3b82f6;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-add-first:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================================================
+   7. DAILY ROUTINE TABLE - ENHANCED EXCEL STYLE
    ============================================================================ */
 
 .routine-table .table-header,
 .routine-table .table-row {
-    grid-template-columns: 75px 1fr 50px;
+    grid-template-columns: 75px 1fr 50px 60px;
 }
 
 .routine-table .table-body {
@@ -588,6 +898,63 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
 .activity-description {
     font-size: 12px;
     color: #6b7280;
+}
+
+/* Enhanced Routine Inputs */
+.time-input {
+    width: 100%;
+    padding: 4px 6px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    background: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
+    color: #1e40af;
+    outline: none;
+    text-align: center;
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+    transition: all 0.2s ease;
+}
+
+.time-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    background: #eff6ff;
+}
+
+.activity-title-input,
+.activity-desc-input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    background: #ffffff;
+    outline: none;
+    transition: all 0.2s ease;
+    margin-bottom: 4px;
+}
+
+.activity-title-input {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1f2937;
+}
+
+.activity-desc-input {
+    font-size: 11px;
+    color: #6b7280;
+}
+
+.activity-title-input:focus,
+.activity-desc-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.activity-title-input::placeholder,
+.activity-desc-input::placeholder {
+    color: #9ca3af;
+    font-style: italic;
 }
 
 .status-cell {

@@ -985,3 +985,514 @@ document.addEventListener('keydown', function(e) {
         closeEventModal();
     }
 });
+
+/* ============================================================================
+   NEW CRUD FUNCTIONS FOR ENHANCED EXCEL-STYLE SECTIONS
+   ============================================================================ */
+
+// Global counters for unique IDs
+let noteIdCounter = 4;
+let progressIdCounter = 4;
+let timeIdCounter = 4;
+let routineIdCounter = 6;
+
+// ===== QUICK NOTES SECTION =====
+
+function addNoteItem() {
+    const noteTableBody = document.getElementById('notes-table-body');
+    const notesEmpty = document.getElementById('notes-empty');
+    
+    if (noteTableBody) {
+        // Hide empty state if visible
+        if (notesEmpty) {
+            notesEmpty.style.display = 'none';
+        }
+        
+        const newNoteRow = document.createElement('div');
+        newNoteRow.className = 'table-row note-row';
+        newNoteRow.setAttribute('data-note-id', noteIdCounter);
+        
+        newNoteRow.innerHTML = `
+            <div class="cell priority-cell">
+                <select class="priority-select">
+                    <option value="high">🔥 높음</option>
+                    <option value="medium" selected>📋 보통</option>
+                    <option value="low">📝 낮음</option>
+                </select>
+            </div>
+            <div class="cell note-cell">
+                <input type="text" class="note-input" placeholder="새 메모 입력..." autofocus>
+            </div>
+            <div class="cell action-cell">
+                <button class="action-btn delete-note" onclick="deleteNote(${noteIdCounter})" title="삭제">🗑</button>
+            </div>
+        `;
+        
+        noteTableBody.appendChild(newNoteRow);
+        
+        // Focus on the new input
+        const newInput = newNoteRow.querySelector('.note-input');
+        if (newInput) {
+            newInput.focus();
+        }
+        
+        noteIdCounter++;
+        console.log('✅ New note added');
+    }
+}
+
+function deleteNote(noteId) {
+    const noteRow = document.querySelector(`[data-note-id="${noteId}"]`);
+    const noteTableBody = document.getElementById('notes-table-body');
+    const notesEmpty = document.getElementById('notes-empty');
+    
+    if (noteRow && confirm('이 메모를 삭제하시겠습니까?')) {
+        // Add deletion animation
+        noteRow.style.transform = 'scale(0.9)';
+        noteRow.style.opacity = '0.5';
+        
+        setTimeout(() => {
+            noteRow.remove();
+            
+            // Show empty state if no notes remain
+            const remainingNotes = noteTableBody.querySelectorAll('.note-row');
+            if (remainingNotes.length === 0 && notesEmpty) {
+                notesEmpty.style.display = 'flex';
+            }
+            
+            console.log(`🗑 Note ${noteId} deleted`);
+        }, 200);
+    }
+}
+
+function clearAllNotes() {
+    const noteTableBody = document.getElementById('notes-table-body');
+    const notesEmpty = document.getElementById('notes-empty');
+    
+    if (noteTableBody && confirm('모든 메모를 삭제하시겠습니까?')) {
+        // Add clearing animation
+        const noteRows = noteTableBody.querySelectorAll('.note-row');
+        noteRows.forEach((row, index) => {
+            setTimeout(() => {
+                row.style.transform = 'translateX(-100%)';
+                row.style.opacity = '0';
+            }, index * 50);
+        });
+        
+        setTimeout(() => {
+            noteTableBody.innerHTML = '';
+            if (notesEmpty) {
+                notesEmpty.style.display = 'flex';
+            }
+            console.log('🗑 All notes cleared');
+        }, noteRows.length * 50 + 200);
+    }
+}
+
+// ===== TODAY'S PROGRESS SECTION =====
+
+function addProgressItem() {
+    const progressTableBody = document.getElementById('progress-table-body');
+    const progressEmpty = document.getElementById('progress-empty');
+    
+    if (progressTableBody) {
+        // Hide empty state if visible
+        if (progressEmpty) {
+            progressEmpty.style.display = 'none';
+        }
+        
+        const newProgressRow = document.createElement('div');
+        newProgressRow.className = 'table-row progress-row';
+        newProgressRow.setAttribute('data-progress-id', progressIdCounter);
+        
+        newProgressRow.innerHTML = `
+            <div class="cell metric-cell">
+                <input type="text" class="metric-input" placeholder="지표명 입력..." autofocus>
+            </div>
+            <div class="cell value-cell">
+                <div class="progress-input-group">
+                    <input type="number" class="progress-current" value="0" min="0" max="99">
+                    <span class="progress-separator">/</span>
+                    <input type="number" class="progress-total" value="1" min="1" max="99">
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="cell action-cell">
+                <button class="action-btn delete-progress" onclick="deleteProgress(${progressIdCounter})" title="삭제">🗑</button>
+            </div>
+        `;
+        
+        progressTableBody.appendChild(newProgressRow);
+        
+        // Setup progress calculation for new row
+        setupProgressCalculation(newProgressRow);
+        
+        // Focus on the new input
+        const newInput = newProgressRow.querySelector('.metric-input');
+        if (newInput) {
+            newInput.focus();
+        }
+        
+        progressIdCounter++;
+        console.log('✅ New progress metric added');
+    }
+}
+
+function setupProgressCalculation(progressRow) {
+    const currentInput = progressRow.querySelector('.progress-current');
+    const totalInput = progressRow.querySelector('.progress-total');
+    const progressBar = progressRow.querySelector('.progress-fill');
+    
+    function updateProgress() {
+        const current = parseInt(currentInput.value) || 0;
+        const total = parseInt(totalInput.value) || 1;
+        const percentage = total > 0 ? (current / total * 100) : 0;
+        
+        progressBar.style.width = `${Math.min(100, Math.max(0, percentage))}%`;
+    }
+    
+    currentInput.addEventListener('input', updateProgress);
+    totalInput.addEventListener('input', updateProgress);
+    
+    // Initial calculation
+    updateProgress();
+}
+
+function deleteProgress(progressId) {
+    const progressRow = document.querySelector(`[data-progress-id="${progressId}"]`);
+    const progressTableBody = document.getElementById('progress-table-body');
+    const progressEmpty = document.getElementById('progress-empty');
+    
+    if (progressRow && confirm('이 지표를 삭제하시겠습니까?')) {
+        // Add deletion animation
+        progressRow.style.transform = 'scale(0.9)';
+        progressRow.style.opacity = '0.5';
+        
+        setTimeout(() => {
+            progressRow.remove();
+            
+            // Show empty state if no progress items remain
+            const remainingProgress = progressTableBody.querySelectorAll('.progress-row');
+            if (remainingProgress.length === 0 && progressEmpty) {
+                progressEmpty.style.display = 'flex';
+            }
+            
+            console.log(`🗑 Progress ${progressId} deleted`);
+        }, 200);
+    }
+}
+
+function refreshProgress() {
+    // Recalculate all progress bars
+    const progressRows = document.querySelectorAll('.progress-row');
+    progressRows.forEach(row => {
+        setupProgressCalculation(row);
+        
+        // Add refresh animation
+        const progressBar = row.querySelector('.progress-fill');
+        if (progressBar) {
+            progressBar.style.animation = 'none';
+            progressBar.offsetHeight; // Trigger reflow
+            progressBar.style.animation = 'pulse 0.5s ease-in-out';
+        }
+    });
+    
+    console.log('🔄 Progress refreshed');
+}
+
+// ===== TIME OVERVIEW SECTION =====
+
+function addTimeItem() {
+    const timeTableBody = document.getElementById('time-table-body');
+    const timeEmpty = document.getElementById('time-empty');
+    
+    if (timeTableBody) {
+        // Hide empty state if visible
+        if (timeEmpty) {
+            timeEmpty.style.display = 'none';
+        }
+        
+        const newTimeRow = document.createElement('div');
+        newTimeRow.className = 'table-row time-row';
+        newTimeRow.setAttribute('data-time-id', timeIdCounter);
+        
+        newTimeRow.innerHTML = `
+            <div class="cell label-cell">
+                <select class="time-type-select">
+                    <option value="current">⏰ 현재 시간</option>
+                    <option value="next" selected>📅 다음 일정</option>
+                    <option value="deadline">⏳ 마감 시간</option>
+                    <option value="reminder">🔔 알림</option>
+                </select>
+            </div>
+            <div class="cell time-content-cell">
+                <input type="text" class="time-content-input" placeholder="시간과 내용 입력..." autofocus>
+            </div>
+            <div class="cell action-cell">
+                <button class="action-btn delete-time" onclick="deleteTime(${timeIdCounter})" title="삭제">🗑</button>
+            </div>
+        `;
+        
+        timeTableBody.appendChild(newTimeRow);
+        
+        // Focus on the new input
+        const newInput = newTimeRow.querySelector('.time-content-input');
+        if (newInput) {
+            newInput.focus();
+        }
+        
+        timeIdCounter++;
+        console.log('✅ New time item added');
+    }
+}
+
+function deleteTime(timeId) {
+    const timeRow = document.querySelector(`[data-time-id="${timeId}"]`);
+    const timeTableBody = document.getElementById('time-table-body');
+    const timeEmpty = document.getElementById('time-empty');
+    
+    if (timeRow && confirm('이 시간 정보를 삭제하시겠습니까?')) {
+        // Add deletion animation
+        timeRow.style.transform = 'scale(0.9)';
+        timeRow.style.opacity = '0.5';
+        
+        setTimeout(() => {
+            timeRow.remove();
+            
+            // Show empty state if no time items remain
+            const remainingTimes = timeTableBody.querySelectorAll('.time-row');
+            if (remainingTimes.length === 0 && timeEmpty) {
+                timeEmpty.style.display = 'flex';
+            }
+            
+            console.log(`🗑 Time ${timeId} deleted`);
+        }, 200);
+    }
+}
+
+function syncCurrentTime() {
+    // Update all current time displays
+    const currentTimeDisplays = document.querySelectorAll('.time-display-live');
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const currentTimeString = `${hours}:${minutes}`;
+    
+    currentTimeDisplays.forEach(display => {
+        display.textContent = currentTimeString;
+        
+        // Add sync animation
+        display.style.color = '#10b981';
+        display.style.transform = 'scale(1.1)';
+        
+        setTimeout(() => {
+            display.style.color = '#3b82f6';
+            display.style.transform = 'scale(1)';
+        }, 500);
+    });
+    
+    console.log('🕐 Current time synced');
+}
+
+// ===== DAILY ROUTINE SECTION =====
+
+function deleteRoutine(routineId) {
+    const routineRow = document.querySelector(`[data-routine-id="${routineId}"]`);
+    const routineTableBody = document.getElementById('routine-table-body');
+    const routineEmpty = document.getElementById('routine-empty');
+    
+    if (routineRow && confirm('이 루틴을 삭제하시겠습니까?')) {
+        // Add deletion animation
+        routineRow.style.transform = 'scale(0.9)';
+        routineRow.style.opacity = '0.5';
+        
+        setTimeout(() => {
+            routineRow.remove();
+            
+            // Show empty state if no routine items remain
+            const remainingRoutines = routineTableBody.querySelectorAll('.routine-row');
+            if (remainingRoutines.length === 0 && routineEmpty) {
+                routineEmpty.style.display = 'flex';
+            }
+            
+            // Update progress stats
+            updateProgressStats();
+            
+            console.log(`🗑 Routine ${routineId} deleted`);
+        }, 200);
+    }
+}
+
+function clearAllRoutines() {
+    const routineTableBody = document.getElementById('routine-table-body');
+    const routineEmpty = document.getElementById('routine-empty');
+    
+    if (routineTableBody && confirm('모든 루틴을 삭제하시겠습니까?')) {
+        // Add clearing animation
+        const routineRows = routineTableBody.querySelectorAll('.routine-row');
+        routineRows.forEach((row, index) => {
+            setTimeout(() => {
+                row.style.transform = 'translateX(-100%)';
+                row.style.opacity = '0';
+            }, index * 30);
+        });
+        
+        setTimeout(() => {
+            routineTableBody.innerHTML = '';
+            if (routineEmpty) {
+                routineEmpty.style.display = 'flex';
+            }
+            
+            // Update progress stats
+            updateProgressStats();
+            
+            console.log('🗑 All routines cleared');
+        }, routineRows.length * 30 + 200);
+    }
+}
+
+function sortRoutinesByTime() {
+    const routineTableBody = document.getElementById('routine-table-body');
+    
+    if (routineTableBody) {
+        const routineRows = Array.from(routineTableBody.querySelectorAll('.routine-row'));
+        
+        // Sort by time
+        routineRows.sort((a, b) => {
+            const timeA = a.querySelector('.time-input').value || '00:00';
+            const timeB = b.querySelector('.time-input').value || '00:00';
+            return timeA.localeCompare(timeB);
+        });
+        
+        // Add sorting animation
+        routineRows.forEach((row, index) => {
+            setTimeout(() => {
+                row.style.transform = 'translateY(-5px)';
+                row.style.boxShadow = '0 4px 8px rgba(59, 130, 246, 0.2)';
+                
+                setTimeout(() => {
+                    row.style.transform = 'translateY(0)';
+                    row.style.boxShadow = '';
+                }, 200);
+                
+                routineTableBody.appendChild(row);
+            }, index * 50);
+        });
+        
+        console.log('↕ Routines sorted by time');
+    }
+}
+
+// Enhanced addRoutineItem function to work with new structure
+function addRoutineItem() {
+    const routineTableBody = document.getElementById('routine-table-body');
+    const routineEmpty = document.getElementById('routine-empty');
+    
+    if (routineTableBody) {
+        // Hide empty state if visible
+        if (routineEmpty) {
+            routineEmpty.style.display = 'none';
+        }
+        
+        const newRoutineRow = document.createElement('div');
+        newRoutineRow.className = 'table-row routine-row';
+        newRoutineRow.draggable = true;
+        newRoutineRow.setAttribute('data-routine-id', routineIdCounter);
+        
+        const now = new Date();
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const defaultTime = `${hours}:${minutes}`;
+        
+        newRoutineRow.innerHTML = `
+            <div class="cell time-cell">
+                <input type="time" class="time-input" value="${defaultTime}">
+            </div>
+            <div class="cell activity-cell">
+                <input type="text" class="activity-title-input" placeholder="활동명..." autofocus>
+                <input type="text" class="activity-desc-input" placeholder="상세 설명...">
+            </div>
+            <div class="cell status-cell">
+                <input type="checkbox" class="routine-checkbox">
+            </div>
+            <div class="cell action-cell">
+                <button class="action-btn delete-routine" onclick="deleteRoutine(${routineIdCounter})" title="삭제">🗑</button>
+            </div>
+        `;
+        
+        routineTableBody.appendChild(newRoutineRow);
+        
+        // Setup interactions for new row
+        setupRowDragAndDrop(newRoutineRow, 'routine');
+        
+        // Setup checkbox event listener
+        const checkbox = newRoutineRow.querySelector('.routine-checkbox');
+        checkbox.addEventListener('change', function() {
+            updateProgressStats();
+        });
+        
+        // Focus on the title input
+        const titleInput = newRoutineRow.querySelector('.activity-title-input');
+        if (titleInput) {
+            titleInput.focus();
+        }
+        
+        routineIdCounter++;
+        console.log('✅ New routine added');
+    }
+}
+
+// Initialize existing progress calculation for loaded items
+document.addEventListener('DOMContentLoaded', function() {
+    // Setup progress calculations for existing items
+    document.querySelectorAll('.progress-row').forEach(row => {
+        setupProgressCalculation(row);
+    });
+    
+    // Show empty states if needed
+    checkEmptyStates();
+});
+
+function checkEmptyStates() {
+    // Check notes
+    const notesTableBody = document.getElementById('notes-table-body');
+    const notesEmpty = document.getElementById('notes-empty');
+    if (notesTableBody && notesEmpty) {
+        const noteRows = notesTableBody.querySelectorAll('.note-row');
+        if (noteRows.length === 0) {
+            notesEmpty.style.display = 'flex';
+        }
+    }
+    
+    // Check progress
+    const progressTableBody = document.getElementById('progress-table-body');
+    const progressEmpty = document.getElementById('progress-empty');
+    if (progressTableBody && progressEmpty) {
+        const progressRows = progressTableBody.querySelectorAll('.progress-row');
+        if (progressRows.length === 0) {
+            progressEmpty.style.display = 'flex';
+        }
+    }
+    
+    // Check time
+    const timeTableBody = document.getElementById('time-table-body');
+    const timeEmpty = document.getElementById('time-empty');
+    if (timeTableBody && timeEmpty) {
+        const timeRows = timeTableBody.querySelectorAll('.time-row');
+        if (timeRows.length === 0) {
+            timeEmpty.style.display = 'flex';
+        }
+    }
+    
+    // Check routine
+    const routineTableBody = document.getElementById('routine-table-body');
+    const routineEmpty = document.getElementById('routine-empty');
+    if (routineTableBody && routineEmpty) {
+        const routineRows = routineTableBody.querySelectorAll('.routine-row');
+        if (routineRows.length === 0) {
+            routineEmpty.style.display = 'flex';
+        }
+    }
+}
