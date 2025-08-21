@@ -25,7 +25,103 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Setup event listeners
     setupEventListeners();
+    
+    // Initialize real-time features
+    initializeRealtimeFeatures();
 });
+
+// Initialize real-time features
+function initializeRealtimeFeatures() {
+    // Update current time display
+    updateCurrentTime();
+    setInterval(updateCurrentTime, 60000); // Update every minute
+    
+    // Highlight current time slot in routine
+    highlightCurrentTimeSlot();
+    setInterval(highlightCurrentTimeSlot, 60000); // Update every minute
+    
+    // Update progress stats
+    updateProgressStats();
+}
+
+// Update current time display
+function updateCurrentTime() {
+    const currentTimeElement = document.getElementById('current-time');
+    if (currentTimeElement) {
+        const now = new Date();
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        currentTimeElement.textContent = `${hours}:${minutes}`;
+    }
+}
+
+// Highlight current time slot in routine
+function highlightCurrentTimeSlot() {
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentTimeMinutes = currentHour * 60 + currentMinute;
+    
+    // Remove previous highlights
+    document.querySelectorAll('.routine-row.current-time').forEach(row => {
+        row.classList.remove('current-time');
+    });
+    
+    // Find and highlight current time slot
+    const routineRows = document.querySelectorAll('.routine-row');
+    routineRows.forEach(row => {
+        const timeCell = row.querySelector('.time-cell');
+        if (timeCell) {
+            const timeText = timeCell.textContent.trim();
+            const [hours, minutes] = timeText.split(':').map(Number);
+            const slotTimeMinutes = hours * 60 + minutes;
+            
+            // Highlight if current time is within 30 minutes of this slot
+            if (Math.abs(currentTimeMinutes - slotTimeMinutes) <= 30) {
+                row.classList.add('current-time');
+            }
+        }
+    });
+}
+
+// Update progress stats dynamically
+function updateProgressStats() {
+    // Count completed routines
+    const routineCheckboxes = document.querySelectorAll('.routine-checkbox');
+    const completedRoutines = document.querySelectorAll('.routine-checkbox:checked').length;
+    const totalRoutines = routineCheckboxes.length;
+    
+    // Count completed tasks
+    const taskCheckboxes = document.querySelectorAll('.task-checkbox');
+    const completedTasks = document.querySelectorAll('.task-checkbox:checked').length;
+    const totalTasks = taskCheckboxes.length;
+    
+    // Update stats display
+    const statsGrid = document.querySelector('.stats-grid');
+    if (statsGrid) {
+        // Update routine stats
+        const routineStatValue = statsGrid.querySelector('.stat-item:nth-child(1) .stat-value');
+        const routineStatBar = statsGrid.querySelector('.stat-item:nth-child(1) .stat-progress');
+        if (routineStatValue) {
+            routineStatValue.textContent = `${completedRoutines}/${totalRoutines}`;
+        }
+        if (routineStatBar) {
+            const routinePercent = totalRoutines > 0 ? (completedRoutines / totalRoutines * 100) : 0;
+            routineStatBar.style.width = `${routinePercent}%`;
+        }
+        
+        // Update task stats
+        const taskStatValue = statsGrid.querySelector('.stat-item:nth-child(2) .stat-value');
+        const taskStatBar = statsGrid.querySelector('.stat-item:nth-child(2) .stat-progress');
+        if (taskStatValue) {
+            taskStatValue.textContent = `${completedTasks}/${totalTasks}`;
+        }
+        if (taskStatBar) {
+            const taskPercent = totalTasks > 0 ? (completedTasks / totalTasks * 100) : 0;
+            taskStatBar.style.width = `${taskPercent}%`;
+        }
+    }
+}
 
 // Initialize event modal with selected date
 function initializeEventModal() {
@@ -147,6 +243,7 @@ function initializeExcelInteractions() {
                 }, 200);
                 
                 console.log('✅ Routine completed');
+                updateProgressStats(); // Update stats when checkbox changes
             } else {
                 // Remove completed styling
                 routineRow.classList.remove('completed');

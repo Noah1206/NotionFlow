@@ -64,8 +64,77 @@
 
     <!-- Main Content Area -->
     <div class="calendar-day-content">
-        <!-- Daily Routine Section -->
-        <div class="daily-routine-section excel-widget">
+        <!-- Top Summary Section -->
+        <div class="top-summary-section">
+            <!-- Quick Notes Widget -->
+            <div class="quick-notes-widget excel-widget">
+                <div class="widget-header compact">
+                    <div class="widget-icon">📝</div>
+                    <h3>Quick Notes</h3>
+                    <button class="save-notes-btn compact" onclick="saveNotes()">저장</button>
+                </div>
+                <div class="notes-compact-container">
+                    <input type="text" class="notes-title compact" placeholder="오늘의 핵심..." value="🎯 오늘의 핵심 목표">
+                    <textarea class="notes-textarea compact" placeholder="간단한 메모..." rows="3">• Render 배포 환경 최적화 완료
+• 모바일 반응형 테스트 진행
+• 성능 모니터링 대시보드 구축</textarea>
+                </div>
+            </div>
+            
+            <!-- Today's Stats Widget -->
+            <div class="today-stats-widget excel-widget">
+                <div class="widget-header compact">
+                    <div class="widget-icon">📊</div>
+                    <h3>Today's Progress</h3>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">완료된 루틴</div>
+                        <div class="stat-value">8/15</div>
+                        <div class="stat-bar">
+                            <div class="stat-progress" style="width: 53%"></div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">완료된 작업</div>
+                        <div class="stat-value">2/10</div>
+                        <div class="stat-bar">
+                            <div class="stat-progress" style="width: 20%"></div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">이벤트 참석</div>
+                        <div class="stat-value">1/3</div>
+                        <div class="stat-bar">
+                            <div class="stat-progress" style="width: 33%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Time Overview Widget -->
+            <div class="time-overview-widget excel-widget">
+                <div class="widget-header compact">
+                    <div class="widget-icon">⏰</div>
+                    <h3>Time Overview</h3>
+                </div>
+                <div class="time-summary">
+                    <div class="current-time">
+                        <span class="time-label">현재 시간</span>
+                        <span class="time-display" id="current-time">14:30</span>
+                    </div>
+                    <div class="next-event">
+                        <span class="time-label">다음 일정</span>
+                        <span class="event-preview">15:30 - 1:1 코치 세션</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content Grid Container -->
+        <div class="main-content-grid">
+            <!-- Daily Routine Section -->
+            <div class="daily-routine-section excel-widget">
             <div class="widget-header">
                 <div class="widget-icon">🔄</div>
                 <h3>Daily Routine</h3>
@@ -450,46 +519,7 @@
                 </div>
             </div>
         </div>
-
-        <!-- Notes Section -->
-        <div class="notes-section excel-widget">
-            <div class="widget-header">
-                <div class="widget-icon">📝</div>
-                <h3>Notes</h3>
-                <button class="save-notes-btn" onclick="saveNotes()">저장</button>
-            </div>
-            
-            <div class="notes-container">
-                <div class="notes-header">
-                    <input type="text" class="notes-title" placeholder="메모 제목..." value="📝 오늘의 개발 회고 & 내일 계획">
-                </div>
-                <div class="notes-body">
-                    <textarea class="notes-textarea" placeholder="메모 내용을 작성하세요..." rows="8">✨ 오늘 완성한 것들:
-• Excel 스타일 캘린더 Day 페이지 완성
-• 인라인 텍스트 편집 기능 구현 (더블클릭 → 편집)
-• 드래그 앤 드롭으로 순서 변경 가능
-• 완료 체크박스 시각 효과 개선
-• 15개의 체계적인 Daily Routine 작성
-
-🚀 Render 배포 관련 고려사항:
-• 환경변수 설정 체크 필요
-• 빌드 최적화로 로딩 속도 개선
-• PostgreSQL 연결 안정성 확인
-• HTTPS 리디렉션 설정
-
-💡 내일 우선순위:
-1. 모바일 반응형 최종 점검
-2. 성능 모니터링 도구 연결
-3. 사용자 피드백 수집 시스템
-4. 보안 취약점 점검
-
-🎯 주요 메트릭스:
-• 페이지 로딩 속도: < 2초 목표
-• 모바일 친화성: 95% 이상
-• 접근성 점수: AA 등급 달성</textarea>
-                </div>
-            </div>
-        </div>
+        </div> <!-- main-content-grid 닫기 -->
     </div>
 </div>
 

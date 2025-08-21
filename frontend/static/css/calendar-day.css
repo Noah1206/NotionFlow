@@ -164,53 +164,237 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
 }
 
 /* ============================================================================
-   3. MAIN CONTENT GRID
+   3. MAIN CONTENT GRID - EXCEL DASHBOARD LAYOUT
    ============================================================================ */
 
 .calendar-day-content {
     flex: 1;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto auto auto;
-    gap: 24px;
-    padding: 32px;
-    max-width: 1600px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 24px;
+    max-width: 1800px;
     margin: 0 auto;
     width: 100%;
+    background: #f8f9fa;
 }
 
-/* Grid Layout */
+/* Top Summary Section - Compact Dashboard */
+.top-summary-section {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1.5fr;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+/* Main Content Grid */
+.main-content-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+}
+
 .daily-routine-section {
     grid-column: 1;
-    grid-row: 1 / span 2;
 }
 
 .events-section {
     grid-column: 2;
-    grid-row: 1;
 }
 
 .tasks-section {
-    grid-column: 2;
-    grid-row: 2;
-}
-
-.notes-section {
-    grid-column: 1 / span 2;
-    grid-row: 3;
+    grid-column: 3;
 }
 
 /* ============================================================================
-   4. EXCEL WIDGET SYSTEM
+   4. TOP SUMMARY WIDGETS - COMPACT EXCEL STYLE
+   ============================================================================ */
+
+/* Quick Notes Widget */
+.quick-notes-widget {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.notes-compact-container {
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.notes-title.compact {
+    width: 100%;
+    border: none;
+    background: #f9fafb;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1f2937;
+    padding: 6px 10px;
+    border-radius: 6px;
+    outline: none;
+}
+
+.notes-textarea.compact {
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    font-family: inherit;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #4b5563;
+    resize: none;
+    outline: none;
+    padding: 8px 10px;
+    border-radius: 6px;
+    min-height: 60px;
+}
+
+.save-notes-btn.compact {
+    padding: 4px 12px;
+    background: #10b981;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* Today's Stats Widget */
+.today-stats-widget {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.stats-grid {
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.stat-label {
+    font-size: 11px;
+    color: #6b7280;
+    min-width: 70px;
+}
+
+.stat-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1f2937;
+    min-width: 35px;
+}
+
+.stat-bar {
+    flex: 1;
+    height: 6px;
+    background: #f3f4f6;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.stat-progress {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #2563eb);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+/* Time Overview Widget */
+.time-overview-widget {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.time-summary {
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.current-time, .next-event {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.time-label {
+    font-size: 11px;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.time-display {
+    font-size: 24px;
+    font-weight: 700;
+    color: #3b82f6;
+}
+
+.event-preview {
+    font-size: 12px;
+    font-weight: 500;
+    color: #1f2937;
+    background: #f0f9ff;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+/* Compact Widget Headers */
+.widget-header.compact {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.widget-header.compact h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.widget-header.compact .widget-icon {
+    font-size: 14px;
+}
+
+/* ============================================================================
+   5. EXCEL WIDGET SYSTEM - MAIN CONTENT
    ============================================================================ */
 
 .excel-widget {
     background: #ffffff;
-    border-radius: 32px; /* radius 2xl */
+    border-radius: 16px;
     border: 1px solid #e5e7eb;
     overflow: hidden;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
     transition: all 0.2s ease;
+    height: fit-content;
 }
 
 .excel-widget:hover {
@@ -328,22 +512,65 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
 }
 
 /* ============================================================================
-   6. DAILY ROUTINE TABLE
+   6. DAILY ROUTINE TABLE - ENHANCED EXCEL STYLE
    ============================================================================ */
 
 .routine-table .table-header,
 .routine-table .table-row {
-    grid-template-columns: 80px 1fr 60px;
+    grid-template-columns: 75px 1fr 50px;
 }
 
+.routine-table .table-body {
+    max-height: 600px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Enhanced Time Cell */
 .time-cell {
     justify-content: center;
     font-weight: 700;
-    color: #3b82f6;
-    background: #eff6ff;
-    border-radius: 6px;
-    margin: 4px;
-    font-size: 12px;
+    color: #1e40af;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border-radius: 8px;
+    margin: 2px 4px;
+    font-size: 13px;
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+    letter-spacing: 0.5px;
+    border: 1px solid #bfdbfe;
+    box-shadow: inset 0 1px 2px rgba(59, 130, 246, 0.1);
+}
+
+.time-cell:hover {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    transform: scale(1.02);
+}
+
+/* Alternating Row Colors for Better Readability */
+.routine-table .table-row:nth-child(even) {
+    background: #fafbfc;
+}
+
+.routine-table .table-row:nth-child(odd) {
+    background: #ffffff;
+}
+
+/* Time Indicator for Current Time */
+.routine-table .table-row.current-time {
+    background: linear-gradient(90deg, #fef3c7 0%, #fffbeb 100%);
+    border-left: 3px solid #f59e0b;
+}
+
+.routine-table .table-row.current-time .time-cell {
+    background: #f59e0b;
+    color: #ffffff;
+    font-weight: 800;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
 }
 
 .activity-cell {
@@ -376,12 +603,27 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
 }
 
 /* ============================================================================
-   7. TASKS TABLE
+   7. TASKS TABLE - ENHANCED READABILITY
    ============================================================================ */
 
 .tasks-table .table-header,
 .tasks-table .table-row {
-    grid-template-columns: 60px 1fr 100px;
+    grid-template-columns: 45px 1fr 80px;
+}
+
+.tasks-table .table-body {
+    max-height: 600px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Alternating Row Colors */
+.tasks-table .table-row:nth-child(even) {
+    background: #fafbfc;
+}
+
+.tasks-table .table-row:nth-child(odd) {
+    background: #ffffff;
 }
 
 .task-cell {
@@ -515,7 +757,22 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
 /* Events Table */
 .events-table .table-header,
 .events-table .table-row {
-    grid-template-columns: 80px 1fr 120px;
+    grid-template-columns: 65px 1fr 80px;
+}
+
+.events-table .table-body {
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Alternating Row Colors */
+.events-table .table-row:nth-child(even) {
+    background: #fafbfc;
+}
+
+.events-table .table-row:nth-child(odd) {
+    background: #ffffff;
 }
 
 .event-cell {
@@ -855,32 +1112,28 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
    12. RESPONSIVE DESIGN
    ============================================================================ */
 
-@media (max-width: 1200px) {
-    .calendar-day-content {
+@media (max-width: 1400px) {
+    .main-content-grid {
         grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto auto;
-        gap: 20px;
-        padding: 24px;
+        gap: 16px;
     }
     
-    .daily-routine-section {
-        grid-column: 1;
-        grid-row: 1;
-    }
-    
-    .events-section {
-        grid-column: 1;
-        grid-row: 2;
-    }
-    
+    .daily-routine-section,
+    .events-section,
     .tasks-section {
         grid-column: 1;
-        grid-row: 3;
     }
     
-    .notes-section {
-        grid-column: 1;
-        grid-row: 4;
+    .top-summary-section {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .calendar-day-content {
+        padding: 20px;
+        gap: 16px;
     }
 }
 
