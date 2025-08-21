@@ -278,8 +278,76 @@
             text-align: center;
             background: var(--bg-primary);
             position: relative;
-            overflow: hidden;
+            overflow: visible;
             padding: 8rem 2rem 3rem;
+        }
+        
+        /* Product Screenshot - Linear Style */
+        .product-showcase {
+            margin-top: 4rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .screenshot-container {
+            perspective: 1500px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .product-screenshot {
+            width: 100%;
+            height: auto;
+            border-radius: 16px;
+            box-shadow: 
+                0 50px 100px -20px rgba(50, 50, 93, 0.25),
+                0 30px 60px -30px rgba(0, 0, 0, 0.3),
+                0 -2px 6px 0px rgba(10, 37, 64, 0.35) inset;
+            transform: rotateX(8deg) rotateY(0deg) rotateZ(-1deg) translateZ(0);
+            transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+            will-change: transform;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(255,255,255,0));
+        }
+
+        .product-screenshot:hover {
+            transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) translateZ(20px) scale(1.02);
+        }
+
+        /* Add subtle gradient overlay */
+        .screenshot-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(
+                circle at center,
+                transparent 40%,
+                rgba(102, 126, 234, 0.08) 100%
+            );
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Add reflection effect */
+        .screenshot-container::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: 10%;
+            right: 10%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                rgba(102, 126, 234, 0.1) 0%,
+                transparent 30%
+            );
+            transform: scaleY(-1) translateZ(-100px);
+            opacity: 0.3;
+            filter: blur(20px);
+            pointer-events: none;
         }
 
         .hero::before {
@@ -733,174 +801,170 @@
             margin-top: -4rem;
         }
 
-        /* Live Demo Section */
+        /* Live Demo Section - Linear Style */
         .demo-section {
-            padding: 6rem 2rem;
-            background: var(--bg-secondary);
+            padding: 5rem 2rem;
+            background: var(--bg-primary);
             position: relative;
             overflow: hidden;
         }
 
         .demo-header {
             text-align: center;
-            margin-bottom: 4rem;
+            margin-bottom: 3rem;
         }
 
         .demo-title {
-            font-size: clamp(2.5rem, 5vw, 3.5rem);
-            font-weight: 700;
-            margin-bottom: 1rem;
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
             color: var(--text-primary);
             letter-spacing: -0.02em;
         }
 
         .demo-subtitle {
-            font-size: clamp(1.125rem, 2vw, 1.25rem);
+            font-size: 1rem;
             color: var(--text-secondary);
-            max-width: 700px;
-            margin: 0 auto;
-            line-height: 1.6;
+            font-weight: 400;
         }
 
         .demo-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 3rem;
-            max-width: 1200px;
-            margin: 0 auto 4rem;
+            gap: 2rem;
+            max-width: 900px;
+            margin: 0 auto 3rem;
         }
 
-        .demo-step {
+        .demo-card {
             flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: relative;
+            transition: all 0.2s ease;
         }
 
-        .step-number {
-            width: 40px;
-            height: 40px;
-            background: var(--accent-primary);
-            color: var(--text-inverse);
+        .demo-card:hover {
+            border-color: var(--accent-primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-number {
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            width: 24px;
+            height: 24px;
+            background: var(--text-primary);
+            color: var(--bg-primary);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
         }
 
-        .platform-mockup {
-            background: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            margin-bottom: 1.5rem;
-            min-width: 280px;
-            transition: all 0.3s ease;
+        .card-content h3 {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
         }
 
-        .platform-mockup:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        .mockup-header {
-            background: var(--bg-tertiary);
-            padding: 1rem;
+        .event-preview {
             display: flex;
             align-items: center;
-            gap: 1rem;
-        }
-
-        .mockup-dots {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .mockup-title {
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: var(--text-primary);
-        }
-
-        .mockup-content {
-            padding: 1.5rem;
-        }
-
-        .calendar-event {
+            gap: 0.75rem;
+            padding: 0.75rem;
             background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
+            border: 1px solid var(--border-color);
         }
 
-        .event-time {
-            font-size: 0.9rem;
+        .time-badge {
+            font-size: 0.75rem;
             color: var(--text-secondary);
             font-weight: 500;
         }
 
-        .event-title {
-            font-weight: 600;
+        .event-name {
+            font-size: 0.875rem;
             color: var(--text-primary);
+            font-weight: 500;
+            flex: 1;
         }
 
-        .event-status {
-            font-size: 0.8rem;
+        .status-badge {
+            font-size: 0.75rem;
             font-weight: 500;
             padding: 0.25rem 0.5rem;
-            border-radius: 12px;
-            align-self: flex-start;
+            border-radius: 6px;
         }
 
-        .event-status.adding {
-            background: rgba(255, 193, 7, 0.2);
-            color: #d39e00;
-            animation: pulse 1.5s infinite;
+        .status-badge.adding {
+            background: #fef3c7;
+            color: #92400e;
         }
 
-        .event-status.synced {
-            background: rgba(40, 167, 69, 0.2);
-            color: #28a745;
+        .status-badge.synced {
+            background: #d1fae5;
+            color: #065f46;
         }
 
-        .sync-arrow {
+        .sync-indicator {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 0.5rem;
-            color: var(--accent-primary);
+            color: var(--text-secondary);
         }
 
-        .sync-arrow svg {
-            width: 32px;
-            height: 32px;
+        .sync-indicator svg {
+            width: 24px;
+            height: 24px;
+            opacity: 0.5;
             animation: slideRight 2s ease-in-out infinite;
         }
 
-        .sync-text {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text-secondary);
+        .sync-indicator span {
+            font-size: 0.75rem;
+            font-weight: 500;
+            opacity: 0.7;
         }
 
         @keyframes slideRight {
             0%, 100% { transform: translateX(0); }
-            50% { transform: translateX(10px); }
+            50% { transform: translateX(8px); }
         }
 
-        .demo-stats {
+        .demo-features {
             display: flex;
             justify-content: center;
-            gap: 4rem;
-            flex-wrap: wrap;
+            gap: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .feature {
+            text-align: center;
+        }
+
+        .feature-value {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .feature-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
         }
 
         /* Collaboration Section */
@@ -1318,6 +1382,36 @@
             font-size: 0.95rem;
         }
 
+        /* Responsive adjustments for product screenshot */
+        @media (max-width: 1024px) {
+            .product-showcase {
+                margin-top: 3rem;
+            }
+
+            .product-screenshot {
+                transform: rotateX(5deg) rotateY(0deg) rotateZ(-0.5deg) translateZ(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .product-showcase {
+                margin-top: 2rem;
+            }
+
+            .product-screenshot {
+                transform: rotateX(3deg) rotateY(0deg) rotateZ(0deg) translateZ(0);
+                border-radius: 12px;
+            }
+
+            .screenshot-container {
+                padding: 0 1rem;
+            }
+
+            .screenshot-container::after {
+                display: none;
+            }
+        }
+
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .features-grid {
@@ -1348,11 +1442,19 @@
 
             .demo-container {
                 flex-direction: column;
-                gap: 2rem;
+                gap: 1.5rem;
             }
 
-            .sync-arrow {
+            .demo-card {
+                width: 100%;
+            }
+
+            .sync-indicator {
                 transform: rotate(90deg);
+            }
+
+            .demo-features {
+                gap: 2rem;
             }
 
             .collaboration-feature {
@@ -2484,6 +2586,15 @@
                         14일 무료 체험 시작
                     </a>
                 </div>
+                
+                <!-- Product Screenshot with Linear Style -->
+                <div class="product-showcase">
+                    <div class="screenshot-container">
+                        <img src="https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=1200&h=800&fit=crop" 
+                             alt="NodeFlow Dashboard" 
+                             class="product-screenshot">
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -2635,85 +2746,59 @@
             </div>
         </section>
 
-        <!-- Live Demo Section -->
+        <!-- Live Demo Section - Linear Style -->
         <section class="demo-section" id="demo">
             <div class="container">
                 <div class="demo-header">
-                    <h2 class="demo-title">실시간 동기화를 직접 확인하세요</h2>
-                    <p class="demo-subtitle">Google 캘린더에서 추가한 일정이 Notion과 다른 플랫폼에 즉시 반영되는 과정을 체험해보세요</p>
+                    <h2 class="demo-title">실시간 동기화</h2>
+                    <p class="demo-subtitle">모든 캘린더가 하나로</p>
                 </div>
                 
                 <div class="demo-container">
-                    <div class="demo-step">
-                        <div class="step-number">1</div>
-                        <div class="step-content">
-                            <div class="platform-mockup google-calendar">
-                                <div class="mockup-header">
-                                    <div class="mockup-dots">
-                                        <span class="dot red"></span>
-                                        <span class="dot yellow"></span>
-                                        <span class="dot green"></span>
-                                    </div>
-                                    <span class="mockup-title">Google 캘린더</span>
-                                </div>
-                                <div class="mockup-content">
-                                    <div class="calendar-event new-event">
-                                        <span class="event-time">오후 2:00</span>
-                                        <span class="event-title">팀 미팅</span>
-                                        <span class="event-status adding">추가 중...</span>
-                                    </div>
-                                </div>
+                    <div class="demo-card">
+                        <div class="card-number">1</div>
+                        <div class="card-content">
+                            <h3>Google 캘린더</h3>
+                            <div class="event-preview">
+                                <span class="time-badge">오후 2:00</span>
+                                <span class="event-name">팀 미팅</span>
+                                <span class="status-badge adding">추가 중...</span>
                             </div>
-                            <h3>Google 캘린더에서 일정 추가</h3>
-                            <p>평소처럼 Google 캘린더에 새로운 일정을 생성합니다</p>
                         </div>
                     </div>
 
-                    <div class="sync-arrow">
+                    <div class="sync-indicator">
                         <svg viewBox="0 0 24 24" fill="none">
-                            <path d="M5 12H19M12 5L19 12L12 19" stroke="currentColor" stroke-width="2"/>
+                            <path d="M5 12H19M12 5L19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        <span class="sync-text">즉시 동기화</span>
+                        <span>즉시 동기화</span>
                     </div>
 
-                    <div class="demo-step">
-                        <div class="step-number">2</div>
-                        <div class="step-content">
-                            <div class="platform-mockup notion">
-                                <div class="mockup-header">
-                                    <div class="mockup-dots">
-                                        <span class="dot red"></span>
-                                        <span class="dot yellow"></span>
-                                        <span class="dot green"></span>
-                                    </div>
-                                    <span class="mockup-title">Notion 캘린더</span>
-                                </div>
-                                <div class="mockup-content">
-                                    <div class="calendar-event synced-event">
-                                        <span class="event-time">오후 2:00</span>
-                                        <span class="event-title">팀 미팅</span>
-                                        <span class="event-status synced">동기화 완료</span>
-                                    </div>
-                                </div>
+                    <div class="demo-card">
+                        <div class="card-number">2</div>
+                        <div class="card-content">
+                            <h3>Notion 캘린더</h3>
+                            <div class="event-preview">
+                                <span class="time-badge">오후 2:00</span>
+                                <span class="event-name">팀 미팅</span>
+                                <span class="status-badge synced">동기화 완료</span>
                             </div>
-                            <h3>Notion에 자동 반영</h3>
-                            <p>NodeFlow가 자동으로 모든 플랫폼에 일정을 동기화합니다</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="demo-stats">
-                    <div class="stat-item">
-                        <span class="stat-number">< 3초</span>
-                        <span class="stat-label">동기화 시간</span>
+                <div class="demo-features">
+                    <div class="feature">
+                        <div class="feature-value">< 3초</div>
+                        <div class="feature-label">동기화 시간</div>
                     </div>
-                    <div class="stat-item">
-                        <span class="stat-number">양방향</span>
-                        <span class="stat-label">실시간 동기화</span>
+                    <div class="feature">
+                        <div class="feature-value">양방향</div>
+                        <div class="feature-label">실시간 동기화</div>
                     </div>
-                    <div class="stat-item">
-                        <span class="stat-number">5개+</span>
-                        <span class="stat-label">연결 플랫폼</span>
+                    <div class="feature">
+                        <div class="feature-value">5개+</div>
+                        <div class="feature-label">연결 플랫폼</div>
                     </div>
                 </div>
             </div>
