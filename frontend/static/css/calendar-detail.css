@@ -1,5 +1,26 @@
 /* Calendar Detail Page - Modern Notion Style */
 
+/* Hide main dashboard sidebar on calendar detail page */
+body.calendar-detail-page .sidebar,
+.calendar-detail-page .sidebar {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    z-index: -999 !important;
+    transform: translateX(-100%) !important;
+    pointer-events: none !important;
+}
+
+/* Override any conflicting sidebar styles */
+.calendar-detail-page .sidebar * {
+    display: none !important;
+}
+
+/* Ensure calendar workspace takes full width when main sidebar is hidden */
+.calendar-detail-page .calendar-workspace-content {
+    padding-left: 0 !important;
+}
+
 /* To Do List Widget Enhancements */
 .todo-widget .widget-header {
     display: flex;
@@ -1507,6 +1528,11 @@
     border-radius: 0 6px 6px 0;
 }
 
+/* When sidebar is collapsed, rotate toggle icon */
+.calendar-workspace-content.sidebar-collapsed .sidebar-toggle svg {
+    transform: rotate(180deg);
+}
+
 /* Modified existing layout */
 .calendar-workspace-content {
     display: flex;
@@ -1516,6 +1542,11 @@
     width: 100%;
     position: relative;
     padding-left: 280px; /* Space for sidebar */
+}
+
+/* When calendar sidebar is collapsed */
+.calendar-workspace-content.sidebar-collapsed {
+    padding-left: 0 !important;
 }
 
 .left-sidebar {
@@ -1530,22 +1561,20 @@
     border-right: 1px solid #e1e5e9;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 68px 20px 20px 20px; /* Add top padding for fixed header */
+    padding: 68px 20px 20px 20px;
     transition: transform 0.3s ease;
     z-index: 999;
     display: flex;
     flex-direction: column;
     gap: 12px;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
 }
 
 .left-sidebar.collapsed {
     transform: translateX(-100%);
 }
 
-/* Calendar area adjustment for sidebar */
-.calendar-workspace-content.sidebar-collapsed {
-    padding-left: 24px; /* Space for toggle button only */
-}
+/* Calendar area adjustment for sidebar (deprecated - replaced above) */
 
 .center-calendar-area {
     flex: 1;
