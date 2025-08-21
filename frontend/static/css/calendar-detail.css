@@ -1,6 +1,16 @@
 /* Calendar Detail Page - Modern Notion Style */
 
-/* Hide main dashboard sidebar on calendar detail page */
+/* Standalone calendar detail page - no dashboard sidebars */
+body.calendar-detail-standalone {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #fafafa;
+}
+
+/* Hide all dashboard-related elements on standalone page */
+body.calendar-detail-standalone .sidebar,
+.calendar-detail-standalone .sidebar,
 body.calendar-detail-page .sidebar,
 .calendar-detail-page .sidebar {
     display: none !important;
@@ -659,10 +669,24 @@ body.sidebar-collapsed.calendar-detail-page .sidebar-overlay {
 .calendar-workspace {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 60px);
+    height: 100vh;
     background: #fafafa;
     position: relative;
     overflow: hidden;
+}
+
+/* Standalone page adjustments */
+body.calendar-detail-standalone .calendar-workspace {
+    height: 100vh;
+    width: 100vw;
+}
+
+body.calendar-detail-standalone .calendar-workspace-content {
+    padding-left: 280px; /* Space for calendar sidebar */
+}
+
+body.calendar-detail-standalone .calendar-workspace-content.sidebar-collapsed {
+    padding-left: 0; /* No padding when sidebar collapsed */
 }
 
 /* Top Navigation Bar */
@@ -1578,6 +1602,12 @@ body.sidebar-collapsed.calendar-detail-page .sidebar-overlay {
     width: 100%;
     position: relative;
     padding-left: 280px; /* Space for sidebar */
+}
+
+/* Standalone page workspace content */
+body.calendar-detail-standalone .calendar-workspace-content {
+    height: calc(100vh - 56px);
+    width: 100%;
 }
 
 /* When calendar sidebar is collapsed */

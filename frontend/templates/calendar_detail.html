@@ -1,15 +1,33 @@
-{% extends "base_dashboard.html" %}
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ calendar.name }} - 캘린더 - NotionFlow</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="16x16" href="{{ url_for('static', filename='images/favicon-16x16.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="32x32" href="{{ url_for('static', filename='images/favicon-32x32.svg') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='images/apple-touch-icon.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="192x192" href="{{ url_for('static', filename='images/icon-192x192.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="512x512" href="{{ url_for('static', filename='images/icon-512x512.svg') }}">
+    
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#3B82F6">
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/variables.css') }}?v={{ range(100000, 999999) | random }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-detail.css') }}?v={{ range(100000, 999999) | random }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-detail-new.css') }}?v={{ range(100000, 999999) | random }}">
+    
+    <!-- Core notification system -->
+    <script src="{{ url_for('static', filename='js/notification-utils.js') }}?v={{ range(100000, 999999) | random }}"></script>
+</head>
 
-{% block body_class %}calendar-detail-page{% endblock %}
+<body class="calendar-detail-standalone">
 
-{% block title %}{{ calendar.name }} - 캘린더 - NotionFlow{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-detail.css') }}?v={{ range(100000, 999999) | random }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-detail-new.css') }}?v={{ range(100000, 999999) | random }}">
-{% endblock %}
-
-{% block content %}
 <div class="calendar-workspace" data-calendar-id="{{ calendar.id }}" data-calendar-media="{{ calendar.media_url or '' }}">
     <!-- Collapsible Sidebar Toggle -->
     <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()" title="사이드바 토글">
@@ -492,8 +510,8 @@
     </div>
 </div>
 
-{% endblock %}
-
-{% block extra_js %}
+<!-- JavaScript -->
 <script src="{{ url_for('static', filename='js/calendar-detail.js') }}?v={{ range(100000, 999999) | random }}"></script>
-{% endblock %}
+
+</body>
+</html>
