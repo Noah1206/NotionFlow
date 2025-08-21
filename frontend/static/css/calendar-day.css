@@ -164,7 +164,7 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
 }
 
 /* ============================================================================
-   3. MAIN CONTENT GRID - EXCEL DASHBOARD LAYOUT
+   3. MAIN CONTENT GRID - SIMPLIFIED 2-SECTION LAYOUT
    ============================================================================ */
 
 .calendar-day-content {
@@ -173,25 +173,144 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
     flex-direction: column;
     gap: 20px;
     padding: 24px;
-    max-width: 1800px;
+    max-width: 1400px;
     margin: 0 auto;
     width: 100%;
     background: #f8f9fa;
 }
 
-/* Top Summary Section - Compact Dashboard */
-.top-summary-section {
-    display: grid;
-    grid-template-columns: 2fr 1.5fr 1.5fr;
-    gap: 16px;
-    margin-bottom: 8px;
+/* Daily Commitment Section */
+.daily-commitment-section {
+    margin-bottom: 16px;
 }
 
-/* Main Content Grid */
+.commitment-widget {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+.commitment-widget:hover {
+    box-shadow: 0 4px 8px -1px rgba(0, 0, 0, 0.1);
+}
+
+.commitment-widget .widget-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 32px 20px 32px;
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+    border-bottom: 2px solid #f1f5f9;
+}
+
+.commitment-widget .widget-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+.commitment-widget .widget-icon {
+    font-size: 24px;
+}
+
+.current-time-display {
+    font-size: 18px;
+    font-weight: 700;
+    color: #3b82f6;
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+    background: #eff6ff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid #bfdbfe;
+}
+
+.commitment-content {
+    padding: 24px 32px;
+}
+
+.commitment-textarea {
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fafbfc;
+    font-family: inherit;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #374151;
+    resize: vertical;
+    outline: none;
+    padding: 16px 20px;
+    min-height: 100px;
+    transition: all 0.2s ease;
+}
+
+.commitment-textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    background: #ffffff;
+}
+
+.commitment-textarea::placeholder {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+.commitment-actions {
+    margin-top: 16px;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.btn-save-commitment,
+.btn-clear-commitment {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.btn-save-commitment {
+    background: #10b981;
+    color: #ffffff;
+}
+
+.btn-save-commitment:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.btn-clear-commitment {
+    background: #ffffff;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+}
+
+.btn-clear-commitment:hover {
+    background: #fee2e2;
+    color: #dc2626;
+    border-color: #fecaca;
+}
+
+/* Main Content Grid - 2 Columns */
 .main-content-grid {
     display: grid;
-    grid-template-columns: 1.3fr 1fr 1fr;
-    gap: 16px;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
     align-items: start;
 }
 
@@ -199,12 +318,8 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
     grid-column: 1;
 }
 
-.events-section {
-    grid-column: 2;
-}
-
 .tasks-section {
-    grid-column: 3;
+    grid-column: 2;
 }
 
 /* ============================================================================
@@ -975,7 +1090,7 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
 
 .tasks-table .table-header,
 .tasks-table .table-row {
-    grid-template-columns: 45px 1fr 80px;
+    grid-template-columns: 45px 1fr 80px 60px;
 }
 
 .tasks-table .table-body {
@@ -1066,6 +1181,42 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
 
 .task-row.completed .priority-chip {
     opacity: 0.5;
+}
+
+/* Task Input Fields */
+.task-title-input,
+.task-desc-input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    background: #ffffff;
+    outline: none;
+    transition: all 0.2s ease;
+    margin-bottom: 4px;
+}
+
+.task-title-input {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1f2937;
+}
+
+.task-desc-input {
+    font-size: 11px;
+    color: #6b7280;
+}
+
+.task-title-input:focus,
+.task-desc-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.task-title-input::placeholder,
+.task-desc-input::placeholder {
+    color: #9ca3af;
+    font-style: italic;
 }
 
 /* ============================================================================
@@ -1479,21 +1630,28 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
    12. RESPONSIVE DESIGN
    ============================================================================ */
 
-@media (max-width: 1400px) {
+@media (max-width: 1200px) {
     .main-content-grid {
         grid-template-columns: 1fr;
         gap: 16px;
     }
     
     .daily-routine-section,
-    .events-section,
     .tasks-section {
         grid-column: 1;
     }
     
-    .top-summary-section {
-        grid-template-columns: 1fr;
-        gap: 12px;
+    .calendar-day-content {
+        max-width: 100%;
+        padding: 20px;
+    }
+    
+    .commitment-widget .widget-header {
+        padding: 20px 24px 16px 24px;
+    }
+    
+    .commitment-content {
+        padding: 20px 24px;
     }
 }
 

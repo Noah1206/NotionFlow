@@ -1456,36 +1456,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function checkEmptyStates() {
-    // Check notes
-    const notesTableBody = document.getElementById('notes-table-body');
-    const notesEmpty = document.getElementById('notes-empty');
-    if (notesTableBody && notesEmpty) {
-        const noteRows = notesTableBody.querySelectorAll('.note-row');
-        if (noteRows.length === 0) {
-            notesEmpty.style.display = 'flex';
-        }
-    }
-    
-    // Check progress
-    const progressTableBody = document.getElementById('progress-table-body');
-    const progressEmpty = document.getElementById('progress-empty');
-    if (progressTableBody && progressEmpty) {
-        const progressRows = progressTableBody.querySelectorAll('.progress-row');
-        if (progressRows.length === 0) {
-            progressEmpty.style.display = 'flex';
-        }
-    }
-    
-    // Check time
-    const timeTableBody = document.getElementById('time-table-body');
-    const timeEmpty = document.getElementById('time-empty');
-    if (timeTableBody && timeEmpty) {
-        const timeRows = timeTableBody.querySelectorAll('.time-row');
-        if (timeRows.length === 0) {
-            timeEmpty.style.display = 'flex';
-        }
-    }
-    
     // Check routine
     const routineTableBody = document.getElementById('routine-table-body');
     const routineEmpty = document.getElementById('routine-empty');
@@ -1495,4 +1465,186 @@ function checkEmptyStates() {
             routineEmpty.style.display = 'flex';
         }
     }
+    
+    // Check tasks
+    const tasksTableBody = document.getElementById('tasks-table-body');
+    const tasksEmpty = document.getElementById('tasks-empty');
+    if (tasksTableBody && tasksEmpty) {
+        const taskRows = tasksTableBody.querySelectorAll('.task-row');
+        if (taskRows.length === 0) {
+            tasksEmpty.style.display = 'flex';
+        }
+    }
 }
+
+// ===== NEW FUNCTIONS FOR SIMPLIFIED LAYOUT =====
+
+// Global counter for tasks
+let taskIdCounter = 5;
+
+// Daily Commitment functions
+function saveCommitment() {
+    const textarea = document.querySelector('.commitment-textarea');
+    const saveBtn = document.querySelector('.btn-save-commitment');
+    
+    if (textarea && saveBtn) {
+        // Here you would save to API
+        console.log('💾 Saving commitment:', textarea.value);
+        
+        // Visual feedback
+        const originalText = saveBtn.textContent;
+        saveBtn.textContent = '✅ 저장 완료!';
+        saveBtn.style.background = '#059669';
+        
+        setTimeout(() => {
+            saveBtn.textContent = originalText;
+            saveBtn.style.background = '';
+        }, 2000);
+    }
+}
+
+function clearCommitment() {
+    const textarea = document.querySelector('.commitment-textarea');
+    
+    if (textarea && confirm('오늘의 다짐을 지우시겠습니까?')) {
+        textarea.value = '';
+        textarea.focus();
+        console.log('🗑 Commitment cleared');
+    }
+}
+
+// Enhanced addTaskItem function for new structure
+function addTaskItem() {
+    const tasksTableBody = document.getElementById('tasks-table-body');
+    const tasksEmpty = document.getElementById('tasks-empty');
+    
+    if (tasksTableBody) {
+        // Hide empty state if visible
+        if (tasksEmpty) {
+            tasksEmpty.style.display = 'none';
+        }
+        
+        const newTaskRow = document.createElement('div');
+        newTaskRow.className = 'table-row task-row';
+        newTaskRow.draggable = true;
+        newTaskRow.setAttribute('data-task-id', taskIdCounter);
+        
+        newTaskRow.innerHTML = `
+            <div class="cell status-cell">
+                <input type="checkbox" class="task-checkbox">
+            </div>
+            <div class="cell task-cell">
+                <input type="text" class="task-title-input" placeholder="작업명..." autofocus>
+                <input type="text" class="task-desc-input" placeholder="상세 설명...">
+            </div>
+            <div class="cell priority-cell">
+                <select class="priority-select">
+                    <option value="high">🔥 중요</option>
+                    <option value="medium" selected>📋 보통</option>
+                    <option value="low">📝 낮음</option>
+                </select>
+            </div>
+            <div class="cell action-cell">
+                <button class="action-btn delete-task" onclick="deleteTask(${taskIdCounter})" title="삭제">🗑</button>
+            </div>
+        `;
+        
+        tasksTableBody.appendChild(newTaskRow);
+        
+        // Setup interactions for new row
+        setupRowDragAndDrop(newTaskRow, 'task');
+        
+        // Setup checkbox event listener
+        const checkbox = newTaskRow.querySelector('.task-checkbox');
+        checkbox.addEventListener('change', function() {
+            const taskRow = this.closest('.table-row');
+            
+            if (this.checked) {
+                taskRow.classList.add('completed');
+                
+                // Animate checkbox
+                this.style.transform = 'scale(1.1)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 200);
+            } else {
+                taskRow.classList.remove('completed');
+            }
+        });
+        
+        // Focus on the title input
+        const titleInput = newTaskRow.querySelector('.task-title-input');
+        if (titleInput) {
+            titleInput.focus();
+        }
+        
+        taskIdCounter++;
+        console.log('✅ New task added');
+    }
+}
+
+function deleteTask(taskId) {
+    const taskRow = document.querySelector(`[data-task-id="${taskId}"]`);
+    const tasksTableBody = document.getElementById('tasks-table-body');
+    const tasksEmpty = document.getElementById('tasks-empty');
+    
+    if (taskRow && confirm('이 작업을 삭제하시겠습니까?')) {
+        // Add deletion animation
+        taskRow.style.transform = 'scale(0.9)';
+        taskRow.style.opacity = '0.5';
+        
+        setTimeout(() => {
+            taskRow.remove();
+            
+            // Show empty state if no task items remain
+            const remainingTasks = tasksTableBody.querySelectorAll('.task-row');
+            if (remainingTasks.length === 0 && tasksEmpty) {
+                tasksEmpty.style.display = 'flex';
+            }
+            
+            console.log(`🗑 Task ${taskId} deleted`);
+        }, 200);
+    }
+}
+
+function clearAllTasks() {
+    const tasksTableBody = document.getElementById('tasks-table-body');
+    const tasksEmpty = document.getElementById('tasks-empty');
+    
+    if (tasksTableBody && confirm('모든 작업을 삭제하시겠습니까?')) {
+        // Add clearing animation
+        const taskRows = tasksTableBody.querySelectorAll('.task-row');
+        taskRows.forEach((row, index) => {
+            setTimeout(() => {
+                row.style.transform = 'translateX(-100%)';
+                row.style.opacity = '0';
+            }, index * 30);
+        });
+        
+        setTimeout(() => {
+            tasksTableBody.innerHTML = '';
+            if (tasksEmpty) {
+                tasksEmpty.style.display = 'flex';
+            }
+            
+            console.log('🗑 All tasks cleared');
+        }, taskRows.length * 30 + 200);
+    }
+}
+
+// Update header current time
+function updateHeaderCurrentTime() {
+    const headerTimeDisplay = document.getElementById('header-current-time');
+    if (headerTimeDisplay) {
+        const now = new Date();
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        headerTimeDisplay.textContent = `${hours}:${minutes}`;
+    }
+}
+
+// Initialize header time updates
+document.addEventListener('DOMContentLoaded', function() {
+    updateHeaderCurrentTime();
+    setInterval(updateHeaderCurrentTime, 60000); // Update every minute
+});
