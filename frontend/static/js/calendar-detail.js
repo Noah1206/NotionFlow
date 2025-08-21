@@ -5,6 +5,7 @@ let selectedDate = null;
 let calendarEvents = [];
 let todoList = [];
 let habitList = [];
+let miniCalendarDate = new Date();
 
 // Hobby categories and options
 const hobbyCategories = {
@@ -126,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeCalendar();
     loadEvents();
     setupEventListeners();
-    initializeMiniCalendar();
+    initMiniCalendar();
     initializeMediaPlayer();
     initializeMediaPlayerFromWorkspace(); // Initialize media player from workspace data
     initializeTodoList();
@@ -941,59 +942,8 @@ function renderAgendaView() {
     console.log('Agenda view rendered');
 }
 
-// Mini Calendar
-function initializeMiniCalendar() {
-    renderMiniCalendar();
-}
+// Mini Calendar functionality is handled by initMiniCalendar() function
 
-function renderMiniCalendar() {
-    const miniDays = document.getElementById('mini-days');
-    if (!miniDays) return;
-    
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    
-    // Update mini calendar title
-    const title = document.querySelector('.mini-month-title');
-    if (title) {
-        title.textContent = `${month + 1}월 ${year}`;
-    }
-    
-    // Clear previous content
-    miniDays.innerHTML = '';
-    
-    // Get first day of month
-    const firstDay = new Date(year, month, 1);
-    const startDate = new Date(firstDay);
-    startDate.setDate(startDate.getDate() - firstDay.getDay());
-    
-    // Generate mini calendar days
-    for (let i = 0; i < 42; i++) {
-        const cellDate = new Date(startDate);
-        cellDate.setDate(startDate.getDate() + i);
-        
-        const dayElement = document.createElement('div');
-        dayElement.className = 'mini-day';
-        dayElement.textContent = cellDate.getDate();
-        
-        if (cellDate.getMonth() !== month) {
-            dayElement.style.color = '#cbd5e1';
-        }
-        
-        if (isDateToday(cellDate)) {
-            dayElement.classList.add('today');
-        }
-        
-        dayElement.addEventListener('click', () => {
-            currentDate = new Date(cellDate);
-            updateDateDisplay();
-            renderMonthView();
-            renderMiniCalendar();
-        });
-        
-        miniDays.appendChild(dayElement);
-    }
-}
 
 // Navigation functions
 function changeMonth(direction) {
@@ -2500,4 +2450,94 @@ function toggleSidebar() {
                 <path d="M15 18l-6-6 6-6"/>
             </svg>`;
     }
+}
+
+// ============ MINI CALENDAR FUNCTIONALITY ============
+function initMiniCalendar() {
+    const prevBtn = document.getElementById('mini-prev-month');
+    const nextBtn = document.getElementById('mini-next-month');
+    
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            miniCalendarDate.setMonth(miniCalendarDate.getMonth() - 1);
+            renderMiniCalendar();
+        });
+    }
+    
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            miniCalendarDate.setMonth(miniCalendarDate.getMonth() + 1);
+            renderMiniCalendar();
+        });
+    }
+    
+    renderMiniCalendar();
+}
+
+function renderMiniCalendar() {
+    const titleElement = document.getElementById('mini-month-title');
+    const daysContainer = document.getElementById('mini-calendar-days');
+    
+    if (!titleElement || !daysContainer) return;
+    
+    // Update title
+    const year = miniCalendarDate.getFullYear();
+    const month = miniCalendarDate.getMonth();
+    titleElement.textContent = `${year}년 ${month + 1}월`;
+    
+    // Clear previous days
+    daysContainer.innerHTML = '';
+    
+    // Get first day of month and number of days
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+    
+    // Get today's date for highlighting
+    const today = new Date();
+    const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+    const todayDate = today.getDate();
+    
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+        const emptyDay = document.createElement('div');
+        emptyDay.className = 'mini-day other-month';
+        daysContainer.appendChild(emptyDay);
+    }
+    
+    // Add days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dayElement = document.createElement('div');
+        dayElement.className = 'mini-day';
+        dayElement.textContent = day;
+        
+        // Highlight today
+        if (isCurrentMonth && day === todayDate) {
+            dayElement.classList.add('today');
+        }
+        
+        // Add click handler to navigate to that date
+        dayElement.addEventListener('click', () => {
+            const clickedDate = new Date(year, month, day);
+            navigateToDate(clickedDate);
+        });
+        
+        daysContainer.appendChild(dayElement);
+    }
+}
+
+function navigateToDate(date) {
+    // Update main calendar to show the selected date
+    currentDate = new Date(date);
+    
+    // Update main calendar display
+    updateCalendarHeader();
+    if (typeof generateCalendar === 'function') {
+        generateCalendar();
+    }
+    
+    // Show notification
+    const formattedDate = `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
+    showNotification(`${formattedDate}로 이동했습니다.`);
 }

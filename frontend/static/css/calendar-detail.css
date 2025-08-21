@@ -1137,6 +1137,119 @@ body.calendar-detail-standalone .calendar-workspace-content.sidebar-collapsed {
     font-weight: 600;
 }
 
+/* Mini Calendar Widget */
+.mini-calendar-widget {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid #e1e5e9;
+}
+
+.mini-calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.mini-nav-btn {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mini-nav-btn:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+.mini-month-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.mini-calendar-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mini-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.mini-weekdays span {
+    text-align: center;
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 500;
+    padding: 4px 0;
+}
+
+.mini-calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+
+.mini-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: #1e293b;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+    min-height: 32px;
+}
+
+.mini-day:hover {
+    background: #e2e8f0;
+}
+
+.mini-day.today {
+    background: #3b82f6;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.mini-day.other-month {
+    color: #cbd5e1;
+}
+
+.mini-day.has-events {
+    position: relative;
+}
+
+.mini-day.has-events::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    background: #3b82f6;
+    border-radius: 50%;
+}
+
+.mini-day.today.has-events::after {
+    background: #ffffff;
+}
+
 /* Mini Calendar */
 .mini-calendar {
     background: #f8fafc;
