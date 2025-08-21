@@ -40,6 +40,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Setup auto-save on input changes
     setupAutoSave();
+    
+    // Setup time click handlers for highlighting
+    setupTimeClickHandlers();
 });
 
 // Initialize real-time features
@@ -2240,4 +2243,103 @@ function displayFallbackWeather() {
 // 날씨 데이터 새로고침
 function refreshWeatherData() {
     loadWeatherData();
+}
+
+// ==================== 시간 하이라이트 시스템 ====================
+
+// 시간 하이라이트 전역 변수
+let currentHighlightedTime = null;
+
+// 시간 클릭 이벤트 설정
+function setupTimeClickHandlers() {
+    // 모든 루틴 행에 시간 클릭 이벤트 추가
+    const routineTableBody = document.getElementById('routine-table-body');
+    if (routineTableBody) {
+        routineTableBody.addEventListener('click', function(e) {
+            const timeElement = e.target.closest('.routine-time');
+            if (timeElement) {
+                const routineRow = timeElement.closest('.routine-row');
+                if (routineRow) {
+                    const timeText = timeElement.textContent.trim();
+                    highlightTimeSlot(timeText, routineRow);
+                }
+            }
+        });
+    }
+}
+
+// 시간대 하이라이트 함수
+function highlightTimeSlot(timeText, routineRow) {
+    console.log(`🕐 시간 선택: ${timeText}`);
+    
+    // 이전 하이라이트 제거
+    clearTimeHighlight();
+    
+    // 새로운 하이라이트 적용
+    routineRow.classList.add('time-highlighted');
+    currentHighlightedTime = {
+        time: timeText,
+        element: routineRow
+    };
+    
+    // 5초 후 자동으로 하이라이트 제거
+    setTimeout(() => {
+        if (currentHighlightedTime && currentHighlightedTime.element === routineRow) {
+            clearTimeHighlight();
+        }
+    }, 5000);
+    
+    // 시간 선택 피드백 표시
+    showTimeSelectedFeedback(timeText);
+}
+
+// 시간 하이라이트 제거
+function clearTimeHighlight() {
+    if (currentHighlightedTime) {
+        currentHighlightedTime.element.classList.remove('time-highlighted');
+        currentHighlightedTime = null;
+    }
+    
+    // 모든 하이라이트 제거 (안전장치)
+    document.querySelectorAll('.routine-row.time-highlighted').forEach(row => {
+        row.classList.remove('time-highlighted');
+    });
+}
+
+// 시간 선택 피드백 표시
+function showTimeSelectedFeedback(timeText) {
+    // 기존 피드백 제거
+    const existingFeedback = document.querySelector('.time-feedback');
+    if (existingFeedback) {
+        existingFeedback.remove();
+    }
+    
+    // 새 피드백 생성
+    const feedback = document.createElement('div');
+    feedback.className = 'time-feedback';
+    feedback.innerHTML = `
+        <div class="feedback-content">
+            <div class="feedback-icon">🕐</div>
+            <div class="feedback-text">${timeText} 선택됨</div>
+        </div>
+    `;
+    
+    // 페이지에 추가
+    document.body.appendChild(feedback);
+    
+    // 애니메이션 후 제거
+    setTimeout(() => {
+        feedback.style.opacity = '0';
+        feedback.style.transform = 'translateY(-20px)';
+        setTimeout(() => {
+            if (feedback.parentNode) {
+                feedback.parentNode.removeChild(feedback);
+            }
+        }, 300);
+    }, 2000);
+}
+
+// 동적으로 추가된 루틴에도 시간 클릭 핸들러 적용
+function refreshTimeClickHandlers() {
+    setupTimeClickHandlers();
 }
