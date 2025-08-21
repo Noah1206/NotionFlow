@@ -193,7 +193,7 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
     gap: 12px;
     padding: 20px;
     background: #ffffff;
-    border-radius: 16px;
+    border-radius: 8px;
     border: 1px solid #e5e7eb;
     box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.05);
 }
@@ -204,12 +204,13 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
     align-items: center;
     padding: 16px 12px;
     background: #f8fafc;
-    border-radius: 12px;
+    border-radius: 6px;
     border: 1px solid #e2e8f0;
-    min-height: 120px;
+    min-height: 150px;
     position: relative;
     transition: all 0.2s ease;
     cursor: pointer;
+    aspect-ratio: 3/4;
 }
 
 .day-cell:hover {
@@ -1824,7 +1825,8 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
     
     .day-cell {
         padding: 12px 8px;
-        min-height: 100px;
+        min-height: 120px;
+        aspect-ratio: 3/4;
     }
     
     .day-date {
@@ -1850,7 +1852,8 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
     
     .day-cell {
         padding: 10px 6px;
-        min-height: 80px;
+        min-height: 100px;
+        aspect-ratio: 3/4;
     }
     
     .day-name {
