@@ -64,108 +64,111 @@
 
     <!-- Main Content Area -->
     <div class="calendar-day-content">
-        <!-- Left Content: Daily Routine -->
-        <div class="daily-routine-section">
-            <div class="section-header">
-                <div class="section-icon">🔄</div>
+        <!-- Daily Routine Section -->
+        <div class="daily-routine-section excel-widget">
+            <div class="widget-header">
+                <div class="widget-icon">🔄</div>
                 <h3>Daily Routine</h3>
-                <button class="add-routine-btn" onclick="addRoutineItem()" title="루틴 추가">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <button class="add-btn" onclick="addRoutineItem()" title="루틴 추가">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <line x1="12" y1="5" x2="12" y2="19"/>
                         <line x1="5" y1="12" x2="19" y2="12"/>
                     </svg>
                 </button>
             </div>
             
-            <div class="routine-timeline">
-                <div class="routine-item">
-                    <div class="routine-time">06:00</div>
-                    <div class="routine-content">
-                        <div class="routine-task">Wake up</div>
-                        <div class="routine-description">새로운 하루 시작</div>
-                    </div>
-                    <div class="routine-status">
-                        <input type="checkbox" class="routine-checkbox">
-                    </div>
+            <!-- Excel-style grid table -->
+            <div class="excel-table routine-table">
+                <div class="table-header">
+                    <div class="header-cell time-column">시간</div>
+                    <div class="header-cell activity-column">활동</div>
+                    <div class="header-cell status-column">완료</div>
                 </div>
-                
-                <div class="routine-item">
-                    <div class="routine-time">07:30</div>
-                    <div class="routine-content">
-                        <div class="routine-task">Running</div>
-                        <div class="routine-description">30분 조깅</div>
+                <div class="table-body">
+                    <div class="table-row routine-row" draggable="true">
+                        <div class="cell time-cell">06:00</div>
+                        <div class="cell activity-cell">
+                            <div class="activity-title">Wake up</div>
+                            <div class="activity-description">새로운 하루 시작</div>
+                        </div>
+                        <div class="cell status-cell">
+                            <input type="checkbox" class="routine-checkbox">
+                        </div>
                     </div>
-                    <div class="routine-status">
-                        <input type="checkbox" class="routine-checkbox">
+                    <div class="table-row routine-row" draggable="true">
+                        <div class="cell time-cell">07:30</div>
+                        <div class="cell activity-cell">
+                            <div class="activity-title">Running</div>
+                            <div class="activity-description">30분 조깅</div>
+                        </div>
+                        <div class="cell status-cell">
+                            <input type="checkbox" class="routine-checkbox">
+                        </div>
                     </div>
-                </div>
-                
-                <div class="routine-item">
-                    <div class="routine-time">09:00</div>
-                    <div class="routine-content">
-                        <div class="routine-task">Work</div>
-                        <div class="routine-description">업무 시작</div>
+                    <div class="table-row routine-row" draggable="true">
+                        <div class="cell time-cell">09:00</div>
+                        <div class="cell activity-cell">
+                            <div class="activity-title">Work</div>
+                            <div class="activity-description">업무 시작</div>
+                        </div>
+                        <div class="cell status-cell">
+                            <input type="checkbox" class="routine-checkbox">
+                        </div>
                     </div>
-                    <div class="routine-status">
-                        <input type="checkbox" class="routine-checkbox">
+                    <div class="table-row routine-row" draggable="true">
+                        <div class="cell time-cell">12:00</div>
+                        <div class="cell activity-cell">
+                            <div class="activity-title">Lunch</div>
+                            <div class="activity-description">점심 식사</div>
+                        </div>
+                        <div class="cell status-cell">
+                            <input type="checkbox" class="routine-checkbox">
+                        </div>
                     </div>
-                </div>
-                
-                <div class="routine-item">
-                    <div class="routine-time">12:00</div>
-                    <div class="routine-content">
-                        <div class="routine-task">Lunch</div>
-                        <div class="routine-description">점심 식사</div>
+                    <div class="table-row routine-row" draggable="true">
+                        <div class="cell time-cell">18:00</div>
+                        <div class="cell activity-cell">
+                            <div class="activity-title">Exercise</div>
+                            <div class="activity-description">운동</div>
+                        </div>
+                        <div class="cell status-cell">
+                            <input type="checkbox" class="routine-checkbox">
+                        </div>
                     </div>
-                    <div class="routine-status">
-                        <input type="checkbox" class="routine-checkbox">
-                    </div>
-                </div>
-                
-                <div class="routine-item">
-                    <div class="routine-time">18:00</div>
-                    <div class="routine-content">
-                        <div class="routine-task">Exercise</div>
-                        <div class="routine-description">운동</div>
-                    </div>
-                    <div class="routine-status">
-                        <input type="checkbox" class="routine-checkbox">
-                    </div>
-                </div>
-                
-                <div class="routine-item">
-                    <div class="routine-time">22:00</div>
-                    <div class="routine-content">
-                        <div class="routine-task">Reading</div>
-                        <div class="routine-description">독서 시간</div>
-                    </div>
-                    <div class="routine-status">
-                        <input type="checkbox" class="routine-checkbox">
+                    <div class="table-row routine-row" draggable="true">
+                        <div class="cell time-cell">22:00</div>
+                        <div class="cell activity-cell">
+                            <div class="activity-title">Reading</div>
+                            <div class="activity-description">독서 시간</div>
+                        </div>
+                        <div class="cell status-cell">
+                            <input type="checkbox" class="routine-checkbox">
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Right Content: Events & Tasks -->
-        <div class="events-tasks-section">
-            <!-- Events Section -->
-            <div class="events-section">
-                <div class="section-header">
-                    <div class="section-icon">📅</div>
-                    <h3>Events</h3>
-                    <button class="add-event-btn" onclick="openEventModal()" title="이벤트 추가">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <line x1="12" y1="5" x2="12" y2="19"/>
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
-                    </button>
-                </div>
-                
-                <div class="day-events" id="day-events">
-                    <div class="no-events">
-                        <p>이 날짜에 일정이 없습니다.</p>
-                        <button class="btn-add-event-inline" onclick="openEventModal()">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <!-- Events Section -->
+        <div class="events-section excel-widget">
+            <div class="widget-header">
+                <div class="widget-icon">📅</div>
+                <h3>Events</h3>
+                <button class="add-btn" onclick="openEventModal()" title="이벤트 추가">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="events-content" id="day-events">
+                <div class="no-events-message">
+                    <div class="empty-state">
+                        <div class="empty-icon">📅</div>
+                        <p>이 날짜에 일정이 없습니다</p>
+                        <button class="btn-primary" onclick="openEventModal()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                 <line x1="12" y1="5" x2="12" y2="19"/>
                                 <line x1="5" y1="12" x2="19" y2="12"/>
                             </svg>
@@ -173,61 +176,95 @@
                         </button>
                     </div>
                 </div>
+                
+                <!-- Events table (hidden by default, shown when events exist) -->
+                <div class="excel-table events-table" style="display: none;">
+                    <div class="table-header">
+                        <div class="header-cell time-column">시간</div>
+                        <div class="header-cell event-column">제목</div>
+                        <div class="header-cell tag-column">태그</div>
+                    </div>
+                    <div class="table-body" id="events-table-body">
+                        <!-- Events will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tasks Section -->
+        <div class="tasks-section excel-widget">
+            <div class="widget-header">
+                <div class="widget-icon">✅</div>
+                <h3>Tasks</h3>
+                <button class="add-btn" onclick="addTaskItem()" title="할 일 추가">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                </button>
             </div>
             
-            <!-- Tasks Section -->
-            <div class="tasks-section">
-                <div class="section-header">
-                    <div class="section-icon">✅</div>
-                    <h3>Tasks</h3>
-                    <button class="add-task-btn" onclick="addTaskItem()" title="할 일 추가">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <line x1="12" y1="5" x2="12" y2="19"/>
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
-                    </button>
+            <div class="excel-table tasks-table">
+                <div class="table-header">
+                    <div class="header-cell status-column">완료</div>
+                    <div class="header-cell task-column">작업</div>
+                    <div class="header-cell priority-column">우선순위</div>
                 </div>
-                
-                <div class="task-list" id="task-list">
-                    <div class="task-item">
-                        <input type="checkbox" class="task-checkbox">
-                        <div class="task-content">
+                <div class="table-body">
+                    <div class="table-row task-row" draggable="true">
+                        <div class="cell status-cell">
+                            <input type="checkbox" class="task-checkbox">
+                        </div>
+                        <div class="cell task-cell">
                             <div class="task-title">팀 미팅 준비</div>
                             <div class="task-description">프레젠테이션 자료 작성</div>
                         </div>
-                        <div class="task-priority high">중요</div>
+                        <div class="cell priority-cell">
+                            <span class="priority-chip high">중요</span>
+                        </div>
                     </div>
-                    
-                    <div class="task-item">
-                        <input type="checkbox" class="task-checkbox">
-                        <div class="task-content">
+                    <div class="table-row task-row" draggable="true">
+                        <div class="cell status-cell">
+                            <input type="checkbox" class="task-checkbox">
+                        </div>
+                        <div class="cell task-cell">
                             <div class="task-title">이메일 확인</div>
                             <div class="task-description">중요한 메일 답장</div>
                         </div>
-                        <div class="task-priority medium">보통</div>
+                        <div class="cell priority-cell">
+                            <span class="priority-chip medium">보통</span>
+                        </div>
                     </div>
-                    
-                    <div class="task-item completed">
-                        <input type="checkbox" class="task-checkbox" checked>
-                        <div class="task-content">
+                    <div class="table-row task-row completed" draggable="true">
+                        <div class="cell status-cell">
+                            <input type="checkbox" class="task-checkbox" checked>
+                        </div>
+                        <div class="cell task-cell">
                             <div class="task-title">운동하기</div>
                             <div class="task-description">아침 조깅 30분</div>
                         </div>
-                        <div class="task-priority low">낮음</div>
+                        <div class="cell priority-cell">
+                            <span class="priority-chip low">낮음</span>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Notes Section -->
+        <div class="notes-section excel-widget">
+            <div class="widget-header">
+                <div class="widget-icon">📝</div>
+                <h3>Notes</h3>
+                <button class="save-notes-btn" onclick="saveNotes()">저장</button>
+            </div>
             
-            <!-- Notes Section -->
-            <div class="notes-section">
-                <div class="section-header">
-                    <div class="section-icon">📝</div>
-                    <h3>Notes</h3>
+            <div class="notes-container">
+                <div class="notes-header">
+                    <input type="text" class="notes-title" placeholder="메모 제목..." value="오늘의 메모">
                 </div>
-                
-                <div class="notes-area">
-                    <textarea class="notes-textarea" placeholder="오늘의 메모를 작성하세요..." rows="6"></textarea>
-                    <button class="save-notes-btn" onclick="saveNotes()">메모 저장</button>
+                <div class="notes-body">
+                    <textarea class="notes-textarea" placeholder="메모 내용을 작성하세요..." rows="8"></textarea>
                 </div>
             </div>
         </div>
