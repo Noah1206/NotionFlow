@@ -270,11 +270,11 @@ function createMediaElement(type) {
         mediaPlayer.addEventListener('timeupdate', updateProgress);
         mediaPlayer.addEventListener('ended', handleTrackEnd);
         mediaPlayer.addEventListener('error', function(e) {
-            console.error('Media error event:', e);
-            console.error('Media error code:', mediaPlayer.error?.code);
-            console.error('Media error message:', mediaPlayer.error?.message);
-            console.error('Media src:', mediaPlayer.src);
-            console.error('Network state:', mediaPlayer.networkState);
+            console.warn('Media error event:', e);
+            console.warn('Media error code:', mediaPlayer.error?.code);
+            console.warn('Media error message:', mediaPlayer.error?.message);
+            console.warn('Media src:', mediaPlayer.src);
+            console.warn('Network state:', mediaPlayer.networkState);
             handleMediaError(e);
         });
     }
@@ -405,32 +405,46 @@ function hideMediaPlayers() {
 }
 
 function handleMediaError(e) {
-    console.error('Media playback error:', e);
-    console.log('Error details:', e.target?.error);
-    console.log('Media element src:', e.target?.src);
-    console.log('Media element networkState:', e.target?.networkState);
-    console.log('Media element readyState:', e.target?.readyState);
+    // Use warn instead of error for less intrusive logging
+    console.warn('Media playback error:', e.type);
     
-    // Check if it's a network error (404, etc.)
-    if (e.target?.error?.code === 4) {
-        console.error('Media format error - file may not exist or be corrupted');
-    } else if (e.target?.error?.code === 2) {
-        console.error('Media network error - file may not be accessible');
+    if (e.target?.error) {
+        const errorCode = e.target.error.code;
+        let errorMessage = '';
+        
+        switch (errorCode) {
+            case 1:
+                errorMessage = 'Media loading aborted';
+                break;
+            case 2:
+                errorMessage = 'Network error loading media';
+                break;
+            case 3:
+                errorMessage = 'Media decoding error';
+                break;
+            case 4:
+                errorMessage = 'Media file not found or unsupported format';
+                break;
+            default:
+                errorMessage = 'Unknown media error';
+        }
+        
+        console.warn(`Media error (${errorCode}): ${errorMessage}`);
     }
     
-    // Update both players with error message but keep them visible
+    // Update both players with appropriate message but keep them visible
     const mediaTitle = document.getElementById('media-title');
     const mediaArtist = document.getElementById('media-artist');
     const compactTitle = document.getElementById('compact-media-title');
     const compactArtist = document.getElementById('compact-media-artist');
     
-    if (mediaTitle) mediaTitle.textContent = '미디어 로드 중...';
-    if (mediaArtist) mediaArtist.textContent = '잠시만 기다려주세요';
-    if (compactTitle) compactTitle.textContent = '미디어 로드 중...';
-    if (compactArtist) compactArtist.textContent = '잠시만 기다려주세요';
+    if (mediaTitle) mediaTitle.textContent = '미디어 없음';
+    if (mediaArtist) mediaArtist.textContent = '파일을 찾을 수 없습니다';
+    if (compactTitle) compactTitle.textContent = '미디어 없음';
+    if (compactArtist) compactArtist.textContent = '파일을 찾을 수 없습니다';
     
-    // Keep players visible and allow user interaction
-    console.log('🎵 Media error handled, keeping players visible for user interaction');
+    // Keep players visible for potential user interaction
+    console.info('🎵 Media error handled gracefully');
 }
 
 function handleTrackEnd() {
@@ -504,9 +518,9 @@ function loadTrack(track) {
             
             // Check network state after a short delay
             setTimeout(() => {
-                console.log('🎵 Network state:', mediaPlayer.networkState);
-                console.log('🎵 Ready state:', mediaPlayer.readyState);
-                console.log('🎵 Error:', mediaPlayer.error);
+                if (mediaPlayer.error) {
+                    console.warn('🎵 Media still has error after timeout');
+                }
             }, 500);
             
             // Add load event listener for this track
@@ -2410,15 +2424,32 @@ function saveReminders() {
 
 // Quick action functions
 function openNewTodoModal() {
-    // Show the add todo input or modal
-    const addTodoBtn = document.querySelector('.add-todo-btn');
-    if (addTodoBtn) {
-        addTodoBtn.click();
+    // Try to use existing todo modal first
+    const inputContainer = document.querySelector('.add-todo-input-container');
+    if (inputContainer) {
+        openTodoModal();
     } else {
-        // Create a simple prompt for now
+        // Create a simple prompt as fallback
         const todoText = prompt('새로운 할 일을 입력하세요:');
         if (todoText && todoText.trim()) {
-            addTodo(todoText.trim());
+            // Create todo object and add it
+            const newTodo = {
+                id: `todo_${Date.now()}`,
+                text: todoText.trim(),
+                completed: false,
+                tag: '',
+                createdAt: new Date().toISOString(),
+                priority: 'normal'
+            };
+            
+            // Add to list
+            todoList.push(newTodo);
+            
+            // Save and render
+            saveTodos();
+            renderTodos();
+            
+            console.log(`📋 Quick todo added: "${newTodo.text}"`);
         }
     }
 }
