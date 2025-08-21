@@ -4,7 +4,8 @@ import sys
 import json
 import datetime
 import uuid
-from datetime import datetime as dt
+import requests
+from datetime import datetime as dt, timedelta
 from flask import Flask, render_template, redirect, url_for, request, jsonify, session
 from dotenv import load_dotenv
 
@@ -1515,6 +1516,151 @@ def toggle_event_status(event_id):
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+# 날씨 API
+@app.route('/api/weather/<location>')
+def get_weather(location):
+    """일주일 날씨 정보 조회"""
+    try:
+        # OpenWeatherMap API 키 (환경변수에서 가져오기)
+        api_key = os.getenv('OPENWEATHER_API_KEY')
+        if not api_key or api_key == 'your-api-key-here':
+            # API 키가 없거나 기본값일 때 기본 날씨 데이터 반환
+            print("ℹ️ OpenWeatherMap API 키가 설정되지 않았습니다. 기본 날씨 데이터를 사용합니다.")
+            print("📋 실제 날씨 데이터를 사용하려면 .env 파일에 OPENWEATHER_API_KEY를 설정하세요.")
+            return get_default_weather()
+        
+        # 지역명으로 좌표 검색
+        geocoding_url = f"http://api.openweathermap.org/geo/1.0/direct?q={location}&limit=1&appid={api_key}"
+        geo_response = requests.get(geocoding_url, timeout=5)
+        
+        if geo_response.status_code != 200:
+            return get_default_weather()
+            
+        geo_data = geo_response.json()
+        if not geo_data:
+            return get_default_weather()
+        
+        lat = geo_data[0]['lat']
+        lon = geo_data[0]['lon']
+        
+        # 5일 날씨 예보 가져오기 (3시간 간격)
+        weather_url = f"http://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={api_key}&units=metric&lang=kr"
+        weather_response = requests.get(weather_url, timeout=5)
+        
+        if weather_response.status_code != 200:
+            return get_default_weather()
+            
+        weather_data = weather_response.json()
+        
+        # 일주일 날씨 데이터 가공
+        weekly_weather = process_weather_data(weather_data)
+        
+        return jsonify({
+            'success': True,
+            'location': location,
+            'weather': weekly_weather
+        })
+        
+    except Exception as e:
+        print(f"Weather API error: {e}")
+        return get_default_weather()
+
+def get_default_weather():
+    """기본 날씨 데이터 (API 연결 실패 시)"""
+    today = dt.now()
+    default_weather = []
+    
+    # 기본 날씨 패턴 (다양한 날씨 조건)
+    weather_patterns = [
+        {'main': 'Clear', 'icon': '01d', 'temp': 15},
+        {'main': 'Clouds', 'icon': '03d', 'temp': 12},
+        {'main': 'Rain', 'icon': '10d', 'temp': 8},
+        {'main': 'Clear', 'icon': '01d', 'temp': 18},
+        {'main': 'Clouds', 'icon': '04d', 'temp': 14},
+        {'main': 'Clear', 'icon': '01d', 'temp': 16},
+        {'main': 'Rain', 'icon': '09d', 'temp': 10}
+    ]
+    
+    for i in range(7):
+        date = (today + timedelta(days=i)).strftime('%Y-%m-%d')
+        weather = weather_patterns[i]
+        
+        default_weather.append({
+            'date': date,
+            'weather': weather['main'],
+            'icon': weather['icon'],
+            'temp': weather['temp'],
+            'emoji': get_weather_emoji(weather['main'])
+        })
+    
+    return jsonify({
+        'success': True,
+        'location': 'Seoul',
+        'weather': default_weather
+    })
+
+def process_weather_data(weather_data):
+    """날씨 데이터 가공 함수"""
+    weekly_weather = []
+    processed_dates = set()
+    
+    for item in weather_data['list'][:35]:  # 5일 * 8회 (3시간 간격) 
+        date_str = dt.fromtimestamp(item['dt']).strftime('%Y-%m-%d')
+        
+        # 하루에 한 번만 처리 (오후 시간대 우선)
+        if date_str not in processed_dates:
+            weather_main = item['weather'][0]['main']
+            temp = round(item['main']['temp'])
+            
+            weekly_weather.append({
+                'date': date_str,
+                'weather': weather_main,
+                'icon': item['weather'][0]['icon'],
+                'temp': temp,
+                'emoji': get_weather_emoji(weather_main)
+            })
+            
+            processed_dates.add(date_str)
+            
+            if len(weekly_weather) >= 7:
+                break
+    
+    # 7일 데이터가 부족하면 기본 데이터로 채우기
+    while len(weekly_weather) < 7:
+        last_date = dt.strptime(weekly_weather[-1]['date'], '%Y-%m-%d') if weekly_weather else dt.now()
+        next_date = (last_date + timedelta(days=1)).strftime('%Y-%m-%d')
+        
+        weekly_weather.append({
+            'date': next_date,
+            'weather': 'Clear',
+            'icon': '01d',
+            'temp': 15,
+            'emoji': '☀️'
+        })
+    
+    return weekly_weather
+
+def get_weather_emoji(weather_main):
+    """날씨 상태에 따른 이모티콘 반환"""
+    weather_emojis = {
+        'Clear': '☀️',
+        'Clouds': '☁️',
+        'Rain': '🌧️',
+        'Drizzle': '🌦️',
+        'Thunderstorm': '⛈️',
+        'Snow': '❄️',
+        'Mist': '🌫️',
+        'Fog': '🌫️',
+        'Haze': '🌫️',
+        'Dust': '🌪️',
+        'Sand': '🌪️',
+        'Ash': '🌪️',
+        'Squall': '💨',
+        'Tornado': '🌪️'
+    }
+    
+    return weather_emojis.get(weather_main, '🌤️')
 
 # Task Dump 페이지
 @app.route('/task-dump')

@@ -22,6 +22,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Generate weekly calendar
     generateWeeklyCalendar();
     
+    // Load weather data for the week
+    loadWeatherData();
+    
     // Set default datetime values for event modal
     initializeEventModal();
     
@@ -2090,4 +2093,151 @@ function updateWeeklyCalendar() {
     const currentDate = new Date(selectedDate);
     const startOfWeek = getStartOfWeek(currentDate);
     loadWeeklyCommitments(startOfWeek);
+}
+
+// ==================== 날씨 시스템 ====================
+
+// 날씨 데이터 로드 함수
+async function loadWeatherData() {
+    try {
+        console.log('🌤️ Loading weather data...');
+        
+        // 서울 날씨 정보 가져오기 (기본값)
+        const response = await fetch('/api/weather/Seoul');
+        const data = await response.json();
+        
+        if (data.success) {
+            console.log('✅ Weather data loaded:', data.weather);
+            displayWeatherInCalendar(data.weather);
+            
+            // 날씨 데이터를 전역 변수에 저장
+            window.weeklyWeatherData = data.weather;
+        } else {
+            console.warn('⚠️ Failed to load weather data, using fallback');
+            displayFallbackWeather();
+        }
+    } catch (error) {
+        console.error('❌ Error loading weather data:', error);
+        displayFallbackWeather();
+    }
+}
+
+// 주간 캘린더에 날씨 정보 표시
+function displayWeatherInCalendar(weatherData) {
+    const weekGrid = document.getElementById('week-grid');
+    if (!weekGrid) return;
+    
+    const dayCells = weekGrid.querySelectorAll('.day-cell');
+    
+    dayCells.forEach((cell, index) => {
+        const dateStr = cell.dataset.date;
+        
+        // 해당 날짜의 날씨 정보 찾기
+        const weatherInfo = weatherData.find(w => w.date === dateStr);
+        
+        if (weatherInfo) {
+            // 기존 날씨 위젯 제거
+            const existingWeather = cell.querySelector('.day-weather');
+            if (existingWeather) {
+                existingWeather.remove();
+            }
+            
+            // 새로운 날씨 위젯 생성
+            const weatherWidget = createWeatherWidget(weatherInfo);
+            
+            // 날짜 정보 뒤에 삽입
+            const dayDate = cell.querySelector('.day-date');
+            if (dayDate) {
+                dayDate.insertAdjacentElement('afterend', weatherWidget);
+            }
+        }
+    });
+}
+
+// 날씨 위젯 생성
+function createWeatherWidget(weatherInfo) {
+    const weatherDiv = document.createElement('div');
+    weatherDiv.className = 'day-weather';
+    
+    // 날씨 상태에 따른 데이터 속성 추가 (CSS 스타일링용)
+    if (weatherInfo.weather) {
+        weatherDiv.setAttribute('data-weather', weatherInfo.weather);
+    }
+    
+    // 날씨 정보에 따른 툴팁 추가
+    const weatherName = getWeatherNameInKorean(weatherInfo.weather || 'Clear');
+    weatherDiv.title = `${weatherName} ${weatherInfo.temp}°C`;
+    
+    weatherDiv.innerHTML = `
+        <div class="weather-emoji">${weatherInfo.emoji}</div>
+        <div class="weather-temp">${weatherInfo.temp}°</div>
+    `;
+    
+    return weatherDiv;
+}
+
+// 날씨 상태를 한국어로 변환
+function getWeatherNameInKorean(weatherMain) {
+    const weatherNames = {
+        'Clear': '맑음',
+        'Clouds': '흐림',
+        'Rain': '비',
+        'Drizzle': '이슬비',
+        'Thunderstorm': '뇌우',
+        'Snow': '눈',
+        'Mist': '안개',
+        'Fog': '짙은 안개',
+        'Haze': '실안개',
+        'Dust': '황사',
+        'Sand': '모래바람',
+        'Ash': '재',
+        'Squall': '돌풍',
+        'Tornado': '토네이도'
+    };
+    
+    return weatherNames[weatherMain] || '알 수 없음';
+}
+
+// 폴백 날씨 표시 (API 실패 시)
+function displayFallbackWeather() {
+    const fallbackWeather = [
+        { emoji: '☀️', temp: 15 },
+        { emoji: '☁️', temp: 12 },
+        { emoji: '🌧️', temp: 8 },
+        { emoji: '☀️', temp: 18 },
+        { emoji: '☁️', temp: 14 },
+        { emoji: '☀️', temp: 16 },
+        { emoji: '🌦️', temp: 10 }
+    ];
+    
+    const weekGrid = document.getElementById('week-grid');
+    if (!weekGrid) return;
+    
+    const dayCells = weekGrid.querySelectorAll('.day-cell');
+    
+    dayCells.forEach((cell, index) => {
+        if (index < fallbackWeather.length) {
+            const weather = fallbackWeather[index];
+            
+            // 기존 날씨 위젯 제거
+            const existingWeather = cell.querySelector('.day-weather');
+            if (existingWeather) {
+                existingWeather.remove();
+            }
+            
+            // 새로운 날씨 위젯 생성
+            const weatherWidget = createWeatherWidget(weather);
+            
+            // 날짜 정보 뒤에 삽입
+            const dayDate = cell.querySelector('.day-date');
+            if (dayDate) {
+                dayDate.insertAdjacentElement('afterend', weatherWidget);
+            }
+        }
+    });
+}
+
+// 날씨 데이터 새로고침
+function refreshWeatherData() {
+    loadWeatherData();
 }

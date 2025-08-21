@@ -252,6 +252,20 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
 
 .day-cell.today .day-date {
     color: #1e40af;
+    position: relative;
+}
+
+.day-cell.today .day-date::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background: #dc2626;
+    border-radius: 50%;
+    border: 1px solid #ffffff;
+    box-shadow: 0 1px 3px rgba(220, 38, 38, 0.3);
 }
 
 .day-content {
@@ -2175,4 +2189,160 @@ input[type="checkbox"]:checked {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #9ca3af;
+}
+
+/* ============================================================================
+   WEATHER WIDGET STYLES - Todo Mate + Linear 디자인
+   ============================================================================ */
+
+.day-weather {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 6px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.2s ease;
+    min-width: 42px;
+    z-index: 2;
+}
+
+.day-weather:hover {
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-1px);
+    border-color: rgba(94, 106, 210, 0.2);
+}
+
+.weather-emoji {
+    font-size: 18px;
+    line-height: 1;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+}
+
+.weather-temp {
+    font-size: 10px;
+    font-weight: 600;
+    color: #4B5563;
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+
+/* 다양한 날씨 상태에 따른 특별 스타일링 */
+.day-weather[data-weather="Rain"] {
+    background: rgba(59, 130, 246, 0.05);
+    border-color: rgba(59, 130, 246, 0.15);
+}
+
+.day-weather[data-weather="Rain"]:hover {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.25);
+}
+
+.day-weather[data-weather="Clear"] {
+    background: rgba(251, 191, 36, 0.05);
+    border-color: rgba(251, 191, 36, 0.15);
+}
+
+.day-weather[data-weather="Clear"]:hover {
+    background: rgba(251, 191, 36, 0.1);
+    border-color: rgba(251, 191, 36, 0.25);
+}
+
+.day-weather[data-weather="Clouds"] {
+    background: rgba(107, 114, 128, 0.05);
+    border-color: rgba(107, 114, 128, 0.15);
+}
+
+.day-weather[data-weather="Clouds"]:hover {
+    background: rgba(107, 114, 128, 0.1);
+    border-color: rgba(107, 114, 128, 0.25);
+}
+
+.day-weather[data-weather="Snow"] {
+    background: rgba(219, 234, 254, 0.8);
+    border-color: rgba(147, 197, 253, 0.3);
+}
+
+.day-weather[data-weather="Snow"]:hover {
+    background: rgba(219, 234, 254, 0.95);
+    border-color: rgba(147, 197, 253, 0.5);
+}
+
+/* 날씨 로딩 상태 */
+.weather-loading {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e5e7eb;
+    border-top: 2px solid #3b82f6;
+    border-radius: 50%;
+    animation: weather-spin 1s linear infinite;
+    z-index: 2;
+}
+
+@keyframes weather-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 날씨 에러 상태 */
+.weather-error {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 4px 6px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 6px;
+    font-size: 10px;
+    color: #dc2626;
+    z-index: 2;
+}
+
+/* 반응형 날씨 위젯 */
+@media (max-width: 768px) {
+    .day-weather {
+        top: 6px;
+        right: 6px;
+        padding: 3px 5px;
+        min-width: 38px;
+    }
+    
+    .weather-emoji {
+        font-size: 16px;
+        width: 20px;
+        height: 20px;
+    }
+    
+    .weather-temp {
+        font-size: 9px;
+    }
+}
+
+/* 다크모드 지원 (추후 확장용) */
+@media (prefers-color-scheme: dark) {
+    .day-weather {
+        background: rgba(31, 41, 55, 0.95);
+        border-color: rgba(156, 163, 175, 0.3);
+        color: #f3f4f6;
+    }
+    
+    .weather-temp {
+        color: #d1d5db;
+    }
 }
