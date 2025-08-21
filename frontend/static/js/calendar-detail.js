@@ -6,6 +6,10 @@ let calendarEvents = [];
 let todoList = [];
 let habitList = [];
 let miniCalendarDate = new Date();
+let blacklistedMediaUrls = new Set(); // Track failed media URLs to prevent retries
+
+// Event search functionality
+let allEvents = []; // Store all events for searching
 
 // Hobby categories and options
 const hobbyCategories = {
@@ -134,6 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeHabitTracker();
     loadPriorities(); // Load priority tasks
     loadReminders(); // Load reminders
+    initializeEventSearch(); // Initialize event search functionality
 });
 
 function initializeCalendar() {
@@ -416,6 +421,12 @@ function handleMediaError(e) {
         const errorCode = e.target.error.code;
         let errorMessage = '';
         
+        // Add failed URL to blacklist to prevent future attempts
+        if (e.target?.src) {
+            blacklistedMediaUrls.add(e.target.src);
+            console.warn(`Adding URL to blacklist: ${e.target.src}`);
+        }
+        
         switch (errorCode) {
             case 1:
                 errorMessage = 'Media loading aborted';
@@ -471,9 +482,19 @@ function loadTrack(track) {
         return;
     }
     
-    // Skip if no valid source or placeholder source
-    if (!track.src || track.src === '#' || track.src === '') {
-        console.log('No valid source for track, skipping load');
+    // Skip if no valid source or placeholder source or blacklisted URL
+    if (!track.src || 
+        track.src === '#' || 
+        track.src === '' || 
+        track.src.includes('undefined') || 
+        track.src.includes('null') ||
+        blacklistedMediaUrls.has(track.src)) {
+        console.warn('No valid source for track or URL blacklisted, skipping media load entirely');
+        // Clear any existing source to prevent browser from trying to load invalid files
+        if (mediaPlayer.src) {
+            mediaPlayer.removeAttribute('src');
+            mediaPlayer.load();
+        }
         // Just update UI without trying to load media
         updateCompactPlayerInfo(track);
         const mediaTitle = document.getElementById('media-title');
@@ -991,16 +1012,47 @@ function loadEvents() {
             title: '팀 미팅',
             date: new Date(2025, 2, 21), // March 21, 2025
             time: '14:00',
-            color: '#dbeafe'
+            color: '#dbeafe',
+            description: '주간 팀 미팅 및 업무 공유'
         },
         {
             id: 2,
             title: '프로젝트 발표',
             date: new Date(2025, 2, 25), // March 25, 2025
             time: '10:00',
-            color: '#dcfce7'
+            color: '#dcfce7',
+            description: '분기별 프로젝트 성과 발표'
+        },
+        {
+            id: 3,
+            title: '점심 약속',
+            date: new Date(2025, 2, 23), // March 23, 2025
+            time: '12:30',
+            color: '#fef3c7',
+            description: '친구와 함께하는 점심 식사'
+        },
+        {
+            id: 4,
+            title: '헬스장',
+            date: new Date(2025, 2, 24), // March 24, 2025
+            time: '19:00',
+            color: '#ddd6fe',
+            description: '저녁 운동 및 체력 단련'
+        },
+        {
+            id: 5,
+            title: '의사 진료',
+            date: new Date(2025, 2, 27), // March 27, 2025
+            time: '14:00',
+            color: '#fce7f3',
+            description: '정기 건강 검진'
         }
     ];
+    
+    // Update search events after loading calendar events
+    if (typeof loadAllEvents === 'function') {
+        loadAllEvents();
+    }
 }
 
 function getEventsForDate(date) {
@@ -1961,11 +2013,20 @@ function initializeMediaPlayerFromWorkspace() {
         const mediaUrl = calendarWorkspace.dataset.calendarMedia;
         console.log('🎵 Media URL from data attribute:', mediaUrl);
         
-        if (mediaUrl && mediaUrl.trim() !== '' && mediaUrl !== 'None') {
+        // More robust validation of media URL
+        if (mediaUrl && 
+            mediaUrl.trim() !== '' && 
+            mediaUrl !== 'None' && 
+            mediaUrl !== 'null' && 
+            mediaUrl !== 'undefined' && 
+            !mediaUrl.includes('undefined') && 
+            !mediaUrl.includes('null') &&
+            mediaUrl.startsWith('http')) {
             // Initialize media player with the URL
+            console.log('🎵 Valid media URL found, initializing player');
             initializeMediaPlayerWithUrl(mediaUrl);
         } else {
-            console.log('🎵 No media file available for this calendar');
+            console.log('🎵 No valid media file available for this calendar');
             // Set default no-media info
             const defaultTrack = {
                 title: '미디어 없음',
@@ -2580,4 +2641,212 @@ function navigateToDate(date) {
     // Show notification
     const formattedDate = `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
     showNotification(`${formattedDate}로 이동했습니다.`);
+}
+
+// ============ EVENT SEARCH FUNCTIONALITY ============
+
+function initializeEventSearch() {
+    console.log('🔍 Initializing event search functionality');
+    
+    const searchInput = document.getElementById('event-search-input');
+    const clearBtn = document.getElementById('search-clear-btn');
+    
+    if (!searchInput) {
+        console.warn('Event search input not found');
+        return;
+    }
+    
+    // Events are already loaded by loadEvents() function
+    // Just add event listeners here
+    searchInput.addEventListener('input', handleSearchInput);
+    searchInput.addEventListener('keydown', handleSearchKeydown);
+    
+    // Clear button functionality
+    if (clearBtn) {
+        clearBtn.addEventListener('click', clearEventSearch);
+    }
+    
+    console.log(`🔍 Event search initialized with ${allEvents.length} events`);
+}
+
+function loadAllEvents() {
+    console.log('🔍 Loading all events for search');
+    
+    // Use actual calendar events instead of sample data
+    allEvents = convertCalendarEventsToSearchFormat();
+    
+    console.log(`🔍 Loaded ${allEvents.length} events for search`);
+}
+
+// Convert calendarEvents to search-compatible format
+function convertCalendarEventsToSearchFormat() {
+    return calendarEvents.map(event => {
+        const eventDate = new Date(event.date);
+        const dateString = eventDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+        const formattedDate = eventDate.toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        
+        return {
+            id: event.id,
+            title: event.title,
+            description: event.description || '',
+            date: dateString,
+            formattedDate: formattedDate,
+            time: event.time || '시간 미정',
+            originalEvent: event
+        };
+    });
+}
+
+function generateSampleEvents() {
+    const events = [];
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth();
+    
+    // Sample events for testing
+    const sampleEvents = [
+        { title: '팀 회의', time: '09:00', description: '주간 팀 미팅' },
+        { title: '점심 약속', time: '12:30', description: '친구와 점심' },
+        { title: '프로젝트 마감', time: '18:00', description: '프로젝트 최종 제출' },
+        { title: '헬스장', time: '19:00', description: '운동' },
+        { title: '영화 관람', time: '20:00', description: '새로운 영화 보기' },
+        { title: '의사 진료', time: '14:00', description: '정기 검진' },
+        { title: '생일 파티', time: '17:00', description: '친구 생일 축하' },
+        { title: '독서 모임', time: '15:00', description: '월간 독서 모임' },
+        { title: '요가 클래스', time: '07:00', description: '아침 요가' },
+        { title: '쇼핑', time: '16:00', description: '주말 쇼핑' }
+    ];
+    
+    // Generate events for current month
+    for (let day = 1; day <= 31; day++) {
+        const eventDate = new Date(currentYear, currentMonth, day);
+        if (eventDate.getMonth() !== currentMonth) break;
+        
+        // Add random events for some days
+        if (Math.random() > 0.7) {
+            const randomEvent = sampleEvents[Math.floor(Math.random() * sampleEvents.length)];
+            events.push({
+                id: `event_${currentYear}_${currentMonth}_${day}_${events.length}`,
+                title: randomEvent.title,
+                date: eventDate.toISOString().split('T')[0],
+                time: randomEvent.time,
+                description: randomEvent.description,
+                formattedDate: `${currentYear}년 ${currentMonth + 1}월 ${day}일`
+            });
+        }
+    }
+    
+    return events;
+}
+
+function handleSearchInput(e) {
+    const query = e.target.value.trim();
+    const clearBtn = document.getElementById('search-clear-btn');
+    
+    // Show/hide clear button
+    if (clearBtn) {
+        clearBtn.style.display = query ? 'block' : 'none';
+    }
+    
+    if (query.length > 0) {
+        performEventSearch(query);
+    } else {
+        hideSearchResults();
+    }
+}
+
+function handleSearchKeydown(e) {
+    if (e.key === 'Escape') {
+        clearEventSearch();
+    }
+}
+
+function performEventSearch(query) {
+    console.log(`🔍 Searching for: "${query}"`);
+    
+    const searchResults = allEvents.filter(event => 
+        event.title.toLowerCase().includes(query.toLowerCase()) ||
+        event.description.toLowerCase().includes(query.toLowerCase())
+    );
+    
+    displaySearchResults(searchResults, query);
+}
+
+function displaySearchResults(results, query) {
+    const resultsContainer = document.getElementById('search-results');
+    if (!resultsContainer) return;
+    
+    if (results.length === 0) {
+        resultsContainer.innerHTML = `
+            <div class="search-no-results">
+                "${query}"에 대한 검색 결과가 없습니다.
+            </div>
+        `;
+    } else {
+        resultsContainer.innerHTML = results.map(event => `
+            <div class="search-result-item" onclick="navigateToEventDay('${event.date}', '${event.id}')" data-event-id="${event.id}">
+                <div class="search-result-title">${highlightSearchTerm(event.title, query)}</div>
+                <div class="search-result-date">
+                    📅 ${event.formattedDate}
+                    <span class="search-result-time">${event.time}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    resultsContainer.style.display = 'block';
+    console.log(`🔍 Displaying ${results.length} search results`);
+}
+
+function highlightSearchTerm(text, term) {
+    if (!term) return text;
+    
+    const regex = new RegExp(`(${term})`, 'gi');
+    return text.replace(regex, '<strong style="background: #fef3c7; color: #d97706;">$1</strong>');
+}
+
+function hideSearchResults() {
+    const resultsContainer = document.getElementById('search-results');
+    if (resultsContainer) {
+        resultsContainer.style.display = 'none';
+    }
+}
+
+function clearEventSearch() {
+    const searchInput = document.getElementById('event-search-input');
+    const clearBtn = document.getElementById('search-clear-btn');
+    
+    if (searchInput) {
+        searchInput.value = '';
+        searchInput.focus();
+    }
+    
+    if (clearBtn) {
+        clearBtn.style.display = 'none';
+    }
+    
+    hideSearchResults();
+    console.log('🔍 Search cleared');
+}
+
+function navigateToEventDay(dateString, eventId) {
+    console.log(`🔍 Navigating to event day: ${dateString}, event: ${eventId}`);
+    
+    const calendarId = getCurrentCalendarId();
+    
+    if (calendarId) {
+        // Clear search
+        clearEventSearch();
+        
+        // Navigate to calendar day page
+        const url = `/dashboard/calendar/${calendarId}/day/${dateString}`;
+        console.log(`🔍 Navigating to: ${url}`);
+        window.location.href = url;
+    } else {
+        console.error('🔍 Calendar ID not found, cannot navigate');
+        alert('캘린더 정보를 찾을 수 없습니다.');
+    }
 }

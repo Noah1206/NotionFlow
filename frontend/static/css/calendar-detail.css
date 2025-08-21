@@ -1865,6 +1865,113 @@ body.calendar-detail-standalone .calendar-workspace-content {
     color: #d1d5db;
 }
 
+/* Event Search Widget */
+.event-search-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+#event-search-input {
+    width: 100%;
+    padding: 8px 32px 8px 12px;
+    border: 1px solid #e1e5e9;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    background: #f8fafc;
+    transition: all 0.15s ease;
+    box-sizing: border-box;
+}
+
+#event-search-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.search-clear-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 3px;
+    transition: all 0.15s ease;
+}
+
+.search-clear-btn:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+.search-results {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #e1e5e9;
+    border-radius: 6px;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-result-item {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-item:hover {
+    background: #f8fafc;
+}
+
+.search-result-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1e293b;
+    line-height: 1.4;
+}
+
+.search-result-date {
+    font-size: 11px;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.search-result-time {
+    font-size: 11px;
+    color: #3b82f6;
+    font-weight: 500;
+}
+
+.search-no-results {
+    padding: 20px 12px;
+    text-align: center;
+    color: #64748b;
+    font-size: 12px;
+    font-style: italic;
+}
+
 /* Mini Calendar Widget - positioned in sidebar */
 }
 

@@ -28,7 +28,7 @@
 
 <body class="calendar-detail-standalone">
 
-<div class="calendar-workspace" data-calendar-id="{{ calendar.id }}" data-calendar-media="{{ calendar.media_url or '' }}">
+<div class="calendar-workspace" data-calendar-id="{{ calendar.id }}" data-calendar-media="{% if calendar.media_url and calendar.media_url.startswith('http') %}{{ calendar.media_url }}{% else %}{% endif %}">
     <!-- Collapsible Sidebar Toggle -->
     <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()" title="사이드바 토글">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -96,6 +96,27 @@
     <div class="calendar-workspace-content">
         <!-- Left Sidebar -->
         <div class="left-sidebar" id="left-sidebar">
+            <!-- Event Search Widget -->
+            <div class="sidebar-widget">
+                <div class="widget-header">
+                    <div class="widget-icon">🔍</div>
+                    <h4>일정 검색</h4>
+                </div>
+                <div class="event-search-container">
+                    <div class="search-input-wrapper">
+                        <input type="text" id="event-search-input" placeholder="일정 제목 검색..." autocomplete="off">
+                        <button class="search-clear-btn" id="search-clear-btn" onclick="clearEventSearch()" style="display: none;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="search-results" id="search-results" style="display: none;">
+                        <!-- Search results will be populated here -->
+                    </div>
+                </div>
+            </div>
+
             <!-- Mini Calendar Widget -->
             <div class="sidebar-widget">
                 <div class="widget-header">
@@ -133,17 +154,6 @@
                 </div>
             </div>
 
-            <!-- Quick Buttons -->
-            <div class="sidebar-widget">
-                <div class="widget-header">
-                    <div class="widget-icon">⚡</div>
-                    <h4>Quick Button</h4>
-                </div>
-                <div class="quick-buttons">
-                    <button class="quick-btn" onclick="openNewTodoModal()">+ New 할 일</button>
-                    <button class="quick-btn" onclick="openNewMemoModal()">+ New 메모</button>
-                </div>
-            </div>
 
             <!-- Compact Media Player -->
             <div class="sidebar-widget compact-media-widget" id="sidebar-media-player" style="display: none;">
