@@ -281,7 +281,7 @@
             overflow: visible;
             padding: 8rem 2rem 3rem;
         }
-        
+
         /* Product Screenshot - Linear Style */
         .product-showcase {
             margin-top: 4rem;
@@ -299,7 +299,7 @@
             width: 100%;
             height: auto;
             border-radius: 16px;
-            box-shadow: 
+            box-shadow:
                 0 50px 100px -20px rgba(50, 50, 93, 0.25),
                 0 30px 60px -30px rgba(0, 0, 0, 0.3),
                 0 -2px 6px 0px rgba(10, 37, 64, 0.35) inset;
@@ -307,7 +307,7 @@
             transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
             will-change: transform;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            background: linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(255,255,255,0));
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
         }
 
         .product-screenshot:hover {
@@ -322,11 +322,9 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(
-                circle at center,
-                transparent 40%,
-                rgba(102, 126, 234, 0.08) 100%
-            );
+            background: radial-gradient(circle at center,
+                    transparent 40%,
+                    rgba(102, 126, 234, 0.08) 100%);
             pointer-events: none;
             z-index: -1;
         }
@@ -339,11 +337,9 @@
             left: 10%;
             right: 10%;
             height: 100%;
-            background: linear-gradient(
-                to bottom,
-                rgba(102, 126, 234, 0.1) 0%,
-                transparent 30%
-            );
+            background: linear-gradient(to bottom,
+                    rgba(102, 126, 234, 0.1) 0%,
+                    transparent 30%);
             transform: scaleY(-1) translateZ(-100px);
             opacity: 0.3;
             filter: blur(20px);
@@ -357,11 +353,9 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(
-                180deg,
-                rgba(255, 255, 255, 0) 0%,
-                rgba(255, 255, 255, 0.9) 100%
-            );
+            background: linear-gradient(180deg,
+                    rgba(255, 255, 255, 0) 0%,
+                    rgba(255, 255, 255, 0.9) 100%);
             z-index: 2;
             pointer-events: none;
         }
@@ -391,17 +385,30 @@
         }
 
         @keyframes floatDashboard {
-            0%, 100% { transform: translate(-50%, -45%) perspective(1500px) rotateX(20deg) rotateY(-5deg) scale(1.3); }
-            25% { transform: translate(-48%, -47%) perspective(1500px) rotateX(22deg) rotateY(-3deg) scale(1.32); }
-            50% { transform: translate(-52%, -45%) perspective(1500px) rotateX(18deg) rotateY(-7deg) scale(1.28); }
-            75% { transform: translate(-50%, -43%) perspective(1500px) rotateX(21deg) rotateY(-4deg) scale(1.31); }
+
+            0%,
+            100% {
+                transform: translate(-50%, -45%) perspective(1500px) rotateX(20deg) rotateY(-5deg) scale(1.3);
+            }
+
+            25% {
+                transform: translate(-48%, -47%) perspective(1500px) rotateX(22deg) rotateY(-3deg) scale(1.32);
+            }
+
+            50% {
+                transform: translate(-52%, -45%) perspective(1500px) rotateX(18deg) rotateY(-7deg) scale(1.28);
+            }
+
+            75% {
+                transform: translate(-50%, -43%) perspective(1500px) rotateX(21deg) rotateY(-4deg) scale(1.31);
+            }
         }
 
         .dashboard-3d img {
             width: 100%;
             height: auto;
             border-radius: 20px;
-            box-shadow: 
+            box-shadow:
                 0 120px 100px -30px rgba(0, 0, 0, 0.4),
                 0 60px 50px -40px rgba(0, 0, 0, 0.3),
                 inset 0 -2px 6px rgba(0, 0, 0, 0.3);
@@ -999,8 +1006,15 @@
         }
 
         @keyframes slideRight {
-            0%, 100% { transform: translateX(0); }
-            50% { transform: translateX(8px); }
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            50% {
+                transform: translateX(8px);
+            }
         }
 
         .demo-features {
@@ -1075,7 +1089,7 @@
             direction: rtl;
         }
 
-        .collaboration-feature.reverse > * {
+        .collaboration-feature.reverse>* {
             direction: ltr;
         }
 
@@ -1143,9 +1157,17 @@
             border-radius: 50%;
         }
 
-        .user-1-color { background: #667eea; }
-        .user-2-color { background: #f093fb; }
-        .user-3-color { background: #4facfe; }
+        .user-1-color {
+            background: #667eea;
+        }
+
+        .user-2-color {
+            background: #f093fb;
+        }
+
+        .user-3-color {
+            background: #4facfe;
+        }
 
         .event-text {
             font-size: 0.9rem;
@@ -2634,11 +2656,11 @@
             <!-- 3D Dashboard Background -->
             <div class="hero-background">
                 <div class="dashboard-3d">
-                    <img src="https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=1600&h=900&fit=crop" 
-                         alt="Calendar Dashboard Background">
+                    <img src="https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=1600&h=900&fit=crop"
+                        alt="Calendar Dashboard Background">
                 </div>
             </div>
-            
+
             <div class="hero-content">
 
                 <h1 class="hero-title">
@@ -2652,15 +2674,6 @@
                     <a href="/payment" class="btn-primary">
                         14일 무료 체험 시작
                     </a>
-                </div>
-                
-                <!-- Product Screenshot with Linear Style -->
-                <div class="product-showcase">
-                    <div class="screenshot-container">
-                        <img src="https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=1200&h=800&fit=crop" 
-                             alt="NodeFlow Dashboard" 
-                             class="product-screenshot">
-                    </div>
                 </div>
             </div>
         </section>
@@ -2820,7 +2833,7 @@
                     <h2 class="demo-title">실시간 동기화</h2>
                     <p class="demo-subtitle">모든 캘린더가 하나로</p>
                 </div>
-                
+
                 <div class="demo-container">
                     <div class="demo-card">
                         <div class="card-number">1</div>
@@ -2836,7 +2849,8 @@
 
                     <div class="sync-indicator">
                         <svg viewBox="0 0 24 24" fill="none">
-                            <path d="M5 12H19M12 5L19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M5 12H19M12 5L19 12L12 19" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
                         <span>즉시 동기화</span>
                     </div>
@@ -2856,19 +2870,20 @@
 
                 <div class="demo-features">
                     <div class="feature">
-                        <div class="feature-value">< 3초</div>
-                        <div class="feature-label">동기화 시간</div>
-                    </div>
-                    <div class="feature">
-                        <div class="feature-value">양방향</div>
-                        <div class="feature-label">실시간 동기화</div>
-                    </div>
-                    <div class="feature">
-                        <div class="feature-value">5개+</div>
-                        <div class="feature-label">연결 플랫폼</div>
+                        <div class="feature-value">
+                            < 3초</div>
+                                <div class="feature-label">동기화 시간</div>
+                        </div>
+                        <div class="feature">
+                            <div class="feature-value">양방향</div>
+                            <div class="feature-label">실시간 동기화</div>
+                        </div>
+                        <div class="feature">
+                            <div class="feature-value">5개+</div>
+                            <div class="feature-label">연결 플랫폼</div>
+                        </div>
                     </div>
                 </div>
-            </div>
         </section>
 
         <!-- Collaboration Features Section -->
@@ -2884,15 +2899,18 @@
                         <div class="feature-visual">
                             <div class="shared-calendar-demo">
                                 <div class="calendar-user user-1">
-                                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face" alt="User 1" class="user-avatar">
+                                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face"
+                                        alt="User 1" class="user-avatar">
                                     <span class="user-name">김개발</span>
                                 </div>
                                 <div class="calendar-user user-2">
-                                    <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&h=40&fit=crop&crop=face" alt="User 2" class="user-avatar">
+                                    <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&h=40&fit=crop&crop=face"
+                                        alt="User 2" class="user-avatar">
                                     <span class="user-name">이디자인</span>
                                 </div>
                                 <div class="calendar-user user-3">
-                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face" alt="User 3" class="user-avatar">
+                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face"
+                                        alt="User 3" class="user-avatar">
                                     <span class="user-name">박기획</span>
                                 </div>
                                 <div class="shared-events">
@@ -2913,7 +2931,8 @@
                         </div>
                         <div class="feature-content">
                             <h3>스마트 캘린더 공유</h3>
-                            <p>팀원들과 캘린더를 공유하고 서로의 일정을 실시간으로 확인하세요. Google, Notion, Apple 캘린더 등 어떤 플랫폼을 사용하든 모든 팀원의 일정이 한 곳에서 보입니다.</p>
+                            <p>팀원들과 캘린더를 공유하고 서로의 일정을 실시간으로 확인하세요. Google, Notion, Apple 캘린더 등 어떤 플랫폼을 사용하든 모든 팀원의 일정이 한
+                                곳에서 보입니다.</p>
                             <ul class="feature-benefits">
                                 <li>✓ 팀원별 색상 구분으로 일정 구분</li>
                                 <li>✓ 권한별 캘린더 접근 제어</li>
@@ -2930,7 +2949,7 @@
                                     <button class="view-btn" data-view="weekly">주간</button>
                                     <button class="view-btn" data-view="daily">일간</button>
                                 </div>
-                                
+
                                 <div class="calendar-container">
                                     <div class="calendar-view monthly-view active">
                                         <div class="calendar-header">
@@ -2944,7 +2963,7 @@
                                             <div class="day-header">금</div>
                                             <div class="day-header">토</div>
                                             <div class="day-header">일</div>
-                                            
+
                                             <div class="day-cell empty"></div>
                                             <div class="day-cell empty"></div>
                                             <div class="day-cell empty"></div>
@@ -2952,7 +2971,7 @@
                                             <div class="day-cell">2</div>
                                             <div class="day-cell">3</div>
                                             <div class="day-cell">4</div>
-                                            
+
                                             <div class="day-cell">5</div>
                                             <div class="day-cell">6</div>
                                             <div class="day-cell">7</div>
@@ -2962,7 +2981,7 @@
                                             </div>
                                             <div class="day-cell">10</div>
                                             <div class="day-cell">11</div>
-                                            
+
                                             <div class="day-cell">12</div>
                                             <div class="day-cell">13</div>
                                             <div class="day-cell">14</div>
@@ -2972,7 +2991,7 @@
                                             <div class="day-cell">16</div>
                                             <div class="day-cell">17</div>
                                             <div class="day-cell">18</div>
-                                            
+
                                             <div class="day-cell">19</div>
                                             <div class="day-cell today has-event">20
                                                 <div class="event-dot apple-event"></div>
@@ -2984,7 +3003,7 @@
                                             <div class="day-cell">25</div>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="calendar-view weekly-view">
                                         <div class="calendar-header">
                                             <h4>8월 19일 - 25일</h4>
@@ -3004,7 +3023,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="calendar-view daily-view">
                                         <div class="calendar-header">
                                             <h4>오늘 - 8월 20일</h4>
@@ -3310,14 +3329,14 @@
             const calendarViews = document.querySelectorAll('.calendar-view');
 
             viewBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', function () {
                     const targetView = this.dataset.view;
-                    
+
                     // Remove active class from all buttons
                     viewBtns.forEach(b => b.classList.remove('active'));
                     // Add active class to clicked button
                     this.classList.add('active');
-                    
+
                     // Hide all calendar views
                     calendarViews.forEach(view => view.classList.remove('active'));
                     // Show target view
