@@ -1185,36 +1185,77 @@
             color: white;
         }
 
-        /* Daily View */
+        /* Daily View - Excel Style */
         .calendar-grid.daily {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
+            display: table;
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-primary);
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            overflow: hidden;
         }
 
         .hour-slot {
-            display: flex;
-            align-items: flex-start;
-            gap: 1rem;
-            min-height: 40px;
+            display: table-row;
+            min-height: 60px;
+            position: relative;
+        }
+
+        .hour-slot:hover {
+            background: #f9fafb;
         }
 
         .hour {
+            display: table-cell;
             font-size: 0.85rem;
             font-weight: 600;
             color: var(--text-secondary);
-            min-width: 50px;
-            padding-top: 0.25rem;
+            width: 65px;
+            padding: 12px 8px;
+            text-align: center;
+            vertical-align: middle;
+            background: #f3f4f6;
+            border-right: 2px solid #d1d5db;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .hour-content {
+            display: table-cell;
+            padding: 8px 12px;
+            vertical-align: top;
+            border-bottom: 1px solid #e5e7eb;
+            position: relative;
+            min-height: 60px;
+        }
+
+        .hour-slot:last-child .hour,
+        .hour-slot:last-child .hour-content {
+            border-bottom: none;
         }
 
         .event-block {
-            flex: 1;
             padding: 0.75rem;
-            border-radius: 8px;
+            border-radius: 6px;
             color: white;
             display: flex;
             flex-direction: column;
             gap: 0.25rem;
+            margin: 4px 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            position: relative;
+            border-left: 3px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .event-block::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 3px 0 0 3px;
         }
 
         .event-title {
@@ -1225,6 +1266,18 @@
         .event-desc {
             font-size: 0.8rem;
             opacity: 0.9;
+        }
+
+        /* Grid lines for empty slots */
+        .hour-content:empty::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #f3f4f6;
+            opacity: 0.5;
         }
 
         /* Event Colors */
@@ -2806,34 +2859,59 @@
                                         </div>
                                         <div class="calendar-grid daily">
                                             <div class="hour-slot">
-                                                <span class="hour">09:00</span>
-                                                <div class="event-block google-event">
-                                                    <span class="event-title">팀 스탠드업</span>
-                                                    <span class="event-desc">Google Meet</span>
+                                                <div class="hour">09:00</div>
+                                                <div class="hour-content">
+                                                    <div class="event-block google-event">
+                                                        <span class="event-title">팀 스탠드업</span>
+                                                        <span class="event-desc">Google Meet</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div class="hour-slot">
-                                                <span class="hour">10:00</span>
+                                                <div class="hour">10:00</div>
+                                                <div class="hour-content"></div>
                                             </div>
                                             <div class="hour-slot">
-                                                <span class="hour">11:00</span>
+                                                <div class="hour">11:00</div>
+                                                <div class="hour-content"></div>
                                             </div>
                                             <div class="hour-slot">
-                                                <span class="hour">12:00</span>
+                                                <div class="hour">12:00</div>
+                                                <div class="hour-content"></div>
                                             </div>
                                             <div class="hour-slot">
-                                                <span class="hour">14:00</span>
-                                                <div class="event-block notion-event">
-                                                    <span class="event-title">프로젝트 리뷰</span>
-                                                    <span class="event-desc">Notion에서 동기화됨</span>
+                                                <div class="hour">13:00</div>
+                                                <div class="hour-content"></div>
+                                            </div>
+                                            <div class="hour-slot">
+                                                <div class="hour">14:00</div>
+                                                <div class="hour-content">
+                                                    <div class="event-block notion-event">
+                                                        <span class="event-title">프로젝트 리뷰</span>
+                                                        <span class="event-desc">Notion에서 동기화됨</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div class="hour-slot">
-                                                <span class="hour">16:00</span>
-                                                <div class="event-block apple-event">
-                                                    <span class="event-title">디자인 미팅</span>
-                                                    <span class="event-desc">Apple 캘린더</span>
+                                                <div class="hour">15:00</div>
+                                                <div class="hour-content"></div>
+                                            </div>
+                                            <div class="hour-slot">
+                                                <div class="hour">16:00</div>
+                                                <div class="hour-content">
+                                                    <div class="event-block apple-event">
+                                                        <span class="event-title">디자인 미팅</span>
+                                                        <span class="event-desc">Apple 캘린더</span>
+                                                    </div>
                                                 </div>
+                                            </div>
+                                            <div class="hour-slot">
+                                                <div class="hour">17:00</div>
+                                                <div class="hour-content"></div>
+                                            </div>
+                                            <div class="hour-slot">
+                                                <div class="hour">18:00</div>
+                                                <div class="hour-content"></div>
                                             </div>
                                         </div>
                                     </div>
