@@ -351,18 +351,23 @@ body {
     color: var(--text-primary) !important;
 }
 
-[data-theme="dark"] .main-content {
-    background: var(--bg-primary) !important;
-    color: var(--text-primary) !important;
-}
-
-/* 대시보드 섹션 테마 */
+/* 모든 섹션을 라이트 테마로 강제 설정 */
+.main-content, 
+.dashboard-section,
+[data-theme="light"] .main-content,
 [data-theme="light"] .dashboard-section {
-    background: var(--bg-primary) !important;
-    color: var(--text-primary) !important;
+    background: #ffffff !important;
+    color: #000000 !important;
 }
 
-[data-theme="dark"] .dashboard-section {
-    background: var(--bg-primary) !important;
-    color: var(--text-primary) !important;
+/* 다크 테마 완전 비활성화 */
+[data-theme="dark"] * {
+    background: #ffffff !important;
+    color: #000000 !important;
+}
+
+/* 모든 다크 모드 클래스 오버라이드 */
+.dark, .dark-mode, .theme-dark, [data-bs-theme="dark"] {
+    background: #ffffff !important;
+    color: #000000 !important;
 }

@@ -15,98 +15,146 @@ load_dotenv(os.path.join(os.path.dirname(__file__), '../.env'))
 # Add current directory to path to import backend services and utils
 sys.path.append(os.path.dirname(__file__))
 
-# Import critical utilities with error handling
-auth_utils_available = False
-try:
-    from utils.auth_utils import (
-        init_auth_utils, 
-        security_validator, 
-        rate_limiter,
-        require_rate_limit,
-        validate_dashboard_access
-    )
-    auth_utils_available = True
-    print("✅ Auth utilities loaded")
-except ImportError as e:
-    print(f"⚠️ Auth utilities not available: {e}")
-    # Create minimal auth functions
-    security_validator = type('MockValidator', (object,), {
-        'validate_url_path': lambda self, x: (True, 'OK'),
-        'validate_username_format': lambda self, x: (True, 'OK'),
-        'sanitize_input': lambda self, x, **kwargs: x
-    })()
-    require_rate_limit = lambda *args, **kwargs: lambda f: f
-    validate_dashboard_access = lambda x: (True, 'OK')
+# ===== 비동기 모듈 로딩 시스템 =====
+import threading
+import time
 
-# Import routing utilities with error handling
+# 글로벌 변수들 (지연 로딩될 모듈들)
+auth_utils_available = False
 routing_available = False
+dashboard_data_available = False
+calendar_db_available = False
+
+# Mock 객체들 (즉시 사용 가능)
+security_validator = type('MockValidator', (object,), {
+    'validate_url_path': lambda self, x: (True, 'OK'),
+    'validate_username_format': lambda self, x: (True, 'OK'),
+    'sanitize_input': lambda self, x, **kwargs: x
+})()
+require_rate_limit = lambda *args, **kwargs: lambda f: f
+validate_dashboard_access = lambda x: (True, 'OK')
+
 UserRoutingMiddleware = None
 DashboardRouteBuilder = None
 
-try:
-    from utils.user_routing import UserRoutingMiddleware, DashboardRouteBuilder
-    routing_available = True
-    print("✅ User routing utilities loaded")
-except ImportError as e:
-    print(f"⚠️ User routing utilities not available: {e}")
-    routing_available = False
+dashboard_data = type('MockDashboardData', (object,), {
+    'get_user_profile': lambda self, user_id: None,
+    'get_user_api_keys': lambda self, user_id: {},
+    'get_user_sync_status': lambda self, user_id: {},
+    'get_dashboard_summary': lambda self, user_id: {'total_platforms': 5, 'configured_platforms': 0, 'enabled_platforms': 0},
+    'get_user_calendar_events': lambda self, user_id: [],
+    'get_user_friends': lambda self, user_id: []
+})()
 
-# Import dashboard data with error handling
-dashboard_data_available = False
-try:
-    from utils.dashboard_data import dashboard_data
-    dashboard_data_available = True
-    print("✅ Dashboard data utilities loaded")
-except ImportError as e:
-    print(f"⚠️ Dashboard data not available: {e}")
-    # Create mock dashboard data
-    dashboard_data = type('MockDashboardData', (object,), {
-        'get_user_profile': lambda self, user_id: None,
-        'get_user_api_keys': lambda self, user_id: {},
-        'get_user_sync_status': lambda self, user_id: {},
-        'get_dashboard_summary': lambda self, user_id: {'total_platforms': 5, 'configured_platforms': 0, 'enabled_platforms': 0},
-        'get_user_calendar_events': lambda self, user_id: [],
-        'get_user_friends': lambda self, user_id: []
-    })()
-
-# Import safe configuration system with fallback handling
-try:
-    from utils.config_safe import config
-    print("✅ Using safe configuration with fallback support")
-except ImportError:
-    print("⚠️ Safe config not available, falling back to original")
-    try:
-        from utils.config import config
-    except ImportError as e:
-        print(f"❌ Configuration import failed: {e}")
-        print("🔄 Creating minimal fallback configuration")
-        # Create minimal config for emergency fallback
-        config = type('MinimalConfig', (object,), {
-            'supabase_client': None,
-            'FLASK_SECRET_KEY': os.getenv('FLASK_SECRET_KEY', 'emergency-fallback-key'),
-            'is_production': lambda: os.environ.get('RENDER') is not None,
-            'encrypt_user_identifier': lambda self, x: x,
-            'decrypt_user_identifier': lambda self, x: x
-        })()
-
-# ===== CALENDAR DATABASE INTEGRATION =====
-# Import calendar database functions
-calendar_db_available = False
 calendar_db = None
 
-try:
-    from utils.calendar_db import calendar_db
-    if calendar_db.is_available():
-        calendar_db_available = True
-        print("✅ Calendar database connection successful")
-    else:
-        print("⚠️ Calendar database not available - using file fallback")
-except ImportError as e:
-    print(f"⚠️ Calendar database module not found: {e}")
-    print("📁 Using JSON file storage for calendars (database import failed)")
-except Exception as e:
-    print(f"❌ Calendar database connection failed: {e}")
-    print("📁 Using JSON file storage for calendars (database connection failed)")
+# 긴급 fallback config (즉시 사용 가능)
+config = type('MinimalConfig', (object,), {
+    'supabase_client': None,
+    'FLASK_SECRET_KEY': os.getenv('FLASK_SECRET_KEY', 'emergency-fallback-key'),
+    'is_production': lambda: os.environ.get('RENDER') is not None,
+    'encrypt_user_identifier': lambda self, x: x,
+    'decrypt_user_identifier': lambda self, x: x
+})()
+
+def load_modules_async():
+    """백그라운드에서 느린 모듈들을 로드"""
+    global auth_utils_available, routing_available, dashboard_data_available, calendar_db_available, user_profile_available
+    global security_validator, require_rate_limit, validate_dashboard_access
+    global UserRoutingMiddleware, DashboardRouteBuilder, dashboard_data, calendar_db, config, UserProfileManager
+    
+    print("🔄 백그라운드 모듈 로딩 시작...")
+    
+    # Configuration 로드 (제일 먼저)
+    try:
+        from utils.config_safe import config as real_config
+        config = real_config
+        print("✅ Using safe configuration with fallback support (async)")
+    except ImportError:
+        try:
+            from utils.config import config as real_config
+            config = real_config
+            print("✅ Configuration loaded (async)")
+        except ImportError as e:
+            print(f"⚠️ Configuration import failed, using fallback: {e}")
+    
+    # User Profile Manager 로드
+    try:
+        from utils.user_profile_manager import UserProfileManager as RealUserProfileManager
+        UserProfileManager = RealUserProfileManager
+        user_profile_available = True
+        print("✅ User profile manager loaded (async)")
+    except ImportError as e:
+        print(f"⚠️ User profile manager not available: {e}")
+
+    # Auth utilities 로드
+    try:
+        from utils.auth_utils import (
+            init_auth_utils, 
+            security_validator as real_security_validator, 
+            rate_limiter,
+            require_rate_limit as real_require_rate_limit,
+            validate_dashboard_access as real_validate_dashboard_access
+        )
+        security_validator = real_security_validator
+        require_rate_limit = real_require_rate_limit
+        validate_dashboard_access = real_validate_dashboard_access
+        auth_utils_available = True
+        
+        # Auth 초기화
+        if hasattr(config, 'SUPABASE_URL'):
+            try:
+                init_auth_utils(config.SUPABASE_URL, config.SUPABASE_ANON_KEY)
+                print("✅ Auth utilities initialized (async)")
+            except Exception as e:
+                print(f"⚠️ Auth initialization failed: {e}")
+                
+        print("✅ Auth utilities loaded (async)")
+    except ImportError as e:
+        print(f"⚠️ Auth utilities not available: {e}")
+
+    # Routing utilities 로드
+    try:
+        from utils.user_routing import UserRoutingMiddleware as RealMiddleware, DashboardRouteBuilder as RealBuilder
+        UserRoutingMiddleware = RealMiddleware
+        DashboardRouteBuilder = RealBuilder
+        routing_available = True
+        print("✅ User routing utilities loaded (async)")
+    except ImportError as e:
+        print(f"⚠️ User routing utilities not available: {e}")
+
+    # Dashboard data 로드
+    try:
+        from utils.dashboard_data import dashboard_data as real_dashboard_data
+        dashboard_data = real_dashboard_data
+        dashboard_data_available = True
+        print("✅ Dashboard data utilities loaded (async)")
+    except ImportError as e:
+        print(f"⚠️ Dashboard data not available: {e}")
+
+    # Calendar database 로드
+    try:
+        from utils.calendar_db import calendar_db as real_calendar_db
+        if real_calendar_db.is_available():
+            calendar_db = real_calendar_db
+            calendar_db_available = True
+            print("✅ Calendar database connection successful (async)")
+        else:
+            print("⚠️ Calendar database not available - using file fallback (async)")
+    except ImportError as e:
+        print(f"⚠️ Calendar database module not found: {e}")
+    except Exception as e:
+        print(f"❌ Calendar database connection failed: {e}")
+
+    print("✅ 백그라운드 모듈 로딩 완료!")
+
+# 백그라운드에서 모듈 로딩 시작 (비동기)
+if os.environ.get('FLASK_ENV') == 'development':
+    print("🚀 개발 모드: 빠른 시작을 위해 백그라운드에서 모듈 로딩 중...")
+    threading.Thread(target=load_modules_async, daemon=True).start()
+else:
+    # 프로덕션에서는 동기적으로 로드
+    load_modules_async()
 
 # ===== LEGACY CALENDAR FILE PERSISTENCE (FALLBACK) =====
 def get_calendars_file_path(user_id):
@@ -284,49 +332,34 @@ def add_cache_headers(response):
     response.headers['Expires'] = '0'
     return response
 
-# Get Supabase client from configuration
-supabase = config.supabase_client
+# Get Supabase client from configuration (동적으로 접근)
+def get_supabase():
+    """동적으로 Supabase 클라이언트를 가져옴"""
+    return getattr(config, 'supabase_client', None)
 
-# Initialize auth utilities with config (if available)
-if auth_utils_available and hasattr(config, 'SUPABASE_URL'):
-    try:
-        init_auth_utils(config.SUPABASE_URL, config.SUPABASE_ANON_KEY)
-        print("✅ Auth utilities initialized")
-    except Exception as e:
-        print(f"⚠️ Auth initialization failed: {e}")
-else:
-    print("🔄 Running without auth utilities - using mock functions")
+# User Profile Manager (비동기 로딩 - Mock으로 시작)
+user_profile_available = False
 
-# Import User Profile Management Functions
-try:
-    from utils.user_profile_manager import UserProfileManager
-    user_profile_available = True
-    print("✅ User profile manager loaded")
-except ImportError as e:
-    print(f"⚠️ User profile manager not available: {e}")
-    # Create minimal UserProfileManager mock
-    class UserProfileManager:
-        @staticmethod
-        def get_user_by_username(username):
-            return None
-        
-        @staticmethod
-        def get_user_by_id(user_id):
-            return None
-        
-        @staticmethod
-        def create_user_profile(user_data):
-            return {"id": "mock-id", "username": user_data.get("username", "mock")}
-        
-        @staticmethod
-        def update_user_profile(user_id, updates):
-            return {"status": "mocked"}
-        
-        @staticmethod
-        def delete_user_profile(user_id):
-            return {"status": "mocked"}
+class UserProfileManager:
+    @staticmethod
+    def get_user_by_username(username):
+        return None
     
-    user_profile_available = False
+    @staticmethod
+    def get_user_by_id(user_id):
+        return None
+    
+    @staticmethod
+    def create_user_profile(user_data):
+        return {"id": "mock-id", "username": user_data.get("username", "mock")}
+    
+    @staticmethod
+    def update_user_profile(user_id, updates):
+        return {"status": "mocked"}
+    
+    @staticmethod
+    def delete_user_profile(user_id):
+        return {"status": "mocked"}
 
 # Import AuthManager for profile operations
 try:

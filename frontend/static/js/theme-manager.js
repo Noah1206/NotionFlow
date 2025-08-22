@@ -1,6 +1,6 @@
 /**
- * 🎨 NotionFlow Theme Manager
- * Handles dark/light mode persistence and switching across all pages
+ * 🎨 NotionFlow Theme Manager - Light Mode Only
+ * 다크 모드를 완전히 비활성화하고 라이트 모드만 강제 사용
  */
 
 // 중복 선언 방지
@@ -10,248 +10,122 @@ if (typeof window.ThemeManager !== 'undefined') {
 
 class ThemeManager {
     constructor() {
-        this.THEME_KEY = 'theme'; // Keep same key as original dashboard code
+        this.THEME_KEY = 'theme';
         this.THEMES = {
-            DARK: 'dark',
-            LIGHT: 'light'
+            LIGHT: 'light'  // 다크 모드 제거
         };
         
-        // Initialize theme immediately to prevent flash
-        this.initializeTheme();
+        // 항상 라이트 모드로 초기화
+        this.forceLightMode();
         
-        // Wait for DOM to be ready for toggle button
+        // 다크 모드 토글 버튼들 숨기기
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => this.setupToggleButton());
+            document.addEventListener('DOMContentLoaded', () => this.hideDarkModeToggles());
         } else {
-            this.setupToggleButton();
+            this.hideDarkModeToggles();
         }
     }
 
     /**
-     * Initialize theme from localStorage or default to dark
+     * 라이트 모드로 강제 설정
      */
-    initializeTheme() {
-        const savedTheme = localStorage.getItem(this.THEME_KEY);
-        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    forceLightMode() {
+        this.applyTheme('light');
         
-        // Priority: saved theme > system preference > default dark
-        const theme = savedTheme || (systemPrefersDark ? this.THEMES.DARK : this.THEMES.LIGHT);
+        // 다크 모드 관련 localStorage 제거
+        localStorage.removeItem(this.THEME_KEY);
+        localStorage.setItem(this.THEME_KEY, 'light');
         
-        this.applyTheme(theme);
-        
-        // console.log(`🎨 Theme initialized: ${theme}`);
+        console.log('🎨 Forced light mode only');
     }
 
     /**
-     * Apply theme to document
+     * Apply theme to document (라이트 모드만)
      */
     applyTheme(theme) {
         const html = document.documentElement;
         const body = document.body;
         
-        // Set data-theme attribute
-        html.setAttribute('data-theme', theme);
+        // 항상 라이트 모드로 강제 설정
+        html.setAttribute('data-theme', 'light');
+        html.removeAttribute('data-bs-theme'); // Bootstrap 다크 모드 제거
         
-        // Also set on body for compatibility
         if (body) {
-            body.setAttribute('data-theme', theme);
+            body.setAttribute('data-theme', 'light');
+            body.className = body.className.replace(/\b(dark|dark-theme|dark-mode)\b/g, '').trim();
+            body.classList.add('light-theme');
+            body.style.background = '#ffffff';
+            body.style.color = '#000000';
         }
         
-        // Save to localStorage
-        localStorage.setItem(this.THEME_KEY, theme);
+        // 다크 모드 관련 클래스 모두 제거
+        document.querySelectorAll('.dark, .dark-theme, .dark-mode, [data-theme="dark"]').forEach(el => {
+            el.classList.remove('dark', 'dark-theme', 'dark-mode');
+            el.setAttribute('data-theme', 'light');
+            el.style.background = '#ffffff';
+            el.style.color = '#000000';
+        });
         
-        // Update toggle button if it exists
-        this.updateToggleButton(theme);
-        
-        // console.log(`🎨 Theme applied: ${theme}`);
+        localStorage.setItem(this.THEME_KEY, 'light');
+        console.log('🎨 Light theme applied (forced)');
     }
 
     /**
-     * Toggle between dark and light themes
+     * 다크 모드 토글 비활성화
      */
     toggleTheme() {
-        const currentTheme = this.getCurrentTheme();
-        const newTheme = currentTheme === this.THEMES.DARK ? this.THEMES.LIGHT : this.THEMES.DARK;
-        
-        // Add visual feedback to the toggle button
-        const toggleButton = document.getElementById('theme-toggle');
-        if (toggleButton) {
-            toggleButton.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                toggleButton.style.transform = 'scale(1)';
-            }, 150);
-            
-            // Force update slider color immediately
-            const slider = toggleButton.nextElementSibling;
-            if (slider && slider.classList.contains('toggle-slider')) {
-                const isChecked = toggleButton.checked;
-                if (isChecked) {
-                    slider.style.backgroundColor = '#00d15a';
-                } else {
-                    slider.style.backgroundColor = newTheme === this.THEMES.DARK ? '#8e8e93' : '#ccc';
-                }
-            }
-        }
-        
-        this.applyTheme(newTheme);
-        
-        // Dispatch custom event for components that need to react to theme changes
-        window.dispatchEvent(new CustomEvent('themeChanged', {
-            detail: { theme: newTheme, previousTheme: currentTheme }
-        }));
-        
-        // console.log(`🎨 Theme toggled: ${currentTheme} → ${newTheme}`);
+        // 다크 모드 토글 비활성화 - 항상 라이트 모드 유지
+        this.forceLightMode();
+        console.log('🎨 Dark mode toggle disabled - staying in light mode');
     }
 
     /**
-     * Get current theme
+     * Get current theme (항상 라이트 모드)
      */
     getCurrentTheme() {
-        return document.documentElement.getAttribute('data-theme') || this.THEMES.DARK;
+        return 'light';
     }
 
     /**
-     * Setup theme toggle button
+     * 다크 모드 토글 버튼들 숨기기
      */
-    setupToggleButton() {
-        // Don't create toggle button in sidebar - only look for existing ones
-        let toggleButton = document.getElementById('theme-toggle');
+    hideDarkModeToggles() {
+        const toggleSelectors = [
+            '#theme-toggle',
+            '.theme-toggle',
+            '.dark-mode-toggle',
+            '[data-theme-toggle]',
+            '.theme-switch'
+        ];
         
-        // Don't create new button anymore
-        // if (!toggleButton) {
-        //     toggleButton = this.createToggleButton();
-        // }
-        
-        if (toggleButton) {
-            // Check if already has our listener to prevent duplicates
-            if (!toggleButton.hasAttribute('data-theme-listener')) {
-                // Remove any existing listeners first
-                const newButton = toggleButton.cloneNode(true);
-                toggleButton.parentNode.replaceChild(newButton, toggleButton);
-                toggleButton = newButton;
-                
-                // Add appropriate event listener based on element type
-                if (toggleButton.type === 'checkbox') {
-                    // For checkbox toggle switch
-                    toggleButton.addEventListener('change', (e) => {
-                        e.stopPropagation();
-                        this.toggleTheme();
-                    });
-                } else {
-                    // For button style
-                    toggleButton.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        this.toggleTheme();
-                    });
-                }
-                
-                // Mark as having our listener
-                toggleButton.setAttribute('data-theme-listener', 'true');
-            }
-            
-            // Update initial state
-            this.updateToggleButton(this.getCurrentTheme());
-            
-            // console.log('🎨 Theme toggle button initialized');
-        }
-    }
-
-    /**
-     * Create theme toggle button if it doesn't exist
-     */
-    createToggleButton() {
-        // DISABLED: Don't create toggle button automatically
-        // User wants theme toggle only in settings modal
-        // console.log('🎨 Theme toggle button creation disabled - use settings modal instead');
-        return null;
-    }
-
-    /**
-     * Update toggle button appearance
-     */
-    updateToggleButton(theme) {
-        const toggleButton = document.getElementById('theme-toggle');
-        if (!toggleButton) return;
-        
-        const isDark = theme === this.THEMES.DARK;
-        
-        // Check if it's a checkbox input (toggle switch style)
-        if (toggleButton.type === 'checkbox') {
-            // For toggle switch: checked = dark mode
-            toggleButton.checked = isDark;
-            
-            // Force update slider color based on checked state
-            const slider = toggleButton.nextElementSibling;
-            if (slider && slider.classList.contains('toggle-slider')) {
-                if (toggleButton.checked) {
-                    // ON state - green color
-                    slider.style.backgroundColor = '#00d15a';
-                } else {
-                    // OFF state - gray color
-                    slider.style.backgroundColor = isDark ? '#8e8e93' : '#ccc';
-                }
-            }
-            
-            // Update label text if it exists
-            const themeLabel = toggleButton.closest('.theme-toggle')?.querySelector('.theme-toggle-label');
-            if (themeLabel) {
-                themeLabel.textContent = isDark ? '다크모드' : '라이트모드';
-            }
-        } else {
-            // For button style (fallback)
-            const buttonText = isDark ? '라이트모드' : '다크모드';
-            const themeTextSpan = toggleButton.querySelector('.theme-text');
-            if (themeTextSpan) {
-                themeTextSpan.textContent = buttonText;
-            } else {
-                toggleButton.innerHTML = buttonText;
-            }
-        }
-        
-        // Update title and accessibility
-        const titleText = isDark ? '라이트 모드로 전환' : '다크 모드로 전환';
-        toggleButton.title = titleText;
-        toggleButton.setAttribute('aria-label', titleText);
-    }
-
-    /**
-     * Listen for system theme changes
-     */
-    setupSystemThemeListener() {
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        
-        mediaQuery.addListener((e) => {
-            // Only auto-switch if user hasn't manually set a theme
-            const savedTheme = localStorage.getItem(this.THEME_KEY);
-            if (!savedTheme) {
-                const systemTheme = e.matches ? this.THEMES.DARK : this.THEMES.LIGHT;
-                this.applyTheme(systemTheme);
-            }
+        toggleSelectors.forEach(selector => {
+            document.querySelectorAll(selector).forEach(element => {
+                element.style.display = 'none';
+                element.disabled = true;
+            });
         });
+        
+        // 다크 모드 관련 아이콘들도 숨기기
+        document.querySelectorAll('.fa-moon, .theme-icon, .dark-mode-icon').forEach(icon => {
+            icon.style.display = 'none';
+        });
+        
+        console.log('🎨 Dark mode toggles hidden');
     }
 
     /**
-     * Force theme (for testing or special cases)
+     * Force theme (라이트 모드만)
      */
     setTheme(theme) {
-        if (Object.values(this.THEMES).includes(theme)) {
-            this.applyTheme(theme);
-        } else {
-            // console.warn(`🎨 Invalid theme: ${theme}`);
-        }
+        // 무엇을 요청하든 항상 라이트 모드만
+        this.forceLightMode();
     }
 
     /**
-     * Reset theme to system preference
+     * Reset theme (라이트 모드로)
      */
     resetToSystemTheme() {
-        localStorage.removeItem(this.THEME_KEY);
-        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const systemTheme = systemPrefersDark ? this.THEMES.DARK : this.THEMES.LIGHT;
-        
-        this.applyTheme(systemTheme);
-        // console.log(`🎨 Theme reset to system preference: ${systemTheme}`);
+        this.forceLightMode();
     }
 }
 
@@ -262,16 +136,37 @@ if (!window.themeManager) {
     window.themeManager = new ThemeManager();
 }
 
-// Global utility functions for easy access
-window.toggleTheme = () => window.themeManager.toggleTheme();
-window.setTheme = (theme) => window.themeManager.setTheme(theme);
-window.resetTheme = () => window.themeManager.resetToSystemTheme();
+// Global utility functions - 모든 함수는 라이트 모드만 지원
+window.toggleTheme = () => {
+    console.log('🎨 Theme toggle disabled - light mode only');
+    window.themeManager.forceLightMode();
+};
+window.setTheme = (theme) => window.themeManager.forceLightMode();
+window.resetTheme = () => window.themeManager.forceLightMode();
+
+// 주기적으로 다크 모드 감지 및 제거
+setInterval(() => {
+    if (window.themeManager) {
+        // 다크 모드로 설정된 요소들을 감지하고 라이트 모드로 변경
+        if (document.documentElement.getAttribute('data-theme') === 'dark') {
+            window.themeManager.forceLightMode();
+        }
+        
+        // 다크 모드 관련 클래스가 있는 요소들 정리
+        document.querySelectorAll('.dark, .dark-theme, .dark-mode').forEach(el => {
+            el.classList.remove('dark', 'dark-theme', 'dark-mode');
+            el.classList.add('light-theme');
+            el.style.background = '#ffffff';
+            el.style.color = '#000000';
+        });
+    }
+}, 500);
 
 // Export for module usage if needed
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = ThemeManager;
 }
 
-// console.log('🎨 NotionFlow Theme Manager loaded');
+console.log('🎨 NotionFlow Theme Manager loaded - Light mode only');
 
 } // End of duplicate prevention check
