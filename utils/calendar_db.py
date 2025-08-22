@@ -264,41 +264,6 @@ class CalendarDatabase:
             'total_events': total_events
         }
 
-# Create global instance
-calendar_db = CalendarDatabase()
-
-# Backward compatibility functions (drop-in replacements for JSON functions)
-def save_user_calendars(user_id: str, calendars: List[Dict[str, Any]]) -> bool:
-    """Backward compatibility: Save calendars (now saves to database)"""
-    if not calendar_db.is_available():
-        print("⚠️ Database not available, operation failed")
-        return False
-    
-    try:
-        # Get existing calendars
-        existing = calendar_db.get_user_calendars(user_id)
-        existing_names = {cal['name'] for cal in existing}
-        
-        # Create new calendars
-        success_count = 0
-        for calendar in calendars:
-            if calendar['name'] not in existing_names:
-                if calendar_db.create_calendar(user_id, calendar):
-                    success_count += 1
-            else:
-                # Update existing calendar
-                existing_cal = next((cal for cal in existing if cal['name'] == calendar['name']), None)
-                if existing_cal:
-                    if calendar_db.update_calendar(existing_cal['id'], calendar):
-                        success_count += 1
-        
-        print(f"✅ Processed {success_count} calendars for user {user_id}")
-        return success_count > 0
-        
-    except Exception as e:
-        print(f"❌ Failed to save calendars: {e}")
-        return False
-
     def share_calendar_with_friend(self, calendar_id: str, owner_id: str, friend_id: str) -> bool:
         """Share a calendar with a friend"""
         if not self.supabase:
@@ -427,6 +392,41 @@ def save_user_calendars(user_id: str, calendars: List[Dict[str, Any]]) -> bool:
         except Exception as e:
             print(f"❌ Failed to get calendar shares: {e}")
             return {}
+
+# Create global instance
+calendar_db = CalendarDatabase()
+
+# Backward compatibility functions (drop-in replacements for JSON functions)
+def save_user_calendars(user_id: str, calendars: List[Dict[str, Any]]) -> bool:
+    """Backward compatibility: Save calendars (now saves to database)"""
+    if not calendar_db.is_available():
+        print("⚠️ Database not available, operation failed")
+        return False
+    
+    try:
+        # Get existing calendars
+        existing = calendar_db.get_user_calendars(user_id)
+        existing_names = {cal['name'] for cal in existing}
+        
+        # Create new calendars
+        success_count = 0
+        for calendar in calendars:
+            if calendar['name'] not in existing_names:
+                if calendar_db.create_calendar(user_id, calendar):
+                    success_count += 1
+            else:
+                # Update existing calendar
+                existing_cal = next((cal for cal in existing if cal['name'] == calendar['name']), None)
+                if existing_cal:
+                    if calendar_db.update_calendar(existing_cal['id'], calendar):
+                        success_count += 1
+        
+        print(f"✅ Processed {success_count} calendars for user {user_id}")
+        return success_count > 0
+        
+    except Exception as e:
+        print(f"❌ Failed to save calendars: {e}")
+        return False
 
 def load_user_calendars(user_id: str) -> List[Dict[str, Any]]:
     """Backward compatibility: Load calendars (now loads from database)"""
