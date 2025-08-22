@@ -3074,9 +3074,9 @@ def get_friend_calendars():
         print(f"Error getting friend calendars: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/friends/requests', methods=['GET'])
-def get_friend_requests():
-    """Get pending friend requests"""
+@app.route('/api/friends/requests-old', methods=['GET'])
+def get_friend_requests_old():
+    """Get pending friend requests (old version)"""
     try:
         user_id = session.get('user_id')
         if not user_id:
@@ -3181,9 +3181,9 @@ def search_users_by_email():
         print(f"Error searching users: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/friends/request', methods=['POST'])
-def send_friend_request():
-    """Send friend request to user"""
+@app.route('/api/friends/request-old', methods=['POST'])
+def send_friend_request_old():
+    """Send friend request to user (old version)"""
     try:
         user_id = session.get('user_id')
         if not user_id:
