@@ -3126,8 +3126,8 @@ def get_friend_requests():
         print(f"Error getting friend requests: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/users/search', methods=['GET'])
-def search_users():
+@app.route('/api/users/search-by-email', methods=['GET'])
+def search_users_by_email():
     """Search users by email"""
     try:
         user_id = session.get('user_id')
