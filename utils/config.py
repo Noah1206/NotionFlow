@@ -9,11 +9,8 @@ from typing import Optional, Dict, Any
 from cryptography.fernet import Fernet
 import base64
 import json
-from supabase import create_client, Client
+# Supabase import will be done lazily to avoid blocking
 from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
 
 class Config:
     """Centralized configuration management"""
@@ -26,6 +23,9 @@ class Config:
     
     def _load_environment(self):
         """Load environment variables"""
+        # Load environment variables from .env file
+        load_dotenv()
+        
         # Supabase Configuration
         self.SUPABASE_URL = os.getenv('SUPABASE_URL')
         self.SUPABASE_ANON_KEY = os.getenv('SUPABASE_API_KEY')
@@ -102,6 +102,15 @@ class Config:
                 self.supabase_client = None
                 self.supabase_admin = None
                 return
+            
+            # Lazy import of supabase to avoid blocking at module load time
+            try:
+                from supabase import create_client
+            except ImportError as e:
+                print(f"⚠️ Supabase library not available: {e}")
+                self.supabase_client = None
+                self.supabase_admin = None
+                return
                 
             # Client for public operations (user-facing)
             self.supabase_client = create_client(
@@ -170,7 +179,7 @@ class Config:
             print(f"⚠️ Failed to decrypt user identifier: {e}")
             return ""
     
-    def get_client_for_user(self, user_id: Optional[str] = None) -> Client:
+    def get_client_for_user(self, user_id: Optional[str] = None):
         """Get appropriate Supabase client based on context"""
         if user_id and self.FLASK_ENV == 'production':
             # Use user context for RLS
@@ -194,8 +203,22 @@ class Config:
         print(f"   Encryption: {'✅ Ready' if hasattr(self, 'cipher_suite') else '❌ Failed'}")
         print()
 
-# Global configuration instance
-config = Config()
+# Global configuration instance - lazy initialization
+_config = None
+
+def get_config():
+    """Get or create the global configuration instance"""
+    global _config
+    if _config is None:
+        _config = Config()
+    return _config
+
+# For backward compatibility, create a property-like access
+class ConfigProxy:
+    def __getattr__(self, name):
+        return getattr(get_config(), name)
+
+config = ConfigProxy()
 
 # Helper functions for backward compatibility
 def get_supabase_client():

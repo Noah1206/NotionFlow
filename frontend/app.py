@@ -298,7 +298,35 @@ else:
     print("🔄 Running without auth utilities - using mock functions")
 
 # Import User Profile Management Functions
-from utils.user_profile_manager import UserProfileManager
+try:
+    from utils.user_profile_manager import UserProfileManager
+    user_profile_available = True
+    print("✅ User profile manager loaded")
+except ImportError as e:
+    print(f"⚠️ User profile manager not available: {e}")
+    # Create minimal UserProfileManager mock
+    class UserProfileManager:
+        @staticmethod
+        def get_user_by_username(username):
+            return None
+        
+        @staticmethod
+        def get_user_by_id(user_id):
+            return None
+        
+        @staticmethod
+        def create_user_profile(user_data):
+            return {"id": "mock-id", "username": user_data.get("username", "mock")}
+        
+        @staticmethod
+        def update_user_profile(user_id, updates):
+            return {"status": "mocked"}
+        
+        @staticmethod
+        def delete_user_profile(user_id):
+            return {"status": "mocked"}
+    
+    user_profile_available = False
 
 # Import AuthManager for profile operations
 try:
@@ -3352,31 +3380,59 @@ def unshare_calendar():
         print(f"Error unsharing calendar: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/test/session', methods=['GET'])
+def test_session():
+    """Test session and basic functionality"""
+    try:
+        user_id = session.get('user_id')
+        return jsonify({
+            'success': True,
+            'user_id': user_id,
+            'session_keys': list(session.keys()),
+            'test': 'API working'
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
 @app.route('/api/calendar/my-calendars', methods=['GET'])
 def get_my_calendars():
     """Get current user's calendars with sharing status"""
     try:
         user_id = session.get('user_id')
+        print(f"🔍 get_my_calendars called for user_id: {user_id}")
+        
         if not user_id:
             return jsonify({'success': False, 'error': 'Not authenticated'}), 401
         
         # Get user's calendars
-        from utils.calendar_db import calendar_db
-        calendars = calendar_db.get_user_calendars(user_id)
-        
-        # Get sharing information
-        shares_map = calendar_db.get_calendar_shares_by_owner(user_id)
-        
-        # Add sharing status to calendars
-        for calendar in calendars:
-            calendar_id = calendar['id']
-            calendar['shared_with'] = shares_map.get(calendar_id, [])
-            calendar['is_currently_shared'] = len(calendar['shared_with']) > 0
-        
-        return jsonify({'success': True, 'calendars': calendars})
+        try:
+            from utils.calendar_db import calendar_db
+            print(f"🔍 calendar_db imported successfully, available: {calendar_db.is_available()}")
+            
+            calendars = calendar_db.get_user_calendars(user_id)
+            print(f"🔍 Retrieved {len(calendars) if calendars else 0} calendars")
+            
+            # Get sharing information
+            shares_map = calendar_db.get_calendar_shares_by_owner(user_id)
+            print(f"🔍 Retrieved sharing info: {shares_map}")
+            
+            # Add sharing status to calendars
+            for calendar in calendars:
+                calendar_id = calendar['id']
+                calendar['shared_with'] = shares_map.get(calendar_id, [])
+                calendar['is_currently_shared'] = len(calendar['shared_with']) > 0
+            
+            print(f"🔍 Final calendars data: {calendars}")
+            return jsonify({'success': True, 'calendars': calendars})
+            
+        except ImportError as ie:
+            print(f"❌ Import error: {ie}")
+            return jsonify({'success': False, 'error': 'Calendar database not available'}), 500
         
     except Exception as e:
-        print(f"Error getting my calendars: {e}")
+        print(f"❌ Error getting my calendars: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/calendar/shared-with-me', methods=['GET'])
@@ -3462,22 +3518,36 @@ def send_friend_request():
 @app.route('/api/friends', methods=['GET'])
 def get_friends():
     """Get user's friends list"""
+    print("🔍 get_friends API called")
     try:
         user_id = session.get('user_id')
+        print(f"🔍 user_id from session: {user_id}")
+        
         if not user_id:
+            print("❌ No user_id in session")
             return jsonify({'success': False, 'error': 'Not authenticated'}), 401
         
-        # Use AuthManager to get real friends list
-        from utils.auth_manager import AuthManager
-        friends = AuthManager.get_friends_list(user_id)
-        
-        return jsonify({
-            'success': True,
-            'friends': friends
-        })
+        # Try to import AuthManager
+        try:
+            from utils.auth_manager import AuthManager
+            print("✅ AuthManager imported successfully")
+            
+            friends = AuthManager.get_friends_list(user_id)
+            print(f"✅ Retrieved {len(friends)} friends")
+            
+            return jsonify({
+                'success': True,
+                'friends': friends
+            })
+            
+        except ImportError as ie:
+            print(f"❌ Failed to import AuthManager: {ie}")
+            return jsonify({'success': False, 'error': 'AuthManager not available'}), 500
         
     except Exception as e:
-        print(f"Error getting friends: {e}")
+        print(f"❌ Error getting friends: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/friends/requests', methods=['GET'])
@@ -3600,8 +3670,8 @@ if __name__ == '__main__':
     
     port = int(os.environ.get('PORT', 5003))
     app.run(host='0.0.0.0', port=port, debug=True)
-else:
-    # Production startup with error handling
+elif os.environ.get('RENDER') and not os.environ.get('FLASK_ENV') == 'development':
+    # Production startup with error handling (only on Render platform)
     try:
         from utils.sync_scheduler import start_sync_scheduler
         start_sync_scheduler()
@@ -3610,3 +3680,4 @@ else:
         print(f"⚠️ Sync scheduler not available in production: {e}")
     except Exception as e:
         print(f"❌ Failed to start production sync scheduler: {e}")
+# No else block - allow clean imports without starting sync scheduler
