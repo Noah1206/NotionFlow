@@ -2948,9 +2948,9 @@ except ImportError as e:
     friends_db_available = False
     friends_db = None
 
-@app.route('/api/friends', methods=['GET'])
-def get_friends():
-    """Get user's friends list"""
+@app.route('/api/friends-old', methods=['GET'])
+def get_friends_old():
+    """Get user's friends list (old version)"""
     try:
         user_id = session.get('user_id')
         if not user_id:
