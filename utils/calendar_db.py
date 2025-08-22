@@ -24,7 +24,11 @@ class CalendarDatabase:
     """Database operations for calendar management"""
     
     def __init__(self):
-        self.supabase = config.supabase_admin if config else None
+        try:
+            self.supabase = config.supabase_admin if config else None
+        except Exception as e:
+            print(f"⚠️ Supabase connection failed: {e}")
+            self.supabase = None
         
     def is_available(self) -> bool:
         """Check if database is available"""

@@ -112,17 +112,19 @@ class Config:
                 self.supabase_admin = None
                 return
                 
-            # Client for public operations (user-facing)
+            # Client for public operations (user-facing) with timeout
             self.supabase_client = create_client(
                 self.SUPABASE_URL, 
-                self.SUPABASE_ANON_KEY
+                self.SUPABASE_ANON_KEY,
+                options={"timeout": 10}  # 10 second timeout
             )
             
-            # Admin client for server operations
+            # Admin client for server operations with timeout
             if self.SUPABASE_SERVICE_ROLE_KEY:
                 self.supabase_admin = create_client(
                     self.SUPABASE_URL, 
-                    self.SUPABASE_SERVICE_ROLE_KEY
+                    self.SUPABASE_SERVICE_ROLE_KEY,
+                    options={"timeout": 10}  # 10 second timeout
                 )
             else:
                 self.supabase_admin = self.supabase_client
