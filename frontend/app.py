@@ -246,31 +246,7 @@ app = Flask(__name__,
 app.secret_key = config.FLASK_SECRET_KEY
 app.config['TEMPLATES_AUTO_RELOAD'] = True  # 템플릿 자동 리로드 활성화
 
-# Calendar data storage functions
-def load_user_calendars_legacy(user_id):
-    """Load user calendars from JSON file"""
-    try:
-        calendars_file = f'data/calendars_{user_id}.json'
-        if os.path.exists(calendars_file):
-            with open(calendars_file, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        return []
-    except Exception as e:
-        print(f"Error loading calendars for user {user_id}: {e}")
-        return []
-
-def save_user_calendars_legacy(user_id, calendars):
-    """Save user calendars to JSON file"""
-    try:
-        os.makedirs('data', exist_ok=True)
-        calendars_file = f'data/calendars_{user_id}.json'
-        with open(calendars_file, 'w', encoding='utf-8') as f:
-            json.dump(calendars, f, ensure_ascii=False, indent=2, default=str)
-        print(f"✅ Saved {len(calendars)} calendars for user {user_id}")
-        return True
-    except Exception as e:
-        print(f"❌ Error saving calendars for user {user_id}: {e}")
-        return False
+# Calendar data storage functions (using the implementations from lines 118-132)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # 정적 파일 캐싱 비활성화
 app.jinja_env.auto_reload = True  # Jinja2 템플릿 자동 리로드
 
@@ -3321,7 +3297,7 @@ def decline_friend_request(request_id):
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/user/profile', methods=['GET'])
-def get_user_profile():
+def get_current_user_profile():
     """Get current user profile"""
     try:
         user_id = session.get('user_id')
@@ -3374,17 +3350,7 @@ def internal_error(error):
     return render_template('404.html'), 500
 
 # ===== CACHE CONTROL =====
-# Force template reload for development
-def force_template_reload():
-    app.jinja_env.cache = {}
-
-# Add cache-busting headers to all responses
-@app.after_request
-def add_cache_headers(response):
-    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-    response.headers['Pragma'] = 'no-cache' 
-    response.headers['Expires'] = '0'
-    return response
+# (Cache control functions already defined above with proper decorators)
 
 if __name__ == '__main__':
     # Start sync scheduler (if available)
