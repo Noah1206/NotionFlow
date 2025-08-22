@@ -21,13 +21,10 @@ def validate_email(email: str) -> bool:
     return re.match(pattern, email) is not None
 
 def validate_password(password: str) -> tuple[bool, str]:
-    """Validate password strength"""
-    if len(password) < 8:
-        return False, "Password must be at least 8 characters long"
-    if not re.search(r'[A-Za-z]', password):
-        return False, "Password must contain at least one letter"
-    if not re.search(r'\d', password):
-        return False, "Password must contain at least one number"
+    """Validate password strength (relaxed for development)"""
+    if len(password) < 6:
+        return False, "Password must be at least 6 characters long"
+    # Relaxed validation - just check minimum length
     return True, "Valid password"
 
 @auth_bp.route('/login', methods=['POST'])
