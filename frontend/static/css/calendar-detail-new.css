@@ -763,4 +763,270 @@
     background: #f1f5f9;
     color: #334155;
 }
+
+/* Attendees Section Styles - Google Calendar Inspired */
+.attendees-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.widget-header .widget-icon {
+    font-size: 16px;
+    margin-right: 2px;
+}
+
+.attendees-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.attendee-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    background: #f8fafc;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.15s ease;
+}
+
+.attendee-item:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.attendee-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.attendee-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.attendee-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.attendee-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.attendee-email {
+    font-size: 11px;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.attendee-status {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.attendee-status.accepted {
+    background: #e6f7ff;
+    color: #1890ff;
+    border: 1px solid #91d5ff;
+}
+
+.attendee-status.pending {
+    background: #fff7e6;
+    color: #fa8c16;
+    border: 1px solid #ffd591;
+}
+
+.attendee-status.declined {
+    background: #fff2f0;
+    color: #f5222d;
+    border: 1px solid #ffb3b3;
+}
+
+.attendee-status:hover {
+    transform: scale(1.1);
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.add-attendee-btn {
+    background: none;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.add-attendee-btn:hover {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+/* Attendance Summary */
+.attendance-summary {
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+}
+
+.summary-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+}
+
+.stat-label {
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.stat-value {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.stat-value.accepted {
+    color: #166534;
+}
+
+.stat-value.pending {
+    color: #92400e;
+}
+
+.stat-value.declined {
+    color: #991b1b;
+}
+
+/* Add Attendee Modal Styles */
+.attendee-modal {
+    width: 450px;
+    max-width: 90vw;
+}
+
+.attendee-modal .form-group {
+    margin-bottom: 16px;
+}
+
+.attendee-modal .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 6px;
+}
+
+.attendee-modal .form-group input,
+.attendee-modal .form-group select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #1e293b;
+    background: white;
+    transition: all 0.15s ease;
+    box-sizing: border-box;
+}
+
+.attendee-modal .form-group input:focus,
+.attendee-modal .form-group select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.attendee-modal .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #374151;
+    cursor: pointer;
+}
+
+.attendee-modal .checkbox-label input {
+    width: auto;
+    margin: 0;
+}
+
+.attendee-modal .form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.attendee-modal .btn-cancel,
+.attendee-modal .btn-save {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: none;
+}
+
+.attendee-modal .btn-cancel {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.attendee-modal .btn-cancel:hover {
+    background: #e2e8f0;
+    color: #475569;
+}
+
+.attendee-modal .btn-save {
+    background: #3b82f6;
+    color: white;
+}
+
+.attendee-modal .btn-save:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
 }

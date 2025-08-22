@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>친구 캘린더 - NotionFlow</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/variables.css') }}?v={{ range(100000, 999999) | random }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/friends.css') }}?v={{ range(100000, 999999) | random }}">
+    
+    <!-- Core notification system -->
+    <script src="{{ url_for('static', filename='js/notification-utils.js') }}?v={{ range(100000, 999999) | random }}"></script>
+</head>
+
+<body>
+<div class="friends-container">
+    <!-- Header -->
+    <div class="friends-header">
+        <div class="header-left">
+            <button class="btn-back" onclick="window.location.href='/dashboard'">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <h1 class="page-title">
+                <span class="title-icon">👥</span>
+                친구 캘린더
+            </h1>
+        </div>
+        
+        <div class="header-right">
+            <button class="btn-add-friend" onclick="openAddFriendModal()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="8.5" cy="7" r="4"/>
+                    <line x1="20" y1="8" x2="20" y2="14"/>
+                    <line x1="23" y1="11" x2="17" y2="11"/>
+                </svg>
+                친구 추가
+            </button>
+            
+            <button class="btn-requests" onclick="openFriendRequests()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+                <span class="request-badge" id="request-count" style="display: none;">3</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Friends Story Bar (Instagram Style) -->
+    <div class="friends-story-bar">
+        <div class="story-scroll-container">
+            <button class="story-nav-btn prev" onclick="scrollStories('prev')" style="display: none;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M15 18l-6-6 6-6"/>
+                </svg>
+            </button>
+            
+            <div class="story-list" id="story-list">
+                <!-- Your story -->
+                <div class="story-item my-story" onclick="openMyCalendarSettings()">
+                    <div class="story-avatar">
+                        <img src="/static/images/default-avatar.png" alt="내 스토리" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSI4IiByPSI0IiBmaWxsPSIjOTk5Ii8+CjxwYXRoIGQ9Ik0yMCAyMGMwLTUuNS0zLjUtMTAtOC0xMHMtOCA0LjUtOCAxMCIgZmlsbD0iIzk5OSIvPgo8L3N2Zz4K';">
+                        <div class="add-story-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                                <line x1="12" y1="5" x2="12" y2="19" stroke="white" stroke-width="2"/>
+                                <line x1="5" y1="12" x2="19" y2="12" stroke="white" stroke-width="2"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <span class="story-name">내 캘린더</span>
+                </div>
+                
+                <!-- Friend stories will be added dynamically -->
+            </div>
+            
+            <button class="story-nav-btn next" onclick="scrollStories('next')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M9 18l6-6-6-6"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="friends-content">
+        <!-- Friends Calendar List -->
+        <div class="calendar-list-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="section-icon">📅</span>
+                    친구들의 공개 캘린더
+                </h2>
+                
+                <div class="filter-controls">
+                    <input type="text" class="search-input" placeholder="캘린더 검색..." id="calendar-search">
+                    
+                    <select class="filter-select" id="filter-friend">
+                        <option value="">모든 친구</option>
+                        <option value="friend1">김철수</option>
+                        <option value="friend2">이영희</option>
+                        <option value="friend3">박민수</option>
+                    </select>
+                    
+                    <select class="filter-select" id="filter-type">
+                        <option value="">모든 유형</option>
+                        <option value="work">업무</option>
+                        <option value="personal">개인</option>
+                        <option value="hobby">취미</option>
+                        <option value="study">학습</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Calendar Table -->
+            <div class="calendar-table-container">
+                <table class="calendar-table">
+                    <thead>
+                        <tr>
+                            <th width="40">
+                                <input type="checkbox" id="select-all" onchange="toggleSelectAll()">
+                            </th>
+                            <th width="60">친구</th>
+                            <th>캘린더 이름</th>
+                            <th width="100">유형</th>
+                            <th width="120">최근 업데이트</th>
+                            <th width="80">이벤트</th>
+                            <th width="100">공유 상태</th>
+                            <th width="100">작업</th>
+                        </tr>
+                    </thead>
+                    <tbody id="calendar-table-body">
+                        <!-- Sample data - will be replaced with dynamic content -->
+                        <tr class="calendar-row" data-calendar-id="cal1">
+                            <td>
+                                <input type="checkbox" class="select-calendar">
+                            </td>
+                            <td>
+                                <div class="friend-avatar-small">
+                                    <img src="/static/images/default-avatar.png" alt="김철수" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSI4IiByPSI0IiBmaWxsPSIjOTk5Ii8+CjxwYXRoIGQ9Ik0yMCAyMGMwLTUuNS0zLjUtMTAtOC0xMHMtOCA0LjUtOCAxMCIgZmlsbD0iIzk5OSIvPgo8L3N2Zz4K';">
+                                </div>
+                            </td>
+                            <td>
+                                <div class="calendar-name-cell">
+                                    <div class="calendar-color-dot" style="background: #3B82F6;"></div>
+                                    <span class="calendar-name">프로젝트 일정</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="calendar-type-badge work">업무</span>
+                            </td>
+                            <td>
+                                <span class="update-time">2시간 전</span>
+                            </td>
+                            <td>
+                                <span class="event-count">12</span>
+                            </td>
+                            <td>
+                                <span class="share-status public">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                                    </svg>
+                                    공개
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn-view-calendar" onclick="viewFriendCalendar('cal1')">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                    보기
+                                </button>
+                            </td>
+                        </tr>
+                        
+                        <tr class="calendar-row" data-calendar-id="cal2">
+                            <td>
+                                <input type="checkbox" class="select-calendar">
+                            </td>
+                            <td>
+                                <div class="friend-avatar-small">
+                                    <img src="/static/images/default-avatar.png" alt="이영희">
+                                </div>
+                            </td>
+                            <td>
+                                <div class="calendar-name-cell">
+                                    <div class="calendar-color-dot" style="background: #10B981;"></div>
+                                    <span class="calendar-name">운동 스케줄</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="calendar-type-badge hobby">취미</span>
+                            </td>
+                            <td>
+                                <span class="update-time">1일 전</span>
+                            </td>
+                            <td>
+                                <span class="event-count">8</span>
+                            </td>
+                            <td>
+                                <span class="share-status public">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                                    </svg>
+                                    공개
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn-view-calendar" onclick="viewFriendCalendar('cal2')">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                    보기
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            <div class="pagination">
+                <button class="page-btn" onclick="changePage('prev')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M15 18l-6-6 6-6"/>
+                    </svg>
+                </button>
+                <span class="page-info">1 / 3</span>
+                <button class="page-btn" onclick="changePage('next')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M9 18l6-6-6-6"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Stats Section -->
+        <div class="stats-section">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-content">
+                    <div class="stat-value">12</div>
+                    <div class="stat-label">친구</div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">📅</div>
+                <div class="stat-content">
+                    <div class="stat-value">28</div>
+                    <div class="stat-label">공개 캘린더</div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">🎉</div>
+                <div class="stat-content">
+                    <div class="stat-value">156</div>
+                    <div class="stat-label">이벤트</div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">🔄</div>
+                <div class="stat-content">
+                    <div class="stat-value">5</div>
+                    <div class="stat-label">공유 중</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Friend Modal -->
+<div class="modal-overlay" id="add-friend-modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">친구 추가</h2>
+            <button class="modal-close" onclick="closeAddFriendModal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="search-section">
+                <div class="form-group">
+                    <label>이메일로 검색</label>
+                    <div class="input-with-button">
+                        <input type="email" id="friend-email" placeholder="친구의 이메일 주소">
+                        <button class="btn-search" onclick="searchFriend()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="11" cy="11" r="8"/>
+                                <path d="m21 21-4.35-4.35"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="search-result" id="search-result" style="display: none;">
+                    <div class="result-card">
+                        <div class="result-avatar">
+                            <img src="/static/images/default-avatar.png" alt="User">
+                        </div>
+                        <div class="result-info">
+                            <div class="result-name">사용자 이름</div>
+                            <div class="result-email">user@example.com</div>
+                        </div>
+                        <button class="btn-add" onclick="sendFriendRequest()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            친구 요청
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="divider">또는</div>
+            
+            <div class="invite-section">
+                <h3>초대 링크 공유</h3>
+                <div class="invite-link-box">
+                    <input type="text" readonly value="https://notionflow.com/invite/abc123" id="invite-link">
+                    <button class="btn-copy" onclick="copyInviteLink()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                        복사
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Friend Requests Modal -->
+<div class="modal-overlay" id="friend-requests-modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">친구 요청</h2>
+            <button class="modal-close" onclick="closeFriendRequests()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="requests-list">
+                <!-- Sample request -->
+                <div class="request-item">
+                    <div class="request-avatar">
+                        <img src="/static/images/default-avatar.png" alt="User">
+                    </div>
+                    <div class="request-info">
+                        <div class="request-name">정수민</div>
+                        <div class="request-time">2시간 전</div>
+                    </div>
+                    <div class="request-actions">
+                        <button class="btn-accept" onclick="acceptRequest('req1')">수락</button>
+                        <button class="btn-decline" onclick="declineRequest('req1')">거절</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script src="{{ url_for('static', filename='js/friends.js') }}?v={{ range(100000, 999999) | random }}"></script>
+
+</body>
+</html>

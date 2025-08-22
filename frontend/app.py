@@ -2960,6 +2960,401 @@ def reactivate_user_subscription():
             'message': '구독 재활성화 중 오류가 발생했습니다.'
         }), 500
 
+# ===== FRIENDS SYSTEM API ROUTES =====
+
+# Import friends database
+try:
+    from utils.friends_db import friends_db
+    friends_db_available = friends_db.is_available()
+    print("✅ Friends database available" if friends_db_available else "⚠️ Friends database not available")
+except ImportError as e:
+    print(f"⚠️ Friends database module not found: {e}")
+    friends_db_available = False
+    friends_db = None
+
+@app.route('/api/friends', methods=['GET'])
+def get_friends():
+    """Get user's friends list"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        if friends_db_available and friends_db:
+            # Use real database
+            friends = friends_db.get_friends(user_id)
+            
+            # Add additional info for each friend
+            for friend in friends:
+                friend['public_calendars'] = 0  # TODO: Get actual count
+                friend['viewed'] = False  # TODO: Track viewed status
+            
+            return jsonify(friends)
+        else:
+            # Mock friends data for development
+            friends = [
+                {
+                    'id': 'friend_1',
+                    'name': '김철수',
+                    'email': 'kim@example.com',
+                    'avatar': '/static/images/default-avatar.png',
+                    'public_calendars': 3,
+                    'viewed': False,
+                    'connected_at': '2024-08-20T10:00:00Z'
+                },
+                {
+                    'id': 'friend_2', 
+                    'name': '이영희',
+                    'email': 'lee@example.com',
+                    'avatar': '/static/images/default-avatar.png',
+                    'public_calendars': 1,
+                    'viewed': True,
+                    'connected_at': '2024-08-18T15:30:00Z'
+                },
+                {
+                    'id': 'friend_3',
+                    'name': '박민수',
+                    'email': 'park@example.com', 
+                    'avatar': '/static/images/default-avatar.png',
+                    'public_calendars': 2,
+                    'viewed': False,
+                    'connected_at': '2024-08-15T09:20:00Z'
+                }
+            ]
+            
+            return jsonify(friends)
+        
+    except Exception as e:
+        print(f"Error getting friends: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/friends/calendars', methods=['GET'])
+def get_friend_calendars():
+    """Get public calendars from friends"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        # Mock friend calendars data
+        calendars = [
+            {
+                'id': 'cal_1',
+                'name': '프로젝트 일정',
+                'description': '회사 프로젝트 관련 일정',
+                'color': '#3B82F6',
+                'type': 'work',
+                'owner_id': 'friend_1',
+                'is_public': True,
+                'is_shared': True,
+                'event_count': 12,
+                'updated_at': '2024-08-22T14:30:00Z',
+                'created_at': '2024-08-01T10:00:00Z'
+            },
+            {
+                'id': 'cal_2',
+                'name': '운동 스케줄',
+                'description': '주간 운동 계획',
+                'color': '#10B981',
+                'type': 'hobby',
+                'owner_id': 'friend_2',
+                'is_public': True,
+                'is_shared': False,
+                'event_count': 8,
+                'updated_at': '2024-08-21T09:15:00Z',
+                'created_at': '2024-08-05T12:00:00Z'
+            },
+            {
+                'id': 'cal_3',
+                'name': '스터디 그룹',
+                'description': '주말 개발 스터디',
+                'color': '#F59E0B',
+                'type': 'study',
+                'owner_id': 'friend_3',
+                'is_public': True,
+                'is_shared': True,
+                'event_count': 6,
+                'updated_at': '2024-08-20T18:45:00Z',
+                'created_at': '2024-08-10T14:30:00Z'
+            },
+            {
+                'id': 'cal_4',
+                'name': '가족 모임',
+                'description': '가족 행사 및 기념일',
+                'color': '#EF4444',
+                'type': 'personal',
+                'owner_id': 'friend_1',
+                'is_public': True,
+                'is_shared': False,
+                'event_count': 4,
+                'updated_at': '2024-08-19T16:20:00Z',
+                'created_at': '2024-07-25T11:00:00Z'
+            }
+        ]
+        
+        return jsonify(calendars)
+        
+    except Exception as e:
+        print(f"Error getting friend calendars: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/friends/requests', methods=['GET'])
+def get_friend_requests():
+    """Get pending friend requests"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        if friends_db_available and friends_db:
+            # Use real database
+            requests = friends_db.get_friend_requests(user_id)
+            
+            # Format the response
+            formatted_requests = []
+            for req in requests:
+                formatted_requests.append({
+                    'id': req['id'],
+                    'name': req['sender']['name'] if req.get('sender') else 'Unknown',
+                    'email': req['sender']['email'] if req.get('sender') else '',
+                    'avatar': req['sender']['avatar_url'] if req.get('sender') else '/static/images/default-avatar.png',
+                    'message': req.get('message', ''),
+                    'created_at': req['created_at']
+                })
+            
+            return jsonify(formatted_requests)
+        else:
+            # Mock friend requests data
+            requests = [
+                {
+                    'id': 'req_1',
+                    'name': '정수민',
+                    'email': 'jung@example.com',
+                    'avatar': '/static/images/default-avatar.png',
+                    'message': '안녕하세요! 친구 추가 부탁드립니다.',
+                    'created_at': '2024-08-22T12:00:00Z'
+                },
+                {
+                    'id': 'req_2',
+                    'name': '최지훈',
+                    'email': 'choi@example.com',
+                    'avatar': '/static/images/default-avatar.png',
+                    'message': '같이 일정 공유해요~',
+                    'created_at': '2024-08-22T10:30:00Z'
+                }
+            ]
+            
+            return jsonify(requests)
+        
+    except Exception as e:
+        print(f"Error getting friend requests: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/users/search', methods=['GET'])
+def search_users():
+    """Search users by email"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        email = request.args.get('email')
+        if not email:
+            return jsonify({'success': False, 'error': 'Email required'}), 400
+        
+        if friends_db_available and friends_db:
+            # Use real database
+            users = friends_db.search_users_by_email(email)
+            
+            if users:
+                user = users[0]  # Take first match
+                
+                # Check if already friends
+                friendship = friends_db.get_friendship_status(user_id, user['id'])
+                is_friend = friendship and friendship.get('status') == 'accepted'
+                
+                # Check if request already sent
+                requests = friends_db.get_friend_requests(user['id'])
+                request_sent = any(req.get('sender_id') == user_id for req in requests)
+                
+                return jsonify({
+                    'id': user['id'],
+                    'name': user['name'],
+                    'email': user['email'],
+                    'avatar': user.get('avatar_url', '/static/images/default-avatar.png'),
+                    'is_friend': is_friend,
+                    'request_sent': request_sent
+                })
+            else:
+                return jsonify({'success': False, 'error': 'User not found'}), 404
+        else:
+            # Mock user search - in production, search in database
+            if email == 'test@example.com':
+                return jsonify({
+                    'id': 'user_123',
+                    'name': '테스트 사용자',
+                    'email': email,
+                    'avatar': '/static/images/default-avatar.png',
+                    'is_friend': False,
+                    'request_sent': False
+                })
+            else:
+                return jsonify({'success': False, 'error': 'User not found'}), 404
+        
+    except Exception as e:
+        print(f"Error searching users: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/friends/request', methods=['POST'])
+def send_friend_request():
+    """Send friend request to user"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        data = request.get_json()
+        target_user_id = data.get('user_id')
+        message = data.get('message', '')
+        
+        if not target_user_id:
+            return jsonify({'success': False, 'error': 'User ID required'}), 400
+        
+        if friends_db_available and friends_db:
+            # Use real database
+            success = friends_db.send_friend_request(user_id, target_user_id, message)
+            
+            if success:
+                return jsonify({
+                    'success': True,
+                    'message': '친구 요청을 보냈습니다.'
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': '친구 요청을 보낼 수 없습니다. (이미 요청했거나 친구일 수 있습니다)'
+                }), 400
+        else:
+            # Mock friend request creation
+            request_id = f"req_{uuid.uuid4().hex[:8]}"
+            
+            print(f"Friend request sent from {user_id} to {target_user_id}")
+            
+            return jsonify({
+                'success': True,
+                'request_id': request_id,
+                'message': '친구 요청을 보냈습니다.'
+            })
+        
+    except Exception as e:
+        print(f"Error sending friend request: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/friends/request/<request_id>/accept', methods=['POST'])
+def accept_friend_request(request_id):
+    """Accept friend request"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        if friends_db_available and friends_db:
+            # Use real database
+            success = friends_db.accept_friend_request(request_id, user_id)
+            
+            if success:
+                return jsonify({
+                    'success': True,
+                    'message': '친구 요청을 수락했습니다.'
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': '친구 요청을 수락할 수 없습니다.'
+                }), 400
+        else:
+            # Mock friend request acceptance
+            print(f"Friend request {request_id} accepted by {user_id}")
+            
+            return jsonify({
+                'success': True,
+                'message': '친구 요청을 수락했습니다.'
+            })
+        
+    except Exception as e:
+        print(f"Error accepting friend request: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/friends/request/<request_id>/decline', methods=['POST'])
+def decline_friend_request(request_id):
+    """Decline friend request"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        if friends_db_available and friends_db:
+            # Use real database
+            success = friends_db.decline_friend_request(request_id, user_id)
+            
+            if success:
+                return jsonify({
+                    'success': True,
+                    'message': '친구 요청을 거절했습니다.'
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': '친구 요청을 거절할 수 없습니다.'
+                }), 400
+        else:
+            # Mock friend request decline
+            print(f"Friend request {request_id} declined by {user_id}")
+            
+            return jsonify({
+                'success': True,
+                'message': '친구 요청을 거절했습니다.'
+            })
+        
+    except Exception as e:
+        print(f"Error declining friend request: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/user/profile', methods=['GET'])
+def get_user_profile():
+    """Get current user profile"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        # Mock user profile
+        profile = {
+            'id': user_id,
+            'name': '사용자',
+            'email': 'user@example.com',
+            'avatar': '/static/images/default-avatar.png',
+            'created_at': '2024-08-01T10:00:00Z',
+            'last_active': '2024-08-22T15:30:00Z'
+        }
+        
+        return jsonify(profile)
+        
+    except Exception as e:
+        print(f"Error getting user profile: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/friends')
+def friends_page():
+    """Friends page route"""
+    user_id = session.get('user_id')
+    
+    # 🔒 Security: Redirect unauthenticated users to login
+    if not user_id:
+        return redirect('/login?from=friends')
+    
+    return render_template('friends.html')
+
 # Add error handlers for production debugging
 @app.errorhandler(404)
 def not_found_error(error):

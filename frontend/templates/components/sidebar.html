@@ -1522,9 +1522,7 @@
                     }
                     break;
                 case 'friends':
-                    if (typeof navigateToSection === 'function') {
-                        navigateToSection('friends');
-                    }
+                    window.location.href = '/friends';
                     break;
                 case 'api-keys':
                     if (typeof navigateToApiKeys === 'function') {

@@ -139,6 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadPriorities(); // Load priority tasks
     loadReminders(); // Load reminders
     initializeEventSearch(); // Initialize event search functionality
+    initializeAttendees(); // Initialize attendees functionality
 });
 
 function initializeCalendar() {
@@ -2849,4 +2850,278 @@ function navigateToEventDay(dateString, eventId) {
         console.error('🔍 Calendar ID not found, cannot navigate');
         alert('캘린더 정보를 찾을 수 없습니다.');
     }
+}
+
+function getCurrentCalendarId() {
+    const workspaceElement = document.querySelector('.calendar-workspace[data-calendar-id]');
+    return workspaceElement ? workspaceElement.getAttribute('data-calendar-id') : null;
+}
+
+// ============ ATTENDEES FUNCTIONALITY ============
+
+let attendeesList = [
+    {
+        id: 'att1',
+        name: '김철수',
+        email: 'kim@example.com',
+        role: 'organizer',
+        status: 'accepted',
+        avatar: '/static/images/default-avatar.png'
+    },
+    {
+        id: 'att2',
+        name: '이영희',
+        email: 'lee@example.com', 
+        role: 'attendee',
+        status: 'pending',
+        avatar: '/static/images/default-avatar.png'
+    },
+    {
+        id: 'att3',
+        name: '박민수',
+        email: 'park@example.com',
+        role: 'attendee', 
+        status: 'declined',
+        avatar: '/static/images/default-avatar.png'
+    }
+];
+
+function openAddAttendeeModal() {
+    const modal = document.getElementById('add-attendee-modal');
+    if (modal) {
+        modal.style.display = 'flex';
+        
+        // Clear form
+        document.getElementById('attendee-name').value = '';
+        document.getElementById('attendee-email').value = '';
+        document.getElementById('attendee-role').value = 'attendee';
+        document.getElementById('send-invitation').checked = true;
+        
+        // Focus on name field
+        setTimeout(() => {
+            document.getElementById('attendee-name').focus();
+        }, 100);
+    }
+}
+
+function closeAddAttendeeModal() {
+    const modal = document.getElementById('add-attendee-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function addAttendee() {
+    const name = document.getElementById('attendee-name').value.trim();
+    const email = document.getElementById('attendee-email').value.trim();
+    const role = document.getElementById('attendee-role').value;
+    const sendInvitation = document.getElementById('send-invitation').checked;
+    
+    // Validation
+    if (!name) {
+        alert('참석자 이름을 입력해주세요.');
+        return;
+    }
+    
+    if (!email) {
+        alert('참석자 이메일을 입력해주세요.');
+        return;
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        alert('올바른 이메일 형식을 입력해주세요.');
+        return;
+    }
+    
+    // Check if email already exists
+    if (attendeesList.some(attendee => attendee.email === email)) {
+        alert('이미 추가된 이메일입니다.');
+        return;
+    }
+    
+    // Create new attendee
+    const newAttendee = {
+        id: `att_${Date.now()}`,
+        name: name,
+        email: email,
+        role: role,
+        status: 'pending',
+        avatar: '/static/images/default-avatar.png'
+    };
+    
+    // Add to list
+    attendeesList.push(newAttendee);
+    
+    // Re-render attendees
+    renderAttendees();
+    
+    // Close modal
+    closeAddAttendeeModal();
+    
+    // Show confirmation
+    showNotification(`${name}님이 참석자 목록에 추가되었습니다.`);
+    
+    // Send invitation if requested
+    if (sendInvitation) {
+        sendInvitationEmail(newAttendee);
+    }
+    
+    console.log('👥 New attendee added:', newAttendee);
+}
+
+function sendInvitationEmail(attendee) {
+    // Simulate sending invitation email
+    console.log(`📧 Sending invitation to ${attendee.email}`);
+    
+    // In real implementation, this would make an API call
+    setTimeout(() => {
+        showNotification(`${attendee.name}님에게 초대 이메일을 발송했습니다.`);
+    }, 1000);
+}
+
+function renderAttendees() {
+    const attendeesListElement = document.getElementById('attendees-list');
+    if (!attendeesListElement) return;
+    
+    // Generate attendee items HTML
+    const attendeesHTML = attendeesList.map(attendee => {
+        const statusIcon = getStatusIcon(attendee.status);
+        const statusTitle = getStatusTitle(attendee.status);
+        
+        return `
+            <div class="attendee-item" data-status="${attendee.status}">
+                <div class="attendee-avatar">
+                    <img src="${attendee.avatar}" alt="${attendee.name}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSI4IiByPSI0IiBmaWxsPSIjOTk5Ii8+CjxwYXRoIGQ9Ik0yMCAyMGMwLTUuNS0zLjUtMTAtOC0xMHMtOCA0LjUtOCAxMCIgZmlsbD0iIzk5OSIvPgo8L3N2Zz4K';">
+                </div>
+                <div class="attendee-info">
+                    <div class="attendee-name">${attendee.name}${attendee.role === 'organizer' ? ' (주최자)' : ''}</div>
+                    <div class="attendee-email">${attendee.email}</div>
+                </div>
+                <div class="attendee-status ${attendee.status}" title="${statusTitle}" onclick="cycleAttendeeStatus('${attendee.id}')">
+                    ${statusIcon}
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    attendeesListElement.innerHTML = attendeesHTML;
+    
+    // Update summary
+    updateAttendanceSummary();
+}
+
+function getStatusIcon(status) {
+    switch (status) {
+        case 'accepted':
+            return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 6L9 17l-5-5"/>
+                    </svg>`;
+        case 'pending':
+            return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>`;
+        case 'declined':
+            return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 18L18 6M6 6l12 12"/>
+                    </svg>`;
+        default:
+            return '';
+    }
+}
+
+function getStatusTitle(status) {
+    switch (status) {
+        case 'accepted':
+            return '참석 확정';
+        case 'pending':
+            return '응답 대기중';
+        case 'declined':
+            return '참석 불가';
+        default:
+            return '';
+    }
+}
+
+function cycleAttendeeStatus(attendeeId) {
+    const attendee = attendeesList.find(att => att.id === attendeeId);
+    if (!attendee) return;
+    
+    // Don't allow changing organizer status
+    if (attendee.role === 'organizer') {
+        showNotification('주최자의 참석 상태는 변경할 수 없습니다.');
+        return;
+    }
+    
+    // Cycle through statuses: pending -> accepted -> declined -> pending
+    switch (attendee.status) {
+        case 'pending':
+            attendee.status = 'accepted';
+            break;
+        case 'accepted':
+            attendee.status = 'declined';
+            break;
+        case 'declined':
+            attendee.status = 'pending';
+            break;
+    }
+    
+    // Re-render
+    renderAttendees();
+    
+    // Show notification
+    const statusText = getStatusTitle(attendee.status);
+    showNotification(`${attendee.name}님의 상태가 "${statusText}"로 변경되었습니다.`);
+    
+    console.log(`👥 Updated attendee status: ${attendee.name} -> ${attendee.status}`);
+}
+
+function updateAttendanceSummary() {
+    const totalElement = document.getElementById('total-attendees');
+    const acceptedElement = document.getElementById('accepted-count');
+    const pendingElement = document.getElementById('pending-count');
+    const declinedElement = document.getElementById('declined-count');
+    
+    if (!totalElement || !acceptedElement || !pendingElement || !declinedElement) return;
+    
+    const total = attendeesList.length;
+    const accepted = attendeesList.filter(att => att.status === 'accepted').length;
+    const pending = attendeesList.filter(att => att.status === 'pending').length;
+    const declined = attendeesList.filter(att => att.status === 'declined').length;
+    
+    totalElement.textContent = total;
+    acceptedElement.textContent = accepted;
+    pendingElement.textContent = pending;
+    declinedElement.textContent = declined;
+}
+
+function initializeAttendees() {
+    console.log('👥 Initializing attendees functionality');
+    
+    // Render initial attendees
+    renderAttendees();
+    
+    // Add modal close handler for clicking outside
+    const modal = document.getElementById('add-attendee-modal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeAddAttendeeModal();
+            }
+        });
+    }
+    
+    // Add keyboard handlers
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('add-attendee-modal');
+            if (modal && modal.style.display === 'flex') {
+                closeAddAttendeeModal();
+            }
+        }
+    });
+    
+    console.log(`👥 Attendees initialized with ${attendeesList.length} attendees`);
 }

@@ -154,6 +154,93 @@
                 </div>
             </div>
 
+            <!-- Attendees Section -->
+            <div class="sidebar-widget">
+                <div class="widget-header">
+                    <div class="widget-icon">👥</div>
+                    <h4>참석자</h4>
+                    <button class="add-attendee-btn" onclick="openAddAttendeeModal()" title="참석자 추가">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="attendees-container">
+                    <!-- Attendees List -->
+                    <div class="attendees-list" id="attendees-list">
+                        <!-- Sample attendees - these will be loaded dynamically -->
+                        <div class="attendee-item" data-status="accepted">
+                            <div class="attendee-avatar">
+                                <img src="/static/images/default-avatar.png" alt="김철수" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSI4IiByPSI0IiBmaWxsPSIjOTk5Ii8+CjxwYXRoIGQ9Ik0yMCAyMGMwLTUuNS0zLjUtMTAtOC0xMHMtOCA0LjUtOCAxMCIgZmlsbD0iIzk5OSIvPgo8L3N2Zz4K';">
+                            </div>
+                            <div class="attendee-info">
+                                <div class="attendee-name">김철수</div>
+                                <div class="attendee-email">kim@example.com</div>
+                            </div>
+                            <div class="attendee-status accepted" title="참석 확정">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 6L9 17l-5-5"/>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="attendee-item" data-status="pending">
+                            <div class="attendee-avatar">
+                                <img src="/static/images/default-avatar.png" alt="이영희" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSI4IiByPSI0IiBmaWxsPSIjOTk5Ii8+CjxwYXRoIGQ9Ik0yMCAyMGMwLTUuNS0zLjUtMTAtOC0xMHMtOCA0LjUtOCAxMCIgZmlsbD0iIzk5OSIvPgo8L3N2Zz4K';">
+                            </div>
+                            <div class="attendee-info">
+                                <div class="attendee-name">이영희</div>
+                                <div class="attendee-email">lee@example.com</div>
+                            </div>
+                            <div class="attendee-status pending" title="응답 대기중">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M12 6v6l4 2"/>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="attendee-item" data-status="declined">
+                            <div class="attendee-avatar">
+                                <img src="/static/images/default-avatar.png" alt="박민수" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSI4IiByPSI0IiBmaWxsPSIjOTk5Ii8+CjxwYXRoIGQ9Ik0yMCAyMGMwLTUuNS0zLjUtMTAtOC0xMHMtOCA0LjUtOCAxMCIgZmlsbD0iIzk5OSIvPgo8L3N2Zz4K';">
+                            </div>
+                            <div class="attendee-info">
+                                <div class="attendee-name">박민수</div>
+                                <div class="attendee-email">park@example.com</div>
+                            </div>
+                            <div class="attendee-status declined" title="참석 불가">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Attendance Summary -->
+                    <div class="attendance-summary">
+                        <div class="summary-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">총 인원</span>
+                                <span class="stat-value" id="total-attendees">3</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">참석</span>
+                                <span class="stat-value accepted" id="accepted-count">1</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">대기</span>
+                                <span class="stat-value pending" id="pending-count">1</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">불참</span>
+                                <span class="stat-value declined" id="declined-count">1</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Compact Media Player -->
             <div class="sidebar-widget compact-media-widget" id="sidebar-media-player" style="display: none;">
@@ -542,6 +629,53 @@
         <div class="modal-footer">
             <button class="btn-secondary" onclick="closeCalendarSettings()">취소</button>
             <button class="btn-primary" onclick="saveCalendarSettings()">저장</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Attendee Modal -->
+<div class="modal-overlay" id="add-attendee-modal" style="display: none;">
+    <div class="modal-content attendee-modal">
+        <div class="modal-header">
+            <h2 class="modal-title">참석자 추가</h2>
+            <button class="modal-close" onclick="closeAddAttendeeModal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="form-group">
+                <label>이름</label>
+                <input type="text" id="attendee-name" placeholder="참석자 이름 입력">
+            </div>
+            
+            <div class="form-group">
+                <label>이메일</label>
+                <input type="email" id="attendee-email" placeholder="참석자 이메일 입력">
+            </div>
+            
+            <div class="form-group">
+                <label>역할</label>
+                <select id="attendee-role">
+                    <option value="attendee">참석자</option>
+                    <option value="organizer">주최자</option>
+                    <option value="optional">선택 참석</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="send-invitation">
+                    <span>초대 이메일 전송</span>
+                </label>
+            </div>
+            
+            <div class="form-actions">
+                <button class="btn-cancel" onclick="closeAddAttendeeModal()">취소</button>
+                <button class="btn-save" onclick="addAttendee()">추가</button>
+            </div>
         </div>
     </div>
 </div>
