@@ -105,10 +105,14 @@ class ThemeManager {
             });
         });
         
-        // 다크 모드 관련 아이콘들도 숨기기
-        document.querySelectorAll('.fa-moon, .theme-icon, .dark-mode-icon').forEach(icon => {
-            icon.style.display = 'none';
-        });
+        // 다크 모드 관련 아이콘들도 숨기기 (안전하게)
+        try {
+            document.querySelectorAll('.fa-moon, .theme-icon, .dark-mode-icon').forEach(icon => {
+                icon.style.display = 'none';
+            });
+        } catch (e) {
+            console.log('🎨 No theme icons found (this is expected)');
+        }
         
         console.log('🎨 Dark mode toggles hidden');
     }
