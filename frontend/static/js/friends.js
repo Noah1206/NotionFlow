@@ -11,6 +11,8 @@ const itemsPerPage = 10;
 document.addEventListener('DOMContentLoaded', async () => {
     await loadCurrentUser();
     await loadFriends();
+    await loadMyCalendars();
+    await loadSharedCalendars();
     await loadFriendCalendars();
     initializeEventListeners();
     checkFriendRequests();
@@ -649,6 +651,590 @@ function debounce(func, wait) {
         clearTimeout(timeout);
         timeout = setTimeout(later, wait);
     };
+}
+
+// ===== MY CALENDARS SHARING FUNCTIONS =====
+
+// Load current user's calendars
+async function loadMyCalendars() {
+    const loadingEl = document.getElementById('my-calendars-loading');
+    const gridEl = document.getElementById('my-calendars-grid');
+    const emptyEl = document.getElementById('my-calendars-empty');
+    
+    // Show loading
+    loadingEl.style.display = 'flex';
+    gridEl.style.display = 'none';
+    emptyEl.style.display = 'none';
+    
+    try {
+        const response = await fetch('/api/calendar/my-calendars');
+        const data = await response.json();
+        
+        if (data.success && data.calendars) {
+            if (data.calendars.length > 0) {
+                renderMyCalendars(data.calendars);
+                gridEl.style.display = 'grid';
+            } else {
+                emptyEl.style.display = 'block';
+            }
+        } else {
+            emptyEl.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading my calendars:', error);
+        emptyEl.style.display = 'block';
+    } finally {
+        loadingEl.style.display = 'none';
+    }
+}
+
+// Render my calendars
+function renderMyCalendars(calendars) {
+    const gridEl = document.getElementById('my-calendars-grid');
+    
+    gridEl.innerHTML = calendars.map(calendar => `
+        <div class="calendar-card" data-calendar-id="${calendar.id}">
+            <div class="calendar-header">
+                <div class="calendar-color" style="background-color: ${calendar.color || '#2563eb'}"></div>
+                <div class="calendar-info">
+                    <h3 class="calendar-name">${escapeHtml(calendar.name)}</h3>
+                    <span class="calendar-type">${getCalendarTypeName(calendar.platform)}</span>
+                </div>
+                <div class="calendar-status">
+                    ${calendar.is_currently_shared ? 
+                        '<span class="status-shared">🔗 공유중</span>' : 
+                        '<span class="status-private">🔒 비공개</span>'
+                    }
+                </div>
+            </div>
+            
+            <div class="calendar-body">
+                <p class="calendar-description">${escapeHtml(calendar.description || '설명 없음')}</p>
+                
+                ${calendar.is_currently_shared ? `
+                    <div class="shared-with">
+                        <small>공유된 친구: ${calendar.shared_with.length}명</small>
+                    </div>
+                ` : ''}
+            </div>
+            
+            <div class="calendar-actions">
+                <button class="btn-share" onclick="openShareModal('${calendar.id}', '${escapeHtml(calendar.name)}')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                        <polyline points="16,6 12,2 8,6"/>
+                        <line x1="12" y1="2" x2="12" y2="15"/>
+                    </svg>
+                    친구와 공유
+                </button>
+                
+                ${calendar.is_currently_shared ? `
+                    <button class="btn-manage-share" onclick="openManageShareModal('${calendar.id}', '${escapeHtml(calendar.name)}')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M12 1v6m0 6v6"/>
+                        </svg>
+                        공유 관리
+                    </button>
+                ` : ''}
+            </div>
+        </div>
+    `).join('');
+}
+
+// Open share modal
+function openShareModal(calendarId, calendarName) {
+    // Create modal if not exists
+    let modal = document.getElementById('share-calendar-modal');
+    if (!modal) {
+        modal = createShareModal();
+        document.body.appendChild(modal);
+    }
+    
+    // Set calendar info
+    document.getElementById('share-calendar-name').textContent = calendarName;
+    document.getElementById('share-calendar-id').value = calendarId;
+    
+    // Load friends
+    loadFriendsForSharing();
+    
+    // Show modal
+    modal.style.display = 'flex';
+}
+
+// Create share modal
+function createShareModal() {
+    const modal = document.createElement('div');
+    modal.id = 'share-calendar-modal';
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">캘린더 공유하기</h2>
+                <button class="modal-close" onclick="closeShareModal()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="share-info">
+                    <h3>캘린더: <span id="share-calendar-name"></span></h3>
+                    <input type="hidden" id="share-calendar-id">
+                </div>
+                
+                <div class="friends-list-container">
+                    <h4>친구 목록</h4>
+                    <div class="friends-search">
+                        <input type="text" placeholder="친구 검색..." id="friends-search" onkeyup="filterFriends()">
+                    </div>
+                    <div class="friends-list" id="share-friends-list">
+                        <div class="loading-spinner">
+                            <div class="spinner"></div>
+                            <span>친구 목록을 불러오는 중...</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="share-actions">
+                    <button class="btn-cancel" onclick="closeShareModal()">취소</button>
+                    <button class="btn-share-selected" onclick="shareWithSelectedFriends()">선택한 친구에게 공유</button>
+                </div>
+            </div>
+        </div>
+    `;
+    return modal;
+}
+
+// Load friends for sharing
+async function loadFriendsForSharing() {
+    const listEl = document.getElementById('share-friends-list');
+    
+    try {
+        const response = await fetch('/api/friends');
+        const data = await response.json();
+        
+        if (data.success && data.friends) {
+            renderFriendsForSharing(data.friends);
+        } else {
+            listEl.innerHTML = '<div class="empty-state">친구가 없습니다.</div>';
+        }
+    } catch (error) {
+        console.error('Error loading friends:', error);
+        listEl.innerHTML = '<div class="error-state">친구 목록을 불러올 수 없습니다.</div>';
+    }
+}
+
+// Render friends for sharing
+function renderFriendsForSharing(friends) {
+    const listEl = document.getElementById('share-friends-list');
+    
+    listEl.innerHTML = friends.map(friend => `
+        <div class="friend-item">
+            <div class="friend-avatar">
+                <img src="${friend.avatar || '/static/images/default-avatar.png'}" alt="${escapeHtml(friend.name)}" 
+                     onerror="this.src='/static/images/default-avatar.png'">
+            </div>
+            <div class="friend-info">
+                <div class="friend-name">${escapeHtml(friend.name)}</div>
+                <div class="friend-email">${escapeHtml(friend.email || '')}</div>
+            </div>
+            <div class="friend-action">
+                <input type="checkbox" class="friend-checkbox" value="${friend.id}" id="friend-${friend.id}">
+                <label for="friend-${friend.id}" class="checkbox-label">공유</label>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Filter friends
+function filterFriends() {
+    const searchTerm = document.getElementById('friends-search').value.toLowerCase();
+    const friendItems = document.querySelectorAll('.friend-item');
+    
+    friendItems.forEach(item => {
+        const name = item.querySelector('.friend-name').textContent.toLowerCase();
+        const email = item.querySelector('.friend-email').textContent.toLowerCase();
+        
+        if (name.includes(searchTerm) || email.includes(searchTerm)) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
+// Share with selected friends
+async function shareWithSelectedFriends() {
+    const calendarId = document.getElementById('share-calendar-id').value;
+    const selectedFriends = Array.from(document.querySelectorAll('.friend-checkbox:checked')).map(cb => cb.value);
+    
+    if (selectedFriends.length === 0) {
+        showNotification('공유할 친구를 선택해주세요.', 'warning');
+        return;
+    }
+    
+    const shareBtn = document.querySelector('.btn-share-selected');
+    const originalText = shareBtn.textContent;
+    shareBtn.textContent = '공유 중...';
+    shareBtn.disabled = true;
+    
+    try {
+        const promises = selectedFriends.map(friendId => 
+            fetch('/api/calendar/share', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    calendar_id: calendarId,
+                    friend_id: friendId
+                })
+            })
+        );
+        
+        const results = await Promise.all(promises);
+        const successful = results.filter(r => r.ok).length;
+        
+        if (successful > 0) {
+            showNotification(`${successful}명의 친구에게 캘린더를 공유했습니다.`, 'success');
+            closeShareModal();
+            loadMyCalendars(); // Refresh the calendar list
+        } else {
+            showNotification('캘린더 공유에 실패했습니다.', 'error');
+        }
+    } catch (error) {
+        console.error('Error sharing calendar:', error);
+        showNotification('캘린더 공유 중 오류가 발생했습니다.', 'error');
+    } finally {
+        shareBtn.textContent = originalText;
+        shareBtn.disabled = false;
+    }
+}
+
+// Close share modal
+function closeShareModal() {
+    const modal = document.getElementById('share-calendar-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Open manage share modal (for future implementation)
+function openManageShareModal(calendarId, calendarName) {
+    showNotification('공유 관리 기능은 곧 추가될 예정입니다.', 'info');
+}
+
+// ===== SHARED CALENDARS FUNCTIONS =====
+
+// Load calendars shared with current user
+async function loadSharedCalendars() {
+    const loadingEl = document.getElementById('shared-calendars-loading');
+    const gridEl = document.getElementById('shared-calendars-grid');
+    const emptyEl = document.getElementById('shared-calendars-empty');
+    
+    // Show loading
+    loadingEl.style.display = 'flex';
+    gridEl.style.display = 'none';
+    emptyEl.style.display = 'none';
+    
+    try {
+        const response = await fetch('/api/calendar/shared-with-me');
+        const data = await response.json();
+        
+        if (data.success && data.calendars) {
+            if (data.calendars.length > 0) {
+                renderSharedCalendars(data.calendars);
+                gridEl.style.display = 'grid';
+            } else {
+                emptyEl.style.display = 'block';
+            }
+        } else {
+            emptyEl.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading shared calendars:', error);
+        emptyEl.style.display = 'block';
+    } finally {
+        loadingEl.style.display = 'none';
+    }
+}
+
+// Render shared calendars
+function renderSharedCalendars(calendars) {
+    const gridEl = document.getElementById('shared-calendars-grid');
+    
+    gridEl.innerHTML = calendars.map(calendar => `
+        <div class="shared-calendar-card" data-calendar-id="${calendar.id}">
+            <div class="calendar-header">
+                <div class="calendar-color" style="background-color: ${calendar.color || '#2563eb'}"></div>
+                <div class="calendar-info">
+                    <h3 class="calendar-name">${escapeHtml(calendar.name)}</h3>
+                    <span class="calendar-type">${getCalendarTypeName(calendar.platform)}</span>
+                </div>
+                <div class="calendar-status">
+                    <span class="status-shared-received">📥 공유받음</span>
+                </div>
+            </div>
+            
+            <div class="calendar-body">
+                <p class="calendar-description">${escapeHtml(calendar.description || '설명 없음')}</p>
+                
+                <div class="shared-info">
+                    <small>공유자: ${escapeHtml(calendar.shared_by || 'Unknown')}</small>
+                    <br>
+                    <small>공유일: ${formatTimeAgo(calendar.shared_at)}</small>
+                </div>
+            </div>
+            
+            <div class="calendar-actions">
+                <button class="btn-view-calendar" onclick="viewSharedCalendar('${calendar.id}', '${escapeHtml(calendar.name)}')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    캘린더 보기
+                </button>
+                
+                ${calendar.can_edit ? `
+                    <button class="btn-edit-calendar" onclick="editSharedCalendar('${calendar.id}', '${escapeHtml(calendar.name)}')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                        편집
+                    </button>
+                ` : ''}
+            </div>
+        </div>
+    `).join('');
+}
+
+// View shared calendar
+function viewSharedCalendar(calendarId, calendarName) {
+    // Navigate to calendar view (could be dashboard with specific calendar selected)
+    const params = new URLSearchParams({
+        calendar: calendarId,
+        shared: 'true'
+    });
+    window.location.href = `/dashboard?${params.toString()}`;
+}
+
+// Edit shared calendar (if permission allows)
+function editSharedCalendar(calendarId, calendarName) {
+    showNotification('공유 캘린더 편집 기능은 곧 추가될 예정입니다.', 'info');
+}
+
+// Escape HTML
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text ? text.replace(/[&<>"']/g, m => map[m]) : '';
+}
+
+// ===== USER SEARCH FUNCTIONS =====
+
+let searchTimeout = null;
+
+// Search users with debouncing
+function searchUsers(query) {
+    // Clear previous timeout
+    if (searchTimeout) {
+        clearTimeout(searchTimeout);
+    }
+    
+    const trimmedQuery = query.trim();
+    
+    // Reset to placeholder if query is too short
+    if (trimmedQuery.length < 2) {
+        showSearchState('placeholder');
+        return;
+    }
+    
+    // Show loading state
+    showSearchState('loading');
+    
+    // Debounce the search
+    searchTimeout = setTimeout(async () => {
+        try {
+            const response = await fetch(`/api/users/search?q=${encodeURIComponent(trimmedQuery)}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                if (data.users && data.users.length > 0) {
+                    renderSearchResults(data.users);
+                    showSearchState('results');
+                } else {
+                    showSearchState('empty');
+                }
+            } else {
+                console.error('Search failed:', data.error);
+                showSearchState('empty');
+            }
+        } catch (error) {
+            console.error('Search error:', error);
+            showSearchState('empty');
+        }
+    }, 300); // 300ms debounce
+}
+
+// Show different search states
+function showSearchState(state) {
+    const placeholder = document.getElementById('search-placeholder');
+    const loading = document.getElementById('search-loading');
+    const results = document.getElementById('search-results');
+    const empty = document.getElementById('search-empty');
+    
+    // Hide all states first
+    [placeholder, loading, results, empty].forEach(el => {
+        if (el) el.style.display = 'none';
+    });
+    
+    // Show the requested state
+    switch (state) {
+        case 'placeholder':
+            if (placeholder) placeholder.style.display = 'block';
+            break;
+        case 'loading':
+            if (loading) loading.style.display = 'flex';
+            break;
+        case 'results':
+            if (results) results.style.display = 'block';
+            break;
+        case 'empty':
+            if (empty) empty.style.display = 'block';
+            break;
+    }
+}
+
+// Render search results
+function renderSearchResults(users) {
+    const resultsContainer = document.getElementById('search-results');
+    if (!resultsContainer) return;
+    
+    resultsContainer.innerHTML = users.map(user => `
+        <div class="user-result-card" data-user-id="${user.id}">
+            <div class="user-avatar">
+                <img src="${user.avatar || '/static/images/default-avatar.png'}" 
+                     alt="${escapeHtml(user.name)}" 
+                     onerror="this.src='/static/images/default-avatar.png'">
+            </div>
+            <div class="user-info">
+                <div class="user-name">${escapeHtml(user.name)}</div>
+                <div class="user-email">${escapeHtml(user.email)}</div>
+                <div class="user-id">ID: ${escapeHtml(user.id)}</div>
+            </div>
+            <div class="user-actions">
+                ${user.is_friend ? `
+                    <span class="friend-status">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M20 6L9 17l-5-5"/>
+                        </svg>
+                        이미 친구
+                    </span>
+                ` : `
+                    <button class="btn-send-request" onclick="sendFriendRequestToUser('${user.id}', '${escapeHtml(user.name)}', this)">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="8.5" cy="7" r="4"/>
+                            <line x1="20" y1="8" x2="20" y2="14"/>
+                            <line x1="23" y1="11" x2="17" y2="11"/>
+                        </svg>
+                        친구 요청
+                    </button>
+                `}
+            </div>
+        </div>
+    `).join('');
+}
+
+// Send friend request to a specific user
+async function sendFriendRequestToUser(userId, userName, buttonElement) {
+    const originalText = buttonElement.textContent;
+    const originalHtml = buttonElement.innerHTML;
+    
+    // Show loading state
+    buttonElement.disabled = true;
+    buttonElement.innerHTML = `
+        <div class="spinner small"></div>
+        전송 중...
+    `;
+    
+    try {
+        const response = await fetch('/api/friends/request', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                user_id: userId
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Show success state
+            buttonElement.innerHTML = `
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M20 6L9 17l-5-5"/>
+                </svg>
+                요청 완료
+            `;
+            buttonElement.classList.add('success');
+            buttonElement.disabled = true;
+            
+            showNotification(`${userName}님에게 친구 요청을 보냈습니다.`, 'success');
+        } else {
+            // Show error and restore button
+            showNotification(data.error || '친구 요청을 보내는데 실패했습니다.', 'error');
+            buttonElement.innerHTML = originalHtml;
+            buttonElement.disabled = false;
+        }
+    } catch (error) {
+        console.error('Error sending friend request:', error);
+        showNotification('친구 요청을 보내는 중 오류가 발생했습니다.', 'error');
+        
+        // Restore button
+        buttonElement.innerHTML = originalHtml;
+        buttonElement.disabled = false;
+    }
+}
+
+// Clear search when modal is opened
+function openAddFriendModal() {
+    const modal = document.getElementById('add-friend-modal');
+    const searchInput = document.getElementById('user-search-input');
+    
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+    
+    // Clear search input and reset to placeholder
+    if (searchInput) {
+        searchInput.value = '';
+        showSearchState('placeholder');
+    }
+}
+
+// Close add friend modal
+function closeAddFriendModal() {
+    const modal = document.getElementById('add-friend-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    
+    // Clear any ongoing search
+    if (searchTimeout) {
+        clearTimeout(searchTimeout);
+        searchTimeout = null;
+    }
 }
 
 // Show notification

@@ -938,3 +938,801 @@
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
+
+/* ===== MY CALENDARS SHARING STYLES ===== */
+
+/* My Calendars Section */
+.my-calendars-section {
+    margin-bottom: 30px;
+    background: var(--background-secondary);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+/* Shared Calendars Section */
+.shared-calendars-section {
+    margin-bottom: 30px;
+    background: var(--background-secondary);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.shared-calendars-section .section-header {
+    padding: 20px 25px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.shared-calendars-container {
+    padding: 25px;
+    min-height: 150px;
+}
+
+/* Shared Calendars Grid */
+.shared-calendars-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+/* Shared Calendar Card */
+.shared-calendar-card {
+    background: var(--background-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+    border-left: 4px solid #06b6d4; /* Cyan accent for shared calendars */
+}
+
+.shared-calendar-card:hover {
+    border-color: #06b6d4;
+    box-shadow: 0 4px 20px rgba(6, 182, 212, 0.1);
+    transform: translateY(-2px);
+}
+
+.status-shared-received {
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(6, 182, 212, 0.1);
+    color: #0891b2;
+    border: 1px solid rgba(6, 182, 212, 0.2);
+}
+
+.shared-info {
+    background: var(--background-secondary);
+    padding: 8px 12px;
+    border-radius: 6px;
+    border-left: 3px solid #06b6d4;
+    margin-top: 12px;
+}
+
+.shared-info small {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.btn-view-calendar,
+.btn-edit-calendar {
+    flex: 1;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 120px;
+}
+
+.btn-view-calendar {
+    background: #06b6d4;
+    color: white;
+}
+
+.btn-view-calendar:hover {
+    background: #0891b2;
+    transform: translateY(-1px);
+}
+
+.btn-edit-calendar {
+    background: var(--background-secondary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-edit-calendar:hover {
+    background: var(--hover-background);
+    color: var(--text-primary);
+    border-color: #06b6d4;
+}
+
+.my-calendars-section .section-header {
+    padding: 20px 25px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-refresh {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: var(--background-primary);
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-secondary);
+}
+
+.btn-refresh:hover {
+    background: var(--hover-background);
+    color: var(--text-primary);
+    transform: rotate(90deg);
+}
+
+.my-calendars-container {
+    padding: 25px;
+    min-height: 150px;
+}
+
+/* My Calendars Grid */
+.my-calendars-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+/* Calendar Card */
+.calendar-card {
+    background: var(--background-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+
+.calendar-card:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+
+.calendar-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.calendar-color {
+    width: 4px;
+    height: 40px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.calendar-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.calendar-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 4px 0;
+    line-height: 1.3;
+    word-break: break-word;
+}
+
+.calendar-type {
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: var(--background-secondary);
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.calendar-status {
+    flex-shrink: 0;
+}
+
+.status-shared,
+.status-private {
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.status-shared {
+    background: rgba(34, 197, 94, 0.1);
+    color: #059669;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.status-private {
+    background: rgba(107, 114, 128, 0.1);
+    color: #6b7280;
+    border: 1px solid rgba(107, 114, 128, 0.2);
+}
+
+.calendar-body {
+    margin-bottom: 20px;
+}
+
+.calendar-description {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin: 0 0 12px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.shared-with {
+    background: var(--background-secondary);
+    padding: 8px 12px;
+    border-radius: 6px;
+    border-left: 3px solid var(--primary-color);
+}
+
+.shared-with small {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.calendar-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-share,
+.btn-manage-share {
+    flex: 1;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 120px;
+}
+
+.btn-share {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-share:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.btn-manage-share {
+    background: var(--background-secondary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-manage-share:hover {
+    background: var(--hover-background);
+    color: var(--text-primary);
+    border-color: var(--primary-color);
+}
+
+/* Share Modal Styles */
+#share-calendar-modal .modal-content {
+    max-width: 500px;
+    width: 90%;
+}
+
+.share-info {
+    background: var(--background-secondary);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 4px solid var(--primary-color);
+}
+
+.share-info h3 {
+    margin: 0;
+    font-size: 16px;
+    color: var(--text-primary);
+}
+
+.friends-list-container h4 {
+    margin: 0 0 15px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.friends-search {
+    margin-bottom: 15px;
+}
+
+.friends-search input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 14px;
+    background: var(--background-primary);
+    color: var(--text-primary);
+}
+
+.friends-search input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.friends-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--background-primary);
+}
+
+.friend-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.2s;
+}
+
+.friend-item:last-child {
+    border-bottom: none;
+}
+
+.friend-item:hover {
+    background: var(--hover-background);
+}
+
+.friend-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.friend-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.friend-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.friend-name {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 14px;
+    margin-bottom: 2px;
+}
+
+.friend-email {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.friend-action {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.friend-checkbox {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary-color);
+}
+
+.checkbox-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    user-select: none;
+}
+
+.share-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn-cancel,
+.btn-share-selected {
+    flex: 1;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-cancel {
+    background: var(--background-secondary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-cancel:hover {
+    background: var(--hover-background);
+    color: var(--text-primary);
+}
+
+.btn-share-selected {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-share-selected:hover {
+    background: var(--primary-hover);
+}
+
+.btn-share-selected:disabled {
+    background: var(--border-color);
+    color: var(--text-secondary);
+    cursor: not-allowed;
+}
+
+.empty-state,
+.error-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+}
+
+/* ===== USER SEARCH STYLES ===== */
+
+/* Search Input Container */
+.search-input-container {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.search-input-container input {
+    width: 100%;
+    padding: 12px 45px 12px 15px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    background: var(--background-primary);
+    color: var(--text-primary);
+    transition: all 0.2s;
+}
+
+.search-input-container input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.search-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    pointer-events: none;
+}
+
+/* Search Results Container */
+.search-results-container {
+    min-height: 200px;
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--background-primary);
+}
+
+/* Search States */
+.search-placeholder,
+.search-loading,
+.search-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.search-placeholder .placeholder-icon,
+.search-empty .empty-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.search-placeholder p,
+.search-empty p {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin: 0 0 8px 0;
+}
+
+.search-placeholder small,
+.search-empty small {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.search-loading {
+    padding: 30px 20px;
+    gap: 12px;
+}
+
+.search-loading .spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--border-color);
+    border-top: 2px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.search-loading span {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+/* User Result Cards */
+.search-results {
+    padding: 15px;
+}
+
+.user-result-card {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--background-secondary);
+    transition: all 0.2s;
+}
+
+.user-result-card:last-child {
+    margin-bottom: 0;
+}
+
+.user-result-card:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.user-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 15px;
+    flex-shrink: 0;
+    border: 2px solid var(--border-color);
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.user-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.user-email {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+}
+
+.user-id {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-family: monospace;
+    background: var(--background-primary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.user-actions {
+    flex-shrink: 0;
+    margin-left: 15px;
+}
+
+.btn-send-request {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 100px;
+    justify-content: center;
+}
+
+.btn-send-request:hover:not(:disabled) {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.btn-send-request:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-send-request.success {
+    background: #10b981;
+    color: white;
+}
+
+.btn-send-request .spinner.small {
+    width: 14px;
+    height: 14px;
+    border-width: 1.5px;
+}
+
+.friend-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: rgba(34, 197, 94, 0.1);
+    color: #059669;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* Spinner Animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Modal Improvements */
+#add-friend-modal .modal-content {
+    max-width: 550px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Mobile responsive for user search */
+@media (max-width: 768px) {
+    .my-calendars-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .calendar-card {
+        padding: 15px;
+    }
+    
+    .calendar-actions {
+        flex-direction: column;
+    }
+    
+    .btn-share,
+    .btn-manage-share {
+        min-width: auto;
+    }
+    
+    #share-calendar-modal .modal-content {
+        width: 95%;
+        margin: 20px auto;
+    }
+    
+    .share-actions {
+        flex-direction: column;
+    }
+    
+    /* User search mobile styles */
+    #add-friend-modal .modal-content {
+        width: 95%;
+        margin: 20px auto;
+        max-height: 90vh;
+    }
+    
+    .user-result-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px 15px;
+    }
+    
+    .user-avatar {
+        margin-right: 0;
+        margin-bottom: 12px;
+    }
+    
+    .user-actions {
+        margin-left: 0;
+        margin-top: 15px;
+    }
+    
+    .btn-send-request {
+        width: 100%;
+    }
+}

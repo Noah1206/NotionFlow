@@ -90,12 +90,83 @@
     
     <!-- Main Content -->
     <div class="friends-content">
+        <!-- My Calendars Share Section -->
+        <div class="my-calendars-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="section-icon">📤</span>
+                    내 캘린더 공유하기
+                </h2>
+                <button class="btn-refresh" onclick="loadMyCalendars()" title="새로고침">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <polyline points="23 4 23 10 17 10"/>
+                        <polyline points="1 20 1 14 7 14"/>
+                        <path d="m3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="my-calendars-container" id="my-calendars-container">
+                <div class="loading-spinner" id="my-calendars-loading">
+                    <div class="spinner"></div>
+                    <span>캘린더 목록을 불러오는 중...</span>
+                </div>
+                
+                <div class="my-calendars-grid" id="my-calendars-grid" style="display: none;">
+                    <!-- My calendars will be loaded here -->
+                </div>
+                
+                <div class="empty-state" id="my-calendars-empty" style="display: none;">
+                    <div class="empty-icon">📅</div>
+                    <h3>캘린더가 없습니다</h3>
+                    <p>먼저 대시보드에서 캘린더를 생성해주세요.</p>
+                    <button class="btn-primary" onclick="window.location.href='/dashboard'">
+                        대시보드로 이동
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Shared Calendars Section -->
+        <div class="shared-calendars-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="section-icon">📥</span>
+                    나와 공유된 캘린더
+                </h2>
+                <button class="btn-refresh" onclick="loadSharedCalendars()" title="새로고침">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <polyline points="23 4 23 10 17 10"/>
+                        <polyline points="1 20 1 14 7 14"/>
+                        <path d="m3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="shared-calendars-container" id="shared-calendars-container">
+                <div class="loading-spinner" id="shared-calendars-loading">
+                    <div class="spinner"></div>
+                    <span>공유 캘린더를 불러오는 중...</span>
+                </div>
+                
+                <div class="shared-calendars-grid" id="shared-calendars-grid" style="display: none;">
+                    <!-- Shared calendars will be loaded here -->
+                </div>
+                
+                <div class="empty-state" id="shared-calendars-empty" style="display: none;">
+                    <div class="empty-icon">📋</div>
+                    <h3>공유받은 캘린더가 없습니다</h3>
+                    <p>친구가 캘린더를 공유하면 여기에 표시됩니다.</p>
+                </div>
+            </div>
+        </div>
+        
         <!-- Friends Calendar List -->
         <div class="calendar-list-section">
             <div class="section-header">
                 <h2 class="section-title">
-                    <span class="section-icon">📅</span>
-                    친구들의 공개 캘린더
+                    <span class="section-icon">👥</span>
+                    친구 목록
                 </h2>
                 
                 <div class="filter-controls">
@@ -294,34 +365,39 @@
         <div class="modal-body">
             <div class="search-section">
                 <div class="form-group">
-                    <label>이메일로 검색</label>
-                    <div class="input-with-button">
-                        <input type="email" id="friend-email" placeholder="친구의 이메일 주소">
-                        <button class="btn-search" onclick="searchFriend()">
+                    <label>사용자 검색</label>
+                    <div class="search-input-container">
+                        <input type="text" id="user-search-input" placeholder="이름, 이메일 또는 ID로 검색..." 
+                               onkeyup="searchUsers(this.value)" autocomplete="off">
+                        <div class="search-icon">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                 <circle cx="11" cy="11" r="8"/>
                                 <path d="m21 21-4.35-4.35"/>
                             </svg>
-                        </button>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="search-result" id="search-result" style="display: none;">
-                    <div class="result-card">
-                        <div class="result-avatar">
-                            <img src="/static/images/default-avatar.png" alt="User">
-                        </div>
-                        <div class="result-info">
-                            <div class="result-name">사용자 이름</div>
-                            <div class="result-email">user@example.com</div>
-                        </div>
-                        <button class="btn-add" onclick="sendFriendRequest()">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <line x1="12" y1="5" x2="12" y2="19"/>
-                                <line x1="5" y1="12" x2="19" y2="12"/>
-                            </svg>
-                            친구 요청
-                        </button>
+                <div class="search-results-container" id="search-results-container">
+                    <div class="search-placeholder" id="search-placeholder">
+                        <div class="placeholder-icon">🔍</div>
+                        <p>사용자를 검색하여 친구 요청을 보내보세요</p>
+                        <small>이름, 이메일 또는 ID를 2글자 이상 입력해주세요</small>
+                    </div>
+                    
+                    <div class="search-loading" id="search-loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <span>검색 중...</span>
+                    </div>
+                    
+                    <div class="search-results" id="search-results" style="display: none;">
+                        <!-- Search results will be populated here -->
+                    </div>
+                    
+                    <div class="search-empty" id="search-empty" style="display: none;">
+                        <div class="empty-icon">😕</div>
+                        <p>검색 결과가 없습니다</p>
+                        <small>다른 검색어를 시도해보세요</small>
                     </div>
                 </div>
             </div>

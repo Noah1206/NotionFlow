@@ -476,6 +476,203 @@ class SessionManager:
             'last_activity': session.get('last_activity'),
             'expires_in': '24h' if AuthManager.is_authenticated() else None
         }
+    
+    @staticmethod
+    def search_users(query: str, current_user_id: str, limit: int = 10) -> list:
+        """Search users by name, email, or username"""
+        try:
+            query_lower = query.lower().strip()
+            
+            # Search in user_profiles table
+            result = supabase.table('user_profiles').select(
+                'user_id, username, display_name, email, avatar_url'
+            ).or_(
+                f'username.ilike.%{query_lower}%,'
+                f'display_name.ilike.%{query_lower}%,'
+                f'email.ilike.%{query_lower}%'
+            ).neq('user_id', current_user_id).limit(limit).execute()
+            
+            users = []
+            for user in result.data:
+                # Check if already friends
+                is_friend = AuthManager._check_friendship(current_user_id, user['user_id'])
+                
+                users.append({
+                    'id': user['user_id'],
+                    'name': user.get('display_name') or user.get('username', 'Unknown'),
+                    'email': user.get('email', ''),
+                    'username': user.get('username', ''),
+                    'avatar': user.get('avatar_url'),
+                    'is_friend': is_friend
+                })
+            
+            return users
+            
+        except Exception as e:
+            print(f"Error searching users: {e}")
+            return []
+    
+    @staticmethod
+    def _check_friendship(user1_id: str, user2_id: str) -> bool:
+        """Check if two users are friends"""
+        try:
+            # Check friends table for existing friendship
+            result = supabase.table('friendships').select('*').or_(
+                f'and(user_id.eq.{user1_id},friend_id.eq.{user2_id}),'
+                f'and(user_id.eq.{user2_id},friend_id.eq.{user1_id})'
+            ).eq('status', 'accepted').execute()
+            
+            return len(result.data) > 0
+        except Exception as e:
+            print(f"Error checking friendship: {e}")
+            return False
+    
+    @staticmethod
+    def send_friend_request(from_user_id: str, to_user_id: str) -> Tuple[bool, str]:
+        """Send friend request"""
+        try:
+            # Check if friendship already exists (any status)
+            existing_friendship = supabase.table('friendships').select('*').or_(
+                f'and(user_id.eq.{from_user_id},friend_id.eq.{to_user_id}),'
+                f'and(user_id.eq.{to_user_id},friend_id.eq.{from_user_id})'
+            ).execute()
+            
+            if existing_friendship.data:
+                status = existing_friendship.data[0]['status']
+                if status == 'accepted':
+                    return False, "You are already friends"
+                elif status == 'pending':
+                    return False, "Friend request already exists"
+                elif status == 'blocked':
+                    return False, "Cannot send friend request"
+            
+            # Create friend request (pending status in friendships table)
+            request_data = {
+                'user_id': from_user_id,
+                'friend_id': to_user_id,
+                'status': 'pending',
+                'created_at': datetime.now().isoformat()
+            }
+            
+            result = supabase.table('friendships').insert(request_data).execute()
+            
+            if result.data:
+                return True, "Friend request sent successfully"
+            else:
+                return False, "Failed to send friend request"
+                
+        except Exception as e:
+            print(f"Error sending friend request: {e}")
+            return False, f"Error: {str(e)}"
+    
+    @staticmethod
+    def get_friend_requests(user_id: str) -> list:
+        """Get pending friend requests for a user"""
+        try:
+            result = supabase.table('friendships').select(
+                '''
+                *,
+                requester:user_profiles!friendships_user_id_fkey(
+                    user_id, username, display_name, email, avatar_url
+                )
+                '''
+            ).eq('friend_id', user_id).eq('status', 'pending').execute()
+            
+            requests = []
+            for req in result.data:
+                from_user = req.get('requester')
+                if from_user:
+                    requests.append({
+                        'request_id': req['id'],
+                        'from_user': {
+                            'id': from_user['user_id'],
+                            'name': from_user.get('display_name') or from_user.get('username', 'Unknown'),
+                            'email': from_user.get('email', ''),
+                            'avatar': from_user.get('avatar_url')
+                        },
+                        'created_at': req['created_at']
+                    })
+            
+            return requests
+            
+        except Exception as e:
+            print(f"Error getting friend requests: {e}")
+            return []
+    
+    @staticmethod
+    def respond_to_friend_request(request_id: str, action: str, user_id: str) -> Tuple[bool, str]:
+        """Accept or decline friend request"""
+        try:
+            if action not in ['accept', 'decline']:
+                return False, "Invalid action"
+            
+            # Get the friendship record
+            friendship_result = supabase.table('friendships').select('*').eq('id', request_id).eq('friend_id', user_id).execute()
+            
+            if not friendship_result.data:
+                return False, "Friend request not found"
+            
+            friendship = friendship_result.data[0]
+            
+            if action == 'accept':
+                # Update the existing friendship to accepted
+                supabase.table('friendships').update({
+                    'status': 'accepted',
+                    'accepted_at': datetime.now().isoformat()
+                }).eq('id', request_id).execute()
+                
+                # Create the reverse friendship for bidirectional relationship
+                reverse_friendship = {
+                    'user_id': user_id,
+                    'friend_id': friendship['user_id'],
+                    'status': 'accepted',
+                    'created_at': datetime.now().isoformat(),
+                    'accepted_at': datetime.now().isoformat()
+                }
+                
+                supabase.table('friendships').insert(reverse_friendship).execute()
+                
+                return True, "Friend request accepted"
+            else:
+                # Delete the friendship request
+                supabase.table('friendships').delete().eq('id', request_id).execute()
+                
+                return True, "Friend request declined"
+                
+        except Exception as e:
+            print(f"Error responding to friend request: {e}")
+            return False, f"Error: {str(e)}"
+    
+    @staticmethod
+    def get_friends_list(user_id: str) -> list:
+        """Get user's friends list"""
+        try:
+            result = supabase.table('friendships').select(
+                '''
+                *,
+                friend:user_profiles!friendships_friend_id_fkey(
+                    user_id, username, display_name, email, avatar_url
+                )
+                '''
+            ).eq('user_id', user_id).eq('status', 'accepted').execute()
+            
+            friends = []
+            for friendship in result.data:
+                friend = friendship.get('friend')
+                if friend:
+                    friends.append({
+                        'id': friend['user_id'],
+                        'name': friend.get('display_name') or friend.get('username', 'Unknown'),
+                        'email': friend.get('email', ''),
+                        'avatar': friend.get('avatar_url'),
+                        'friendship_date': friendship['created_at']
+                    })
+            
+            return friends
+            
+        except Exception as e:
+            print(f"Error getting friends list: {e}")
+            return []
 
 # Convenience functions for backward compatibility
 def get_current_user_id() -> Optional[str]:

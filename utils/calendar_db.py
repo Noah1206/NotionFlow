@@ -299,6 +299,135 @@ def save_user_calendars(user_id: str, calendars: List[Dict[str, Any]]) -> bool:
         print(f"❌ Failed to save calendars: {e}")
         return False
 
+    def share_calendar_with_friend(self, calendar_id: str, owner_id: str, friend_id: str) -> bool:
+        """Share a calendar with a friend"""
+        if not self.supabase:
+            print("⚠️ Database not available")
+            return False
+        
+        try:
+            # First check if calendar exists and belongs to owner
+            calendar_result = self.supabase.table('calendars').select('*').eq('id', calendar_id).eq('owner_id', owner_id).single().execute()
+            if not calendar_result.data:
+                print(f"❌ Calendar {calendar_id} not found or doesn't belong to user {owner_id}")
+                return False
+            
+            # Check if already shared (기존 테이블 구조에 맞게 수정)
+            existing_share = self.supabase.table('calendar_shares').select('*').eq('calendar_id', calendar_id).eq('user_id', friend_id).execute()
+            if existing_share.data:
+                print(f"⚠️ Calendar {calendar_id} already shared with user {friend_id}")
+                return True
+            
+            # Create share record (기존 테이블 구조에 맞게 수정)
+            share_data = {
+                'calendar_id': calendar_id,
+                'user_id': friend_id,  # 기존 테이블: shared_with_user_id → user_id
+                'access_level': 'read',  # 기존 테이블: can_edit → access_level
+                'shared_by': owner_id,  # 기존 테이블: owner_id → shared_by
+                'is_active': True
+            }
+            
+            result = self.supabase.table('calendar_shares').insert(share_data).execute()
+            if result.data:
+                print(f"✅ Calendar {calendar_id} shared with user {friend_id}")
+                return True
+            else:
+                print(f"❌ Failed to share calendar {calendar_id}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Failed to share calendar: {e}")
+            return False
+    
+    def unshare_calendar_with_friend(self, calendar_id: str, owner_id: str, friend_id: str) -> bool:
+        """Unshare a calendar with a friend"""
+        if not self.supabase:
+            print("⚠️ Database not available")
+            return False
+        
+        try:
+            result = self.supabase.table('calendar_shares').delete().eq('calendar_id', calendar_id).eq('shared_by', owner_id).eq('user_id', friend_id).execute()
+            print(f"✅ Calendar {calendar_id} unshared with user {friend_id}")
+            return True
+        except Exception as e:
+            print(f"❌ Failed to unshare calendar: {e}")
+            return False
+    
+    def get_shared_calendars_for_user(self, user_id: str) -> List[Dict[str, Any]]:
+        """Get calendars that have been shared with this user"""
+        if not self.supabase:
+            print("⚠️ Database not available")
+            return []
+        
+        try:
+            # Get calendar shares where this user is the recipient
+            result = self.supabase.table('calendar_shares').select('''
+                *,
+                calendars (
+                    id,
+                    name,
+                    color,
+                    type,
+                    owner_id,
+                    description,
+                    created_at,
+                    is_active
+                )
+            ''').eq('user_id', user_id).eq('is_active', True).execute()
+            
+            shared_calendars = []
+            for share in result.data:
+                if share['calendars']:
+                    cal = share['calendars']
+                    shared_calendars.append({
+                        'id': str(cal['id']),
+                        'name': cal['name'],
+                        'color': cal['color'],
+                        'platform': cal.get('type', 'shared'),
+                        'is_shared': True,  # Mark as shared
+                        'owner_id': cal['owner_id'],
+                        'shared_by': share['shared_by'],
+                        'shared_at': share['shared_at'],
+                        'can_edit': share.get('access_level', 'read') == 'write',
+                        'event_count': 0,  # TODO: Count events
+                        'sync_status': 'shared',
+                        'last_sync_display': 'Shared calendar',
+                        'is_enabled': True,
+                        'description': cal.get('description', ''),
+                        'created_at': cal['created_at']
+                    })
+            
+            print(f"✅ Found {len(shared_calendars)} shared calendars for user {user_id}")
+            return shared_calendars
+            
+        except Exception as e:
+            print(f"❌ Failed to get shared calendars: {e}")
+            return []
+    
+    def get_calendar_shares_by_owner(self, owner_id: str) -> Dict[str, List[str]]:
+        """Get which calendars this user has shared and with whom"""
+        if not self.supabase:
+            print("⚠️ Database not available")
+            return {}
+        
+        try:
+            result = self.supabase.table('calendar_shares').select('calendar_id, user_id').eq('shared_by', owner_id).eq('is_active', True).execute()
+            
+            shares_map = {}
+            for share in result.data:
+                calendar_id = share['calendar_id']
+                friend_id = share['user_id']
+                
+                if calendar_id not in shares_map:
+                    shares_map[calendar_id] = []
+                shares_map[calendar_id].append(friend_id)
+            
+            return shares_map
+            
+        except Exception as e:
+            print(f"❌ Failed to get calendar shares: {e}")
+            return {}
+
 def load_user_calendars(user_id: str) -> List[Dict[str, Any]]:
     """Backward compatibility: Load calendars (now loads from database)"""
     calendars = calendar_db.get_user_calendars(user_id)

@@ -3296,6 +3296,241 @@ def decline_friend_request(request_id):
         print(f"Error declining friend request: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/calendar/share', methods=['POST'])
+def share_calendar():
+    """Share a calendar with a friend"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        data = request.get_json()
+        calendar_id = data.get('calendar_id')
+        friend_id = data.get('friend_id')
+        
+        if not calendar_id or not friend_id:
+            return jsonify({'success': False, 'error': 'Missing calendar_id or friend_id'}), 400
+        
+        # Use calendar_db to share calendar
+        from utils.calendar_db import calendar_db
+        success = calendar_db.share_calendar_with_friend(calendar_id, user_id, friend_id)
+        
+        if success:
+            return jsonify({'success': True, 'message': 'Calendar shared successfully'})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to share calendar'}), 500
+            
+    except Exception as e:
+        print(f"Error sharing calendar: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/calendar/unshare', methods=['POST'])
+def unshare_calendar():
+    """Unshare a calendar with a friend"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        data = request.get_json()
+        calendar_id = data.get('calendar_id')
+        friend_id = data.get('friend_id')
+        
+        if not calendar_id or not friend_id:
+            return jsonify({'success': False, 'error': 'Missing calendar_id or friend_id'}), 400
+        
+        # Use calendar_db to unshare calendar
+        from utils.calendar_db import calendar_db
+        success = calendar_db.unshare_calendar_with_friend(calendar_id, user_id, friend_id)
+        
+        if success:
+            return jsonify({'success': True, 'message': 'Calendar unshared successfully'})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to unshare calendar'}), 500
+            
+    except Exception as e:
+        print(f"Error unsharing calendar: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/calendar/my-calendars', methods=['GET'])
+def get_my_calendars():
+    """Get current user's calendars with sharing status"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        # Get user's calendars
+        from utils.calendar_db import calendar_db
+        calendars = calendar_db.get_user_calendars(user_id)
+        
+        # Get sharing information
+        shares_map = calendar_db.get_calendar_shares_by_owner(user_id)
+        
+        # Add sharing status to calendars
+        for calendar in calendars:
+            calendar_id = calendar['id']
+            calendar['shared_with'] = shares_map.get(calendar_id, [])
+            calendar['is_currently_shared'] = len(calendar['shared_with']) > 0
+        
+        return jsonify({'success': True, 'calendars': calendars})
+        
+    except Exception as e:
+        print(f"Error getting my calendars: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/calendar/shared-with-me', methods=['GET'])
+def get_shared_calendars():
+    """Get calendars that have been shared with current user"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        # Get shared calendars
+        from utils.calendar_db import calendar_db
+        shared_calendars = calendar_db.get_shared_calendars_for_user(user_id)
+        
+        return jsonify({'success': True, 'calendars': shared_calendars})
+        
+    except Exception as e:
+        print(f"Error getting shared calendars: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/users/search', methods=['GET'])
+def search_users():
+    """Search users by name or email for friend requests"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        query = request.args.get('q', '').strip()
+        if not query or len(query) < 2:
+            return jsonify({'success': False, 'error': 'Query must be at least 2 characters'}), 400
+        
+        # Use AuthManager to search for real users
+        from utils.auth_manager import AuthManager
+        users = AuthManager.search_users(query, user_id, limit=10)
+        
+        return jsonify({
+            'success': True,
+            'users': users,
+            'total': len(users)
+        })
+        
+    except Exception as e:
+        print(f"Error searching users: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/friends/request', methods=['POST'])
+def send_friend_request():
+    """Send friend request to another user"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        data = request.get_json()
+        target_user_id = data.get('user_id')
+        
+        if not target_user_id:
+            return jsonify({'success': False, 'error': 'Target user ID is required'}), 400
+        
+        if target_user_id == user_id:
+            return jsonify({'success': False, 'error': 'Cannot send friend request to yourself'}), 400
+        
+        # Use AuthManager to send real friend request
+        from utils.auth_manager import AuthManager
+        success, message = AuthManager.send_friend_request(user_id, target_user_id)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': message
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': message
+            }), 400
+        
+    except Exception as e:
+        print(f"Error sending friend request: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/friends', methods=['GET'])
+def get_friends():
+    """Get user's friends list"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        # Use AuthManager to get real friends list
+        from utils.auth_manager import AuthManager
+        friends = AuthManager.get_friends_list(user_id)
+        
+        return jsonify({
+            'success': True,
+            'friends': friends
+        })
+        
+    except Exception as e:
+        print(f"Error getting friends: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/friends/requests', methods=['GET'])
+def get_friend_requests():
+    """Get pending friend requests"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        # Use AuthManager to get real friend requests
+        from utils.auth_manager import AuthManager
+        requests = AuthManager.get_friend_requests(user_id)
+        
+        return jsonify({
+            'success': True,
+            'requests': requests
+        })
+        
+    except Exception as e:
+        print(f"Error getting friend requests: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/friends/requests/<request_id>/<action>', methods=['POST'])
+def respond_to_friend_request(request_id, action):
+    """Accept or decline friend request"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        if action not in ['accept', 'decline']:
+            return jsonify({'success': False, 'error': 'Invalid action'}), 400
+        
+        # Use AuthManager to respond to friend request
+        from utils.auth_manager import AuthManager
+        success, message = AuthManager.respond_to_friend_request(request_id, action, user_id)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': message
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': message
+            }), 400
+        
+    except Exception as e:
+        print(f"Error responding to friend request: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/user/profile', methods=['GET'])
 def get_current_user_profile():
     """Get current user profile"""
