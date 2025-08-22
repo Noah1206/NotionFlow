@@ -21,17 +21,48 @@ def validate_email(email: str) -> bool:
 
 # Initialize Supabase
 SUPABASE_URL = os.getenv('SUPABASE_URL')
-SUPABASE_KEY = os.getenv('SUPABASE_API_KEY')
-SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY')  # Service role key for admin operations
+SUPABASE_KEY = os.getenv('SUPABASE_API_KEY', os.getenv('SUPABASE_ANON_KEY'))
+SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY')
 
+# Check for required environment variables with detailed error messages
 if not SUPABASE_URL:
-    raise ValueError("SUPABASE_URL environment variable is required")
+    print("❌ SUPABASE_URL environment variable is missing!")
+    print("Please set the following environment variables:")
+    print("- SUPABASE_URL=https://your-project.supabase.co")
+    print("- SUPABASE_API_KEY=your-anon-key-here")
+    print("- SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here (optional)")
+    
+    # Try to load from .env file if available
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+        SUPABASE_URL = os.getenv('SUPABASE_URL')
+        SUPABASE_KEY = os.getenv('SUPABASE_API_KEY', os.getenv('SUPABASE_ANON_KEY'))
+        SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY')
+        
+        if SUPABASE_URL and SUPABASE_KEY:
+            print("✅ Loaded environment variables from .env file")
+        else:
+            raise ValueError("SUPABASE_URL and SUPABASE_API_KEY environment variables are required")
+    except ImportError:
+        print("💡 Consider installing python-dotenv: pip install python-dotenv")
+        raise ValueError("SUPABASE_URL environment variable is required")
+    except Exception:
+        raise ValueError("SUPABASE_URL and SUPABASE_API_KEY environment variables are required")
+
 if not SUPABASE_KEY:
-    raise ValueError("SUPABASE_API_KEY environment variable is required")
+    raise ValueError("SUPABASE_API_KEY (or SUPABASE_ANON_KEY) environment variable is required")
 
 # Use service key if available for admin operations, otherwise use anon key
 supabase_key = SUPABASE_SERVICE_KEY if SUPABASE_SERVICE_KEY else SUPABASE_KEY
-supabase = create_client(SUPABASE_URL, supabase_key)
+
+# Initialize Supabase client with error handling
+try:
+    supabase = create_client(SUPABASE_URL, supabase_key)
+    print(f"✅ Supabase initialized successfully with {SUPABASE_URL}")
+except Exception as e:
+    print(f"❌ Failed to initialize Supabase: {e}")
+    raise
 
 class AuthManager:
     """Centralized authentication management"""

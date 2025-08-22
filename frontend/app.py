@@ -132,19 +132,17 @@ def load_modules_async():
     except ImportError as e:
         print(f"⚠️ Dashboard data not available: {e}")
 
-    # Calendar database 로드
+    # Calendar database 로드 (is_available 체크 건너뛰기)
     try:
         from utils.calendar_db import calendar_db as real_calendar_db
-        if real_calendar_db.is_available():
-            calendar_db = real_calendar_db
-            calendar_db_available = True
-            print("✅ Calendar database connection successful (async)")
-        else:
-            print("⚠️ Calendar database not available - using file fallback (async)")
+        # is_available() 호출을 건너뛰고 바로 할당
+        calendar_db = real_calendar_db
+        calendar_db_available = True
+        print("✅ Calendar database module loaded (async)")
     except ImportError as e:
         print(f"⚠️ Calendar database module not found: {e}")
     except Exception as e:
-        print(f"❌ Calendar database connection failed: {e}")
+        print(f"❌ Calendar database module load failed: {e}")
 
     print("✅ 백그라운드 모듈 로딩 완료!")
 
