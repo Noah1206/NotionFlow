@@ -17,6 +17,12 @@ profile_bp = Blueprint('profile', __name__)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 
+# Supabase 설정 (전역)
+SUPABASE_URL = os.getenv('SUPABASE_URL')
+SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY') 
+SUPABASE_API_KEY = os.getenv('SUPABASE_API_KEY')
+SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY')
+
 def allowed_file(filename):
     """허용된 파일 확장자 체크"""
     return '.' in filename and \
@@ -85,9 +91,7 @@ def update_profile():
             current_profile = AuthManager.get_user_profile(user_id)
             if current_profile and current_profile.get('username') != username:
                 from supabase import create_client
-                SUPABASE_URL = os.getenv('SUPABASE_URL')
-                SUPABASE_KEY = os.getenv('SUPABASE_API_KEY')
-                supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+                supabase = create_client(SUPABASE_URL, SUPABASE_API_KEY)
                 
                 # 사용자명 중복 체크
                 existing = supabase.table('user_profiles').select('id').eq('username', username).execute()
@@ -117,9 +121,7 @@ def update_profile():
         # 데이터베이스 업데이트
         if update_data:
             from supabase import create_client
-            SUPABASE_URL = os.getenv('SUPABASE_URL')
-            SUPABASE_KEY = os.getenv('SUPABASE_API_KEY')
-            supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+            supabase = create_client(SUPABASE_URL, SUPABASE_API_KEY)
             
             update_data['updated_at'] = datetime.now().isoformat()
             
@@ -173,14 +175,12 @@ def upload_avatar():
         
         # Supabase Storage에 업로드
         from supabase import create_client
-        SUPABASE_URL = os.getenv('SUPABASE_URL')
-        SUPABASE_KEY = os.getenv('SUPABASE_ANON_KEY')
         
-        if not SUPABASE_URL or not SUPABASE_KEY:
+        if not SUPABASE_URL or not SUPABASE_ANON_KEY:
             return jsonify({'error': 'Supabase configuration missing'}), 500
         
         try:
-            supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+            supabase = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
             
             # 파일을 바이트로 읽기
             file_data = file.read()
@@ -264,9 +264,6 @@ def initial_setup():
         
         # 데이터베이스 연결 - 서비스 키 사용으로 RLS 우회
         from supabase import create_client
-        SUPABASE_URL = os.getenv('SUPABASE_URL')
-        SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY')  # 서비스 키 사용
-        SUPABASE_KEY = os.getenv('SUPABASE_API_KEY')
         
         # 반드시 서비스 키를 사용 (RLS 우회를 위해)
         if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
@@ -450,9 +447,7 @@ def update_email():
         
         # 데이터베이스 업데이트
         from supabase import create_client
-        SUPABASE_URL = os.getenv('SUPABASE_URL')
-        SUPABASE_KEY = os.getenv('SUPABASE_API_KEY')
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        supabase = create_client(SUPABASE_URL, SUPABASE_API_KEY)
         
         # user_profiles 테이블에 이메일 업데이트
         result = supabase.table('user_profiles').update({
@@ -543,9 +538,7 @@ def check_username():
         
         # 중복 체크
         from supabase import create_client
-        SUPABASE_URL = os.getenv('SUPABASE_URL')
-        SUPABASE_KEY = os.getenv('SUPABASE_API_KEY')
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        supabase = create_client(SUPABASE_URL, SUPABASE_API_KEY)
         
         result = supabase.table('user_profiles').select('id').eq('username', username).execute()
         
@@ -594,9 +587,7 @@ def get_username_suggestions():
         # 추천 사용자명 생성
         suggestions = []
         from supabase import create_client
-        SUPABASE_URL = os.getenv('SUPABASE_URL')
-        SUPABASE_KEY = os.getenv('SUPABASE_API_KEY')
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        supabase = create_client(SUPABASE_URL, SUPABASE_API_KEY)
         
         # 베이스 이름으로 시작
         for i in range(5):
