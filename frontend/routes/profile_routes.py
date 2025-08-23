@@ -169,6 +169,16 @@ def update_profile():
 @require_auth
 def upload_avatar():
     """아바타 이미지 업로드"""
+    # Railway 디버깅
+    print("🔍 upload_avatar function started")
+    try:
+        print(f"🔍 os module available: {os is not None}")
+    except Exception as debug_e:
+        print(f"❌ os module check failed: {debug_e}")
+        import os as local_os
+        globals()['os'] = local_os
+        print("✅ os module re-imported locally")
+    
     try:
         user_id = AuthManager.get_current_user_id()
         if not user_id:
