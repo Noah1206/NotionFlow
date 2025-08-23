@@ -1,11 +1,16 @@
-Deploy trigger file
-Created: 2025-08-23 12:30 KST
+Deploy trigger file - FORCE REBUILD
+Created: 2025-08-23 19:05 KST
 Purpose: Force Railway rebuild to sync latest code changes
 
-Changes included:
-- Fixed AuthManager.get_friends_list AttributeError with hasattr() check
-- Added graceful error handling for friend-related API calls
-- Fixed profile avatar upload functionality
-- Added Railway PORT environment variable fix
+CRITICAL CHANGES - Avatar Upload System Redesign:
+- REMOVED camera icon from profile avatar completely
+- ADDED file upload functionality to profile edit modal
+- FIXED profile avatar display system
+- REDESIGNED upload workflow for better UX
+- UPDATED CSS and JavaScript for new avatar system
 
-Deploy timestamp: 2025-08-23-12:30
+Previous Railway deployment is showing OLD CODE with camera icon still visible!
+This deployment MUST reflect the latest GitHub changes!
+
+Deploy timestamp: 2025-08-23-19:05
+Force rebuild token: REBUILD_NOW_2025_08_23_1905
