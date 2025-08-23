@@ -3,10 +3,18 @@
 사용자 프로필 CRUD API 엔드포인트
 """
 
+# OS 모듈을 가장 먼저 import (Railway 호환성)
+import os
+import sys
+
+# 환경 변수를 즉시 로드
+from dotenv import load_dotenv
+load_dotenv()
+
+# 나머지 imports
 from flask import Blueprint, request, jsonify, session, render_template
 from utils.auth_manager import AuthManager, require_auth
 from datetime import datetime
-import os
 import uuid
 import base64
 import traceback
@@ -22,10 +30,18 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 
 # Supabase 설정 (전역) - Railway 호환성 체크
-SUPABASE_URL = os.getenv('SUPABASE_URL')
-SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY') or os.getenv('SUPABASE_API_KEY')  # 백업
-SUPABASE_API_KEY = os.getenv('SUPABASE_API_KEY') or os.getenv('SUPABASE_ANON_KEY')  # 백업
-SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY') or os.getenv('SUPABASE_SERVICE_KEY')
+# os 모듈이 정상적으로 로드되었는지 확인
+try:
+    SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
+    SUPABASE_ANON_KEY = os.environ.get('SUPABASE_ANON_KEY') or os.environ.get('SUPABASE_API_KEY', '')
+    SUPABASE_API_KEY = os.environ.get('SUPABASE_API_KEY') or os.environ.get('SUPABASE_ANON_KEY', '')
+    SUPABASE_SERVICE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY') or os.environ.get('SUPABASE_SERVICE_KEY', '')
+except Exception as e:
+    print(f"⚠️ Error loading environment variables: {e}")
+    SUPABASE_URL = ''
+    SUPABASE_ANON_KEY = ''
+    SUPABASE_API_KEY = ''
+    SUPABASE_SERVICE_KEY = ''
 
 # 디버그 정보
 print(f"🔧 SUPABASE_URL: {SUPABASE_URL[:30] + '...' if SUPABASE_URL else 'None'}")

@@ -3,16 +3,26 @@
 REST API endpoints for managing user visits and popup display logic
 """
 
-import sys
+# OS 모듈을 가장 먼저 import (Railway 호환성)
 import os
+import sys
 from functools import wraps
+
+# 환경 변수 즉시 로드
+from dotenv import load_dotenv
+load_dotenv()
+
 from flask import Blueprint, request, jsonify, session
 
 # Add backend services to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../backend'))
 
 # Flask 환경 설정 (전역) - Railway 호환성
-FLASK_ENV = os.getenv('FLASK_ENV')
+try:
+    FLASK_ENV = os.environ.get('FLASK_ENV', 'production')
+except Exception as e:
+    print(f"⚠️ Error loading environment variables: {e}")
+    FLASK_ENV = 'production'
 
 try:
     from services.user_visit_service import visit_service

@@ -3,19 +3,30 @@
 User login, registration, and session management
 """
 
+# OS 모듈을 가장 먼저 import (Railway 호환성)
+import os
+import sys
+import re
+
+# 환경 변수 즉시 로드
+from dotenv import load_dotenv
+load_dotenv()
+
 from flask import Blueprint, request, jsonify, session, redirect, url_for
 from utils.auth_manager import AuthManager, SessionManager
-import re
-import sys
-import os
 
 # Add parent directory to path for backend services
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../backend'))
 from services.sync_tracking_service import sync_tracker, EventType, ActivityType
 
 # Supabase 설정 (전역) - Railway 호환성
-SUPABASE_URL = os.getenv('SUPABASE_URL')
-SUPABASE_KEY = os.getenv('SUPABASE_API_KEY') or os.getenv('SUPABASE_ANON_KEY')
+try:
+    SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
+    SUPABASE_KEY = os.environ.get('SUPABASE_API_KEY') or os.environ.get('SUPABASE_ANON_KEY', '')
+except Exception as e:
+    print(f"⚠️ Error loading environment variables: {e}")
+    SUPABASE_URL = ''
+    SUPABASE_KEY = ''
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 

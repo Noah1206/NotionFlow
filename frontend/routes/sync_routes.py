@@ -3,17 +3,28 @@
 Enhanced sync management with scheduler integration and activity tracking
 """
 
+# OS 모듈을 가장 먼저 import (Railway 호환성)
+import os
+import sys
+
+# 환경 변수 즉시 로드
+from dotenv import load_dotenv
+load_dotenv()
+
 from flask import Blueprint, request, jsonify
 from utils.auth_manager import AuthManager
 from utils.sync_scheduler import trigger_manual_sync, get_sync_status
-import sys
-import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from backend.services.sync_tracking_service import sync_tracker, EventType, ActivityType
 
 # Supabase 설정 (전역) - Railway 호환성
-SUPABASE_URL = os.getenv('SUPABASE_URL')
-SUPABASE_KEY = os.getenv('SUPABASE_API_KEY') or os.getenv('SUPABASE_ANON_KEY')
+try:
+    SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
+    SUPABASE_KEY = os.environ.get('SUPABASE_API_KEY') or os.environ.get('SUPABASE_ANON_KEY', '')
+except Exception as e:
+    print(f"⚠️ Error loading environment variables: {e}")
+    SUPABASE_URL = ''
+    SUPABASE_KEY = ''
 
 sync_bp = Blueprint('sync', __name__, url_prefix='/api/sync')
 
