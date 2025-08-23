@@ -1884,16 +1884,43 @@ def upload_avatar():
         
         file = request.files['avatar']
         
-        # For now, save the file locally or use a placeholder
-        # In production, you would upload to a storage service like S3 or Supabase Storage
-        # and get a public URL
+        # Validate file
+        if file.filename == '':
+            return jsonify({'success': False, 'error': 'No file selected'}), 400
+        
+        # Check file size (5MB limit)
+        file.seek(0, os.SEEK_END)
+        file_size = file.tell()
+        file.seek(0)  # Reset file pointer
+        
+        if file_size > 5 * 1024 * 1024:  # 5MB
+            return jsonify({'success': False, 'error': 'File size exceeds 5MB limit'}), 400
+        
+        # Check file type
+        allowed_extensions = {'.png', '.jpg', '.jpeg', '.gif', '.webp'}
+        file_extension = os.path.splitext(file.filename)[1].lower()
+        
+        if file_extension not in allowed_extensions:
+            return jsonify({'success': False, 'error': 'Invalid file type. Only PNG, JPG, JPEG, GIF, WebP are allowed'}), 400
+        
+        # Save the uploaded file
+        import os
+        from werkzeug.utils import secure_filename
+        
+        # Create uploads directory if it doesn't exist
+        uploads_dir = os.path.join(app.root_path, 'static', 'uploads', 'avatars')
+        os.makedirs(uploads_dir, exist_ok=True)
         
         # Generate a unique filename
-        filename = f"avatar_{user_id}_{uuid.uuid4().hex[:8]}.png"
+        file_extension = os.path.splitext(file.filename)[1] if file.filename else '.png'
+        filename = f"avatar_{user_id}_{uuid.uuid4().hex[:8]}{file_extension}"
+        filepath = os.path.join(uploads_dir, filename)
         
-        # For development, we'll use a placeholder URL
-        # In production, implement actual file upload
-        avatar_url = f"https://ui-avatars.com/api/?name={user_id}&background=random&size=200"
+        # Save the file
+        file.save(filepath)
+        
+        # Generate public URL
+        avatar_url = f"/static/uploads/avatars/{filename}"
         
         # Update user profile with new avatar URL
         update_data = {'avatar_url': avatar_url}

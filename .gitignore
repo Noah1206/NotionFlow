@@ -84,6 +84,10 @@ uploads/media/*
 frontend/data/calendars/*
 !frontend/data/calendars/.gitkeep
 
+# Uploaded Avatar Files
+frontend/static/uploads/avatars/*
+!frontend/static/uploads/avatars/.gitkeep
+
 node_modules/
 .next/
 dist/
