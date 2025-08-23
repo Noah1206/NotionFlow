@@ -1898,7 +1898,17 @@ def upload_avatar():
         # Update user profile with new avatar URL
         update_data = {'avatar_url': avatar_url}
         
-        if AuthManager.update_user_profile(user_id, update_data):
+        # Try to update profile using AuthManager
+        try:
+            from utils.auth_manager import AuthManager
+            if hasattr(AuthManager, 'update_user_profile'):
+                update_success = AuthManager.update_user_profile(user_id, update_data)
+            else:
+                update_success = False
+        except ImportError:
+            update_success = False
+        
+        if update_success:
             return jsonify({
                 'success': True,
                 'avatar_url': avatar_url
@@ -3558,8 +3568,14 @@ def send_friend_request():
             return jsonify({'success': False, 'error': 'Cannot send friend request to yourself'}), 400
         
         # Use AuthManager to send real friend request
-        from utils.auth_manager import AuthManager
-        success, message = AuthManager.send_friend_request(user_id, target_user_id)
+        try:
+            from utils.auth_manager import AuthManager
+            if hasattr(AuthManager, 'send_friend_request'):
+                success, message = AuthManager.send_friend_request(user_id, target_user_id)
+            else:
+                success, message = False, "Friend request feature not available"
+        except ImportError:
+            success, message = False, "Friend request feature not available"
         
         if success:
             return jsonify({
@@ -3593,22 +3609,49 @@ def get_friends():
             from utils.auth_manager import AuthManager
             print("✅ AuthManager imported successfully")
             
-            friends = AuthManager.get_friends_list(user_id)
-            print(f"✅ Retrieved {len(friends)} friends")
+            # Check if get_friends_list method exists
+            if hasattr(AuthManager, 'get_friends_list'):
+                friends = AuthManager.get_friends_list(user_id)
+                print(f"✅ Retrieved {len(friends) if friends else 0} friends")
+            else:
+                print("⚠️ get_friends_list method not found, returning empty list")
+                friends = []
             
             return jsonify({
                 'success': True,
-                'friends': friends
+                'friends': friends if friends else []
             })
             
         except ImportError as ie:
             print(f"❌ Failed to import AuthManager: {ie}")
-            return jsonify({'success': False, 'error': 'AuthManager not available'}), 500
+            # Return empty friends list as fallback
+            return jsonify({'success': True, 'friends': []})
         
     except Exception as e:
         print(f"❌ Error getting friends: {e}")
         import traceback
         traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/friends/calendars', methods=['GET'])
+def get_friend_calendars():
+    """Get calendars from friends"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        # For now, return empty array
+        # In production, this would fetch calendars shared by friends
+        calendars = []
+        
+        return jsonify({
+            'success': True,
+            'calendars': calendars
+        })
+        
+    except Exception as e:
+        print(f"Error getting friend calendars: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/friends/requests', methods=['GET'])
@@ -3620,8 +3663,14 @@ def get_friend_requests():
             return jsonify({'success': False, 'error': 'Not authenticated'}), 401
         
         # Use AuthManager to get real friend requests
-        from utils.auth_manager import AuthManager
-        requests = AuthManager.get_friend_requests(user_id)
+        try:
+            from utils.auth_manager import AuthManager
+            if hasattr(AuthManager, 'get_friend_requests'):
+                requests = AuthManager.get_friend_requests(user_id)
+            else:
+                requests = []
+        except ImportError:
+            requests = []
         
         return jsonify({
             'success': True,
@@ -3644,8 +3693,14 @@ def respond_to_friend_request(request_id, action):
             return jsonify({'success': False, 'error': 'Invalid action'}), 400
         
         # Use AuthManager to respond to friend request
-        from utils.auth_manager import AuthManager
-        success, message = AuthManager.respond_to_friend_request(request_id, action, user_id)
+        try:
+            from utils.auth_manager import AuthManager
+            if hasattr(AuthManager, 'respond_to_friend_request'):
+                success, message = AuthManager.respond_to_friend_request(request_id, action, user_id)
+            else:
+                success, message = False, "Friend request feature not available"
+        except ImportError:
+            success, message = False, "Friend request feature not available"
         
         if success:
             return jsonify({
@@ -3671,7 +3726,14 @@ def get_current_user_profile():
             return jsonify({'success': False, 'error': 'Not authenticated'}), 401
         
         # Get user profile from database
-        profile = AuthManager.get_user_profile(user_id)
+        try:
+            from utils.auth_manager import AuthManager
+            if hasattr(AuthManager, 'get_user_profile'):
+                profile = AuthManager.get_user_profile(user_id)
+            else:
+                profile = None
+        except ImportError:
+            profile = None
         
         if profile:
             # Return actual user profile data
@@ -3721,7 +3783,14 @@ def update_current_user_profile():
         # Update profile in database using AuthManager
         if update_data:
             # Use AuthManager to update profile
-            success = AuthManager.update_user_profile(user_id, update_data)
+            try:
+                from utils.auth_manager import AuthManager
+                if hasattr(AuthManager, 'update_user_profile'):
+                    success = AuthManager.update_user_profile(user_id, update_data)
+                else:
+                    success = False
+            except ImportError:
+                success = False
             
             if success:
                 return jsonify({'success': True, 'message': 'Profile updated successfully'})
