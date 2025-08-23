@@ -11,6 +11,9 @@ from flask import Blueprint, request, jsonify, session
 # Add backend services to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../backend'))
 
+# Flask 환경 설정 (전역) - Railway 호환성
+FLASK_ENV = os.getenv('FLASK_ENV')
+
 try:
     from services.user_visit_service import visit_service
 except ImportError as e:
@@ -204,7 +207,7 @@ def debug_user_visits(user_id):
     GET /api/visits/debug/user/<user_id>
     """
     # Only enable in development
-    if not os.getenv('FLASK_ENV') == 'development':
+    if not FLASK_ENV == 'development':
         return jsonify({'error': 'Debug endpoint only available in development'}), 403
     
     if not visit_service:

@@ -11,6 +11,10 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from backend.services.sync_tracking_service import sync_tracker, EventType, ActivityType
 
+# Supabase 설정 (전역) - Railway 호환성
+SUPABASE_URL = os.getenv('SUPABASE_URL')
+SUPABASE_KEY = os.getenv('SUPABASE_API_KEY') or os.getenv('SUPABASE_ANON_KEY')
+
 sync_bp = Blueprint('sync', __name__, url_prefix='/api/sync')
 
 @sync_bp.route('/trigger', methods=['POST'])
@@ -85,8 +89,6 @@ def user_sync_status():
         
         # Import here to avoid circular imports
         from supabase import create_client
-        SUPABASE_URL = os.getenv('SUPABASE_URL')
-        SUPABASE_KEY = os.getenv('SUPABASE_API_KEY')
         
         if not SUPABASE_URL or not SUPABASE_KEY:
             return jsonify({'error': 'Database configuration error'}), 500
@@ -135,8 +137,6 @@ def sync_history():
         
         # Import here to avoid circular imports
         from supabase import create_client
-        SUPABASE_URL = os.getenv('SUPABASE_URL')
-        SUPABASE_KEY = os.getenv('SUPABASE_API_KEY')
         
         if not SUPABASE_URL or not SUPABASE_KEY:
             return jsonify({'error': 'Database configuration error'}), 500
