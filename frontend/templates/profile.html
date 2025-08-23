@@ -434,6 +434,7 @@ async function uploadAvatar() {
             // 서버에서 받은 URL로 업데이트
             const avatarContainer = document.getElementById('profile-avatar');
             if (avatarContainer) {
+                console.log('🔄 Updating avatar with server URL:', result.avatar_url);
                 createImageAvatar(avatarContainer, result.avatar_url);
                 localStorage.setItem('user_uploaded_avatar', result.avatar_url);
             }
@@ -442,13 +443,20 @@ async function uploadAvatar() {
             const avatarUrlInput = document.getElementById('edit-avatar-url');
             if (avatarUrlInput) {
                 avatarUrlInput.value = result.avatar_url;
+                console.log('📝 Updated avatar URL input:', result.avatar_url);
             }
             
-            showToast('프로필 사진이 업데이트되었습니다!', 'success');
-            console.log('✅ Avatar uploaded successfully:', result.avatar_url);
+            // 성공 메시지 표시
+            const message = result.message || '프로필 사진이 업데이트되었습니다!';
+            const method = result.method || 'unknown';
+            showToast(`${message} (저장 방식: ${method})`, 'success');
+            console.log('✅ Avatar uploaded successfully:', result.avatar_url, 'Method:', method);
             
             // 대시보드 사이드바의 아바타도 업데이트
             updateDashboardAvatar(result.avatar_url);
+            
+            // 페이지의 다른 아바타 요소들도 강제로 업데이트
+            updateAllAvatars(result.avatar_url);
             
         } else {
             showToast(result.error || '프로필 사진 업로드에 실패했습니다.', 'error');
@@ -466,13 +474,44 @@ function updateDashboardAvatar(avatarUrl) {
     const sidebarAvatar = document.querySelector('.sidebar-avatar img');
     if (sidebarAvatar) {
         sidebarAvatar.src = avatarUrl;
+        console.log('🔄 Updated sidebar avatar image');
     }
     
     // 사이드바의 아바타 컨테이너 업데이트 (이니셜 대신 이미지로)
     const sidebarAvatarContainer = document.querySelector('.sidebar-avatar');
     if (sidebarAvatarContainer && !sidebarAvatarContainer.querySelector('img')) {
         sidebarAvatarContainer.innerHTML = `<img src="${avatarUrl}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+        console.log('🔄 Created new sidebar avatar image');
     }
+}
+
+// 페이지의 모든 아바타 요소 업데이트
+function updateAllAvatars(avatarUrl) {
+    console.log('🔄 Updating all avatars with URL:', avatarUrl);
+    
+    // 메인 프로필 아바타
+    const mainAvatar = document.getElementById('profile-avatar');
+    if (mainAvatar) {
+        createImageAvatar(mainAvatar, avatarUrl);
+        console.log('✅ Updated main profile avatar');
+    }
+    
+    // 모든 아바타 이미지 업데이트
+    const avatarImages = document.querySelectorAll('img[alt*="avatar"], img[alt*="Profile"], .avatar img, .profile-avatar img');
+    avatarImages.forEach((img, index) => {
+        img.src = avatarUrl;
+        console.log(`✅ Updated avatar image ${index + 1}`);
+    });
+    
+    // 사이드바 아바타
+    updateDashboardAvatar(avatarUrl);
+    
+    // 강제 DOM 새로고침
+    setTimeout(() => {
+        const event = new CustomEvent('avatarUpdated', { detail: { avatarUrl } });
+        document.dispatchEvent(event);
+        console.log('📡 Dispatched avatarUpdated event');
+    }, 100);
 }
 
 function openEditModal() {
