@@ -1878,13 +1878,43 @@ def upload_avatar():
         return jsonify({'success': False, 'error': 'Not authenticated'}), 401
     
     try:
-        # Handle file upload here
-        # For now, just return success with a placeholder URL
-        return jsonify({
-            'success': True,
-            'avatar_url': '/static/images/default-avatar.svg'
-        })
+        # Check if file is present
+        if 'avatar' not in request.files:
+            return jsonify({'success': False, 'error': 'No file provided'}), 400
+        
+        file = request.files['avatar']
+        
+        # For now, save the file locally or use a placeholder
+        # In production, you would upload to a storage service like S3 or Supabase Storage
+        # and get a public URL
+        
+        # Generate a unique filename
+        filename = f"avatar_{user_id}_{uuid.uuid4().hex[:8]}.png"
+        
+        # For development, we'll use a placeholder URL
+        # In production, implement actual file upload
+        avatar_url = f"https://ui-avatars.com/api/?name={user_id}&background=random&size=200"
+        
+        # Update user profile with new avatar URL
+        update_data = {'avatar_url': avatar_url}
+        
+        if AuthManager.update_user_profile(user_id, update_data):
+            return jsonify({
+                'success': True,
+                'avatar_url': avatar_url
+            })
+        elif config.supabase_client:
+            result = config.supabase_client.table('user_profiles').update(update_data).eq('user_id', user_id).execute()
+            if result.data:
+                return jsonify({
+                    'success': True,
+                    'avatar_url': avatar_url
+                })
+        
+        return jsonify({'success': False, 'error': 'Failed to update profile'}), 500
+        
     except Exception as e:
+        print(f"Error uploading avatar: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/dashboard/friends')
@@ -3688,14 +3718,23 @@ def update_current_user_profile():
         if 'email' in data:
             update_data['email'] = data['email']
         
-        # Update profile in database
+        # Update profile in database using AuthManager
         if update_data:
-            result = supabase.table('user_profiles').update(update_data).eq('user_id', user_id).execute()
+            # Use AuthManager to update profile
+            success = AuthManager.update_user_profile(user_id, update_data)
             
-            if result.data:
+            if success:
                 return jsonify({'success': True, 'message': 'Profile updated successfully'})
             else:
-                return jsonify({'success': False, 'error': 'Failed to update profile'}), 500
+                # If AuthManager fails, try direct update via config.supabase_client
+                if config.supabase_client:
+                    result = config.supabase_client.table('user_profiles').update(update_data).eq('user_id', user_id).execute()
+                    if result.data:
+                        return jsonify({'success': True, 'message': 'Profile updated successfully'})
+                    else:
+                        return jsonify({'success': False, 'error': 'Failed to update profile'}), 500
+                else:
+                    return jsonify({'success': False, 'error': 'Database connection not available'}), 500
         else:
             return jsonify({'success': False, 'error': 'No data to update'}), 400
         

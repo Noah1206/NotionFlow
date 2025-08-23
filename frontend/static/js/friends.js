@@ -9,6 +9,10 @@ const itemsPerPage = 10;
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
+    // Immediately update avatar from localStorage for instant loading
+    updateMyStoryAvatar();
+    
+    // Then load all data
     await loadCurrentUser();
     await loadFriends();
     await loadMyCalendars();
@@ -39,12 +43,22 @@ async function loadCurrentUser() {
 
 // Update my story avatar with user profile picture
 function updateMyStoryAvatar() {
-    if (!currentUser) return;
-    
     const myStoryAvatar = document.querySelector('.my-story .story-avatar img');
-    if (myStoryAvatar && currentUser.avatar) {
+    if (!myStoryAvatar) return;
+    
+    // First check localStorage for quick loading
+    const cachedAvatar = localStorage.getItem('user_avatar');
+    if (cachedAvatar && cachedAvatar !== '/static/images/default-avatar.png') {
+        myStoryAvatar.src = cachedAvatar;
+    }
+    
+    // Then update from currentUser data if available
+    if (currentUser && currentUser.avatar) {
         myStoryAvatar.src = currentUser.avatar;
         myStoryAvatar.alt = currentUser.name || '내 스토리';
+        
+        // Update localStorage
+        localStorage.setItem('user_avatar', currentUser.avatar);
     }
 }
 

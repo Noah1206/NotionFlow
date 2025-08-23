@@ -182,6 +182,29 @@ class AuthManager:
             return None
     
     @staticmethod
+    def update_user_profile(user_id: str, update_data: Dict) -> bool:
+        """Update user profile in database"""
+        try:
+            # Ensure we have a valid supabase client
+            if not supabase:
+                print("Supabase client not available")
+                return False
+            
+            # Update the profile
+            result = supabase.table('user_profiles').update(update_data).eq('user_id', user_id).execute()
+            
+            if result.data:
+                print(f"Successfully updated profile for user {user_id}")
+                return True
+            else:
+                print(f"Failed to update profile for user {user_id}")
+                return False
+                
+        except Exception as e:
+            print(f"Error updating user profile: {e}")
+            return False
+    
+    @staticmethod
     def create_session(user_data: Dict) -> bool:
         """Create user session with cached user ID and unique dashboard URL"""
         try:

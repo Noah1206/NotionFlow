@@ -197,6 +197,17 @@ body {
             </div>
 
             <div class="profile-form-group">
+                <label class="profile-form-label" for="edit-avatar-url">프로필 사진 URL</label>
+                <input type="url" 
+                       id="edit-avatar-url" 
+                       name="avatar_url" 
+                       class="profile-form-input"
+                       value="{{ profile.avatar_url or '' }}" 
+                       placeholder="https://example.com/avatar.jpg">
+                <div class="profile-form-help">이미지 URL을 직접 입력하거나 위에서 파일을 업로드하세요</div>
+            </div>
+
+            <div class="profile-form-group">
                 <label class="toggle-switch" style="display: inline-flex; align-items: center; gap: 12px; cursor: pointer;">
                     <input type="checkbox" id="edit-is-public" name="is_public" {{ 'checked' if profile.is_public else '' }}>
                     <span class="toggle-slider"></span>
@@ -253,12 +264,24 @@ async function uploadAvatar() {
         const result = await response.json();
         
         if (result.success) {
+            // 프로필 이미지 업데이트
             document.getElementById('profile-avatar').src = result.avatar_url;
             
-            // 사이드바 아바타도 업데이트
+            // 사이드바 아바타 업데이트
             const sidebarAvatar = document.getElementById('sidebar-profile-avatar');
             if (sidebarAvatar) {
                 sidebarAvatar.src = result.avatar_url;
+            }
+            
+            // 친구 페이지의 내 스토리 아바타도 업데이트 (만약 열려있다면)
+            const myStoryAvatar = document.querySelector('.my-story .story-avatar img');
+            if (myStoryAvatar) {
+                myStoryAvatar.src = result.avatar_url;
+            }
+            
+            // localStorage에 새 avatar URL 저장 (빠른 로딩을 위해)
+            if (window.localStorage) {
+                localStorage.setItem('user_avatar', result.avatar_url);
             }
             
             showToast('프로필 사진이 업데이트되었습니다.', 'success');
@@ -384,15 +407,21 @@ async function saveProfile() {
             username: formData.get('username'),
             display_name: formData.get('display_name'),
             bio: formData.get('bio'),
-            is_public: formData.get('is_public') === 'on'
+            is_public: formData.get('is_public') === 'on',
+            avatar_url: formData.get('avatar_url')
         };
         
-        const response = await fetch('/api/profile', {
+        // Use the correct API endpoint for updating user profile
+        const response = await fetch('/api/user/profile', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify({
+                name: data.display_name,
+                avatar_url: data.avatar_url,
+                email: data.email
+            })
         });
         
         const result = await response.json();
