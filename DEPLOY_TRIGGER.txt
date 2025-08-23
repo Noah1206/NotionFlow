@@ -1,0 +1,11 @@
+Deploy trigger file
+Created: 2025-08-23 12:30 KST
+Purpose: Force Railway rebuild to sync latest code changes
+
+Changes included:
+- Fixed AuthManager.get_friends_list AttributeError with hasattr() check
+- Added graceful error handling for friend-related API calls
+- Fixed profile avatar upload functionality
+- Added Railway PORT environment variable fix
+
+Deploy timestamp: 2025-08-23-12:30
