@@ -171,38 +171,52 @@ def upload_avatar():
         file_extension = file.filename.rsplit('.', 1)[1].lower()
         filename = f"avatar_{user_id}_{uuid.uuid4().hex[:8]}.{file_extension}"
         
-        # 아바타 디렉토리 생성
-        avatar_dir = os.path.join('static', 'avatars')
-        os.makedirs(avatar_dir, exist_ok=True)
-        
-        # 파일 저장
-        file_path = os.path.join(avatar_dir, filename)
-        file.save(file_path)
-        
-        # 데이터베이스에 아바타 URL 업데이트
-        avatar_url = f"/static/avatars/{filename}"
-        
-        from supabase import create_client
-        SUPABASE_URL = os.getenv('SUPABASE_URL')
-        SUPABASE_KEY = os.getenv('SUPABASE_API_KEY')
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-        
-        result = supabase.table('user_profiles').update({
-            'avatar_url': avatar_url,
-            'updated_at': datetime.now().isoformat()
-        }).eq('user_id', user_id).execute()
-        
-        if result.data:
-            return jsonify({
-                'success': True,
-                'message': 'Avatar uploaded successfully',
-                'avatar_url': avatar_url
+        # Supabase Storage에 업로드
+        try:
+            from supabase import create_client
+            SUPABASE_URL = os.getenv('SUPABASE_URL')
+            SUPABASE_KEY = os.getenv('SUPABASE_ANON_KEY')
+            
+            if not SUPABASE_URL or not SUPABASE_KEY:
+                return jsonify({'error': 'Supabase configuration missing'}), 500
+            
+            supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+            
+            # 파일을 바이트로 읽기
+            file_data = file.read()
+            file.seek(0)  # 파일 포인터 리셋
+            
+            # Supabase Storage에 업로드
+            result = supabase.storage.from_('avatars').upload(filename, file_data, {
+                'content-type': f'image/{file_extension}',
+                'cache-control': '3600'
             })
-        else:
-            # 파일 삭제 (DB 업데이트 실패시)
-            if os.path.exists(file_path):
-                os.remove(file_path)
-            return jsonify({'error': 'Failed to update avatar in database'}), 500
+            
+            if result.error:
+                print(f"Storage upload error: {result.error}")
+                return jsonify({'error': 'Failed to upload to storage'}), 500
+            
+            # 공개 URL 생성
+            avatar_url = supabase.storage.from_('avatars').get_public_url(filename)
+            
+            # 데이터베이스에 아바타 URL 업데이트
+            db_result = supabase.table('user_profiles').update({
+                'avatar_url': avatar_url,
+                'updated_at': datetime.now().isoformat()
+            }).eq('user_id', user_id).execute()
+            
+            if db_result.data:
+                return jsonify({
+                    'success': True,
+                    'message': 'Avatar uploaded successfully',
+                    'avatar_url': avatar_url
+                })
+            else:
+                return jsonify({'error': 'Failed to update avatar in database'}), 500
+                
+        except Exception as storage_error:
+            print(f"Supabase storage error: {storage_error}")
+            return jsonify({'error': 'Storage service unavailable'}), 500
             
     except Exception as e:
         print(f"Error uploading avatar: {e}")
