@@ -37,11 +37,11 @@ body {
             <div class="profile-top-section">
                 <div class="profile-avatar-section">
                     <div class="profile-avatar-wrapper">
-                        <img id="profile-avatar" 
-                             src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8Y2lyY2xlIGN4PSIxMiIgY3k9IjgiIHI9IjQiIGZpbGw9IiNEREQiLz4KPHBhdGggZD0iTTIwIDIwYzAtNS41LTMuNS0xMC04LTEwcy04IDQuNS04IDEwIiBmaWxsPSIjREREIi8+Cjwvc3ZnPgo=" 
-                             alt="프로필 사진" 
-                             class="profile-avatar-img"
-                             data-loading="true">
+                        <div id="profile-avatar-container">
+                            <div id="profile-avatar" class="profile-avatar-generated">
+                                <!-- 동적으로 생성됨 -->
+                            </div>
+                        </div>
                         <div class="profile-avatar-upload" onclick="triggerAvatarUpload()">
                             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
@@ -242,73 +242,107 @@ document.addEventListener('DOMContentLoaded', async function() {
     await loadCurrentUserProfile();
 });
 
-// Load current user profile and update avatar
-async function loadCurrentUserProfile() {
-    try {
-        console.log('🔍 Fetching user profile...');
-        const response = await fetch('/api/user/profile');
-        if (response.ok) {
-            const profileData = await response.json();
-            console.log('✅ Profile data loaded:', profileData);
-            
-            const avatarImg = document.getElementById('profile-avatar');
-            if (!avatarImg) {
-                console.error('❌ Profile avatar element not found');
-                return;
-            }
-            
-            // Remove loading indicator
-            avatarImg.removeAttribute('data-loading');
-            
-            // Update avatar with priority: API data > localStorage > generated avatar
-            let avatarUrl = null;
-            
-            if (profileData.avatar && profileData.avatar !== '/static/images/default-avatar.png') {
-                avatarUrl = profileData.avatar;
-                console.log('📸 Using API avatar:', avatarUrl);
-            } else {
-                // Check localStorage
-                const cachedAvatar = localStorage.getItem('user_avatar');
-                if (cachedAvatar && cachedAvatar !== '/static/images/default-avatar.png') {
-                    avatarUrl = cachedAvatar;
-                    console.log('💾 Using cached avatar:', avatarUrl);
-                } else {
-                    // Generate avatar based on user info
-                    const userName = profileData.name || profileData.username || 'User';
-                    avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=4f46e5&color=ffffff&size=200`;
-                    console.log('🎨 Using generated avatar:', avatarUrl);
-                }
-            }
-            
-            // Update avatar
-            avatarImg.src = avatarUrl;
-            console.log('✅ Avatar updated successfully');
-            
-            // Update edit modal avatar URL field
-            const avatarUrlInput = document.getElementById('edit-avatar-url');
-            if (avatarUrlInput && profileData.avatar && profileData.avatar !== '/static/images/default-avatar.png') {
-                avatarUrlInput.value = profileData.avatar;
-            }
-            
-        } else {
-            console.error('❌ Failed to fetch profile:', response.status);
-        }
-    } catch (error) {
-        console.error('❌ Error loading profile:', error);
-        
-        // Fallback to cached avatar or generated avatar
-        const avatarImg = document.getElementById('profile-avatar');
-        if (avatarImg) {
-            const cachedAvatar = localStorage.getItem('user_avatar');
-            if (cachedAvatar) {
-                avatarImg.src = cachedAvatar;
-                console.log('🔄 Using fallback cached avatar');
-            } else {
-                avatarImg.src = 'https://ui-avatars.com/api/?name=User&background=6b7280&color=ffffff&size=200';
-                console.log('🔄 Using fallback generated avatar');
-            }
-        }
+// New dynamic avatar system
+function initializeAvatarSystem() {
+    const avatarContainer = document.getElementById('profile-avatar');
+    if (!avatarContainer) {
+        console.error('❌ Profile avatar container not found');
+        return;
     }
+    
+    console.log('🎨 Creating new avatar system...');
+    
+    // Clear any existing content
+    avatarContainer.innerHTML = '';
+    
+    // Generate user initials or load uploaded image
+    loadOrGenerateAvatar(avatarContainer);
+}
+
+function loadOrGenerateAvatar(container) {
+    // Try to get user data from page context or make a simple API call
+    const username = document.querySelector('.profile-username-main')?.textContent?.trim() || 'User';
+    const displayName = document.querySelector('.profile-display-name')?.textContent?.trim() || username;
+    
+    console.log('👤 User info:', { username, displayName });
+    
+    // Check for uploaded avatar first
+    const savedAvatarUrl = localStorage.getItem('user_uploaded_avatar');
+    if (savedAvatarUrl && savedAvatarUrl !== 'null' && savedAvatarUrl !== '') {
+        console.log('📸 Loading saved avatar:', savedAvatarUrl);
+        createImageAvatar(container, savedAvatarUrl);
+        return;
+    }
+    
+    // Generate initials avatar
+    console.log('🎨 Generating initials avatar');
+    createInitialsAvatar(container, displayName || username);
+}
+
+function createImageAvatar(container, imageUrl) {
+    const img = document.createElement('img');
+    img.src = imageUrl;
+    img.style.cssText = `
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid rgba(255,255,255,0.2);
+    `;
+    
+    img.onload = function() {
+        container.innerHTML = '';
+        container.appendChild(img);
+        container.classList.add('has-image');
+        console.log('✅ Image avatar loaded successfully');
+    };
+    
+    img.onerror = function() {
+        console.log('❌ Image failed to load, falling back to initials');
+        localStorage.removeItem('user_uploaded_avatar');
+        const username = document.querySelector('.profile-username-main')?.textContent?.trim() || 'User';
+        createInitialsAvatar(container, username);
+    };
+}
+
+function createInitialsAvatar(container, name) {
+    // Generate initials (first letter of each word, max 2)
+    const initials = name
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase())
+        .slice(0, 2)
+        .join('');
+    
+    // Generate consistent color based on name
+    const colors = [
+        '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
+        '#DDA0DD', '#FF9FF3', '#54A0FF', '#5F27CD', '#00D2D3'
+    ];
+    
+    const colorIndex = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
+    const backgroundColor = colors[colorIndex];
+    
+    container.innerHTML = initials;
+    container.style.cssText = `
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        font-weight: bold;
+        color: white;
+        background: ${backgroundColor};
+        border: 3px solid rgba(255,255,255,0.2);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin: 0 auto;
+        user-select: none;
+    `;
+    
+    container.classList.remove('has-image');
+    console.log('✅ Initials avatar created:', initials, backgroundColor);
 }
 
 function triggerAvatarUpload() {
@@ -323,17 +357,30 @@ async function uploadAvatar() {
     
     // 파일 크기 체크 (5MB)
     if (file.size > 5 * 1024 * 1024) {
-        alert('파일 크기가 너무 큽니다. 5MB 이하의 파일을 선택해주세요.');
+        showToast('파일 크기가 너무 큽니다. 5MB 이하의 파일을 선택해주세요.', 'error');
         return;
     }
     
     // 파일 타입 체크
     const allowedTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-        alert('지원하지 않는 파일 형식입니다. PNG, JPG, JPEG, GIF, WebP 파일만 업로드할 수 있습니다.');
+        showToast('지원하지 않는 파일 형식입니다. PNG, JPG, JPEG, GIF, WebP 파일만 업로드할 수 있습니다.', 'error');
         return;
     }
     
+    // 로컬에서 즉시 미리보기 표시
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const avatarContainer = document.getElementById('profile-avatar');
+        if (avatarContainer) {
+            createImageAvatar(avatarContainer, e.target.result);
+            localStorage.setItem('user_uploaded_avatar', e.target.result);
+            console.log('✅ Avatar updated locally');
+        }
+    };
+    reader.readAsDataURL(file);
+    
+    // 서버에 업로드 시도
     const formData = new FormData();
     formData.append('avatar', file);
     
@@ -346,43 +393,23 @@ async function uploadAvatar() {
         const result = await response.json();
         
         if (result.success) {
-            // 프로필 이미지 업데이트
-            const profileAvatar = document.getElementById('profile-avatar');
-            if (profileAvatar) {
-                profileAvatar.src = result.avatar_url;
-                console.log('Profile avatar updated via upload:', result.avatar_url);
-            }
-            
-            // 사이드바 아바타 업데이트
-            const sidebarAvatar = document.getElementById('sidebar-profile-avatar');
-            if (sidebarAvatar) {
-                sidebarAvatar.src = result.avatar_url;
-            }
-            
-            // 친구 페이지의 내 스토리 아바타도 업데이트 (만약 열려있다면)
-            const myStoryAvatar = document.querySelector('.my-story .story-avatar img');
-            if (myStoryAvatar) {
-                myStoryAvatar.src = result.avatar_url;
-            }
-            
-            // localStorage에 새 avatar URL 저장 (빠른 로딩을 위해)
-            if (window.localStorage && result.avatar_url) {
-                localStorage.setItem('user_avatar', result.avatar_url);
-            }
-            
-            // 프로필 편집 모달의 아바타 URL 필드도 업데이트
-            const avatarUrlInput = document.getElementById('edit-avatar-url');
-            if (avatarUrlInput) {
-                avatarUrlInput.value = result.avatar_url;
+            // 서버 URL로 업데이트 (있는 경우)
+            if (result.avatar_url && result.avatar_url !== e.target.result) {
+                const avatarContainer = document.getElementById('profile-avatar');
+                if (avatarContainer) {
+                    createImageAvatar(avatarContainer, result.avatar_url);
+                    localStorage.setItem('user_uploaded_avatar', result.avatar_url);
+                }
             }
             
             showToast('프로필 사진이 업데이트되었습니다.', 'success');
         } else {
-            showToast(result.error || '아바타 업로드에 실패했습니다.', 'error');
+            console.log('서버 업로드 실패, 로컬 이미지 유지:', result.error);
+            showToast('프로필 사진이 로컬에 저장되었습니다.', 'info');
         }
     } catch (error) {
         console.error('Avatar upload error:', error);
-        showToast('아바타 업로드 중 오류가 발생했습니다.', 'error');
+        showToast('서버 업로드 실패, 로컬에 저장되었습니다.', 'info');
     }
 }
 
@@ -527,14 +554,12 @@ async function saveProfile() {
             // 아바타가 변경되었다면 즉시 업데이트
             const avatarUrl = data.avatar_url;
             if (avatarUrl && avatarUrl !== '/static/images/default-avatar.png') {
-                const profileAvatar = document.getElementById('profile-avatar');
-                if (profileAvatar) {
-                    profileAvatar.src = avatarUrl;
+                const avatarContainer = document.getElementById('profile-avatar');
+                if (avatarContainer) {
+                    createImageAvatar(avatarContainer, avatarUrl);
+                    localStorage.setItem('user_uploaded_avatar', avatarUrl);
                     console.log('Avatar updated immediately to:', avatarUrl);
                 }
-                
-                // localStorage에도 저장
-                localStorage.setItem('user_avatar', avatarUrl);
             }
             
             // 3초 후 페이지 새로고침 (선택적)

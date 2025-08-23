@@ -66,7 +66,9 @@
                 <!-- Your story -->
                 <div class="story-item my-story" onclick="openMyCalendarSettings()">
                     <div class="story-avatar">
-                        <img src="/static/images/default-avatar.png" alt="내 스토리" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSI4IiByPSI0IiBmaWxsPSIjOTk5Ii8+CjxwYXRoIGQ9Ik0yMCAyMGMwLTUuNS0zLjUtMTAtOC0xMHMtOCA0LjUtOCAxMCIgZmlsbD0iIzk5OSIvPgo8L3N2Zz4K';">
+                        <div id="friends-my-avatar" class="friends-avatar-generated">
+                            <!-- 동적으로 생성됨 -->
+                        </div>
                         <div class="add-story-btn">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
                                 <line x1="12" y1="5" x2="12" y2="19" stroke="white" stroke-width="2"/>
@@ -454,8 +456,155 @@
     </div>
 </div>
 
+<!-- CSS for new avatar system -->
+<style>
+.friends-avatar-generated {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.friends-avatar-generated:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.friends-avatar-generated.has-image {
+    background: none;
+    padding: 0;
+}
+
+.friends-avatar-generated img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+</style>
+
 <!-- JavaScript -->
 <script src="{{ url_for('static', filename='js/friends.js') }}?v={{ range(100000, 999999) | random }}"></script>
+
+<script>
+// Initialize friends avatar system
+(function() {
+    console.log('🎨 Initializing friends avatar system...');
+    initializeFriendsAvatar();
+})();
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔄 DOM loaded, reinitializing friends avatar...');
+    initializeFriendsAvatar();
+});
+
+function initializeFriendsAvatar() {
+    const avatarContainer = document.getElementById('friends-my-avatar');
+    if (!avatarContainer) {
+        console.error('❌ Friends avatar container not found');
+        return;
+    }
+    
+    console.log('🎨 Creating friends avatar...');
+    
+    // Clear any existing content
+    avatarContainer.innerHTML = '';
+    
+    // Generate user initials or load uploaded image
+    loadOrGenerateFriendsAvatar(avatarContainer);
+}
+
+function loadOrGenerateFriendsAvatar(container) {
+    // Use default username or try to get from localStorage
+    const username = 'User'; // Default fallback
+    
+    console.log('👤 User info for friends avatar:', { username });
+    
+    // Check for uploaded avatar first
+    const savedAvatarUrl = localStorage.getItem('user_uploaded_avatar');
+    if (savedAvatarUrl && savedAvatarUrl !== 'null' && savedAvatarUrl !== '') {
+        console.log('📸 Loading saved avatar for friends page:', savedAvatarUrl);
+        createFriendsImageAvatar(container, savedAvatarUrl);
+        return;
+    }
+    
+    // Generate initials avatar
+    console.log('🎨 Generating initials avatar for friends page');
+    createFriendsInitialsAvatar(container, username);
+}
+
+function createFriendsImageAvatar(container, imageUrl) {
+    const img = document.createElement('img');
+    img.src = imageUrl;
+    img.style.cssText = `
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+    `;
+    
+    img.onload = function() {
+        container.innerHTML = '';
+        container.appendChild(img);
+        container.classList.add('has-image');
+        console.log('✅ Friends image avatar loaded successfully');
+    };
+    
+    img.onerror = function() {
+        console.log('❌ Friends image failed to load, falling back to initials');
+        localStorage.removeItem('user_uploaded_avatar');
+        createFriendsInitialsAvatar(container, 'User');
+    };
+}
+
+function createFriendsInitialsAvatar(container, name) {
+    // Generate initials (first letter of each word, max 2)
+    const initials = name
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase())
+        .slice(0, 2)
+        .join('');
+    
+    // Generate consistent color based on name
+    const colors = [
+        '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
+        '#DDA0DD', '#FF9FF3', '#54A0FF', '#5F27CD', '#00D2D3'
+    ];
+    
+    const colorIndex = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
+    const backgroundColor = colors[colorIndex];
+    
+    container.innerHTML = initials;
+    container.style.cssText = `
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        font-weight: bold;
+        color: white;
+        background: ${backgroundColor};
+        cursor: pointer;
+        transition: all 0.3s ease;
+        user-select: none;
+    `;
+    
+    container.classList.remove('has-image');
+    console.log('✅ Friends initials avatar created:', initials, backgroundColor);
+}
+</script>
 
 </body>
 </html>
