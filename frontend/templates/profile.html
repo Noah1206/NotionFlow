@@ -304,25 +304,32 @@ async function loadOrGenerateAvatar(container) {
 }
 
 function createImageAvatar(container, imageUrl) {
+    console.log('🖼️ Creating image avatar with URL:', imageUrl);
+    
+    // Clear container first and reset styles
+    container.innerHTML = '';
+    container.classList.remove('profile-avatar-generated');
+    container.classList.add('has-image');
+    
     const img = document.createElement('img');
     img.src = imageUrl;
-    img.style.cssText = `
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        border-radius: 50%;
-        border: 3px solid rgba(255,255,255,0.2);
-    `;
+    img.alt = 'Profile Avatar';
     
     img.onload = function() {
+        console.log('✅ Image loaded successfully, updating container');
         container.innerHTML = '';
         container.appendChild(img);
-        container.classList.add('has-image');
-        console.log('✅ Image avatar loaded successfully');
+        
+        // Ensure container maintains proper size
+        container.style.width = '150px';
+        container.style.height = '150px';
+        container.style.borderRadius = '50%';
+        container.style.overflow = 'hidden';
+        container.style.background = 'transparent';
     };
     
     img.onerror = function() {
-        console.log('❌ Image failed to load, falling back to initials');
+        console.error('❌ Image failed to load:', imageUrl);
         localStorage.removeItem('user_uploaded_avatar');
         const username = document.querySelector('.profile-username-main')?.textContent?.trim() || 'User';
         createInitialsAvatar(container, username);
@@ -348,20 +355,19 @@ function createInitialsAvatar(container, name) {
     
     container.innerHTML = initials;
     container.style.cssText = `
-        width: 80px;
-        height: 80px;
+        width: 150px;
+        height: 150px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 28px;
+        font-size: 48px;
         font-weight: bold;
         color: white;
         background: ${backgroundColor};
         border: 3px solid rgba(255,255,255,0.2);
         cursor: pointer;
         transition: all 0.3s ease;
-        margin: 0 auto;
         user-select: none;
     `;
     
@@ -395,11 +401,18 @@ async function uploadAvatar() {
     // 로컬에서 즉시 미리보기 표시
     const reader = new FileReader();
     reader.onload = function(e) {
+        console.log('📁 File read complete, displaying preview...');
         const avatarContainer = document.getElementById('profile-avatar');
         if (avatarContainer) {
+            console.log('🎯 Avatar container found, creating image...');
             createImageAvatar(avatarContainer, e.target.result);
-            console.log('✅ Preview displayed locally');
+        } else {
+            console.error('❌ Avatar container not found!');
         }
+    };
+    reader.onerror = function(error) {
+        console.error('❌ File read error:', error);
+        showToast('파일을 읽을 수 없습니다.', 'error');
     };
     reader.readAsDataURL(file);
     
