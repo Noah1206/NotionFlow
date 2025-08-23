@@ -17,11 +17,17 @@ profile_bp = Blueprint('profile', __name__)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 
-# Supabase 설정 (전역)
+# Supabase 설정 (전역) - Railway 호환성 체크
 SUPABASE_URL = os.getenv('SUPABASE_URL')
-SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY') 
-SUPABASE_API_KEY = os.getenv('SUPABASE_API_KEY')
-SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY')
+SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY') or os.getenv('SUPABASE_API_KEY')  # 백업
+SUPABASE_API_KEY = os.getenv('SUPABASE_API_KEY') or os.getenv('SUPABASE_ANON_KEY')  # 백업
+SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY') or os.getenv('SUPABASE_SERVICE_KEY')
+
+# 디버그 정보
+print(f"🔧 SUPABASE_URL: {SUPABASE_URL[:30] + '...' if SUPABASE_URL else 'None'}")
+print(f"🔧 SUPABASE_ANON_KEY: {'✅ Set' if SUPABASE_ANON_KEY else '❌ Missing'}")
+print(f"🔧 SUPABASE_API_KEY: {'✅ Set' if SUPABASE_API_KEY else '❌ Missing'}")
+print(f"🔧 SUPABASE_SERVICE_KEY: {'✅ Set' if SUPABASE_SERVICE_KEY else '❌ Missing'}")
 
 def allowed_file(filename):
     """허용된 파일 확장자 체크"""
@@ -219,8 +225,10 @@ def upload_avatar():
             return jsonify({'error': 'Storage service unavailable'}), 500
             
     except Exception as e:
+        import traceback
         print(f"Error uploading avatar: {e}")
-        return jsonify({'error': 'Failed to upload avatar'}), 500
+        print(f"Traceback: {traceback.format_exc()}")
+        return jsonify({'error': f'Failed to upload avatar: {str(e)}'}), 500
 
 @profile_bp.route('/api/profile/initial-setup', methods=['POST'])
 @require_auth
