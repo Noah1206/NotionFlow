@@ -1573,6 +1573,21 @@ function addTaskItem() {
                 <input type="text" class="task-title-input" placeholder="작업명..." autofocus>
                 <input type="text" class="task-desc-input" placeholder="상세 설명...">
             </div>
+            <div class="cell tag-cell tag-1">
+                <input type="text" class="tag-input" placeholder="태그1" maxlength="10">
+            </div>
+            <div class="cell tag-cell tag-2">
+                <input type="text" class="tag-input" placeholder="태그2" maxlength="10">
+            </div>
+            <div class="cell tag-cell tag-3">
+                <input type="text" class="tag-input" placeholder="태그3" maxlength="10">
+            </div>
+            <div class="cell tag-cell tag-4">
+                <input type="text" class="tag-input" placeholder="태그4" maxlength="10">
+            </div>
+            <div class="cell tag-cell tag-5">
+                <input type="text" class="tag-input" placeholder="태그5" maxlength="10">
+            </div>
             <div class="cell priority-cell">
                 <select class="priority-select">
                     <option value="high">🔥 중요</option>

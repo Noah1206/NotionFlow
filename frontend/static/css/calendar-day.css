@@ -484,20 +484,23 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
     border-color: #fecaca;
 }
 
-/* Main Content Grid - 2 Columns */
+/* Main Content Grid - 2 Columns Side by Side */
 .main-content-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
     align-items: start;
+    margin-top: 20px;
 }
 
 .daily-routine-section {
     grid-column: 1;
+    min-height: 400px;
 }
 
 .tasks-section {
     grid-column: 2;
+    min-height: 400px;
 }
 
 /* ============================================================================
@@ -1268,8 +1271,47 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
 
 .tasks-table .table-header,
 .tasks-table .table-row {
-    grid-template-columns: 45px 1fr 80px 60px;
+    grid-template-columns: 45px 1fr repeat(5, 70px) 80px 60px;
 }
+
+/* Tag Columns Styling */
+.tag-column {
+    background: #f8f9fa;
+    border-left: 1px solid #e5e7eb;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 500;
+    color: #6b7280;
+}
+
+.tag-cell {
+    border-left: 1px solid #e5e7eb;
+    padding: 0 4px;
+    text-align: center;
+}
+
+.tag-input {
+    width: 100%;
+    padding: 2px 4px;
+    border: none;
+    background: transparent;
+    text-align: center;
+    font-size: 11px;
+    color: #1f2937;
+}
+
+.tag-input:focus {
+    outline: none;
+    background: #f0f9ff;
+    border-radius: 2px;
+}
+
+/* Tag Colors */
+.tag-1 { background: #fee2e2; }
+.tag-2 { background: #fef3c7; }
+.tag-3 { background: #dcfce7; }
+.tag-4 { background: #e0e7ff; }
+.tag-5 { background: #fce7f3; }
 
 .tasks-table .table-body {
     max-height: 600px;
@@ -1929,7 +1971,11 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
     
     .tasks-table .table-header,
     .tasks-table .table-row {
-        grid-template-columns: 50px 1fr 80px;
+        grid-template-columns: 45px 1fr repeat(5, 60px) 70px 50px;
+    }
+    
+    .tag-column, .tag-cell {
+        font-size: 10px;
     }
     
     .form-row {
