@@ -11,4 +11,4 @@ fi
 echo "Starting server on port $PORT"
 
 # Start gunicorn with the configured port
-exec gunicorn frontend.app:app --bind 0.0.0.0:$PORT --timeout 120 --workers 2 --threads 4
+gunicorn frontend.app:app --bind 0.0.0.0:$PORT --timeout 120 --workers 2 --threads 4
