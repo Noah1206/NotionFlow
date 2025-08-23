@@ -38,9 +38,10 @@ body {
                 <div class="profile-avatar-section">
                     <div class="profile-avatar-wrapper">
                         <img id="profile-avatar" 
-                             src="{{ profile.avatar_url or '/static/images/default-avatar.svg' }}" 
+                             src="{{ profile.avatar_url if profile.avatar_url and profile.avatar_url != '' else '/static/images/default-avatar.svg' }}" 
                              alt="프로필 사진" 
-                             class="profile-avatar-img">
+                             class="profile-avatar-img"
+                             onerror="this.src='/static/images/default-avatar.svg'">
                         <div class="profile-avatar-upload" onclick="triggerAvatarUpload()">
                             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
@@ -229,6 +230,39 @@ body {
 <script>
 let usernameCheckTimeout;
 
+// Load user profile on page load
+document.addEventListener('DOMContentLoaded', async function() {
+    await loadCurrentUserProfile();
+});
+
+// Load current user profile and update avatar
+async function loadCurrentUserProfile() {
+    try {
+        const response = await fetch('/api/user/profile');
+        if (response.ok) {
+            const profileData = await response.json();
+            console.log('Profile data loaded:', profileData);
+            
+            // Update avatar if we have one
+            if (profileData.avatar) {
+                const avatarImg = document.getElementById('profile-avatar');
+                if (avatarImg && profileData.avatar !== '/static/images/default-avatar.png') {
+                    avatarImg.src = profileData.avatar;
+                    console.log('Avatar updated to:', profileData.avatar);
+                }
+                
+                // Also update the edit modal avatar URL field
+                const avatarUrlInput = document.getElementById('edit-avatar-url');
+                if (avatarUrlInput && profileData.avatar !== '/static/images/default-avatar.png') {
+                    avatarUrlInput.value = profileData.avatar;
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error loading profile:', error);
+    }
+}
+
 function triggerAvatarUpload() {
     document.getElementById('avatar-upload').click();
 }
@@ -265,7 +299,11 @@ async function uploadAvatar() {
         
         if (result.success) {
             // 프로필 이미지 업데이트
-            document.getElementById('profile-avatar').src = result.avatar_url;
+            const profileAvatar = document.getElementById('profile-avatar');
+            if (profileAvatar) {
+                profileAvatar.src = result.avatar_url;
+                console.log('Profile avatar updated via upload:', result.avatar_url);
+            }
             
             // 사이드바 아바타 업데이트
             const sidebarAvatar = document.getElementById('sidebar-profile-avatar');
@@ -280,8 +318,14 @@ async function uploadAvatar() {
             }
             
             // localStorage에 새 avatar URL 저장 (빠른 로딩을 위해)
-            if (window.localStorage) {
+            if (window.localStorage && result.avatar_url) {
                 localStorage.setItem('user_avatar', result.avatar_url);
+            }
+            
+            // 프로필 편집 모달의 아바타 URL 필드도 업데이트
+            const avatarUrlInput = document.getElementById('edit-avatar-url');
+            if (avatarUrlInput) {
+                avatarUrlInput.value = result.avatar_url;
             }
             
             showToast('프로필 사진이 업데이트되었습니다.', 'success');
@@ -427,8 +471,28 @@ async function saveProfile() {
         const result = await response.json();
         
         if (result.success) {
-            // 페이지 새로고침하여 업데이트된 정보 표시
-            window.location.reload();
+            showToast('프로필이 업데이트되었습니다.', 'success');
+            
+            // 모달 닫기
+            closeEditModal();
+            
+            // 아바타가 변경되었다면 즉시 업데이트
+            const avatarUrl = data.avatar_url;
+            if (avatarUrl && avatarUrl !== '/static/images/default-avatar.png') {
+                const profileAvatar = document.getElementById('profile-avatar');
+                if (profileAvatar) {
+                    profileAvatar.src = avatarUrl;
+                    console.log('Avatar updated immediately to:', avatarUrl);
+                }
+                
+                // localStorage에도 저장
+                localStorage.setItem('user_avatar', avatarUrl);
+            }
+            
+            // 3초 후 페이지 새로고침 (선택적)
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
         } else {
             showToast(result.error || '프로필 업데이트에 실패했습니다.', 'error');
         }
