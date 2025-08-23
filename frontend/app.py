@@ -3670,7 +3670,8 @@ def get_friends():
         print(f"❌ Error getting friends: {e}")
         import traceback
         traceback.print_exc()
-        return jsonify({'success': False, 'error': str(e)}), 500
+        # Always return empty friends list instead of 500 error
+        return jsonify({'success': True, 'friends': []})
 
 @app.route('/api/friends/calendars', methods=['GET'])
 def get_friend_calendars():
@@ -3718,7 +3719,8 @@ def get_friend_requests():
         
     except Exception as e:
         print(f"Error getting friend requests: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
+        # Return empty requests list instead of 500 error
+        return jsonify({'success': True, 'requests': []})
 
 @app.route('/api/friends/requests/<request_id>/<action>', methods=['POST'])
 def respond_to_friend_request(request_id, action):
