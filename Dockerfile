@@ -15,6 +15,10 @@ COPY requirements.txt .
 # Python 패키지 설치
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Docker 캐시 무효화 - 강제 재빌드
+ARG CACHE_BUST=20250823-1930-forcebuild
+RUN echo "Cache bust: ${CACHE_BUST}"
+
 # 애플리케이션 코드 복사
 COPY . .
 
