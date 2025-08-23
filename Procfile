@@ -1,1 +1,1 @@
-web: gunicorn frontend.app:app --bind 0.0.0.0:${PORT:-8080} --timeout 120 --workers 2 --threads 4
+web: gunicorn frontend.app:app --bind 0.0.0.0:$PORT --timeout 120 --workers 2 --threads 4
