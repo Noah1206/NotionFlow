@@ -9,7 +9,11 @@ from datetime import datetime
 import os
 import uuid
 import base64
+import traceback
+import re
+import random
 from werkzeug.utils import secure_filename
+from supabase import create_client
 
 profile_bp = Blueprint('profile', __name__)
 
@@ -96,7 +100,6 @@ def update_profile():
             # 현재 사용자의 기존 사용자명과 다른 경우에만 중복 체크
             current_profile = AuthManager.get_user_profile(user_id)
             if current_profile and current_profile.get('username') != username:
-                from supabase import create_client
                 supabase = create_client(SUPABASE_URL, SUPABASE_API_KEY)
                 
                 # 사용자명 중복 체크
@@ -118,7 +121,6 @@ def update_profile():
                     return jsonify({'error': 'Username is reserved'}), 400
                 
                 # 사용자명 형식 체크 (3-20자, 영숫자와 언더스코어만)
-                import re
                 if not re.match(r'^[a-zA-Z0-9_]{3,20}$', username):
                     return jsonify({'error': 'Invalid username format. Use 3-20 characters (letters, numbers, underscore only)'}), 400
                 
@@ -126,7 +128,6 @@ def update_profile():
         
         # 데이터베이스 업데이트
         if update_data:
-            from supabase import create_client
             supabase = create_client(SUPABASE_URL, SUPABASE_API_KEY)
             
             update_data['updated_at'] = datetime.now().isoformat()
@@ -180,7 +181,6 @@ def upload_avatar():
         filename = f"avatar_{user_id}_{uuid.uuid4().hex[:8]}.{file_extension}"
         
         # Supabase Storage에 업로드
-        from supabase import create_client
         
         if not SUPABASE_URL or not SUPABASE_ANON_KEY:
             return jsonify({'error': 'Supabase configuration missing'}), 500
@@ -225,7 +225,6 @@ def upload_avatar():
             return jsonify({'error': 'Storage service unavailable'}), 500
             
     except Exception as e:
-        import traceback
         print(f"Error uploading avatar: {e}")
         print(f"Traceback: {traceback.format_exc()}")
         return jsonify({'error': f'Failed to upload avatar: {str(e)}'}), 500
@@ -265,13 +264,11 @@ def initial_setup():
         
         # 이메일 형식 검증 (제공된 경우)
         if email:
-            import re
             email_pattern = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
             if not re.match(email_pattern, email):
                 return jsonify({'error': 'Invalid email format'}), 400
         
         # 데이터베이스 연결 - 서비스 키 사용으로 RLS 우회
-        from supabase import create_client
         
         # 반드시 서비스 키를 사용 (RLS 우회를 위해)
         if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
@@ -318,7 +315,6 @@ def initial_setup():
                     print(f"User creation skipped (may already exist): {user_error}")
                 
                 # 프로필 생성 - username을 display_name 기반으로 생성
-                import re
                 # display_name에서 영문자, 숫자만 추출하여 username 생성
                 base_username = re.sub(r'[^a-zA-Z0-9]', '', display_name.lower())
                 if not base_username:
@@ -363,7 +359,6 @@ def initial_setup():
             
             # username도 display_name 기반으로 업데이트 (기존 프로필이 있는 경우)
             if existing_profile and (not existing_profile.get('username') or existing_profile.get('username').startswith('user_')):
-                import re
                 base_username = re.sub(r'[^a-zA-Z0-9]', '', display_name.lower())
                 if not base_username:
                     base_username = f"user{user_id[:8]}"
@@ -428,7 +423,6 @@ def initial_setup():
         print(f"Error in initial setup: {e}")
         print(f"Error type: {type(e)}")
         print(f"Error details: {str(e)}")
-        import traceback
         print(f"Traceback: {traceback.format_exc()}")
         return jsonify({'error': f'Failed to complete initial setup: {str(e)}'}), 500
 
@@ -448,13 +442,11 @@ def update_email():
         email = data['email'].strip()
         
         # 이메일 형식 검증
-        import re
         email_pattern = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
         if not re.match(email_pattern, email):
             return jsonify({'error': 'Invalid email format'}), 400
         
         # 데이터베이스 업데이트
-        from supabase import create_client
         supabase = create_client(SUPABASE_URL, SUPABASE_API_KEY)
         
         # user_profiles 테이블에 이메일 업데이트
@@ -521,7 +513,6 @@ def check_username():
             })
         
         # 형식 체크
-        import re
         if not re.match(r'^[a-zA-Z0-9_]{3,20}$', username):
             return jsonify({
                 'available': False,
@@ -545,7 +536,6 @@ def check_username():
             })
         
         # 중복 체크
-        from supabase import create_client
         supabase = create_client(SUPABASE_URL, SUPABASE_API_KEY)
         
         result = supabase.table('user_profiles').select('id').eq('username', username).execute()
@@ -583,7 +573,6 @@ def get_username_suggestions():
                 base_name = 'user'
         
         # 베이스 이름 정리
-        import re
         base_name = re.sub(r'[^a-zA-Z0-9]', '_', base_name.lower())
         base_name = base_name.strip('_')
         
@@ -594,7 +583,6 @@ def get_username_suggestions():
         
         # 추천 사용자명 생성
         suggestions = []
-        from supabase import create_client
         supabase = create_client(SUPABASE_URL, SUPABASE_API_KEY)
         
         # 베이스 이름으로 시작
@@ -614,7 +602,6 @@ def get_username_suggestions():
         
         # 추가 변형 (부족한 경우)
         if len(suggestions) < 5:
-            import random
             for suffix in ['_dev', '_pro', '_code', '_tech', '_flow']:
                 suggestion = base_name + suffix
                 if len(suggestion) <= 20:
