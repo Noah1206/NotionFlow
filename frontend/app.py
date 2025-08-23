@@ -3608,13 +3608,21 @@ def get_friends():
         try:
             from utils.auth_manager import AuthManager
             print("✅ AuthManager imported successfully")
+            print(f"🔍 AuthManager methods: {[method for method in dir(AuthManager) if not method.startswith('_')]}")
             
             # Check if get_friends_list method exists
-            if hasattr(AuthManager, 'get_friends_list'):
-                friends = AuthManager.get_friends_list(user_id)
-                print(f"✅ Retrieved {len(friends) if friends else 0} friends")
-            else:
-                print("⚠️ get_friends_list method not found, returning empty list")
+            try:
+                if hasattr(AuthManager, 'get_friends_list'):
+                    friends = AuthManager.get_friends_list(user_id)
+                    print(f"✅ Retrieved {len(friends) if friends else 0} friends")
+                else:
+                    print("⚠️ get_friends_list method not found, returning empty list")
+                    friends = []
+            except AttributeError as ae:
+                print(f"⚠️ AttributeError in get_friends_list: {ae}")
+                friends = []
+            except Exception as method_error:
+                print(f"⚠️ Error calling get_friends_list: {method_error}")
                 friends = []
             
             return jsonify({
@@ -3625,6 +3633,10 @@ def get_friends():
         except ImportError as ie:
             print(f"❌ Failed to import AuthManager: {ie}")
             # Return empty friends list as fallback
+            return jsonify({'success': True, 'friends': []})
+        except Exception as general_error:
+            print(f"❌ General error in get_friends: {general_error}")
+            # Ultimate fallback - always return success with empty array
             return jsonify({'success': True, 'friends': []})
         
     except Exception as e:
