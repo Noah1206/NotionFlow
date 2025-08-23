@@ -3,7 +3,11 @@
 {% block title %}프로필 - NotionFlow{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/profile-redesign.css') }}?v={{ range(1, 10000) | random }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile-redesign.css') }}?v=20250823-1910-rebuild">
+<!-- Force browser cache refresh -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <style>
 /* Force override any existing styles */
 body {
@@ -251,6 +255,10 @@ body {
 </div>
 
 <script>
+// Force cache refresh for deployment
+console.log('🚀 Profile page loaded - Version: 20250823-1910-rebuild');
+console.log('📋 Expected: Camera icon should be REMOVED from avatar');
+
 let usernameCheckTimeout;
 
 // Load user profile immediately and on page load
