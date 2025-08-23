@@ -29,9 +29,22 @@ async function loadCurrentUser() {
         
         if (response.ok) {
             currentUser = await response.json();
+            // Update the "My Story" avatar with current user's profile picture
+            updateMyStoryAvatar();
         }
     } catch (error) {
         console.error('Error loading user:', error);
+    }
+}
+
+// Update my story avatar with user profile picture
+function updateMyStoryAvatar() {
+    if (!currentUser) return;
+    
+    const myStoryAvatar = document.querySelector('.my-story .story-avatar img');
+    if (myStoryAvatar && currentUser.avatar) {
+        myStoryAvatar.src = currentUser.avatar;
+        myStoryAvatar.alt = currentUser.name || '내 스토리';
     }
 }
 
@@ -1245,5 +1258,30 @@ function showNotification(message, type = 'info') {
     } else {
         // Fallback to console
         console.log(`[${type.toUpperCase()}] ${message}`);
+    }
+}
+
+// Update user profile avatar URL (for testing)
+async function updateUserAvatar(avatarUrl) {
+    try {
+        const response = await fetch('/api/user/profile', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+            },
+            body: JSON.stringify({ avatar_url: avatarUrl })
+        });
+        
+        if (response.ok) {
+            showNotification('프로필 사진이 업데이트되었습니다.', 'success');
+            // Reload current user to update the avatar
+            await loadCurrentUser();
+        } else {
+            showNotification('프로필 사진 업데이트에 실패했습니다.', 'error');
+        }
+    } catch (error) {
+        console.error('Error updating avatar:', error);
+        showNotification('프로필 사진 업데이트 중 오류가 발생했습니다.', 'error');
     }
 }

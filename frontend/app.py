@@ -3640,20 +3640,67 @@ def get_current_user_profile():
         if not user_id:
             return jsonify({'success': False, 'error': 'Not authenticated'}), 401
         
-        # Mock user profile
-        profile = {
-            'id': user_id,
-            'name': '사용자',
-            'email': 'user@example.com',
-            'avatar': '/static/images/default-avatar.png',
-            'created_at': '2024-08-01T10:00:00Z',
-            'last_active': '2024-08-22T15:30:00Z'
-        }
+        # Get user profile from database
+        profile = AuthManager.get_user_profile(user_id)
         
-        return jsonify(profile)
+        if profile:
+            # Return actual user profile data
+            return jsonify({
+                'id': profile.get('user_id'),
+                'name': profile.get('display_name') or profile.get('username', '사용자'),
+                'email': profile.get('email', ''),
+                'avatar': profile.get('avatar_url') or '/static/images/default-avatar.png',
+                'username': profile.get('username', ''),
+                'created_at': profile.get('created_at', ''),
+                'last_active': profile.get('updated_at', '')
+            })
+        else:
+            # Return default profile if not found
+            return jsonify({
+                'id': user_id,
+                'name': '사용자',
+                'email': 'user@example.com',
+                'avatar': '/static/images/default-avatar.png',
+                'created_at': '2024-08-01T10:00:00Z',
+                'last_active': '2024-08-22T15:30:00Z'
+            })
         
     except Exception as e:
         print(f"Error getting user profile: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/user/profile', methods=['PUT'])
+def update_current_user_profile():
+    """Update current user profile"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        data = request.get_json()
+        
+        # Prepare update data
+        update_data = {}
+        if 'name' in data:
+            update_data['display_name'] = data['name']
+        if 'avatar_url' in data:
+            update_data['avatar_url'] = data['avatar_url']
+        if 'email' in data:
+            update_data['email'] = data['email']
+        
+        # Update profile in database
+        if update_data:
+            result = supabase.table('user_profiles').update(update_data).eq('user_id', user_id).execute()
+            
+            if result.data:
+                return jsonify({'success': True, 'message': 'Profile updated successfully'})
+            else:
+                return jsonify({'success': False, 'error': 'Failed to update profile'}), 500
+        else:
+            return jsonify({'success': False, 'error': 'No data to update'}), 400
+        
+    except Exception as e:
+        print(f"Error updating user profile: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/friends')
