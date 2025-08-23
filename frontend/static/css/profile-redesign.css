@@ -231,6 +231,74 @@
     color: #ffffff;
 }
 
+/* ===== 프로필 편집 모달 아바타 업로드 섹션 ===== */
+.profile-avatar-upload-section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 15px;
+    border: 2px dashed #e5e7eb;
+    border-radius: 8px;
+    background: #fafafa;
+}
+
+.current-avatar-preview {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.modal-avatar-container {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3f4f6;
+    border: 2px solid #e5e7eb;
+}
+
+.modal-avatar-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-upload-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.avatar-upload-btn, .avatar-remove-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.avatar-upload-btn {
+    background: #2563eb;
+    color: white;
+}
+
+.avatar-upload-btn:hover {
+    background: #1d4ed8;
+}
+
+.avatar-remove-btn {
+    background: #ef4444;
+    color: white;
+}
+
+.avatar-remove-btn:hover {
+    background: #dc2626;
+}
+
 /* ===== Profile Info Section ===== */
 .profile-header-row {
     display: flex;
