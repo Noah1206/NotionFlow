@@ -26,10 +26,11 @@ class Config:
         # Load environment variables from .env file
         load_dotenv()
         
-        # Supabase Configuration
+        # Supabase Configuration - Railway 호환성
         self.SUPABASE_URL = os.getenv('SUPABASE_URL')
-        self.SUPABASE_ANON_KEY = os.getenv('SUPABASE_API_KEY')
-        self.SUPABASE_SERVICE_ROLE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY')
+        self.SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY') or os.getenv('SUPABASE_API_KEY')
+        self.SUPABASE_API_KEY = os.getenv('SUPABASE_API_KEY') or os.getenv('SUPABASE_ANON_KEY')  # 백업
+        self.SUPABASE_SERVICE_ROLE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY') or os.getenv('SUPABASE_SERVICE_KEY')
         
         # API Key Encryption
         self.API_KEY_ENCRYPTION_KEY = os.getenv('API_KEY_ENCRYPTION_KEY')
@@ -43,20 +44,18 @@ class Config:
         
     def _validate_required_keys(self):
         """Validate that all required environment variables are present"""
-        required_keys = [
+        required_attrs = [
             'SUPABASE_URL',
-            'SUPABASE_API_KEY', 
+            'SUPABASE_ANON_KEY',  # Railway 호환성
             'SUPABASE_SERVICE_ROLE_KEY',
             'API_KEY_ENCRYPTION_KEY',
             'FLASK_SECRET_KEY'
         ]
         
         missing_keys = []
-        for key in required_keys:
-            # Handle special case where env var name differs from attribute name
-            attr_name = 'SUPABASE_ANON_KEY' if key == 'SUPABASE_API_KEY' else key
-            if not getattr(self, attr_name):
-                missing_keys.append(key)
+        for attr in required_attrs:
+            if not getattr(self, attr):
+                missing_keys.append(attr)
         
         if missing_keys:
             print(f"⚠️ Missing environment variables: {', '.join(missing_keys)}")
