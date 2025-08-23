@@ -172,14 +172,14 @@ def upload_avatar():
         filename = f"avatar_{user_id}_{uuid.uuid4().hex[:8]}.{file_extension}"
         
         # Supabase Storage에 업로드
+        from supabase import create_client
+        SUPABASE_URL = os.getenv('SUPABASE_URL')
+        SUPABASE_KEY = os.getenv('SUPABASE_ANON_KEY')
+        
+        if not SUPABASE_URL or not SUPABASE_KEY:
+            return jsonify({'error': 'Supabase configuration missing'}), 500
+        
         try:
-            from supabase import create_client
-            SUPABASE_URL = os.getenv('SUPABASE_URL')
-            SUPABASE_KEY = os.getenv('SUPABASE_ANON_KEY')
-            
-            if not SUPABASE_URL or not SUPABASE_KEY:
-                return jsonify({'error': 'Supabase configuration missing'}), 500
-            
             supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
             
             # 파일을 바이트로 읽기
