@@ -180,26 +180,28 @@
     right: 8px;
     width: 36px;
     height: 36px;
-    background: var(--bg-primary);
-    border: 1px solid var(--border-light);
+    background: #2563eb;
+    border: 2px solid #ffffff;
     border-radius: var(--radius-full);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 10;
 }
 
 .profile-avatar-upload:hover {
-    background: var(--bg-secondary);
-    border-color: var(--text-primary);
+    background: #1d4ed8;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .profile-avatar-upload svg {
-    width: 18px;
-    height: 18px;
-    color: var(--text-secondary);
+    width: 20px;
+    height: 20px;
+    color: #ffffff;
 }
 
 /* ===== Profile Info Section ===== */

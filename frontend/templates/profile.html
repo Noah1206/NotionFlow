@@ -233,13 +233,13 @@ let usernameCheckTimeout;
 // Load user profile immediately and on page load
 (async function() {
     console.log('🔄 Loading profile avatar immediately...');
-    await loadCurrentUserProfile();
+    initializeAvatarSystem();
 })();
 
 // Also load on DOMContentLoaded as backup
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🔄 DOM loaded, loading profile avatar again...');
-    await loadCurrentUserProfile();
+    console.log('🔄 DOM loaded, initializing avatar system...');
+    initializeAvatarSystem();
 });
 
 // New dynamic avatar system
@@ -259,22 +259,46 @@ function initializeAvatarSystem() {
     loadOrGenerateAvatar(avatarContainer);
 }
 
-function loadOrGenerateAvatar(container) {
+async function loadOrGenerateAvatar(container) {
     // Try to get user data from page context or make a simple API call
     const username = document.querySelector('.profile-username-main')?.textContent?.trim() || 'User';
     const displayName = document.querySelector('.profile-display-name')?.textContent?.trim() || username;
     
     console.log('👤 User info:', { username, displayName });
     
-    // Check for uploaded avatar first
+    // First, try to get avatar from server
+    try {
+        const response = await fetch('/api/user/profile');
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.user && data.user.avatar_url) {
+                console.log('📸 Loading avatar from server:', data.user.avatar_url);
+                createImageAvatar(container, data.user.avatar_url);
+                localStorage.setItem('user_uploaded_avatar', data.user.avatar_url);
+                return;
+            }
+        }
+    } catch (error) {
+        console.log('Could not fetch profile from server:', error);
+    }
+    
+    // Check for locally saved avatar
     const savedAvatarUrl = localStorage.getItem('user_uploaded_avatar');
-    if (savedAvatarUrl && savedAvatarUrl !== 'null' && savedAvatarUrl !== '') {
+    if (savedAvatarUrl && savedAvatarUrl !== 'null' && savedAvatarUrl !== '' && !savedAvatarUrl.startsWith('data:')) {
         console.log('📸 Loading saved avatar:', savedAvatarUrl);
         createImageAvatar(container, savedAvatarUrl);
         return;
     }
     
-    // Generate initials avatar
+    // Check if there's an avatar URL in the page
+    const avatarUrlInput = document.getElementById('edit-avatar-url');
+    if (avatarUrlInput && avatarUrlInput.value && avatarUrlInput.value !== '/static/images/default-avatar.png') {
+        console.log('📸 Loading avatar from input:', avatarUrlInput.value);
+        createImageAvatar(container, avatarUrlInput.value);
+        return;
+    }
+    
+    // Generate initials avatar as fallback
     console.log('🎨 Generating initials avatar');
     createInitialsAvatar(container, displayName || username);
 }
@@ -374,17 +398,18 @@ async function uploadAvatar() {
         const avatarContainer = document.getElementById('profile-avatar');
         if (avatarContainer) {
             createImageAvatar(avatarContainer, e.target.result);
-            localStorage.setItem('user_uploaded_avatar', e.target.result);
-            console.log('✅ Avatar updated locally');
+            console.log('✅ Preview displayed locally');
         }
     };
     reader.readAsDataURL(file);
     
-    // 서버에 업로드 시도
+    // 서버에 업로드
     const formData = new FormData();
     formData.append('avatar', file);
     
     try {
+        showToast('프로필 사진 업로드 중...', 'info');
+        
         const response = await fetch('/api/profile/avatar', {
             method: 'POST',
             body: formData
@@ -392,24 +417,48 @@ async function uploadAvatar() {
         
         const result = await response.json();
         
-        if (result.success) {
-            // 서버 URL로 업데이트 (있는 경우)
-            if (result.avatar_url && result.avatar_url !== e.target.result) {
-                const avatarContainer = document.getElementById('profile-avatar');
-                if (avatarContainer) {
-                    createImageAvatar(avatarContainer, result.avatar_url);
-                    localStorage.setItem('user_uploaded_avatar', result.avatar_url);
-                }
+        if (result.success && result.avatar_url) {
+            // 서버에서 받은 URL로 업데이트
+            const avatarContainer = document.getElementById('profile-avatar');
+            if (avatarContainer) {
+                createImageAvatar(avatarContainer, result.avatar_url);
+                localStorage.setItem('user_uploaded_avatar', result.avatar_url);
             }
             
-            showToast('프로필 사진이 업데이트되었습니다.', 'success');
+            // 프로필 편집 모달의 URL 필드도 업데이트
+            const avatarUrlInput = document.getElementById('edit-avatar-url');
+            if (avatarUrlInput) {
+                avatarUrlInput.value = result.avatar_url;
+            }
+            
+            showToast('프로필 사진이 업데이트되었습니다!', 'success');
+            console.log('✅ Avatar uploaded successfully:', result.avatar_url);
+            
+            // 대시보드 사이드바의 아바타도 업데이트
+            updateDashboardAvatar(result.avatar_url);
+            
         } else {
-            console.log('서버 업로드 실패, 로컬 이미지 유지:', result.error);
-            showToast('프로필 사진이 로컬에 저장되었습니다.', 'info');
+            showToast(result.error || '프로필 사진 업로드에 실패했습니다.', 'error');
+            console.error('Upload failed:', result.error);
         }
     } catch (error) {
         console.error('Avatar upload error:', error);
-        showToast('서버 업로드 실패, 로컬에 저장되었습니다.', 'info');
+        showToast('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'error');
+    }
+}
+
+// 대시보드 사이드바의 아바타 업데이트 함수
+function updateDashboardAvatar(avatarUrl) {
+    // 사이드바의 아바타 이미지 업데이트
+    const sidebarAvatar = document.querySelector('.sidebar-avatar img');
+    if (sidebarAvatar) {
+        sidebarAvatar.src = avatarUrl;
+    }
+    
+    // 사이드바의 아바타 컨테이너 업데이트 (이니셜 대신 이미지로)
+    const sidebarAvatarContainer = document.querySelector('.sidebar-avatar');
+    if (sidebarAvatarContainer && !sidebarAvatarContainer.querySelector('img')) {
+        sidebarAvatarContainer.innerHTML = `<img src="${avatarUrl}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
     }
 }
 
