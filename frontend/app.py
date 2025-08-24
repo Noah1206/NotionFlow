@@ -3495,6 +3495,72 @@ def get_shared_calendars():
         print(f"Error getting shared calendars: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/calendar/<calendar_id>/attendees', methods=['GET'])
+def get_calendar_attendees(calendar_id):
+    """Get attendees (shared users) for a specific calendar"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        from utils.calendar_db import calendar_db
+        from utils.auth_manager import AuthManager
+        
+        # Get calendar to check ownership
+        calendar = calendar_db.get_calendar(calendar_id)
+        if not calendar:
+            return jsonify({'success': False, 'error': 'Calendar not found'}), 404
+        
+        # Check if user has access to this calendar
+        if calendar.get('owner_id') != user_id:
+            # Check if calendar is shared with this user
+            shared_calendars = calendar_db.get_shared_calendars_for_user(user_id)
+            if not any(cal['id'] == calendar_id for cal in shared_calendars):
+                return jsonify({'success': False, 'error': 'Access denied'}), 403
+        
+        attendees = []
+        
+        # Add owner as the first attendee
+        owner_info = AuthManager.get_user_by_id(calendar.get('owner_id'))
+        if owner_info:
+            attendees.append({
+                'id': calendar.get('owner_id'),
+                'name': owner_info.get('name', 'Unknown'),
+                'email': owner_info.get('email', ''),
+                'role': 'organizer',
+                'status': 'accepted',
+                'avatar': owner_info.get('avatar', '/static/images/default-avatar.png')
+            })
+        
+        # Get shared users from calendar_shares table
+        if calendar.get('owner_id') == user_id:
+            # If current user is owner, get all shared users
+            shares = calendar_db.supabase.table('calendar_shares').select('*').eq('calendar_id', calendar_id).eq('is_active', True).execute()
+            
+            for share in shares.data:
+                user_info = AuthManager.get_user_by_id(share['user_id'])
+                if user_info:
+                    attendees.append({
+                        'id': share['user_id'],
+                        'name': user_info.get('name', 'Unknown'),
+                        'email': user_info.get('email', ''),
+                        'role': 'attendee',
+                        'status': 'accepted' if share.get('accepted_at') else 'pending',
+                        'permissions': share.get('permissions', 'view'),
+                        'avatar': user_info.get('avatar', '/static/images/default-avatar.png'),
+                        'shared_at': share.get('created_at')
+                    })
+        
+        return jsonify({
+            'success': True,
+            'attendees': attendees,
+            'total': len(attendees)
+        })
+        
+    except Exception as e:
+        print(f"Error getting calendar attendees: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/users/search', methods=['GET'])
 def search_users():
     """Search users by name or email for friend requests"""

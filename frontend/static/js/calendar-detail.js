@@ -2860,32 +2860,7 @@ function getCurrentCalendarId() {
 
 // ============ ATTENDEES FUNCTIONALITY ============
 
-let attendeesList = [
-    {
-        id: 'att1',
-        name: '김철수',
-        email: 'kim@example.com',
-        role: 'organizer',
-        status: 'accepted',
-        avatar: '/static/images/default-avatar.png'
-    },
-    {
-        id: 'att2',
-        name: '이영희',
-        email: 'lee@example.com', 
-        role: 'attendee',
-        status: 'pending',
-        avatar: '/static/images/default-avatar.png'
-    },
-    {
-        id: 'att3',
-        name: '박민수',
-        email: 'park@example.com',
-        role: 'attendee', 
-        status: 'declined',
-        avatar: '/static/images/default-avatar.png'
-    }
-];
+let attendeesList = [];
 
 function openAddAttendeeModal() {
     const modal = document.getElementById('add-attendee-modal');
@@ -2952,8 +2927,11 @@ function addAttendee() {
         avatar: '/static/images/default-avatar.png'
     };
     
-    // Add to list
+    // Add to list temporarily (in real app, would save to database)
     attendeesList.push(newAttendee);
+    
+    // TODO: Here you would normally send this to the backend API to share the calendar
+    // For now, just update the UI
     
     // Re-render attendees
     renderAttendees();
@@ -3101,8 +3079,8 @@ function updateAttendanceSummary() {
 function initializeAttendees() {
     console.log('👥 Initializing attendees functionality');
     
-    // Render initial attendees
-    renderAttendees();
+    // Load attendees from API
+    loadAttendees();
     
     // Add modal close handler for clicking outside
     const modal = document.getElementById('add-attendee-modal');
@@ -3124,7 +3102,43 @@ function initializeAttendees() {
         }
     });
     
-    console.log(`👥 Attendees initialized with ${attendeesList.length} attendees`);
+    console.log('👥 Attendees functionality initialized');
+}
+
+function loadAttendees() {
+    const calendarId = getCurrentCalendarId();
+    if (!calendarId) {
+        console.error('No calendar ID found');
+        return;
+    }
+    
+    console.log(`Loading attendees for calendar: ${calendarId}`);
+    
+    fetch(`/api/calendar/${calendarId}/attendees`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                attendeesList = data.attendees || [];
+                console.log(`✅ Loaded ${attendeesList.length} attendees`);
+                renderAttendees();
+            } else {
+                console.error('Failed to load attendees:', data.error);
+                // Keep empty list if load fails
+                attendeesList = [];
+                renderAttendees();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading attendees:', error);
+            // Keep empty list on error
+            attendeesList = [];
+            renderAttendees();
+        });
 }
 
 // Share Modal Functions
