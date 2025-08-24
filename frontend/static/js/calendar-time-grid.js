@@ -2,11 +2,14 @@
 
 // Time grid configuration
 const TIME_GRID_CONFIG = {
-    startHour: 1,   // Start at 1 AM (full range)
+    startHour: 0,   // Start at 12 AM (midnight)
     endHour: 23,    // End at 11 PM
     defaultViewStart: 7, // Default visible start at 7 AM
-    hourHeight: 60, // Pixels per hour
-    snapMinutes: 15 // Snap to 15-minute intervals
+    hourHeight: 80, // Increased pixels per hour for more detail
+    snapMinutes: 15, // Snap to 15-minute intervals
+    showHalfHours: true, // Show 30-minute marks
+    showQuarterHours: true, // Show 15-minute marks
+    compactMode: false // More detailed view
 };
 
 // Current view state
@@ -19,9 +22,9 @@ let dragStartY = 0;
 let dragStartTime = null;
 let originalEventData = null;
 
-// Initialize time grid
+// Initialize time grid with enhanced features
 function initializeTimeGrid() {
-    console.log('🕒 Initializing time grid view...');
+    console.log('🕒 Initializing enhanced time grid view...');
     
     // Set current week start
     currentWeekStart = getWeekStart(currentDate);
@@ -32,21 +35,140 @@ function initializeTimeGrid() {
     // Load events
     loadTimeGridEvents();
     
-    // Set default scroll position to 7 AM
+    // Enhanced initialization sequence
     setTimeout(() => {
-        scrollToTime(TIME_GRID_CONFIG.defaultViewStart);
+        // Auto-scroll to current time or default
+        autoScrollToCurrentTime();
+        
+        // Update current time indicator
+        updateCurrentTimeIndicator();
+        
+        // Initialize live clock
+        const clockInterval = startLiveClock();
+        
+        // Store interval for cleanup
+        window.timeGridClockInterval = clockInterval;
+        
+        console.log('⏰ Live clock and time indicator initialized');
     }, 100);
     
-    // Update current time indicator
-    updateCurrentTimeIndicator();
-    setInterval(updateCurrentTimeIndicator, 60000); // Update every minute
+    // Update current time indicator every minute
+    setInterval(updateCurrentTimeIndicator, 60000);
     
-    // Initialize drag and drop
+    // Initialize enhanced features
     initializeDragAndDrop();
-    
-    // Initialize context menu
     initializeContextMenu();
+    initializeKeyboardShortcuts();
+    
+    // Add dynamic time navigation buttons
+    addTimeNavigationControls();
+    
+    console.log('✅ Enhanced time grid initialization complete');
 }
+
+// Add time navigation controls to the interface
+function addTimeNavigationControls() {
+    const topbar = document.querySelector('.topbar-right');
+    if (!topbar) return;
+    
+    // Create time navigation container
+    const timeNavContainer = document.createElement('div');
+    timeNavContainer.className = 'time-navigation-controls';
+    timeNavContainer.style.cssText = `
+        display: flex;
+        gap: 4px;
+        margin-right: 8px;
+        align-items: center;
+    `;
+    
+    // Current time button
+    const currentTimeBtn = document.createElement('button');
+    currentTimeBtn.className = 'btn-time-nav';
+    currentTimeBtn.title = '현재 시간으로 이동 (T)';
+    currentTimeBtn.onclick = goToCurrentTime;
+    currentTimeBtn.style.cssText = `
+        padding: 4px 8px;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        background: white;
+        color: #374151;
+        font-size: 11px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    `;
+    currentTimeBtn.innerHTML = `
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 6v6l4 2"/>
+        </svg>
+        지금
+    `;
+    
+    // Morning button (9 AM)
+    const morningBtn = document.createElement('button');
+    morningBtn.className = 'btn-time-nav';
+    morningBtn.title = '오전 시간으로 이동';
+    morningBtn.onclick = () => scrollToTime(9);
+    morningBtn.style.cssText = currentTimeBtn.style.cssText;
+    morningBtn.innerHTML = `
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 6.34L4.93 4.93M19.07 19.07l-1.41-1.41"/>
+        </svg>
+        오전
+    `;
+    
+    // Afternoon button (2 PM)
+    const afternoonBtn = document.createElement('button');
+    afternoonBtn.className = 'btn-time-nav';
+    afternoonBtn.title = '오후 시간으로 이동';
+    afternoonBtn.onclick = () => scrollToTime(14);
+    afternoonBtn.style.cssText = currentTimeBtn.style.cssText;
+    afternoonBtn.innerHTML = `
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2"/>
+        </svg>
+        오후
+    `;
+    
+    // Add hover effects
+    [currentTimeBtn, morningBtn, afternoonBtn].forEach(btn => {
+        btn.onmouseenter = () => {
+            btn.style.borderColor = '#3b82f6';
+            btn.style.color = '#3b82f6';
+        };
+        btn.onmouseleave = () => {
+            btn.style.borderColor = '#e5e7eb';
+            btn.style.color = '#374151';
+        };
+    });
+    
+    timeNavContainer.appendChild(currentTimeBtn);
+    timeNavContainer.appendChild(morningBtn);
+    timeNavContainer.appendChild(afternoonBtn);
+    
+    // Insert before existing buttons
+    const addEventBtn = topbar.querySelector('.btn-add-event');
+    if (addEventBtn) {
+        topbar.insertBefore(timeNavContainer, addEventBtn);
+    } else {
+        topbar.appendChild(timeNavContainer);
+    }
+}
+
+// Cleanup function for when leaving the page
+function cleanupTimeGrid() {
+    if (window.timeGridClockInterval) {
+        clearInterval(window.timeGridClockInterval);
+        window.timeGridClockInterval = null;
+    }
+}
+
+// Add cleanup on page unload
+window.addEventListener('beforeunload', cleanupTimeGrid);
 
 // Get the start of the week (Sunday)
 function getWeekStart(date) {
@@ -116,7 +238,7 @@ function renderWeekHeader() {
     }
 }
 
-// Render time labels
+// Render time labels with enhanced detail
 function renderTimeLabels() {
     const labelsContainer = document.querySelector('.time-labels-column');
     if (!labelsContainer) return;
@@ -124,9 +246,10 @@ function renderTimeLabels() {
     labelsContainer.innerHTML = '';
     
     for (let hour = TIME_GRID_CONFIG.startHour; hour <= TIME_GRID_CONFIG.endHour; hour++) {
-        const label = document.createElement('div');
-        label.className = 'time-label';
-        label.dataset.hour = hour;
+        // Main hour label
+        const hourLabel = document.createElement('div');
+        hourLabel.className = 'time-label main-hour';
+        hourLabel.dataset.hour = hour;
         
         // Format hour display (12-hour format with AM/PM)
         let displayHour = hour;
@@ -143,35 +266,135 @@ function renderTimeLabels() {
             ampm = 'PM';
         }
         
-        label.textContent = `${displayHour} ${ampm}`;
-        labelsContainer.appendChild(label);
+        hourLabel.innerHTML = `
+            <span class="hour-text">${displayHour}</span>
+            <span class="ampm-text">${ampm}</span>
+        `;
+        labelsContainer.appendChild(hourLabel);
+        
+        // Add 30-minute mark if not the last hour
+        if (TIME_GRID_CONFIG.showHalfHours && hour < TIME_GRID_CONFIG.endHour) {
+            const halfHourLabel = document.createElement('div');
+            halfHourLabel.className = 'time-label half-hour';
+            halfHourLabel.dataset.hour = hour;
+            halfHourLabel.dataset.minutes = 30;
+            halfHourLabel.innerHTML = '<span class="minute-text">30</span>';
+            labelsContainer.appendChild(halfHourLabel);
+        }
+        
+        // Add 15-minute marks if quarter hours are enabled
+        if (TIME_GRID_CONFIG.showQuarterHours && hour < TIME_GRID_CONFIG.endHour) {
+            [15, 45].forEach(minute => {
+                if (minute === 30 && TIME_GRID_CONFIG.showHalfHours) return; // Skip 30 if already shown
+                
+                const quarterLabel = document.createElement('div');
+                quarterLabel.className = 'time-label quarter-hour';
+                quarterLabel.dataset.hour = hour;
+                quarterLabel.dataset.minutes = minute;
+                quarterLabel.innerHTML = `<span class="minute-text">${minute}</span>`;
+                labelsContainer.appendChild(quarterLabel);
+            });
+        }
     }
 }
 
-// Render grid lines
+// Render enhanced grid lines with sub-divisions
 function renderGridLines() {
     const gridContainer = document.getElementById('time-grid-lines');
     if (!gridContainer) return;
     
     gridContainer.innerHTML = '';
     
-    // Add horizontal lines for each hour
+    // Add horizontal lines for each hour and sub-divisions
     const hoursCount = TIME_GRID_CONFIG.endHour - TIME_GRID_CONFIG.startHour + 1;
+    
     for (let i = 0; i < hoursCount; i++) {
-        const line = document.createElement('div');
-        line.className = 'hour-line';
-        line.style.top = `${i * TIME_GRID_CONFIG.hourHeight}px`;
-        gridContainer.appendChild(line);
+        const hour = TIME_GRID_CONFIG.startHour + i;
+        const baseTop = i * TIME_GRID_CONFIG.hourHeight;
+        
+        // Main hour line (thicker)
+        const hourLine = document.createElement('div');
+        hourLine.className = 'grid-line hour-line';
+        hourLine.style.top = `${baseTop}px`;
+        gridContainer.appendChild(hourLine);
+        
+        // Sub-division lines (30 min, 15 min, 45 min)
+        if (i < hoursCount - 1) { // Don't add sub-lines after the last hour
+            // 30-minute line
+            if (TIME_GRID_CONFIG.showHalfHours) {
+                const halfLine = document.createElement('div');
+                halfLine.className = 'grid-line half-hour-line';
+                halfLine.style.top = `${baseTop + TIME_GRID_CONFIG.hourHeight / 2}px`;
+                gridContainer.appendChild(halfLine);
+            }
+            
+            // 15 and 45-minute lines
+            if (TIME_GRID_CONFIG.showQuarterHours) {
+                [0.25, 0.75].forEach(fraction => {
+                    if (fraction === 0.5 && TIME_GRID_CONFIG.showHalfHours) return; // Skip if 30min already shown
+                    
+                    const quarterLine = document.createElement('div');
+                    quarterLine.className = 'grid-line quarter-hour-line';
+                    quarterLine.style.top = `${baseTop + TIME_GRID_CONFIG.hourHeight * fraction}px`;
+                    gridContainer.appendChild(quarterLine);
+                });
+            }
+        }
     }
     
-    // Add vertical lines for each day
+    // Add vertical lines for each day with enhanced styling
     for (let i = 0; i < 7; i++) {
         const column = document.createElement('div');
         column.className = 'day-column';
         column.style.left = `${(i * 100) / 7}%`;
         column.style.width = `${100 / 7}%`;
+        column.dataset.dayIndex = i;
+        
+        // Add subtle day separator
+        if (i > 0) {
+            const separator = document.createElement('div');
+            separator.className = 'day-separator';
+            separator.style.left = `${(i * 100) / 7}%`;
+            gridContainer.appendChild(separator);
+        }
+        
         gridContainer.appendChild(column);
     }
+    
+    // Add time period highlights (morning, afternoon, evening)
+    addTimePeriodHighlights(gridContainer);
+}
+
+// Add time period highlights function
+function addTimePeriodHighlights(gridContainer) {
+    const timePeriods = [
+        { name: 'early-morning', start: 0, end: 6, color: 'rgba(59, 130, 246, 0.05)' },
+        { name: 'morning', start: 6, end: 12, color: 'rgba(16, 185, 129, 0.05)' },
+        { name: 'afternoon', start: 12, end: 18, color: 'rgba(245, 158, 11, 0.05)' },
+        { name: 'evening', start: 18, end: 24, color: 'rgba(139, 92, 246, 0.05)' }
+    ];
+    
+    timePeriods.forEach(period => {
+        if (period.end > TIME_GRID_CONFIG.startHour && period.start <= TIME_GRID_CONFIG.endHour) {
+            const highlight = document.createElement('div');
+            highlight.className = `time-period-highlight ${period.name}`;
+            
+            const startHour = Math.max(period.start, TIME_GRID_CONFIG.startHour);
+            const endHour = Math.min(period.end, TIME_GRID_CONFIG.endHour + 1);
+            
+            const top = (startHour - TIME_GRID_CONFIG.startHour) * TIME_GRID_CONFIG.hourHeight;
+            const height = (endHour - startHour) * TIME_GRID_CONFIG.hourHeight;
+            
+            highlight.style.top = `${top}px`;
+            highlight.style.height = `${height}px`;
+            highlight.style.backgroundColor = period.color;
+            highlight.style.width = '100%';
+            highlight.style.pointerEvents = 'none';
+            highlight.style.zIndex = '1';
+            
+            gridContainer.appendChild(highlight);
+        }
+    });
 }
 
 // Load and render events
@@ -186,7 +409,39 @@ async function loadTimeGridEvents() {
         }
     } catch (error) {
         console.error('Failed to load events:', error);
+        // Load demo events for testing
+        loadDemoEvents();
     }
+}
+
+// Demo events for testing the enhanced time grid
+function loadDemoEvents() {
+    const demoEvents = [
+        {
+            id: 'demo1',
+            title: '🌅 모닝 미팅',
+            start_time: new Date(currentWeekStart.getTime() + 24*60*60*1000).toISOString().replace('T00:', 'T09:'),
+            end_time: new Date(currentWeekStart.getTime() + 24*60*60*1000).toISOString().replace('T00:', 'T09:').replace(':00.000Z', ':30.000Z'),
+            color: 'blue'
+        },
+        {
+            id: 'demo2', 
+            title: '☕ 커피 브레이크',
+            start_time: new Date(currentWeekStart.getTime() + 24*60*60*1000).toISOString().replace('T00:', 'T15:'),
+            end_time: new Date(currentWeekStart.getTime() + 24*60*60*1000).toISOString().replace('T00:', 'T15:').replace(':00.000Z', ':15.000Z'),
+            color: 'green'
+        },
+        {
+            id: 'demo3',
+            title: '📊 프레젠테이션',
+            start_time: new Date(currentWeekStart.getTime() + 2*24*60*60*1000).toISOString().replace('T00:', 'T14:'),
+            end_time: new Date(currentWeekStart.getTime() + 2*24*60*60*1000).toISOString().replace('T00:', 'T16:'),
+            color: 'purple'
+        }
+    ];
+    
+    renderEvents(demoEvents);
+    console.log('📅 Demo events loaded for enhanced time grid');
 }
 
 // Render events on the grid
@@ -567,7 +822,7 @@ function initializeContextMenu() {
     });
 }
 
-// Update current time indicator
+// Enhanced current time indicator with dynamic updates
 function updateCurrentTimeIndicator() {
     const indicator = document.getElementById('current-time-indicator');
     if (!indicator) return;
@@ -581,10 +836,222 @@ function updateCurrentTimeIndicator() {
         return;
     }
     
-    // Calculate position from the start hour (1 AM)
-    const top = (currentHour - TIME_GRID_CONFIG.startHour) * TIME_GRID_CONFIG.hourHeight;
-    indicator.style.top = `${top}px`;
-    indicator.style.display = 'block';
+    // Check if it's today
+    const today = new Date();
+    const weekStart = getWeekStart(today);
+    const dayIndex = Math.floor((today - weekStart) / (24 * 60 * 60 * 1000));
+    
+    // Only show if we're viewing the current week and it's today
+    if (Math.abs(currentWeekStart - weekStart) < 24 * 60 * 60 * 1000 && dayIndex >= 0 && dayIndex < 7) {
+        // Calculate position from the start hour
+        const top = (currentHour - TIME_GRID_CONFIG.startHour) * TIME_GRID_CONFIG.hourHeight;
+        indicator.style.top = `${top}px`;
+        indicator.style.display = 'block';
+        
+        // Update the time indicator with current time
+        const timeText = now.toLocaleTimeString('ko-KR', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: false
+        });
+        
+        // Add or update time display
+        let timeDisplay = indicator.querySelector('.current-time-display');
+        if (!timeDisplay) {
+            timeDisplay = document.createElement('div');
+            timeDisplay.className = 'current-time-display';
+            indicator.appendChild(timeDisplay);
+        }
+        timeDisplay.textContent = timeText;
+        
+        // Highlight current time column
+        highlightCurrentTimeColumn(dayIndex);
+    } else {
+        indicator.style.display = 'none';
+    }
+}
+
+// Highlight the current time column
+function highlightCurrentTimeColumn(dayIndex) {
+    // Remove previous highlights
+    document.querySelectorAll('.day-column.current-day').forEach(col => {
+        col.classList.remove('current-day');
+    });
+    
+    // Add highlight to current day column
+    const currentDayColumn = document.querySelector(`.day-column[data-day-index="${dayIndex}"]`);
+    if (currentDayColumn) {
+        currentDayColumn.classList.add('current-day');
+    }
+}
+
+// Enhanced time navigation with smooth animations
+function scrollToTime(hour, animate = true) {
+    const timeGridBody = document.querySelector('.time-grid-body');
+    if (!timeGridBody) return;
+    
+    // Calculate scroll position
+    const hoursFromStart = hour - TIME_GRID_CONFIG.startHour;
+    const scrollTop = hoursFromStart * TIME_GRID_CONFIG.hourHeight;
+    
+    // Smooth scroll to position
+    timeGridBody.scrollTo({
+        top: Math.max(0, scrollTop),
+        behavior: animate ? 'smooth' : 'auto'
+    });
+    
+    // Flash the target time label
+    flashTimeLabel(hour);
+}
+
+// Flash animation for time labels
+function flashTimeLabel(hour) {
+    const timeLabel = document.querySelector(`.time-label[data-hour="${hour}"]`);
+    if (timeLabel) {
+        timeLabel.style.transition = 'background-color 0.3s ease';
+        timeLabel.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+        
+        setTimeout(() => {
+            timeLabel.style.backgroundColor = '';
+        }, 1000);
+    }
+}
+
+// Auto-scroll to current time on page load
+function autoScrollToCurrentTime() {
+    const now = new Date();
+    const currentHour = now.getHours();
+    
+    // Only auto-scroll if we're viewing today
+    const today = new Date();
+    const weekStart = getWeekStart(today);
+    const isCurrentWeek = Math.abs(currentWeekStart - weekStart) < 24 * 60 * 60 * 1000;
+    
+    if (isCurrentWeek && currentHour >= TIME_GRID_CONFIG.startHour && currentHour <= TIME_GRID_CONFIG.endHour) {
+        // Scroll to 1 hour before current time for context
+        const scrollToHour = Math.max(TIME_GRID_CONFIG.startHour, currentHour - 1);
+        setTimeout(() => {
+            scrollToTime(scrollToHour);
+        }, 500);
+    } else {
+        // Default scroll to work hours start
+        setTimeout(() => {
+            scrollToTime(TIME_GRID_CONFIG.defaultViewStart);
+        }, 500);
+    }
+}
+
+// Live clock update for better user experience
+function startLiveClock() {
+    // Update time display in header or other locations
+    const updateLiveClock = () => {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('ko-KR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
+        
+        // Update any live clock displays
+        const liveClocks = document.querySelectorAll('.live-clock');
+        liveClocks.forEach(clock => {
+            clock.textContent = timeString;
+        });
+        
+        // Update current time indicator every minute
+        if (now.getSeconds() === 0) {
+            updateCurrentTimeIndicator();
+        }
+    };
+    
+    // Update immediately and then every second
+    updateLiveClock();
+    return setInterval(updateLiveClock, 1000);
+}
+
+// Keyboard shortcuts for time navigation
+function initializeKeyboardShortcuts() {
+    document.addEventListener('keydown', (e) => {
+        // Only handle shortcuts when not in input fields
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        
+        switch (e.key) {
+            case 'Home':
+                e.preventDefault();
+                scrollToTime(TIME_GRID_CONFIG.startHour);
+                break;
+            case 'End':
+                e.preventDefault();
+                scrollToTime(TIME_GRID_CONFIG.endHour);
+                break;
+            case 'PageUp':
+                e.preventDefault();
+                scrollToTime(Math.max(TIME_GRID_CONFIG.startHour, getCurrentVisibleHour() - 4));
+                break;
+            case 'PageDown':
+                e.preventDefault();
+                scrollToTime(Math.min(TIME_GRID_CONFIG.endHour, getCurrentVisibleHour() + 4));
+                break;
+            case 'ArrowUp':
+                if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    scrollToTime(Math.max(TIME_GRID_CONFIG.startHour, getCurrentVisibleHour() - 1));
+                }
+                break;
+            case 'ArrowDown':
+                if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    scrollToTime(Math.min(TIME_GRID_CONFIG.endHour, getCurrentVisibleHour() + 1));
+                }
+                break;
+            case 't':
+            case 'T':
+                if (!e.ctrlKey && !e.metaKey) {
+                    e.preventDefault();
+                    goToCurrentTime();
+                }
+                break;
+        }
+    });
+}
+
+// Get currently visible hour
+function getCurrentVisibleHour() {
+    const timeGridBody = document.querySelector('.time-grid-body');
+    if (!timeGridBody) return TIME_GRID_CONFIG.defaultViewStart;
+    
+    const scrollTop = timeGridBody.scrollTop;
+    const visibleHour = Math.floor(scrollTop / TIME_GRID_CONFIG.hourHeight) + TIME_GRID_CONFIG.startHour;
+    return Math.max(TIME_GRID_CONFIG.startHour, Math.min(TIME_GRID_CONFIG.endHour, visibleHour));
+}
+
+// Go to current time function
+function goToCurrentTime() {
+    const now = new Date();
+    const currentHour = now.getHours();
+    
+    if (currentHour >= TIME_GRID_CONFIG.startHour && currentHour <= TIME_GRID_CONFIG.endHour) {
+        scrollToTime(currentHour);
+        
+        // Flash current time indicator
+        const indicator = document.getElementById('current-time-indicator');
+        if (indicator && indicator.style.display !== 'none') {
+            indicator.style.animation = 'pulse 0.5s ease-in-out 2';
+            setTimeout(() => {
+                indicator.style.animation = 'pulse 2s ease-in-out infinite';
+            }, 1000);
+        }
+        
+        // Show notification
+        if (window.showNotification) {
+            showNotification('현재 시간으로 이동했습니다', 'info');
+        }
+    } else {
+        if (window.showNotification) {
+            showNotification('현재 시간이 표시 범위를 벗어났습니다', 'warning');
+        }
+    }
 }
 
 // Open event modal with pre-filled time

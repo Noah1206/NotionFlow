@@ -83,30 +83,75 @@
 
 /* Time Labels Column */
 .time-labels-column {
-    width: 80px;
+    width: 100px; /* Increased width for detailed labels */
     flex-shrink: 0;
     border-right: 1px solid #e1e5e9;
     background: #f8fafc;
     position: relative;
+    padding-right: 8px;
 }
 
 .time-label {
-    height: 60px;
-    display: flex;
-    align-items: flex-start;
-    justify-content: flex-end;
-    padding: 0 8px;
+    position: absolute;
+    right: 8px;
     font-size: 12px;
+    color: #6b7280;
     font-weight: 500;
-    color: #70757a;
-    position: relative;
-    transform: translateY(-8px);
-    transition: all 0.2s ease;
+    background: #f8fafc;
+    padding: 2px 4px;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 2px;
 }
 
-.time-label:first-child {
-    transform: translateY(0);
-    padding-top: 2px;
+/* Main hour labels */
+.time-label.main-hour {
+    top: -10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    transform: translateY(-50%);
+}
+
+.time-label.main-hour .hour-text {
+    font-size: 14px;
+}
+
+.time-label.main-hour .ampm-text {
+    font-size: 10px;
+    color: #9ca3af;
+    margin-left: 2px;
+}
+
+/* Half hour labels (30 min) */
+.time-label.half-hour {
+    top: calc(40px - 8px); /* Position at 30min mark */
+    font-size: 10px;
+    color: #9ca3af;
+    font-weight: 400;
+    transform: translateY(-50%);
+}
+
+/* Quarter hour labels (15, 45 min) */
+.time-label.quarter-hour {
+    font-size: 9px;
+    color: #d1d5db;
+    font-weight: 300;
+    transform: translateY(-50%);
+}
+
+.time-label.quarter-hour[data-minutes="15"] {
+    top: calc(20px - 6px); /* Position at 15min mark */
+}
+
+.time-label.quarter-hour[data-minutes="45"] {
+    top: calc(60px - 6px); /* Position at 45min mark */
+}
+
+.time-label .minute-text {
+    font-size: inherit;
+    opacity: 0.8;
 }
 
 /* Events Grid Container */
@@ -183,15 +228,24 @@
 }
 
 .event-title {
-    font-weight: 500;
+    font-weight: 600;
+    margin-bottom: 3px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-size: 13px;
+    line-height: 1.2;
 }
 
 .event-time {
     font-size: 11px;
     opacity: 0.9;
+    white-space: nowrap;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 4px;
+    border-radius: 4px;
+    display: inline-block;
     margin-top: 2px;
 }
 

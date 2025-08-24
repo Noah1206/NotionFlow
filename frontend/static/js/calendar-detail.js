@@ -3084,7 +3084,8 @@ function updateAttendanceSummary() {
     if (!totalElement || !acceptedElement || !pendingElement || !declinedElement) return;
     
     const total = attendeesList.length;
-    const accepted = attendeesList.filter(att => att.status === 'accepted').length;
+    // Count owner as accepted participant
+    const accepted = attendeesList.filter(att => att.status === 'accepted' || att.status === 'owner').length;
     const pending = attendeesList.filter(att => att.status === 'pending').length;
     const declined = attendeesList.filter(att => att.status === 'declined').length;
     
@@ -3092,6 +3093,8 @@ function updateAttendanceSummary() {
     acceptedElement.textContent = accepted;
     pendingElement.textContent = pending;
     declinedElement.textContent = declined;
+    
+    console.log(`📊 Attendance summary: ${total} total, ${accepted} accepted, ${pending} pending, ${declined} declined`);
 }
 
 function initializeAttendees() {
@@ -3132,6 +3135,24 @@ function loadAttendees() {
     
     console.log(`Loading attendees for calendar: ${calendarId}`);
     
+    // Initialize with calendar owner as the first attendee
+    const calendarWorkspace = document.querySelector('.calendar-workspace');
+    const ownerName = 'Calendar Owner'; // Default name
+    const ownerEmail = 'owner@example.com'; // Default email
+    
+    // Initialize attendeesList with owner
+    attendeesList = [
+        {
+            id: 'owner',
+            name: ownerName,
+            email: ownerEmail,
+            status: 'owner',
+            avatar: '/static/images/default-avatar.png',
+            role: 'owner'
+        }
+    ];
+    
+    // Try to fetch actual attendees from API
     fetch(`/api/calendar/${calendarId}/attendees`)
         .then(response => {
             if (!response.ok) {
@@ -3140,21 +3161,21 @@ function loadAttendees() {
             return response.json();
         })
         .then(data => {
-            if (data.success) {
-                attendeesList = data.attendees || [];
+            if (data.success && data.attendees) {
+                // Keep the owner and add other attendees
+                const otherAttendees = data.attendees.filter(att => att.id !== 'owner');
+                attendeesList = [
+                    attendeesList[0], // Keep the owner
+                    ...otherAttendees
+                ];
                 console.log(`✅ Loaded ${attendeesList.length} attendees`);
-                renderAttendees();
             } else {
-                console.error('Failed to load attendees:', data.error);
-                // Keep empty list if load fails
-                attendeesList = [];
-                renderAttendees();
+                console.log('No additional attendees found, using owner only');
             }
+            renderAttendees();
         })
         .catch(error => {
-            console.error('Error loading attendees:', error);
-            // Keep empty list on error
-            attendeesList = [];
+            console.log('API not available, using owner only:', error);
             renderAttendees();
         });
 }

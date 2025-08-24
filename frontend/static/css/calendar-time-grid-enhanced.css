@@ -1,0 +1,287 @@
+/* Enhanced Time Grid Styles */
+
+/* Time period highlights */
+.time-period-highlight {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 0;
+    transition: opacity 0.2s ease;
+}
+
+.time-period-highlight.early-morning {
+    border-left: 3px solid rgba(59, 130, 246, 0.3);
+}
+
+.time-period-highlight.morning {
+    border-left: 3px solid rgba(16, 185, 129, 0.3);
+}
+
+.time-period-highlight.afternoon {
+    border-left: 3px solid rgba(245, 158, 11, 0.3);
+}
+
+.time-period-highlight.evening {
+    border-left: 3px solid rgba(139, 92, 246, 0.3);
+}
+
+/* Enhanced grid lines */
+.grid-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 1;
+}
+
+.grid-line.hour-line {
+    height: 2px;
+    background: #e1e5e9;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.05);
+}
+
+.grid-line.half-hour-line {
+    height: 1px;
+    background: #f3f4f6;
+    opacity: 0.8;
+}
+
+.grid-line.quarter-hour-line {
+    height: 1px;
+    background: #f9fafb;
+    opacity: 0.6;
+}
+
+/* Day separators */
+.day-separator {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: #e5e7eb;
+    z-index: 2;
+}
+
+/* Enhanced day columns */
+.day-column:hover {
+    background-color: rgba(59, 130, 246, 0.02);
+}
+
+/* Weekend styling */
+.day-column[data-day-index="0"],
+.day-column[data-day-index="6"] {
+    background-color: rgba(156, 163, 175, 0.03);
+}
+
+/* Enhanced event blocks */
+.event-block:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 15;
+}
+
+.event-block.dragging {
+    opacity: 0.8;
+    transform: rotate(2deg);
+    z-index: 20;
+}
+
+/* Enhanced current time indicator */
+.current-time-indicator {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 25;
+    pointer-events: none;
+}
+
+.time-indicator-line {
+    height: 2px;
+    background: #ef4444;
+    border-radius: 1px;
+    box-shadow: 0 1px 3px rgba(239, 68, 68, 0.3);
+    position: relative;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.time-indicator-dot {
+    position: absolute;
+    left: -6px;
+    top: -4px;
+    width: 10px;
+    height: 10px;
+    background: #ef4444;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* Current time display */
+.current-time-display {
+    position: absolute;
+    right: 10px;
+    top: -12px;
+    background: #ef4444;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.current-time-display::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-right: 4px solid #ef4444;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+}
+
+/* Current day column highlight */
+.day-column.current-day {
+    background-color: rgba(239, 68, 68, 0.03) !important;
+    border-left: 2px solid rgba(239, 68, 68, 0.3);
+    border-right: 2px solid rgba(239, 68, 68, 0.3);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* Resize handles for events */
+.resize-handle {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 6px;
+    cursor: ns-resize;
+    opacity: 0;
+    transition: opacity 0.2s;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.resize-handle.top {
+    top: 0;
+    border-radius: 8px 8px 0 0;
+}
+
+.resize-handle.bottom {
+    bottom: 0;
+    border-radius: 0 0 8px 8px;
+}
+
+.event-block:hover .resize-handle {
+    opacity: 1;
+}
+
+/* Enhanced responsiveness */
+@media (max-width: 768px) {
+    .time-labels-column {
+        width: 60px;
+    }
+    
+    .time-gutter-header {
+        width: 60px;
+    }
+    
+    .time-label.main-hour {
+        font-size: 11px;
+    }
+    
+    .time-label.main-hour .hour-text {
+        font-size: 12px;
+    }
+    
+    .time-label.half-hour {
+        display: none; /* Hide on mobile */
+    }
+    
+    .time-label.quarter-hour {
+        display: none; /* Hide on mobile */
+    }
+    
+    .event-block {
+        padding: 4px 6px;
+        font-size: 11px;
+    }
+}
+
+/* Smooth scrolling for time navigation */
+.time-grid-body {
+    scroll-behavior: smooth;
+}
+
+/* Loading states */
+.time-grid-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.time-grid-loading::after {
+    content: '';
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e5e7eb;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Context menu styles */
+.event-context-menu {
+    position: fixed;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 4px 0;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    min-width: 160px;
+    display: none;
+}
+
+.context-menu-item {
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #374151;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.15s;
+}
+
+.context-menu-item:hover {
+    background-color: #f3f4f6;
+}
+
+.context-menu-item.danger {
+    color: #dc2626;
+}
+
+.context-menu-item.danger:hover {
+    background-color: #fef2f2;
+}
+
+.context-menu-divider {
+    height: 1px;
+    background: #e5e7eb;
+    margin: 4px 0;
+}
