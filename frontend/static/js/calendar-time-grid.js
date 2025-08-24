@@ -2,8 +2,9 @@
 
 // Time grid configuration
 const TIME_GRID_CONFIG = {
-    startHour: 7,  // Start at 7 AM
-    endHour: 23,   // End at 11 PM
+    startHour: 1,   // Start at 1 AM (full range)
+    endHour: 23,    // End at 11 PM
+    defaultViewStart: 7, // Default visible start at 7 AM
     hourHeight: 60, // Pixels per hour
     snapMinutes: 15 // Snap to 15-minute intervals
 };
@@ -31,6 +32,11 @@ function initializeTimeGrid() {
     // Load events
     loadTimeGridEvents();
     
+    // Set default scroll position to 7 AM
+    setTimeout(() => {
+        scrollToTime(TIME_GRID_CONFIG.defaultViewStart);
+    }, 100);
+    
     // Update current time indicator
     updateCurrentTimeIndicator();
     setInterval(updateCurrentTimeIndicator, 60000); // Update every minute
@@ -48,6 +54,22 @@ function getWeekStart(date) {
     const day = d.getDay();
     const diff = d.getDate() - day;
     return new Date(d.setDate(diff));
+}
+
+// Scroll to specific time
+function scrollToTime(hour) {
+    const timeGridBody = document.querySelector('.time-grid-body');
+    if (!timeGridBody) return;
+    
+    // Calculate scroll position
+    const hoursFromStart = hour - TIME_GRID_CONFIG.startHour;
+    const scrollTop = hoursFromStart * TIME_GRID_CONFIG.hourHeight;
+    
+    // Smooth scroll to position
+    timeGridBody.scrollTo({
+        top: Math.max(0, scrollTop),
+        behavior: 'smooth'
+    });
 }
 
 // Render the time grid structure
@@ -104,7 +126,23 @@ function renderTimeLabels() {
     for (let hour = TIME_GRID_CONFIG.startHour; hour <= TIME_GRID_CONFIG.endHour; hour++) {
         const label = document.createElement('div');
         label.className = 'time-label';
-        label.textContent = `${hour}:00`;
+        
+        // Format hour display (12-hour format with AM/PM)
+        let displayHour = hour;
+        let ampm = 'AM';
+        
+        if (hour === 0) {
+            displayHour = 12;
+            ampm = 'AM';
+        } else if (hour === 12) {
+            displayHour = 12;
+            ampm = 'PM';
+        } else if (hour > 12) {
+            displayHour = hour - 12;
+            ampm = 'PM';
+        }
+        
+        label.textContent = `${displayHour} ${ampm}`;
         labelsContainer.appendChild(label);
     }
 }
@@ -500,7 +538,7 @@ function updateCurrentTimeIndicator() {
         return;
     }
     
-    // Calculate position
+    // Calculate position from the start hour (1 AM)
     const top = (currentHour - TIME_GRID_CONFIG.startHour) * TIME_GRID_CONFIG.hourHeight;
     indicator.style.top = `${top}px`;
     indicator.style.display = 'block';
@@ -601,20 +639,236 @@ async function deleteEvent(eventId) {
     }
 }
 
-// Import calendar functions
-async function importFromGoogle() {
-    showNotification('Google Calendar 연동 준비 중...', 'info');
-    // TODO: Implement Google Calendar import
+// API Keys Management
+function openAPISettingsModal() {
+    const modal = document.getElementById('api-keys-modal');
+    if (modal) {
+        modal.style.display = 'flex';
+        loadSavedAPIKeys();
+    }
 }
 
-async function importFromNotion() {
-    showNotification('Notion 연동 준비 중...', 'info');
-    // TODO: Implement Notion import
+function closeAPISettingsModal() {
+    const modal = document.getElementById('api-keys-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function toggleAPIKeyVisibility(inputId) {
+    const input = document.getElementById(inputId);
+    const button = input.nextElementSibling;
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        button.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+            </svg>
+        `;
+    } else {
+        input.type = 'password';
+        button.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+            </svg>
+        `;
+    }
+}
+
+async function saveAPIKey(platform) {
+    const input = document.getElementById(`${platform}-api-key`);
+    const apiKey = input.value;
+    
+    if (!apiKey.trim()) {
+        showNotification('API 키를 입력해주세요', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/settings/api-keys', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                platform: platform,
+                api_key: apiKey
+            })
+        });
+        
+        if (response.ok) {
+            showNotification(`${platform} API 키가 저장되었습니다`, 'success');
+        } else {
+            throw new Error('Failed to save API key');
+        }
+    } catch (error) {
+        console.error('Failed to save API key:', error);
+        showNotification('API 키 저장에 실패했습니다', 'error');
+    }
+}
+
+async function loadSavedAPIKeys() {
+    try {
+        const response = await fetch('/api/settings/api-keys');
+        if (response.ok) {
+            const data = await response.json();
+            
+            // Fill saved API keys (masked for security)
+            Object.keys(data.api_keys || {}).forEach(platform => {
+                const input = document.getElementById(`${platform}-api-key`);
+                if (input && data.api_keys[platform]) {
+                    // Show masked version
+                    input.value = '••••••••••••••••';
+                    input.dataset.saved = 'true';
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Failed to load API keys:', error);
+    }
+}
+
+// Import calendar functions with API key integration
+async function importFromGoogle() {
+    const apiKey = await getAPIKey('google');
+    if (!apiKey) {
+        showNotification('Google API 키를 먼저 설정해주세요', 'error');
+        openAPISettingsModal();
+        return;
+    }
+    
+    showNotification('Google Calendar에서 일정을 가져오는 중...', 'info');
+    
+    try {
+        const response = await fetch('/api/import/google', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ api_key: apiKey })
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            showNotification(`${result.imported}개의 일정을 가져왔습니다`, 'success');
+            loadTimeGridEvents();
+        } else {
+            throw new Error('Import failed');
+        }
+    } catch (error) {
+        console.error('Google import failed:', error);
+        showNotification('Google Calendar 가져오기 실패', 'error');
+    }
 }
 
 async function importFromOutlook() {
-    showNotification('Outlook 연동 준비 중...', 'info');
-    // TODO: Implement Outlook import
+    const apiKey = await getAPIKey('outlook');
+    if (!apiKey) {
+        showNotification('Outlook API 키를 먼저 설정해주세요', 'error');
+        openAPISettingsModal();
+        return;
+    }
+    
+    showNotification('Outlook에서 일정을 가져오는 중...', 'info');
+    
+    try {
+        const response = await fetch('/api/import/outlook', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ api_key: apiKey })
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            showNotification(`${result.imported}개의 일정을 가져왔습니다`, 'success');
+            loadTimeGridEvents();
+        } else {
+            throw new Error('Import failed');
+        }
+    } catch (error) {
+        console.error('Outlook import failed:', error);
+        showNotification('Outlook 가져오기 실패', 'error');
+    }
+}
+
+async function importFromNotion() {
+    const apiKey = await getAPIKey('notion');
+    if (!apiKey) {
+        showNotification('Notion API 키를 먼저 설정해주세요', 'error');
+        openAPISettingsModal();
+        return;
+    }
+    
+    showNotification('Notion에서 일정을 가져오는 중...', 'info');
+    // TODO: Implement Notion import
+}
+
+async function importFromApple() {
+    showNotification('iCloud Calendar 연동을 위해 계정 연결이 필요합니다', 'info');
+    // TODO: Implement Apple Calendar import (OAuth flow)
+}
+
+async function importFromZoom() {
+    const apiKey = await getAPIKey('zoom');
+    if (!apiKey) {
+        showNotification('Zoom API 키를 먼저 설정해주세요', 'error');
+        openAPISettingsModal();
+        return;
+    }
+    
+    showNotification('Zoom 미팅을 가져오는 중...', 'info');
+    // TODO: Implement Zoom import
+}
+
+async function importFromSlack() {
+    const apiKey = await getAPIKey('slack');
+    if (!apiKey) {
+        showNotification('Slack API 토큰을 먼저 설정해주세요', 'error');
+        openAPISettingsModal();
+        return;
+    }
+    
+    showNotification('Slack 일정을 가져오는 중...', 'info');
+    // TODO: Implement Slack import
+}
+
+async function importFromTrello() {
+    const apiKey = await getAPIKey('trello');
+    if (!apiKey) {
+        showNotification('Trello API 키를 먼저 설정해주세요', 'error');
+        openAPISettingsModal();
+        return;
+    }
+    
+    showNotification('Trello 카드를 가져오는 중...', 'info');
+    // TODO: Implement Trello import
+}
+
+async function importFromAsana() {
+    const apiKey = await getAPIKey('asana');
+    if (!apiKey) {
+        showNotification('Asana API 키를 먼저 설정해주세요', 'error');
+        openAPISettingsModal();
+        return;
+    }
+    
+    showNotification('Asana 작업을 가져오는 중...', 'info');
+    // TODO: Implement Asana import
+}
+
+// Helper function to get API key
+async function getAPIKey(platform) {
+    try {
+        const response = await fetch('/api/settings/api-keys');
+        if (response.ok) {
+            const data = await response.json();
+            return data.api_keys?.[platform];
+        }
+    } catch (error) {
+        console.error('Failed to get API key:', error);
+    }
+    return null;
 }
 
 async function importFromICS() {
