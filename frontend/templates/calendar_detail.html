@@ -181,49 +181,18 @@
                 <div class="attendees-container">
                     <!-- Attendees List -->
                     <div class="attendees-list" id="attendees-list">
-                        <!-- Sample attendees - these will be loaded dynamically -->
-                        <div class="attendee-item" data-status="accepted">
+                        <!-- Calendar owner -->
+                        <div class="attendee-item" data-status="owner">
                             <div class="attendee-avatar">
-                                <img src="/static/images/default-avatar.png" alt="김철수" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSI4IiByPSI0IiBmaWxsPSIjOTk5Ii8+CjxwYXRoIGQ9Ik0yMCAyMGMwLTUuNS0zLjUtMTAtOC0xMHMtOCA0LjUtOCAxMCIgZmlsbD0iIzk5OSIvPgo8L3N2Zz4K';">
+                                <img src="/static/images/default-avatar.png" alt="{{ calendar.owner_name or '캘린더 소유자' }}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSI4IiByPSI0IiBmaWxsPSIjOTk5Ii8+CjxwYXRoIGQ9Ik0yMCAyMGMwLTUuNS0zLjUtMTAtOC0xMHMtOCA0LjUtOCAxMCIgZmlsbD0iIzk5OSIvPgo8L3N2Zz4K';">
                             </div>
                             <div class="attendee-info">
-                                <div class="attendee-name">김철수</div>
-                                <div class="attendee-email">kim@example.com</div>
+                                <div class="attendee-name">{{ calendar.owner_name or '캘린더 소유자' }}</div>
+                                <div class="attendee-email">{{ calendar.owner_email or 'owner@example.com' }}</div>
                             </div>
-                            <div class="attendee-status accepted" title="참석 확정">
+                            <div class="attendee-status owner" title="캘린더 소유자">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20 6L9 17l-5-5"/>
-                                </svg>
-                            </div>
-                        </div>
-
-                        <div class="attendee-item" data-status="pending">
-                            <div class="attendee-avatar">
-                                <img src="/static/images/default-avatar.png" alt="이영희" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSI4IiByPSI0IiBmaWxsPSIjOTk5Ii8+CjxwYXRoIGQ9Ik0yMCAyMGMwLTUuNS0zLjUtMTAtOC0xMHMtOCA0LjUtOCAxMCIgZmlsbD0iIzk5OSIvPgo8L3N2Zz4K';">
-                            </div>
-                            <div class="attendee-info">
-                                <div class="attendee-name">이영희</div>
-                                <div class="attendee-email">lee@example.com</div>
-                            </div>
-                            <div class="attendee-status pending" title="응답 대기중">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <path d="M12 6v6l4 2"/>
-                                </svg>
-                            </div>
-                        </div>
-
-                        <div class="attendee-item" data-status="declined">
-                            <div class="attendee-avatar">
-                                <img src="/static/images/default-avatar.png" alt="박민수" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSI4IiByPSI0IiBmaWxsPSIjOTk5Ii8+CjxwYXRoIGQ9Ik0yMCAyMGMwLTUuNS0zLjUtMTAtOC0xMHMtOCA0LjUtOCAxMCIgZmlsbD0iIzk5OSIvPgo8L3N2Zz4K';">
-                            </div>
-                            <div class="attendee-info">
-                                <div class="attendee-name">박민수</div>
-                                <div class="attendee-email">park@example.com</div>
-                            </div>
-                            <div class="attendee-status declined" title="참석 불가">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M6 18L18 6M6 6l12 12"/>
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                                 </svg>
                             </div>
                         </div>

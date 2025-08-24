@@ -22,7 +22,7 @@
 }
 
 .time-gutter-header {
-    width: 60px;
+    width: 80px;
     border-right: 1px solid #e1e5e9;
     flex-shrink: 0;
 }
@@ -83,7 +83,7 @@
 
 /* Time Labels Column */
 .time-labels-column {
-    width: 60px;
+    width: 80px;
     flex-shrink: 0;
     border-right: 1px solid #e1e5e9;
     background: #f8fafc;
@@ -94,12 +94,12 @@
     display: flex;
     align-items: flex-start;
     justify-content: flex-end;
-    padding: 0 8px;
+    padding: 4px 8px 0 8px;
     font-size: 12px;
     font-weight: 500;
     color: #1e293b;
     position: relative;
-    top: -8px;
+    top: -4px;
 }
 
 /* Events Grid Container */

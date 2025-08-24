@@ -1211,6 +1211,12 @@ input:checked + .slider:before {
     border: 1px solid #ffb3b3;
 }
 
+.attendee-status.owner {
+    background: #f6ffed;
+    color: #52c41a;
+    border: 1px solid #b7eb8f;
+}
+
 .attendee-status:hover {
     transform: scale(1.1);
     cursor: pointer;
