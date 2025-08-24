@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/variables.css') }}?v={{ range(100000, 999999) | random }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-detail.css') }}?v={{ range(100000, 999999) | random }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-detail-new.css') }}?v={{ range(100000, 999999) | random }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-time-grid.css') }}?v={{ range(100000, 999999) | random }}">
     
     <!-- Core notification system -->
     <script src="{{ url_for('static', filename='js/notification-utils.js') }}?v={{ range(100000, 999999) | random }}"></script>
@@ -81,6 +82,16 @@
                     <line x1="5" y1="12" x2="19" y2="12"/>
                 </svg>
                 새 이벤트
+            </button>
+            
+            <button class="btn-share" onclick="openShareModal()" title="참석자 추가">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="8.5" cy="7" r="4"/>
+                    <line x1="20" y1="8" x2="20" y2="14"/>
+                    <line x1="23" y1="11" x2="17" y2="11"/>
+                </svg>
+                참석자 추가
             </button>
             
             <button class="btn-settings" onclick="openCalendarSettings()" title="캘린더 설정">
@@ -302,142 +313,91 @@
                 </div>
             </div>
 
-            <!-- Priorities -->
+            <!-- Import Calendar Section -->
             <div class="sidebar-widget">
-                <div class="widget-header priorities-header">
-                    <h4>⭐ Priorities</h4>
+                <div class="widget-header">
+                    <div class="widget-icon">📥</div>
+                    <h4>일정 불러오기</h4>
                 </div>
-                <div class="priorities-list" id="priorities-list">
-                    <!-- Priorities will be loaded dynamically -->
-                </div>
-            </div>
-
-            <!-- Habit Tracker -->
-            <div class="sidebar-widget">
-                <div class="widget-header habit-header">
-                    <h4>🔥 Habit Tracker</h4>
-                    <button class="add-habit-btn" onclick="openHobbySelector()" title="취미 추가">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <line x1="12" y1="5" x2="12" y2="19"/>
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
-                    </button>
-                </div>
-                
-                <!-- Hobby Selector Modal -->
-                <div class="hobby-selector-modal" id="hobby-selector" style="display: none;">
-                    <div class="hobby-selector-content">
-                        <div class="hobby-selector-header">
-                            <h5>새 취미 추가</h5>
-                            <button class="close-hobby-selector" onclick="closeHobbySelector()">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <path d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
-                            </button>
-                        </div>
+                <div class="import-calendar-content">
+                    <div class="import-options">
+                        <button class="import-btn" onclick="importFromGoogle()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                            </svg>
+                            Google Calendar
+                        </button>
                         
-                        <div class="hobby-form">
-                            <div class="form-group">
-                                <label>카테고리</label>
-                                <select id="hobby-category" onchange="updateHobbyOptions()">
-                                    <option value="">카테고리 선택</option>
-                                    <option value="sports">🏃‍♂️ 스포츠</option>
-                                    <option value="reading">📚 독서/학습</option>
-                                    <option value="entertainment">🎬 엔터테인먼트</option>
-                                    <option value="creative">🎨 창작활동</option>
-                                    <option value="health">💪 건강관리</option>
-                                    <option value="social">👥 사회활동</option>
-                                    <option value="outdoor">🌳 야외활동</option>
-                                    <option value="mindfulness">🧘 마음챙김</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>취미</label>
-                                <select id="hobby-type">
-                                    <option value="">먼저 카테고리를 선택하세요</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>목표 월</label>
-                                    <select id="target-month">
-                                        <option value="1">1월</option>
-                                        <option value="2">2월</option>
-                                        <option value="3">3월</option>
-                                        <option value="4">4월</option>
-                                        <option value="5">5월</option>
-                                        <option value="6">6월</option>
-                                        <option value="7">7월</option>
-                                        <option value="8" selected>8월</option>
-                                        <option value="9">9월</option>
-                                        <option value="10">10월</option>
-                                        <option value="11">11월</option>
-                                        <option value="12">12월</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label>목표 일수</label>
-                                    <select id="target-days" onchange="updateDaysSuggestion()">
-                                        <option value="3">주 3회</option>
-                                        <option value="5">주 5회</option>
-                                        <option value="7">매일</option>
-                                        <option value="10">월 10회</option>
-                                        <option value="15">월 15회</option>
-                                        <option value="20">월 20회</option>
-                                        <option value="custom">직접 입력</option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group" id="custom-days-group" style="display: none;">
-                                <label>목표 일수 (직접 입력)</label>
-                                <input type="number" id="custom-days" min="1" max="31" placeholder="1-31">
-                            </div>
-                            
-                            <div class="days-suggestion" id="days-suggestion">
-                                <small>💡 8월은 31일까지 있습니다. 주 3회 목표 시 약 13일 정도가 적당해요!</small>
-                            </div>
-                            
-                            <div class="hobby-form-actions">
-                                <button class="cancel-hobby-btn" onclick="closeHobbySelector()">취소</button>
-                                <button class="save-hobby-btn" onclick="saveNewHobby()">추가</button>
-                            </div>
-                        </div>
+                        <button class="import-btn" onclick="importFromNotion()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                <path d="M4 4h16v16H4V4z" stroke="currentColor" stroke-width="2"/>
+                                <path d="M12 4v16M4 12h16" stroke="currentColor" stroke-width="1"/>
+                            </svg>
+                            Notion
+                        </button>
+                        
+                        <button class="import-btn" onclick="importFromOutlook()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" fill="#0078D4"/>
+                            </svg>
+                            Outlook
+                        </button>
+                        
+                        <button class="import-btn" onclick="importFromICS()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                <line x1="16" y1="17" x2="8" y2="17"/>
+                                <polyline points="10 9 9 9 8 9"/>
+                            </svg>
+                            ICS 파일
+                        </button>
                     </div>
-                </div>
-                
-                <div class="habit-list" id="habit-list-container">
-                    <!-- Habits will be loaded dynamically -->
+                    
+                    <div class="import-status" id="import-status" style="display: none;">
+                        <div class="status-message"></div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Center Calendar Area -->
+        <!-- Center Calendar Area - Google Calendar Style Time Grid -->
         <div class="center-calendar-area">
-            <!-- Main Calendar Grid -->
-            <div class="main-calendar-container">
-                <div class="main-calendar-grid">
-                    <div class="calendar-header">
-                        <div class="weekday-labels">
-                            <div class="weekday-label">일</div>
-                            <div class="weekday-label">월</div>
-                            <div class="weekday-label">화</div>
-                            <div class="weekday-label">수</div>
-                            <div class="weekday-label">목</div>
-                            <div class="weekday-label">금</div>
-                            <div class="weekday-label">토</div>
-                        </div>
+            <div class="time-grid-container">
+                <!-- Time Grid Header with Week Days -->
+                <div class="time-grid-header">
+                    <div class="time-gutter-header"></div>
+                    <div class="week-days-header" id="week-days-header">
+                        <!-- Week days will be generated here -->
+                    </div>
+                </div>
+                
+                <!-- Time Grid Body -->
+                <div class="time-grid-body">
+                    <!-- Time Labels Column -->
+                    <div class="time-labels-column">
+                        <!-- Time labels will be generated from 7 AM to 11 PM -->
                     </div>
                     
-                    <div class="main-month-grid" id="main-calendar-grid">
-                        <!-- Main calendar cells will be generated here -->
+                    <!-- Events Grid -->
+                    <div class="events-grid-container" id="events-grid">
+                        <div class="time-grid-lines" id="time-grid-lines">
+                            <!-- Horizontal lines for each hour -->
+                        </div>
+                        <div class="events-layer" id="events-layer">
+                            <!-- Events will be rendered here -->
+                        </div>
+                        <div class="current-time-indicator" id="current-time-indicator" style="display: none;">
+                            <div class="time-indicator-line"></div>
+                            <div class="time-indicator-dot"></div>
+                        </div>
                     </div>
                 </div>
             </div>
-
         </div>
 
         <!-- Right Sidebar -->
@@ -680,8 +640,102 @@
     </div>
 </div>
 
+<!-- Share Calendar Modal -->
+<div class="modal-overlay" id="share-modal" style="display: none;">
+    <div class="modal-content share-modal">
+        <div class="modal-header">
+            <h2 class="modal-title">캘린더 공유</h2>
+            <button class="modal-close" onclick="closeShareModal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="share-section">
+                <h3 class="section-title">사용자 초대</h3>
+                
+                <div class="invite-form">
+                    <div class="form-group">
+                        <label>이메일 주소</label>
+                        <div class="email-input-wrapper">
+                            <input type="email" id="share-email" placeholder="example@email.com">
+                            <select id="share-permission" class="permission-select">
+                                <option value="viewer">보기 전용</option>
+                                <option value="editor">편집 가능</option>
+                                <option value="admin">관리자</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button class="btn-invite" onclick="inviteUser()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M12 5v14m7-7H5"/>
+                        </svg>
+                        초대하기
+                    </button>
+                </div>
+            </div>
+            
+            <div class="share-section">
+                <h3 class="section-title">공유된 사용자</h3>
+                
+                <div class="shared-users-list" id="shared-users-list">
+                    <!-- 공유된 사용자 목록이 여기 표시됩니다 -->
+                    <div class="empty-state">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" opacity="0.3">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        <p>아직 공유된 사용자가 없습니다</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="share-section">
+                <h3 class="section-title">공유 링크</h3>
+                
+                <div class="share-link-section">
+                    <div class="link-toggle">
+                        <label class="switch">
+                            <input type="checkbox" id="share-link-toggle" onchange="toggleShareLink()">
+                            <span class="slider"></span>
+                        </label>
+                        <span>링크 공유 활성화</span>
+                    </div>
+                    
+                    <div class="share-link-content" id="share-link-content" style="display: none;">
+                        <div class="link-display">
+                            <input type="text" id="share-link-url" readonly value="">
+                            <button class="btn-copy" onclick="copyShareLink()">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                </svg>
+                                복사
+                            </button>
+                        </div>
+                        
+                        <div class="link-permission">
+                            <label>링크 권한</label>
+                            <select id="link-permission">
+                                <option value="viewer">보기 전용</option>
+                                <option value="editor">편집 가능</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- JavaScript -->
 <script src="{{ url_for('static', filename='js/calendar-detail.js') }}?v={{ range(100000, 999999) | random }}"></script>
+<script src="{{ url_for('static', filename='js/calendar-time-grid.js') }}?v={{ range(100000, 999999) | random }}"></script>
 
 </body>
 </html>

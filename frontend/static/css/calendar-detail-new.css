@@ -1,5 +1,286 @@
 /* Additional styles for new widgets and compact layout */
 
+/* Share Button Styles */
+.btn-share {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-share:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+/* Share Modal Styles */
+.share-modal {
+    max-width: 520px;
+    width: 90%;
+}
+
+.share-section {
+    margin-bottom: 24px;
+}
+
+.share-section:last-child {
+    margin-bottom: 0;
+}
+
+.section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 12px;
+}
+
+.invite-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.email-input-wrapper {
+    display: flex;
+    gap: 8px;
+}
+
+.email-input-wrapper input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #e1e5e9;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.permission-select {
+    padding: 8px 12px;
+    border: 1px solid #e1e5e9;
+    border-radius: 6px;
+    font-size: 13px;
+    background: white;
+    cursor: pointer;
+    min-width: 120px;
+}
+
+.btn-invite {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-invite:hover {
+    background: #2563eb;
+}
+
+.shared-users-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.shared-user-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background: #f8fafc;
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+
+.shared-user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #e1e5e9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+}
+
+.shared-user-info {
+    flex: 1;
+}
+
+.shared-user-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1e293b;
+}
+
+.shared-user-email {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.shared-user-permission {
+    padding: 4px 8px;
+    background: white;
+    border: 1px solid #e1e5e9;
+    border-radius: 4px;
+    font-size: 11px;
+    color: #64748b;
+    margin-right: 8px;
+}
+
+.remove-user-btn {
+    padding: 4px;
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.remove-user-btn:hover {
+    opacity: 1;
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px;
+    color: #94a3b8;
+}
+
+.empty-state p {
+    margin-top: 8px;
+    font-size: 13px;
+}
+
+/* Share Link Styles */
+.share-link-section {
+    padding: 16px;
+    background: #f8fafc;
+    border-radius: 8px;
+}
+
+.link-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cbd5e1;
+    transition: .3s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #3b82f6;
+}
+
+input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+.share-link-content {
+    margin-top: 12px;
+}
+
+.link-display {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.link-display input {
+    flex: 1;
+    padding: 8px 12px;
+    background: white;
+    border: 1px solid #e1e5e9;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #64748b;
+}
+
+.btn-copy {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 12px;
+    background: white;
+    border: 1px solid #e1e5e9;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #1e293b;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-copy:hover {
+    background: #f1f5f9;
+}
+
+.link-permission label {
+    display: block;
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+
+.link-permission select {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid #e1e5e9;
+    border-radius: 4px;
+    font-size: 12px;
+    background: white;
+}
+
 /* Sidebar Widget Base Styles */
 .sidebar-widget {
     background: #ffffff;

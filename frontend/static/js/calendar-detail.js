@@ -7,6 +7,7 @@ let todoList = [];
 let habitList = [];
 let miniCalendarDate = new Date();
 let blacklistedMediaUrls = new Set(); // Track failed media URLs to prevent retries
+let sharedUsers = []; // Store shared users list
 
 // Event search functionality
 let allEvents = []; // Store all events for searching
@@ -3124,4 +3125,215 @@ function initializeAttendees() {
     });
     
     console.log(`👥 Attendees initialized with ${attendeesList.length} attendees`);
+}
+
+// Share Modal Functions
+function openShareModal() {
+    const modal = document.getElementById('share-modal');
+    if (modal) {
+        modal.style.display = 'flex';
+        loadSharedUsers();
+    }
+}
+
+function closeShareModal() {
+    const modal = document.getElementById('share-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Load shared users from database
+async function loadSharedUsers() {
+    const calendarId = document.querySelector('.calendar-workspace').dataset.calendarId;
+    
+    try {
+        const response = await fetch(`/api/calendars/${calendarId}/shares`);
+        if (response.ok) {
+            const data = await response.json();
+            sharedUsers = data.shares || [];
+            renderSharedUsers();
+        }
+    } catch (error) {
+        console.error('Failed to load shared users:', error);
+    }
+}
+
+// Render shared users in the modal
+function renderSharedUsers() {
+    const listContainer = document.getElementById('shared-users-list');
+    if (!listContainer) return;
+    
+    if (sharedUsers.length === 0) {
+        listContainer.innerHTML = `
+            <div class="empty-state">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" opacity="0.3">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <p>아직 공유된 사용자가 없습니다</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const usersHTML = sharedUsers.map(user => `
+        <div class="shared-user-item" data-user-id="${user.user_id}">
+            <div class="shared-user-avatar">
+                <img src="${user.avatar || '/static/images/default-avatar.png'}" 
+                     alt="${user.name}" 
+                     onerror="this.src='/static/images/default-avatar.png'">
+            </div>
+            <div class="shared-user-info">
+                <div class="shared-user-name">${user.name}</div>
+                <div class="shared-user-email">${user.email}</div>
+            </div>
+            <span class="shared-user-permission">${getPermissionLabel(user.permission)}</span>
+            <button class="remove-user-btn" onclick="removeSharedUser('${user.user_id}')" title="제거">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+    `).join('');
+    
+    listContainer.innerHTML = usersHTML;
+}
+
+// Get permission label in Korean
+function getPermissionLabel(permission) {
+    const labels = {
+        'viewer': '보기 전용',
+        'editor': '편집 가능',
+        'admin': '관리자'
+    };
+    return labels[permission] || permission;
+}
+
+// Invite user to calendar
+async function inviteUser() {
+    const email = document.getElementById('share-email').value;
+    const permission = document.getElementById('share-permission').value;
+    
+    if (!email) {
+        showNotification('이메일 주소를 입력해주세요.', 'error');
+        return;
+    }
+    
+    const calendarId = document.querySelector('.calendar-workspace').dataset.calendarId;
+    
+    try {
+        const response = await fetch(`/api/calendars/${calendarId}/share`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email: email,
+                permission: permission
+            })
+        });
+        
+        if (response.ok) {
+            showNotification('사용자가 초대되었습니다.', 'success');
+            document.getElementById('share-email').value = '';
+            await loadSharedUsers();
+        } else {
+            const error = await response.json();
+            showNotification(error.message || '초대에 실패했습니다.', 'error');
+        }
+    } catch (error) {
+        console.error('Failed to invite user:', error);
+        showNotification('초대에 실패했습니다.', 'error');
+    }
+}
+
+// Remove shared user
+async function removeSharedUser(userId) {
+    if (!confirm('정말 이 사용자의 공유를 해제하시겠습니까?')) {
+        return;
+    }
+    
+    const calendarId = document.querySelector('.calendar-workspace').dataset.calendarId;
+    
+    try {
+        const response = await fetch(`/api/calendars/${calendarId}/share/${userId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            showNotification('공유가 해제되었습니다.', 'success');
+            await loadSharedUsers();
+        } else {
+            showNotification('공유 해제에 실패했습니다.', 'error');
+        }
+    } catch (error) {
+        console.error('Failed to remove shared user:', error);
+        showNotification('공유 해제에 실패했습니다.', 'error');
+    }
+}
+
+// Toggle share link
+function toggleShareLink() {
+    const toggle = document.getElementById('share-link-toggle');
+    const content = document.getElementById('share-link-content');
+    const urlInput = document.getElementById('share-link-url');
+    
+    if (toggle.checked) {
+        content.style.display = 'block';
+        generateShareLink();
+    } else {
+        content.style.display = 'none';
+        disableShareLink();
+    }
+}
+
+// Generate share link
+async function generateShareLink() {
+    const calendarId = document.querySelector('.calendar-workspace').dataset.calendarId;
+    
+    try {
+        const response = await fetch(`/api/calendars/${calendarId}/share-link`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                permission: document.getElementById('link-permission').value
+            })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            const shareUrl = `${window.location.origin}/calendar/shared/${data.token}`;
+            document.getElementById('share-link-url').value = shareUrl;
+        }
+    } catch (error) {
+        console.error('Failed to generate share link:', error);
+        showNotification('링크 생성에 실패했습니다.', 'error');
+    }
+}
+
+// Disable share link
+async function disableShareLink() {
+    const calendarId = document.querySelector('.calendar-workspace').dataset.calendarId;
+    
+    try {
+        await fetch(`/api/calendars/${calendarId}/share-link`, {
+            method: 'DELETE'
+        });
+    } catch (error) {
+        console.error('Failed to disable share link:', error);
+    }
+}
+
+// Copy share link to clipboard
+function copyShareLink() {
+    const urlInput = document.getElementById('share-link-url');
+    urlInput.select();
+    document.execCommand('copy');
+    
+    showNotification('링크가 복사되었습니다.', 'success');
 }

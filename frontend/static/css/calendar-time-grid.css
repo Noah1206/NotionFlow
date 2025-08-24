@@ -1,0 +1,444 @@
+/* Google Calendar Style Time Grid View */
+
+.time-grid-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Time Grid Header */
+.time-grid-header {
+    display: flex;
+    border-bottom: 1px solid #e1e5e9;
+    background: #f8fafc;
+    min-height: 50px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.time-gutter-header {
+    width: 60px;
+    border-right: 1px solid #e1e5e9;
+    flex-shrink: 0;
+}
+
+.week-days-header {
+    display: flex;
+    flex: 1;
+}
+
+.day-header {
+    flex: 1;
+    text-align: center;
+    padding: 12px 8px;
+    border-right: 1px solid #e1e5e9;
+    position: relative;
+}
+
+.day-header:last-child {
+    border-right: none;
+}
+
+.day-header.today {
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.day-header.today .day-date {
+    background: #3b82f6;
+    color: white;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.day-name {
+    font-size: 11px;
+    color: #64748b;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.day-date {
+    font-size: 18px;
+    font-weight: 500;
+    color: #1e293b;
+}
+
+/* Time Grid Body */
+.time-grid-body {
+    flex: 1;
+    display: flex;
+    overflow-y: auto;
+    position: relative;
+}
+
+/* Time Labels Column */
+.time-labels-column {
+    width: 60px;
+    flex-shrink: 0;
+    border-right: 1px solid #e1e5e9;
+    background: #f8fafc;
+}
+
+.time-label {
+    height: 60px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding: 0 8px;
+    font-size: 11px;
+    color: #64748b;
+    position: relative;
+    top: -8px;
+}
+
+/* Events Grid Container */
+.events-grid-container {
+    flex: 1;
+    position: relative;
+}
+
+/* Time Grid Lines */
+.time-grid-lines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.hour-line {
+    height: 60px;
+    border-bottom: 1px solid #e1e5e9;
+    position: relative;
+}
+
+.hour-line.half {
+    border-bottom-style: dashed;
+    border-color: #f1f5f9;
+}
+
+.day-column {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-right: 1px solid #f1f5f9;
+}
+
+/* Events Layer */
+.events-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+/* Event Blocks */
+.event-block {
+    position: absolute;
+    background: #3b82f6;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: move;
+    overflow: hidden;
+    border-left: 3px solid #1e40af;
+    transition: all 0.2s;
+    user-select: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.event-block:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transform: scale(1.02);
+}
+
+.event-block.dragging {
+    opacity: 0.5;
+    z-index: 1000;
+}
+
+.event-block.selected {
+    box-shadow: 0 0 0 2px #1e40af;
+}
+
+.event-title {
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.event-time {
+    font-size: 11px;
+    opacity: 0.9;
+    margin-top: 2px;
+}
+
+/* Different Event Colors */
+.event-block.green {
+    background: #10b981;
+    border-left-color: #059669;
+}
+
+.event-block.orange {
+    background: #f59e0b;
+    border-left-color: #d97706;
+}
+
+.event-block.red {
+    background: #ef4444;
+    border-left-color: #dc2626;
+}
+
+.event-block.purple {
+    background: #8b5cf6;
+    border-left-color: #7c3aed;
+}
+
+.event-block.pink {
+    background: #ec4899;
+    border-left-color: #db2777;
+}
+
+/* Current Time Indicator */
+.current-time-indicator {
+    position: absolute;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+    z-index: 50;
+}
+
+.time-indicator-line {
+    height: 2px;
+    background: #ef4444;
+    position: relative;
+}
+
+.time-indicator-dot {
+    width: 10px;
+    height: 10px;
+    background: #ef4444;
+    border-radius: 50%;
+    position: absolute;
+    left: -5px;
+    top: -4px;
+}
+
+/* Drag Placeholder */
+.event-placeholder {
+    position: absolute;
+    background: rgba(59, 130, 246, 0.2);
+    border: 2px dashed #3b82f6;
+    border-radius: 6px;
+    pointer-events: none;
+}
+
+/* Resize Handles */
+.event-block .resize-handle {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 8px;
+    cursor: ns-resize;
+    z-index: 10;
+}
+
+.event-block .resize-handle.top {
+    top: 0;
+}
+
+.event-block .resize-handle.bottom {
+    bottom: 0;
+}
+
+/* Import Calendar Styles */
+.import-calendar-content {
+    padding: 8px 0;
+}
+
+.import-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.import-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: white;
+    border: 1px solid #e1e5e9;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #1e293b;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+}
+
+.import-btn:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    transform: translateX(2px);
+}
+
+.import-status {
+    margin-top: 12px;
+    padding: 8px 12px;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #0369a1;
+}
+
+.import-status.error {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #dc2626;
+}
+
+.import-status.success {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #059669;
+}
+
+/* Scrollbar Styles */
+.time-grid-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.time-grid-body::-webkit-scrollbar-track {
+    background: #f8fafc;
+}
+
+.time-grid-body::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.time-grid-body::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Context Menu for Events */
+.event-context-menu {
+    position: fixed;
+    background: white;
+    border: 1px solid #e1e5e9;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 4px;
+    z-index: 1000;
+    display: none;
+}
+
+.context-menu-item {
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #1e293b;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.context-menu-item:hover {
+    background: #f1f5f9;
+}
+
+.context-menu-item.danger {
+    color: #ef4444;
+}
+
+.context-menu-divider {
+    height: 1px;
+    background: #e1e5e9;
+    margin: 4px 0;
+}
+
+/* Multi-day Event Styles */
+.all-day-events-row {
+    position: sticky;
+    top: 50px;
+    background: white;
+    border-bottom: 1px solid #e1e5e9;
+    z-index: 90;
+    padding: 8px 0;
+    min-height: 32px;
+}
+
+.all-day-event {
+    background: #e0e7ff;
+    color: #3730a3;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    margin: 2px 0;
+    position: relative;
+}
+
+/* Week/Day View Toggle */
+.view-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px;
+    background: #f1f5f9;
+    border-radius: 6px;
+}
+
+.view-option {
+    padding: 6px 12px;
+    font-size: 12px;
+    border: none;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.view-option.active {
+    background: white;
+    color: #1e293b;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.view-option:hover:not(.active) {
+    color: #1e293b;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .time-gutter-header,
+    .time-labels-column {
+        width: 50px;
+    }
+    
+    .time-label {
+        font-size: 10px;
+    }
+    
+    .event-block {
+        font-size: 11px;
+        padding: 2px 4px;
+    }
+}
