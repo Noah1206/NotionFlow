@@ -126,6 +126,7 @@ function renderTimeLabels() {
     for (let hour = TIME_GRID_CONFIG.startHour; hour <= TIME_GRID_CONFIG.endHour; hour++) {
         const label = document.createElement('div');
         label.className = 'time-label';
+        label.dataset.hour = hour;
         
         // Format hour display (12-hour format with AM/PM)
         let displayHour = hour;
@@ -202,6 +203,48 @@ function renderEvents(events) {
         const eventElement = createEventElement(event);
         if (eventElement) {
             eventsLayer.appendChild(eventElement);
+        }
+    });
+    
+    // Update time label positions based on events
+    adjustTimeLabelsForEvents(events);
+}
+
+// Adjust time label positions to avoid overlapping with events
+function adjustTimeLabelsForEvents(events) {
+    const timeLabels = document.querySelectorAll('.time-label');
+    const labelsColumn = document.querySelector('.time-labels-column');
+    if (!labelsColumn) return;
+    
+    // Reset all labels to default position
+    timeLabels.forEach(label => {
+        label.style.transform = '';
+        label.style.opacity = '1';
+    });
+    
+    // Check for events at the start of each hour in the first column
+    events.forEach(event => {
+        if (!event.start_time || event.all_day) return;
+        
+        const startDate = new Date(event.start_time);
+        const dayIndex = startDate.getDay();
+        
+        // Only adjust for events in the first visible column
+        if (dayIndex === 0 || dayIndex === 1) {
+            const startHour = startDate.getHours();
+            const startMinutes = startDate.getMinutes();
+            
+            // Find the corresponding time label
+            timeLabels.forEach(label => {
+                const labelHour = parseInt(label.dataset.hour);
+                
+                // If event starts near this hour label (within 15 minutes)
+                if (labelHour === startHour && startMinutes < 15) {
+                    // Shift the label up slightly or reduce opacity
+                    label.style.transform = 'translateY(-8px)';
+                    label.style.opacity = '0.7';
+                }
+            });
         }
     });
 }
