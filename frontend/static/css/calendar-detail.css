@@ -1114,8 +1114,8 @@ body.calendar-detail-standalone .calendar-workspace-content.sidebar-collapsed {
 }
 
 .time-slot {
-    height: 60px;
-    padding: 8px;
+    height: 45px;
+    padding: 6px 8px;
     font-size: 12px;
     color: #64748b;
     border-bottom: 1px solid #f1f3f4;
@@ -1891,11 +1891,12 @@ body.calendar-detail-standalone .calendar-workspace-content {
 .main-calendar-container {
     width: 100%;
     max-width: none;
+    max-height: calc(100vh - 180px);
     margin: 0;
     background: var(--bg-surface);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
-    overflow: hidden;
+    overflow-y: auto;
 }
 
 /* When sidebar is collapsed, calendar takes full available width */
