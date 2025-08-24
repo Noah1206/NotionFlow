@@ -967,12 +967,29 @@ body.calendar-detail-standalone .calendar-workspace-content.sidebar-collapsed {
     /* This works within the existing sidebar layout */
 }
 
-/* Left Content Column */
+/* Left Content Column - Clean Modern Sidebar */
 .left-sidebar {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 0;
     overflow-y: auto;
+    background: #fafbfc;
+    border-right: 1px solid #e1e5e9;
+    padding: 24px 20px;
+    width: 260px;
+}
+
+.left-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.left-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.left-sidebar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 2px;
 }
 
 /* Center Calendar Area */
