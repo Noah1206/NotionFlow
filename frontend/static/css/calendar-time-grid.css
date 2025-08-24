@@ -105,7 +105,8 @@
 }
 
 .time-label:first-child {
-    transform: translateY(-6px);
+    transform: translateY(0);
+    padding-top: 2px;
 }
 
 /* Events Grid Container */
