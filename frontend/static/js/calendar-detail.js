@@ -1117,8 +1117,30 @@ function openDayModal(date) {
 
 // Helper function to get current calendar ID
 function getCurrentCalendarId() {
-    const workspace = document.querySelector('.calendar-workspace');
-    return workspace ? workspace.dataset.calendarId : null;
+    // Try multiple selectors to find calendar ID
+    let calendarId = null;
+    
+    // Method 1: From .calendar-workspace data attribute
+    const workspace = document.querySelector('.calendar-workspace[data-calendar-id]');
+    if (workspace) {
+        calendarId = workspace.getAttribute('data-calendar-id');
+        if (calendarId) return calendarId;
+    }
+    
+    // Method 2: From URL path
+    const pathMatch = window.location.pathname.match(/\/calendar\/([^\/]+)/);
+    if (pathMatch && pathMatch[1]) {
+        calendarId = pathMatch[1];
+        if (calendarId) return calendarId;
+    }
+    
+    // Method 3: From query parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    calendarId = urlParams.get('calendar_id') || urlParams.get('id');
+    if (calendarId) return calendarId;
+    
+    console.error('Could not find calendar ID using any method');
+    return null;
 }
 
 function closeDayModal() {
@@ -2853,10 +2875,6 @@ function navigateToEventDay(dateString, eventId) {
     }
 }
 
-function getCurrentCalendarId() {
-    const workspaceElement = document.querySelector('.calendar-workspace[data-calendar-id]');
-    return workspaceElement ? workspaceElement.getAttribute('data-calendar-id') : null;
-}
 
 // ============ ATTENDEES FUNCTIONALITY ============
 
