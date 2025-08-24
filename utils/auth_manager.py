@@ -214,6 +214,46 @@ class AuthManager:
             return None
     
     @staticmethod
+    def get_user_by_id(user_id: str) -> Optional[Dict]:
+        """Get user information by user ID"""
+        # Mock mode fallback
+        if MOCK_MODE or not supabase:
+            return {
+                'id': user_id,
+                'name': 'Mock User',
+                'email': 'mock@example.com',
+                'avatar': '/static/images/default-avatar.png'
+            }
+        
+        try:
+            # Get user profile from user_profiles table
+            result = supabase.table('user_profiles').select('*').eq('user_id', user_id).execute()
+            if result.data and len(result.data) > 0:
+                profile = result.data[0]
+                return {
+                    'id': profile.get('user_id'),
+                    'name': profile.get('username') or profile.get('full_name') or 'Unknown User',
+                    'email': profile.get('email', ''),
+                    'avatar': profile.get('avatar_url', '/static/images/default-avatar.png')
+                }
+            
+            # Fallback: try auth.users table if profile not found
+            result = supabase.auth.admin.get_user_by_id(user_id)
+            if result.user:
+                user = result.user
+                return {
+                    'id': user.id,
+                    'name': user.user_metadata.get('full_name') or user.email.split('@')[0],
+                    'email': user.email,
+                    'avatar': user.user_metadata.get('avatar_url', '/static/images/default-avatar.png')
+                }
+            
+            return None
+        except Exception as e:
+            print(f"Error getting user by ID {user_id}: {e}")
+            return None
+
+    @staticmethod
     def update_user_profile(user_id: str, update_data: Dict) -> bool:
         """Update user profile in database"""
         # Mock mode fallback

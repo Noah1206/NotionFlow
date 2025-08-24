@@ -3521,35 +3521,55 @@ def get_calendar_attendees(calendar_id):
         attendees = []
         
         # Add owner as the first attendee
-        owner_info = AuthManager.get_user_by_id(calendar.get('owner_id'))
-        if owner_info:
-            attendees.append({
-                'id': calendar.get('owner_id'),
-                'name': owner_info.get('name', 'Unknown'),
-                'email': owner_info.get('email', ''),
-                'role': 'organizer',
-                'status': 'accepted',
-                'avatar': owner_info.get('avatar', '/static/images/default-avatar.png')
-            })
+        owner_id = calendar.get('owner_id')
+        print(f"Calendar owner_id: {owner_id}")
+        print(f"Current user_id: {user_id}")
+        
+        if owner_id:
+            owner_info = AuthManager.get_user_by_id(owner_id)
+            print(f"Owner info: {owner_info}")
+            
+            if owner_info:
+                attendees.append({
+                    'id': owner_id,
+                    'name': owner_info.get('name', 'Unknown'),
+                    'email': owner_info.get('email', ''),
+                    'role': 'organizer',
+                    'status': 'accepted',
+                    'avatar': owner_info.get('avatar', '/static/images/default-avatar.png')
+                })
+            else:
+                # Fallback: add owner with basic info if AuthManager fails
+                attendees.append({
+                    'id': owner_id,
+                    'name': 'Calendar Owner',
+                    'email': '',
+                    'role': 'organizer', 
+                    'status': 'accepted',
+                    'avatar': '/static/images/default-avatar.png'
+                })
         
         # Get shared users from calendar_shares table
-        if calendar.get('owner_id') == user_id:
-            # If current user is owner, get all shared users
-            shares = calendar_db.supabase.table('calendar_shares').select('*').eq('calendar_id', calendar_id).eq('is_active', True).execute()
-            
-            for share in shares.data:
-                user_info = AuthManager.get_user_by_id(share['user_id'])
-                if user_info:
-                    attendees.append({
-                        'id': share['user_id'],
-                        'name': user_info.get('name', 'Unknown'),
-                        'email': user_info.get('email', ''),
-                        'role': 'attendee',
-                        'status': 'accepted' if share.get('accepted_at') else 'pending',
-                        'permissions': share.get('permissions', 'view'),
-                        'avatar': user_info.get('avatar', '/static/images/default-avatar.png'),
-                        'shared_at': share.get('created_at')
-                    })
+        try:
+            if calendar_db.supabase:
+                shares = calendar_db.supabase.table('calendar_shares').select('*').eq('calendar_id', calendar_id).eq('is_active', True).execute()
+                print(f"Found {len(shares.data)} shares for calendar {calendar_id}")
+                
+                for share in shares.data:
+                    user_info = AuthManager.get_user_by_id(share['user_id'])
+                    if user_info:
+                        attendees.append({
+                            'id': share['user_id'],
+                            'name': user_info.get('name', 'Unknown'),
+                            'email': user_info.get('email', ''),
+                            'role': 'attendee',
+                            'status': 'accepted' if share.get('accepted_at') else 'pending',
+                            'permissions': share.get('permissions', 'view'),
+                            'avatar': user_info.get('avatar', '/static/images/default-avatar.png'),
+                            'shared_at': share.get('created_at')
+                        })
+        except Exception as e:
+            print(f"Error fetching calendar shares: {e}")
         
         return jsonify({
             'success': True,
