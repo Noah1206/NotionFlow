@@ -30,6 +30,7 @@ class GoogleCalendarGrid {
     init() {
         this.render();
         this.attachEventListeners();
+        this.loadExistingEvents(); // Load existing events from backend
         this.updateCurrentTimeIndicator();
         
         // Update time indicator every minute
@@ -511,6 +512,9 @@ class GoogleCalendarGrid {
             this.events.push(localEventData);
             this.renderEvent(localEventData);
             
+            // Save to localStorage as backup
+            this.saveToLocalStorage(localEventData);
+            
             // Show warning notification
             if (window.showNotification) {
                 showNotification('일정이 로컬에만 저장되었습니다', 'warning');
@@ -676,6 +680,115 @@ class GoogleCalendarGrid {
         // Show notification
         if (window.showNotification) {
             showNotification(`일정 "${eventData.title}" 시간이 수정되었습니다`, 'success');
+        }
+    }
+
+    async loadExistingEvents() {
+        console.log('📥 Loading existing events...');
+        
+        try {
+            // Get calendar ID from the DOM
+            const calendarElement = document.querySelector('.calendar-workspace');
+            if (!calendarElement) {
+                console.log('⚠️ No calendar workspace found');
+                return;
+            }
+            
+            const calendarId = calendarElement.dataset.calendarId;
+            if (!calendarId) {
+                console.log('⚠️ No calendar ID found');
+                return;
+            }
+            
+            console.log('🔍 Fetching events for calendar:', calendarId);
+            
+            // Fetch events from backend
+            const response = await fetch(`/api/calendars/${calendarId}/events`);
+            
+            if (!response.ok) {
+                console.log(`⚠️ Failed to fetch events from backend: ${response.status}`);
+                // Try to load from localStorage backup
+                this.loadBackupEvents();
+                return;
+            }
+            
+            const events = await response.json();
+            console.log('📅 Loaded events:', events);
+            
+            // Clear existing events and render loaded ones
+            this.events = [];
+            
+            if (events && events.length > 0) {
+                events.forEach(event => {
+                    // Convert backend event format to frontend format
+                    const frontendEvent = this.convertBackendEventToFrontend(event);
+                    this.events.push(frontendEvent);
+                    this.renderEvent(frontendEvent);
+                });
+                
+                console.log(`✅ Successfully loaded and rendered ${events.length} events`);
+            } else {
+                console.log('📝 No existing events found');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error loading existing events:', error);
+            // Try to load from localStorage backup as fallback
+            this.loadBackupEvents();
+        }
+    }
+    
+    loadBackupEvents() {
+        console.log('📱 Loading events from localStorage backup...');
+        const backupEvents = this.loadFromLocalStorage();
+        
+        if (backupEvents.length > 0) {
+            backupEvents.forEach(event => {
+                this.events.push(event);
+                this.renderEvent(event);
+            });
+            console.log(`✅ Loaded ${backupEvents.length} events from localStorage backup`);
+        } else {
+            console.log('📝 No backup events found in localStorage');
+        }
+    }
+    
+    convertBackendEventToFrontend(backendEvent) {
+        // Convert backend event format to match frontend expectations
+        return {
+            id: backendEvent.id,
+            title: backendEvent.title || backendEvent.summary || 'Untitled',
+            description: backendEvent.description || '',
+            date: backendEvent.date || backendEvent.start?.split('T')[0],
+            startTime: backendEvent.startTime || backendEvent.start_time || 
+                      (backendEvent.start ? new Date(backendEvent.start).toTimeString().slice(0,5) : '09:00'),
+            endTime: backendEvent.endTime || backendEvent.end_time ||
+                    (backendEvent.end ? new Date(backendEvent.end).toTimeString().slice(0,5) : '10:00'),
+            color: backendEvent.color || '#3b82f6'
+        };
+    }
+    
+    saveToLocalStorage(eventData) {
+        try {
+            const storageKey = 'calendar_events_backup';
+            const existing = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            existing.push(eventData);
+            localStorage.setItem(storageKey, JSON.stringify(existing));
+            console.log('💾 Event saved to localStorage backup');
+        } catch (error) {
+            console.error('❌ Failed to save to localStorage:', error);
+        }
+    }
+    
+    loadFromLocalStorage() {
+        try {
+            const storageKey = 'calendar_events_backup';
+            const events = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            console.log('📱 Loaded from localStorage backup:', events.length, 'events');
+            return events;
+        } catch (error) {
+            console.error('❌ Failed to load from localStorage:', error);
+            return [];
         }
     }
 
