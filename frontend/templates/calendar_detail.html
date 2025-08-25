@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-detail-new.css') }}?v={{ range(100000, 999999) | random }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-time-grid.css') }}?v={{ range(100000, 999999) | random }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-time-grid-enhanced.css') }}?v={{ range(100000, 999999) | random }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/google-calendar-grid.css') }}?v={{ range(100000, 999999) | random }}">
     
     <!-- Core notification system -->
     <script src="{{ url_for('static', filename='js/notification-utils.js') }}?v={{ range(100000, 999999) | random }}"></script>
@@ -72,8 +73,8 @@
         
         <div class="topbar-right">
             <div class="view-toggle">
-                <button class="view-option active" data-view="month">월</button>
-                <button class="view-option" data-view="week">주</button>
+                <button class="view-option" data-view="month">월</button>
+                <button class="view-option active" data-view="week">주</button>
                 <button class="view-option" data-view="agenda">일정</button>
             </div>
             
@@ -380,9 +381,15 @@
             </div>
         </div>
 
-        <!-- Center Calendar Area - Google Calendar Style Time Grid -->
+        <!-- Center Calendar Area - Google Calendar Style Grid -->
         <div class="center-calendar-area">
-            <div class="time-grid-container">
+            <!-- Google Calendar Style Grid Container -->
+            <div id="google-calendar-container" style="height: 100%; width: 100%;">
+                <!-- Google Calendar Grid will be rendered here -->
+            </div>
+            
+            <!-- Fallback: Original Time Grid (hidden by default) -->
+            <div class="time-grid-container" style="display: none;" id="fallback-time-grid">
                 <!-- Time Grid Header with Week Days -->
                 <div class="time-grid-header">
                     <div class="time-gutter-header"></div>
@@ -949,6 +956,8 @@
 <!-- JavaScript -->
 <script src="{{ url_for('static', filename='js/calendar-detail.js') }}?v={{ range(100000, 999999) | random }}"></script>
 <script src="{{ url_for('static', filename='js/calendar-time-grid.js') }}?v={{ range(100000, 999999) | random }}"></script>
+<script src="{{ url_for('static', filename='js/google-calendar-grid.js') }}?v={{ range(100000, 999999) | random }}"></script>
+<script src="{{ url_for('static', filename='js/calendar-view-controller.js') }}?v={{ range(100000, 999999) | random }}"></script>
 
 </body>
 </html>
