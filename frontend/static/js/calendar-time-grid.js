@@ -284,10 +284,14 @@ function renderTimeLabels() {
     labelsContainer.innerHTML = '';
     
     for (let hour = TIME_GRID_CONFIG.startHour; hour <= TIME_GRID_CONFIG.endHour; hour++) {
+        const hourOffset = hour - TIME_GRID_CONFIG.startHour;
+        const baseTop = hourOffset * TIME_GRID_CONFIG.hourHeight;
+        
         // Main hour label
         const hourLabel = document.createElement('div');
         hourLabel.className = 'time-label main-hour';
         hourLabel.dataset.hour = hour;
+        hourLabel.style.top = `${baseTop}px`; // Position at the hour line
         
         // Format hour display (12-hour format with AM/PM)
         let displayHour = hour;
@@ -316,6 +320,7 @@ function renderTimeLabels() {
             halfHourLabel.className = 'time-label half-hour';
             halfHourLabel.dataset.hour = hour;
             halfHourLabel.dataset.minutes = 30;
+            halfHourLabel.style.top = `${baseTop + TIME_GRID_CONFIG.hourHeight / 2}px`; // Position at 30 min
             halfHourLabel.innerHTML = '<span class="minute-text">30</span>';
             labelsContainer.appendChild(halfHourLabel);
         }
@@ -329,6 +334,8 @@ function renderTimeLabels() {
                 quarterLabel.className = 'time-label quarter-hour';
                 quarterLabel.dataset.hour = hour;
                 quarterLabel.dataset.minutes = minute;
+                const fraction = minute / 60;
+                quarterLabel.style.top = `${baseTop + TIME_GRID_CONFIG.hourHeight * fraction}px`; // Position at quarter marks
                 quarterLabel.innerHTML = `<span class="minute-text">${minute}</span>`;
                 labelsContainer.appendChild(quarterLabel);
             });

@@ -108,7 +108,6 @@
 
 /* Main hour labels */
 .time-label.main-hour {
-    top: 0;  /* Align with hour line instead of offset */
     font-size: 13px;
     font-weight: 600;
     color: #374151;
@@ -127,7 +126,6 @@
 
 /* Half hour labels (30 min) */
 .time-label.half-hour {
-    top: 40px; /* Centered at 30min mark (half of 80px) */
     font-size: 10px;
     color: #9ca3af;
     font-weight: 400;
@@ -140,14 +138,6 @@
     color: #d1d5db;
     font-weight: 300;
     transform: translateY(-50%);
-}
-
-.time-label.quarter-hour[data-minutes="15"] {
-    top: 20px; /* Centered at 15min mark (quarter of 80px) */
-}
-
-.time-label.quarter-hour[data-minutes="45"] {
-    top: 60px; /* Centered at 45min mark (3/4 of 80px) */
 }
 
 .time-label .minute-text {
