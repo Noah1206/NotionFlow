@@ -63,29 +63,29 @@ def load_modules_async():
     global security_validator, require_rate_limit, validate_dashboard_access
     global UserRoutingMiddleware, DashboardRouteBuilder, dashboard_data, calendar_db, config, UserProfileManager
     
-    print("🔄 백그라운드 모듈 로딩 시작...")
+    print("[LOADING] [EMOJI] [EMOJI] [EMOJI] [EMOJI]...")
     
     # Configuration 로드 (제일 먼저)
     try:
         from utils.config_safe import config as real_config
         config = real_config
-        print("✅ Using safe configuration with fallback support (async)")
+        print("[SUCCESS] Using safe configuration with fallback support (async)")
     except ImportError:
         try:
             from utils.config import config as real_config
             config = real_config
-            print("✅ Configuration loaded (async)")
+            print("[SUCCESS] Configuration loaded (async)")
         except ImportError as e:
-            print(f"⚠️ Configuration import failed, using fallback: {e}")
+            print(f"[WARNING] Configuration import failed, using fallback: {e}")
     
     # User Profile Manager 로드
     try:
         from utils.user_profile_manager import UserProfileManager as RealUserProfileManager
         UserProfileManager = RealUserProfileManager
         user_profile_available = True
-        print("✅ User profile manager loaded (async)")
+        print("[SUCCESS] User profile manager loaded (async)")
     except ImportError as e:
-        print(f"⚠️ User profile manager not available: {e}")
+        print(f"[WARNING] User profile manager not available: {e}")
 
     # Auth utilities 로드
     try:
@@ -105,13 +105,13 @@ def load_modules_async():
         if hasattr(config, 'SUPABASE_URL'):
             try:
                 init_auth_utils(config.SUPABASE_URL, config.SUPABASE_ANON_KEY)
-                print("✅ Auth utilities initialized (async)")
+                print("[SUCCESS] Auth utilities initialized (async)")
             except Exception as e:
-                print(f"⚠️ Auth initialization failed: {e}")
+                print(f"[WARNING] Auth initialization failed: {e}")
                 
-        print("✅ Auth utilities loaded (async)")
+        print("[SUCCESS] Auth utilities loaded (async)")
     except ImportError as e:
-        print(f"⚠️ Auth utilities not available: {e}")
+        print(f"[WARNING] Auth utilities not available: {e}")
 
     # Routing utilities 로드
     try:
@@ -119,18 +119,18 @@ def load_modules_async():
         UserRoutingMiddleware = RealMiddleware
         DashboardRouteBuilder = RealBuilder
         routing_available = True
-        print("✅ User routing utilities loaded (async)")
+        print("[SUCCESS] User routing utilities loaded (async)")
     except ImportError as e:
-        print(f"⚠️ User routing utilities not available: {e}")
+        print(f"[WARNING] User routing utilities not available: {e}")
 
     # Dashboard data 로드
     try:
         from utils.dashboard_data import dashboard_data as real_dashboard_data
         dashboard_data = real_dashboard_data
         dashboard_data_available = True
-        print("✅ Dashboard data utilities loaded (async)")
+        print("[SUCCESS] Dashboard data utilities loaded (async)")
     except ImportError as e:
-        print(f"⚠️ Dashboard data not available: {e}")
+        print(f"[WARNING] Dashboard data not available: {e}")
 
     # Calendar database 로드 (is_available 체크 건너뛰기)
     try:
@@ -138,17 +138,17 @@ def load_modules_async():
         # is_available() 호출을 건너뛰고 바로 할당
         calendar_db = real_calendar_db
         calendar_db_available = True
-        print("✅ Calendar database module loaded (async)")
+        print("[SUCCESS] Calendar database module loaded (async)")
     except ImportError as e:
-        print(f"⚠️ Calendar database module not found: {e}")
+        print(f"[WARNING] Calendar database module not found: {e}")
     except Exception as e:
-        print(f"❌ Calendar database module load failed: {e}")
+        print(f"[ERROR] Calendar database module load failed: {e}")
 
-    print("✅ 백그라운드 모듈 로딩 완료!")
+    print("[SUCCESS] [EMOJI] [EMOJI] [EMOJI] [EMOJI]!")
 
 # 백그라운드에서 모듈 로딩 시작 (비동기)
 if os.environ.get('FLASK_ENV') == 'development':
-    print("🚀 개발 모드: 빠른 시작을 위해 백그라운드에서 모듈 로딩 중...")
+    print("[LAUNCH] [EMOJI] [EMOJI]: [EMOJI] [EMOJI] [EMOJI] [EMOJI] [EMOJI] [EMOJI] [EMOJI]...")
     threading.Thread(target=load_modules_async, daemon=True).start()
 else:
     # 프로덕션에서는 동기적으로 로드
@@ -165,33 +165,33 @@ def save_user_calendars_legacy(user_id, calendars):
     """Legacy: Save user calendars to file (fallback only)"""
     try:
         file_path = get_calendars_file_path(user_id)
-        print(f"💾 Saving calendars to file: {file_path}")
-        print(f"📊 Saving {len(calendars)} calendars: {calendars}")
+        print(f"[EMOJI] Saving calendars to file: {file_path}")
+        print(f"[DATA] Saving {len(calendars)} calendars: {calendars}")
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump(calendars, f, ensure_ascii=False, indent=2)
-        print(f"✅ Calendars saved to file for user {user_id}: {len(calendars)} calendars")
+        print(f"[SUCCESS] Calendars saved to file for user {user_id}: {len(calendars)} calendars")
         return True
     except Exception as e:
-        print(f"❌ Failed to save calendars to file for user {user_id}: {e}")
+        print(f"[ERROR] Failed to save calendars to file for user {user_id}: {e}")
         return False
 
 def load_user_calendars_legacy(user_id):
     """Legacy: Load user calendars from file (fallback only)"""
     try:
         file_path = get_calendars_file_path(user_id)
-        print(f"🔍 Looking for calendar file: {file_path}")
+        print(f"[SEARCH] Looking for calendar file: {file_path}")
         if not os.path.exists(file_path):
-            print(f"📁 No calendar file found for user {user_id}, returning empty list")
+            print(f"[EMOJI] No calendar file found for user {user_id}, returning empty list")
             return []
         
         with open(file_path, 'r', encoding='utf-8') as f:
             calendars = json.load(f)
         
-        print(f"✅ Calendars loaded from file for user {user_id}: {len(calendars)} calendars")
-        print(f"📋 File contents: {calendars}")
+        print(f"[SUCCESS] Calendars loaded from file for user {user_id}: {len(calendars)} calendars")
+        print(f"[EMOJI] File contents: {calendars}")
         return calendars
     except Exception as e:
-        print(f"❌ Failed to load calendars from file for user {user_id}: {e}")
+        print(f"[ERROR] Failed to load calendars from file for user {user_id}: {e}")
         return []
 
 def save_media_file_locally(media_file, user_id):
@@ -218,20 +218,20 @@ def save_media_file_locally(media_file, user_id):
         # Verify file was saved correctly
         if os.path.exists(file_path):
             file_size = os.path.getsize(file_path)
-            print(f"✅ Media file saved locally: {file_path} ({file_size} bytes)")
+            print(f"[SUCCESS] Media file saved locally: {file_path} ({file_size} bytes)")
             
             # Verify it's a valid media file by checking the first few bytes
             with open(file_path, 'rb') as f:
                 header = f.read(12)
-                print(f"📁 File header (first 12 bytes): {header[:12].hex()}")
+                print(f"[EMOJI] File header (first 12 bytes): {header[:12].hex()}")
             
             return filename, file_path, media_file.content_type
         else:
-            print(f"❌ File was not saved properly: {file_path}")
+            print(f"[ERROR] File was not saved properly: {file_path}")
             return None, None, None
         
     except Exception as e:
-        print(f"❌ Failed to save media file locally: {e}")
+        print(f"[ERROR] Failed to save media file locally: {e}")
         return None, None, None
 
 # ===== UNIFIED CALENDAR PERSISTENCE (DATABASE + FALLBACK) =====
@@ -247,7 +247,7 @@ def save_user_calendars(user_id, calendars):
                     success = False
             return success
         except Exception as e:
-            print(f"❌ Database save failed, trying file fallback: {e}")
+            print(f"[ERROR] Database save failed, trying file fallback: {e}")
             return save_user_calendars_legacy(user_id, calendars)
     else:
         # Use file fallback
@@ -264,7 +264,7 @@ def load_user_calendars(user_id):
             if not calendars:
                 legacy_calendars = load_user_calendars_legacy(user_id)
                 if legacy_calendars:
-                    print(f"🔄 Found legacy data, migrating {len(legacy_calendars)} calendars to database")
+                    print(f"[LOADING] Found legacy data, migrating {len(legacy_calendars)} calendars to database")
                     # Migrate legacy data to database
                     for calendar in legacy_calendars:
                         calendar_db.create_calendar(user_id, calendar)
@@ -277,7 +277,7 @@ def load_user_calendars(user_id):
             
             return calendars
         except Exception as e:
-            print(f"❌ Database load failed, trying file fallback: {e}")
+            print(f"[ERROR] Database load failed, trying file fallback: {e}")
             return load_user_calendars_legacy(user_id)
     else:
         # Use file fallback
@@ -364,7 +364,7 @@ try:
     from utils.auth_manager import AuthManager
 except ImportError:
     AuthManager = None
-    print("⚠️ AuthManager not available")
+    print("[WARNING] AuthManager not available")
 
 def get_dashboard_context(user_id, current_page='dashboard'):
     """Get common dashboard context including user profile"""
@@ -398,7 +398,7 @@ def signup():
 def login():
     # Check if user is already logged in
     if session.get('user_id'):
-        print(f"✅ User {session.get('user_id')} already logged in, redirecting to dashboard")
+        print(f"[SUCCESS] User {session.get('user_id')} already logged in, redirecting to dashboard")
         return redirect('/dashboard')
     
     if request.method == 'POST':
@@ -412,7 +412,7 @@ def login():
 def pricing():
     return render_template('pricing.html')
 
-# 🎯 User-Specific Dashboard Routes
+# [TARGET] User-Specific Dashboard Routes
 @app.route('/u/<username>')
 def user_dashboard(username):
     """User-specific dashboard route: /u/{username} - REDIRECT TO MAIN DASHBOARD"""
@@ -429,7 +429,7 @@ def user_dashboard_subpath(username, subpath):
     """User-specific dashboard subpaths: /u/{username}/{subpath} - REDIRECT"""
     return redirect(f'/dashboard/{subpath}')
 
-# 🔄 Dashboard Routes
+# [LOADING] Dashboard Routes
 @app.route('/initial-setup')
 def initial_setup():
     """Initial setup page for new users"""
@@ -450,15 +450,15 @@ def initial_setup():
 @app.route('/dashboard')
 def dashboard():
     """Dashboard route - check setup completion first"""
-    print("🔍 Dashboard route accessed!")
+    print("[SEARCH] Dashboard route accessed!")
     
     # Get current user ID
     user_id = session.get('user_id')
-    print(f"🔍 User ID from session: {user_id}")
+    print(f"[SEARCH] User ID from session: {user_id}")
     
     # 🔒 Security: Redirect unauthenticated users to login
     if not user_id:
-        print("⚠️ No user session found, redirecting to login")
+        print("[WARNING] No user session found, redirecting to login")
         return redirect('/login?from=dashboard')
     
     # Check if initial setup is complete
@@ -466,11 +466,11 @@ def dashboard():
         profile = AuthManager.get_user_profile(user_id)
         if not profile or not profile.get('display_name') or not profile.get('birthdate'):
             # Setup not complete, redirect to initial setup
-            print("🔄 Redirecting to initial setup page")
+            print("[LOADING] Redirecting to initial setup page")
             return redirect('/initial-setup')
     
-    # 🔄 Always redirect to Calendar List (dashboard.html deleted)
-    print("🔄 Dashboard redirecting to Calendar List page")
+    # [LOADING] Always redirect to Calendar List (dashboard.html deleted)
+    print("[LOADING] Dashboard redirecting to Calendar List page")
     return redirect('/dashboard/calendar-list')
 
 @app.route('/dashboard/index')
@@ -502,14 +502,14 @@ def calendar_list():
     
     try:
         # Try calendar database first, then dashboard data, then file storage
-        print(f"🔍 Loading calendars for user: {user_id}, calendar_db_available: {calendar_db_available}, dashboard_data_available: {dashboard_data_available}")
+        print(f"[SEARCH] Loading calendars for user: {user_id}, calendar_db_available: {calendar_db_available}, dashboard_data_available: {dashboard_data_available}")
         
         # Try calendar database first
         if calendar_db_available and calendar_db:
             try:
-                print(f"🔍 Attempting to load calendars from calendar database for user: {user_id}")
+                print(f"[SEARCH] Attempting to load calendars from calendar database for user: {user_id}")
                 user_calendars = calendar_db.get_user_calendars(user_id)
-                print(f"🔍 Raw calendar data from database: {user_calendars}")
+                print(f"[SEARCH] Raw calendar data from database: {user_calendars}")
                 
                 # Separate personal and shared calendars
                 personal_calendars = [cal for cal in user_calendars if not cal.get('is_shared', False)]
@@ -525,10 +525,10 @@ def calendar_list():
                         'total_events': sum(cal.get('event_count', 0) for cal in user_calendars)
                     }
                 })
-                print(f"📅 Loaded {len(user_calendars)} calendars from database for user {user_id}")
-                print(f"📅 Personal: {len(personal_calendars)}, Shared: {len(shared_calendars)}")
+                print(f"[CALENDAR] Loaded {len(user_calendars)} calendars from database for user {user_id}")
+                print(f"[CALENDAR] Personal: {len(personal_calendars)}, Shared: {len(shared_calendars)}")
             except Exception as e:
-                print(f"⚠️ Calendar DB load failed, trying dashboard data: {e}")
+                print(f"[WARNING] Calendar DB load failed, trying dashboard data: {e}")
                 import traceback
                 traceback.print_exc()
                 # Don't modify global variables, just continue to next option
@@ -536,19 +536,19 @@ def calendar_list():
         # Fallback to dashboard data
         elif dashboard_data_available:
             try:
-                print(f"🔍 Attempting to load calendars from dashboard data for user: {user_id}")
+                print(f"[SEARCH] Attempting to load calendars from dashboard data for user: {user_id}")
                 calendar_data = dashboard_data.get_user_calendars(user_id)
-                print(f"🔍 Raw calendar data from dashboard data: {calendar_data}")
+                print(f"[SEARCH] Raw calendar data from dashboard data: {calendar_data}")
                 
                 calendar_context.update({
                     'personal_calendars': calendar_data['personal_calendars'],
                     'shared_calendars': calendar_data['shared_calendars'],
                     'summary': calendar_data['summary']
                 })
-                print(f"📅 Loaded {calendar_data['summary']['total_calendars']} calendars from dashboard data for user {user_id}")
-                print(f"📅 Personal: {len(calendar_data['personal_calendars'])}, Shared: {len(calendar_data['shared_calendars'])}")
+                print(f"[CALENDAR] Loaded {calendar_data['summary']['total_calendars']} calendars from dashboard data for user {user_id}")
+                print(f"[CALENDAR] Personal: {len(calendar_data['personal_calendars'])}, Shared: {len(calendar_data['shared_calendars'])}")
             except Exception as e:
-                print(f"⚠️ Dashboard data load failed, using file storage: {e}")
+                print(f"[WARNING] Dashboard data load failed, using file storage: {e}")
                 import traceback
                 traceback.print_exc()
                 # Continue to file storage fallback
@@ -556,21 +556,21 @@ def calendar_list():
         # Final fallback to file storage
         # Use file storage if no calendars were loaded from database sources
         if not calendar_context.get('personal_calendars') and not calendar_context.get('shared_calendars'):
-            print("📁 Using file storage for calendar list")
+            print("[EMOJI] Using file storage for calendar list")
             
             # Load user calendars from file
             user_calendars = load_user_calendars_legacy(user_id)
-            print(f"📅 Loaded calendars for user {user_id}: {len(user_calendars)} total")
+            print(f"[CALENDAR] Loaded calendars for user {user_id}: {len(user_calendars)} total")
             
             # Separate personal and shared calendars
             personal_calendars = [cal for cal in user_calendars if not cal.get('is_shared', False)]
             shared_calendars = [cal for cal in user_calendars if cal.get('is_shared', False)]
-            print(f"👤 Personal calendars: {len(personal_calendars)}")
-            print(f"🤝 Shared calendars: {len(shared_calendars)}")
+            print(f"[USER] Personal calendars: {len(personal_calendars)}")
+            print(f"[EMOJI] Shared calendars: {len(shared_calendars)}")
             
             # If no calendars exist, keep empty
             if not user_calendars:
-                print("📋 No calendars found, starting with empty calendar list")
+                print("[EMOJI] No calendars found, starting with empty calendar list")
                 personal_calendars = []
                 shared_calendars = []
             
@@ -585,7 +585,7 @@ def calendar_list():
                 }
             })
     except Exception as e:
-        print(f"❌ Error loading calendar data: {e}")
+        print(f"[ERROR] Error loading calendar data: {e}")
         # Keep default empty data on error
         pass
     
@@ -643,7 +643,7 @@ def get_calendar_media(calendar_id):
         # Try to get calendar from database
         if calendar_db_available and calendar_db:
             calendar_data = calendar_db.get_calendar_by_id(calendar_id, user_id)
-            print(f"🎵 API: Calendar data for {calendar_id}: {calendar_data}")
+            print(f"[EMOJI] API: Calendar data for {calendar_id}: {calendar_data}")
             
             if calendar_data:
                 media_files = []
@@ -675,11 +675,11 @@ def get_calendar_media(calendar_id):
                                 file_exists = True
                                 filename = os.path.basename(path)
                                 media_url = f"/media/calendar/{calendar_id}/{filename}"
-                                print(f"🎵 API: Found media file at {path}")
+                                print(f"[EMOJI] API: Found media file at {path}")
                                 break
                         
                         if not file_exists:
-                            print(f"🎵 API: Media file not found in any expected location for calendar {calendar_id}")
+                            print(f"[EMOJI] API: Media file not found in any expected location for calendar {calendar_id}")
                     
                     if file_exists:
                         # Use actual filename without extension for title
@@ -699,20 +699,20 @@ def get_calendar_media(calendar_id):
                             'type': calendar_data.get('media_file_type', 'audio/mpeg')
                         }]
                         
-                        print(f"🎵 API: Returning media files: {media_files}")
+                        print(f"[EMOJI] API: Returning media files: {media_files}")
                     else:
-                        print(f"🎵 API: Media file path exists in DB but file not found on disk for calendar {calendar_id}")
+                        print(f"[EMOJI] API: Media file path exists in DB but file not found on disk for calendar {calendar_id}")
                 else:
-                    print(f"🎵 API: No media file path found for calendar {calendar_id}")
+                    print(f"[EMOJI] API: No media file path found for calendar {calendar_id}")
                 
                 return jsonify({'media_files': media_files})
         
         # Fallback: no media files
-        print(f"🎵 API: No calendar found or database not available")
+        print(f"[EMOJI] API: No calendar found or database not available")
         return jsonify({'media_files': []})
         
     except Exception as e:
-        print(f"❌ Error getting calendar media: {e}")
+        print(f"[ERROR] Error getting calendar media: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'error': 'Failed to get media files'}), 500
@@ -734,14 +734,14 @@ def calendar_detail(calendar_id):
     
     # Try calendar database first
     if calendar_db_available:
-        print(f"🎵 Loading calendar {calendar_id} from database...")
+        print(f"[EMOJI] Loading calendar {calendar_id} from database...")
         calendar = calendar_db.get_calendar_by_id(calendar_id, user_id)
         if calendar:
-            print(f"✅ Calendar found in database: {calendar.get('name')}")
+            print(f"[SUCCESS] Calendar found in database: {calendar.get('name')}")
     
     # Fallback to legacy file loading
     if not calendar:
-        print(f"🎵 Fallback: Loading calendar from file system...")
+        print(f"[EMOJI] Fallback: Loading calendar from file system...")
         user_calendars = load_user_calendars_legacy(user_id)
         for cal in user_calendars:
             if cal.get('id') == calendar_id:
@@ -766,7 +766,7 @@ def calendar_detail(calendar_id):
     
     # Prepare media URL if media file exists
     media_url = ''
-    print(f"🎵 Calendar media info - filename: {calendar.get('media_filename')}, path: {calendar.get('media_file_path')}, type: {calendar.get('media_file_type')}")
+    print(f"[EMOJI] Calendar media info - filename: {calendar.get('media_filename')}, path: {calendar.get('media_file_path')}, type: {calendar.get('media_file_type')}")
     
     if calendar.get('media_file_path'):
         media_path = calendar['media_file_path']
@@ -778,9 +778,9 @@ def calendar_detail(calendar_id):
             import os
             filename = os.path.basename(media_path)
             media_url = f"/media/calendar/{calendar_id}/{filename}"
-        print(f"🎵 Media URL set to: {media_url}")
+        print(f"[EMOJI] Media URL set to: {media_url}")
     else:
-        print(f"🎵 No media file path found for calendar {calendar.get('name')}")
+        print(f"[EMOJI] No media file path found for calendar {calendar.get('name')}")
     
     calendar['media_url'] = media_url
     
@@ -807,14 +807,14 @@ def calendar_day(calendar_id, date):
     
     # Try calendar database first
     if calendar_db_available:
-        print(f"🗓️ Loading calendar {calendar_id} from database...")
+        print(f"[CALENDAR] Loading calendar {calendar_id} from database...")
         calendar = calendar_db.get_calendar_by_id(calendar_id, user_id)
         if calendar:
-            print(f"✅ Calendar found in database: {calendar.get('name')}")
+            print(f"[SUCCESS] Calendar found in database: {calendar.get('name')}")
     
     # If not found in database, create mock calendar
     if not calendar:
-        print(f"⚠️ Calendar {calendar_id} not found, creating mock data")
+        print(f"[WARNING] Calendar {calendar_id} not found, creating mock data")
         calendar = {
             'id': calendar_id,
             'name': '내 캘린더',
@@ -849,37 +849,37 @@ def calendar_day(calendar_id, date):
 @app.route('/media/calendar/<calendar_id>/<filename>', endpoint='calendar_media_server')
 def serve_calendar_media_v2(calendar_id, filename):
     """Serve media files for calendars"""
-    print(f"🎵 Media request: calendar_id={calendar_id}, filename={filename}")
-    print(f"🎵 Request URL: {request.url}")
-    print(f"🎵 Request headers: {dict(request.headers)}")
+    print(f"[EMOJI] Media request: calendar_id={calendar_id}, filename={filename}")
+    print(f"[EMOJI] Request URL: {request.url}")
+    print(f"[EMOJI] Request headers: {dict(request.headers)}")
     
     user_id = session.get('user_id')
-    print(f"🎵 User ID: {user_id}")
+    print(f"[EMOJI] User ID: {user_id}")
     if not user_id:
-        print("❌ No user authentication")
+        print("[ERROR] No user authentication")
         return jsonify({'error': 'Authentication required'}), 401
     
     try:
         # Get calendar to verify ownership
         if calendar_db_available:
             calendar = calendar_db.get_calendar_by_id(calendar_id, user_id)
-            print(f"🎵 Calendar found: {calendar is not None}")
+            print(f"[EMOJI] Calendar found: {calendar is not None}")
             
             if not calendar:
-                print("❌ Calendar not found in database")
+                print("[ERROR] Calendar not found in database")
                 return jsonify({'error': 'Calendar not found'}), 404
             
             media_path = calendar.get('media_file_path')
-            print(f"🎵 Media path from DB: {media_path}")
+            print(f"[EMOJI] Media path from DB: {media_path}")
             
             if media_path and media_path.startswith('http'):
                 # Redirect to external URL (like Supabase storage)
-                print(f"🔗 Redirecting to external URL: {media_path}")
+                print(f"[LINK] Redirecting to external URL: {media_path}")
                 return redirect(media_path)
             elif media_path:
                 # Serve local file - check multiple possible paths
                 import os
-                print(f"🎵 Checking local file existence: {media_path}")
+                print(f"[EMOJI] Checking local file existence: {media_path}")
                 
                 # List of possible file paths to check
                 possible_paths = [
@@ -890,14 +890,14 @@ def serve_calendar_media_v2(calendar_id, filename):
                 
                 actual_file_path = None
                 for path in possible_paths:
-                    print(f"🔍 Checking path: {path}")
+                    print(f"[SEARCH] Checking path: {path}")
                     if os.path.exists(path):
                         actual_file_path = path
-                        print(f"✅ Found file at: {path}")
+                        print(f"[SUCCESS] Found file at: {path}")
                         break
                 
                 if actual_file_path:
-                    print(f"✅ Serving local file: {actual_file_path}")
+                    print(f"[SUCCESS] Serving local file: {actual_file_path}")
                     # Determine MIME type
                     if actual_file_path.endswith('.mp3'):
                         mimetype = 'audio/mpeg'
@@ -916,7 +916,7 @@ def serve_calendar_media_v2(calendar_id, filename):
                     
                     # Check file size for debugging
                     file_size = os.path.getsize(actual_file_path)
-                    print(f"📁 File size: {file_size} bytes")
+                    print(f"[EMOJI] File size: {file_size} bytes")
                     
                     # Add cache control headers
                     from flask import Response
@@ -933,31 +933,31 @@ def serve_calendar_media_v2(calendar_id, filename):
                     response.headers['Content-Length'] = str(file_size)
                     return response
                 else:
-                    print(f"❌ File not found in any of the checked paths")
+                    print(f"[ERROR] File not found in any of the checked paths")
                     # List directory contents for debugging
                     import os
                     for path in possible_paths:
                         parent_dir = os.path.dirname(path) if path else None
                         if parent_dir and os.path.exists(parent_dir):
-                            print(f"📁 Directory {parent_dir} exists, contents: {os.listdir(parent_dir)}")
+                            print(f"[EMOJI] Directory {parent_dir} exists, contents: {os.listdir(parent_dir)}")
                         else:
-                            print(f"📁 Directory doesn't exist: {parent_dir}")
+                            print(f"[EMOJI] Directory doesn't exist: {parent_dir}")
                     
                     # Also check if uploads/media directory exists and what's in it
                     uploads_media = os.path.join(os.getcwd(), 'uploads', 'media')
                     if os.path.exists(uploads_media):
-                        print(f"📁 uploads/media exists, contents: {os.listdir(uploads_media)}")
+                        print(f"[EMOJI] uploads/media exists, contents: {os.listdir(uploads_media)}")
                     else:
-                        print(f"📁 uploads/media doesn't exist: {uploads_media}")
+                        print(f"[EMOJI] uploads/media doesn't exist: {uploads_media}")
             else:
-                print("❌ No media path found in calendar data")
+                print("[ERROR] No media path found in calendar data")
         else:
-            print("❌ Calendar DB not available")
+            print("[ERROR] Calendar DB not available")
         
         return jsonify({'error': 'Media file not found'}), 404
         
     except Exception as e:
-        print(f"❌ Error serving media file: {e}")
+        print(f"[ERROR] Error serving media file: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'error': 'Failed to serve media file'}), 500
@@ -969,7 +969,7 @@ def calendar_refined():
     """Legacy route - redirect to main calendar list"""
     return redirect('/dashboard/calendar-list')
 
-# 📅 Calendar Management API Endpoints
+# [CALENDAR] Calendar Management API Endpoints
 @app.route('/api/calendar/create', methods=['POST'])
 def create_calendar():
     """Create a new calendar for user with optional media file upload"""
@@ -1006,7 +1006,7 @@ def create_calendar():
                         # Create unique filename for storage
                         unique_filename = f"{user_id}/{uuid.uuid4()}{file_ext}"
                         
-                        print(f"📎 Uploading to Supabase Storage: {unique_filename}")
+                        print(f"[EMOJI] Uploading to Supabase Storage: {unique_filename}")
                         
                         # Upload to Supabase Storage
                         if calendar_db_available and calendar_db.supabase:
@@ -1017,18 +1017,18 @@ def create_calendar():
                             try:
                                 # Try to get bucket info first
                                 calendar_db.supabase.storage.get_bucket('media')
-                                print("✅ Media bucket exists")
+                                print("[SUCCESS] Media bucket exists")
                             except Exception as bucket_error:
-                                print(f"⚠️ Media bucket doesn't exist, creating: {bucket_error}")
+                                print(f"[WARNING] Media bucket doesn't exist, creating: {bucket_error}")
                                 try:
                                     # Create the bucket
                                     calendar_db.supabase.storage.create_bucket('media', {
                                         'public': True,
                                         'file_size_limit': 100 * 1024 * 1024  # 100MB limit
                                     })
-                                    print("✅ Created media bucket")
+                                    print("[SUCCESS] Created media bucket")
                                 except Exception as create_error:
-                                    print(f"❌ Failed to create media bucket: {create_error}")
+                                    print(f"[ERROR] Failed to create media bucket: {create_error}")
                             
                             # Upload to Supabase Storage
                             result = calendar_db.supabase.storage.from_('media').upload(
@@ -1037,7 +1037,7 @@ def create_calendar():
                                 file_options={"content-type": media_file.content_type}
                             )
                             
-                            print(f"📎 Storage upload result: {result}")
+                            print(f"[EMOJI] Storage upload result: {result}")
                             
                             if result:
                                 # Get public URL
@@ -1047,21 +1047,21 @@ def create_calendar():
                                 media_file_path = public_url  # Public URL
                                 media_file_type = media_file.content_type
                                 
-                                print(f"✅ Media file uploaded to Supabase Storage: {media_filename}")
-                                print(f"🔗 Public URL: {public_url}")
+                                print(f"[SUCCESS] Media file uploaded to Supabase Storage: {media_filename}")
+                                print(f"[LINK] Public URL: {public_url}")
                             else:
-                                print("❌ Failed to upload to Supabase Storage, falling back to local storage")
+                                print("[ERROR] Failed to upload to Supabase Storage, falling back to local storage")
                                 # Fallback to local storage
                                 media_file.seek(0)  # Reset file pointer
                                 media_filename, media_file_path, media_file_type = save_media_file_locally(media_file, user_id)
                         else:
-                            print("❌ Supabase Storage not available, using local storage")
+                            print("[ERROR] Supabase Storage not available, using local storage")
                             # Fallback to local storage
                             media_filename, media_file_path, media_file_type = save_media_file_locally(media_file, user_id)
                     except Exception as storage_error:
-                        print(f"❌ Storage upload error: {storage_error}")
+                        print(f"[ERROR] Storage upload error: {storage_error}")
                         # Fallback to local storage on error
-                        print("⚠️ Storage error, falling back to local storage")
+                        print("[WARNING] Storage error, falling back to local storage")
                         media_file.seek(0)  # Reset file pointer
                         media_filename, media_file_path, media_file_type = save_media_file_locally(media_file, user_id)
         else:
@@ -1078,10 +1078,10 @@ def create_calendar():
             media_file_path = None
             media_file_type = None
         
-        print(f"🔍 Creating calendar: {calendar_name}, platform: {platform}, color: {calendar_color}")
-        print(f"🔍 Debug - calendar_db_available: {calendar_db_available}")
-        print(f"🔍 Debug - calendar_db: {calendar_db}")
-        print(f"🔍 Debug - calendar_db.is_available(): {calendar_db.is_available() if calendar_db else 'N/A'}")
+        print(f"[SEARCH] Creating calendar: {calendar_name}, platform: {platform}, color: {calendar_color}")
+        print(f"[SEARCH] Debug - calendar_db_available: {calendar_db_available}")
+        print(f"[SEARCH] Debug - calendar_db: {calendar_db}")
+        print(f"[SEARCH] Debug - calendar_db.is_available(): {calendar_db.is_available() if calendar_db else 'N/A'}")
         
         # Try calendar_db first, then dashboard_data, then file storage
         try:
@@ -1101,15 +1101,15 @@ def create_calendar():
                     calendar_data['media_filename'] = media_filename
                     calendar_data['media_file_path'] = media_file_path
                     calendar_data['media_file_type'] = media_file_type
-                    print(f"📎 Adding media file to calendar: {media_filename}")
+                    print(f"[EMOJI] Adding media file to calendar: {media_filename}")
                 
                 # Use calendar_db to create calendar
                 calendar_id = calendar_db.create_calendar(user_id, calendar_data)
                 
                 if calendar_id:
-                    print(f"✅ Created calendar in DB using calendar_db: {calendar_name} (ID: {calendar_id})")
+                    print(f"[SUCCESS] Created calendar in DB using calendar_db: {calendar_name} (ID: {calendar_id})")
                 else:
-                    print("❌ calendar_db.create_calendar returned None, falling back to file storage")
+                    print("[ERROR] calendar_db.create_calendar returned None, falling back to file storage")
                     raise Exception("Calendar DB creation failed")
                 
                 return jsonify({
@@ -1125,7 +1125,7 @@ def create_calendar():
                 })
             else:
                 # Fallback to file storage
-                print("📁 DB not available, using file storage for calendar creation")
+                print("[EMOJI] DB not available, using file storage for calendar creation")
                 
                 # Generate unique ID
                 import uuid
@@ -1155,7 +1155,7 @@ def create_calendar():
                 
                 # Save updated calendars
                 if save_user_calendars_legacy(user_id, user_calendars):
-                    print(f"✅ Created calendar in file: {calendar_name} (ID: {calendar_id})")
+                    print(f"[SUCCESS] Created calendar in file: {calendar_name} (ID: {calendar_id})")
                     
                     return jsonify({
                         'success': True,
@@ -1176,8 +1176,8 @@ def create_calendar():
         except Exception as e:
             import traceback
             error_traceback = traceback.format_exc()
-            print(f"❌ Error creating calendar: {e}")
-            print(f"❌ Traceback: {error_traceback}")
+            print(f"[ERROR] Error creating calendar: {e}")
+            print(f"[ERROR] Traceback: {error_traceback}")
             return jsonify({
                 'success': False,
                 'error': f'Failed to create calendar: {str(e)}',
@@ -1187,8 +1187,8 @@ def create_calendar():
     except Exception as e:
         import traceback
         error_traceback = traceback.format_exc()
-        print(f"❌ Outer exception in create_calendar: {e}")
-        print(f"❌ Outer traceback: {error_traceback}")
+        print(f"[ERROR] Outer exception in create_calendar: {e}")
+        print(f"[ERROR] Outer traceback: {error_traceback}")
         return jsonify({
             'success': False, 
             'error': f'Calendar creation failed: {str(e)}',
@@ -1239,7 +1239,7 @@ def simple_create_calendar():
         # Save updated calendars
         save_user_calendars_legacy(user_id, user_calendars)
         
-        print(f"✅ Created calendar '{calendar_name}' with ID {calendar_id} for user {user_id}")
+        print(f"[SUCCESS] Created calendar '{calendar_name}' with ID {calendar_id} for user {user_id}")
         
         return jsonify({
             'success': True,
@@ -1254,7 +1254,7 @@ def simple_create_calendar():
         })
         
     except Exception as e:
-        print(f"❌ Error in simple_create_calendar: {e}")
+        print(f"[ERROR] Error in simple_create_calendar: {e}")
         return jsonify({
             'success': False,
             'error': str(e)
@@ -1264,37 +1264,37 @@ def simple_create_calendar():
 def delete_calendar(calendar_id):
     """Delete a calendar"""
     try:
-        print(f"🗑️ Delete calendar request: calendar_id={calendar_id}")
+        print(f"[DELETE] Delete calendar request: calendar_id={calendar_id}")
         user_id = session.get('user_id')
-        print(f"🗑️ User ID from session: {user_id}")
+        print(f"[DELETE] User ID from session: {user_id}")
         
         if not user_id:
-            print("❌ User not authenticated")
+            print("[ERROR] User not authenticated")
             return jsonify({'success': False, 'error': 'User not authenticated'}), 401
         
-        print(f"🗑️ Dashboard data available: {dashboard_data_available}")
+        print(f"[DELETE] Dashboard data available: {dashboard_data_available}")
         
         # Try calendar database first
         if calendar_db_available:
-            print(f"🗑️ Using calendar database for deletion...")
+            print(f"[DELETE] Using calendar database for deletion...")
             success = calendar_db.delete_calendar(calendar_id, user_id)
             if success:
-                print("✅ Calendar deletion completed successfully")
+                print("[SUCCESS] Calendar deletion completed successfully")
                 return jsonify({
                     'success': True,
                     'message': 'Calendar deleted successfully'
                 })
             else:
-                print("❌ Calendar database deletion failed")
+                print("[ERROR] Calendar database deletion failed")
                 return jsonify({'success': False, 'error': 'Failed to delete calendar from database'}), 500
         
         # Fallback to dashboard data
         elif dashboard_data_available:
             try:
                 # First, get calendar info to check for media files
-                print(f"🗑️ Getting calendar info for media cleanup...")
+                print(f"[DELETE] Getting calendar info for media cleanup...")
                 calendar_result = dashboard_data.admin_client.table('calendars').select('media_file_path').eq('id', calendar_id).eq('owner_id', user_id).single().execute()
-                print(f"🗑️ Calendar query result: {calendar_result}")
+                print(f"[DELETE] Calendar query result: {calendar_result}")
                 
                 # Clean up media file if it exists
                 if calendar_result.data and calendar_result.data.get('media_file_path'):
@@ -1303,35 +1303,35 @@ def delete_calendar(calendar_id):
                         import os
                         if os.path.exists(media_path):
                             os.remove(media_path)
-                            print(f"✅ Deleted media file: {media_path}")
+                            print(f"[SUCCESS] Deleted media file: {media_path}")
                     except Exception as e:
-                        print(f"⚠️ Failed to delete media file: {e}")
+                        print(f"[WARNING] Failed to delete media file: {e}")
                 
                 # Delete from calendars table using admin client
-                print(f"🗑️ Deleting calendar from database...")
+                print(f"[DELETE] Deleting calendar from database...")
                 result = dashboard_data.admin_client.table('calendars').delete().eq('id', calendar_id).eq('owner_id', user_id).execute()
-                print(f"🗑️ Calendar delete result: {result}")
+                print(f"[DELETE] Calendar delete result: {result}")
                 
                 # Also delete associated events
-                print(f"🗑️ Deleting associated events...")
+                print(f"[DELETE] Deleting associated events...")
                 events_result = dashboard_data.admin_client.table('calendar_events').delete().eq('user_id', user_id).eq('calendar_id', calendar_id).execute()
-                print(f"🗑️ Events delete result: {events_result}")
+                print(f"[DELETE] Events delete result: {events_result}")
                 
-                print("✅ Calendar deletion completed successfully")
+                print("[SUCCESS] Calendar deletion completed successfully")
                 return jsonify({
                     'success': True,
                     'message': 'Calendar deleted successfully'
                 })
                 
             except Exception as db_error:
-                print(f"❌ Database error during deletion: {db_error}")
+                print(f"[ERROR] Database error during deletion: {db_error}")
                 return jsonify({'success': False, 'error': f'Database error: {str(db_error)}'}), 500
         else:
-            print("❌ No database available")
+            print("[ERROR] No database available")
             return jsonify({'success': False, 'error': 'Database not available'}), 500
             
     except Exception as e:
-        print(f"❌ General error in delete_calendar: {e}")
+        print(f"[ERROR] General error in delete_calendar: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -1340,11 +1340,11 @@ def delete_calendar(calendar_id):
 def update_calendar_settings(calendar_id):
     """Update calendar settings (name, color, platform)"""
     try:
-        print(f"🔧 Update calendar settings request: calendar_id={calendar_id}")
+        print(f"[CONFIG] Update calendar settings request: calendar_id={calendar_id}")
         user_id = session.get('user_id')
         
         if not user_id:
-            print("❌ User not authenticated")
+            print("[ERROR] User not authenticated")
             return jsonify({'success': False, 'error': 'User not authenticated'}), 401
         
         # Get request data
@@ -1352,7 +1352,7 @@ def update_calendar_settings(calendar_id):
         if not data:
             return jsonify({'success': False, 'error': 'No data provided'}), 400
         
-        print(f"🔧 Update data received: {data}")
+        print(f"[CONFIG] Update data received: {data}")
         
         # Prepare update data
         update_data = {}
@@ -1365,29 +1365,29 @@ def update_calendar_settings(calendar_id):
             platform = data['platform']
             update_data['platform'] = 'personal' if platform == 'custom' else platform
         
-        print(f"🔧 Prepared update data: {update_data}")
+        print(f"[CONFIG] Prepared update data: {update_data}")
         
         # Try calendar database first
         if calendar_db_available:
-            print("🔧 Using calendar database for update...")
+            print("[CONFIG] Using calendar database for update...")
             success = calendar_db.update_calendar(calendar_id, update_data, user_id)
             if success:
-                print("✅ Calendar settings updated successfully")
+                print("[SUCCESS] Calendar settings updated successfully")
                 return jsonify({
                     'success': True,
                     'message': 'Calendar settings updated successfully'
                 })
             else:
-                print("❌ Calendar database update failed")
+                print("[ERROR] Calendar database update failed")
                 return jsonify({'success': False, 'error': 'Failed to update calendar settings'}), 500
         
         # Fallback to dashboard data
         elif dashboard_data_available:
-            print("🔧 Using dashboard data for update...")
+            print("[CONFIG] Using dashboard data for update...")
             result = dashboard_data.admin_client.table('calendars').update(update_data).eq('id', calendar_id).eq('owner_id', user_id).execute()
             
             if result.data:
-                print("✅ Calendar settings updated successfully via dashboard")
+                print("[SUCCESS] Calendar settings updated successfully via dashboard")
                 return jsonify({
                     'success': True,
                     'message': 'Calendar settings updated successfully'
@@ -1399,7 +1399,7 @@ def update_calendar_settings(calendar_id):
             return jsonify({'success': False, 'error': 'Database not available'}), 500
             
     except Exception as e:
-        print(f"❌ Error updating calendar settings: {e}")
+        print(f"[ERROR] Error updating calendar settings: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -1561,8 +1561,8 @@ def get_weather(location):
         api_key = os.getenv('OPENWEATHER_API_KEY')
         if not api_key or api_key == 'your-api-key-here':
             # API 키가 없거나 기본값일 때 기본 날씨 데이터 반환
-            print("ℹ️ OpenWeatherMap API 키가 설정되지 않았습니다. 기본 날씨 데이터를 사용합니다.")
-            print("📋 실제 날씨 데이터를 사용하려면 .env 파일에 OPENWEATHER_API_KEY를 설정하세요.")
+            print("[EMOJI] OpenWeatherMap API [EMOJI] [EMOJI] [EMOJI]. [EMOJI] [EMOJI] [EMOJI] [EMOJI].")
+            print("[EMOJI] [EMOJI] [EMOJI] [EMOJI] [EMOJI] .env [EMOJI] OPENWEATHER_API_KEY[EMOJI] [EMOJI].")
             return get_default_weather()
         
         # 지역명으로 좌표 검색
@@ -1925,7 +1925,7 @@ def upload_avatar():
         # Update user profile with new avatar URL
         update_data = {'avatar_url': avatar_url}
         
-        print(f"🔄 Updating avatar for user {user_id}: {avatar_url}")
+        print(f"[LOADING] Updating avatar for user {user_id}: {avatar_url}")
         
         # Try multiple methods to update the avatar URL
         update_success = False
@@ -1935,25 +1935,25 @@ def upload_avatar():
             from utils.auth_manager import AuthManager
             if hasattr(AuthManager, 'update_user_profile'):
                 update_success = AuthManager.update_user_profile(user_id, update_data)
-                print(f"✅ AuthManager update: {update_success}")
+                print(f"[SUCCESS] AuthManager update: {update_success}")
         except ImportError as e:
-            print(f"❌ AuthManager not available: {e}")
+            print(f"[ERROR] AuthManager not available: {e}")
         
         # Method 2: Try direct Supabase update
         if not update_success and hasattr(config, 'supabase_client') and config.supabase_client:
             try:
                 result = config.supabase_client.table('user_profiles').update(update_data).eq('user_id', user_id).execute()
-                print(f"📊 Supabase result: {result}")
+                print(f"[DATA] Supabase result: {result}")
                 if result.data and len(result.data) > 0:
                     update_success = True
-                    print("✅ Supabase update successful")
+                    print("[SUCCESS] Supabase update successful")
             except Exception as supabase_error:
-                print(f"❌ Supabase update failed: {supabase_error}")
+                print(f"[ERROR] Supabase update failed: {supabase_error}")
         
         # Method 3: Store in session as fallback
         if not update_success:
             session['user_avatar_url'] = avatar_url
-            print(f"💾 Stored avatar in session: {avatar_url}")
+            print(f"[EMOJI] Stored avatar in session: {avatar_url}")
         
         # Always return success if file was saved successfully
         return jsonify({
@@ -2005,25 +2005,25 @@ def dashboard_api_keys_main(encrypted_identifier):
     """사용자별 암호화된 API 키 관리 페이지 - 개별 사용자 URL"""
     from utils.config import decrypt_user_id, encrypt_user_id
     
-    print(f"🔐 API Keys 접근 시도: {encrypted_identifier}")
+    print(f"[AUTH] API Keys [EMOJI] [EMOJI]: {encrypted_identifier}")
     
     # 암호화된 식별자 복호화 시도
     try:
         decrypted_value = decrypt_user_id(encrypted_identifier)
-        print(f"🔓 복호화 결과: {decrypted_value}")
+        print(f"[EMOJI] [EMOJI] [EMOJI]: {decrypted_value}")
         
         if not decrypted_value:
-            print("❌ 복호화 실패 - 404 페이지로 이동")
+            print("[ERROR] [EMOJI] [EMOJI] - 404 [EMOJI] [EMOJI]")
             return render_template('404.html'), 404
             
         # 이메일인지 사용자 ID인지 판단
         is_email = '@' in decrypted_value
-        print(f"📧 이메일 여부: {is_email}")
+        print(f"[EMOJI] [EMOJI] [EMOJI]: {is_email}")
         
         # 세션과 일치하는지 확인
         session_email = session.get('user_email')
         session_user_id = session.get('user_id')
-        print(f"👤 세션 정보 - 사용자 ID: {session_user_id}, 이메일: {session_email}")
+        print(f"[USER] [EMOJI] [EMOJI] - [EMOJI] ID: {session_user_id}, [EMOJI]: {session_email}")
         
         if is_email:
             # 이메일로 접근한 경우
@@ -2034,10 +2034,10 @@ def dashboard_api_keys_main(encrypted_identifier):
             user_id = decrypted_value
             user_email = session_email or 'demo@example.com'
         
-        print(f"✅ 인증 성공 - 사용자 ID: {user_id}, 이메일: {user_email}")
+        print(f"[SUCCESS] [EMOJI] [EMOJI] - [EMOJI] ID: {user_id}, [EMOJI]: {user_email}")
         
     except Exception as e:
-        print(f"❌ 식별자 복호화 실패: {e}")
+        print(f"[ERROR] [EMOJI] [EMOJI] [EMOJI]: {e}")
         return render_template('404.html'), 404
     
     # 대시보드 데이터 로드
@@ -2056,11 +2056,11 @@ def dashboard_api_keys_main(encrypted_identifier):
         # 누락된 암호화된 식별자 생성
         if user_id and not dashboard_context['encrypted_user_id']:
             dashboard_context['encrypted_user_id'] = encrypt_user_id(user_id)
-            print(f"🔐 사용자 ID 암호화: {dashboard_context['encrypted_user_id']}")
+            print(f"[AUTH] [EMOJI] ID [EMOJI]: {dashboard_context['encrypted_user_id']}")
         
         if user_email and not dashboard_context['encrypted_email']:
             dashboard_context['encrypted_email'] = encrypt_user_id(user_email)
-            print(f"🔐 이메일 암호화: {dashboard_context['encrypted_email']}")
+            print(f"[AUTH] [EMOJI] [EMOJI]: {dashboard_context['encrypted_email']}")
         
         # 플랫폼 및 요약 데이터 로드
         if user_id:
@@ -2072,10 +2072,10 @@ def dashboard_api_keys_main(encrypted_identifier):
                     'platforms': platforms,
                     'summary': summary
                 })
-                print(f"📊 데이터 로드 성공 - 플랫폼: {len(platforms)}, 요약: {summary}")
+                print(f"[DATA] Platforms loaded - Count: {len(platforms)}, Summary: {summary}")
                 
             except Exception as data_error:
-                print(f"⚠️ 데이터 로드 실패, 기본값 사용: {data_error}")
+                print(f"[WARNING] Dashboard data loading failed, using fallback: {data_error}")
                 # dashboard_data 실패 시 기본 데이터 사용
                 dashboard_context.update({
                     'platforms': {},
@@ -2083,18 +2083,18 @@ def dashboard_api_keys_main(encrypted_identifier):
                 })
         
     except Exception as e:
-        print(f"❌ 데이터 로딩 오류: {e}")
+        print(f"[ERROR] [EMOJI] [EMOJI] [EMOJI]: {e}")
         dashboard_context.update({
             'platforms': {},
             'summary': {'total_platforms': 5, 'configured_platforms': 0, 'enabled_platforms': 0}
         })
     
-    print(f"🎯 최종 컨텍스트: {dashboard_context}")
+    print(f"[TARGET] [EMOJI] [EMOJI]: {dashboard_context}")
     return render_template('dashboard-api-keys.html', **dashboard_context)
 
 
 
-# 🔑 Platform-specific API key setup routes
+# [KEY] Platform-specific API key setup routes
 @app.route('/setup/notion')
 def setup_notion():
     """Notion API key setup page"""
@@ -2120,7 +2120,7 @@ def setup_slack():
     """Slack API key setup page"""
     return render_template('setup_slack.html')
 
-# 🔗 User Profile API Endpoints
+# [LINK] User Profile API Endpoints
 @app.route('/api/user/dashboard-url', methods=['GET'])
 def get_user_dashboard_url():
     """API endpoint to get user's dashboard URL (simplified)"""
@@ -2324,11 +2324,11 @@ def get_user_profile(username):
     else:
         return jsonify({'success': False, 'message': 'User not found'}), 404
 
-# 📅 Simplified Calendar APIs for Dashboard
+# [CALENDAR] Simplified Calendar APIs for Dashboard
 
 
 
-# 🚀 One-Click Connection API Endpoints
+# [LAUNCH] One-Click Connection API Endpoints
 @app.route('/api/connect/<platform>', methods=['POST'])
 def connect_platform(platform):
     """원클릭 플랫폼 연결 API"""
@@ -2358,7 +2358,7 @@ def connect_platform(platform):
         return jsonify(result)
         
     except Exception as e:
-        print(f"❌ Platform connection error: {e}")
+        print(f"[ERROR] Platform connection error: {e}")
         return jsonify({
             'success': False,
             'error': str(e)
@@ -2445,7 +2445,7 @@ def disconnect_platform(platform):
             'error': str(e)
         }), 500
 
-# 🔧 Platform-specific connection handlers
+# [CONFIG] Platform-specific connection handlers
 def handle_notion_connection(user_id, data):
     """Notion API 토큰 연결 처리"""
     import time
@@ -2570,40 +2570,40 @@ def initialize_smart_cache_entry(user_id, platform, integration_type='oauth'):
     try:
         # 실제로는 Supabase에 데이터 삽입
         # 여기서는 로그만 출력
-        print(f"🧠 Initializing smart cache for user {user_id}, platform {platform}")
+        print(f"[EMOJI] Initializing smart cache for user {user_id}, platform {platform}")
         return True
     except Exception as e:
-        print(f"❌ Failed to initialize smart cache: {e}")
+        print(f"[ERROR] Failed to initialize smart cache: {e}")
         return False
 
 def update_smart_cache_success(user_id, platform, response_time_ms=0):
     """연결 성공 시 스마트 캐시 업데이트"""
     try:
         # 실제로는 Supabase 함수 호출: update_connection_success()
-        print(f"🧠 Updating smart cache success for {platform}: {response_time_ms}ms")
+        print(f"[EMOJI] Updating smart cache success for {platform}: {response_time_ms}ms")
         return True
     except Exception as e:
-        print(f"❌ Failed to update smart cache success: {e}")
+        print(f"[ERROR] Failed to update smart cache success: {e}")
         return False
 
 def update_smart_cache_error(user_id, platform, error_message):
     """오류 시 스마트 캐시 업데이트"""
     try:
         # 실제로는 Supabase 함수 호출: update_connection_error()
-        print(f"🧠 Updating smart cache error for {platform}: {error_message}")
+        print(f"[EMOJI] Updating smart cache error for {platform}: {error_message}")
         return True
     except Exception as e:
-        print(f"❌ Failed to update smart cache error: {e}")
+        print(f"[ERROR] Failed to update smart cache error: {e}")
         return False
 
 def update_smart_cache_sync(user_id, platform, items_count=0, duration_ms=0):
     """동기화 성공 시 스마트 캐시 업데이트"""
     try:
         # 실제로는 Supabase 함수 호출: update_sync_success()
-        print(f"🧠 Updating smart cache sync for {platform}: {items_count} items, {duration_ms}ms")
+        print(f"[EMOJI] Updating smart cache sync for {platform}: {items_count} items, {duration_ms}ms")
         return True
     except Exception as e:
-        print(f"❌ Failed to update smart cache sync: {e}")
+        print(f"[ERROR] Failed to update smart cache sync: {e}")
         return False
 
 def get_smart_cache_data(user_id, platform):
@@ -2620,7 +2620,7 @@ def get_smart_cache_data(user_id, platform):
             'average_response_time_ms': 0.0
         }
     except Exception as e:
-        print(f"❌ Failed to get smart cache data: {e}")
+        print(f"[ERROR] Failed to get smart cache data: {e}")
         return None
 
 # 🏥 Health Check Endpoint for Render
@@ -2633,7 +2633,7 @@ def health_check():
         'timestamp': datetime.utcnow().isoformat()
     })
 
-# 🔍 Debug endpoint for session testing
+# [SEARCH] Debug endpoint for session testing
 @app.route('/debug/session')
 def debug_session():
     """Debug endpoint to check session state"""
@@ -2646,22 +2646,22 @@ def debug_session():
 
 # Register all optional blueprints with error handling
 blueprints_to_register = [
-    ('routes.api_key_routes', 'api_key_bp', '🔑 API Key Management'),
-    ('routes.auth_routes', 'auth_bp', '🔐 Authentication'),
-    ('routes.sync_routes', 'sync_bp', '🔄 Sync Management'),
-    ('routes.sync_status_routes', 'sync_status_bp', '📊 Sync Status'),
-    ('routes.auto_connect_routes', 'auto_connect_bp', '🚀 Auto-Connect'),
-    ('routes.oauth_routes', 'oauth_bp', '🔐 OAuth'),
-    ('oauth.embedded_oauth', 'embedded_oauth_bp', '🔗 Embedded OAuth'),
-    ('routes.integration_routes', 'integration_bp', '🔗 Integration'),
-    ('routes.enhanced_features_routes', 'enhanced_bp', '🚀 Enhanced Features'),
-    ('routes.dashboard_api_routes', 'dashboard_api_bp', '📊 Dashboard API'),
-    ('routes.user_visit_routes', 'visit_bp', '🚀 User Visit Tracking'),
-    ('routes.profile_routes', 'profile_bp', '👤 Profile Management'),
-    ('routes.platform_registration_routes', 'platform_reg_bp', '🔗 Platform Registration'),
-    ('routes.calendar_connection_routes', 'calendar_conn_bp', '📅 Calendar Connections'),
-    ('routes.calendar_api_routes', 'calendar_api_bp', '🗓️ Calendar API'),
-    ('routes.health_check_routes', 'health_bp', '🔍 Platform Health Check')
+    ('routes.api_key_routes', 'api_key_bp', '[KEY] API Key Management'),
+    ('routes.auth_routes', 'auth_bp', '[AUTH] Authentication'),
+    ('routes.sync_routes', 'sync_bp', '[LOADING] Sync Management'),
+    ('routes.sync_status_routes', 'sync_status_bp', '[DATA] Sync Status'),
+    ('routes.auto_connect_routes', 'auto_connect_bp', '[LAUNCH] Auto-Connect'),
+    ('routes.oauth_routes', 'oauth_bp', '[AUTH] OAuth'),
+    ('oauth.embedded_oauth', 'embedded_oauth_bp', '[LINK] Embedded OAuth'),
+    ('routes.integration_routes', 'integration_bp', '[LINK] Integration'),
+    ('routes.enhanced_features_routes', 'enhanced_bp', '[LAUNCH] Enhanced Features'),
+    ('routes.dashboard_api_routes', 'dashboard_api_bp', '[DATA] Dashboard API'),
+    ('routes.user_visit_routes', 'visit_bp', '[LAUNCH] User Visit Tracking'),
+    ('routes.profile_routes', 'profile_bp', '[USER] Profile Management'),
+    ('routes.platform_registration_routes', 'platform_reg_bp', '[LINK] Platform Registration'),
+    ('routes.calendar_connection_routes', 'calendar_conn_bp', '[CALENDAR] Calendar Connections'),
+    ('routes.calendar_api_routes', 'calendar_api_bp', '[CALENDAR] Calendar API'),
+    ('routes.health_check_routes', 'health_bp', '[SEARCH] Platform Health Check')
 ]
 
 registered_blueprints = []
@@ -2671,15 +2671,15 @@ for module_name, blueprint_name, description in blueprints_to_register:
         blueprint = getattr(module, blueprint_name)
         app.register_blueprint(blueprint)
         registered_blueprints.append(description)
-        print(f"✅ {description} blueprint registered")
+        print(f"[SUCCESS] {description} blueprint registered")
     except ImportError as e:
-        print(f"⚠️ {description} blueprint not available: {e}")
+        print(f"[WARNING] {description} blueprint not available: {e}")
     except Exception as e:
-        print(f"❌ Error registering {description} blueprint: {e}")
+        print(f"[ERROR] Error registering {description} blueprint: {e}")
 
-print(f"📦 Total blueprints registered: {len(registered_blueprints)}")
+print(f"[PACKAGE] Total blueprints registered: {len(registered_blueprints)}")
 
-# 🔧 Add compatibility route for JavaScript
+# [CONFIG] Add compatibility route for JavaScript
 @app.route('/api/get-user-keys', methods=['GET'])
 def get_user_keys_compat():
     """Compatibility route for JavaScript dashboard.js"""
@@ -2709,18 +2709,18 @@ def get_user_keys_compat():
 try:
     from backend.services.webhook_handlers import webhooks_bp
     app.register_blueprint(webhooks_bp)
-    print("✅ Webhook handlers registered")
+    print("[SUCCESS] Webhook handlers registered")
 except ImportError as e:
-    print(f"⚠️ Webhook handlers not available: {e}")
+    print(f"[WARNING] Webhook handlers not available: {e}")
     pass
 
 # ⚡ Register Slack Slash Commands (optional)
 try:
     from backend.services.slack_slash_commands import slash_commands_bp
     app.register_blueprint(slash_commands_bp)
-    print("✅ Slack slash commands registered")
+    print("[SUCCESS] Slack slash commands registered")
 except ImportError as e:
-    print(f"⚠️ Slack slash commands not available: {e}")
+    print(f"[WARNING] Slack slash commands not available: {e}")
     pass
 
 # Removed duplicate health endpoint
@@ -2731,9 +2731,9 @@ except ImportError as e:
 try:
     from utils.payment_manager import PaymentManager
     payment_manager = PaymentManager()
-    print("✅ Payment manager initialized")
+    print("[SUCCESS] Payment manager initialized")
 except ImportError as e:
-    print(f"⚠️ Payment manager not available: {e}")
+    print(f"[WARNING] Payment manager not available: {e}")
     payment_manager = None
 
 @app.route('/payment')
@@ -3081,9 +3081,9 @@ def reactivate_user_subscription():
 try:
     from utils.friends_db import friends_db
     friends_db_available = friends_db.is_available()
-    print("✅ Friends database available" if friends_db_available else "⚠️ Friends database not available")
+    print("[SUCCESS] Friends database available" if friends_db_available else "[WARNING] Friends database not available")
 except ImportError as e:
-    print(f"⚠️ Friends database module not found: {e}")
+    print(f"[WARNING] Friends database module not found: {e}")
     friends_db_available = False
     friends_db = None
 
@@ -3441,7 +3441,7 @@ def get_my_calendars():
     """Get current user's calendars with sharing status"""
     try:
         user_id = session.get('user_id')
-        print(f"🔍 get_my_calendars called for user_id: {user_id}")
+        print(f"[SEARCH] get_my_calendars called for user_id: {user_id}")
         
         if not user_id:
             return jsonify({'success': False, 'error': 'Not authenticated'}), 401
@@ -3449,14 +3449,14 @@ def get_my_calendars():
         # Get user's calendars
         try:
             from utils.calendar_db import calendar_db
-            print(f"🔍 calendar_db imported successfully, available: {calendar_db.is_available()}")
+            print(f"[SEARCH] calendar_db imported successfully, available: {calendar_db.is_available()}")
             
             calendars = calendar_db.get_user_calendars(user_id)
-            print(f"🔍 Retrieved {len(calendars) if calendars else 0} calendars")
+            print(f"[SEARCH] Retrieved {len(calendars) if calendars else 0} calendars")
             
             # Get sharing information
             shares_map = calendar_db.get_calendar_shares_by_owner(user_id)
-            print(f"🔍 Retrieved sharing info: {shares_map}")
+            print(f"[SEARCH] Retrieved sharing info: {shares_map}")
             
             # Add sharing status to calendars
             for calendar in calendars:
@@ -3464,15 +3464,15 @@ def get_my_calendars():
                 calendar['shared_with'] = shares_map.get(calendar_id, [])
                 calendar['is_currently_shared'] = len(calendar['shared_with']) > 0
             
-            print(f"🔍 Final calendars data: {calendars}")
+            print(f"[SEARCH] Final calendars data: {calendars}")
             return jsonify({'success': True, 'calendars': calendars})
             
         except ImportError as ie:
-            print(f"❌ Import error: {ie}")
+            print(f"[ERROR] Import error: {ie}")
             return jsonify({'success': False, 'error': 'Calendar database not available'}), 500
         
     except Exception as e:
-        print(f"❌ Error getting my calendars: {e}")
+        print(f"[ERROR] Error getting my calendars: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -3652,34 +3652,34 @@ def send_friend_request():
 @app.route('/api/friends', methods=['GET'])
 def get_friends():
     """Get user's friends list"""
-    print("🔍 get_friends API called")
+    print("[SEARCH] get_friends API called")
     try:
         user_id = session.get('user_id')
-        print(f"🔍 user_id from session: {user_id}")
+        print(f"[SEARCH] user_id from session: {user_id}")
         
         if not user_id:
-            print("❌ No user_id in session")
+            print("[ERROR] No user_id in session")
             return jsonify({'success': False, 'error': 'Not authenticated'}), 401
         
         # Try to import AuthManager
         try:
             from utils.auth_manager import AuthManager
-            print("✅ AuthManager imported successfully")
-            print(f"🔍 AuthManager methods: {[method for method in dir(AuthManager) if not method.startswith('_')]}")
+            print("[SUCCESS] AuthManager imported successfully")
+            print(f"[SEARCH] AuthManager methods: {[method for method in dir(AuthManager) if not method.startswith('_')]}")
             
             # Check if get_friends_list method exists
             try:
                 if hasattr(AuthManager, 'get_friends_list'):
                     friends = AuthManager.get_friends_list(user_id)
-                    print(f"✅ Retrieved {len(friends) if friends else 0} friends")
+                    print(f"[SUCCESS] Retrieved {len(friends) if friends else 0} friends")
                 else:
-                    print("⚠️ get_friends_list method not found, returning empty list")
+                    print("[WARNING] get_friends_list method not found, returning empty list")
                     friends = []
             except AttributeError as ae:
-                print(f"⚠️ AttributeError in get_friends_list: {ae}")
+                print(f"[WARNING] AttributeError in get_friends_list: {ae}")
                 friends = []
             except Exception as method_error:
-                print(f"⚠️ Error calling get_friends_list: {method_error}")
+                print(f"[WARNING] Error calling get_friends_list: {method_error}")
                 friends = []
             
             return jsonify({
@@ -3688,16 +3688,16 @@ def get_friends():
             })
             
         except ImportError as ie:
-            print(f"❌ Failed to import AuthManager: {ie}")
+            print(f"[ERROR] Failed to import AuthManager: {ie}")
             # Return empty friends list as fallback
             return jsonify({'success': True, 'friends': []})
         except Exception as general_error:
-            print(f"❌ General error in get_friends: {general_error}")
+            print(f"[ERROR] General error in get_friends: {general_error}")
             # Ultimate fallback - always return success with empty array
             return jsonify({'success': True, 'friends': []})
         
     except Exception as e:
-        print(f"❌ Error getting friends: {e}")
+        print(f"[ERROR] Error getting friends: {e}")
         import traceback
         traceback.print_exc()
         # Always return empty friends list instead of 500 error
@@ -3894,7 +3894,7 @@ def friends_page():
     return render_template('friends.html')
 
 # ============================================
-# 📅 Calendar Events Management API
+# [CALENDAR] Calendar Events Management API
 # ============================================
 
 @app.route('/api/calendars/<calendar_id>/events', methods=['GET'])
@@ -3909,9 +3909,9 @@ def get_calendar_events(calendar_id):
         start_date = request.args.get('start')
         end_date = request.args.get('end')
         
-        print(f"📥 Getting events for calendar {calendar_id}, user {user_id}")
+        print(f"[LOAD] Getting events for calendar {calendar_id}, user {user_id}")
         if start_date:
-            print(f"📅 Date range: {start_date} to {end_date}")
+            print(f"[CALENDAR] Date range: {start_date} to {end_date}")
         
         # TODO: Implement actual database storage with date filtering
         # For now, return empty array since we're using localStorage
@@ -3920,7 +3920,7 @@ def get_calendar_events(calendar_id):
         return jsonify(events)
         
     except Exception as e:
-        print(f"❌ Error getting calendar events: {e}")
+        print(f"[ERROR] Error getting calendar events: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/calendars/<calendar_id>/events', methods=['POST'])
@@ -3935,7 +3935,7 @@ def create_calendar_event(calendar_id):
         if not data:
             return jsonify({'error': 'No data provided'}), 400
         
-        print(f"📝 Creating event for calendar {calendar_id}: {data}")
+        print(f"[WRITE] Creating event for calendar {calendar_id}: {data}")
         
         # Generate event ID
         event_id = str(uuid.uuid4())
@@ -3955,12 +3955,12 @@ def create_calendar_event(calendar_id):
         }
         
         # TODO: Save to database
-        print(f"✅ Event created: {event}")
+        print(f"[SUCCESS] Event created: {event}")
         
         return jsonify(event), 201
         
     except Exception as e:
-        print(f"❌ Error creating calendar event: {e}")
+        print(f"[ERROR] Error creating calendar event: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/calendars/<calendar_id>/events/<event_id>', methods=['PUT'])
@@ -3975,7 +3975,7 @@ def update_calendar_event(calendar_id, event_id):
         if not data:
             return jsonify({'error': 'No data provided'}), 400
         
-        print(f"📝 Updating event {event_id} in calendar {calendar_id}: {data}")
+        print(f"[WRITE] Updating event {event_id} in calendar {calendar_id}: {data}")
         
         # TODO: Update in database
         # For now, return the updated data
@@ -3991,11 +3991,11 @@ def update_calendar_event(calendar_id, event_id):
             'updated_at': datetime.datetime.now().isoformat()
         }
         
-        print(f"✅ Event updated: {updated_event}")
+        print(f"[SUCCESS] Event updated: {updated_event}")
         return jsonify(updated_event)
         
     except Exception as e:
-        print(f"❌ Error updating calendar event: {e}")
+        print(f"[ERROR] Error updating calendar event: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/calendars/<calendar_id>/events/<event_id>', methods=['DELETE'])
@@ -4006,15 +4006,15 @@ def delete_calendar_event(calendar_id, event_id):
         if not user_id:
             return jsonify({'error': 'Not authenticated'}), 401
         
-        print(f"🗑️ Deleting event {event_id} from calendar {calendar_id}")
+        print(f"[DELETE] Deleting event {event_id} from calendar {calendar_id}")
         
         # TODO: Delete from database
-        print(f"✅ Event deleted: {event_id}")
+        print(f"[SUCCESS] Event deleted: {event_id}")
         
         return jsonify({'success': True, 'message': 'Event deleted'})
         
     except Exception as e:
-        print(f"❌ Error deleting calendar event: {e}")
+        print(f"[ERROR] Error deleting calendar event: {e}")
         return jsonify({'error': str(e)}), 500
 
 
@@ -4044,11 +4044,11 @@ if __name__ == '__main__':
     try:
         from utils.sync_scheduler import start_sync_scheduler
         start_sync_scheduler()
-        print("✅ Sync scheduler started")
+        print("[SUCCESS] Sync scheduler started")
     except ImportError as e:
-        print(f"⚠️ Sync scheduler not available: {e}")
+        print(f"[WARNING] Sync scheduler not available: {e}")
     except Exception as e:
-        print(f"❌ Failed to start sync scheduler: {e}")
+        print(f"[ERROR] Failed to start sync scheduler: {e}")
     
     port = int(os.environ.get('PORT', 5003))
     app.run(host='0.0.0.0', port=port, debug=True)
@@ -4057,9 +4057,9 @@ elif os.environ.get('RENDER') and not os.environ.get('FLASK_ENV') == 'developmen
     try:
         from utils.sync_scheduler import start_sync_scheduler
         start_sync_scheduler()
-        print("✅ Production sync scheduler started")
+        print("[SUCCESS] Production sync scheduler started")
     except ImportError as e:
-        print(f"⚠️ Sync scheduler not available in production: {e}")
+        print(f"[WARNING] Sync scheduler not available in production: {e}")
     except Exception as e:
-        print(f"❌ Failed to start production sync scheduler: {e}")
+        print(f"[ERROR] Failed to start production sync scheduler: {e}")
 # No else block - allow clean imports without starting sync scheduler
