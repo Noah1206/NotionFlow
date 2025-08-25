@@ -967,105 +967,159 @@
 </div>
 
 <style>
-/* Event List and Search Styling */
+/* Event Search and List - Enhanced Design */
 .event-list-container {
-    margin-top: 15px;
+    margin-top: 0;
+}
+
+.event-search {
+    position: relative;
+    margin-bottom: 16px;
 }
 
 .event-search input {
     width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #e1e5e9;
-    border-radius: 8px;
+    padding: 12px 16px 12px 40px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 12px;
     font-size: 14px;
-    background: white;
+    background: #ffffff;
     transition: all 0.2s ease;
+    font-weight: 400;
+    color: #374151;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .event-search input:focus {
     outline: none;
-    border-color: #4285f4;
-    box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.1);
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .event-search input::placeholder {
-    color: #9aa0a6;
+    color: #9ca3af;
+    font-weight: 400;
+}
+
+.event-search::before {
+    content: "🔍";
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    pointer-events: none;
+    z-index: 1;
 }
 
 .event-list {
-    max-height: 300px;
+    max-height: 320px;
     overflow-y: auto;
-    margin-top: 10px;
+    margin-top: 4px;
+    padding-right: 4px;
 }
 
 .event-list-item {
-    padding: 10px 12px;
-    margin-bottom: 8px;
-    background: #f8f9fa;
-    border: 1px solid #e8eaed;
-    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    background: #ffffff;
+    border: 1.5px solid #f1f5f9;
+    border-radius: 12px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     font-size: 13px;
-    line-height: 1.4;
+    line-height: 1.5;
+    position: relative;
+    overflow: hidden;
+}
+
+.event-list-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 4px;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.event-list-item:hover::before {
+    opacity: 1;
 }
 
 .event-list-item:hover {
-    background: #e8f0fe;
-    border-color: #4285f4;
+    background: #f8fafc;
+    border-color: #e2e8f0;
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 
 .event-list-item.highlighted {
-    background: #e8f0fe;
-    border-color: #4285f4;
-    box-shadow: 0 2px 8px rgba(66, 133, 244, 0.2);
+    background: #eff6ff;
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.event-list-item.highlighted::before {
+    opacity: 1;
 }
 
 .event-list-item-title {
     font-weight: 600;
-    color: #3c4043;
-    margin-bottom: 4px;
+    color: #1f2937;
+    margin-bottom: 6px;
+    font-size: 14px;
+    line-height: 1.3;
 }
 
 .event-list-item-time {
-    color: #5f6368;
+    color: #6b7280;
     font-size: 12px;
+    font-weight: 500;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
+    background: #f9fafb;
+    padding: 4px 8px;
+    border-radius: 6px;
+    width: fit-content;
 }
 
 .event-list-item-time::before {
-    content: "🗓️";
-    font-size: 11px;
+    content: "📅";
+    font-size: 12px;
 }
 
 .event-list-empty {
     text-align: center;
-    color: #9aa0a6;
-    padding: 20px;
+    color: #9ca3af;
+    padding: 32px 16px;
     font-style: italic;
+    background: #f9fafb;
+    border-radius: 12px;
+    border: 2px dashed #e5e7eb;
+    font-size: 14px;
 }
 
-/* Event Context Menu */
+/* Event Context Menu - Enhanced */
 .event-context-menu {
     position: absolute;
-    background: white;
-    border: 1px solid #dadce0;
-    border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15), 0 4px 8px rgba(0,0,0,0.1);
     z-index: 10000;
-    min-width: 140px;
+    min-width: 160px;
     overflow: hidden;
-    animation: contextMenuFadeIn 0.15s ease-out;
+    animation: contextMenuFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes contextMenuFadeIn {
     from {
         opacity: 0;
-        transform: translateY(-4px) scale(0.95);
+        transform: translateY(-8px) scale(0.92);
     }
     to {
         opacity: 1;
@@ -1077,19 +1131,27 @@
     padding: 12px 16px;
     cursor: pointer;
     font-size: 14px;
-    color: #3c4043;
+    color: #374151;
     display: flex;
     align-items: center;
-    gap: 8px;
-    transition: background-color 0.1s ease;
+    gap: 10px;
+    transition: all 0.15s ease;
+    font-weight: 500;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.context-menu-item:last-child {
+    border-bottom: none;
 }
 
 .context-menu-item:hover {
-    background: #f8f9fa;
+    background: #f8fafc;
+    color: #1f2937;
+    transform: translateX(2px);
 }
 
 .context-menu-item:active {
-    background: #e8f0fe;
+    background: #f1f5f9;
 }
 
 /* Search Results Highlighting */
@@ -1111,64 +1173,124 @@
     font-size: 14px;
 }
 
-/* Scrollbar Styling for Event List */
+/* Enhanced Scrollbar for Event List */
 .event-list::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
 }
 
 .event-list::-webkit-scrollbar-track {
-    background: #f1f3f4;
-    border-radius: 3px;
+    background: #f8fafc;
+    border-radius: 4px;
+    margin: 4px 0;
 }
 
 .event-list::-webkit-scrollbar-thumb {
-    background: #dadce0;
-    border-radius: 3px;
+    background: linear-gradient(135deg, #cbd5e1, #94a3b8);
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
 }
 
 .event-list::-webkit-scrollbar-thumb:hover {
-    background: #bdc1c6;
+    background: linear-gradient(135deg, #94a3b8, #64748b);
 }
 
-/* Animation for adding/removing events */
+.event-list::-webkit-scrollbar-corner {
+    background: #f8fafc;
+}
+
+/* Enhanced Animations */
 .event-list-item-enter {
     opacity: 0;
-    transform: translateY(-10px);
-    animation: eventItemEnter 0.3s ease-out forwards;
+    transform: translateY(-15px) scale(0.95);
+    animation: eventItemEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes eventItemEnter {
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
     }
 }
 
 .event-list-item-exit {
-    animation: eventItemExit 0.2s ease-in forwards;
+    animation: eventItemExit 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
 }
 
 @keyframes eventItemExit {
     to {
         opacity: 0;
-        transform: translateY(-10px) scale(0.9);
+        transform: translateY(-15px) scale(0.9);
     }
 }
 
-/* Calendar Event Search Highlighting */
+/* Enhanced Search Highlighting */
 .calendar-event.search-highlighted {
-    box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.3) !important;
-    border: 2px solid #4285f4 !important;
-    animation: searchPulse 1.5s ease-in-out infinite;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4) !important;
+    border: 2px solid #3b82f6 !important;
+    animation: searchPulse 2s ease-in-out infinite;
+    z-index: 200 !important;
 }
 
 @keyframes searchPulse {
     0%, 100% {
-        box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.3);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4), 0 4px 12px rgba(59, 130, 246, 0.2);
     }
     50% {
-        box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.6);
+        box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.2), 0 6px 20px rgba(59, 130, 246, 0.3);
     }
+}
+
+/* Search Feedback and Results */
+.search-feedback {
+    margin-top: 8px;
+    animation: fadeInScale 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.search-results-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 8px;
+    border: 1px solid #bfdbfe;
+    box-shadow: 0 1px 3px rgba(59, 130, 246, 0.1);
+    transition: opacity 0.3s ease;
+}
+
+.search-result-item {
+    border-left: 3px solid #3b82f6 !important;
+    background: #f8faff !important;
+}
+
+.search-result-item .event-list-item-title {
+    color: #1e40af !important;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Enhanced Empty State */
+.event-list-empty {
+    text-align: center;
+    color: #9ca3af;
+    padding: 32px 16px;
+    background: #f9fafb;
+    border-radius: 12px;
+    border: 2px dashed #e5e7eb;
+    font-size: 14px;
+    line-height: 1.6;
 }
 </style>
 

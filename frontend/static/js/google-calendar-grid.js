@@ -562,19 +562,35 @@ class GoogleCalendarGrid {
             const query = e.target.value.trim();
             
             if (query) {
-                searchClearBtn.style.display = 'block';
+                if (searchClearBtn) searchClearBtn.style.display = 'block';
                 this.searchEvents(query);
             } else {
-                searchClearBtn.style.display = 'none';
-                searchResults.style.display = 'none';
+                if (searchClearBtn) searchClearBtn.style.display = 'none';
+                if (searchResults) searchResults.style.display = 'none';
+                // Clear search and show all events
+                this.clearEventHighlighting();
+                this.updateEventList();
+                // Remove search feedback
+                const existingFeedback = document.querySelector('.search-feedback');
+                if (existingFeedback) {
+                    existingFeedback.remove();
+                }
             }
         });
         
         // Clear search function
         window.clearEventSearch = () => {
             searchInput.value = '';
-            searchClearBtn.style.display = 'none';
-            searchResults.style.display = 'none';
+            if (searchClearBtn) searchClearBtn.style.display = 'none';
+            if (searchResults) searchResults.style.display = 'none';
+            // Clear highlighting and show all events
+            this.clearEventHighlighting();
+            this.updateEventList();
+            // Remove search feedback
+            const existingFeedback = document.querySelector('.search-feedback');
+            if (existingFeedback) {
+                existingFeedback.remove();
+            }
         };
     }
     
@@ -1246,8 +1262,44 @@ class GoogleCalendarGrid {
             this.highlightEvent(event.id);
         });
         
-        // Update event list to show only search results
-        this.updateEventList(results);
+        // Update event list to show search results with count
+        this.updateEventList(results, query);
+        
+        // Show search results feedback
+        this.showSearchFeedback(results.length, query);
+    }
+    
+    showSearchFeedback(count, query) {
+        // Remove existing feedback
+        const existingFeedback = document.querySelector('.search-feedback');
+        if (existingFeedback) {
+            existingFeedback.remove();
+        }
+        
+        // Create feedback element
+        const feedback = document.createElement('div');
+        feedback.className = 'search-feedback';
+        feedback.innerHTML = `
+            <span class="search-results-badge">
+                ${count > 0 ? `${count}개 일정 발견` : '검색 결과 없음'}
+            </span>
+        `;
+        
+        // Insert feedback after search input
+        const searchContainer = document.querySelector('.event-search');
+        if (searchContainer) {
+            searchContainer.appendChild(feedback);
+        }
+        
+        // Auto-hide feedback after 3 seconds if there are results
+        if (count > 0) {
+            setTimeout(() => {
+                if (feedback && feedback.parentNode) {
+                    feedback.style.opacity = '0';
+                    setTimeout(() => feedback.remove(), 300);
+                }
+            }, 3000);
+        }
     }
     
     clearEventHighlighting() {
@@ -1269,7 +1321,7 @@ class GoogleCalendarGrid {
         this.updateEventList();
     }
     
-    updateEventList(eventsToShow = null) {
+    updateEventList(eventsToShow = null, searchQuery = null) {
         const eventList = document.getElementById('event-list');
         if (!eventList) {
             console.warn('Event list container not found');
@@ -1283,11 +1335,19 @@ class GoogleCalendarGrid {
         eventList.innerHTML = '';
         
         if (events.length === 0) {
-            eventList.innerHTML = `
-                <div class="event-list-empty">
-                    ${eventsToShow ? '검색 결과가 없습니다' : '등록된 일정이 없습니다'}
-                </div>
-            `;
+            const emptyMessage = searchQuery ? 
+                `<div class="event-list-empty">
+                    <div style="margin-bottom: 8px;">🔍</div>
+                    <div>"${searchQuery}"에 대한 검색 결과가 없습니다</div>
+                    <div style="font-size: 12px; margin-top: 4px; opacity: 0.7;">다른 키워드로 검색해보세요</div>
+                </div>` : 
+                `<div class="event-list-empty">
+                    <div style="margin-bottom: 8px;">📅</div>
+                    <div>등록된 일정이 없습니다</div>
+                    <div style="font-size: 12px; margin-top: 4px; opacity: 0.7;">새 일정을 추가해보세요</div>
+                </div>`;
+            
+            eventList.innerHTML = emptyMessage;
             return;
         }
         
@@ -1298,9 +1358,18 @@ class GoogleCalendarGrid {
             return dateA - dateB;
         });
         
-        sortedEvents.forEach(event => {
+        sortedEvents.forEach((event, index) => {
             const eventItem = this.createEventListItem(event);
-            eventList.appendChild(eventItem);
+            
+            // Add search result styling if this is a search
+            if (searchQuery) {
+                eventItem.classList.add('search-result-item');
+            }
+            
+            // Stagger animation for better visual effect
+            setTimeout(() => {
+                eventList.appendChild(eventItem);
+            }, index * 50);
         });
     }
     
@@ -1309,24 +1378,41 @@ class GoogleCalendarGrid {
         item.className = 'event-list-item';
         item.dataset.eventId = event.id;
         
-        // Format date and time
+        // Format date and time with enhanced formatting
         const eventDate = new Date(event.date);
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+        
         const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
         const dayName = dayNames[eventDate.getDay()];
-        const formattedDate = `${eventDate.getMonth() + 1}월 ${eventDate.getDate()}일 (${dayName})`;
         
-        // Format time range
-        const timeRange = `${event.startTime} - ${event.endTime}`;
+        let dateDisplay;
+        if (eventDate.toDateString() === today.toDateString()) {
+            dateDisplay = '오늘';
+        } else if (eventDate.toDateString() === tomorrow.toDateString()) {
+            dateDisplay = '내일';
+        } else {
+            dateDisplay = `${eventDate.getMonth() + 1}월 ${eventDate.getDate()}일 (${dayName})`;
+        }
+        
+        // Format time range with improved display
+        const startTime = event.startTime;
+        const endTime = event.endTime;
+        const timeRange = `${startTime} - ${endTime}`;
         
         item.innerHTML = `
             <div class="event-list-item-title">${event.title}</div>
-            <div class="event-list-item-time">${formattedDate} ${timeRange}</div>
+            <div class="event-list-item-time">${dateDisplay} · ${timeRange}</div>
         `;
         
         // Add click handler to highlight event
         item.addEventListener('click', () => {
             this.highlightEventInCalendar(event.id);
         });
+        
+        // Add entry animation
+        item.classList.add('event-list-item-enter');
         
         return item;
     }
