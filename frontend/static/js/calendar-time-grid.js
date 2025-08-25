@@ -596,7 +596,7 @@ function createEventElement(event) {
     eventBlock.style.top = `${top}px`;
     eventBlock.style.height = `${height}px`;
     eventBlock.style.left = `${left}%`;
-    eventBlock.style.width = `calc(${width}% - 4px)`;
+    eventBlock.style.width = `calc(${width}% - 2px)`; // Reduced margin for wider blocks
     
     // Format time
     const startTimeStr = startDate.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });

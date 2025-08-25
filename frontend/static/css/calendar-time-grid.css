@@ -2,6 +2,8 @@
 
 .time-grid-container {
     height: 100%;
+    width: 100%;
+    min-width: 1200px; /* Set minimum width for horizontal expansion */
     display: flex;
     flex-direction: column;
     background: white;
@@ -34,6 +36,7 @@
 
 .day-header {
     flex: 1;
+    min-width: 150px; /* Set minimum width for each day column */
     text-align: center;
     padding: 12px 8px;
     border-right: 1px solid #e1e5e9;
@@ -177,6 +180,7 @@
     position: absolute;
     top: 0;
     bottom: 0;
+    min-width: 150px; /* Set minimum width for day columns */
     border-right: 1px solid #f1f5f9;
 }
 
@@ -194,7 +198,7 @@
     position: absolute;
     background: #3b82f6;
     color: white;
-    padding: 4px 8px;
+    padding: 8px 12px; /* Increased padding for wider appearance */
     border-radius: 6px;
     font-size: 12px;
     cursor: move;
