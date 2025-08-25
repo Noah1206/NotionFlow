@@ -16,7 +16,7 @@ class GoogleCalendarGrid {
         // Time configuration
         this.startHour = 0; // 12 AM
         this.endHour = 23;  // 11 PM
-        this.timeSlotHeight = 600; // pixels - MASSIVELY INCREASED for extremely tall cells!
+        this.timeSlotHeight = 150; // pixels - Increased for taller cells but not too extreme
         
         this.init();
     }

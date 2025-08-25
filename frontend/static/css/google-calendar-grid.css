@@ -84,7 +84,7 @@
 }
 
 .time-slot {
-    height: 600px; /* MASSIVELY INCREASED for extremely tall cells! */
+    height: 150px; /* Increased for taller cells but reasonable size */
     border-bottom: 1px solid #dadce0;
     display: flex;
     align-items: flex-start;
@@ -115,7 +115,7 @@
 
 /* Time cells - clickable areas */
 .time-cell {
-    height: 600px; /* MASSIVELY INCREASED for extremely tall cells! */
+    height: 150px; /* Increased for taller cells but reasonable size */
     border-bottom: 1px solid #dadce0;
     cursor: pointer;
     position: relative;
@@ -146,14 +146,14 @@
     pointer-events: none;
 }
 
-/* FORCE EXTREME TALL CELLS - Final Override */
+/* FORCE TALLER CELLS - Final Override */
 .time-slot,
 .time-cell,
 div.time-slot,
 div.time-cell {
-    height: 600px !important;
-    min-height: 600px !important;
-    max-height: 600px !important;
+    height: 150px !important;
+    min-height: 150px !important;
+    max-height: 150px !important;
 }
 
 /* Current time indicator */
