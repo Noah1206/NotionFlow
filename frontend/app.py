@@ -4018,7 +4018,7 @@ def delete_calendar_event(calendar_id, event_id):
         return jsonify({'error': str(e)}), 500
 
 # ============================================
-# 👥 Calendar Attendees Management API
+# Calendar Attendees Management API
 # ============================================
 
 @app.route('/api/calendar/<calendar_id>/attendees', methods=['GET'])
@@ -4029,7 +4029,7 @@ def get_calendar_attendees(calendar_id):
         if not user_id:
             return jsonify({'error': 'Not authenticated'}), 401
         
-        print(f"👥 Getting attendees for calendar {calendar_id}")
+        print(f"Getting attendees for calendar {calendar_id}")
         
         # TODO: Implement actual database query for attendees
         # For now, return the calendar owner as the only attendee
@@ -4045,11 +4045,11 @@ def get_calendar_attendees(calendar_id):
             }
         ]
         
-        print(f"✅ Found {len(attendees)} attendees")
+        print(f"Found {len(attendees)} attendees")
         return jsonify(attendees)
         
     except Exception as e:
-        print(f"❌ Error getting calendar attendees: {e}")
+        print(f"Error getting calendar attendees: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/calendar/<calendar_id>/attendees', methods=['POST'])
@@ -4064,7 +4064,7 @@ def add_calendar_attendee(calendar_id):
         if not data:
             return jsonify({'error': 'No data provided'}), 400
         
-        print(f"👥 Adding attendee to calendar {calendar_id}: {data}")
+        print(f"Adding attendee to calendar {calendar_id}: {data}")
         
         # TODO: Implement actual database storage for attendees
         attendee = {
@@ -4077,11 +4077,11 @@ def add_calendar_attendee(calendar_id):
             'invited_by': user_id
         }
         
-        print(f"✅ Attendee added: {attendee}")
+        print(f"Attendee added: {attendee}")
         return jsonify(attendee), 201
         
     except Exception as e:
-        print(f"❌ Error adding calendar attendee: {e}")
+        print(f"Error adding calendar attendee: {e}")
         return jsonify({'error': str(e)}), 500
 
 # Add error handlers for production debugging
