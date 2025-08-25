@@ -82,7 +82,8 @@
     display: flex;
     overflow-y: auto;
     position: relative;
-    min-height: 15000px; /* Force minimum height to accommodate tall cells */
+    min-height: 15000px !important; /* Force minimum height to accommodate tall cells */
+    height: auto !important;
 }
 
 /* Time Labels Column */
@@ -169,7 +170,9 @@
 }
 
 .hour-line {
-    height: 600px;  /* Massively increased to 600px for extremely tall cells */
+    height: 600px !important;  /* Force height with !important */
+    min-height: 600px !important;
+    max-height: none !important;
     border-bottom: 1px solid #e1e5e9;
     position: relative;
 }
@@ -691,4 +694,22 @@
         font-size: 11px;
         padding: 2px 4px;
     }
+}
+
+/* FORCE TALL CELLS - Override any conflicting styles */
+.hour-line,
+div.hour-line,
+.time-grid-lines .hour-line,
+#time-grid-lines .hour-line {
+    height: 600px !important;
+    min-height: 600px !important;
+    max-height: 600px !important;
+}
+
+/* Force container heights */
+.time-grid-body,
+.events-grid-container,
+.time-grid-lines {
+    min-height: 15000px !important;
+    height: auto !important;
 }
