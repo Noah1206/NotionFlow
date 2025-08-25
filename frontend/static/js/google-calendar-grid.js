@@ -155,6 +155,13 @@ class GoogleCalendarGrid {
         // Click events for quick event creation
         gridBody.addEventListener('click', (e) => this.handleCellClick(e));
         
+        // Drag and drop events for event time editing
+        gridBody.addEventListener('dragover', (e) => {
+            e.preventDefault(); // Allow drop
+        });
+        
+        gridBody.addEventListener('drop', (e) => this.handleEventDrop(e));
+        
         // Global mouse up to handle selections outside grid
         document.addEventListener('mouseup', () => {
             if (this.isSelecting) {
@@ -528,10 +535,77 @@ class GoogleCalendarGrid {
         eventElement.style.right = '2px';
         eventElement.style.height = `${height}px`;
         eventElement.style.zIndex = '10';
+        eventElement.style.cursor = 'move';
+        
+        // Add drag functionality for real-time time editing
+        eventElement.draggable = true;
+        eventElement.dataset.eventId = eventData.id;
+        eventElement.dataset.originalTop = top;
+        
+        eventElement.addEventListener('dragstart', (e) => {
+            eventElement.style.opacity = '0.7';
+            e.dataTransfer.setData('text/plain', eventData.id);
+        });
+        
+        eventElement.addEventListener('dragend', (e) => {
+            eventElement.style.opacity = '1';
+        });
         
         dayColumn.appendChild(eventElement);
     }
     
+    handleEventDrop(e) {
+        e.preventDefault();
+        
+        const eventId = e.dataTransfer.getData('text/plain');
+        const targetCell = e.target.closest('.time-cell');
+        
+        if (!targetCell || !eventId) return;
+        
+        const newDay = parseInt(targetCell.dataset.day);
+        const newHour = parseInt(targetCell.dataset.hour);
+        
+        // Find the event element and data
+        const eventElement = this.container.querySelector(`[data-event-id="${eventId}"]`);
+        const eventData = this.events.find(event => event.id === eventId);
+        
+        if (!eventElement || !eventData) return;
+        
+        // Calculate duration from original event
+        const [startHour, startMin] = eventData.startTime.split(':').map(Number);
+        const [endHour, endMin] = eventData.endTime.split(':').map(Number);
+        const duration = (endHour * 60 + endMin) - (startHour * 60 + startMin); // duration in minutes
+        
+        // Update event data
+        eventData.startTime = `${newHour.toString().padStart(2, '0')}:00`;
+        const newEndMinutes = newHour * 60 + duration;
+        const newEndHour = Math.floor(newEndMinutes / 60);
+        const newEndMin = newEndMinutes % 60;
+        eventData.endTime = `${newEndHour.toString().padStart(2, '0')}:${newEndMin.toString().padStart(2, '0')}`;
+        
+        // Update date if dropped on different day
+        const newDate = new Date(this.weekStart);
+        newDate.setDate(newDate.getDate() + newDay);
+        eventData.date = newDate.toISOString().split('T')[0];
+        
+        // Update element position
+        const newTop = (newHour - this.startHour) * this.timeSlotHeight;
+        eventElement.style.top = `${newTop}px`;
+        
+        // Move element to correct day column
+        const newDayColumn = this.container.querySelector(`.day-column[data-day="${newDay}"]`);
+        if (newDayColumn && eventElement.parentNode !== newDayColumn) {
+            newDayColumn.appendChild(eventElement);
+        }
+        
+        console.log('📅 Event time updated:', eventData);
+        
+        // Show notification
+        if (window.showNotification) {
+            showNotification(`일정 "${eventData.title}" 시간이 수정되었습니다`, 'success');
+        }
+    }
+
     updateCurrentTimeIndicator() {
         // Remove existing indicator
         const existingLine = this.container.querySelector('.current-time-line');
