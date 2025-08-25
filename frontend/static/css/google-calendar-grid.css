@@ -84,7 +84,7 @@
 }
 
 .time-slot {
-    height: 150px; /* Increased for taller cells but reasonable size */
+    height: 120px; /* Slightly smaller for better balance */
     border-bottom: 1px solid #dadce0;
     display: flex;
     align-items: flex-start;
@@ -115,7 +115,7 @@
 
 /* Time cells - clickable areas */
 .time-cell {
-    height: 150px; /* Increased for taller cells but reasonable size */
+    height: 120px; /* Slightly smaller for better balance */
     border-bottom: 1px solid #dadce0;
     cursor: pointer;
     position: relative;
@@ -151,9 +151,9 @@
 .time-cell,
 div.time-slot,
 div.time-cell {
-    height: 150px !important;
-    min-height: 150px !important;
-    max-height: 150px !important;
+    height: 120px !important;
+    min-height: 120px !important;
+    max-height: 120px !important;
 }
 
 /* Current time indicator */
