@@ -369,8 +369,9 @@ function renderGridLines() {
         
         // Main hour line (thicker)
         const hourLine = document.createElement('div');
-        hourLine.className = 'grid-line hour-line';
+        hourLine.className = 'hour-line'; // Match CSS class exactly
         hourLine.style.top = `${baseTop}px`;
+        hourLine.style.height = `${TIME_GRID_CONFIG.hourHeight}px`; // Force height in JavaScript
         gridContainer.appendChild(hourLine);
         
         // Sub-division lines (30 min, 15 min, 45 min)
@@ -378,7 +379,7 @@ function renderGridLines() {
             // 30-minute line
             if (TIME_GRID_CONFIG.showHalfHours) {
                 const halfLine = document.createElement('div');
-                halfLine.className = 'grid-line half-hour-line';
+                halfLine.className = 'hour-line half'; // Use existing CSS classes
                 halfLine.style.top = `${baseTop + TIME_GRID_CONFIG.hourHeight / 2}px`;
                 gridContainer.appendChild(halfLine);
             }
@@ -389,7 +390,7 @@ function renderGridLines() {
                     if (fraction === 0.5 && TIME_GRID_CONFIG.showHalfHours) return; // Skip if 30min already shown
                     
                     const quarterLine = document.createElement('div');
-                    quarterLine.className = 'grid-line quarter-hour-line';
+                    quarterLine.className = 'hour-line quarter'; // Use existing CSS pattern
                     quarterLine.style.top = `${baseTop + TIME_GRID_CONFIG.hourHeight * fraction}px`;
                     gridContainer.appendChild(quarterLine);
                 });
