@@ -335,6 +335,13 @@ class GoogleCalendarGrid {
     
     createEvent(startDay, startHour, endDay, endHour) {
         console.log('🎯 createEvent called:', {startDay, startHour, endDay, endHour});
+        
+        // Ensure weekStart is properly initialized
+        if (!this.weekStart || !(this.weekStart instanceof Date)) {
+            this.weekStart = this.getWeekStart(new Date());
+            console.log('⚠️ weekStart was undefined, recalculated:', this.weekStart);
+        }
+        
         console.log('🗓️ Current weekStart:', this.weekStart);
         
         // Calculate dates using milliseconds to avoid timezone issues
@@ -536,6 +543,12 @@ class GoogleCalendarGrid {
     
     renderEvent(eventData) {
         console.log('🎯 renderEvent called with data:', eventData);
+        
+        // Ensure weekStart is properly initialized
+        if (!this.weekStart || !(this.weekStart instanceof Date)) {
+            this.weekStart = this.getWeekStart(new Date());
+            console.log('⚠️ weekStart was undefined in renderEvent, recalculated:', this.weekStart);
+        }
         
         // Parse date more carefully to avoid timezone issues
         const eventDateStr = eventData.date;
