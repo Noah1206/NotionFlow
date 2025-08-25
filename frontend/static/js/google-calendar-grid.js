@@ -41,12 +41,15 @@ class GoogleCalendarGrid {
     }
     
     getWeekStart(date) {
-        const d = new Date(date);
+        const d = new Date(date.getTime()); // Create a copy to avoid mutating original
         const day = d.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-        const diff = d.getDate() - day; // Get Sunday of current week
-        const weekStart = new Date(d.setDate(diff));
+        
+        // Calculate days to subtract to get to Sunday
+        const daysToSunday = day;
+        const weekStart = new Date(d.getTime() - (daysToSunday * 24 * 60 * 60 * 1000));
         weekStart.setHours(0, 0, 0, 0); // Set to beginning of day
-        console.log('🗓️ Week start calculated:', weekStart, 'from date:', date);
+        
+        console.log('🗓️ Week start calculated:', weekStart, 'from date:', date, 'day:', day, 'daysToSunday:', daysToSunday);
         return weekStart;
     }
     
@@ -333,16 +336,17 @@ class GoogleCalendarGrid {
         console.log('🎯 createEvent called:', {startDay, startHour, endDay, endHour});
         console.log('🗓️ Current weekStart:', this.weekStart);
         
-        const startDate = new Date(this.weekStart);
+        // Create dates more carefully to avoid timezone issues
+        const startDate = new Date(this.weekStart.getTime());
         startDate.setDate(startDate.getDate() + startDay);
         startDate.setHours(startHour, 0, 0, 0);
         
-        const endDate = new Date(this.weekStart);
+        const endDate = new Date(this.weekStart.getTime());
         endDate.setDate(endDate.getDate() + endDay);
         endDate.setHours(endHour + 1, 0, 0, 0); // +1 for end time
         
         console.log('📅 Created dates - Start:', startDate, 'End:', endDate);
-        console.log('📍 Date math - weekStart + startDay:', this.weekStart, '+', startDay, '=', startDate);
+        console.log('📍 Expected day column:', startDay, 'Actual date:', startDate.toDateString());
         
         this.showEventCreationPopup(startDate, endDate, startDay, startHour);
     }
@@ -527,9 +531,15 @@ class GoogleCalendarGrid {
         console.log('🎯 renderEvent called with data:', eventData);
         
         const eventDate = new Date(eventData.date);
-        const dayIndex = Math.floor((eventDate - this.weekStart) / (24 * 60 * 60 * 1000));
+        // Fix timezone issues by setting to noon
+        eventDate.setHours(12, 0, 0, 0);
         
-        console.log('📅 Event date:', eventDate, 'Week start:', this.weekStart, 'Day index:', dayIndex);
+        const weekStart = new Date(this.weekStart);
+        weekStart.setHours(12, 0, 0, 0);
+        
+        const dayIndex = Math.floor((eventDate - weekStart) / (24 * 60 * 60 * 1000));
+        
+        console.log('📅 Event date (noon):', eventDate, 'Week start (noon):', weekStart, 'Day index:', dayIndex);
         
         if (dayIndex < -1 || dayIndex > 7) { // Allow more flexible range
             console.log('❌ Event too far from current week, skipping render. DayIndex:', dayIndex);
