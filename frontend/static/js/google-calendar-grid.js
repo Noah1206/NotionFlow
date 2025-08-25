@@ -534,16 +534,22 @@ class GoogleCalendarGrid {
     renderEvent(eventData) {
         console.log('🎯 renderEvent called with data:', eventData);
         
-        const eventDate = new Date(eventData.date);
-        // Fix timezone issues by setting to noon
-        eventDate.setHours(12, 0, 0, 0);
+        // Parse date more carefully to avoid timezone issues
+        const eventDateStr = eventData.date;
+        const eventDate = new Date(eventDateStr + 'T12:00:00');
         
-        const weekStart = new Date(this.weekStart);
+        const weekStart = new Date(this.weekStart.getTime());
         weekStart.setHours(12, 0, 0, 0);
         
-        const dayIndex = Math.floor((eventDate - weekStart) / (24 * 60 * 60 * 1000));
+        // Calculate day index more precisely
+        const timeDiff = eventDate.getTime() - weekStart.getTime();
+        const dayIndex = Math.round(timeDiff / (24 * 60 * 60 * 1000));
         
-        console.log('📅 Event date (noon):', eventDate, 'Week start (noon):', weekStart, 'Day index:', dayIndex);
+        console.log('📅 Event date string:', eventDateStr);
+        console.log('📅 Event date (parsed):', eventDate);
+        console.log('📅 Week start (noon):', weekStart);
+        console.log('📅 Time difference (ms):', timeDiff);
+        console.log('📅 Day index:', dayIndex);
         
         if (dayIndex < -1 || dayIndex > 7) { // Allow more flexible range
             console.log('❌ Event too far from current week, skipping render. DayIndex:', dayIndex);

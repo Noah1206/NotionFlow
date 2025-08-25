@@ -3897,6 +3897,9 @@ def friends_page():
 # [CALENDAR] Calendar Events Management API
 # ============================================
 
+# Temporary in-memory storage for events (until database is implemented)
+calendar_events = {}
+
 @app.route('/api/calendars/<calendar_id>/events', methods=['GET'])
 def get_calendar_events(calendar_id):
     """Get all events for a specific calendar with optional date range filtering"""
@@ -3913,10 +3916,11 @@ def get_calendar_events(calendar_id):
         if start_date:
             print(f"[CALENDAR] Date range: {start_date} to {end_date}")
         
-        # TODO: Implement actual database storage with date filtering
-        # For now, return empty array since we're using localStorage
-        events = []
+        # Get events from in-memory storage
+        events_key = f"{user_id}_{calendar_id}"
+        events = calendar_events.get(events_key, [])
         
+        print(f"[SUCCESS] Found {len(events)} events for calendar {calendar_id}")
         return jsonify(events)
         
     except Exception as e:
@@ -3954,9 +3958,13 @@ def create_calendar_event(calendar_id):
             'user_id': user_id
         }
         
-        # TODO: Save to database
-        print(f"[SUCCESS] Event created: {event}")
+        # Save to in-memory storage
+        events_key = f"{user_id}_{calendar_id}"
+        if events_key not in calendar_events:
+            calendar_events[events_key] = []
+        calendar_events[events_key].append(event)
         
+        print(f"[SUCCESS] Event created and stored: {event_id}")
         return jsonify(event), 201
         
     except Exception as e:
