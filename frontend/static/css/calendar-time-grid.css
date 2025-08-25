@@ -166,7 +166,7 @@
 }
 
 .hour-line {
-    height: 450px;  /* Further increased to 450px for maximum vertical space */
+    height: 600px;  /* Massively increased to 600px for extremely tall cells */
     border-bottom: 1px solid #e1e5e9;
     position: relative;
 }
