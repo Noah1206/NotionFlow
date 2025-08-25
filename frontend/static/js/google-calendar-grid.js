@@ -511,6 +511,12 @@ class GoogleCalendarGrid {
             if (window.showNotification) {
                 showNotification('일정이 로컬에만 저장되었습니다', 'warning');
             }
+            
+            // Force re-render after a short delay
+            setTimeout(() => {
+                console.log('🔄 Force re-rendering event...');
+                this.renderEvent(localEventData);
+            }, 100);
         }
         
         // Remove popup
@@ -558,11 +564,25 @@ class GoogleCalendarGrid {
         }
         
         const eventElement = document.createElement('div');
-        eventElement.className = `calendar-event ${eventData.color}`;
+        eventElement.className = 'calendar-event';
+        
+        // Apply color as inline style if it's a hex color
+        if (eventData.color && eventData.color.startsWith('#')) {
+            eventElement.style.backgroundColor = eventData.color;
+        } else if (eventData.color) {
+            // If it's a color class name
+            eventElement.classList.add(eventData.color);
+        } else {
+            // Default color if none specified
+            eventElement.style.backgroundColor = '#3b82f6';
+        }
+        
         eventElement.innerHTML = `
             <div style="font-weight: 500; margin-bottom: 2px;">${eventData.title}</div>
             ${eventData.description ? `<div style="font-size: 11px; opacity: 0.9;">${eventData.description}</div>` : ''}
         `;
+        
+        console.log('🎨 Event color:', eventData.color, 'Background:', eventElement.style.backgroundColor);
         
         // Position the event
         const top = (startPosition - this.startHour) * this.timeSlotHeight;
@@ -573,8 +593,10 @@ class GoogleCalendarGrid {
         eventElement.style.left = '2px';
         eventElement.style.right = '2px';
         eventElement.style.height = `${height}px`;
-        eventElement.style.zIndex = '10';
+        eventElement.style.zIndex = '100'; // Increased z-index
         eventElement.style.cursor = 'move';
+        eventElement.style.border = '1px solid rgba(0,0,0,0.1)'; // Add border for visibility
+        eventElement.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)'; // Add shadow
         
         // Add drag functionality for real-time time editing
         eventElement.draggable = true;
