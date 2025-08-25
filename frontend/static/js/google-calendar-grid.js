@@ -359,6 +359,14 @@ class GoogleCalendarGrid {
         this.showEventCreationPopup(startDate, endDate, startDay, startHour);
     }
     
+    formatDateForInput(date) {
+        // Format date as YYYY-MM-DD for input field
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+    
     showEventCreationPopup(startDate, endDate, day, hour) {
         // Remove existing popup
         const existingPopup = this.container.querySelector('.event-creation-popup');
@@ -393,7 +401,7 @@ class GoogleCalendarGrid {
                 </div>
                 <div class="form-field">
                     <label>날짜</label>
-                    <input type="date" name="date" value="${startDate.toISOString().split('T')[0]}">
+                    <input type="date" name="date" value="${this.formatDateForInput(startDate)}">
                 </div>
                 <div class="form-field">
                     <label>시간</label>
@@ -552,9 +560,11 @@ class GoogleCalendarGrid {
         
         // Parse date more carefully to avoid timezone issues
         const eventDateStr = eventData.date;
-        const eventDate = new Date(eventDateStr + 'T12:00:00');
+        // Split the date string to get year, month, day
+        const [year, month, day] = eventDateStr.split('-').map(Number);
+        const eventDate = new Date(year, month - 1, day, 12, 0, 0); // month is 0-indexed
         
-        const weekStart = new Date(this.weekStart.getTime());
+        const weekStart = new Date(this.weekStart);
         weekStart.setHours(12, 0, 0, 0);
         
         // Calculate day index more precisely
