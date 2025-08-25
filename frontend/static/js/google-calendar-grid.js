@@ -321,6 +321,8 @@ class GoogleCalendarGrid {
     }
     
     createEvent(startDay, startHour, endDay, endHour) {
+        console.log('🎯 createEvent called:', {startDay, startHour, endDay, endHour});
+        
         const startDate = new Date(this.weekStart);
         startDate.setDate(startDate.getDate() + startDay);
         startDate.setHours(startHour, 0, 0, 0);
@@ -328,6 +330,8 @@ class GoogleCalendarGrid {
         const endDate = new Date(this.weekStart);
         endDate.setDate(endDate.getDate() + endDay);
         endDate.setHours(endHour + 1, 0, 0, 0); // +1 for end time
+        
+        console.log('📅 Created dates:', {startDate, endDate});
         
         this.showEventCreationPopup(startDate, endDate, startDay, startHour);
     }
@@ -503,10 +507,17 @@ class GoogleCalendarGrid {
     }
     
     renderEvent(eventData) {
+        console.log('🎯 renderEvent called with data:', eventData);
+        
         const eventDate = new Date(eventData.date);
         const dayIndex = Math.floor((eventDate - this.weekStart) / (24 * 60 * 60 * 1000));
         
-        if (dayIndex < 0 || dayIndex > 6) return; // Not in current week
+        console.log('📅 Event date:', eventDate, 'Week start:', this.weekStart, 'Day index:', dayIndex);
+        
+        if (dayIndex < 0 || dayIndex > 6) {
+            console.log('❌ Event not in current week, skipping render');
+            return; // Not in current week
+        }
         
         const [startHour, startMin] = eventData.startTime.split(':').map(Number);
         const [endHour, endMin] = eventData.endTime.split(':').map(Number);
@@ -516,7 +527,13 @@ class GoogleCalendarGrid {
         const duration = endPosition - startPosition;
         
         const dayColumn = this.container.querySelector(`.day-column[data-day="${dayIndex}"]`);
-        if (!dayColumn) return;
+        console.log('🔍 Looking for day column with dayIndex:', dayIndex, 'Found:', dayColumn);
+        
+        if (!dayColumn) {
+            console.log('❌ Day column not found! Available columns:', 
+                this.container.querySelectorAll('.day-column'));
+            return;
+        }
         
         const eventElement = document.createElement('div');
         eventElement.className = `calendar-event ${eventData.color}`;
@@ -552,6 +569,8 @@ class GoogleCalendarGrid {
         });
         
         dayColumn.appendChild(eventElement);
+        console.log('✅ Event element added to DOM:', eventElement, 'Parent:', dayColumn);
+        console.log('📍 Event position - top:', eventElement.style.top, 'height:', eventElement.style.height);
     }
     
     handleEventDrop(e) {
