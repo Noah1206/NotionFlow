@@ -3,7 +3,7 @@
 .time-grid-container {
     height: 100%;
     width: 100%;
-    min-width: 1200px; /* Set minimum width for horizontal expansion */
+    min-width: 1400px; /* Increased minimum width for better horizontal space */
     display: flex;
     flex-direction: column;
     background: white;
@@ -24,7 +24,7 @@
 }
 
 .time-gutter-header {
-    width: 120px; /* Match the time-labels-column width */
+    width: 140px; /* Match the time-labels-column width */
     border-right: 1px solid #e1e5e9;
     flex-shrink: 0;
 }
@@ -36,9 +36,9 @@
 
 .day-header {
     flex: 1;
-    min-width: 150px; /* Set minimum width for each day column */
+    min-width: 180px; /* Increased minimum width for each day column */
     text-align: center;
-    padding: 12px 8px;
+    padding: 16px 12px; /* Increased padding */
     border-right: 1px solid #e1e5e9;
     position: relative;
 }
@@ -86,27 +86,27 @@
 
 /* Time Labels Column */
 .time-labels-column {
-    width: 120px; /* Increased width to prevent text cutoff */
+    width: 140px; /* Further increased width to prevent M cutoff */
     flex-shrink: 0;
     border-right: 1px solid #e1e5e9;
     background: #f8fafc;
     position: relative;
-    padding-right: 12px; /* Increased padding for better spacing */
+    padding-right: 16px; /* More padding for better spacing */
     padding-top: 10px; /* Add padding to align with grid */
 }
 
 .time-label {
     position: absolute;
-    right: 12px; /* Increased to match the padding */
+    right: 16px; /* Match the increased padding */
     font-size: 12px;
     color: #6b7280;
     font-weight: 500;
     background: #f8fafc;
-    padding: 2px 6px; /* Slightly increased padding */
+    padding: 3px 8px; /* More padding for better spacing */
     user-select: none;
     display: flex;
     align-items: center;
-    gap: 2px;
+    gap: 3px; /* Slightly more gap */
 }
 
 /* Main hour labels */
@@ -166,7 +166,7 @@
 }
 
 .hour-line {
-    height: 200px;  /* Increased from 160px to 200px for maximum vertical spacing */
+    height: 250px;  /* Increased from 200px to 250px for maximum vertical spacing */
     border-bottom: 1px solid #e1e5e9;
     position: relative;
 }
@@ -180,7 +180,7 @@
     position: absolute;
     top: 0;
     bottom: 0;
-    min-width: 150px; /* Set minimum width for day columns */
+    min-width: 180px; /* Increased minimum width for day columns */
     border-right: 1px solid #f1f5f9;
 }
 
