@@ -89,6 +89,7 @@
     background: #f8fafc;
     position: relative;
     padding-right: 8px;
+    padding-top: 10px; /* Add padding to align with grid */
 }
 
 .time-label {
@@ -158,6 +159,7 @@
 .events-grid-container {
     flex: 1;
     position: relative;
+    padding-top: 10px; /* Add padding to create space at the top */
 }
 
 /* Time Grid Lines */

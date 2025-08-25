@@ -213,10 +213,10 @@
     border: 1px solid #dadce0;
     border-radius: 8px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-    padding: 16px;
+    padding: 20px;
     z-index: 200;
-    min-width: 300px;
-    max-width: 400px;
+    min-width: 350px;
+    max-width: 450px;
 }
 
 .event-creation-popup .popup-header {
@@ -249,7 +249,7 @@
 .event-form {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
 }
 
 .form-field {
@@ -264,12 +264,23 @@
     font-weight: 500;
 }
 
-.form-field input, .form-field textarea {
-    padding: 8px 12px;
+.form-field input {
+    padding: 12px 16px;
     border: 1px solid #dadce0;
-    border-radius: 4px;
+    border-radius: 6px;
     font-size: 14px;
     font-family: inherit;
+    min-height: 42px;
+}
+
+.form-field textarea {
+    padding: 12px 16px;
+    border: 1px solid #dadce0;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    min-height: 80px;
+    resize: vertical;
 }
 
 .form-field input:focus, .form-field textarea:focus {
@@ -361,7 +372,7 @@
     }
     
     .event-creation-popup {
-        min-width: 280px;
-        max-width: 320px;
+        min-width: 320px;
+        max-width: 380px;
     }
 }
