@@ -3,7 +3,7 @@
 .time-grid-container {
     height: 100%;
     width: 100%;
-    min-width: 1400px; /* Increased minimum width for better horizontal space */
+    min-width: 1800px; /* Much larger minimum width for spacious layout */
     display: flex;
     flex-direction: column;
     background: white;
@@ -36,9 +36,9 @@
 
 .day-header {
     flex: 1;
-    min-width: 180px; /* Increased minimum width for each day column */
+    min-width: 220px; /* Much larger minimum width for each day column */
     text-align: center;
-    padding: 16px 12px; /* Increased padding */
+    padding: 20px 16px; /* Even more padding */
     border-right: 1px solid #e1e5e9;
     position: relative;
 }
@@ -166,7 +166,7 @@
 }
 
 .hour-line {
-    height: 250px;  /* Increased from 200px to 250px for maximum vertical spacing */
+    height: 350px;  /* Dramatically increased to 350px for very large cells */
     border-bottom: 1px solid #e1e5e9;
     position: relative;
 }
@@ -180,7 +180,7 @@
     position: absolute;
     top: 0;
     bottom: 0;
-    min-width: 180px; /* Increased minimum width for day columns */
+    min-width: 220px; /* Much larger minimum width for day columns */
     border-right: 1px solid #f1f5f9;
 }
 

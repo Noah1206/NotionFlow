@@ -5,7 +5,7 @@ const TIME_GRID_CONFIG = {
     startHour: 0,   // Start at 12 AM (midnight)
     endHour: 23,    // End at 11 PM
     defaultViewStart: 7, // Default visible start at 7 AM
-    hourHeight: 250, // Increased from 200px to 250px for maximum vertical spacing
+    hourHeight: 350, // Dramatically increased to 350px for very large cells
     snapMinutes: 15, // Snap to 15-minute intervals
     showHalfHours: true, // Show 30-minute marks
     showQuarterHours: true, // Show 15-minute marks
