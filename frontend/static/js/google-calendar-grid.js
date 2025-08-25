@@ -686,9 +686,48 @@ class GoogleCalendarGrid {
     async loadExistingEvents() {
         console.log('📥 Loading existing events...');
         
-        // For now, prioritize localStorage since backend API is not fully implemented
-        console.log('💾 Using localStorage as primary storage (backend API not ready)');
-        this.loadBackupEvents();
+        // Try backend first, fallback to localStorage
+        try {
+            const calendarElement = document.querySelector('.calendar-workspace');
+            if (!calendarElement?.dataset.calendarId) {
+                console.log('⚠️ No calendar workspace or ID found, using localStorage only');
+                this.loadBackupEvents();
+                return;
+            }
+            
+            const calendarId = calendarElement.dataset.calendarId;
+            console.log('🔍 Fetching events for calendar:', calendarId);
+            
+            const response = await fetch(`/api/calendars/${calendarId}/events`);
+            
+            if (response.ok) {
+                const events = await response.json();
+                console.log('📅 Loaded events from backend:', events);
+                
+                // Clear existing events
+                this.events = [];
+                
+                if (events && events.length > 0) {
+                    events.forEach(event => {
+                        const frontendEvent = this.convertBackendEventToFrontend(event);
+                        this.events.push(frontendEvent);
+                        this.renderEvent(frontendEvent);
+                    });
+                    console.log(`✅ Successfully loaded ${events.length} events from backend`);
+                } else {
+                    // No backend events, try localStorage
+                    console.log('📝 No backend events, loading from localStorage...');
+                    this.loadBackupEvents();
+                }
+            } else {
+                console.log(`📝 Backend API returned ${response.status} - using localStorage`);
+                this.loadBackupEvents();
+            }
+            
+        } catch (error) {
+            console.log('📝 Backend connection failed - using localStorage:', error.message);
+            this.loadBackupEvents();
+        }
         
         // TODO: Enable backend loading once API endpoints are implemented
         /*

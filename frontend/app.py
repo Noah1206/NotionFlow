@@ -3893,6 +3893,197 @@ def friends_page():
     
     return render_template('friends.html')
 
+# ============================================
+# 📅 Calendar Events Management API
+# ============================================
+
+@app.route('/api/calendars/<calendar_id>/events', methods=['GET'])
+def get_calendar_events(calendar_id):
+    """Get all events for a specific calendar with optional date range filtering"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'Not authenticated'}), 401
+        
+        # Get query parameters
+        start_date = request.args.get('start')
+        end_date = request.args.get('end')
+        
+        print(f"📥 Getting events for calendar {calendar_id}, user {user_id}")
+        if start_date:
+            print(f"📅 Date range: {start_date} to {end_date}")
+        
+        # TODO: Implement actual database storage with date filtering
+        # For now, return empty array since we're using localStorage
+        events = []
+        
+        return jsonify(events)
+        
+    except Exception as e:
+        print(f"❌ Error getting calendar events: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/calendars/<calendar_id>/events', methods=['POST'])
+def create_calendar_event(calendar_id):
+    """Create a new event in a specific calendar"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'Not authenticated'}), 401
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        print(f"📝 Creating event for calendar {calendar_id}: {data}")
+        
+        # Generate event ID
+        event_id = str(uuid.uuid4())
+        
+        # Create event object
+        event = {
+            'id': event_id,
+            'calendar_id': calendar_id,
+            'title': data.get('title', 'Untitled Event'),
+            'description': data.get('description', ''),
+            'date': data.get('date'),
+            'startTime': data.get('startTime') or data.get('start_time'),
+            'endTime': data.get('endTime') or data.get('end_time'),
+            'color': data.get('color', '#3b82f6'),
+            'created_at': datetime.datetime.now().isoformat(),
+            'user_id': user_id
+        }
+        
+        # TODO: Save to database
+        print(f"✅ Event created: {event}")
+        
+        return jsonify(event), 201
+        
+    except Exception as e:
+        print(f"❌ Error creating calendar event: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/calendars/<calendar_id>/events/<event_id>', methods=['PUT'])
+def update_calendar_event(calendar_id, event_id):
+    """Update an existing event"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'Not authenticated'}), 401
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        print(f"📝 Updating event {event_id} in calendar {calendar_id}: {data}")
+        
+        # TODO: Update in database
+        # For now, return the updated data
+        updated_event = {
+            'id': event_id,
+            'calendar_id': calendar_id,
+            'title': data.get('title'),
+            'description': data.get('description'),
+            'date': data.get('date'),
+            'startTime': data.get('startTime'),
+            'endTime': data.get('endTime'),
+            'color': data.get('color'),
+            'updated_at': datetime.datetime.now().isoformat()
+        }
+        
+        print(f"✅ Event updated: {updated_event}")
+        return jsonify(updated_event)
+        
+    except Exception as e:
+        print(f"❌ Error updating calendar event: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/calendars/<calendar_id>/events/<event_id>', methods=['DELETE'])
+def delete_calendar_event(calendar_id, event_id):
+    """Delete an event"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'Not authenticated'}), 401
+        
+        print(f"🗑️ Deleting event {event_id} from calendar {calendar_id}")
+        
+        # TODO: Delete from database
+        print(f"✅ Event deleted: {event_id}")
+        
+        return jsonify({'success': True, 'message': 'Event deleted'})
+        
+    except Exception as e:
+        print(f"❌ Error deleting calendar event: {e}")
+        return jsonify({'error': str(e)}), 500
+
+# ============================================
+# 👥 Calendar Attendees Management API
+# ============================================
+
+@app.route('/api/calendar/<calendar_id>/attendees', methods=['GET'])
+def get_calendar_attendees(calendar_id):
+    """Get all attendees for a specific calendar"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'Not authenticated'}), 401
+        
+        print(f"👥 Getting attendees for calendar {calendar_id}")
+        
+        # TODO: Implement actual database query for attendees
+        # For now, return the calendar owner as the only attendee
+        attendees = [
+            {
+                'user_id': user_id,
+                'name': session.get('username', 'Calendar Owner'),
+                'email': session.get('email', ''),
+                'avatar_url': session.get('avatar_url', ''),
+                'role': 'owner',
+                'status': 'accepted',
+                'joined_at': datetime.datetime.now().isoformat()
+            }
+        ]
+        
+        print(f"✅ Found {len(attendees)} attendees")
+        return jsonify(attendees)
+        
+    except Exception as e:
+        print(f"❌ Error getting calendar attendees: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/calendar/<calendar_id>/attendees', methods=['POST'])
+def add_calendar_attendee(calendar_id):
+    """Add a new attendee to a specific calendar"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'Not authenticated'}), 401
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        print(f"👥 Adding attendee to calendar {calendar_id}: {data}")
+        
+        # TODO: Implement actual database storage for attendees
+        attendee = {
+            'user_id': data.get('user_id'),
+            'name': data.get('name'),
+            'email': data.get('email'),
+            'role': data.get('role', 'viewer'),
+            'status': 'pending',
+            'invited_at': datetime.datetime.now().isoformat(),
+            'invited_by': user_id
+        }
+        
+        print(f"✅ Attendee added: {attendee}")
+        return jsonify(attendee), 201
+        
+    except Exception as e:
+        print(f"❌ Error adding calendar attendee: {e}")
+        return jsonify({'error': str(e)}), 500
+
 # Add error handlers for production debugging
 @app.errorhandler(404)
 def not_found_error(error):
