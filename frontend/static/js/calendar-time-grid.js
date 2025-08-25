@@ -1,4 +1,17 @@
-// Google Calendar Style Time Grid JavaScript
+// Google Calendar Style Time Grid JavaScript - Updated 2025-08-25 15:30 for height fix
+
+// Force CSS override immediately on load
+document.addEventListener('DOMContentLoaded', function() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .hour-line { 
+            height: 600px !important; 
+            min-height: 600px !important; 
+            max-height: 600px !important; 
+        }
+    `;
+    document.head.appendChild(style);
+});
 
 // Time grid configuration
 const TIME_GRID_CONFIG = {
@@ -360,6 +373,10 @@ function renderGridLines() {
     
     gridContainer.innerHTML = '';
     
+    // Force container style
+    gridContainer.style.minHeight = '15000px';
+    gridContainer.style.height = 'auto';
+    
     // Add horizontal lines for each hour and sub-divisions
     const hoursCount = TIME_GRID_CONFIG.endHour - TIME_GRID_CONFIG.startHour + 1;
     
@@ -371,7 +388,10 @@ function renderGridLines() {
         const hourLine = document.createElement('div');
         hourLine.className = 'hour-line'; // Match CSS class exactly
         hourLine.style.top = `${baseTop}px`;
-        hourLine.style.height = `${TIME_GRID_CONFIG.hourHeight}px`; // Force height in JavaScript
+        hourLine.style.height = `${TIME_GRID_CONFIG.hourHeight}px !important`; // Force height in JavaScript with !important
+        hourLine.style.minHeight = `${TIME_GRID_CONFIG.hourHeight}px`;
+        hourLine.style.maxHeight = `${TIME_GRID_CONFIG.hourHeight}px`;
+        hourLine.setAttribute('data-height', TIME_GRID_CONFIG.hourHeight);
         gridContainer.appendChild(hourLine);
         
         // Sub-division lines (30 min, 15 min, 45 min)

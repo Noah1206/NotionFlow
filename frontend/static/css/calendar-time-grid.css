@@ -1,4 +1,4 @@
-/* Google Calendar Style Time Grid View */
+/* Google Calendar Style Time Grid View - Updated 2025-08-25 15:30 for 600px height fix */
 
 .time-grid-container {
     height: 100%;
@@ -696,11 +696,33 @@
     }
 }
 
-/* FORCE TALL CELLS - Override any conflicting styles */
+/* FORCE TALL CELLS - Override any conflicting styles with maximum specificity */
 .hour-line,
 div.hour-line,
 .time-grid-lines .hour-line,
-#time-grid-lines .hour-line {
+#time-grid-lines .hour-line,
+.time-grid-container .hour-line,
+.time-grid-container .time-grid-lines .hour-line,
+.events-grid-container .hour-line,
+div[class*="hour-line"],
+*[class="hour-line"] {
+    height: 600px !important;
+    min-height: 600px !important;
+    max-height: 600px !important;
+    line-height: 600px !important;
+    box-sizing: border-box !important;
+}
+
+/* Force container dimensions */
+.time-grid-body,
+.events-grid-container,
+.time-grid-lines {
+    min-height: 15000px !important;
+    height: auto !important;
+}
+
+/* Add inline style override */
+[data-height="600"] {
     height: 600px !important;
     min-height: 600px !important;
     max-height: 600px !important;
