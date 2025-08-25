@@ -16,7 +16,7 @@ class GoogleCalendarGrid {
         // Time configuration
         this.startHour = 0; // 12 AM
         this.endHour = 23;  // 11 PM
-        this.timeSlotHeight = 120; // pixels - Slightly smaller for better balance
+        this.timeSlotHeight = 90; // pixels - Compact size with dynamic drag creation
         
         this.init();
     }
