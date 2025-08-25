@@ -1174,7 +1174,10 @@ function saveEvent() {
     const end = document.getElementById('event-end').value;
     const description = document.getElementById('event-description').value;
     const allDay = document.getElementById('event-allday').checked;
-    const color = document.querySelector('.color-option.active')?.style.background || '#dbeafe';
+    
+    // Use random color instead of user selection
+    const randomColors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#06b6d4', '#84cc16', '#a855f7', '#6366f1'];
+    const color = randomColors[Math.floor(Math.random() * randomColors.length)];
     
     if (!title || !start) {
         alert('제목과 시작일은 필수입니다.');

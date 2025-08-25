@@ -12,6 +12,44 @@ const TIME_GRID_CONFIG = {
     compactMode: false // More detailed view
 };
 
+// Available event colors for random selection
+const EVENT_COLORS = [
+    '#3b82f6', // Blue
+    '#10b981', // Green
+    '#f59e0b', // Orange
+    '#ef4444', // Red
+    '#8b5cf6', // Purple
+    '#ec4899', // Pink
+    '#14b8a6', // Teal
+    '#f97316', // Dark Orange
+    '#06b6d4', // Cyan
+    '#84cc16', // Lime
+    '#a855f7', // Violet
+    '#6366f1'  // Indigo
+];
+
+// Get random color from the palette
+function getRandomEventColor() {
+    return EVENT_COLORS[Math.floor(Math.random() * EVENT_COLORS.length)];
+}
+
+// Adjust color brightness for borders
+function adjustColorBrightness(color, percent) {
+    // Convert hex to RGB
+    const num = parseInt(color.replace('#', ''), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = (num >> 16) + amt;
+    const G = (num >> 8 & 0x00FF) + amt;
+    const B = (num & 0x0000FF) + amt;
+    
+    // Convert back to hex
+    return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+        (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+        (B < 255 ? B < 1 ? 0 : B : 255))
+        .toString(16)
+        .slice(1);
+}
+
 // Current view state
 let timeGridView = 'week'; // 'week' or 'day'
 let currentWeekStart = null;
@@ -527,10 +565,17 @@ function createEventElement(event) {
     const left = (dayIndex * 100) / 7;
     const width = 100 / 7;
     
+    // Assign random color if not set
+    if (!event.color) {
+        event.color = getRandomEventColor();
+    }
+    
     // Create event block
     const eventBlock = document.createElement('div');
-    eventBlock.className = `event-block ${event.color || 'blue'}`;
+    eventBlock.className = 'event-block';
     eventBlock.dataset.eventId = event.id;
+    eventBlock.style.backgroundColor = event.color;
+    eventBlock.style.borderLeftColor = adjustColorBrightness(event.color, -20);
     eventBlock.style.top = `${top}px`;
     eventBlock.style.height = `${height}px`;
     eventBlock.style.left = `${left}%`;

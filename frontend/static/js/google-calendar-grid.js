@@ -410,13 +410,19 @@ class GoogleCalendarGrid {
     
     async saveEvent(form, popup) {
         const formData = new FormData(form);
+        
+        // Use getRandomEventColor if function exists, otherwise use fallback colors
+        const randomColor = typeof getRandomEventColor === 'function' ? 
+            getRandomEventColor() : 
+            ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'][Math.floor(Math.random() * 6)];
+        
         const eventData = {
             title: formData.get('title'),
             description: formData.get('description'),
             date: formData.get('date'),
             start_time: `${formData.get('date')}T${formData.get('startTime')}:00`,
             end_time: `${formData.get('date')}T${formData.get('endTime')}:00`,
-            color: 'blue' // Default color
+            color: randomColor // Random color
         };
         
         try {
