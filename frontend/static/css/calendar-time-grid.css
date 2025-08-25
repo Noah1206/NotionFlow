@@ -22,7 +22,7 @@
 }
 
 .time-gutter-header {
-    width: 80px;
+    width: 120px; /* Match the time-labels-column width */
     border-right: 1px solid #e1e5e9;
     flex-shrink: 0;
 }
@@ -83,23 +83,23 @@
 
 /* Time Labels Column */
 .time-labels-column {
-    width: 100px; /* Increased width for detailed labels */
+    width: 120px; /* Increased width to prevent text cutoff */
     flex-shrink: 0;
     border-right: 1px solid #e1e5e9;
     background: #f8fafc;
     position: relative;
-    padding-right: 8px;
+    padding-right: 12px; /* Increased padding for better spacing */
     padding-top: 10px; /* Add padding to align with grid */
 }
 
 .time-label {
     position: absolute;
-    right: 8px;
+    right: 12px; /* Increased to match the padding */
     font-size: 12px;
     color: #6b7280;
     font-weight: 500;
     background: #f8fafc;
-    padding: 2px 4px;
+    padding: 2px 6px; /* Slightly increased padding */
     user-select: none;
     display: flex;
     align-items: center;
@@ -163,7 +163,7 @@
 }
 
 .hour-line {
-    height: 160px;  /* Increased from 120px to 160px for maximum spacious layout */
+    height: 200px;  /* Increased from 160px to 200px for maximum vertical spacing */
     border-bottom: 1px solid #e1e5e9;
     position: relative;
 }
