@@ -337,17 +337,17 @@ class GoogleCalendarGrid {
         console.log('🎯 createEvent called:', {startDay, startHour, endDay, endHour});
         console.log('🗓️ Current weekStart:', this.weekStart);
         
-        // Create dates more carefully to avoid timezone issues
-        const startDate = new Date(this.weekStart.getTime());
-        startDate.setDate(startDate.getDate() + startDay);
+        // Calculate dates using milliseconds to avoid timezone issues
+        const millisecondsPerDay = 24 * 60 * 60 * 1000;
+        const startDate = new Date(this.weekStart.getTime() + (startDay * millisecondsPerDay));
         startDate.setHours(startHour, 0, 0, 0);
         
-        const endDate = new Date(this.weekStart.getTime());
-        endDate.setDate(endDate.getDate() + endDay);
+        const endDate = new Date(this.weekStart.getTime() + (endDay * millisecondsPerDay));
         endDate.setHours(endHour + 1, 0, 0, 0); // +1 for end time
         
         console.log('📅 Created dates - Start:', startDate, 'End:', endDate);
         console.log('📍 Expected day column:', startDay, 'Actual date:', startDate.toDateString());
+        console.log('📍 Day of week - Start:', startDate.getDay(), 'Expected:', startDay);
         
         this.showEventCreationPopup(startDate, endDate, startDay, startHour);
     }
@@ -484,6 +484,9 @@ class GoogleCalendarGrid {
                 
                 // Add to events array
                 this.events.push(fullEventData);
+                
+                // Save to localStorage as well for persistence
+                this.saveToLocalStorage(fullEventData);
                 
                 // Render the event on the grid
                 this.renderEvent(fullEventData);
@@ -692,12 +695,14 @@ class GoogleCalendarGrid {
     async loadExistingEvents() {
         console.log('📥 Loading existing events...');
         
-        // Try backend first, fallback to localStorage
+        // Always load from localStorage first for immediate functionality
+        this.loadBackupEvents();
+        
+        // Then try to sync with backend
         try {
             const calendarElement = document.querySelector('.calendar-workspace');
             if (!calendarElement?.dataset.calendarId) {
                 console.log('⚠️ No calendar workspace or ID found, using localStorage only');
-                this.loadBackupEvents();
                 return;
             }
             
