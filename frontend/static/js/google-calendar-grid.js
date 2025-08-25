@@ -13,6 +13,10 @@ class GoogleCalendarGrid {
             dayOfWeek: this.currentDate.getDay()
         });
         
+        // Initialize search and event list
+        this.initializeEventSearch();
+        this.initializeEventList();
+        
         // Selection state
         this.isSelecting = false;
         this.selectionStart = null;
@@ -367,6 +371,308 @@ class GoogleCalendarGrid {
         return `${year}-${month}-${day}`;
     }
     
+    showEventContextMenu(e, eventData) {
+        // Remove existing context menu
+        const existingMenu = document.querySelector('.event-context-menu');
+        if (existingMenu) {
+            existingMenu.remove();
+        }
+        
+        const menu = document.createElement('div');
+        menu.className = 'event-context-menu';
+        menu.style.cssText = `
+            position: fixed;
+            left: ${e.clientX}px;
+            top: ${e.clientY}px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            padding: 4px 0;
+            z-index: 1000;
+            min-width: 120px;
+        `;
+        
+        menu.innerHTML = `
+            <div class="context-menu-item" style="padding: 8px 16px; cursor: pointer; hover: background: #f0f0f0;">
+                <span>✏️ 편집</span>
+            </div>
+            <div class="context-menu-item" style="padding: 8px 16px; cursor: pointer; hover: background: #f0f0f0;">
+                <span>🗑️ 삭제</span>
+            </div>
+        `;
+        
+        // Add hover effect
+        menu.querySelectorAll('.context-menu-item').forEach(item => {
+            item.addEventListener('mouseenter', () => {
+                item.style.background = '#f0f0f0';
+            });
+            item.addEventListener('mouseleave', () => {
+                item.style.background = 'white';
+            });
+        });
+        
+        // Edit event
+        menu.querySelector('.context-menu-item:first-child').addEventListener('click', () => {
+            this.editEvent(eventData);
+            menu.remove();
+        });
+        
+        // Delete event
+        menu.querySelector('.context-menu-item:last-child').addEventListener('click', () => {
+            this.deleteEvent(eventData);
+            menu.remove();
+        });
+        
+        document.body.appendChild(menu);
+        
+        // Remove menu when clicking elsewhere
+        const removeMenu = (e) => {
+            if (!menu.contains(e.target)) {
+                menu.remove();
+                document.removeEventListener('click', removeMenu);
+            }
+        };
+        
+        setTimeout(() => {
+            document.addEventListener('click', removeMenu);
+        }, 100);
+    }
+    
+    editEvent(eventData) {
+        // Show edit popup similar to creation popup
+        const popup = document.createElement('div');
+        popup.className = 'event-creation-popup';
+        
+        const eventDate = new Date(eventData.date);
+        const dateStr = this.formatDateForInput(eventDate);
+        
+        popup.innerHTML = `
+            <div class="popup-header">
+                <div class="popup-title">일정 편집</div>
+                <button class="close-btn" onclick="this.closest('.event-creation-popup').remove()">&times;</button>
+            </div>
+            <form class="event-form">
+                <div class="form-field">
+                    <label>제목</label>
+                    <input type="text" name="title" value="${eventData.title}" required>
+                </div>
+                <div class="form-field">
+                    <label>날짜</label>
+                    <input type="date" name="date" value="${dateStr}">
+                </div>
+                <div class="form-field">
+                    <label>시간</label>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="time" name="startTime" value="${eventData.startTime}" required>
+                        <span>~</span>
+                        <input type="time" name="endTime" value="${eventData.endTime}" required>
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label>설명</label>
+                    <textarea name="description" rows="3">${eventData.description || ''}</textarea>
+                </div>
+                <button type="submit" class="submit-btn">수정</button>
+            </form>
+        `;
+        
+        this.container.appendChild(popup);
+        
+        popup.querySelector('form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            
+            // Update event data
+            eventData.title = formData.get('title');
+            eventData.date = formData.get('date');
+            eventData.startTime = formData.get('startTime');
+            eventData.endTime = formData.get('endTime');
+            eventData.description = formData.get('description');
+            
+            // Update in events array
+            const index = this.events.findIndex(e => e.id === eventData.id);
+            if (index !== -1) {
+                this.events[index] = eventData;
+            }
+            
+            // Update localStorage
+            this.saveToLocalStorage();
+            
+            // Re-render all events
+            this.clearRenderedEvents();
+            this.events.forEach(event => this.renderEvent(event));
+            
+            popup.remove();
+            
+            if (window.showNotification) {
+                showNotification('일정이 수정되었습니다', 'success');
+            }
+        });
+    }
+    
+    deleteEvent(eventData) {
+        if (confirm(`"${eventData.title}" 일정을 삭제하시겠습니까?`)) {
+            // Remove from events array
+            this.events = this.events.filter(e => e.id !== eventData.id);
+            
+            // Update localStorage
+            this.saveToLocalStorage();
+            
+            // Remove from DOM
+            const eventElement = this.container.querySelector(`[data-event-id="${eventData.id}"]`);
+            if (eventElement) {
+                eventElement.remove();
+            }
+            
+            if (window.showNotification) {
+                showNotification('일정이 삭제되었습니다', 'success');
+            }
+        }
+    }
+    
+    clearRenderedEvents() {
+        // Remove all rendered events from the DOM
+        this.container.querySelectorAll('.calendar-event').forEach(event => {
+            event.remove();
+        });
+    }
+    
+    saveToLocalStorage() {
+        try {
+            const storageKey = 'calendar_events_backup';
+            localStorage.setItem(storageKey, JSON.stringify(this.events));
+            console.log('💾 Events saved to localStorage');
+            
+            // Update event list when saving
+            this.updateEventList();
+        } catch (error) {
+            console.error('Failed to save to localStorage:', error);
+        }
+    }
+    
+    initializeEventSearch() {
+        const searchInput = document.getElementById('event-search-input');
+        const searchClearBtn = document.getElementById('search-clear-btn');
+        const searchResults = document.getElementById('search-results');
+        
+        if (!searchInput) return;
+        
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.trim();
+            
+            if (query) {
+                searchClearBtn.style.display = 'block';
+                this.searchEvents(query);
+            } else {
+                searchClearBtn.style.display = 'none';
+                searchResults.style.display = 'none';
+            }
+        });
+        
+        // Clear search function
+        window.clearEventSearch = () => {
+            searchInput.value = '';
+            searchClearBtn.style.display = 'none';
+            searchResults.style.display = 'none';
+        };
+    }
+    
+    searchEvents(query) {
+        const searchResults = document.getElementById('search-results');
+        if (!searchResults) return;
+        
+        const lowerQuery = query.toLowerCase();
+        const filteredEvents = this.events.filter(event => 
+            event.title.toLowerCase().includes(lowerQuery) ||
+            (event.description && event.description.toLowerCase().includes(lowerQuery))
+        );
+        
+        if (filteredEvents.length > 0) {
+            searchResults.innerHTML = filteredEvents.map(event => {
+                const eventDate = new Date(event.date);
+                const dateStr = this.formatEventDate(eventDate);
+                
+                return `
+                    <div class="search-result-item" onclick="window.googleCalendarGrid.highlightEvent('${event.id}')">
+                        <div class="search-result-title">${event.title}</div>
+                        <div class="search-result-date">${dateStr} ${event.startTime}-${event.endTime}</div>
+                    </div>
+                `;
+            }).join('');
+            searchResults.style.display = 'block';
+        } else {
+            searchResults.innerHTML = '<div class="no-results">검색 결과가 없습니다</div>';
+            searchResults.style.display = 'block';
+        }
+    }
+    
+    initializeEventList() {
+        // Initial load of event list
+        this.updateEventList();
+    }
+    
+    updateEventList() {
+        const eventListContainer = document.getElementById('event-list');
+        if (!eventListContainer) return;
+        
+        // Sort events by date and time
+        const sortedEvents = [...this.events].sort((a, b) => {
+            const dateA = new Date(a.date + 'T' + a.startTime);
+            const dateB = new Date(b.date + 'T' + b.startTime);
+            return dateA - dateB;
+        });
+        
+        if (sortedEvents.length > 0) {
+            eventListContainer.innerHTML = sortedEvents.map(event => {
+                const eventDate = new Date(event.date);
+                const dateStr = this.formatEventDate(eventDate);
+                
+                return `
+                    <div class="event-list-item" onclick="window.googleCalendarGrid.highlightEvent('${event.id}')" style="cursor: pointer; padding: 8px; margin-bottom: 8px; border-radius: 4px; background: #f5f5f5; hover: background: #e0e0e0;">
+                        <div class="event-list-title" style="font-weight: 500; color: #333;">${event.title}</div>
+                        <div class="event-list-date" style="font-size: 12px; color: #666; margin-top: 4px;">${dateStr}</div>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            eventListContainer.innerHTML = '<div style="padding: 16px; text-align: center; color: #999;">일정이 없습니다</div>';
+        }
+    }
+    
+    formatEventDate(date) {
+        const days = ['일', '월', '화', '수', '목', '금', '토'];
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        const dayOfWeek = days[date.getDay()];
+        
+        return `${month}월 ${day}일 ${dayOfWeek}요일`;
+    }
+    
+    highlightEvent(eventId) {
+        // Remove previous highlights
+        document.querySelectorAll('.calendar-event.highlighted').forEach(el => {
+            el.classList.remove('highlighted');
+        });
+        
+        // Find and highlight the event
+        const eventElement = document.querySelector(`[data-event-id="${eventId}"]`);
+        if (eventElement) {
+            eventElement.classList.add('highlighted');
+            eventElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Add temporary highlight effect
+            eventElement.style.transition = 'all 0.3s';
+            eventElement.style.transform = 'scale(1.05)';
+            eventElement.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+            
+            setTimeout(() => {
+                eventElement.style.transform = 'scale(1)';
+                eventElement.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+            }, 300);
+        }
+    }
+    
     showEventCreationPopup(startDate, endDate, day, hour) {
         // Remove existing popup
         const existingPopup = this.container.querySelector('.event-creation-popup');
@@ -506,6 +812,9 @@ class GoogleCalendarGrid {
                 // Render the event on the grid
                 this.renderEvent(fullEventData);
                 
+                // Update the event list
+                this.updateEventList();
+                
                 // Show success notification
                 if (window.showNotification) {
                     showNotification(`일정 "${eventData.title}"이 생성되었습니다`, 'success');
@@ -529,6 +838,9 @@ class GoogleCalendarGrid {
             
             this.events.push(localEventData);
             this.renderEvent(localEventData);
+            
+            // Update the event list
+            this.updateEventList();
             
             // Save to localStorage as backup
             this.saveToLocalStorage(localEventData);
@@ -648,6 +960,13 @@ class GoogleCalendarGrid {
         eventElement.draggable = true;
         eventElement.dataset.eventId = eventData.id;
         eventElement.dataset.originalTop = top;
+        eventElement.dataset.eventData = JSON.stringify(eventData);
+        
+        // Add right-click context menu
+        eventElement.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            this.showEventContextMenu(e, eventData);
+        });
         
         eventElement.addEventListener('dragstart', (e) => {
             eventElement.style.opacity = '0.7';
@@ -792,6 +1111,8 @@ class GoogleCalendarGrid {
                         this.renderEvent(frontendEvent);
                     });
                     console.log(`✅ Successfully loaded ${events.length} events from backend`);
+                    // Update the event list
+                    this.updateEventList();
                 } else {
                     // No backend events, try localStorage
                     this.loadBackupEvents();
@@ -818,6 +1139,8 @@ class GoogleCalendarGrid {
                 this.renderEvent(event);
             });
             console.log(`✅ Loaded ${backupEvents.length} events from localStorage backup`);
+            // Update the event list
+            this.updateEventList();
         } else {
             console.log('📝 No backup events found in localStorage');
         }
@@ -897,6 +1220,138 @@ class GoogleCalendarGrid {
         
         const gridBody = this.container.querySelector('.calendar-grid-body');
         gridBody.appendChild(timeLine);
+    }
+
+    // Event Search and List Methods
+    searchEvents(query) {
+        console.log('🔍 Searching events for:', query);
+        const results = this.events.filter(event => 
+            event.title.toLowerCase().includes(query.toLowerCase()) ||
+            (event.description && event.description.toLowerCase().includes(query.toLowerCase()))
+        );
+        
+        console.log('🔍 Search results:', results);
+        this.displaySearchResults(results, query);
+        return results;
+    }
+    
+    displaySearchResults(results, query) {
+        console.log('📊 Displaying search results:', results.length);
+        
+        // Clear previous highlighting
+        this.clearEventHighlighting();
+        
+        // Highlight matching events in the calendar
+        results.forEach(event => {
+            this.highlightEvent(event.id);
+        });
+        
+        // Update event list to show only search results
+        this.updateEventList(results);
+    }
+    
+    clearEventHighlighting() {
+        const highlightedEvents = document.querySelectorAll('.calendar-event.search-highlighted');
+        highlightedEvents.forEach(event => {
+            event.classList.remove('search-highlighted');
+        });
+    }
+    
+    highlightEvent(eventId) {
+        const eventElements = document.querySelectorAll(`.calendar-event[data-event-id="${eventId}"]`);
+        eventElements.forEach(element => {
+            element.classList.add('search-highlighted');
+        });
+    }
+    
+    initializeEventList() {
+        console.log('📋 Initializing event list');
+        this.updateEventList();
+    }
+    
+    updateEventList(eventsToShow = null) {
+        const eventList = document.getElementById('event-list');
+        if (!eventList) {
+            console.warn('Event list container not found');
+            return;
+        }
+        
+        const events = eventsToShow || this.events;
+        console.log('📋 Updating event list with', events.length, 'events');
+        
+        // Clear existing list
+        eventList.innerHTML = '';
+        
+        if (events.length === 0) {
+            eventList.innerHTML = `
+                <div class="event-list-empty">
+                    ${eventsToShow ? '검색 결과가 없습니다' : '등록된 일정이 없습니다'}
+                </div>
+            `;
+            return;
+        }
+        
+        // Sort events by date and time
+        const sortedEvents = [...events].sort((a, b) => {
+            const dateA = new Date(a.date + 'T' + a.startTime);
+            const dateB = new Date(b.date + 'T' + b.startTime);
+            return dateA - dateB;
+        });
+        
+        sortedEvents.forEach(event => {
+            const eventItem = this.createEventListItem(event);
+            eventList.appendChild(eventItem);
+        });
+    }
+    
+    createEventListItem(event) {
+        const item = document.createElement('div');
+        item.className = 'event-list-item';
+        item.dataset.eventId = event.id;
+        
+        // Format date and time
+        const eventDate = new Date(event.date);
+        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+        const dayName = dayNames[eventDate.getDay()];
+        const formattedDate = `${eventDate.getMonth() + 1}월 ${eventDate.getDate()}일 (${dayName})`;
+        
+        // Format time range
+        const timeRange = `${event.startTime} - ${event.endTime}`;
+        
+        item.innerHTML = `
+            <div class="event-list-item-title">${event.title}</div>
+            <div class="event-list-item-time">${formattedDate} ${timeRange}</div>
+        `;
+        
+        // Add click handler to highlight event
+        item.addEventListener('click', () => {
+            this.highlightEventInCalendar(event.id);
+        });
+        
+        return item;
+    }
+    
+    highlightEventInCalendar(eventId) {
+        // Clear previous highlighting
+        document.querySelectorAll('.event-list-item.highlighted').forEach(item => {
+            item.classList.remove('highlighted');
+        });
+        
+        // Highlight clicked item
+        const clickedItem = document.querySelector(`[data-event-id="${eventId}"]`);
+        if (clickedItem) {
+            clickedItem.classList.add('highlighted');
+        }
+        
+        // Find and highlight the event in calendar
+        this.clearEventHighlighting();
+        this.highlightEvent(eventId);
+        
+        // Scroll to the event if needed
+        const eventElement = document.querySelector(`.calendar-event[data-event-id="${eventId}"]`);
+        if (eventElement) {
+            eventElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
     }
 }
 
