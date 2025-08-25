@@ -5,7 +5,7 @@ const TIME_GRID_CONFIG = {
     startHour: 0,   // Start at 12 AM (midnight)
     endHour: 23,    // End at 11 PM
     defaultViewStart: 7, // Default visible start at 7 AM
-    hourHeight: 80, // Increased pixels per hour for more detail
+    hourHeight: 160, // Increased from 120px to 160px for even more spacious layout
     snapMinutes: 15, // Snap to 15-minute intervals
     showHalfHours: true, // Show 30-minute marks
     showQuarterHours: true, // Show 15-minute marks
@@ -15,17 +15,27 @@ const TIME_GRID_CONFIG = {
 // Available event colors for random selection
 const EVENT_COLORS = [
     '#3b82f6', // Blue
-    '#10b981', // Green
-    '#f59e0b', // Orange
+    '#10b981', // Emerald
+    '#f59e0b', // Amber
     '#ef4444', // Red
     '#8b5cf6', // Purple
     '#ec4899', // Pink
     '#14b8a6', // Teal
-    '#f97316', // Dark Orange
-    '#06b6d4', // Cyan
+    '#f97316', // Orange
+    '#06b6d4', // Sky Blue
     '#84cc16', // Lime
     '#a855f7', // Violet
-    '#6366f1'  // Indigo
+    '#6366f1', // Indigo
+    '#dc2626', // Red-600
+    '#059669', // Emerald-600
+    '#d97706', // Amber-600
+    '#7c3aed', // Violet-600
+    '#db2777', // Pink-600
+    '#0891b2', // Cyan-600
+    '#65a30d', // Lime-600
+    '#4f46e5', // Indigo-600
+    '#be123c', // Rose-600
+    '#047857'  // Emerald-700
 ];
 
 // Get random color from the palette
@@ -624,7 +634,7 @@ function handleGridMouseDown(e) {
     if (e.target.closest('.event-block')) return; // Ignore if clicking on event
     
     const rect = e.currentTarget.getBoundingClientRect();
-    const relativeY = e.clientY - rect.top;
+    const relativeY = e.clientY - rect.top - 10; // Subtract padding-top
     const relativeX = e.clientX - rect.left;
     
     // Calculate time from Y position
@@ -690,7 +700,7 @@ function handleMouseMove(e) {
         updateEventTimeDisplay(selectedEvent);
     } else if (isResizing && selectedEvent) {
         const rect = selectedEvent.parentElement.getBoundingClientRect();
-        const relativeY = e.clientY - rect.top;
+        const relativeY = e.clientY - rect.top - 10; // Subtract padding-top
         const newHeight = relativeY - parseInt(selectedEvent.style.top);
         
         // Minimum height (15 minutes)

@@ -412,9 +412,14 @@ class GoogleCalendarGrid {
         const formData = new FormData(form);
         
         // Use getRandomEventColor if function exists, otherwise use fallback colors
+        const fallbackColors = [
+            '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', 
+            '#06b6d4', '#84cc16', '#a855f7', '#6366f1', '#dc2626', '#059669', '#d97706', '#7c3aed',
+            '#db2777', '#0891b2', '#65a30d', '#4f46e5', '#be123c', '#047857'
+        ];
         const randomColor = typeof getRandomEventColor === 'function' ? 
             getRandomEventColor() : 
-            ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'][Math.floor(Math.random() * 6)];
+            fallbackColors[Math.floor(Math.random() * fallbackColors.length)];
         
         const eventData = {
             title: formData.get('title'),

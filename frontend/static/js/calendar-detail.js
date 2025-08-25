@@ -1176,7 +1176,11 @@ function saveEvent() {
     const allDay = document.getElementById('event-allday').checked;
     
     // Use random color instead of user selection
-    const randomColors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#06b6d4', '#84cc16', '#a855f7', '#6366f1'];
+    const randomColors = [
+        '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', 
+        '#06b6d4', '#84cc16', '#a855f7', '#6366f1', '#dc2626', '#059669', '#d97706', '#7c3aed',
+        '#db2777', '#0891b2', '#65a30d', '#4f46e5', '#be123c', '#047857'
+    ];
     const color = randomColors[Math.floor(Math.random() * randomColors.length)];
     
     if (!title || !start) {

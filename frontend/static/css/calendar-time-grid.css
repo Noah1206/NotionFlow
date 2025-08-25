@@ -163,7 +163,7 @@
 }
 
 .hour-line {
-    height: 80px;  /* Increased from 60px to 80px for more spacious layout */
+    height: 160px;  /* Increased from 120px to 160px for maximum spacious layout */
     border-bottom: 1px solid #e1e5e9;
     position: relative;
 }
