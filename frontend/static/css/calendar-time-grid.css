@@ -82,6 +82,7 @@
     display: flex;
     overflow-y: auto;
     position: relative;
+    min-height: 15000px; /* Force minimum height to accommodate tall cells */
 }
 
 /* Time Labels Column */
@@ -153,6 +154,7 @@
     flex: 1;
     position: relative;
     padding-top: 10px; /* Add padding to create space at the top */
+    min-height: 15000px; /* Force container to be tall enough for 600px cells */
 }
 
 /* Time Grid Lines */
@@ -163,6 +165,7 @@
     right: 0;
     bottom: 0;
     pointer-events: none;
+    min-height: 15000px; /* Ensure grid lines extend full height */
 }
 
 .hour-line {
