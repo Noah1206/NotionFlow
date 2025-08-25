@@ -686,56 +686,53 @@ class GoogleCalendarGrid {
     async loadExistingEvents() {
         console.log('📥 Loading existing events...');
         
+        // For now, prioritize localStorage since backend API is not fully implemented
+        console.log('💾 Using localStorage as primary storage (backend API not ready)');
+        this.loadBackupEvents();
+        
+        // TODO: Enable backend loading once API endpoints are implemented
+        /*
         try {
-            // Get calendar ID from the DOM
             const calendarElement = document.querySelector('.calendar-workspace');
-            if (!calendarElement) {
-                console.log('⚠️ No calendar workspace found');
-                return;
-            }
-            
-            const calendarId = calendarElement.dataset.calendarId;
-            if (!calendarId) {
-                console.log('⚠️ No calendar ID found');
-                return;
-            }
-            
-            console.log('🔍 Fetching events for calendar:', calendarId);
-            
-            // Fetch events from backend
-            const response = await fetch(`/api/calendars/${calendarId}/events`);
-            
-            if (!response.ok) {
-                console.log(`⚠️ Failed to fetch events from backend: ${response.status}`);
-                // Try to load from localStorage backup
+            if (!calendarElement?.dataset.calendarId) {
+                console.log('⚠️ No calendar workspace or ID found, using localStorage only');
                 this.loadBackupEvents();
                 return;
             }
             
-            const events = await response.json();
-            console.log('📅 Loaded events:', events);
+            const calendarId = calendarElement.dataset.calendarId;
+            console.log('🔍 Fetching events for calendar:', calendarId);
             
-            // Clear existing events and render loaded ones
-            this.events = [];
+            const response = await fetch(`/api/calendars/${calendarId}/events`);
             
-            if (events && events.length > 0) {
-                events.forEach(event => {
-                    // Convert backend event format to frontend format
-                    const frontendEvent = this.convertBackendEventToFrontend(event);
-                    this.events.push(frontendEvent);
-                    this.renderEvent(frontendEvent);
-                });
+            if (response.ok) {
+                const events = await response.json();
+                console.log('📅 Loaded events from backend:', events);
                 
-                console.log(`✅ Successfully loaded and rendered ${events.length} events`);
+                // Clear existing events and render loaded ones
+                this.events = [];
+                
+                if (events && events.length > 0) {
+                    events.forEach(event => {
+                        const frontendEvent = this.convertBackendEventToFrontend(event);
+                        this.events.push(frontendEvent);
+                        this.renderEvent(frontendEvent);
+                    });
+                    console.log(`✅ Successfully loaded ${events.length} events from backend`);
+                } else {
+                    // No backend events, try localStorage
+                    this.loadBackupEvents();
+                }
             } else {
-                console.log('📝 No existing events found');
+                console.log(`📝 Backend API not available (${response.status}) - using localStorage`);
+                this.loadBackupEvents();
             }
             
         } catch (error) {
-            console.error('❌ Error loading existing events:', error);
-            // Try to load from localStorage backup as fallback
+            console.log('📝 Backend connection failed - using localStorage:', error.message);
             this.loadBackupEvents();
         }
+        */
     }
     
     loadBackupEvents() {
