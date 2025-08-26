@@ -788,62 +788,81 @@ class GoogleCalendarGrid {
         popup.innerHTML = `
             <div class="popup-header">
                 <div class="popup-title">새 일정</div>
-                <button class="close-btn" onclick="this.closest('.event-creation-popup').remove()">&times;</button>
+                <button class="close-btn" onclick="this.closest('.event-creation-popup').remove()">×</button>
             </div>
-            <form class="event-form">
-                <div class="form-field">
-                    <label>제목</label>
-                    <input type="text" name="title" placeholder="일정 제목 입력" required>
-                </div>
-                <div class="form-field">
-                    <label>날짜</label>
-                    <input type="date" name="date" value="${this.formatDateForInput(startDate)}">
-                </div>
-                <div class="form-field">
-                    <label>시간</label>
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                        <input type="time" name="startTime" value="${startTimeStr}" required>
-                        <span>-</span>
-                        <input type="time" name="endTime" value="${endTimeStr}" required>
+            <div class="popup-content">
+                <div class="datetime-section">
+                    <div class="datetime-row">
+                        <div class="datetime-label">날짜</div>
+                        <button type="button" class="datetime-button" id="date-button" onclick="window.googleCalendarGrid.showDatePicker(this)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="16" y1="2" x2="16" y2="6"/>
+                                <line x1="8" y1="2" x2="8" y2="6"/>
+                                <line x1="3" y1="10" x2="21" y2="10"/>
+                            </svg>
+                            <span class="date-display">${dateStr}</span>
+                        </button>
+                    </div>
+                    <div class="datetime-row">
+                        <div class="datetime-label">시간</div>
+                        <button type="button" class="datetime-button" id="start-time-button" onclick="window.googleCalendarGrid.showTimePicker(this, 'start')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12,6 12,12 16,14"/>
+                            </svg>
+                            <span class="time-display">오전 ${startTimeStr}</span>
+                        </button>
+                        <span class="time-range-separator">-</span>
+                        <button type="button" class="datetime-button" id="end-time-button" onclick="window.googleCalendarGrid.showTimePicker(this, 'end')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12,6 12,12 16,14"/>
+                            </svg>
+                            <span class="time-display">오전 ${endTimeStr}</span>
+                        </button>
                     </div>
                 </div>
-                <div class="form-field">
-                    <label>설명</label>
-                    <textarea name="description" placeholder="일정 설명 (선택사항)" rows="2"></textarea>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn-secondary" onclick="this.closest('.event-creation-popup').remove()">
-                        취소
-                    </button>
-                    <button type="submit" class="btn-primary">
-                        저장
-                    </button>
-                </div>
-            </form>
+                
+                <form class="event-form" id="event-creation-form">
+                    <div class="form-section">
+                        <div class="form-field">
+                            <label>제목</label>
+                            <input type="text" name="title" class="title-input" placeholder="일정 제목 입력" required>
+                        </div>
+                        <div class="form-field">
+                            <label>설명</label>
+                            <textarea name="description" placeholder="일정 설명 (선택사항)"></textarea>
+                        </div>
+                    </div>
+                    
+                    <input type="hidden" name="date" value="${this.formatDateForInput(startDate)}">
+                    <input type="hidden" name="startTime" value="${startTimeStr}">
+                    <input type="hidden" name="endTime" value="${endTimeStr}">
+                </form>
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" onclick="this.closest('.event-creation-popup').remove()">
+                    취소
+                </button>
+                <button type="button" class="btn-primary" onclick="window.googleCalendarGrid.saveEventFromFullScreen()">
+                    저장
+                </button>
+            </div>
         `;
         
-        // Position popup
-        const targetCell = this.container.querySelector(`[data-day="${day}"][data-hour="${hour}"]`);
-        if (targetCell) {
-            const rect = targetCell.getBoundingClientRect();
-            const containerRect = this.container.getBoundingClientRect();
-            
-            popup.style.left = `${Math.min(rect.left - containerRect.left, containerRect.width - 350)}px`;
-            popup.style.top = `${rect.top - containerRect.top + 50}px`;
-        }
-        
-        this.container.appendChild(popup);
+        // Append to body for modal overlay effect
+        document.body.appendChild(popup);
         
         // Focus on title input
-        const titleInput = popup.querySelector('input[name="title"]');
-        titleInput.focus();
+        setTimeout(() => {
+            const titleInput = popup.querySelector('input[name="title"]');
+            titleInput.focus();
+        }, 100);
         
-        // Handle form submission
-        const form = popup.querySelector('.event-form');
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.saveEvent(form, popup);
-        });
+        // Store popup reference for later use
+        this.currentPopup = popup;
     }
     
     async saveEvent(form, popup) {
@@ -1121,6 +1140,193 @@ class GoogleCalendarGrid {
         // Show notification
         if (window.showNotification) {
             showNotification(`일정 "${eventData.title}" 시간이 수정되었습니다`, 'success');
+        }
+    }
+
+    // New methods for full screen event creation UI
+    showDatePicker(button) {
+        // Create date picker input element
+        const dateInput = document.createElement('input');
+        dateInput.type = 'date';
+        dateInput.style.position = 'absolute';
+        dateInput.style.left = '-9999px';
+        dateInput.style.opacity = '0';
+        
+        // Get current date from hidden input
+        const form = document.getElementById('event-creation-form');
+        const currentDate = form.querySelector('input[name="date"]').value;
+        dateInput.value = currentDate;
+        
+        document.body.appendChild(dateInput);
+        dateInput.focus();
+        dateInput.click();
+        
+        dateInput.addEventListener('change', (e) => {
+            const selectedDate = new Date(e.target.value + 'T00:00:00');
+            const formattedDate = selectedDate.toLocaleDateString('ko-KR');
+            
+            // Update button display
+            button.querySelector('.date-display').textContent = formattedDate;
+            
+            // Update hidden input
+            form.querySelector('input[name="date"]').value = e.target.value;
+            
+            // Remove temporary input
+            document.body.removeChild(dateInput);
+        });
+        
+        dateInput.addEventListener('blur', () => {
+            setTimeout(() => {
+                if (document.body.contains(dateInput)) {
+                    document.body.removeChild(dateInput);
+                }
+            }, 100);
+        });
+    }
+    
+    showTimePicker(button, timeType) {
+        // Create time picker input element
+        const timeInput = document.createElement('input');
+        timeInput.type = 'time';
+        timeInput.style.position = 'absolute';
+        timeInput.style.left = '-9999px';
+        timeInput.style.opacity = '0';
+        
+        // Get current time from hidden input
+        const form = document.getElementById('event-creation-form');
+        const currentTime = form.querySelector(`input[name="${timeType}Time"]`).value;
+        timeInput.value = currentTime;
+        
+        document.body.appendChild(timeInput);
+        timeInput.focus();
+        timeInput.click();
+        
+        timeInput.addEventListener('change', (e) => {
+            const selectedTime = e.target.value;
+            const [hours, minutes] = selectedTime.split(':');
+            const hour24 = parseInt(hours);
+            
+            // Format display time with Korean AM/PM
+            let displayTime;
+            if (hour24 === 0) {
+                displayTime = `오전 ${selectedTime}`;
+            } else if (hour24 < 12) {
+                displayTime = `오전 ${selectedTime}`;
+            } else if (hour24 === 12) {
+                displayTime = `오후 ${selectedTime}`;
+            } else {
+                displayTime = `오후 ${selectedTime}`;
+            }
+            
+            // Update button display
+            button.querySelector('.time-display').textContent = displayTime;
+            button.classList.add('active');
+            
+            // Update hidden input
+            form.querySelector(`input[name="${timeType}Time"]`).value = selectedTime;
+            
+            // Remove temporary input
+            document.body.removeChild(timeInput);
+        });
+        
+        timeInput.addEventListener('blur', () => {
+            setTimeout(() => {
+                if (document.body.contains(timeInput)) {
+                    document.body.removeChild(timeInput);
+                }
+            }, 100);
+        });
+    }
+    
+    async saveEventFromFullScreen() {
+        const form = document.getElementById('event-creation-form');
+        if (!form) return;
+        
+        const formData = new FormData(form);
+        
+        // Validate required fields
+        if (!formData.get('title').trim()) {
+            alert('일정 제목을 입력해주세요.');
+            form.querySelector('input[name="title"]').focus();
+            return;
+        }
+        
+        // Use getRandomEventColor if function exists, otherwise use fallback colors
+        const fallbackColors = [
+            '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', 
+            '#06b6d4', '#84cc16', '#a855f7', '#6366f1', '#dc2626', '#059669', '#d97706', '#7c3aed',
+            '#db2777', '#0891b2', '#65a30d', '#4f46e5', '#be123c', '#047857'
+        ];
+        const randomColor = typeof getRandomEventColor === 'function' ? 
+            getRandomEventColor() : 
+            fallbackColors[Math.floor(Math.random() * fallbackColors.length)];
+        
+        const eventData = {
+            title: formData.get('title'),
+            description: formData.get('description'),
+            date: formData.get('date'),
+            startTime: formData.get('startTime'),
+            endTime: formData.get('endTime'),
+            color: randomColor,
+            id: this.generateEventId()
+        };
+        
+        try {
+            // Save to server
+            const response = await fetch(`/api/calendars/${this.calendarId}/events`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(eventData)
+            });
+            
+            if (response.ok) {
+                const savedEvent = await response.json();
+                console.log('✅ Event saved to server:', savedEvent);
+                
+                // Add to local events
+                this.events.push(eventData);
+                
+                // Save to localStorage backup
+                this.saveToLocalStorage();
+                
+                // Re-render calendar
+                this.renderEvents();
+                this.updateEventList();
+                
+                // Close popup
+                if (this.currentPopup) {
+                    this.currentPopup.remove();
+                    this.currentPopup = null;
+                }
+                
+                // Show success notification
+                if (window.showNotification) {
+                    showNotification(`일정 "${eventData.title}"이(가) 저장되었습니다`, 'success');
+                }
+            } else {
+                throw new Error('Failed to save event to server');
+            }
+        } catch (error) {
+            console.error('❌ Error saving event:', error);
+            
+            // Still save locally for offline functionality
+            this.events.push(eventData);
+            this.saveToLocalStorage();
+            this.renderEvents();
+            this.updateEventList();
+            
+            // Close popup
+            if (this.currentPopup) {
+                this.currentPopup.remove();
+                this.currentPopup = null;
+            }
+            
+            // Show warning notification
+            if (window.showNotification) {
+                showNotification(`일정이 로컬에 저장되었습니다 (서버 오류)`, 'warning');
+            }
         }
     }
 
