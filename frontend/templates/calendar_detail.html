@@ -392,6 +392,66 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Event Form Widget -->
+            <div class="sidebar-widget event-form-widget" id="event-form-widget" style="display: none;">
+                <div class="widget-header">
+                    <div class="widget-icon">📝</div>
+                    <h4 id="event-form-title">새 일정</h4>
+                    <button class="close-form-btn" onclick="closeEventForm()" title="닫기">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="event-form-content">
+                    <form id="sidebar-event-form" onsubmit="saveSidebarEvent(event)">
+                        <div class="form-group">
+                            <label for="sidebar-event-title">제목</label>
+                            <input type="text" id="sidebar-event-title" placeholder="일정 제목을 입력하세요" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sidebar-event-date">날짜</label>
+                            <input type="date" id="sidebar-event-date" required>
+                        </div>
+                        
+                        <div class="time-inputs">
+                            <div class="form-group">
+                                <label for="sidebar-start-time">시작 시간</label>
+                                <input type="time" id="sidebar-start-time" value="09:00">
+                            </div>
+                            <div class="form-group">
+                                <label for="sidebar-end-time">종료 시간</label>
+                                <input type="time" id="sidebar-end-time" value="10:00">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sidebar-event-description">설명 (선택사항)</label>
+                            <textarea id="sidebar-event-description" rows="3" placeholder="일정 설명을 입력하세요"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>색상</label>
+                            <div class="color-picker">
+                                <div class="color-option active" data-color="#3b82f6" style="background: #3b82f6;"></div>
+                                <div class="color-option" data-color="#ef4444" style="background: #ef4444;"></div>
+                                <div class="color-option" data-color="#10b981" style="background: #10b981;"></div>
+                                <div class="color-option" data-color="#f59e0b" style="background: #f59e0b;"></div>
+                                <div class="color-option" data-color="#8b5cf6" style="background: #8b5cf6;"></div>
+                                <div class="color-option" data-color="#06b6d4" style="background: #06b6d4;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn-cancel" onclick="closeEventForm()">취소</button>
+                            <button type="submit" class="btn-save">저장</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
 
         <!-- Center Calendar Area - Google Calendar Style Grid -->
@@ -1640,6 +1700,152 @@
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* Event Form Widget Styles */
+.event-form-widget {
+    position: sticky;
+    bottom: 0;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    margin-top: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.event-form-widget .widget-header {
+    position: relative;
+    padding: 16px;
+    border-bottom: 1px solid #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.event-form-widget .widget-header h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.close-form-btn {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    border-radius: 4px;
+    color: #6b7280;
+    transition: all 0.2s ease;
+}
+
+.close-form-btn:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.event-form-content {
+    padding: 16px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.event-form-content .form-group {
+    margin-bottom: 16px;
+}
+
+.event-form-content .form-group:last-child {
+    margin-bottom: 0;
+}
+
+.event-form-content label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 6px;
+}
+
+.event-form-content input,
+.event-form-content textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.event-form-content input:focus,
+.event-form-content textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.event-form-content .time-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.event-form-content .color-picker {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.event-form-content .color-option {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.event-form-content .color-option:hover,
+.event-form-content .color-option.active {
+    border-color: #374151;
+    transform: scale(1.1);
+}
+
+.event-form-content .form-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.event-form-content .btn-cancel,
+.event-form-content .btn-save {
+    flex: 1;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.event-form-content .btn-cancel {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.event-form-content .btn-cancel:hover {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.event-form-content .btn-save {
+    background: #3b82f6;
+    color: white;
+}
+
+.event-form-content .btn-save:hover {
+    background: #2563eb;
 }
 </style>
 

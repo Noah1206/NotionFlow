@@ -386,7 +386,21 @@ class GoogleCalendarGrid {
         console.log('📍 Expected day column:', startDay, 'Actual date:', startDate.toDateString());
         console.log('📍 Day of week - Start:', startDate.getDay(), 'Expected:', startDay);
         
-        this.showEventCreationPopup(startDate, endDate, startDay, startHour);
+        // Open sidebar event form instead of popup
+        const dateStr = startDate.toISOString().split('T')[0];
+        const startTimeStr = String(startHour).padStart(2, '0') + ':00';
+        const endTimeStr = String(endHour + 1).padStart(2, '0') + ':00';
+        
+        // Open sidebar form with pre-filled data
+        openEventForm(dateStr, null);
+        
+        // Pre-fill time fields after form opens
+        setTimeout(() => {
+            const startTimeInput = document.getElementById('sidebar-start-time');
+            const endTimeInput = document.getElementById('sidebar-end-time');
+            if (startTimeInput) startTimeInput.value = startTimeStr;
+            if (endTimeInput) endTimeInput.value = endTimeStr;
+        }, 100);
     }
     
     formatDateForInput(date) {
@@ -476,76 +490,8 @@ class GoogleCalendarGrid {
     }
     
     editEvent(eventData) {
-        // Show edit popup similar to creation popup
-        const popup = document.createElement('div');
-        popup.className = 'event-creation-popup';
-        
-        const eventDate = new Date(eventData.date);
-        const dateStr = this.formatDateForInput(eventDate);
-        
-        popup.innerHTML = `
-            <div class="popup-header">
-                <div class="popup-title">일정 편집</div>
-                <button class="close-btn" onclick="this.closest('.event-creation-popup').remove()">&times;</button>
-            </div>
-            <form class="event-form">
-                <div class="form-field">
-                    <label>제목</label>
-                    <input type="text" name="title" value="${eventData.title}" required>
-                </div>
-                <div class="form-field">
-                    <label>날짜</label>
-                    <input type="date" name="date" value="${dateStr}">
-                </div>
-                <div class="form-field">
-                    <label>시간</label>
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                        <input type="time" name="startTime" value="${eventData.startTime}" required>
-                        <span>~</span>
-                        <input type="time" name="endTime" value="${eventData.endTime}" required>
-                    </div>
-                </div>
-                <div class="form-field">
-                    <label>설명</label>
-                    <textarea name="description" rows="3">${eventData.description || ''}</textarea>
-                </div>
-                <button type="submit" class="submit-btn">수정</button>
-            </form>
-        `;
-        
-        this.container.appendChild(popup);
-        
-        popup.querySelector('form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            
-            // Update event data
-            eventData.title = formData.get('title');
-            eventData.date = formData.get('date');
-            eventData.startTime = formData.get('startTime');
-            eventData.endTime = formData.get('endTime');
-            eventData.description = formData.get('description');
-            
-            // Update in events array
-            const index = this.events.findIndex(e => e.id === eventData.id);
-            if (index !== -1) {
-                this.events[index] = eventData;
-            }
-            
-            // Update localStorage with current events
-            const storageKey = 'calendar_events_backup';
-            localStorage.setItem(storageKey, JSON.stringify(this.events));
-            
-            // Re-render all events
-            this.clearRenderedEvents();
-            this.events.filter(event => event && event.id && event.date).forEach(event => this.renderEvent(event));
-            
-            popup.remove();
-            
-            if (window.showNotification) {
-                showNotification('일정이 수정되었습니다', 'success');
-            }
-        });
+        // Open sidebar form for editing
+        openEventForm(null, eventData);
     }
     
     async deleteEvent(eventData) {
@@ -2293,6 +2239,165 @@ class GoogleCalendarGrid {
         }
     }
 }
+
+// ============ SIDEBAR EVENT FORM FUNCTIONS ============
+
+function openEventForm(date = null, eventData = null) {
+    const formWidget = document.getElementById('event-form-widget');
+    const formTitle = document.getElementById('event-form-title');
+    const form = document.getElementById('sidebar-event-form');
+    
+    if (!formWidget) return;
+    
+    // Show the form widget
+    formWidget.style.display = 'block';
+    
+    // Reset form
+    form.reset();
+    
+    // Set form mode (create or edit)
+    if (eventData) {
+        // Edit mode
+        formTitle.textContent = '일정 수정';
+        document.getElementById('sidebar-event-title').value = eventData.title || '';
+        document.getElementById('sidebar-event-date').value = eventData.date || '';
+        document.getElementById('sidebar-start-time').value = eventData.startTime || '09:00';
+        document.getElementById('sidebar-end-time').value = eventData.endTime || '10:00';
+        document.getElementById('sidebar-event-description').value = eventData.description || '';
+        
+        // Set color
+        const colorOptions = formWidget.querySelectorAll('.color-option');
+        colorOptions.forEach(option => {
+            option.classList.remove('active');
+            if (option.dataset.color === eventData.color) {
+                option.classList.add('active');
+            }
+        });
+        
+        // Store event ID for editing
+        form.dataset.eventId = eventData.id;
+    } else {
+        // Create mode
+        formTitle.textContent = '새 일정';
+        if (date) {
+            document.getElementById('sidebar-event-date').value = date;
+        }
+        delete form.dataset.eventId;
+    }
+    
+    // Setup color picker
+    setupSidebarColorPicker();
+    
+    // Scroll to form
+    formWidget.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    
+    // Focus on title input
+    setTimeout(() => {
+        document.getElementById('sidebar-event-title').focus();
+    }, 100);
+}
+
+function closeEventForm() {
+    const formWidget = document.getElementById('event-form-widget');
+    if (formWidget) {
+        formWidget.style.display = 'none';
+    }
+}
+
+function setupSidebarColorPicker() {
+    const colorOptions = document.querySelectorAll('.event-form-widget .color-option');
+    colorOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            colorOptions.forEach(opt => opt.classList.remove('active'));
+            option.classList.add('active');
+        });
+    });
+}
+
+function saveSidebarEvent(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const eventId = form.dataset.eventId;
+    
+    // Get form data
+    const title = document.getElementById('sidebar-event-title').value.trim();
+    const date = document.getElementById('sidebar-event-date').value;
+    const startTime = document.getElementById('sidebar-start-time').value;
+    const endTime = document.getElementById('sidebar-end-time').value;
+    const description = document.getElementById('sidebar-event-description').value.trim();
+    const activeColor = document.querySelector('.event-form-widget .color-option.active');
+    const color = activeColor ? activeColor.dataset.color : '#3b82f6';
+    
+    // Validation
+    if (!title) {
+        alert('일정 제목을 입력해주세요.');
+        return;
+    }
+    
+    if (!date) {
+        alert('날짜를 선택해주세요.');
+        return;
+    }
+    
+    // Create/update event data
+    const eventData = {
+        id: eventId || Date.now().toString(),
+        title,
+        date,
+        startTime,
+        endTime,
+        description,
+        color
+    };
+    
+    // Get calendar instance
+    const calendarInstance = window.googleCalendarGrid;
+    if (!calendarInstance) {
+        console.error('Calendar instance not found');
+        return;
+    }
+    
+    if (eventId) {
+        // Edit existing event
+        const index = calendarInstance.events.findIndex(e => e.id === eventId);
+        if (index !== -1) {
+            calendarInstance.events[index] = eventData;
+            
+            // Remove old event from DOM
+            const oldElements = document.querySelectorAll(`[data-event-id="${eventId}"]`);
+            oldElements.forEach(el => el.remove());
+        }
+    } else {
+        // Add new event
+        calendarInstance.events.push(eventData);
+    }
+    
+    // Update localStorage
+    const storageKey = 'calendar_events_backup';
+    localStorage.setItem(storageKey, JSON.stringify(calendarInstance.events));
+    
+    // Render the event
+    calendarInstance.renderEvent(eventData);
+    
+    // Update event list
+    calendarInstance.updateEventList();
+    
+    // Close form
+    closeEventForm();
+    
+    // Show success message
+    if (window.showNotification) {
+        showNotification(eventId ? '일정이 수정되었습니다' : '일정이 생성되었습니다', 'success');
+    }
+    
+    console.log('📅 Event saved:', eventData);
+}
+
+// Override the original click handlers to use sidebar form
+window.openEventForm = openEventForm;
+window.closeEventForm = closeEventForm;
+window.saveSidebarEvent = saveSidebarEvent;
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
