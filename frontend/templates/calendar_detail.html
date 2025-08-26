@@ -462,8 +462,8 @@
             </div>
             
             <!-- Calendar Overlay Event Form -->
-            <div class="calendar-overlay-form" id="calendar-overlay-form" style="display: none;">
-                <div class="overlay-form-content">
+            <div class="calendar-overlay-form" id="calendar-overlay-form" style="display: none;" onclick="handleOverlayClick(event)">
+                <div class="overlay-form-content" onclick="event.stopPropagation()">
                     <div class="form-header">
                         <h2 id="overlay-form-title">새 일정</h2>
                         <button class="close-overlay-btn" onclick="closeOverlayEventForm()" title="닫기">
@@ -1635,6 +1635,50 @@
     }
 }
 
+@keyframes slideDownToBottom {
+    from {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(100%);
+        opacity: 0.8;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+/* Responsive adjustments for bottom-fixed form */
+@media (max-width: 768px) {
+    .overlay-form-content {
+        max-height: 90vh;
+        border-radius: 12px 12px 0 0;
+    }
+    .overlay-form-content .form-header {
+        padding: 20px 20px 12px;
+    }
+    .overlay-form-content .form-group {
+        padding: 0 20px 16px;
+    }
+    .overlay-form-content .form-actions {
+        padding: 16px 20px 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .overlay-form-content {
+        max-height: 95vh;
+        border-radius: 8px 8px 0 0;
+    }
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
     .event-creation-popup {
@@ -1917,7 +1961,7 @@
     background: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(2px);
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
     z-index: 1000;
     animation: fadeIn 0.3s ease;
@@ -1925,13 +1969,12 @@
 
 .overlay-form-content {
     background: white;
-    border-radius: 16px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    width: 90%;
-    max-width: 480px;
-    max-height: 90vh;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.1), 0 -4px 10px -5px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    max-height: 80vh;
     overflow-y: auto;
-    animation: slideUp 0.3s ease;
+    animation: slideUpFromBottom 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .overlay-form-content .form-header {

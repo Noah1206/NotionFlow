@@ -2296,13 +2296,53 @@ function openEventForm(date = null, eventData = null) {
 
 function closeEventForm() {
     const overlayForm = document.getElementById('calendar-overlay-form');
-    if (overlayForm) {
-        overlayForm.style.display = 'none';
+    const overlayContent = overlayForm?.querySelector('.overlay-form-content');
+    
+    if (overlayForm && overlayContent) {
+        // Add closing animation
+        overlayContent.style.animation = 'slideDownToBottom 0.3s cubic-bezier(0.4, 0, 1, 1)';
+        overlayForm.style.animation = 'fadeOut 0.3s ease';
+        
+        // Hide after animation completes
+        setTimeout(() => {
+            overlayForm.style.display = 'none';
+            // Reset animations for next time
+            overlayContent.style.animation = '';
+            overlayForm.style.animation = '';
+        }, 300);
     }
 }
 
+// Add keyboard shortcut support for the overlay form
+document.addEventListener('keydown', function(event) {
+    const overlayForm = document.getElementById('calendar-overlay-form');
+    if (overlayForm && overlayForm.style.display !== 'none') {
+        // Close form on Escape key
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            closeEventForm();
+        }
+        // Save form on Ctrl+Enter or Cmd+Enter
+        else if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+            event.preventDefault();
+            const saveButton = document.querySelector('#overlay-event-form button[type="submit"]');
+            if (saveButton) {
+                saveButton.click();
+            }
+        }
+    }
+});
+
 function closeOverlayEventForm() {
     closeEventForm();
+}
+
+// Handle backdrop click to close overlay
+function handleOverlayClick(event) {
+    // Only close if clicking the backdrop, not the form content
+    if (event.target === event.currentTarget) {
+        closeEventForm();
+    }
 }
 
 function setupOverlayColorPicker() {
