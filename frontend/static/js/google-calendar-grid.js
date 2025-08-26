@@ -761,17 +761,47 @@ class GoogleCalendarGrid {
         });
         
         if (sortedEvents.length > 0) {
-            eventListContainer.innerHTML = sortedEvents.map(event => {
-                const eventDate = new Date(event.date);
-                const dateStr = this.formatEventDate(eventDate);
-                
-                return `
-                    <div class="event-list-item" onclick="window.googleCalendarGrid.highlightEvent('${event.id}')" style="cursor: pointer; padding: 8px; margin-bottom: 8px; border-radius: 4px; background: #f5f5f5; hover: background: #e0e0e0;">
-                        <div class="event-list-title" style="font-weight: 500; color: #333;">${event.title}</div>
-                        <div class="event-list-date" style="font-size: 12px; color: #666; margin-top: 4px;">${dateStr}</div>
+            // Add select all checkbox and action buttons
+            eventListContainer.innerHTML = `
+                <div style="padding: 8px; border-bottom: 1px solid #e0e0e0; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" id="select-all-events" onchange="window.googleCalendarGrid.toggleSelectAll(this)" style="margin-right: 8px;">
+                            <span style="font-size: 14px; color: #666;">전체 선택</span>
+                        </label>
+                        <div id="bulk-actions" style="display: none; gap: 8px;">
+                            <button onclick="window.googleCalendarGrid.bulkDeleteEvents()" style="padding: 4px 12px; background: #dc2626; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                                선택 삭제
+                            </button>
+                        </div>
                     </div>
-                `;
-            }).join('');
+                </div>
+                ${sortedEvents.map(event => {
+                    const eventDate = new Date(event.date);
+                    const dateStr = this.formatEventDate(eventDate);
+                    
+                    return `
+                        <div class="event-list-item" data-event-list-id="${event.id}" style="display: flex; align-items: center; padding: 8px; margin-bottom: 8px; border-radius: 4px; background: #f5f5f5; transition: background 0.2s;">
+                            <input type="checkbox" class="event-checkbox" data-event-id="${event.id}" onchange="window.googleCalendarGrid.handleEventCheckbox(this)" onclick="event.stopPropagation()" style="margin-right: 12px; cursor: pointer;">
+                            <div onclick="window.googleCalendarGrid.highlightEvent('${event.id}')" style="flex: 1; cursor: pointer;">
+                                <div class="event-list-title" style="font-weight: 500; color: #333;">${event.title}</div>
+                                <div class="event-list-date" style="font-size: 12px; color: #666; margin-top: 4px;">${dateStr}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            `;
+            
+            // Add hover effect
+            eventListContainer.querySelectorAll('.event-list-item').forEach(item => {
+                item.addEventListener('mouseenter', () => {
+                    item.style.background = '#e0e0e0';
+                });
+                item.addEventListener('mouseleave', () => {
+                    const checkbox = item.querySelector('.event-checkbox');
+                    item.style.background = checkbox?.checked ? '#d0d0d0' : '#f5f5f5';
+                });
+            });
         } else {
             eventListContainer.innerHTML = '<div style="padding: 16px; text-align: center; color: #999;">일정이 없습니다</div>';
         }
@@ -784,6 +814,123 @@ class GoogleCalendarGrid {
         const dayOfWeek = days[date.getDay()];
         
         return `${month}월 ${day}일 ${dayOfWeek}요일`;
+    }
+    
+    toggleSelectAll(checkbox) {
+        const eventCheckboxes = document.querySelectorAll('.event-checkbox');
+        eventCheckboxes.forEach(cb => {
+            cb.checked = checkbox.checked;
+            // Update item background
+            const listItem = cb.closest('.event-list-item');
+            if (listItem) {
+                listItem.style.background = checkbox.checked ? '#d0d0d0' : '#f5f5f5';
+            }
+        });
+        
+        // Update bulk actions visibility
+        this.updateBulkActions();
+    }
+    
+    handleEventCheckbox(checkbox) {
+        // Update select all checkbox state
+        const allCheckboxes = document.querySelectorAll('.event-checkbox');
+        const checkedCheckboxes = document.querySelectorAll('.event-checkbox:checked');
+        const selectAllCheckbox = document.getElementById('select-all-events');
+        
+        if (selectAllCheckbox) {
+            if (checkedCheckboxes.length === 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            } else if (checkedCheckboxes.length === allCheckboxes.length) {
+                selectAllCheckbox.checked = true;
+                selectAllCheckbox.indeterminate = false;
+            } else {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = true;
+            }
+        }
+        
+        // Update item background
+        const listItem = checkbox.closest('.event-list-item');
+        if (listItem) {
+            listItem.style.background = checkbox.checked ? '#d0d0d0' : '#f5f5f5';
+        }
+        
+        // Update bulk actions visibility
+        this.updateBulkActions();
+    }
+    
+    updateBulkActions() {
+        const checkedCheckboxes = document.querySelectorAll('.event-checkbox:checked');
+        const bulkActions = document.getElementById('bulk-actions');
+        
+        if (bulkActions) {
+            if (checkedCheckboxes.length > 0) {
+                bulkActions.style.display = 'flex';
+                // Update button text with count
+                const deleteBtn = bulkActions.querySelector('button');
+                if (deleteBtn) {
+                    deleteBtn.textContent = `선택 삭제 (${checkedCheckboxes.length})`;
+                }
+            } else {
+                bulkActions.style.display = 'none';
+            }
+        }
+    }
+    
+    async bulkDeleteEvents() {
+        const checkedCheckboxes = document.querySelectorAll('.event-checkbox:checked');
+        const eventIds = Array.from(checkedCheckboxes).map(cb => cb.dataset.eventId);
+        
+        if (eventIds.length === 0) return;
+        
+        const confirmMessage = eventIds.length === 1 
+            ? '선택한 일정을 삭제하시겠습니까?' 
+            : `선택한 ${eventIds.length}개의 일정을 삭제하시겠습니까?`;
+            
+        if (confirm(confirmMessage)) {
+            // Delete each event
+            for (const eventId of eventIds) {
+                const eventData = this.events.find(e => e.id === eventId);
+                if (eventData) {
+                    // Try to delete from backend if it has a backend ID
+                    if (eventData.backendId) {
+                        try {
+                            const calendarId = document.querySelector('.calendar-workspace')?.dataset.calendarId || 'e3b088c5-58550';
+                            await fetch(`/api/calendar/${calendarId}/attendees/${eventData.backendId}`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            });
+                        } catch (error) {
+                            console.error('Failed to delete from backend:', error);
+                        }
+                    }
+                    
+                    // Remove from DOM
+                    const eventElements = document.querySelectorAll(`[data-event-id="${eventId}"]`);
+                    eventElements.forEach(element => element.remove());
+                }
+            }
+            
+            // Remove from events array
+            this.events = this.events.filter(e => !eventIds.includes(e.id));
+            
+            // Update localStorage
+            const storageKey = 'calendar_events_backup';
+            localStorage.setItem(storageKey, JSON.stringify(this.events));
+            
+            // Update event list
+            this.updateEventList();
+            
+            if (window.showNotification) {
+                const message = eventIds.length === 1 
+                    ? '일정이 삭제되었습니다' 
+                    : `${eventIds.length}개의 일정이 삭제되었습니다`;
+                showNotification(message, 'success');
+            }
+        }
     }
     
     highlightEvent(eventId) {
