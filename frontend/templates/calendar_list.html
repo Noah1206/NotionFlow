@@ -47,30 +47,36 @@
 
     <!-- Calendar Grid -->
     <div class="calendar-grid-refined" id="calendar-grid">
-        <!-- Personal Calendars Section -->
-        <div class="calendar-section-refined">
-            <div class="section-header-refined">
-                <h2 class="section-title-refined">
-                    <svg class="section-icon" width="16" height="16" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    개인
-                </h2>
-                <span class="section-count-refined">{{ summary.personal_calendars }}</span>
-            </div>
-
-            <div class="calendars-container-refined">
-                {% for calendar in personal_calendars %}
-                <div class="calendar-card-refined" data-calendar="{{ calendar.id }}" onclick="openCalendar('{{ calendar.id }}')">
+        <!-- All Calendars Section (Combined) -->
+        <div class="calendars-container-refined">
+            {% set all_calendars = personal_calendars + shared_calendars %}
+            {% if all_calendars %}
+                {% for calendar in all_calendars %}
+                <div class="calendar-card-refined {% if calendar in shared_calendars %}shared-calendar-refined{% endif %}" data-calendar="{{ calendar.id }}" onclick="openCalendar('{{ calendar.id }}')">
                     <div class="card-header-refined">
                         <div class="calendar-identity">
                             <div class="calendar-color-refined" style="background: {{ calendar.color }};"></div>
                             <div class="calendar-info-refined">
-                                <h3 class="calendar-name-refined">{{ calendar.name }}</h3>
-                                <p class="calendar-meta">{{ calendar.event_count }}개 이벤트 • {{ calendar.last_sync_display
-                                    }}</p>
+                                <h3 class="calendar-name-refined">
+                                    {{ calendar.name }}
+                                    {% if calendar in shared_calendars or calendar.shared_with_count > 0 %}
+                                    <span class="shared-badge" style="display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; padding: 2px 8px; background: #ede9fe; color: #7c3aed; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                                        <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
+                                        공유됨
+                                    </span>
+                                    {% endif %}
+                                </h3>
+                                <p class="calendar-meta">
+                                    {{ calendar.event_count }}개 이벤트
+                                    {% if calendar in shared_calendars or calendar.shared_with_count > 0 %}
+                                        • {{ calendar.shared_with_count }}명과 공유 중
+                                    {% else %}
+                                        • {{ calendar.last_sync_display }}
+                                    {% endif %}
+                                </p>
                             </div>
                         </div>
                         <div class="card-actions-hover">
@@ -114,9 +120,10 @@
                         {% endif %}
                     </div>
                 </div>
-                {% else %}
-                <!-- No personal calendars message -->
-                <div class="new-calendar-card-refined" onclick="createNewCalendar()">
+                {% endfor %}
+            {% else %}
+                <!-- No calendars message -->
+                <div class="new-calendar-card-refined" onclick="createNewCalendar()" style="grid-column: span 2;">
                     <div class="new-calendar-content-refined">
                         <div class="new-calendar-icon-refined">
                             <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -128,102 +135,19 @@
                         <p class="new-calendar-description-refined">이벤트 조직화를 시작하세요</p>
                     </div>
                 </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- Shared Calendars Section -->
-        <div class="calendar-section-refined">
-            <div class="section-header-refined">
-                <h2 class="section-title-refined">
-                    <svg class="section-icon" width="16" height="16" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                    공유
-                </h2>
-                <span class="section-count-refined">{{ summary.shared_calendars }}</span>
-            </div>
-
-            <div class="calendars-container-refined">
-                {% for calendar in shared_calendars %}
-                <div class="calendar-card-refined shared-calendar-refined" data-calendar="{{ calendar.id }}" onclick="openCalendar('{{ calendar.id }}')">
-                    <div class="card-header-refined">
-                        <div class="calendar-identity">
-                            <div class="calendar-color-refined" style="background: {{ calendar.color }};"></div>
-                            <div class="calendar-info-refined">
-                                <h3 class="calendar-name-refined">{{ calendar.name }}</h3>
-                                <p class="calendar-meta">{{ calendar.event_count }}개 이벤트 • {{ calendar.shared_with_count
-                                    }}명과 공유 중</p>
-                            </div>
-                        </div>
-                        <div class="card-actions-hover">
-                            <div class="shared-indicator">
-                                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                </svg>
-                            </div>
-                            <button class="btn-delete-calendar" onclick="event.stopPropagation(); confirmDeleteCalendar('{{ calendar.id }}', '{{ calendar.name }}');" title="삭제">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                            </button>
-                            <button class="btn-open-calendar" onclick="event.stopPropagation(); openCalendar('{{ calendar.id }}');">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                </svg>
-                                열기
-                            </button>
-                        </div>
+            {% endif %}
+            
+            <!-- Create New Calendar Card -->
+            <div class="new-calendar-card-refined" onclick="createNewCalendar()">
+                <div class="new-calendar-content-refined">
+                    <div class="new-calendar-icon-refined">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4" />
+                        </svg>
                     </div>
-                    <div
-                        class="sync-indicator-refined {{ 'active' if calendar.sync_status == 'synced' else ('syncing' if calendar.sync_status == 'syncing' else '') }}">
-                        {% if calendar.sync_status == 'synced' %}
-                        <svg class="sync-icon" width="12" height="12" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>동기화됨</span>
-                        {% elif calendar.sync_status == 'syncing' %}
-                        <svg class="sync-icon rotating" width="12" height="12" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        <span>동기화 중</span>
-                        {% else %}
-                        <svg class="sync-icon" width="12" height="12" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
-                        </svg>
-                        <span>비활성</span>
-                        {% endif %}
-                    </div>
+                    <h3 class="new-calendar-title-refined">캘린더 만들기</h3>
+                    <p class="new-calendar-description-refined">이벤트 조직화를 시작하세요</p>
                 </div>
-                {% else %}
-                <!-- No shared calendars message -->
-                <div style="text-align: center; padding: 2rem; color: var(--color-gray-500);">
-                    <p>아직 공유된 캘린더가 없습니다</p>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- Create New Calendar Card -->
-        <div class="new-calendar-card-refined" onclick="createNewCalendar()">
-            <div class="new-calendar-content-refined">
-                <div class="new-calendar-icon-refined">
-                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4" />
-                    </svg>
-                </div>
-                <h3 class="new-calendar-title-refined">캘린더 만들기</h3>
-                <p class="new-calendar-description-refined">이벤트 조직화를 시작하세요</p>
             </div>
         </div>
     </div>
@@ -267,35 +191,6 @@
         </div>
         
         <div class="modal-body">
-            <!-- 캘린더 유형 선택 -->
-            <div class="form-group">
-                <label class="form-label">캘린더 유형</label>
-                <div class="calendar-type-selector">
-                    <div class="type-option active" data-type="personal">
-                        <div class="type-icon">
-                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                            </svg>
-                        </div>
-                        <div class="type-content">
-                            <h3>개인 캘린더</h3>
-                            <p>개인 일정 관리용</p>
-                        </div>
-                    </div>
-                    <div class="type-option" data-type="shared">
-                        <div class="type-icon">
-                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                            </svg>
-                        </div>
-                        <div class="type-content">
-                            <h3>공유 캘린더</h3>
-                            <p>팀과 함께 사용</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- 캘린더 이름 -->
             <div class="form-group">
                 <label class="form-label" for="calendar-name">캘린더 이름</label>
@@ -1335,7 +1230,7 @@
         try {
             // 폼 데이터 수집
             const name = document.getElementById('calendar-name').value.trim();
-            const isShared = document.querySelector('.type-option.active').dataset.type === 'shared';
+            const isShared = false; // 항상 개인 캘린더로 생성
             // 색상 선택 (선택사항) - 선택되지 않으면 기본 색상 배열에서 랜덤 선택
             const activeColorOption = document.querySelector('.color-option.active');
             const defaultColors = ['#2563eb', '#059669', '#d97706', '#7c3aed', '#dc2626', '#f59e0b', '#10b981', '#8b5cf6', '#ef4444'];

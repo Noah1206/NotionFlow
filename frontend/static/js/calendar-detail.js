@@ -2955,8 +2955,8 @@ function addAttendee() {
     // Add to list temporarily (in real app, would save to database)
     attendeesList.push(newAttendee);
     
-    // TODO: Here you would normally send this to the backend API to share the calendar
-    // For now, just update the UI
+    // Convert calendar to shared calendar when first attendee is added
+    convertToSharedCalendar(newAttendee, sendInvitation);
     
     // Re-render attendees
     renderAttendees();
@@ -2973,6 +2973,87 @@ function addAttendee() {
     }
     
     console.log('👥 New attendee added:', newAttendee);
+}
+
+// Convert calendar to shared calendar
+async function convertToSharedCalendar(newAttendee, sendInvitation) {
+    try {
+        const calendarId = document.querySelector('.calendar-workspace')?.dataset.calendarId;
+        if (!calendarId) {
+            console.error('Calendar ID not found');
+            return;
+        }
+
+        // Call backend API to convert calendar to shared and add attendee
+        const response = await fetch(`/api/calendar/${calendarId}/share`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                attendee: {
+                    name: newAttendee.name,
+                    email: newAttendee.email,
+                    role: newAttendee.role
+                },
+                send_invitation: sendInvitation,
+                convert_to_shared: true
+            })
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            console.log('Calendar converted to shared:', result);
+            
+            // Update the calendar badge/indicator if needed
+            updateCalendarSharedIndicator(true);
+            
+            // Show success notification
+            showNotification(
+                `캘린더가 공유 캘린더로 전환되었습니다. ${newAttendee.name}님에게 ${sendInvitation ? '초대 메일이 발송됩니다.' : '권한이 부여되었습니다.'}`,
+                'success'
+            );
+        } else {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to convert calendar to shared');
+        }
+    } catch (error) {
+        console.error('Error converting to shared calendar:', error);
+        showNotification('공유 캘린더 전환 중 오류가 발생했습니다.', 'error');
+    }
+}
+
+// Update calendar shared indicator
+function updateCalendarSharedIndicator(isShared) {
+    // Add shared badge to calendar title if not exists
+    const calendarTitle = document.querySelector('.workspace-title');
+    if (calendarTitle && isShared) {
+        const existingBadge = calendarTitle.querySelector('.shared-badge');
+        if (!existingBadge) {
+            const sharedBadge = document.createElement('span');
+            sharedBadge.className = 'shared-badge';
+            sharedBadge.style.cssText = `
+                display: inline-flex; 
+                align-items: center; 
+                gap: 4px; 
+                margin-left: 12px; 
+                padding: 4px 10px; 
+                background: #ede9fe; 
+                color: #7c3aed; 
+                border-radius: 12px; 
+                font-size: 12px; 
+                font-weight: 500;
+            `;
+            sharedBadge.innerHTML = `
+                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                공유됨
+            `;
+            calendarTitle.appendChild(sharedBadge);
+        }
+    }
 }
 
 function sendInvitationEmail(attendee) {
