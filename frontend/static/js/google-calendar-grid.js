@@ -576,14 +576,26 @@ class GoogleCalendarGrid {
             const storageKey = 'calendar_events_backup';
             localStorage.setItem(storageKey, JSON.stringify(this.events));
             
-            // Remove from DOM immediately
-            const eventElements = this.container.querySelectorAll(`[data-event-id="${eventData.id}"]`);
+            // Remove from DOM immediately - search in entire document
+            const eventElements = document.querySelectorAll(`[data-event-id="${eventData.id}"]`);
+            console.log(`🗑️ Removing ${eventElements.length} event elements with id:`, eventData.id);
             eventElements.forEach(element => {
+                console.log('Removing element:', element);
+                element.remove();
+            });
+            
+            // Also check in calendar grid specifically
+            const gridElements = document.querySelectorAll(`.calendar-event[data-event-id="${eventData.id}"]`);
+            gridElements.forEach(element => {
                 element.remove();
             });
             
             // Update event list
             this.updateEventList();
+            
+            // Close any open popup
+            const popups = document.querySelectorAll('.event-creation-popup');
+            popups.forEach(popup => popup.remove());
             
             if (window.showNotification) {
                 showNotification('일정이 삭제되었습니다', 'success');
@@ -1683,57 +1695,8 @@ class GoogleCalendarGrid {
             return;
         }
         
-        if (confirm(`"${eventData.title}" 일정을 삭제하시겠습니까?`)) {
-            try {
-                // Try to delete from backend
-                const calendarId = document.querySelector('.calendar-workspace')?.dataset.calendarId || 'default';
-                const response = await fetch(`/api/calendars/${calendarId}/events/${eventId}`, {
-                    method: 'DELETE'
-                });
-                
-                if (!response.ok) {
-                    console.warn('Backend delete failed, removing locally only');
-                }
-            } catch (error) {
-                console.error('Failed to delete from backend:', error);
-            }
-            
-            // Remove from events array (filter out nulls and matching events)
-            this.events = this.events.filter(e => e && e.id && String(e.id) !== eventIdStr);
-            
-            // Update localStorage
-            this.saveToLocalStorage();
-            
-            // Remove from DOM - try multiple selectors
-            const eventElement1 = this.container.querySelector(`[data-event-id="${eventIdStr}"]`);
-            const eventElement2 = document.querySelector(`[data-event-id="${eventIdStr}"]`);
-            
-            if (eventElement1) {
-                eventElement1.remove();
-                console.log('✅ Removed event from container DOM:', eventIdStr);
-            } else if (eventElement2) {
-                eventElement2.remove();
-                console.log('✅ Removed event from document DOM:', eventIdStr);
-            } else {
-                console.warn('⚠️ Event element not found in DOM, re-rendering all events');
-                // Force complete re-render if DOM element not found
-                this.clearRenderedEvents();
-                this.events.filter(event => event && event.id && event.date).forEach(event => this.renderEvent(event));
-            }
-            
-            // Update event list
-            this.updateEventList();
-            
-            // Close popup
-            if (this.currentPopup) {
-                this.currentPopup.remove();
-                this.currentPopup = null;
-            }
-            
-            if (window.showNotification) {
-                showNotification('일정이 삭제되었습니다', 'success');
-            }
-        }
+        // Call the main delete function
+        return this.deleteEvent(eventData);
     }
 
     updateMainContentDimensions() {
