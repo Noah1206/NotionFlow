@@ -29,6 +29,32 @@ class GoogleCalendarGrid {
         this.timeSlotHeight = 90; // pixels - Compact size with dynamic drag creation
         
         this.init();
+        
+        // Monitor sidebar changes
+        this.initSidebarMonitoring();
+    }
+    
+    initSidebarMonitoring() {
+        // Update on window resize
+        window.addEventListener('resize', () => {
+            this.updateSidebarWidth();
+        });
+        
+        // Monitor for sidebar toggle changes
+        const sidebarToggle = document.querySelector('.sidebar-toggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => {
+                // Delay to let the animation complete
+                setTimeout(() => {
+                    this.updateSidebarWidth();
+                }, 300);
+            });
+        }
+        
+        // Initial update
+        setTimeout(() => {
+            this.updateSidebarWidth();
+        }, 100);
     }
     
     init() {
@@ -840,6 +866,9 @@ class GoogleCalendarGrid {
             </div>
         `;
         
+        // Update sidebar width before showing popup
+        this.updateSidebarWidth();
+        
         // Append to body for modal overlay effect
         document.body.appendChild(popup);
         
@@ -941,6 +970,9 @@ class GoogleCalendarGrid {
                 </button>
             </div>
         `;
+        
+        // Update sidebar width before showing popup
+        this.updateSidebarWidth();
         
         // Append to body for modal overlay effect
         document.body.appendChild(popup);
@@ -1617,9 +1649,11 @@ class GoogleCalendarGrid {
     }
 
     async deleteEventById(eventId) {
-        const eventData = this.events.find(event => event.id === eventId);
+        // Convert eventId to string for consistent comparison
+        const eventIdStr = String(eventId);
+        const eventData = this.events.find(event => String(event.id) === eventIdStr);
         if (!eventData) {
-            console.error('Event not found for deletion:', eventId);
+            console.error('Event not found for deletion:', eventId, 'Available events:', this.events.map(e => ({id: e.id, title: e.title})));
             return;
         }
         
@@ -1639,13 +1673,13 @@ class GoogleCalendarGrid {
             }
             
             // Remove from events array
-            this.events = this.events.filter(e => e.id !== eventId);
+            this.events = this.events.filter(e => String(e.id) !== eventIdStr);
             
             // Update localStorage
             this.saveToLocalStorage();
             
             // Remove from DOM
-            const eventElement = this.container.querySelector(`[data-event-id="${eventId}"]`);
+            const eventElement = this.container.querySelector(`[data-event-id="${eventIdStr}"]`);
             if (eventElement) {
                 eventElement.remove();
             }
@@ -1663,6 +1697,50 @@ class GoogleCalendarGrid {
                 showNotification('일정이 삭제되었습니다', 'success');
             }
         }
+    }
+
+    updateSidebarWidth() {
+        // Find sidebar element and check its state
+        const sidebar = document.querySelector('.sidebar');
+        const sidebarToggle = document.querySelector('.sidebar-toggle');
+        
+        let sidebarWidth = 250; // Default width
+        
+        if (sidebar) {
+            // Check if sidebar is collapsed/hidden
+            const sidebarStyles = window.getComputedStyle(sidebar);
+            const isHidden = sidebarStyles.display === 'none' || 
+                            sidebarStyles.visibility === 'hidden' ||
+                            sidebar.classList.contains('collapsed') ||
+                            sidebar.classList.contains('hidden');
+            
+            if (isHidden) {
+                sidebarWidth = 0;
+            } else {
+                // Get actual width
+                const actualWidth = sidebar.offsetWidth;
+                if (actualWidth > 0) {
+                    sidebarWidth = actualWidth;
+                }
+            }
+        } else {
+            // Check if we're in a layout without sidebar
+            const mainContent = document.querySelector('.main-content');
+            const calendarWorkspace = document.querySelector('.calendar-workspace');
+            
+            if (mainContent) {
+                const mainRect = mainContent.getBoundingClientRect();
+                sidebarWidth = mainRect.left;
+            } else if (calendarWorkspace) {
+                const workspaceRect = calendarWorkspace.getBoundingClientRect();
+                sidebarWidth = workspaceRect.left;
+            }
+        }
+        
+        // Update CSS custom property
+        document.documentElement.style.setProperty('--sidebar-width', `${sidebarWidth}px`);
+        
+        console.log('📏 Updated sidebar width:', sidebarWidth);
     }
 
     async loadExistingEvents() {
