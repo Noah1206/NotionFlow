@@ -201,14 +201,58 @@ div.time-cell {
     cursor: pointer;
     z-index: 10;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
+    overflow: visible;
     min-height: 20px;
     display: flex;
     align-items: center;
+    justify-content: space-between;
 }
 
 .calendar-event:hover {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Event Content */
+.calendar-event-content {
+    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* Edit Button */
+.calendar-event-edit {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 20px;
+    height: 20px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 20;
+}
+
+.calendar-event:hover .calendar-event-edit {
+    opacity: 1;
+}
+
+.calendar-event-edit:hover {
+    background: #f3f4f6;
+    transform: scale(1.1);
+}
+
+.calendar-event-edit svg {
+    width: 10px;
+    height: 10px;
+    color: #6b7280;
 }
 
 .calendar-event.green { background: #0d8043; }

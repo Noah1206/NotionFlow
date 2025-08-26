@@ -864,6 +864,109 @@ class GoogleCalendarGrid {
         // Store popup reference for later use
         this.currentPopup = popup;
     }
+
+    showEditEventPopup(eventId) {
+        const eventData = this.events.find(event => event.id === eventId);
+        if (!eventData) {
+            console.error('Event not found:', eventId);
+            return;
+        }
+
+        // Remove existing popup
+        const existingPopup = document.querySelector('.event-creation-popup');
+        if (existingPopup) {
+            existingPopup.remove();
+        }
+
+        const popup = document.createElement('div');
+        popup.className = 'event-creation-popup';
+        
+        const dateStr = new Date(eventData.date).toLocaleDateString('ko-KR');
+        
+        popup.innerHTML = `
+            <div class="popup-header">
+                <div class="popup-title">일정 편집</div>
+                <button class="close-btn" onclick="this.closest('.event-creation-popup').remove()">×</button>
+            </div>
+            <div class="popup-content">
+                <div class="datetime-section">
+                    <div class="datetime-row">
+                        <div class="datetime-label">날짜</div>
+                        <button type="button" class="datetime-button" id="edit-date-button" onclick="window.googleCalendarGrid.showEditDatePicker(this)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="16" y1="2" x2="16" y2="6"/>
+                                <line x1="8" y1="2" x2="8" y2="6"/>
+                                <line x1="3" y1="10" x2="21" y2="10"/>
+                            </svg>
+                            <span class="date-display">${dateStr}</span>
+                        </button>
+                    </div>
+                    <div class="datetime-row">
+                        <div class="datetime-label">시간</div>
+                        <button type="button" class="datetime-button" id="edit-start-time-button" onclick="window.googleCalendarGrid.showEditTimePicker(this, 'start')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12,6 12,12 16,14"/>
+                            </svg>
+                            <span class="time-display">${this.formatTimeDisplay(eventData.startTime)}</span>
+                        </button>
+                        <span class="time-range-separator">-</span>
+                        <button type="button" class="datetime-button" id="edit-end-time-button" onclick="window.googleCalendarGrid.showEditTimePicker(this, 'end')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12,6 12,12 16,14"/>
+                            </svg>
+                            <span class="time-display">${this.formatTimeDisplay(eventData.endTime)}</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <form class="event-form" id="edit-event-form">
+                    <div class="form-section">
+                        <div class="form-field">
+                            <label>제목</label>
+                            <input type="text" name="title" class="title-input" placeholder="일정 제목 입력" required value="${eventData.title}">
+                        </div>
+                        <div class="form-field">
+                            <label>설명</label>
+                            <textarea name="description" placeholder="일정 설명 (선택사항)">${eventData.description || ''}</textarea>
+                        </div>
+                    </div>
+                    
+                    <input type="hidden" name="date" value="${eventData.date}">
+                    <input type="hidden" name="startTime" value="${eventData.startTime}">
+                    <input type="hidden" name="endTime" value="${eventData.endTime}">
+                    <input type="hidden" name="eventId" value="${eventData.id}">
+                </form>
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" onclick="window.googleCalendarGrid.deleteEventById('${eventData.id}')">
+                    삭제
+                </button>
+                <button type="button" class="btn-secondary" onclick="this.closest('.event-creation-popup').remove()">
+                    취소
+                </button>
+                <button type="button" class="btn-primary" onclick="window.googleCalendarGrid.updateEventFromForm()">
+                    저장
+                </button>
+            </div>
+        `;
+        
+        // Append to body for modal overlay effect
+        document.body.appendChild(popup);
+        
+        // Focus on title input
+        setTimeout(() => {
+            const titleInput = popup.querySelector('input[name="title"]');
+            titleInput.focus();
+            titleInput.select();
+        }, 100);
+        
+        // Store popup reference for later use
+        this.currentPopup = popup;
+    }
     
     async saveEvent(form, popup) {
         const formData = new FormData(form);
@@ -1045,8 +1148,16 @@ class GoogleCalendarGrid {
         }
         
         eventElement.innerHTML = `
-            <div style="font-weight: 500; margin-bottom: 2px;">${eventData.title}</div>
-            ${eventData.description ? `<div style="font-size: 11px; opacity: 0.9;">${eventData.description}</div>` : ''}
+            <div class="calendar-event-content">
+                <div style="font-weight: 500; margin-bottom: 2px;">${eventData.title}</div>
+                ${eventData.description ? `<div style="font-size: 11px; opacity: 0.9;">${eventData.description}</div>` : ''}
+            </div>
+            <button class="calendar-event-edit" onclick="window.googleCalendarGrid.showEditEventPopup('${eventData.id}'); event.stopPropagation();">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="m18.5 2.5 a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+            </button>
         `;
         
         console.log('🎨 Event color:', eventData.color, 'Background:', eventElement.style.backgroundColor);
@@ -1326,6 +1437,228 @@ class GoogleCalendarGrid {
             // Show warning notification
             if (window.showNotification) {
                 showNotification(`일정이 로컬에 저장되었습니다 (서버 오류)`, 'warning');
+            }
+        }
+    }
+
+    // Edit mode helper methods
+    formatTimeDisplay(time) {
+        const [hours, minutes] = time.split(':');
+        const hour24 = parseInt(hours);
+        
+        if (hour24 === 0) {
+            return `오전 ${time}`;
+        } else if (hour24 < 12) {
+            return `오전 ${time}`;
+        } else if (hour24 === 12) {
+            return `오후 ${time}`;
+        } else {
+            return `오후 ${time}`;
+        }
+    }
+
+    showEditDatePicker(button) {
+        // Create date picker input element
+        const dateInput = document.createElement('input');
+        dateInput.type = 'date';
+        dateInput.style.position = 'absolute';
+        dateInput.style.left = '-9999px';
+        dateInput.style.opacity = '0';
+        
+        // Get current date from hidden input
+        const form = document.getElementById('edit-event-form');
+        const currentDate = form.querySelector('input[name="date"]').value;
+        dateInput.value = currentDate;
+        
+        document.body.appendChild(dateInput);
+        dateInput.focus();
+        dateInput.click();
+        
+        dateInput.addEventListener('change', (e) => {
+            const selectedDate = new Date(e.target.value + 'T00:00:00');
+            const formattedDate = selectedDate.toLocaleDateString('ko-KR');
+            
+            // Update button display
+            button.querySelector('.date-display').textContent = formattedDate;
+            
+            // Update hidden input
+            form.querySelector('input[name="date"]').value = e.target.value;
+            
+            // Remove temporary input
+            document.body.removeChild(dateInput);
+        });
+        
+        dateInput.addEventListener('blur', () => {
+            setTimeout(() => {
+                if (document.body.contains(dateInput)) {
+                    document.body.removeChild(dateInput);
+                }
+            }, 100);
+        });
+    }
+    
+    showEditTimePicker(button, timeType) {
+        // Create time picker input element
+        const timeInput = document.createElement('input');
+        timeInput.type = 'time';
+        timeInput.style.position = 'absolute';
+        timeInput.style.left = '-9999px';
+        timeInput.style.opacity = '0';
+        
+        // Get current time from hidden input
+        const form = document.getElementById('edit-event-form');
+        const currentTime = form.querySelector(`input[name="${timeType}Time"]`).value;
+        timeInput.value = currentTime;
+        
+        document.body.appendChild(timeInput);
+        timeInput.focus();
+        timeInput.click();
+        
+        timeInput.addEventListener('change', (e) => {
+            const selectedTime = e.target.value;
+            const displayTime = this.formatTimeDisplay(selectedTime);
+            
+            // Update button display
+            button.querySelector('.time-display').textContent = displayTime;
+            button.classList.add('active');
+            
+            // Update hidden input
+            form.querySelector(`input[name="${timeType}Time"]`).value = selectedTime;
+            
+            // Remove temporary input
+            document.body.removeChild(timeInput);
+        });
+        
+        timeInput.addEventListener('blur', () => {
+            setTimeout(() => {
+                if (document.body.contains(timeInput)) {
+                    document.body.removeChild(timeInput);
+                }
+            }, 100);
+        });
+    }
+
+    async updateEventFromForm() {
+        const form = document.getElementById('edit-event-form');
+        if (!form) return;
+        
+        const formData = new FormData(form);
+        const eventId = formData.get('eventId');
+        
+        // Validate required fields
+        if (!formData.get('title').trim()) {
+            alert('일정 제목을 입력해주세요.');
+            form.querySelector('input[name="title"]').focus();
+            return;
+        }
+        
+        // Find the event to update
+        const eventIndex = this.events.findIndex(event => event.id === eventId);
+        if (eventIndex === -1) {
+            console.error('Event not found for update:', eventId);
+            return;
+        }
+        
+        // Update event data
+        const updatedEvent = {
+            ...this.events[eventIndex],
+            title: formData.get('title'),
+            description: formData.get('description'),
+            date: formData.get('date'),
+            startTime: formData.get('startTime'),
+            endTime: formData.get('endTime')
+        };
+        
+        try {
+            // Try to update on server
+            const calendarId = document.querySelector('.calendar-workspace')?.dataset.calendarId || 'default';
+            const response = await fetch(`/api/calendars/${calendarId}/events/${eventId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updatedEvent)
+            });
+            
+            if (response.ok) {
+                console.log('✅ Event updated on server');
+            } else {
+                console.warn('⚠️ Server update failed, updating locally only');
+            }
+        } catch (error) {
+            console.error('❌ Error updating event on server:', error);
+        }
+        
+        // Update local event data
+        this.events[eventIndex] = updatedEvent;
+        
+        // Save to localStorage backup
+        this.saveToLocalStorage();
+        
+        // Re-render calendar
+        this.clearRenderedEvents();
+        this.events.forEach(event => this.renderEvent(event));
+        
+        // Update event list
+        this.updateEventList();
+        
+        // Close popup
+        if (this.currentPopup) {
+            this.currentPopup.remove();
+            this.currentPopup = null;
+        }
+        
+        // Show success notification
+        if (window.showNotification) {
+            showNotification(`일정 "${updatedEvent.title}"이(가) 수정되었습니다`, 'success');
+        }
+    }
+
+    async deleteEventById(eventId) {
+        const eventData = this.events.find(event => event.id === eventId);
+        if (!eventData) {
+            console.error('Event not found for deletion:', eventId);
+            return;
+        }
+        
+        if (confirm(`"${eventData.title}" 일정을 삭제하시겠습니까?`)) {
+            try {
+                // Try to delete from backend
+                const calendarId = document.querySelector('.calendar-workspace')?.dataset.calendarId || 'default';
+                const response = await fetch(`/api/calendars/${calendarId}/events/${eventId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) {
+                    console.warn('Backend delete failed, removing locally only');
+                }
+            } catch (error) {
+                console.error('Failed to delete from backend:', error);
+            }
+            
+            // Remove from events array
+            this.events = this.events.filter(e => e.id !== eventId);
+            
+            // Update localStorage
+            this.saveToLocalStorage();
+            
+            // Remove from DOM
+            const eventElement = this.container.querySelector(`[data-event-id="${eventId}"]`);
+            if (eventElement) {
+                eventElement.remove();
+            }
+            
+            // Update event list
+            this.updateEventList();
+            
+            // Close popup
+            if (this.currentPopup) {
+                this.currentPopup.remove();
+                this.currentPopup = null;
+            }
+            
+            if (window.showNotification) {
+                showNotification('일정이 삭제되었습니다', 'success');
             }
         }
     }
