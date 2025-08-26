@@ -532,8 +532,9 @@ class GoogleCalendarGrid {
                 this.events[index] = eventData;
             }
             
-            // Update localStorage
-            this.saveToLocalStorage();
+            // Update localStorage with current events
+            const storageKey = 'calendar_events_backup';
+            localStorage.setItem(storageKey, JSON.stringify(this.events));
             
             // Re-render all events
             this.clearRenderedEvents();
@@ -550,14 +551,19 @@ class GoogleCalendarGrid {
     async deleteEvent(eventData) {
         if (confirm(`"${eventData.title}" 일정을 삭제하시겠습니까?`)) {
             try {
-                // Try to delete from backend
-                const calendarId = document.querySelector('.calendar-workspace')?.dataset.calendarId || 'default';
-                const response = await fetch(`/api/calendars/${calendarId}/events/${eventData.id}`, {
-                    method: 'DELETE'
-                });
-                
-                if (!response.ok) {
-                    console.warn('Backend delete failed, removing locally only');
+                // Try to delete from backend if it has a backend ID
+                if (eventData.backendId) {
+                    const calendarId = document.querySelector('.calendar-workspace')?.dataset.calendarId || 'e3b088c5-58550';
+                    const response = await fetch(`/api/calendar/${calendarId}/attendees/${eventData.backendId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        console.warn('Backend delete failed, removing locally only');
+                    }
                 }
             } catch (error) {
                 console.error('Failed to delete from backend:', error);
@@ -566,14 +572,15 @@ class GoogleCalendarGrid {
             // Remove from events array
             this.events = this.events.filter(e => e.id !== eventData.id);
             
-            // Update localStorage
-            this.saveToLocalStorage();
+            // Update localStorage with current events
+            const storageKey = 'calendar_events_backup';
+            localStorage.setItem(storageKey, JSON.stringify(this.events));
             
-            // Remove from DOM
-            const eventElement = this.container.querySelector(`[data-event-id="${eventData.id}"]`);
-            if (eventElement) {
-                eventElement.remove();
-            }
+            // Remove from DOM immediately
+            const eventElements = this.container.querySelectorAll(`[data-event-id="${eventData.id}"]`);
+            eventElements.forEach(element => {
+                element.remove();
+            });
             
             // Update event list
             this.updateEventList();
@@ -589,17 +596,19 @@ class GoogleCalendarGrid {
         const newEvent = {
             ...eventData,
             id: Date.now().toString(),
+            backendId: null, // New event doesn't have backend ID yet
             title: eventData.title + ' (복사본)'
         };
         
         // Add to events array
         this.events.push(newEvent);
         
+        // Update localStorage with current events
+        const storageKey = 'calendar_events_backup';
+        localStorage.setItem(storageKey, JSON.stringify(this.events));
+        
         // Render the new event
         this.renderEvent(newEvent);
-        
-        // Update localStorage
-        this.saveToLocalStorage();
         
         // Update event list
         this.updateEventList();
@@ -1029,7 +1038,8 @@ class GoogleCalendarGrid {
                 // Add ID from server response
                 const fullEventData = {
                     ...eventData,
-                    id: savedEvent.id || Date.now(),
+                    id: savedEvent.id || Date.now().toString(),
+                    backendId: savedEvent.id,
                     date: formData.get('date'),
                     startTime: formData.get('startTime'),
                     endTime: formData.get('endTime')
@@ -1037,6 +1047,10 @@ class GoogleCalendarGrid {
                 
                 // Add to events array
                 this.events.push(fullEventData);
+                
+                // Update localStorage with current events
+                const storageKey = 'calendar_events_backup';
+                localStorage.setItem(storageKey, JSON.stringify(this.events));
                 
                 // Save to localStorage as well for persistence
                 this.saveToLocalStorage(fullEventData);
@@ -1062,7 +1076,8 @@ class GoogleCalendarGrid {
             // Still show the event locally for user experience
             const localEventData = {
                 ...eventData,
-                id: Date.now(),
+                id: Date.now().toString(),
+                backendId: null,
                 date: formData.get('date'),
                 startTime: formData.get('startTime'),
                 endTime: formData.get('endTime')
@@ -1071,11 +1086,12 @@ class GoogleCalendarGrid {
             this.events.push(localEventData);
             this.renderEvent(localEventData);
             
+            // Update localStorage with current events
+            const storageKey = 'calendar_events_backup';
+            localStorage.setItem(storageKey, JSON.stringify(this.events));
+            
             // Update the event list
             this.updateEventList();
-            
-            // Save to localStorage as backup
-            this.saveToLocalStorage(localEventData);
             
             // Show warning notification
             if (window.showNotification) {
@@ -1688,10 +1704,21 @@ class GoogleCalendarGrid {
             // Update localStorage
             this.saveToLocalStorage();
             
-            // Remove from DOM
-            const eventElement = this.container.querySelector(`[data-event-id="${eventIdStr}"]`);
-            if (eventElement) {
-                eventElement.remove();
+            // Remove from DOM - try multiple selectors
+            const eventElement1 = this.container.querySelector(`[data-event-id="${eventIdStr}"]`);
+            const eventElement2 = document.querySelector(`[data-event-id="${eventIdStr}"]`);
+            
+            if (eventElement1) {
+                eventElement1.remove();
+                console.log('✅ Removed event from container DOM:', eventIdStr);
+            } else if (eventElement2) {
+                eventElement2.remove();
+                console.log('✅ Removed event from document DOM:', eventIdStr);
+            } else {
+                console.warn('⚠️ Event element not found in DOM, re-rendering all events');
+                // Force complete re-render if DOM element not found
+                this.clearRenderedEvents();
+                this.events.filter(event => event && event.id && event.date).forEach(event => this.renderEvent(event));
             }
             
             // Update event list
@@ -1872,7 +1899,8 @@ class GoogleCalendarGrid {
     convertBackendEventToFrontend(backendEvent) {
         // Convert backend event format to match frontend expectations
         return {
-            id: backendEvent.id,
+            id: backendEvent.id || Date.now().toString(),
+            backendId: backendEvent.id, // Store the backend ID separately
             title: backendEvent.title || backendEvent.summary || 'Untitled',
             description: backendEvent.description || '',
             date: backendEvent.date || backendEvent.start?.split('T')[0],
