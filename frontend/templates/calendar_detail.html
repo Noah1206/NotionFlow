@@ -393,8 +393,8 @@
                 </div>
             </div>
 
-            <!-- Event Form Widget -->
-            <div class="sidebar-widget event-form-widget" id="event-form-widget" style="display: none;">
+            <!-- Event Form Widget (Hidden - using overlay instead) -->
+            <div class="sidebar-widget event-form-widget" id="event-form-widget" style="display: none !important;">
                 <div class="widget-header">
                     <div class="widget-icon">📝</div>
                     <h4 id="event-form-title">새 일정</h4>
@@ -459,6 +459,65 @@
             <!-- Google Calendar Style Grid Container -->
             <div id="google-calendar-container" style="height: 100%; width: 100%;">
                 <!-- Google Calendar Grid will be rendered here -->
+            </div>
+            
+            <!-- Calendar Overlay Event Form -->
+            <div class="calendar-overlay-form" id="calendar-overlay-form" style="display: none;">
+                <div class="overlay-form-content">
+                    <div class="form-header">
+                        <h2 id="overlay-form-title">새 일정</h2>
+                        <button class="close-overlay-btn" onclick="closeOverlayEventForm()" title="닫기">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <form id="overlay-event-form" onsubmit="saveOverlayEvent(event)">
+                        <div class="form-group">
+                            <label for="overlay-event-title">제목</label>
+                            <input type="text" id="overlay-event-title" placeholder="일정 제목을 입력하세요" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="overlay-event-date">날짜</label>
+                            <input type="date" id="overlay-event-date" required>
+                        </div>
+                        
+                        <div class="time-inputs">
+                            <div class="form-group">
+                                <label for="overlay-start-time">시작 시간</label>
+                                <input type="time" id="overlay-start-time" value="09:00">
+                            </div>
+                            <div class="form-group">
+                                <label for="overlay-end-time">종료 시간</label>
+                                <input type="time" id="overlay-end-time" value="10:00">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="overlay-event-description">설명 (선택사항)</label>
+                            <textarea id="overlay-event-description" rows="3" placeholder="일정 설명을 입력하세요"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>색상</label>
+                            <div class="color-picker">
+                                <div class="color-option active" data-color="#3b82f6" style="background: #3b82f6;"></div>
+                                <div class="color-option" data-color="#ef4444" style="background: #ef4444;"></div>
+                                <div class="color-option" data-color="#10b981" style="background: #10b981;"></div>
+                                <div class="color-option" data-color="#f59e0b" style="background: #f59e0b;"></div>
+                                <div class="color-option" data-color="#8b5cf6" style="background: #8b5cf6;"></div>
+                                <div class="color-option" data-color="#06b6d4" style="background: #06b6d4;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn-cancel" onclick="closeOverlayEventForm()">취소</button>
+                            <button type="submit" class="btn-save">저장</button>
+                        </div>
+                    </form>
+                </div>
             </div>
             
             <!-- Fallback: Original Time Grid (hidden by default) -->
@@ -1846,6 +1905,180 @@
 
 .event-form-content .btn-save:hover {
     background: #2563eb;
+}
+
+/* Calendar Overlay Event Form Styles */
+.calendar-overlay-form {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+}
+
+.overlay-form-content {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    width: 90%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease;
+}
+
+.overlay-form-content .form-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 24px 16px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.overlay-form-content .form-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.close-overlay-btn {
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 8px;
+    color: #6b7280;
+    transition: all 0.2s ease;
+}
+
+.close-overlay-btn:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.overlay-form-content form {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.overlay-form-content .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.overlay-form-content label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.overlay-form-content input,
+.overlay-form-content textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.overlay-form-content input:focus,
+.overlay-form-content textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.overlay-form-content .time-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.overlay-form-content .color-picker {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.overlay-form-content .color-option {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.overlay-form-content .color-option:hover,
+.overlay-form-content .color-option.active {
+    border-color: #374151;
+    transform: scale(1.1);
+}
+
+.overlay-form-content .form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.overlay-form-content .btn-cancel,
+.overlay-form-content .btn-save {
+    flex: 1;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.overlay-form-content .btn-cancel {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.overlay-form-content .btn-cancel:hover {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.overlay-form-content .btn-save {
+    background: #3b82f6;
+    color: white;
+}
+
+.overlay-form-content .btn-save:hover {
+    background: #2563eb;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 </style>
 

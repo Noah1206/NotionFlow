@@ -396,8 +396,8 @@ class GoogleCalendarGrid {
         
         // Pre-fill time fields after form opens
         setTimeout(() => {
-            const startTimeInput = document.getElementById('sidebar-start-time');
-            const endTimeInput = document.getElementById('sidebar-end-time');
+            const startTimeInput = document.getElementById('overlay-start-time');
+            const endTimeInput = document.getElementById('overlay-end-time');
             if (startTimeInput) startTimeInput.value = startTimeStr;
             if (endTimeInput) endTimeInput.value = endTimeStr;
         }, 100);
@@ -2243,14 +2243,14 @@ class GoogleCalendarGrid {
 // ============ SIDEBAR EVENT FORM FUNCTIONS ============
 
 function openEventForm(date = null, eventData = null) {
-    const formWidget = document.getElementById('event-form-widget');
-    const formTitle = document.getElementById('event-form-title');
-    const form = document.getElementById('sidebar-event-form');
+    const overlayForm = document.getElementById('calendar-overlay-form');
+    const formTitle = document.getElementById('overlay-form-title');
+    const form = document.getElementById('overlay-event-form');
     
-    if (!formWidget) return;
+    if (!overlayForm) return;
     
-    // Show the form widget
-    formWidget.style.display = 'block';
+    // Show the overlay form
+    overlayForm.style.display = 'flex';
     
     // Reset form
     form.reset();
@@ -2259,14 +2259,14 @@ function openEventForm(date = null, eventData = null) {
     if (eventData) {
         // Edit mode
         formTitle.textContent = '일정 수정';
-        document.getElementById('sidebar-event-title').value = eventData.title || '';
-        document.getElementById('sidebar-event-date').value = eventData.date || '';
-        document.getElementById('sidebar-start-time').value = eventData.startTime || '09:00';
-        document.getElementById('sidebar-end-time').value = eventData.endTime || '10:00';
-        document.getElementById('sidebar-event-description').value = eventData.description || '';
+        document.getElementById('overlay-event-title').value = eventData.title || '';
+        document.getElementById('overlay-event-date').value = eventData.date || '';
+        document.getElementById('overlay-start-time').value = eventData.startTime || '09:00';
+        document.getElementById('overlay-end-time').value = eventData.endTime || '10:00';
+        document.getElementById('overlay-event-description').value = eventData.description || '';
         
         // Set color
-        const colorOptions = formWidget.querySelectorAll('.color-option');
+        const colorOptions = overlayForm.querySelectorAll('.color-option');
         colorOptions.forEach(option => {
             option.classList.remove('active');
             if (option.dataset.color === eventData.color) {
@@ -2280,32 +2280,33 @@ function openEventForm(date = null, eventData = null) {
         // Create mode
         formTitle.textContent = '새 일정';
         if (date) {
-            document.getElementById('sidebar-event-date').value = date;
+            document.getElementById('overlay-event-date').value = date;
         }
         delete form.dataset.eventId;
     }
     
     // Setup color picker
-    setupSidebarColorPicker();
-    
-    // Scroll to form
-    formWidget.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    setupOverlayColorPicker();
     
     // Focus on title input
     setTimeout(() => {
-        document.getElementById('sidebar-event-title').focus();
-    }, 100);
+        document.getElementById('overlay-event-title').focus();
+    }, 300);
 }
 
 function closeEventForm() {
-    const formWidget = document.getElementById('event-form-widget');
-    if (formWidget) {
-        formWidget.style.display = 'none';
+    const overlayForm = document.getElementById('calendar-overlay-form');
+    if (overlayForm) {
+        overlayForm.style.display = 'none';
     }
 }
 
-function setupSidebarColorPicker() {
-    const colorOptions = document.querySelectorAll('.event-form-widget .color-option');
+function closeOverlayEventForm() {
+    closeEventForm();
+}
+
+function setupOverlayColorPicker() {
+    const colorOptions = document.querySelectorAll('.calendar-overlay-form .color-option');
     colorOptions.forEach(option => {
         option.addEventListener('click', () => {
             colorOptions.forEach(opt => opt.classList.remove('active'));
@@ -2314,19 +2315,19 @@ function setupSidebarColorPicker() {
     });
 }
 
-function saveSidebarEvent(event) {
+function saveOverlayEvent(event) {
     event.preventDefault();
     
     const form = event.target;
     const eventId = form.dataset.eventId;
     
     // Get form data
-    const title = document.getElementById('sidebar-event-title').value.trim();
-    const date = document.getElementById('sidebar-event-date').value;
-    const startTime = document.getElementById('sidebar-start-time').value;
-    const endTime = document.getElementById('sidebar-end-time').value;
-    const description = document.getElementById('sidebar-event-description').value.trim();
-    const activeColor = document.querySelector('.event-form-widget .color-option.active');
+    const title = document.getElementById('overlay-event-title').value.trim();
+    const date = document.getElementById('overlay-event-date').value;
+    const startTime = document.getElementById('overlay-start-time').value;
+    const endTime = document.getElementById('overlay-end-time').value;
+    const description = document.getElementById('overlay-event-description').value.trim();
+    const activeColor = document.querySelector('.calendar-overlay-form .color-option.active');
     const color = activeColor ? activeColor.dataset.color : '#3b82f6';
     
     // Validation
@@ -2394,10 +2395,11 @@ function saveSidebarEvent(event) {
     console.log('📅 Event saved:', eventData);
 }
 
-// Override the original click handlers to use sidebar form
+// Override the original click handlers to use overlay form
 window.openEventForm = openEventForm;
 window.closeEventForm = closeEventForm;
-window.saveSidebarEvent = saveSidebarEvent;
+window.closeOverlayEventForm = closeOverlayEventForm;
+window.saveOverlayEvent = saveOverlayEvent;
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
