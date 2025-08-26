@@ -1292,6 +1292,140 @@
     font-size: 14px;
     line-height: 1.6;
 }
+
+/* Event Edit Popup Styles */
+.event-creation-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.event-creation-popup .popup-content {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    width: 90%;
+    max-width: 450px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.event-creation-popup .popup-header {
+    margin-bottom: 20px;
+}
+
+.event-creation-popup .popup-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.event-creation-popup .popup-subtitle {
+    font-size: 13px;
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+.event-creation-popup form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.event-creation-popup label {
+    font-size: 13px;
+    color: #4b5563;
+    font-weight: 500;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.event-creation-popup input,
+.event-creation-popup textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.event-creation-popup input:focus,
+.event-creation-popup textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+}
+
+.event-creation-popup .time-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.event-creation-popup .popup-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.event-creation-popup .btn-cancel,
+.event-creation-popup .btn-save {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.event-creation-popup .btn-cancel {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.event-creation-popup .btn-cancel:hover {
+    background: #e5e7eb;
+}
+
+.event-creation-popup .btn-save {
+    background: #3b82f6;
+    color: white;
+}
+
+.event-creation-popup .btn-save:hover {
+    background: #2563eb;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 </style>
 
 <!-- JavaScript -->

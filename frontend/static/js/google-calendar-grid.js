@@ -394,10 +394,13 @@ class GoogleCalendarGrid {
         `;
         
         menu.innerHTML = `
-            <div class="context-menu-item" style="padding: 8px 16px; cursor: pointer; hover: background: #f0f0f0;">
+            <div class="context-menu-item" data-action="edit" style="padding: 8px 16px; cursor: pointer; hover: background: #f0f0f0;">
                 <span>✏️ 편집</span>
             </div>
-            <div class="context-menu-item" style="padding: 8px 16px; cursor: pointer; hover: background: #f0f0f0;">
+            <div class="context-menu-item" data-action="duplicate" style="padding: 8px 16px; cursor: pointer; hover: background: #f0f0f0;">
+                <span>📋 복제</span>
+            </div>
+            <div class="context-menu-item" data-action="delete" style="padding: 8px 16px; cursor: pointer; hover: background: #f0f0f0; color: #dc2626;">
                 <span>🗑️ 삭제</span>
             </div>
         `;
@@ -412,16 +415,23 @@ class GoogleCalendarGrid {
             });
         });
         
-        // Edit event
-        menu.querySelector('.context-menu-item:first-child').addEventListener('click', () => {
-            this.editEvent(eventData);
-            menu.remove();
-        });
-        
-        // Delete event
-        menu.querySelector('.context-menu-item:last-child').addEventListener('click', () => {
-            this.deleteEvent(eventData);
-            menu.remove();
+        // Handle menu item clicks
+        menu.querySelectorAll('.context-menu-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const action = item.dataset.action;
+                switch(action) {
+                    case 'edit':
+                        this.editEvent(eventData);
+                        break;
+                    case 'duplicate':
+                        this.duplicateEvent(eventData);
+                        break;
+                    case 'delete':
+                        this.deleteEvent(eventData);
+                        break;
+                }
+                menu.remove();
+            });
         });
         
         document.body.appendChild(menu);
@@ -511,8 +521,22 @@ class GoogleCalendarGrid {
         });
     }
     
-    deleteEvent(eventData) {
+    async deleteEvent(eventData) {
         if (confirm(`"${eventData.title}" 일정을 삭제하시겠습니까?`)) {
+            try {
+                // Try to delete from backend
+                const calendarId = document.querySelector('.calendar-workspace')?.dataset.calendarId || 'default';
+                const response = await fetch(`/api/calendars/${calendarId}/events/${eventData.id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) {
+                    console.warn('Backend delete failed, removing locally only');
+                }
+            } catch (error) {
+                console.error('Failed to delete from backend:', error);
+            }
+            
             // Remove from events array
             this.events = this.events.filter(e => e.id !== eventData.id);
             
@@ -525,9 +549,59 @@ class GoogleCalendarGrid {
                 eventElement.remove();
             }
             
+            // Update event list
+            this.updateEventList();
+            
             if (window.showNotification) {
                 showNotification('일정이 삭제되었습니다', 'success');
             }
+        }
+    }
+    
+    duplicateEvent(eventData) {
+        // Create a copy of the event with a new ID and modified title
+        const newEvent = {
+            ...eventData,
+            id: Date.now().toString(),
+            title: eventData.title + ' (복사본)'
+        };
+        
+        // Add to events array
+        this.events.push(newEvent);
+        
+        // Render the new event
+        this.renderEvent(newEvent);
+        
+        // Update localStorage
+        this.saveToLocalStorage();
+        
+        // Update event list
+        this.updateEventList();
+        
+        // Try to save to backend
+        this.saveEventToBackend(newEvent);
+        
+        if (window.showNotification) {
+            showNotification(`"${newEvent.title}" 일정이 생성되었습니다`, 'success');
+        }
+    }
+    
+    async saveEventToBackend(eventData) {
+        try {
+            const calendarId = document.querySelector('.calendar-workspace')?.dataset.calendarId || 'default';
+            const response = await fetch(`/api/calendars/${calendarId}/events`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(eventData)
+            });
+            
+            if (response.ok) {
+                console.log('Event saved to backend successfully');
+            }
+        } catch (error) {
+            console.error('Failed to save event to backend:', error);
         }
     }
     
@@ -1409,6 +1483,12 @@ class GoogleCalendarGrid {
         // Add click handler to highlight event
         item.addEventListener('click', () => {
             this.highlightEventInCalendar(event.id);
+        });
+        
+        // Add right-click context menu for list items
+        item.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            this.showEventContextMenu(e, event);
         });
         
         // Add entry animation
