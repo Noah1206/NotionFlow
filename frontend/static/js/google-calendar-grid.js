@@ -37,7 +37,7 @@ class GoogleCalendarGrid {
     initSidebarMonitoring() {
         // Update on window resize
         window.addEventListener('resize', () => {
-            this.updateSidebarWidth();
+            this.updateMainContentDimensions();
         });
         
         // Monitor for sidebar toggle changes
@@ -46,14 +46,14 @@ class GoogleCalendarGrid {
             sidebarToggle.addEventListener('click', () => {
                 // Delay to let the animation complete
                 setTimeout(() => {
-                    this.updateSidebarWidth();
+                    this.updateMainContentDimensions();
                 }, 300);
             });
         }
         
         // Initial update
         setTimeout(() => {
-            this.updateSidebarWidth();
+            this.updateMainContentDimensions();
         }, 100);
     }
     
@@ -866,8 +866,8 @@ class GoogleCalendarGrid {
             </div>
         `;
         
-        // Update sidebar width before showing popup
-        this.updateSidebarWidth();
+        // Update main content dimensions before showing popup
+        this.updateMainContentDimensions();
         
         // Append to body for modal overlay effect
         document.body.appendChild(popup);
@@ -971,8 +971,8 @@ class GoogleCalendarGrid {
             </div>
         `;
         
-        // Update sidebar width before showing popup
-        this.updateSidebarWidth();
+        // Update main content dimensions before showing popup
+        this.updateMainContentDimensions();
         
         // Append to body for modal overlay effect
         document.body.appendChild(popup);
@@ -1651,6 +1651,10 @@ class GoogleCalendarGrid {
     async deleteEventById(eventId) {
         // Convert eventId to string for consistent comparison
         const eventIdStr = String(eventId);
+        
+        // Clean events array of null values first
+        this.events = this.events.filter(e => e && e.id);
+        
         const eventData = this.events.find(event => String(event.id) === eventIdStr);
         if (!eventData) {
             console.error('Event not found for deletion:', eventId, 'Available events:', this.events.map(e => ({id: e.id, title: e.title})));
@@ -1672,8 +1676,8 @@ class GoogleCalendarGrid {
                 console.error('Failed to delete from backend:', error);
             }
             
-            // Remove from events array
-            this.events = this.events.filter(e => String(e.id) !== eventIdStr);
+            // Remove from events array (filter out nulls and matching events)
+            this.events = this.events.filter(e => e && e.id && String(e.id) !== eventIdStr);
             
             // Update localStorage
             this.saveToLocalStorage();
@@ -1699,12 +1703,13 @@ class GoogleCalendarGrid {
         }
     }
 
-    updateSidebarWidth() {
-        // Find sidebar element and check its state
+    updateMainContentDimensions() {
+        // Find main content area and calculate dimensions
         const sidebar = document.querySelector('.sidebar');
-        const sidebarToggle = document.querySelector('.sidebar-toggle');
+        const mainContent = document.querySelector('.main-content, .center-calendar-area, .calendar-workspace');
         
         let sidebarWidth = 250; // Default width
+        let mainContentWidth = window.innerWidth - 250; // Default main content width
         
         if (sidebar) {
             // Check if sidebar is collapsed/hidden
@@ -1716,31 +1721,31 @@ class GoogleCalendarGrid {
             
             if (isHidden) {
                 sidebarWidth = 0;
+                mainContentWidth = window.innerWidth;
             } else {
                 // Get actual width
                 const actualWidth = sidebar.offsetWidth;
                 if (actualWidth > 0) {
                     sidebarWidth = actualWidth;
+                    mainContentWidth = window.innerWidth - actualWidth;
                 }
             }
+        } else if (mainContent) {
+            // Calculate from main content area if sidebar not found
+            const mainRect = mainContent.getBoundingClientRect();
+            sidebarWidth = mainRect.left;
+            mainContentWidth = mainRect.width;
         } else {
-            // Check if we're in a layout without sidebar
-            const mainContent = document.querySelector('.main-content');
-            const calendarWorkspace = document.querySelector('.calendar-workspace');
-            
-            if (mainContent) {
-                const mainRect = mainContent.getBoundingClientRect();
-                sidebarWidth = mainRect.left;
-            } else if (calendarWorkspace) {
-                const workspaceRect = calendarWorkspace.getBoundingClientRect();
-                sidebarWidth = workspaceRect.left;
-            }
+            // Fallback: assume full width if no main content found
+            sidebarWidth = 0;
+            mainContentWidth = window.innerWidth;
         }
         
-        // Update CSS custom property
+        // Update CSS custom properties
         document.documentElement.style.setProperty('--sidebar-width', `${sidebarWidth}px`);
+        document.documentElement.style.setProperty('--main-content-width', `${mainContentWidth}px`);
         
-        console.log('📏 Updated sidebar width:', sidebarWidth);
+        console.log('📏 Updated dimensions - Sidebar:', sidebarWidth, 'Main content:', mainContentWidth);
     }
 
     async loadExistingEvents() {
