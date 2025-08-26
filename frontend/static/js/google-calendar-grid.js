@@ -786,14 +786,11 @@ class GoogleCalendarGrid {
         const dateStr = startDate.toLocaleDateString('ko-KR');
         
         popup.innerHTML = `
-            <div class="popup-header">
-                <div class="popup-title">새 일정</div>
-                <button class="close-btn" onclick="this.closest('.event-creation-popup').remove()">×</button>
-            </div>
             <div class="popup-content">
-                <div class="datetime-section">
-                    <div class="datetime-row">
-                        <div class="datetime-label">날짜</div>
+                <div class="event-first-row">
+                    <input type="text" name="title" class="event-title-input" placeholder="새 일정" required>
+                    
+                    <div class="event-datetime-group">
                         <button type="button" class="datetime-button" id="date-button" onclick="window.googleCalendarGrid.showDatePicker(this)">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -803,52 +800,43 @@ class GoogleCalendarGrid {
                             </svg>
                             <span class="date-display">${dateStr}</span>
                         </button>
-                    </div>
-                    <div class="datetime-row">
-                        <div class="datetime-label">시간</div>
+                        
                         <button type="button" class="datetime-button" id="start-time-button" onclick="window.googleCalendarGrid.showTimePicker(this, 'start')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                 <circle cx="12" cy="12" r="10"/>
                                 <polyline points="12,6 12,12 16,14"/>
                             </svg>
-                            <span class="time-display">오전 ${startTimeStr}</span>
+                            <span class="time-display">${startTimeStr}</span>
                         </button>
+                        
                         <span class="time-range-separator">-</span>
+                        
                         <button type="button" class="datetime-button" id="end-time-button" onclick="window.googleCalendarGrid.showTimePicker(this, 'end')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                 <circle cx="12" cy="12" r="10"/>
                                 <polyline points="12,6 12,12 16,14"/>
                             </svg>
-                            <span class="time-display">오전 ${endTimeStr}</span>
+                            <span class="time-display">${endTimeStr}</span>
+                        </button>
+                    </div>
+                    
+                    <div class="event-actions">
+                        <button type="button" class="event-save-btn" onclick="window.googleCalendarGrid.saveEventFromFullScreen()">
+                            저장
+                        </button>
+                        <button type="button" class="event-cancel-btn" onclick="this.closest('.event-creation-popup').remove()">
+                            취소
                         </button>
                     </div>
                 </div>
                 
-                <form class="event-form" id="event-creation-form">
-                    <div class="form-section">
-                        <div class="form-field">
-                            <label>제목</label>
-                            <input type="text" name="title" class="title-input" placeholder="일정 제목 입력" required>
-                        </div>
-                        <div class="form-field">
-                            <label>설명</label>
-                            <textarea name="description" placeholder="일정 설명 (선택사항)"></textarea>
-                        </div>
-                    </div>
-                    
+                <textarea name="description" class="event-description-input" placeholder="설명 추가..."></textarea>
+                
+                <form style="display: none;" id="event-creation-form">
                     <input type="hidden" name="date" value="${this.formatDateForInput(startDate)}">
                     <input type="hidden" name="startTime" value="${startTimeStr}">
                     <input type="hidden" name="endTime" value="${endTimeStr}">
                 </form>
-            </div>
-            
-            <div class="form-actions">
-                <button type="button" class="btn-secondary" onclick="this.closest('.event-creation-popup').remove()">
-                    취소
-                </button>
-                <button type="button" class="btn-primary" onclick="window.googleCalendarGrid.saveEventFromFullScreen()">
-                    저장
-                </button>
             </div>
         `;
         
@@ -1148,16 +1136,24 @@ class GoogleCalendarGrid {
         }
         
         eventElement.innerHTML = `
-            <div class="calendar-event-content">
-                <div style="font-weight: 500; margin-bottom: 2px;">${eventData.title}</div>
-                ${eventData.description ? `<div style="font-size: 11px; opacity: 0.9;">${eventData.description}</div>` : ''}
+            <div class="calendar-event-actions">
+                <button class="calendar-event-edit" onclick="window.googleCalendarGrid.showEditEventPopup('${eventData.id}'); event.stopPropagation();" title="편집">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="m18.5 2.5 a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                </button>
+                <button class="calendar-event-delete" onclick="window.googleCalendarGrid.deleteEventById('${eventData.id}'); event.stopPropagation();" title="삭제">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <polyline points="3,6 5,6 21,6"/>
+                        <path d="m19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2-2h4a2,2 0 0,1,2,2v2"/>
+                    </svg>
+                </button>
             </div>
-            <button class="calendar-event-edit" onclick="window.googleCalendarGrid.showEditEventPopup('${eventData.id}'); event.stopPropagation();">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                    <path d="m18.5 2.5 a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                </svg>
-            </button>
+            <div class="calendar-event-content">
+                <div style="font-weight: 500; margin-bottom: 2px; padding-left: 2px;">${eventData.title}</div>
+                ${eventData.description ? `<div style="font-size: 11px; opacity: 0.9; padding-left: 2px;">${eventData.description}</div>` : ''}
+            </div>
         `;
         
         console.log('🎨 Event color:', eventData.color, 'Background:', eventElement.style.backgroundColor);
@@ -1350,15 +1346,19 @@ class GoogleCalendarGrid {
     }
     
     async saveEventFromFullScreen() {
-        const form = document.getElementById('event-creation-form');
-        if (!form) return;
+        const popup = document.querySelector('.event-creation-popup');
+        if (!popup) return;
         
-        const formData = new FormData(form);
+        const titleInput = popup.querySelector('input[name="title"]');
+        const descriptionInput = popup.querySelector('textarea[name="description"]');
+        const form = document.getElementById('event-creation-form');
+        
+        if (!form || !titleInput) return;
         
         // Validate required fields
-        if (!formData.get('title').trim()) {
+        if (!titleInput.value.trim()) {
             alert('일정 제목을 입력해주세요.');
-            form.querySelector('input[name="title"]').focus();
+            titleInput.focus();
             return;
         }
         
@@ -1372,9 +1372,11 @@ class GoogleCalendarGrid {
             getRandomEventColor() : 
             fallbackColors[Math.floor(Math.random() * fallbackColors.length)];
         
+        const formData = new FormData(form);
+        
         const eventData = {
-            title: formData.get('title'),
-            description: formData.get('description'),
+            title: titleInput.value.trim(),
+            description: descriptionInput ? descriptionInput.value.trim() : '',
             date: formData.get('date'),
             startTime: formData.get('startTime'),
             endTime: formData.get('endTime'),

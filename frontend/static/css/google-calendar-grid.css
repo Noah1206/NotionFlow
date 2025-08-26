@@ -220,29 +220,74 @@ div.time-cell {
     text-overflow: ellipsis;
 }
 
+/* Event Actions Container */
+.calendar-event-actions {
+    position: absolute;
+    top: 2px;
+    left: 4px;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: all 0.2s ease;
+    z-index: 20;
+}
+
+.calendar-event:hover .calendar-event-actions {
+    opacity: 1;
+}
+
 /* Edit Button */
 .calendar-event-edit {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    width: 20px;
-    height: 20px;
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    opacity: 0;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    z-index: 20;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-.calendar-event:hover .calendar-event-edit {
-    opacity: 1;
+.calendar-event-edit:hover {
+    background: #ffffff;
+    transform: scale(1.1);
 }
+
+.calendar-event-edit svg {
+    width: 8px;
+    height: 8px;
+    color: #4b5563;
+}
+
+/* Delete Button */
+.calendar-event-delete {
+    width: 16px;
+    height: 16px;
+    background: rgba(239, 68, 68, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.calendar-event-delete:hover {
+    background: #ef4444;
+    transform: scale(1.1);
+}
+
+.calendar-event-delete svg {
+    width: 8px;
+    height: 8px;
+    color: #ffffff;
+}
+
 
 .calendar-event-edit:hover {
     background: #f3f4f6;
