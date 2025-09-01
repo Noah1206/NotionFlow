@@ -7,10 +7,16 @@ class GoogleCalendarGrid {
         this.weekStart = this.getWeekStart(this.currentDate);
         this.events = [];
         
+        // 🔍 DEBUGGING: 컨테이너 크기 확인
         console.log('🏗️ GoogleCalendarGrid constructor:', {
             currentDate: this.currentDate,
             weekStart: this.weekStart,
-            dayOfWeek: this.currentDate.getDay()
+            dayOfWeek: this.currentDate.getDay(),
+            containerWidth: this.container.offsetWidth,
+            containerHeight: this.container.offsetHeight,
+            containerRect: this.container.getBoundingClientRect(),
+            windowWidth: window.innerWidth,
+            windowHeight: window.innerHeight
         });
         
         // Initialize search and event list
@@ -26,7 +32,7 @@ class GoogleCalendarGrid {
         // Time configuration
         this.startHour = 0; // 12 AM
         this.endHour = 23;  // 11 PM
-        this.timeSlotHeight = 90; // pixels - Compact size with dynamic drag creation
+        this.timeSlotHeight = 100; // pixels - Larger size for better visibility
         
         this.init();
         
@@ -85,8 +91,24 @@ class GoogleCalendarGrid {
     }
     
     render() {
+        // 🔧 DYNAMIC WIDTH: 컨테이너 너비에 맞게 동적으로 크기 조정
+        const containerWidth = this.container.offsetWidth || this.container.getBoundingClientRect().width;
+        const timeColumnWidth = 80; // 시간 컬럼 너비 최적화
+        const availableWidth = containerWidth - timeColumnWidth; // 여백 완전 제거
+        const dayColumnWidth = Math.max(250, Math.floor(availableWidth / 7)); // 최소 250px 보장, 7개 요일로 나누기 
+        console.log('🎯 Dynamic sizing:', {
+            containerWidth,
+            availableWidth,
+            dayColumnWidth,
+            totalWidth: timeColumnWidth + (dayColumnWidth * 7)
+        });
+        
+        // 동적 크기를 인스턴스 변수로 저장
+        this.timeColumnWidth = timeColumnWidth;
+        this.dayColumnWidth = dayColumnWidth;
+        
         const html = `
-            <div class="google-calendar-grid">
+            <div class="google-calendar-grid" style="width: 100%; display: flex; flex-direction: column;">
                 ${this.renderHeader()}
                 ${this.renderGrid()}
             </div>
@@ -101,8 +123,8 @@ class GoogleCalendarGrid {
         today.setHours(0, 0, 0, 0);
         
         let headerHTML = `
-            <div class="calendar-header">
-                <div class="time-header">GMT+9</div>
+            <div class="calendar-header" style="display: grid; grid-template-columns: ${this.timeColumnWidth}px repeat(7, ${this.dayColumnWidth}px); width: 100%; box-sizing: border-box; padding: 0; margin: 0;">
+                <div class="time-header" style="grid-column: 1; width: ${this.timeColumnWidth}px;">GMT+9</div>
         `;
         
         for (let i = 0; i < 7; i++) {
@@ -113,7 +135,7 @@ class GoogleCalendarGrid {
             const isWeekend = i === 0 || i === 6;
             
             headerHTML += `
-                <div class="day-header ${isToday ? 'today' : ''}" data-day="${i}">
+                <div class="day-header ${isToday ? 'today' : ''}" data-day="${i}" style="grid-column: ${i + 2}; width: ${this.dayColumnWidth}px;">
                     <div class="day-name">${days[i]}</div>
                     <div class="day-date">${date.getDate()}</div>
                 </div>
@@ -126,17 +148,17 @@ class GoogleCalendarGrid {
     
     renderGrid() {
         let gridHTML = `
-            <div class="calendar-grid-body">
-                <div class="time-column">
+            <div class="calendar-grid-body" style="display: grid; grid-template-columns: ${this.timeColumnWidth}px repeat(7, ${this.dayColumnWidth}px); width: 100%; height: 100%; box-sizing: border-box; padding: 0; margin: 0; padding-top: 10px;">
+                <div class="time-column" style="grid-column: 1; width: ${this.timeColumnWidth}px; flex-shrink: 0;">
                     ${this.renderTimeSlots()}
                 </div>
         `;
         
-        // Render day columns
+        // Render day columns with proper grid positioning - each takes full available space
         for (let day = 0; day < 7; day++) {
             const isWeekend = day === 0 || day === 6;
             gridHTML += `
-                <div class="day-column ${isWeekend ? 'weekend' : ''}" data-day="${day}">
+                <div class="day-column ${isWeekend ? 'weekend' : ''}" data-day="${day}" style="grid-column: ${day + 2}; width: ${this.dayColumnWidth}px; height: 100%;">
                     ${this.renderTimeCells(day)}
                 </div>
             `;
@@ -1608,13 +1630,15 @@ class GoogleCalendarGrid {
         const hour24 = parseInt(hours);
         
         if (hour24 === 0) {
-            return `오전 ${time}`;
+            return `오전 12:${minutes}`;
         } else if (hour24 < 12) {
             return `오전 ${time}`;
         } else if (hour24 === 12) {
             return `오후 ${time}`;
         } else {
-            return `오후 ${time}`;
+            const hour12 = hour24 - 12;
+            const displayHour = hour12 < 10 ? `0${hour12}` : hour12;
+            return `오후 ${displayHour}:${minutes}`;
         }
     }
 
@@ -2265,14 +2289,7 @@ function openEventForm(date = null, eventData = null) {
         document.getElementById('overlay-end-time').value = eventData.endTime || '10:00';
         document.getElementById('overlay-event-description').value = eventData.description || '';
         
-        // Set color
-        const colorOptions = overlayForm.querySelectorAll('.color-option');
-        colorOptions.forEach(option => {
-            option.classList.remove('active');
-            if (option.dataset.color === eventData.color) {
-                option.classList.add('active');
-            }
-        });
+        // 편집 모드에서는 기존 색상 유지 (색상 선택기 제거됨)
         
         // Store event ID for editing
         form.dataset.eventId = eventData.id;
@@ -2284,9 +2301,6 @@ function openEventForm(date = null, eventData = null) {
         }
         delete form.dataset.eventId;
     }
-    
-    // Setup color picker
-    setupOverlayColorPicker();
     
     // Focus on title input
     setTimeout(() => {
@@ -2345,15 +2359,7 @@ function handleOverlayClick(event) {
     }
 }
 
-function setupOverlayColorPicker() {
-    const colorOptions = document.querySelectorAll('.calendar-overlay-form .color-option');
-    colorOptions.forEach(option => {
-        option.addEventListener('click', () => {
-            colorOptions.forEach(opt => opt.classList.remove('active'));
-            option.classList.add('active');
-        });
-    });
-}
+// setupOverlayColorPicker 함수 제거됨 (색상 선택기 제거로 인해 불필요)
 
 function saveOverlayEvent(event) {
     event.preventDefault();
@@ -2367,8 +2373,18 @@ function saveOverlayEvent(event) {
     const startTime = document.getElementById('overlay-start-time').value;
     const endTime = document.getElementById('overlay-end-time').value;
     const description = document.getElementById('overlay-event-description').value.trim();
-    const activeColor = document.querySelector('.calendar-overlay-form .color-option.active');
-    const color = activeColor ? activeColor.dataset.color : '#3b82f6';
+    
+    // 색상 설정 (편집 모드에서는 기존 색상 유지, 새 이벤트는 랜덤)
+    let color;
+    if (eventId) {
+        // 편집 모드: 기존 색상 유지
+        const existingEvent = calendarInstance.events.find(e => e.id === eventId);
+        color = existingEvent ? existingEvent.color : '#3b82f6';
+    } else {
+        // 새 이벤트: 랜덤 색상 생성
+        const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4', '#f97316', '#84cc16', '#ec4899', '#6366f1'];
+        color = colors[Math.floor(Math.random() * colors.length)];
+    }
     
     // Validation
     if (!title) {

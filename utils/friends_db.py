@@ -22,8 +22,8 @@ class FriendsDB:
             from supabase import create_client
             
             url = os.getenv('SUPABASE_URL')
-            # Try different key names
-            key = os.getenv('SUPABASE_API_KEY') or os.getenv('SUPABASE_ANON_KEY')
+            # Use service role key for admin operations, fallback to anon key
+            key = os.getenv('SUPABASE_SERVICE_ROLE_KEY') or os.getenv('SUPABASE_API_KEY') or os.getenv('SUPABASE_ANON_KEY')
             
             if url and key:
                 self.supabase = create_client(url, key)
@@ -46,72 +46,30 @@ class FriendsDB:
             return False
         
         try:
-            # Create tables using SQL
-            sql_commands = [
-                # User profiles table
-                """
-                CREATE TABLE IF NOT EXISTS user_profiles (
-                    id TEXT PRIMARY KEY,
-                    name TEXT NOT NULL,
-                    email TEXT NOT NULL UNIQUE,
-                    avatar_url TEXT,
-                    is_public BOOLEAN DEFAULT FALSE,
-                    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-                    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-                );
-                """,
-                
-                # Friendships table
-                """
-                CREATE TABLE IF NOT EXISTS friendships (
-                    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-                    requester_id TEXT NOT NULL,
-                    addressee_id TEXT NOT NULL,
-                    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'blocked')),
-                    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-                    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-                    UNIQUE(requester_id, addressee_id)
-                );
-                """,
-                
-                # Friend requests table
-                """
-                CREATE TABLE IF NOT EXISTS friend_requests (
-                    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-                    sender_id TEXT NOT NULL,
-                    receiver_id TEXT NOT NULL,
-                    message TEXT,
-                    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined')),
-                    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-                    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-                    UNIQUE(sender_id, receiver_id)
-                );
-                """,
-                
-                # Calendar sharing table
-                """
-                CREATE TABLE IF NOT EXISTS calendar_sharing (
-                    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-                    calendar_id TEXT NOT NULL,
-                    owner_id TEXT NOT NULL,
-                    shared_with_id TEXT,
-                    is_public BOOLEAN DEFAULT FALSE,
-                    can_view BOOLEAN DEFAULT TRUE,
-                    can_edit BOOLEAN DEFAULT FALSE,
-                    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-                    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-                );
-                """
-            ]
+            # Check if user_profiles table exists and create minimal test data
+            print("🔧 Checking database tables...")
             
-            for sql in sql_commands:
-                self.supabase.rpc('exec_sql', {'sql': sql}).execute()
+            # Try to access user_profiles table
+            try:
+                result = self.supabase.table('user_profiles').select('*').limit(1).execute()
+                print("✅ user_profiles table exists")
+            except Exception as e:
+                print(f"❌ user_profiles table issue: {e}")
+                print("📝 Note: Tables need to be created in Supabase dashboard")
+                return False
             
-            print("✅ Friends DB: Tables created successfully")
+            # Check other tables
+            for table_name in ['friendships', 'friend_requests']:
+                try:
+                    result = self.supabase.table(table_name).select('*').limit(1).execute()
+                    print(f"✅ {table_name} table exists")
+                except Exception as e:
+                    print(f"❌ {table_name} table issue: {e}")
+            
             return True
             
         except Exception as e:
-            print(f"❌ Friends DB: Failed to create tables: {e}")
+            print(f"❌ Friends DB: Failed to check tables: {e}")
             return False
     
     # User Profile Methods
@@ -121,15 +79,58 @@ class FriendsDB:
             return False
         
         try:
-            data = {
-                'id': user_id,
-                'name': name,
+            import uuid
+            
+            # Generate username from name/email
+            username = name if name else email.split('@')[0] if email else user_id
+            
+            # First, create or get user in main users table
+            user_uuid = str(uuid.uuid4())
+            
+            # Check if user already exists by email
+            existing_user = self.supabase.table('users').select('*').eq('email', email).execute()
+            
+            if existing_user.data:
+                # Use existing user
+                user_uuid = existing_user.data[0]['id']
+                print(f"Using existing user: {user_uuid}")
+            else:
+                # Create new user in main users table
+                user_data = {
+                    'id': user_uuid,
+                    'email': email,
+                    'name': username,  # Required field in users table
+                    'created_at': datetime.now().isoformat()
+                }
+                
+                user_result = self.supabase.table('users').insert(user_data).execute()
+                if not user_result.data:
+                    print("❌ Failed to create user in main users table")
+                    return False
+                print(f"✅ Created new user: {user_uuid}")
+            
+            # Now create/update profile
+            profile_data = {
+                'user_id': user_uuid,  # Reference to main users table
+                'username': username,   # Display name
                 'email': email,
-                'avatar_url': avatar_url,
-                'updated_at': datetime.now().isoformat()
+                'avatar_url': avatar_url
             }
             
-            result = self.supabase.table('user_profiles').upsert(data).execute()
+            # Check if profile exists
+            existing_profile = self.supabase.table('user_profiles').select('*').eq('user_id', user_uuid).execute()
+            
+            if existing_profile.data:
+                # Update existing profile
+                result = self.supabase.table('user_profiles').update({
+                    'username': username,
+                    'email': email,
+                    'avatar_url': avatar_url
+                }).eq('user_id', user_uuid).execute()
+            else:
+                # Insert new profile
+                result = self.supabase.table('user_profiles').insert(profile_data).execute()
+            
             return bool(result.data)
             
         except Exception as e:
@@ -142,7 +143,7 @@ class FriendsDB:
             return None
         
         try:
-            result = self.supabase.table('user_profiles').select('*').eq('id', user_id).execute()
+            result = self.supabase.table('user_profiles').select('*').eq('user_id', user_id).execute()
             return result.data[0] if result.data else None
             
         except Exception as e:
@@ -161,6 +162,49 @@ class FriendsDB:
         except Exception as e:
             print(f"❌ Failed to search users: {e}")
             return []
+    
+    def search_users_by_name(self, name):
+        """Search users by username"""
+        if not self.is_available():
+            return []
+        
+        try:
+            result = self.supabase.table('user_profiles').select('*').ilike('username', f'%{name}%').execute()
+            return result.data or []
+            
+        except Exception as e:
+            print(f"❌ Failed to search users by name: {e}")
+            return []
+    
+    def search_users(self, query):
+        """Search users by username or email"""
+        if not self.is_available():
+            return []
+        
+        try:
+            # Search by email or username
+            result = self.supabase.table('user_profiles').select('*').or_(
+                f'email.ilike.%{query}%,username.ilike.%{query}%'
+            ).execute()
+            
+            return result.data or []
+            
+        except Exception as e:
+            print(f"❌ Failed to search users: {e}")
+            return []
+    
+    def has_pending_request(self, sender_id, receiver_id):
+        """Check if there's a pending friend request"""
+        if not self.is_available():
+            return False
+        
+        try:
+            result = self.supabase.table('friend_requests').select('id').eq('sender_id', sender_id).eq('receiver_id', receiver_id).eq('status', 'pending').execute()
+            return len(result.data) > 0
+            
+        except Exception as e:
+            print(f"❌ Failed to check pending request: {e}")
+            return False
     
     # Friend Request Methods
     def send_friend_request(self, sender_id, receiver_id, message=None):
@@ -293,7 +337,7 @@ class FriendsDB:
                 if friend.get('addressee'):
                     friends.append({
                         'id': friend['friend_id'],
-                        'name': friend['addressee']['name'],
+                        'name': friend['addressee']['username'],  # Use username
                         'email': friend['addressee']['email'],
                         'avatar': friend['addressee']['avatar_url'],
                         'connected_at': friend['created_at']
@@ -304,7 +348,7 @@ class FriendsDB:
                 if friend.get('requester'):
                     friends.append({
                         'id': friend['friend_id'],
-                        'name': friend['requester']['name'],
+                        'name': friend['requester']['username'],  # Use username
                         'email': friend['requester']['email'],
                         'avatar': friend['requester']['avatar_url'],
                         'connected_at': friend['created_at']

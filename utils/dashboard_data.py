@@ -108,19 +108,26 @@ class DashboardDataManager:
             print(f"Error getting user API keys: {e}")
             return {}
     
-    def get_user_calendar_events(self, user_id: str, days_ahead: int = 30, start_date: datetime = None, end_date: datetime = None) -> List[Dict]:
-        """Get user's calendar events"""
+    def get_user_calendar_events(self, user_id: str, days_ahead: int = 30, start_date: datetime = None, end_date: datetime = None, calendar_ids: List[str] = None) -> List[Dict]:
+        """Get user's calendar events, optionally filtered by calendar IDs"""
         try:
             if start_date is None:
                 start_date = datetime.now()
             if end_date is None:
                 end_date = start_date + timedelta(days=days_ahead)
             
-            result = self.supabase.table('calendar_events').select('''
+            # Build query
+            query = self.supabase.table('calendar_events').select('''
                 id, title, description, start_datetime, end_datetime,
                 is_all_day, category, priority, status, source_platform,
-                location, attendees, created_at, updated_at
-            ''').eq('user_id', user_id).gte('start_datetime', start_date.isoformat()).lte('start_datetime', end_date.isoformat()).order('start_datetime').execute()
+                location, attendees, created_at, updated_at, calendar_id
+            ''').eq('user_id', user_id).gte('start_datetime', start_date.isoformat()).lte('start_datetime', end_date.isoformat())
+            
+            # Filter by calendar IDs if provided
+            if calendar_ids:
+                query = query.in_('calendar_id', calendar_ids)
+            
+            result = query.order('start_datetime').execute()
             
             return result.data if result.data else []
             
@@ -134,13 +141,22 @@ class DashboardDataManager:
             print(f"🔍 get_user_calendars called for user_id: {user_id}")
             print(f"🔍 admin_client available: {self.admin_client is not None}")
             
+            # First, let's see what calendars exist in the database
+            all_calendars_result = self.admin_client.table('calendars').select('''
+                id, name, color, type, description, is_active, 
+                public_access, allow_editing, created_at, updated_at, owner_id
+            ''').execute()
+            
+            print(f"🔍 All calendars in database: {all_calendars_result.data}")
+            print(f"🔍 Total calendars in DB: {len(all_calendars_result.data) if all_calendars_result.data else 0}")
+            
             # Get calendars from new calendars table using admin client
             result = self.admin_client.table('calendars').select('''
                 id, name, color, type, description, is_active, 
                 public_access, allow_editing, created_at, updated_at
             ''').eq('owner_id', user_id).execute()
             
-            print(f"🔍 Supabase query result: {result}")
+            print(f"🔍 Supabase query result for user {user_id}: {result}")
             print(f"🔍 Result data: {result.data}")
             print(f"🔍 Number of calendars found: {len(result.data) if result.data else 0}")
             
@@ -150,9 +166,8 @@ class DashboardDataManager:
             
             # Process each calendar
             for calendar in result.data:
-                # Get event count for this calendar
-                events_result = self.admin_client.table('calendar_events').select('id', count='exact').eq('user_id', user_id).eq('calendar_id', calendar['id']).execute()
-                event_count = events_result.count if events_result.count else 0
+                # Skip event count query for now since calendar_id column doesn't exist
+                event_count = 0
                 total_events_count += event_count
                 
                 # Format created time for last sync display

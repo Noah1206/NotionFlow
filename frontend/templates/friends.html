@@ -27,9 +27,35 @@
                 </svg>
             </button>
             <h1 class="page-title">
-                <span class="title-icon">👥</span>
                 친구 캘린더
             </h1>
+        </div>
+        
+        <!-- Friend Search Bar -->
+        <div class="header-search">
+            <div class="friend-search-container">
+                <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="M21 21l-4.35-4.35"/>
+                </svg>
+                <input type="text" 
+                       class="friend-search-input" 
+                       id="header-friend-search"
+                       placeholder="이메일 또는 이름으로 친구 검색..."
+                       onkeyup="headerSearchFriends(this.value)">
+                <button class="search-clear-btn" id="search-clear" onclick="clearHeaderSearch()" style="display: none;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Search Results Dropdown -->
+            <div class="search-dropdown" id="header-search-dropdown" style="display: none;">
+                <div class="search-results-container" id="header-search-results">
+                    <!-- Results will be populated here -->
+                </div>
+            </div>
         </div>
         
         <div class="header-right">
@@ -43,13 +69,32 @@
                 친구 추가
             </button>
             
-            <button class="btn-requests" onclick="openFriendRequests()">
+            <button class="btn-requests" onclick="toggleNotificationsPanel()">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                     <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                 </svg>
                 <span class="request-badge" id="request-count" style="display: none;">3</span>
             </button>
+        </div>
+    </div>
+    
+    <!-- Notifications Panel -->
+    <div class="notifications-panel" id="notifications-panel" style="display: none;">
+        <div class="notifications-header">
+            <h3>친구 요청</h3>
+            <button class="panel-close-btn" onclick="closeNotificationsPanel()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="notifications-content" id="notifications-content">
+            <!-- Friend requests will be populated here -->
+            <div class="notification-loading">
+                <div class="spinner"></div>
+                <span>알림을 불러오는 중...</span>
+            </div>
         </div>
     </div>
     
@@ -110,8 +155,10 @@
             
             <div class="my-calendars-container" id="my-calendars-container">
                 <div class="loading-spinner" id="my-calendars-loading">
-                    <div class="spinner"></div>
-                    <span>캘린더 목록을 불러오는 중...</span>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar"></div>
+                    </div>
+                    <span class="loading-text">캘린더 목록을 불러오는 중<span class="loading-dots"></span></span>
                 </div>
                 
                 <div class="my-calendars-grid" id="my-calendars-grid" style="display: none;">
@@ -147,8 +194,10 @@
             
             <div class="shared-calendars-container" id="shared-calendars-container">
                 <div class="loading-spinner" id="shared-calendars-loading">
-                    <div class="spinner"></div>
-                    <span>공유 캘린더를 불러오는 중...</span>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar"></div>
+                    </div>
+                    <span class="loading-text">공유 캘린더를 불러오는 중<span class="loading-dots"></span></span>
                 </div>
                 
                 <div class="shared-calendars-grid" id="shared-calendars-grid" style="display: none;">

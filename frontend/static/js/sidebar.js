@@ -208,15 +208,16 @@ class SidebarManager {
      * 🎯 토글 아이콘 업데이트
      */
     updateToggleIcon() {
-        const toggleIcon = document.getElementById('sidebar-toggle-icon');
-        const collapsedIcon = document.getElementById('sidebar-collapsed-icon');
+        // 실제 존재하는 토글 버튼들 사용
+        const expandedHeader = document.querySelector('.expanded-header');
+        const collapsedHeader = document.querySelector('.collapsed-header');
         
         if (this.sidebar?.classList.contains('collapsed')) {
-            if (toggleIcon) toggleIcon.style.display = 'none';
-            if (collapsedIcon) collapsedIcon.style.display = 'inline';
+            if (expandedHeader) expandedHeader.style.display = 'none';
+            if (collapsedHeader) collapsedHeader.style.display = 'block';
         } else {
-            if (toggleIcon) toggleIcon.style.display = 'inline';
-            if (collapsedIcon) collapsedIcon.style.display = 'none';
+            if (expandedHeader) expandedHeader.style.display = 'flex';
+            if (collapsedHeader) collapsedHeader.style.display = 'none';
         }
     }
 
@@ -443,21 +444,18 @@ window.toggleSidebar = function() {
         
         // 토글 버튼 아이콘 업데이트
         const floatingBtn = document.getElementById('sidebar-toggle-floating');
-        const openIcon = floatingBtn?.querySelector('.sidebar-toggle-open-icon');
-        const closeIcon = floatingBtn?.querySelector('.sidebar-toggle-close-icon');
-        
-        // console.log('Sidebar collapsed:', sidebarManager.sidebar?.classList.contains('collapsed')); // 디버그용
+        // 실제 존재하는 토글 버튼들 사용
+        const expandedHeader = document.querySelector('.expanded-header');
+        const collapsedHeader = document.querySelector('.collapsed-header');
         
         if (sidebarManager.sidebar?.classList.contains('collapsed')) {
             // 사이드바가 접혔을 때 - 햄버거 아이콘 표시
-            if (openIcon) openIcon.style.display = 'block';
-            if (closeIcon) closeIcon.style.display = 'none';
-            // console.log('Showing hamburger icon'); // 디버그용
+            if (expandedHeader) expandedHeader.style.display = 'none';
+            if (collapsedHeader) collapsedHeader.style.display = 'block';
         } else {
-            // 사이드바가 펼쳐졌을 때 - X 아이콘 표시
-            if (openIcon) openIcon.style.display = 'none';
-            if (closeIcon) closeIcon.style.display = 'block';
-            // console.log('Showing close icon'); // 디버그용
+            // 사이드바가 펼쳐졌을 때 - 닫기 아이콘 표시
+            if (expandedHeader) expandedHeader.style.display = 'flex';
+            if (collapsedHeader) collapsedHeader.style.display = 'none';
         }
     } else {
         // console.log('sidebarManager not found'); // 디버그용

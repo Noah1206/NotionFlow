@@ -135,12 +135,19 @@ document.addEventListener('DOMContentLoaded', function() {
     initMiniCalendar();
     initializeMediaPlayer();
     initializeMediaPlayerFromWorkspace(); // Initialize media player from workspace data
+    
+    // Initialize sidebar media player sync after main player is ready
+    setTimeout(() => {
+        if (typeof updateSidebarFromMainPlayer === 'function') {
+            updateSidebarFromMainPlayer();
+        }
+    }, 500);
     initializeTodoList();
     initializeHabitTracker();
     loadPriorities(); // Load priority tasks
     loadReminders(); // Load reminders
     initializeEventSearch(); // Initialize event search functionality
-    initializeAttendees(); // Initialize attendees functionality
+    // initializeAttendees(); // Initialize attendees functionality - disabled
 });
 
 function initializeCalendar() {
@@ -367,20 +374,28 @@ function fetchCalendarMedia(calendarId) {
         return;
     }
     
-    // Fetch media files from the server
-    fetch(`/api/calendar/${calendarId}/media`)
-        .then(response => {
-            if (!response.ok) {
-                console.warn(`Media API returned ${response.status}, hiding media players`);
-                hideMediaPlayers();
-                return null;
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (!data) return; // Skip if no data (due to error)
+    // Use the workspace data instead of API call since media URL is already provided
+    const workspace = document.querySelector('.calendar-workspace');
+    if (workspace) {
+        const mediaUrl = workspace.dataset.calendarMedia;
+        const mediaTitle = workspace.dataset.calendarMediaTitle || 'Unknown Track';
+        const mediaType = workspace.dataset.calendarMediaType || 'audio';
+        
+        console.log('📻 Media data from workspace:', { mediaUrl, mediaTitle, mediaType });
+        
+        if (mediaUrl && mediaUrl.trim() !== '') {
+            // Create media files array from workspace data
+            const data = {
+                success: true,
+                media_files: [{
+                    title: mediaTitle,
+                    artist: '내 음악',
+                    src: mediaUrl,
+                    type: mediaType
+                }]
+            };
             
-            console.log('Media API response:', data);
+            console.log('Media data loaded from workspace:', data);
             if (data.media_files && data.media_files.length > 0) {
                 // Show media players
                 const mediaPlayer = document.getElementById('media-player');
@@ -396,11 +411,14 @@ function fetchCalendarMedia(calendarId) {
                 console.log('No media files found for this calendar');
                 hideMediaPlayers();
             }
-        })
-        .catch(error => {
-            console.warn('Media files not available:', error.message);
+        } else {
+            console.log('No media URL found in workspace data');
             hideMediaPlayers();
-        });
+        }
+    } else {
+        console.log('Calendar workspace element not found');
+        hideMediaPlayers();
+    }
 }
 
 function hideMediaPlayers() {
@@ -583,7 +601,7 @@ function loadTrack(track) {
             
             // Reset progress safely
             const progressFill = document.getElementById('progress-fill');
-            const currentTimeElement = document.getElementById('current-time');
+            const currentTimeElement = document.getElementById('compact-current-time');
             const compactProgressFill = document.getElementById('compact-progress-fill');
             const compactCurrentTime = document.getElementById('compact-current-time');
             
@@ -717,7 +735,8 @@ function updateProgress() {
     if (duration) {
         const percentage = (current / duration) * 100;
         document.getElementById('progress-fill').style.width = percentage + '%';
-        document.getElementById('current-time').textContent = formatTime(current);
+        const currentTimeEl = document.getElementById('compact-current-time');
+        if (currentTimeEl) currentTimeEl.textContent = formatTime(current);
     }
 }
 
@@ -726,7 +745,10 @@ function updateTotalTime() {
     
     const duration = mediaPlayer.duration;
     if (duration) {
-        document.getElementById('total-time').textContent = formatTime(duration);
+        const totalTimeElement = document.getElementById('compact-total-time');
+        if (totalTimeElement) {
+            totalTimeElement.textContent = formatTime(duration);
+        }
     }
 }
 
@@ -1758,10 +1780,41 @@ function updateCompactPlayerInfo(track) {
     const artistElement = document.getElementById('compact-media-artist');
     
     if (titleElement) {
-        titleElement.textContent = track.title || 'Unknown Track';
+        // 커스텀 제목이 있다면 사용, 없으면 기본 제목
+        loadCustomMediaTitle().then(customTitle => {
+            if (customTitle) {
+                titleElement.textContent = customTitle;
+            } else {
+                titleElement.textContent = track.title || 'Unknown Track';
+            }
+        });
     }
     if (artistElement) {
         artistElement.textContent = track.artist || 'Unknown Artist';
+    }
+}
+
+// 데이터베이스에서 커스텀 미디어 제목 불러오기
+async function loadCustomMediaTitle() {
+    try {
+        const calendarId = window.location.pathname.split('/').pop();
+        const response = await fetch(`/api/calendars/${calendarId}`);
+        const data = await response.json();
+        
+        if (data.success && data.calendar) {
+            // media_title 컬럼이 있는 경우
+            if (data.calendar.media_title) {
+                return data.calendar.media_title;
+            }
+            // media_title 컬럼이 없는 경우 description에서 추출
+            if (data.calendar.description && data.calendar.description.startsWith('미디어: ')) {
+                return data.calendar.description.substring(4); // '미디어: ' 제거
+            }
+        }
+        return null;
+    } catch (error) {
+        console.error('커스텀 미디어 제목 로드 실패:', error);
+        return null;
     }
 }
 
@@ -1857,8 +1910,8 @@ function updateProgress() {
         }
         
         // Update time display
-        const currentTimeElement = document.getElementById('current-time');
-        const totalTimeElement = document.getElementById('total-time');
+        const currentTimeElement = document.getElementById('compact-current-time');
+        const totalTimeElement = document.getElementById('compact-total-time');
         
         if (currentTimeElement) {
             currentTimeElement.textContent = formatTime(currentTime);
@@ -1997,6 +2050,92 @@ function closeCalendarSettings() {
     }
 }
 
+// 미디어 제목 편집 기능
+function editMediaTitle() {
+    const titleElement = document.getElementById('compact-media-title');
+    const inputElement = document.getElementById('compact-media-title-input');
+    
+    if (!titleElement || !inputElement) return;
+    
+    // 현재 제목을 input에 설정
+    inputElement.value = titleElement.textContent;
+    
+    // 제목 숨기고 input 표시
+    titleElement.style.display = 'none';
+    inputElement.style.display = 'block';
+    inputElement.focus();
+    inputElement.select();
+}
+
+function saveMediaTitle() {
+    const titleElement = document.getElementById('compact-media-title');
+    const inputElement = document.getElementById('compact-media-title-input');
+    
+    if (!titleElement || !inputElement) return;
+    
+    const newTitle = inputElement.value.trim() || titleElement.textContent;
+    
+    // 제목 업데이트
+    titleElement.textContent = newTitle;
+    
+    // input 숨기고 제목 표시
+    inputElement.style.display = 'none';
+    titleElement.style.display = 'block';
+    
+    // 서버에 저장
+    saveMediaTitleToServer(newTitle);
+}
+
+function handleTitleKeydown(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        saveMediaTitle();
+    } else if (event.key === 'Escape') {
+        event.preventDefault();
+        // 변경 취소
+        const titleElement = document.getElementById('compact-media-title');
+        const inputElement = document.getElementById('compact-media-title-input');
+        
+        inputElement.style.display = 'none';
+        titleElement.style.display = 'block';
+    }
+}
+
+function saveMediaTitleToServer(title) {
+    const calendarId = window.location.pathname.split('/').pop();
+    
+    // Extract filename from media player source
+    let filename = '';
+    if (mediaPlayer && mediaPlayer.src) {
+        const urlParts = mediaPlayer.src.split('/');
+        filename = urlParts[urlParts.length - 1]; // Get the filename part
+    }
+    
+    if (!filename) {
+        console.error('❌ 미디어 파일명을 찾을 수 없습니다.');
+        return;
+    }
+    
+    fetch(`/api/calendars/${calendarId}/media-title`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ filename: filename, title: title })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('✅ 미디어 제목이 저장되었습니다:', title);
+        } else {
+            console.error('❌ 미디어 제목 저장 실패:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('❌ 미디어 제목 저장 중 오류:', error);
+    });
+}
+
 async function saveCalendarSettings() {
     try {
         const calendarId = document.querySelector('.calendar-workspace').dataset.calendarId;
@@ -2042,9 +2181,18 @@ function initializeMediaPlayerFromWorkspace() {
     const calendarWorkspace = document.querySelector('.calendar-workspace');
     if (calendarWorkspace) {
         const mediaUrl = calendarWorkspace.dataset.calendarMedia;
+        const mediaType = calendarWorkspace.dataset.calendarMediaType;
         console.log('🎵 Media URL from data attribute:', mediaUrl);
+        console.log('🎵 Media type from data attribute:', mediaType);
         
-        // More robust validation of media URL
+        // Check if it's a YouTube video
+        if (mediaType === 'youtube' && mediaUrl && mediaUrl.includes('youtube.com/embed/')) {
+            console.log('🎵 YouTube video detected, initializing YouTube player');
+            initializeYouTubePlayer(mediaUrl);
+            return;
+        }
+        
+        // More robust validation of regular media URL
         if (mediaUrl && 
             mediaUrl.trim() !== '' && 
             mediaUrl !== 'None' && 
@@ -2053,7 +2201,7 @@ function initializeMediaPlayerFromWorkspace() {
             !mediaUrl.includes('undefined') && 
             !mediaUrl.includes('null') &&
             mediaUrl.startsWith('http')) {
-            // Initialize media player with the URL
+            // Initialize regular media player with the URL
             console.log('🎵 Valid media URL found, initializing player');
             initializeMediaPlayerWithUrl(mediaUrl);
         } else {
@@ -2072,6 +2220,58 @@ function initializeMediaPlayerFromWorkspace() {
         }
     } else {
         console.warn('Calendar workspace element not found');
+    }
+}
+
+// YouTube player initialization
+function initializeYouTubePlayer(embedUrl) {
+    console.log('🎵 Initializing YouTube player with embed URL:', embedUrl);
+    
+    // Create a YouTube iframe in the sidebar
+    const sidebarPlayerContainer = document.querySelector('.compact-media-player');
+    if (sidebarPlayerContainer) {
+        // Hide regular media controls since we'll use YouTube's controls
+        const mediaControls = sidebarPlayerContainer.querySelector('.compact-media-controls');
+        if (mediaControls) {
+            mediaControls.style.display = 'none';
+        }
+        
+        // Create YouTube iframe
+        const youtubeFrame = document.createElement('iframe');
+        youtubeFrame.id = 'youtube-player';
+        youtubeFrame.width = '100%';
+        youtubeFrame.height = '200';
+        youtubeFrame.src = embedUrl + '?enablejsapi=1&origin=' + window.location.origin;
+        youtubeFrame.frameBorder = '0';
+        youtubeFrame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+        youtubeFrame.allowFullscreen = true;
+        youtubeFrame.style.borderRadius = '8px';
+        youtubeFrame.style.marginTop = '10px';
+        
+        // Insert YouTube player after media info
+        const mediaInfo = sidebarPlayerContainer.querySelector('.compact-media-info');
+        if (mediaInfo) {
+            mediaInfo.insertAdjacentElement('afterend', youtubeFrame);
+        }
+        
+        // Update media info with YouTube video details
+        const calendarWorkspace = document.querySelector('.calendar-workspace');
+        if (calendarWorkspace) {
+            const youtubeTitle = calendarWorkspace.dataset.youtubeTitle || 'YouTube Video';
+            const youtubeChannel = calendarWorkspace.dataset.youtubeChannel || 'YouTube';
+            
+            const titleElement = document.getElementById('compact-media-title');
+            const artistElement = document.getElementById('compact-media-artist');
+            
+            if (titleElement) titleElement.textContent = youtubeTitle;
+            if (artistElement) artistElement.textContent = youtubeChannel;
+            
+            // Also update main player info if it exists
+            const mediaTitle = document.getElementById('media-title');
+            const mediaArtist = document.getElementById('media-artist');
+            if (mediaTitle) mediaTitle.textContent = youtubeTitle;
+            if (mediaArtist) mediaArtist.textContent = youtubeChannel;
+        }
     }
 }
 
@@ -2626,16 +2826,31 @@ function renderMiniCalendar() {
     const daysInMonth = lastDay.getDate();
     const startingDayOfWeek = firstDay.getDay();
     
+    console.log(`미니 캘린더 디버그 - ${year}년 ${month + 1}월:`, {
+        firstDay: firstDay.toDateString(),
+        startingDayOfWeek: startingDayOfWeek,
+        daysInMonth: daysInMonth,
+        daysInPrevMonth: new Date(year, month - 1, 0).getDate()
+    });
+    
     // Get today's date for highlighting
     const today = new Date();
     const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
     const todayDate = today.getDate();
     
-    // Add empty cells for days before the first day of the month
-    for (let i = 0; i < startingDayOfWeek; i++) {
-        const emptyDay = document.createElement('div');
-        emptyDay.className = 'mini-day other-month';
-        daysContainer.appendChild(emptyDay);
+    // Get previous month info for padding
+    const prevMonth = new Date(year, month - 1, 0);
+    const daysInPrevMonth = prevMonth.getDate();
+    
+    // Add previous month's trailing days
+    console.log('이전 달 날짜들:', startingDayOfWeek, '개 추가');
+    for (let i = startingDayOfWeek - 1; i >= 0; i--) {
+        const day = daysInPrevMonth - i;
+        console.log(`i=${i}, day=${day}`);
+        const dayElement = document.createElement('div');
+        dayElement.className = 'mini-day other-month';
+        dayElement.textContent = day;
+        daysContainer.appendChild(dayElement);
     }
     
     // Add days of the month
@@ -2655,6 +2870,18 @@ function renderMiniCalendar() {
             navigateToDate(clickedDate);
         });
         
+        daysContainer.appendChild(dayElement);
+    }
+    
+    // Add next month's leading days to fill the grid (42 cells total for 6 weeks)
+    const totalCells = 42;
+    const cellsUsed = startingDayOfWeek + daysInMonth;
+    const remainingCells = totalCells - cellsUsed;
+    
+    for (let day = 1; day <= remainingCells; day++) {
+        const dayElement = document.createElement('div');
+        dayElement.className = 'mini-day other-month';
+        dayElement.textContent = day;
         daysContainer.appendChild(dayElement);
     }
 }
@@ -3263,7 +3490,7 @@ function loadAttendees() {
             renderAttendees();
         })
         .catch(error => {
-            console.log('API not available, using owner only:', error);
+            console.error('Error loading attendees:', error);
             renderAttendees();
         });
 }

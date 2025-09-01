@@ -1,2135 +1,2817 @@
 <!DOCTYPE html>
 <html lang="ko" data-theme="light">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ calendar.name }} - 캘린더 - NotionFlow</title>
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
-    <link rel="icon" type="image/svg+xml" sizes="16x16" href="{{ url_for('static', filename='images/favicon-16x16.svg') }}">
-    <link rel="icon" type="image/svg+xml" sizes="32x32" href="{{ url_for('static', filename='images/favicon-32x32.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="16x16"
+        href="{{ url_for('static', filename='images/favicon-16x16.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="32x32"
+        href="{{ url_for('static', filename='images/favicon-32x32.svg') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='images/apple-touch-icon.svg') }}">
-    <link rel="icon" type="image/svg+xml" sizes="192x192" href="{{ url_for('static', filename='images/icon-192x192.svg') }}">
-    <link rel="icon" type="image/svg+xml" sizes="512x512" href="{{ url_for('static', filename='images/icon-512x512.svg') }}">
-    
+    <link rel="icon" type="image/svg+xml" sizes="192x192"
+        href="{{ url_for('static', filename='images/icon-192x192.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="512x512"
+        href="{{ url_for('static', filename='images/icon-512x512.svg') }}">
+
     <!-- Web App Manifest -->
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <meta name="theme-color" content="#3B82F6">
-    
+
     <!-- CSS Files -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/variables.css') }}?v={{ range(100000, 999999) | random }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-detail.css') }}?v={{ range(100000, 999999) | random }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-detail-new.css') }}?v={{ range(100000, 999999) | random }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-time-grid.css') }}?v={{ range(100000, 999999) | random }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-time-grid-enhanced.css') }}?v={{ range(100000, 999999) | random }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/google-calendar-grid.css') }}?v={{ range(100000, 999999) | random }}">
-    
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/variables.css') }}?v={{ range(100000, 999999) | random }}">
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/sidebar.css') }}?v={{ range(100000, 999999) | random }}">
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/calendar-detail.css') }}?v=20250827110500&nocache=1">
+
+    <style>
+        /* 전체 레이아웃 수정 */
+        .calendar-workspace {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: #f8f9fa;
+        }
+
+        /* 상단 헤더 스타일 복원 */
+        .calendar-topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            background: white;
+            border-bottom: 1px solid #e5e5e5;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+            height: 60px;
+        }
+
+        .topbar-left,
+        .topbar-center,
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn-back {
+            padding: 8px;
+            border: 1px solid #e5e5e5;
+            background: white;
+            border-radius: 6px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-back:hover {
+            background: #f5f5f5;
+            border-color: #3b82f6;
+        }
+
+        .calendar-header-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .calendar-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+
+        .calendar-icon-small {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        /* 가로 배치 콘텐츠 */
+        .calendar-workspace-content {
+            display: flex;
+            flex-direction: row;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .left-sidebar {
+            width: 300px;
+            min-width: 300px;
+            background: white;
+            border-right: 1px solid #e5e5e5;
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        .calendar-main-content {
+            flex: 1;
+            background: white;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 캘린더 그리드 컨테이너 */
+        .calendar-grid-container {
+            flex: 1;
+            overflow: auto;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            min-width: 0;
+            /* 완전히 축소 가능 */
+            display: flex;
+            justify-content: flex-start;
+            /* 캘린더를 약간 오른쪽으로 이동 */
+            padding-left: 5px;
+            /* 왼쪽 패딩을 극도로 최소화 */
+            padding-right: 5px;
+            /* 오른쪽 패딩도 최소화 */
+        }
+
+        /* Google Calendar 그리드 스타일 */
+        #calendar-grid-container {
+            height: 100%;
+            width: auto;
+            /* 자동 너비로 중앙 정렬 가능 */
+            min-width: 1830px;
+            /* 80px + (200px * 7) = 1480px 최소 크기 */
+            width: 100%;
+            /* 전체 너비 사용 */
+            box-sizing: border-box;
+            /* 패딩/보더 포함 계산 */
+        }
+
+        /* 사이드바 위젯 스타일 개선 */
+        .sidebar-widget {
+            margin: 12px 16px;
+            background: white;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .widget-header {
+            background: #f8f9fa;
+            padding: 10px 14px;
+            border-bottom: 1px solid #e5e5e5;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .widget-header h4 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+
+        /* 검색 입력 스타일 */
+        .event-search-container {
+            padding: 12px;
+        }
+
+        #event-search-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #e5e5e5;
+            border-radius: 6px;
+            font-size: 13px;
+            background: #f8f9fa;
+            transition: all 0.2s;
+        }
+
+        #event-search-input:focus {
+            background: white;
+            border-color: #3b82f6;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+
+        /* 일정 목록 스타일 */
+        .event-list-container {
+            padding: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        /* 미니 캘린더 스타일 */
+        .mini-calendar-widget {
+            padding: 12px;
+        }
+
+        .mini-calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .mini-month-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .mini-nav-btn {
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: transparent;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .mini-nav-btn:hover {
+            background: #f0f0f0;
+            color: #3b82f6;
+        }
+
+        /* 미니 캘린더 그리드 - 원래 스타일로 복원 */
+        .mini-calendar-grid {
+            width: 100%;
+            font-size: 12px;
+        }
+
+        .mini-weekdays {
+            display: grid !important;
+            grid-template-columns: repeat(7, 1fr) !important;
+            gap: 1px !important;
+            margin-bottom: 6px !important;
+            width: 100% !important;
+        }
+
+        .mini-weekdays span {
+            font-size: 10px !important;
+            font-weight: 600 !important;
+            color: #666 !important;
+            padding: 4px 0 !important;
+            text-align: center !important;
+        }
+
+        .mini-calendar-days {
+            display: grid !important;
+            grid-template-columns: repeat(7, 1fr) !important;
+            gap: 1px !important;
+            width: 100% !important;
+            grid-auto-rows: minmax(22px, auto) !important;
+        }
+
+        .mini-day {
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #333;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .mini-day:hover {
+            background: #e3f2fd;
+        }
+
+        .mini-day.today {
+            background: #2196f3;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
+        }
+
+        .mini-day.other-month {
+            color: #bbb;
+        }
+
+        .mini-day.selected {
+            background: #1976d2;
+            color: white;
+        }
+
+        /* 참석자 스타일 개선 */
+        .attendees-container {
+            padding: 0;
+        }
+
+        .attendees-list {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .attendee-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f8f8f8;
+        }
+
+        .attendee-item:last-child {
+            border-bottom: none;
+        }
+
+        .attendee-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .attendee-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .attendee-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .attendee-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: #333;
+            margin: 0 0 2px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .attendee-email {
+            font-size: 11px;
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .attendee-status {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .attendee-status.owner {
+            background: #ffd700;
+            color: #333;
+        }
+
+        .attendee-status.accepted {
+            background: #4caf50;
+            color: white;
+        }
+
+        .attendee-status.pending {
+            background: #ff9800;
+            color: white;
+        }
+
+        .attendee-status.declined {
+            background: #f44336;
+            color: white;
+        }
+
+        /* 참석자 통계 스타일 개선 */
+        .attendance-summary {
+            padding: 12px;
+            background: #f8f9fa;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 8px 4px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e5e5e5;
+        }
+
+        .stat-label {
+            display: block;
+            font-size: 10px;
+            font-weight: 500;
+            color: #666;
+            margin-bottom: 2px;
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .stat-value.accepted {
+            color: #4caf50;
+        }
+
+        .stat-value.pending {
+            color: #ff9800;
+        }
+
+        .stat-value.declined {
+            color: #f44336;
+        }
+
+        /* 참석자 추가 버튼 */
+        .add-attendee-btn {
+            width: 20px;
+            height: 20px;
+            border: none;
+            background: #e3f2fd;
+            border-radius: 50%;
+            color: #2196f3;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .add-attendee-btn:hover {
+            background: #2196f3;
+            color: white;
+        }
+    </style>
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-detail-new.css') }}?v={{ range(100000, 999999) | random }}"> -->
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/calendar-time-grid.css') }}?v={{ range(100000, 999999) | random }}">
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/calendar-time-grid-enhanced.css') }}?v={{ range(100000, 999999) | random }}">
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/google-calendar-grid.css') }}?v={{ range(100000, 999999) | random }}">
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/calendar-selector.css') }}?v={{ range(100000, 999999) | random }}">
+
     <!-- Core notification system -->
-    <script src="{{ url_for('static', filename='js/notification-utils.js') }}?v={{ range(100000, 999999) | random }}"></script>
+    <script
+        src="{{ url_for('static', filename='js/notification-utils.js') }}?v={{ range(100000, 999999) | random }}"></script>
 </head>
 
 <body class="calendar-detail-standalone">
 
-<div class="calendar-workspace" data-calendar-id="{{ calendar.id }}" data-calendar-media="{% if calendar.media_url and calendar.media_url.startswith('http') %}{{ calendar.media_url }}{% else %}{% endif %}">
-    <!-- Collapsible Sidebar Toggle -->
-    <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()" title="사이드바 토글">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M15 18l-6-6 6-6"/>
-        </svg>
-    </button>
-    
-    <!-- Top Navigation Bar -->
-    <div class="calendar-topbar">
-        <div class="topbar-left">
-            <button class="btn-back" onclick="window.location.href='/dashboard/calendar-list'">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M19 12H5M12 19l-7-7 7-7"/>
-                </svg>
-            </button>
-            <div class="calendar-header-info">
-                <div class="calendar-icon-small" style="background: {{ calendar.color or '#3B82F6' }}"></div>
-                <h1 class="calendar-name">{{ calendar.name }}</h1>
-            </div>
-        </div>
-        
-        <div class="topbar-center">
-            <div class="date-navigator">
-                <button class="nav-btn" onclick="changeMonth(-1)">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M15 18l-6-6 6-6"/>
+    <div class="calendar-workspace" data-calendar-id="{{ calendar.id }}"
+        data-calendar-media="{{ calendar.media_url or '' }}"
+        data-calendar-media-title="{{ calendar.media_filename or '' }}"
+        data-calendar-media-type="{{ calendar.media_file_type or 'audio' }}"
+        data-youtube-title="{{ calendar.youtube_title or '' }}"
+        data-youtube-channel="{{ calendar.youtube_channel or '' }}">
+        <!-- Top Navigation Bar -->
+        <div class="calendar-topbar">
+            <div class="topbar-left">
+                <button class="btn-back" onclick="window.location.href='/dashboard/calendar-list'">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M19 12H5M12 19l-7-7 7-7" />
                     </svg>
                 </button>
-                <span class="current-date" id="current-date">2025년 3월</span>
-                <button class="nav-btn" onclick="changeMonth(1)">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M9 18l6-6-6-6"/>
-                    </svg>
-                </button>
-            </div>
-            
-            <button class="btn-today" onclick="goToToday()">오늘</button>
-        </div>
-        
-        <div class="topbar-right">
-            <div class="view-toggle">
-                <button class="view-option" data-view="month">월</button>
-                <button class="view-option active" data-view="week">주</button>
-                <button class="view-option" data-view="agenda">일정</button>
-            </div>
-            
-            <button class="btn-add-event" onclick="openEventModal()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <line x1="12" y1="5" x2="12" y2="19"/>
-                    <line x1="5" y1="12" x2="19" y2="12"/>
-                </svg>
-                새 이벤트
-            </button>
-            
-            <button class="btn-share" onclick="openShareModal()" title="참석자 추가">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                    <circle cx="8.5" cy="7" r="4"/>
-                    <line x1="20" y1="8" x2="20" y2="14"/>
-                    <line x1="23" y1="11" x2="17" y2="11"/>
-                </svg>
-                참석자 추가
-            </button>
-            
-            <button class="btn-settings" onclick="openCalendarSettings()" title="캘린더 설정">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <circle cx="12" cy="12" r="3"/>
-                    <path d="M12 1v6m0 10v6m11-7h-6m-10 0H1m15-4a3 3 0 11-6 0 3 3 0 016 0zm-8 8a3 3 0 11-6 0 3 3 0 016 0z"/>
-                </svg>
-            </button>
-        </div>
-    </div>
-
-    <!-- Main Workspace Content -->
-    <div class="calendar-workspace-content">
-        <!-- Left Sidebar -->
-        <div class="left-sidebar" id="left-sidebar">
-            <!-- Event Search Widget -->
-            <div class="sidebar-widget">
-                <div class="widget-header">
-                    <div class="widget-icon">🔍</div>
-                    <h4>일정 검색</h4>
-                </div>
-                <div class="event-search-container">
-                    <div class="search-input-wrapper">
-                        <input type="text" id="event-search-input" placeholder="일정 제목 검색..." autocomplete="off">
-                        <button class="search-clear-btn" id="search-clear-btn" onclick="clearEventSearch()" style="display: none;">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="search-results" id="search-results" style="display: none;">
-                        <!-- Search results will be populated here -->
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Event List Widget -->
-            <div class="sidebar-widget">
-                <div class="widget-header">
-                    <div class="widget-icon">📋</div>
-                    <h4>일정 목록</h4>
-                </div>
-                <div class="event-list-container">
-                    <div class="event-list" id="event-list">
-                        <!-- Event list will be populated here -->
-                    </div>
+                <div class="calendar-header-info">
+                    <div class="calendar-icon-small" style="background: {{ calendar.color or '#3B82F6' }}"></div>
+                    <h1 class="calendar-name">{{ calendar.name }}</h1>
                 </div>
             </div>
 
-            <!-- Mini Calendar Widget -->
-            <div class="sidebar-widget">
-                <div class="widget-header">
-                    <div class="widget-icon">📅</div>
-                    <h4>캘린더</h4>
-                </div>
-                <div class="mini-calendar-widget">
-                    <div class="mini-calendar-header">
-                        <button class="mini-nav-btn" id="mini-prev-month">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M15 18l-6-6 6-6"/>
-                            </svg>
-                        </button>
-                        <div class="mini-month-title" id="mini-month-title">2025년 8월</div>
-                        <button class="mini-nav-btn" id="mini-next-month">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M9 18l6-6-6-6"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="mini-calendar-grid">
-                        <div class="mini-weekdays">
-                            <span>일</span>
-                            <span>월</span>
-                            <span>화</span>
-                            <span>수</span>
-                            <span>목</span>
-                            <span>금</span>
-                            <span>토</span>
-                        </div>
-                        <div class="mini-calendar-days" id="mini-calendar-days">
-                            <!-- Days will be generated by JavaScript -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Attendees Section -->
-            <div class="sidebar-widget">
-                <div class="widget-header">
-                    <div class="widget-icon">👥</div>
-                    <h4>참석자</h4>
-                    <button class="add-attendee-btn" onclick="openAddAttendeeModal()" title="참석자 추가">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="12" y1="5" x2="12" y2="19"/>
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
-                    </button>
-                </div>
-                
-                <div class="attendees-container">
-                    <!-- Attendees List -->
-                    <div class="attendees-list" id="attendees-list">
-                        <!-- Calendar owner -->
-                        <div class="attendee-item" data-status="owner">
-                            <div class="attendee-avatar">
-                                <img src="/static/images/default-avatar.png" alt="{{ calendar.owner_name or '캘린더 소유자' }}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSI4IiByPSI0IiBmaWxsPSIjOTk5Ii8+CjxwYXRoIGQ9Ik0yMCAyMGMwLTUuNS0zLjUtMTAtOC0xMHMtOCA0LjUtOCAxMCIgZmlsbD0iIzk5OSIvPgo8L3N2Zz4K';">
-                            </div>
-                            <div class="attendee-info">
-                                <div class="attendee-name">{{ calendar.owner_name or '캘린더 소유자' }}</div>
-                                <div class="attendee-email">{{ calendar.owner_email or 'owner@example.com' }}</div>
-                            </div>
-                            <div class="attendee-status owner" title="캘린더 소유자">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Attendance Summary -->
-                    <div class="attendance-summary">
-                        <div class="summary-stats">
-                            <div class="stat-item">
-                                <span class="stat-label">총 인원</span>
-                                <span class="stat-value" id="total-attendees">3</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">참석</span>
-                                <span class="stat-value accepted" id="accepted-count">1</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">대기</span>
-                                <span class="stat-value pending" id="pending-count">1</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">불참</span>
-                                <span class="stat-value declined" id="declined-count">1</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Compact Media Player -->
-            <div class="sidebar-widget compact-media-widget" id="sidebar-media-player" style="display: none;">
-                <div class="compact-media-player">
-                    <div class="compact-media-info">
-                        <div class="compact-media-cover">
-                            <div class="media-cover-placeholder">🎵</div>
-                        </div>
-                        <div class="compact-media-details">
-                            <div class="compact-media-title" id="compact-media-title">미디어 로드 중...</div>
-                            <div class="compact-media-artist" id="compact-media-artist">내 음악</div>
-                        </div>
-                    </div>
-                    
-                    <div class="compact-media-controls">
-                        <button class="compact-control-btn" onclick="previousTrack()" title="이전">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
-                            </svg>
-                        </button>
-                        
-                        <button class="compact-play-btn" id="compact-play-pause-btn" onclick="togglePlay()" title="재생/일시정지">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" id="compact-play-icon">
-                                <path d="M8 5v14l11-7z"/>
-                            </svg>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" id="compact-pause-icon" style="display: none;">
-                                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
-                            </svg>
-                        </button>
-                        
-                        <button class="compact-control-btn" onclick="nextTrack()" title="다음">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
-                            </svg>
-                        </button>
-                    </div>
-                    
-                    <div class="compact-media-progress-section">
-                        <div class="compact-progress-bar" onclick="seekTo(event)">
-                            <div class="compact-progress-fill" id="compact-progress-fill"></div>
-                            <div class="compact-progress-handle" id="compact-progress-handle"></div>
-                        </div>
-                        <div class="compact-time-display">
-                            <span class="compact-current-time" id="compact-current-time">0:00</span>
-                            <span class="compact-total-time" id="compact-total-time">0:00</span>
-                        </div>
-                    </div>
-                    
-                    <div class="compact-volume-section">
-                        <button class="compact-volume-btn" onclick="toggleMute()" title="음소거">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" id="compact-volume-icon">
-                                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
-                            </svg>
-                        </button>
-                        <div class="compact-volume-slider" onclick="setVolume(event)">
-                            <div class="compact-volume-fill" id="compact-volume-fill"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Import Calendar Section -->
-            <div class="sidebar-widget">
-                <div class="widget-header">
-                    <div class="widget-icon">📥</div>
-                    <h4>일정 불러오기</h4>
-                </div>
-                <div class="import-calendar-content">
-                    <div class="import-options">
-                        <button class="import-btn" onclick="importFromGoogle()">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                            </svg>
-                            Google
-                        </button>
-                        
-                        <button class="import-btn" onclick="importFromOutlook()">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                <path d="M7.462 14.475V9.525c0-.563.45-1.013 1.013-1.013h6.75c.563 0 1.125.45 1.125 1.013v4.95c0 .563-.562 1.013-1.125 1.013h-6.75c-.563 0-1.013-.45-1.013-1.013z" fill="#0078D4"/>
-                            </svg>
-                            Outlook
-                        </button>
-                        
-                        <button class="import-btn" onclick="importFromNotion()">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                <path d="M4.5 4.5v15h15v-15h-15zm13.5 13.5h-12v-12h12v12z" fill="#000"/>
-                                <path d="M7.5 7.5h9M7.5 10.5h9M7.5 13.5h6" stroke="#000" stroke-width="0.5"/>
-                            </svg>
-                            Notion
-                        </button>
-                        
-                        <button class="import-btn" onclick="importFromZoom()">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                <rect x="2" y="6" width="20" height="12" rx="4" fill="#2D8CFF"/>
-                                <circle cx="8" cy="10" r="1.5" fill="white"/>
-                                <circle cx="16" cy="10" r="1.5" fill="white"/>
-                                <path d="M6 14h12" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
-                            Zoom
-                        </button>
-                        
-                        <button class="import-btn" onclick="importFromSlack()">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                <path d="M6 15a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H6z" fill="#4A154B"/>
-                            </svg>
-                            Slack
-                        </button>
-                        
-                        <button class="import-btn" onclick="importFromTrello()">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                <rect x="2" y="2" width="20" height="20" rx="3" fill="#0079BF"/>
-                                <rect x="5" y="5" width="5" height="10" rx="1" fill="white"/>
-                                <rect x="14" y="5" width="5" height="6" rx="1" fill="white"/>
-                            </svg>
-                            Trello
-                        </button>
-                        
-                        <button class="import-btn" onclick="importFromAsana()">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                <circle cx="7" cy="12" r="3" fill="#F06A6A"/>
-                                <circle cx="17" cy="12" r="3" fill="#F06A6A"/>
-                                <circle cx="12" cy="6" r="3" fill="#F06A6A"/>
-                            </svg>
-                            Asana
-                        </button>
-                        
-                        <button class="import-btn" onclick="importFromICS()">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <polyline points="14 2 14 8 20 8"/>
-                                <line x1="16" y1="13" x2="8" y2="13"/>
-                                <line x1="16" y1="17" x2="8" y2="17"/>
-                                <polyline points="10 9 9 9 8 9"/>
-                            </svg>
-                            ICS 파일
-                        </button>
-                    </div>
-                    
-                    <div class="import-status" id="import-status" style="display: none;">
-                        <div class="status-message"></div>
-                    </div>
-                    
-                    <div class="api-settings-section">
-                        <button class="api-settings-btn" onclick="openAPISettingsModal()">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                                <path d="M8 11l2 2 4-4"/>
-                            </svg>
-                            API 키 관리
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Event Form Widget (Hidden - using overlay instead) -->
-            <div class="sidebar-widget event-form-widget" id="event-form-widget" style="display: none !important;">
-                <div class="widget-header">
-                    <div class="widget-icon">📝</div>
-                    <h4 id="event-form-title">새 일정</h4>
-                    <button class="close-form-btn" onclick="closeEventForm()" title="닫기">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
-                </div>
-                
-                <div class="event-form-content">
-                    <form id="sidebar-event-form" onsubmit="saveSidebarEvent(event)">
-                        <div class="form-group">
-                            <label for="sidebar-event-title">제목</label>
-                            <input type="text" id="sidebar-event-title" placeholder="일정 제목을 입력하세요" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="sidebar-event-date">날짜</label>
-                            <input type="date" id="sidebar-event-date" required>
-                        </div>
-                        
-                        <div class="time-inputs">
-                            <div class="form-group">
-                                <label for="sidebar-start-time">시작 시간</label>
-                                <input type="time" id="sidebar-start-time" value="09:00">
-                            </div>
-                            <div class="form-group">
-                                <label for="sidebar-end-time">종료 시간</label>
-                                <input type="time" id="sidebar-end-time" value="10:00">
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="sidebar-event-description">설명 (선택사항)</label>
-                            <textarea id="sidebar-event-description" rows="3" placeholder="일정 설명을 입력하세요"></textarea>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>색상</label>
-                            <div class="color-picker">
-                                <div class="color-option active" data-color="#3b82f6" style="background: #3b82f6;"></div>
-                                <div class="color-option" data-color="#ef4444" style="background: #ef4444;"></div>
-                                <div class="color-option" data-color="#10b981" style="background: #10b981;"></div>
-                                <div class="color-option" data-color="#f59e0b" style="background: #f59e0b;"></div>
-                                <div class="color-option" data-color="#8b5cf6" style="background: #8b5cf6;"></div>
-                                <div class="color-option" data-color="#06b6d4" style="background: #06b6d4;"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-actions">
-                            <button type="button" class="btn-cancel" onclick="closeEventForm()">취소</button>
-                            <button type="submit" class="btn-save">저장</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Center Calendar Area - Google Calendar Style Grid -->
-        <div class="center-calendar-area">
-            <!-- Google Calendar Style Grid Container -->
-            <div id="google-calendar-container" style="height: 100%; width: 100%;">
-                <!-- Google Calendar Grid will be rendered here -->
-            </div>
-            
-            <!-- Calendar Overlay Event Form -->
-            <div class="calendar-overlay-form" id="calendar-overlay-form" style="display: none;" onclick="handleOverlayClick(event)">
-                <div class="overlay-form-content" onclick="event.stopPropagation()">
-                    <div class="form-header">
-                        <h2 id="overlay-form-title">새 일정</h2>
-                        <button class="close-overlay-btn" onclick="closeOverlayEventForm()" title="닫기">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
-                    </div>
-                    
-                    <form id="overlay-event-form" onsubmit="saveOverlayEvent(event)">
-                        <div class="form-group">
-                            <label for="overlay-event-title">제목</label>
-                            <input type="text" id="overlay-event-title" placeholder="일정 제목을 입력하세요" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="overlay-event-date">날짜</label>
-                            <input type="date" id="overlay-event-date" required>
-                        </div>
-                        
-                        <div class="time-inputs">
-                            <div class="form-group">
-                                <label for="overlay-start-time">시작 시간</label>
-                                <input type="time" id="overlay-start-time" value="09:00">
-                            </div>
-                            <div class="form-group">
-                                <label for="overlay-end-time">종료 시간</label>
-                                <input type="time" id="overlay-end-time" value="10:00">
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="overlay-event-description">설명 (선택사항)</label>
-                            <textarea id="overlay-event-description" rows="3" placeholder="일정 설명을 입력하세요"></textarea>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>색상</label>
-                            <div class="color-picker">
-                                <div class="color-option active" data-color="#3b82f6" style="background: #3b82f6;"></div>
-                                <div class="color-option" data-color="#ef4444" style="background: #ef4444;"></div>
-                                <div class="color-option" data-color="#10b981" style="background: #10b981;"></div>
-                                <div class="color-option" data-color="#f59e0b" style="background: #f59e0b;"></div>
-                                <div class="color-option" data-color="#8b5cf6" style="background: #8b5cf6;"></div>
-                                <div class="color-option" data-color="#06b6d4" style="background: #06b6d4;"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-actions">
-                            <button type="button" class="btn-cancel" onclick="closeOverlayEventForm()">취소</button>
-                            <button type="submit" class="btn-save">저장</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            
-            <!-- Fallback: Original Time Grid (hidden by default) -->
-            <div class="time-grid-container" style="display: none;" id="fallback-time-grid">
-                <!-- Time Grid Header with Week Days -->
-                <div class="time-grid-header">
-                    <div class="time-gutter-header"></div>
-                    <div class="week-days-header" id="week-days-header">
-                        <!-- Week days will be generated here -->
-                    </div>
-                </div>
-                
-                <!-- Time Grid Body -->
-                <div class="time-grid-body">
-                    <!-- Time Labels Column -->
-                    <div class="time-labels-column">
-                        <!-- Time labels will be generated from 7 AM to 11 PM -->
-                    </div>
-                    
-                    <!-- Events Grid -->
-                    <div class="events-grid-container" id="events-grid">
-                        <div class="time-grid-lines" id="time-grid-lines">
-                            <!-- Horizontal lines for each hour -->
-                        </div>
-                        <div class="events-layer" id="events-layer">
-                            <!-- Events will be rendered here -->
-                        </div>
-                        <div class="current-time-indicator" id="current-time-indicator" style="display: none;">
-                            <div class="time-indicator-line"></div>
-                            <div class="time-indicator-dot"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Sidebar -->
-    </div>
-</div>
-
-<!-- Day Detail Modal -->
-<div class="modal-overlay" id="day-modal" style="display: none;">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 class="modal-title" id="modal-date">2025년 8월 17일</h2>
-            <button class="modal-close" onclick="closeDayModal()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-        </div>
-        
-        <div class="modal-body">
-            <!-- Daily Routine Section -->
-            <div class="daily-routine-section">
-                <div class="section-header">
-                    <span class="section-icon">🔄</span>
-                    <h3>Daily Routine</h3>
-                </div>
-                <div class="routine-list">
-                    <div class="routine-item">
-                        <span class="routine-time">06:00</span>
-                        <span class="routine-task">Wake up</span>
-                    </div>
-                    <div class="routine-item">
-                        <span class="routine-time">07:30</span>
-                        <span class="routine-task">Running</span>
-                    </div>
-                    <div class="routine-item">
-                        <span class="routine-time">09:00</span>
-                        <span class="routine-task">Work</span>
-                    </div>
-                    <div class="routine-item">
-                        <span class="routine-time">12:00</span>
-                        <span class="routine-task">Lunch</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Events Section -->
-            <div class="events-section">
-                <div class="section-header">
-                    <span class="section-icon">📅</span>
-                    <h3>Events</h3>
-                </div>
-                <div class="day-events" id="day-events">
-                    <!-- Events for selected day -->
-                </div>
-            </div>
-            
-            <button class="btn-add-event-modal" onclick="addEventToDay()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <line x1="12" y1="5" x2="12" y2="19"/>
-                    <line x1="5" y1="12" x2="19" y2="12"/>
-                </svg>
-                이 날짜에 이벤트 추가
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Event Creation Modal -->
-<div class="modal-overlay" id="event-modal" style="display: none;">
-    <div class="modal-content event-modal">
-        <div class="modal-header">
-            <h2 class="modal-title">새 이벤트</h2>
-            <button class="modal-close" onclick="closeEventModal()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-        </div>
-        
-        <div class="modal-body">
-            <div class="form-group">
-                <label>제목</label>
-                <input type="text" id="event-title" placeholder="이벤트 제목 입력">
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label>시작일</label>
-                    <input type="datetime-local" id="event-start">
-                </div>
-                <div class="form-group">
-                    <label>종료일</label>
-                    <input type="datetime-local" id="event-end">
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label>설명</label>
-                <textarea id="event-description" rows="4" placeholder="이벤트 설명 (선택사항)"></textarea>
-            </div>
-            
-            <div class="form-group">
-                <label>색상</label>
-                <div class="color-picker">
-                    <button class="color-option active" data-color="#3B82F6" style="background: #3B82F6"></button>
-                    <button class="color-option" data-color="#10B981" style="background: #10B981"></button>
-                    <button class="color-option" data-color="#F59E0B" style="background: #F59E0B"></button>
-                    <button class="color-option" data-color="#EF4444" style="background: #EF4444"></button>
-                    <button class="color-option" data-color="#8B5CF6" style="background: #8B5CF6"></button>
-                    <button class="color-option" data-color="#EC4899" style="background: #EC4899"></button>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label class="checkbox-label">
-                    <input type="checkbox" id="event-allday">
-                    <span>종일 이벤트</span>
-                </label>
-            </div>
-            
-            <div class="form-actions">
-                <button class="btn-cancel" onclick="closeEventModal()">취소</button>
-                <button class="btn-save" onclick="saveEvent()">저장</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- 캘린더 설정 모달 -->
-<div class="calendar-settings-overlay" id="calendar-settings-overlay" style="display: none;">
-    <div class="calendar-settings-modal">
-        <div class="modal-header">
-            <h3 class="modal-title">캘린더 설정</h3>
-            <button class="btn-close" onclick="closeCalendarSettings()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <line x1="18" y1="6" x2="6" y2="18"/>
-                    <line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-            </button>
-        </div>
-        
-        <div class="modal-body">
-            <!-- 기본 정보 -->
-            <div class="form-section">
-                <h4 class="section-title">기본 정보</h4>
-                <div class="form-group">
-                    <label class="form-label">캘린더 이름</label>
-                    <input type="text" id="settings-calendar-name" class="form-input" value="{{ calendar.name }}">
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">색상</label>
-                    <div class="color-selector">
-                        <div class="color-option" data-color="#2563eb" style="background: #2563eb;"></div>
-                        <div class="color-option" data-color="#059669" style="background: #059669;"></div>
-                        <div class="color-option" data-color="#d97706" style="background: #d97706;"></div>
-                        <div class="color-option" data-color="#7c3aed" style="background: #7c3aed;"></div>
-                        <div class="color-option" data-color="#dc2626" style="background: #dc2626;"></div>
-                        <div class="color-option" data-color="#6b7280" style="background: #6b7280;"></div>
-                        <div class="color-option" data-color="#f59e0b" style="background: #f59e0b;"></div>
-                        <div class="color-option" data-color="#10b981" style="background: #10b981;"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 플랫폼 연동 -->
-            <div class="form-section">
-                <h4 class="section-title">플랫폼 연동</h4>
-                <div class="form-group">
-                    <label class="form-label">연동할 플랫폼 선택</label>
-                    <select id="settings-platform" class="form-select">
-                        <option value="custom" {{ 'selected' if calendar.platform == 'custom' else '' }}>독립 캘린더</option>
-                        <option value="google" {{ 'selected' if calendar.platform == 'google' else '' }}>Google Calendar</option>
-                        <option value="notion" {{ 'selected' if calendar.platform == 'notion' else '' }}>Notion</option>
-                        <option value="outlook" {{ 'selected' if calendar.platform == 'outlook' else '' }}>Outlook</option>
-                        <option value="apple" {{ 'selected' if calendar.platform == 'apple' else '' }}>Apple Calendar</option>
-                    </select>
-                </div>
-                
-                <div class="platform-status">
-                    <div class="status-indicator" id="platform-status">
-                        <div class="status-dot"></div>
-                        <span>연동 상태를 확인 중...</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="modal-footer">
-            <button class="btn-secondary" onclick="closeCalendarSettings()">취소</button>
-            <button class="btn-primary" onclick="saveCalendarSettings()">저장</button>
-        </div>
-    </div>
-</div>
-
-<!-- Add Attendee Modal -->
-<div class="modal-overlay" id="add-attendee-modal" style="display: none;">
-    <div class="modal-content attendee-modal">
-        <div class="modal-header">
-            <h2 class="modal-title">참석자 추가</h2>
-            <button class="modal-close" onclick="closeAddAttendeeModal()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-        </div>
-        
-        <div class="modal-body">
-            <div class="form-group">
-                <label>이름</label>
-                <input type="text" id="attendee-name" placeholder="참석자 이름 입력">
-            </div>
-            
-            <div class="form-group">
-                <label>이메일</label>
-                <input type="email" id="attendee-email" placeholder="참석자 이메일 입력">
-            </div>
-            
-            <div class="form-group">
-                <label>역할</label>
-                <select id="attendee-role">
-                    <option value="attendee">참석자</option>
-                    <option value="organizer">주최자</option>
-                    <option value="optional">선택 참석</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label class="checkbox-label">
-                    <input type="checkbox" id="send-invitation">
-                    <span>초대 이메일 전송</span>
-                </label>
-            </div>
-            
-            <div class="form-actions">
-                <button class="btn-cancel" onclick="closeAddAttendeeModal()">취소</button>
-                <button class="btn-save" onclick="addAttendee()">추가</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Share Calendar Modal -->
-<div class="modal-overlay" id="share-modal" style="display: none;">
-    <div class="modal-content share-modal">
-        <div class="modal-header">
-            <h2 class="modal-title">캘린더 공유</h2>
-            <button class="modal-close" onclick="closeShareModal()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-        </div>
-        
-        <div class="modal-body">
-            <div class="share-section">
-                <h3 class="section-title">사용자 초대</h3>
-                
-                <div class="invite-form">
-                    <div class="form-group">
-                        <label>이메일 주소</label>
-                        <div class="email-input-wrapper">
-                            <input type="email" id="share-email" placeholder="example@email.com">
-                            <select id="share-permission" class="permission-select">
-                                <option value="viewer">보기 전용</option>
-                                <option value="editor">편집 가능</option>
-                                <option value="admin">관리자</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <button class="btn-invite" onclick="inviteUser()">
+            <div class="topbar-center">
+                <div class="date-navigator">
+                    <button class="nav-btn" onclick="changeMonth(-1)">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M12 5v14m7-7H5"/>
+                            <path d="M15 18l-6-6 6-6" />
                         </svg>
-                        초대하기
+                    </button>
+                    <span class="current-date" id="current-date">2025년 3월</span>
+                    <button class="nav-btn" onclick="changeMonth(1)">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M9 18l6-6-6-6" />
+                        </svg>
                     </button>
                 </div>
+
+                <button class="btn-today" onclick="goToToday()">오늘</button>
             </div>
-            
-            <div class="share-section">
-                <h3 class="section-title">공유된 사용자</h3>
-                
-                <div class="shared-users-list" id="shared-users-list">
-                    <!-- 공유된 사용자 목록이 여기 표시됩니다 -->
-                    <div class="empty-state">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" opacity="0.3">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                            <circle cx="9" cy="7" r="4"/>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                        </svg>
-                        <p>아직 공유된 사용자가 없습니다</p>
-                    </div>
+
+            <div class="topbar-right">
+                <div class="view-toggle">
+                    <button class="view-option" data-view="month">월</button>
+                    <button class="view-option active" data-view="week">주</button>
+                    <button class="view-option" data-view="agenda">일정</button>
                 </div>
+
+                <button class="btn-add-event" onclick="openEventModal()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    새 이벤트
+                </button>
+
+                <button class="btn-share" onclick="openShareModal()" title="참석자 추가">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="8.5" cy="7" r="4" />
+                        <line x1="20" y1="8" x2="20" y2="14" />
+                        <line x1="23" y1="11" x2="17" y2="11" />
+                    </svg>
+                    참석자 추가
+                </button>
+
+                <button class="btn-settings" onclick="openCalendarSettings()" title="캘린더 설정">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                            d="M12 1v6m0 10v6m11-7h-6m-10 0H1m15-4a3 3 0 11-6 0 3 3 0 016 0zm-8 8a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </button>
             </div>
-            
-            <div class="share-section">
-                <h3 class="section-title">공유 링크</h3>
-                
-                <div class="share-link-section">
-                    <div class="link-toggle">
-                        <label class="switch">
-                            <input type="checkbox" id="share-link-toggle" onchange="toggleShareLink()">
-                            <span class="slider"></span>
-                        </label>
-                        <span>링크 공유 활성화</span>
+        </div>
+
+        <!-- Main Workspace Content -->
+        <div class="calendar-workspace-content">
+            <!-- Left Sidebar -->
+            <div class="left-sidebar" id="left-sidebar">
+                <!-- Event Search Widget -->
+                <div class="sidebar-widget">
+                    <div class="widget-header">
+                        <h4>일정 검색</h4>
                     </div>
-                    
-                    <div class="share-link-content" id="share-link-content" style="display: none;">
-                        <div class="link-display">
-                            <input type="text" id="share-link-url" readonly value="">
-                            <button class="btn-copy" onclick="copyShareLink()">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    <div class="event-search-container">
+                        <div class="search-input-wrapper">
+                            <input type="text" id="event-search-input" placeholder="일정 제목 검색..." autocomplete="off">
+                            <button class="search-clear-btn" id="search-clear-btn" onclick="clearEventSearch()"
+                                style="display: none;">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M6 18L18 6M6 6l12 12" />
                                 </svg>
-                                복사
                             </button>
                         </div>
-                        
-                        <div class="link-permission">
-                            <label>링크 권한</label>
-                            <select id="link-permission">
-                                <option value="viewer">보기 전용</option>
-                                <option value="editor">편집 가능</option>
-                            </select>
+                        <div class="search-results" id="search-results" style="display: none;">
+                            <!-- Search results will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Event List Widget -->
+                <div class="sidebar-widget">
+                    <div class="widget-header">
+                        <h4>일정 목록</h4>
+                    </div>
+                    <div class="event-list-container">
+                        <div class="event-list" id="event-list">
+                            <!-- Event list will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mini Calendar Widget -->
+                <div class="sidebar-widget">
+                    <div class="widget-header">
+                        <h4>캘린더</h4>
+                    </div>
+                    <div class="mini-calendar-widget">
+                        <div class="mini-calendar-header">
+                            <button class="mini-nav-btn" id="mini-prev-month">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M15 18l-6-6 6-6" />
+                                </svg>
+                            </button>
+                            <div class="mini-month-title" id="mini-month-title">2025년 8월</div>
+                            <button class="mini-nav-btn" id="mini-next-month">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M9 18l6-6-6-6" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="mini-calendar-grid">
+                            <div class="mini-weekdays">
+                                <span>일</span>
+                                <span>월</span>
+                                <span>화</span>
+                                <span>수</span>
+                                <span>목</span>
+                                <span>금</span>
+                                <span>토</span>
+                            </div>
+                            <div class="mini-calendar-days" id="mini-calendar-days">
+                                <!-- Days will be generated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Attendees Section -->
+                <div class="sidebar-widget">
+                    <div class="widget-header">
+                        <h4>참석자</h4>
+                        <button class="add-attendee-btn" onclick="openAddAttendeeModal()" title="참석자 추가">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19" />
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="attendees-container">
+                        <!-- Attendees List -->
+                        <div class="attendees-list" id="attendees-list">
+                            <!-- Calendar owner -->
+                            <div class="attendee-item" data-status="owner">
+                                <div class="attendee-avatar">
+                                    <img src="/static/images/default-avatar.png"
+                                        alt="{{ calendar.owner_name or '캘린더 소유자' }}"
+                                        onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSI4IiByPSI0IiBmaWxsPSIjOTk5Ii8+CjxwYXRoIGQ9Ik0yMCAyMGMwLTUuNS0zLjUtMTAtOC0xMHMtOCA0LjUtOCAxMCIgZmlsbD0iIzk5OSIvPgo8L3N2Zz4K';">
+                                </div>
+                                <div class="attendee-info">
+                                    <div class="attendee-name">{{ calendar.owner_name or '캘린더 소유자' }}</div>
+                                    <div class="attendee-email">{{ calendar.owner_email or 'owner@example.com' }}</div>
+                                </div>
+                                <div class="attendee-status owner" title="캘린더 소유자">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path
+                                            d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Attendance Summary -->
+                        <div class="attendance-summary">
+                            <div class="summary-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">총 인원</span>
+                                    <span class="stat-value" id="total-attendees">1</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">참석</span>
+                                    <span class="stat-value accepted" id="accepted-count">1</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">대기</span>
+                                    <span class="stat-value pending" id="pending-count">0</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">불참</span>
+                                    <span class="stat-value declined" id="declined-count">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Compact Media Player -->
+                <div class="sidebar-widget compact-media-widget" id="sidebar-media-player" style="display: none;">
+                    <div class="compact-media-player">
+                        <div class="compact-media-info">
+                            <div class="compact-media-cover">
+                                <div class="media-cover-placeholder">🎵</div>
+                            </div>
+                            <div class="compact-media-details">
+                                <div class="compact-media-title-container">
+                                    <div class="compact-media-title" id="compact-media-title" onclick="editMediaTitle()"
+                                        title="클릭하여 제목 편집">미디어 로드 중...</div>
+                                    <input type="text" class="compact-media-title-input" id="compact-media-title-input"
+                                        style="display: none;" onblur="saveMediaTitle()"
+                                        onkeydown="handleTitleKeydown(event)">
+                                    <button class="edit-title-btn" onclick="editMediaTitle()" title="제목 편집">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                            <path
+                                                d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="compact-media-artist" id="compact-media-artist">내 음악</div>
+                            </div>
+                        </div>
+
+                        <div class="compact-media-controls">
+                            <button class="compact-control-btn" onclick="previousTrack()" title="이전">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
+                                </svg>
+                            </button>
+
+                            <button class="compact-play-btn" id="compact-play-pause-btn" onclick="togglePlay()"
+                                title="재생/일시정지">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+                                    id="compact-play-icon">
+                                    <path d="M8 5v14l11-7z" />
+                                </svg>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+                                    id="compact-pause-icon" style="display: none;">
+                                    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                                </svg>
+                            </button>
+
+                            <button class="compact-control-btn" onclick="nextTrack()" title="다음">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="compact-media-progress-section">
+                            <div class="compact-progress-bar" onclick="seekTo(event)">
+                                <div class="compact-progress-fill" id="compact-progress-fill"></div>
+                                <div class="compact-progress-handle" id="compact-progress-handle"></div>
+                            </div>
+                            <div class="compact-time-display">
+                                <span class="compact-current-time" id="compact-current-time">0:00</span>
+                                <span class="compact-total-time" id="compact-total-time">0:00</span>
+                            </div>
+                        </div>
+
+                        <div class="compact-volume-section">
+                            <button class="compact-volume-btn" onclick="toggleMute()" title="음소거">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"
+                                    id="compact-volume-icon">
+                                    <path
+                                        d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" />
+                                </svg>
+                            </button>
+                            <div class="compact-volume-slider" onclick="setVolume(event)">
+                                <div class="compact-volume-fill" id="compact-volume-fill"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calendar Selector Section -->
+                <div class="sidebar-widget" id="calendar-selector-widget">
+                    <!-- Calendar selector will be initialized here -->
+                </div>
+
+                <!-- Import Calendar Section -->
+                <div class="sidebar-widget">
+                    <div class="widget-header">
+                        <div class="widget-icon">📥</div>
+                        <h4>일정 불러오기</h4>
+                    </div>
+                    <div class="import-calendar-content">
+                        <div class="import-options">
+                            <button class="import-btn" onclick="importFromGoogle()">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                    <path
+                                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                                        fill="#4285F4" />
+                                    <path
+                                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                                        fill="#34A853" />
+                                    <path
+                                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                                        fill="#FBBC05" />
+                                    <path
+                                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                                        fill="#EA4335" />
+                                </svg>
+                                Google
+                            </button>
+
+                            <button class="import-btn" onclick="importFromOutlook()">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                    <path
+                                        d="M7.462 14.475V9.525c0-.563.45-1.013 1.013-1.013h6.75c.563 0 1.125.45 1.125 1.013v4.95c0 .563-.562 1.013-1.125 1.013h-6.75c-.563 0-1.013-.45-1.013-1.013z"
+                                        fill="#0078D4" />
+                                </svg>
+                                Outlook
+                            </button>
+
+                            <button class="import-btn" onclick="importFromNotion()">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                    <path d="M4.5 4.5v15h15v-15h-15zm13.5 13.5h-12v-12h12v12z" fill="#000" />
+                                    <path d="M7.5 7.5h9M7.5 10.5h9M7.5 13.5h6" stroke="#000" stroke-width="0.5" />
+                                </svg>
+                                Notion
+                            </button>
+
+                            <button class="import-btn" onclick="importFromZoom()">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                    <rect x="2" y="6" width="20" height="12" rx="4" fill="#2D8CFF" />
+                                    <circle cx="8" cy="10" r="1.5" fill="white" />
+                                    <circle cx="16" cy="10" r="1.5" fill="white" />
+                                    <path d="M6 14h12" stroke="white" stroke-width="2" stroke-linecap="round" />
+                                </svg>
+                                Zoom
+                            </button>
+
+                            <button class="import-btn" onclick="importFromSlack()">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                    <path d="M6 15a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H6z"
+                                        fill="#4A154B" />
+                                </svg>
+                                Slack
+                            </button>
+
+                            <button class="import-btn" onclick="importFromTrello()">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                    <rect x="2" y="2" width="20" height="20" rx="3" fill="#0079BF" />
+                                    <rect x="5" y="5" width="5" height="10" rx="1" fill="white" />
+                                    <rect x="14" y="5" width="5" height="6" rx="1" fill="white" />
+                                </svg>
+                                Trello
+                            </button>
+
+                            <button class="import-btn" onclick="importFromAsana()">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                    <circle cx="7" cy="12" r="3" fill="#F06A6A" />
+                                    <circle cx="17" cy="12" r="3" fill="#F06A6A" />
+                                    <circle cx="12" cy="6" r="3" fill="#F06A6A" />
+                                </svg>
+                                Asana
+                            </button>
+
+                            <button class="import-btn" onclick="importFromICS()">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                    <polyline points="14 2 14 8 20 8" />
+                                    <line x1="16" y1="13" x2="8" y2="13" />
+                                    <line x1="16" y1="17" x2="8" y2="17" />
+                                    <polyline points="10 9 9 9 8 9" />
+                                </svg>
+                                ICS 파일
+                            </button>
+                        </div>
+
+                        <div class="import-status" id="import-status" style="display: none;">
+                            <div class="status-message"></div>
+                        </div>
+
+                        <div class="api-settings-section">
+                            <button class="api-settings-btn" onclick="openAPISettingsModal()">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                    <path d="M8 11l2 2 4-4" />
+                                </svg>
+                                API 키 관리
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Event Form Widget (Hidden - using overlay instead) -->
+                <div class="sidebar-widget event-form-widget" id="event-form-widget" style="display: none !important;">
+                    <div class="widget-header">
+                        <div class="widget-icon">📝</div>
+                        <h4 id="event-form-title">새 일정</h4>
+                        <button class="close-form-btn" onclick="closeEventForm()" title="닫기">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="event-form-content">
+                        <form id="sidebar-event-form" onsubmit="saveSidebarEvent(event)">
+                            <div class="form-group">
+                                <label for="sidebar-event-title">제목</label>
+                                <input type="text" id="sidebar-event-title" placeholder="일정 제목을 입력하세요" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="sidebar-event-date">날짜</label>
+                                <input type="date" id="sidebar-event-date" required>
+                            </div>
+
+                            <div class="time-inputs">
+                                <div class="form-group">
+                                    <label for="sidebar-start-time">시작 시간</label>
+                                    <input type="time" id="sidebar-start-time" value="09:00">
+                                </div>
+                                <div class="form-group">
+                                    <label for="sidebar-end-time">종료 시간</label>
+                                    <input type="time" id="sidebar-end-time" value="10:00">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="sidebar-event-description">설명 (선택사항)</label>
+                                <textarea id="sidebar-event-description" rows="3" placeholder="일정 설명을 입력하세요"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label>색상</label>
+                                <div class="color-picker">
+                                    <div class="color-option active" data-color="#3b82f6" style="background: #3b82f6;">
+                                    </div>
+                                    <div class="color-option" data-color="#ef4444" style="background: #ef4444;"></div>
+                                    <div class="color-option" data-color="#10b981" style="background: #10b981;"></div>
+                                    <div class="color-option" data-color="#f59e0b" style="background: #f59e0b;"></div>
+                                    <div class="color-option" data-color="#8b5cf6" style="background: #8b5cf6;"></div>
+                                    <div class="color-option" data-color="#06b6d4" style="background: #06b6d4;"></div>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="button" class="btn-cancel" onclick="closeEventForm()">취소</button>
+                                <button type="submit" class="btn-save">저장</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Calendar Area - Google Calendar Style Grid -->
+            <div class="center-calendar-area">
+                <!-- Google Calendar Style Grid Container -->
+                <div id="google-calendar-container" style="height: 100%; width: 100%;">
+                    <!-- Google Calendar Grid will be rendered here -->
+                </div>
+
+                <!-- Calendar Overlay Event Form -->
+                <div class="calendar-overlay-form" id="calendar-overlay-form" style="display: none;"
+                    onclick="handleOverlayClick(event)">
+                    <div class="overlay-form-content" onclick="event.stopPropagation()">
+                        <div class="form-header">
+                            <h2 id="overlay-form-title">새 일정</h2>
+                            <button class="close-overlay-btn" onclick="closeOverlayEventForm()" title="닫기">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <form id="overlay-event-form" onsubmit="saveOverlayEvent(event)">
+                            <div class="form-group">
+                                <label for="overlay-event-title">제목</label>
+                                <input type="text" id="overlay-event-title" placeholder="일정 제목을 입력하세요" required>
+                            </div>
+
+                            <!-- 날짜와 시간을 가로로 배치 -->
+                            <div class="date-time-row">
+                                <div class="form-group date-input">
+                                    <label for="overlay-event-date">날짜</label>
+                                    <input type="date" id="overlay-event-date" required>
+                                </div>
+                                <div class="form-group time-input">
+                                    <label for="overlay-start-time">시작시간</label>
+                                    <input type="time" id="overlay-start-time" value="09:00">
+                                </div>
+                                <div class="time-separator">~</div>
+                                <div class="form-group time-input">
+                                    <label for="overlay-end-time">종료시간</label>
+                                    <input type="time" id="overlay-end-time" value="10:00">
+                                </div>
+                            </div>
+
+                            <!-- 큰 설명 영역 -->
+                            <div class="form-group description-large">
+                                <label for="overlay-event-description">설명 (선택사항)</label>
+                                <textarea id="overlay-event-description" rows="6" placeholder="일정 설명을 입력하세요"></textarea>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="button" class="btn-cancel" onclick="closeOverlayEventForm()">취소</button>
+                                <button type="submit" class="btn-save">저장</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Fallback: Original Time Grid (hidden by default) -->
+                <div class="time-grid-container" style="display: none;" id="fallback-time-grid">
+                    <!-- Time Grid Header with Week Days -->
+                    <div class="time-grid-header">
+                        <div class="time-gutter-header"></div>
+                        <div class="week-days-header" id="week-days-header">
+                            <!-- Week days will be generated here -->
+                        </div>
+                    </div>
+
+                    <!-- Time Grid Body -->
+                    <div class="time-grid-body">
+                        <!-- Time Labels Column -->
+                        <div class="time-labels-column">
+                            <!-- Time labels will be generated from 7 AM to 11 PM -->
+                        </div>
+
+                        <!-- Events Grid -->
+                        <div class="events-grid-container" id="events-grid">
+                            <div class="time-grid-lines" id="time-grid-lines">
+                                <!-- Horizontal lines for each hour -->
+                            </div>
+                            <div class="events-layer" id="events-layer">
+                                <!-- Events will be rendered here -->
+                            </div>
+                            <div class="current-time-indicator" id="current-time-indicator" style="display: none;">
+                                <div class="time-indicator-line"></div>
+                                <div class="time-indicator-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Calendar Area -->
+            <div class="calendar-main-content">
+                <div id="calendar-grid-container" class="calendar-grid-container">
+                    <!-- Google Calendar Grid will be rendered here by JS -->
+                </div>
+            </div>
+
+            <!-- Right Sidebar -->
+        </div>
+    </div>
+
+    <!-- Day Detail Modal -->
+    <div class="modal-overlay" id="day-modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modal-date">2025년 8월 17일</h2>
+                <button class="modal-close" onclick="closeDayModal()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Daily Routine Section -->
+                <div class="daily-routine-section">
+                    <div class="section-header">
+                        <span class="section-icon">🔄</span>
+                        <h3>Daily Routine</h3>
+                    </div>
+                    <div class="routine-list">
+                        <div class="routine-item">
+                            <span class="routine-time">06:00</span>
+                            <span class="routine-task">Wake up</span>
+                        </div>
+                        <div class="routine-item">
+                            <span class="routine-time">07:30</span>
+                            <span class="routine-task">Running</span>
+                        </div>
+                        <div class="routine-item">
+                            <span class="routine-time">09:00</span>
+                            <span class="routine-task">Work</span>
+                        </div>
+                        <div class="routine-item">
+                            <span class="routine-time">12:00</span>
+                            <span class="routine-task">Lunch</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Events Section -->
+                <div class="events-section">
+                    <div class="section-header">
+                        <span class="section-icon">📅</span>
+                        <h3>Events</h3>
+                    </div>
+                    <div class="day-events" id="day-events">
+                        <!-- Events for selected day -->
+                    </div>
+                </div>
+
+                <button class="btn-add-event-modal" onclick="addEventToDay()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    이 날짜에 이벤트 추가
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Creation Modal -->
+    <div class="modal-overlay" id="event-modal" style="display: none;">
+        <div class="modal-content event-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">새 이벤트</h2>
+                <button class="modal-close" onclick="closeEventModal()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>제목</label>
+                    <input type="text" id="event-title" placeholder="이벤트 제목 입력">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>시작일</label>
+                        <input type="datetime-local" id="event-start">
+                    </div>
+                    <div class="form-group">
+                        <label>종료일</label>
+                        <input type="datetime-local" id="event-end">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>설명</label>
+                    <textarea id="event-description" rows="4" placeholder="이벤트 설명 (선택사항)"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>색상</label>
+                    <div class="color-picker">
+                        <button class="color-option active" data-color="#3B82F6" style="background: #3B82F6"></button>
+                        <button class="color-option" data-color="#10B981" style="background: #10B981"></button>
+                        <button class="color-option" data-color="#F59E0B" style="background: #F59E0B"></button>
+                        <button class="color-option" data-color="#EF4444" style="background: #EF4444"></button>
+                        <button class="color-option" data-color="#8B5CF6" style="background: #8B5CF6"></button>
+                        <button class="color-option" data-color="#EC4899" style="background: #EC4899"></button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="event-allday">
+                        <span>종일 이벤트</span>
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn-cancel" onclick="closeEventModal()">취소</button>
+                    <button class="btn-save" onclick="saveEvent()">저장</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 캘린더 설정 모달 -->
+    <div class="calendar-settings-overlay" id="calendar-settings-overlay" style="display: none;">
+        <div class="calendar-settings-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">캘린더 설정</h3>
+                <button class="btn-close" onclick="closeCalendarSettings()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <!-- 기본 정보 -->
+                <div class="form-section">
+                    <h4 class="section-title">기본 정보</h4>
+                    <div class="form-group">
+                        <label class="form-label">캘린더 이름</label>
+                        <input type="text" id="settings-calendar-name" class="form-input" value="{{ calendar.name }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">색상</label>
+                        <div class="color-selector">
+                            <div class="color-option" data-color="#2563eb" style="background: #2563eb;"></div>
+                            <div class="color-option" data-color="#059669" style="background: #059669;"></div>
+                            <div class="color-option" data-color="#d97706" style="background: #d97706;"></div>
+                            <div class="color-option" data-color="#7c3aed" style="background: #7c3aed;"></div>
+                            <div class="color-option" data-color="#dc2626" style="background: #dc2626;"></div>
+                            <div class="color-option" data-color="#6b7280" style="background: #6b7280;"></div>
+                            <div class="color-option" data-color="#f59e0b" style="background: #f59e0b;"></div>
+                            <div class="color-option" data-color="#10b981" style="background: #10b981;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 플랫폼 연동 -->
+                <div class="form-section">
+                    <h4 class="section-title">플랫폼 연동</h4>
+                    <div class="form-group">
+                        <label class="form-label">연동할 플랫폼 선택</label>
+                        <select id="settings-platform" class="form-select">
+                            <option value="custom" {{ 'selected' if calendar.platform=='custom' else '' }}>독립 캘린더
+                            </option>
+                            <option value="google" {{ 'selected' if calendar.platform=='google' else '' }}>Google
+                                Calendar</option>
+                            <option value="notion" {{ 'selected' if calendar.platform=='notion' else '' }}>Notion
+                            </option>
+                            <option value="outlook" {{ 'selected' if calendar.platform=='outlook' else '' }}>Outlook
+                            </option>
+                            <option value="apple" {{ 'selected' if calendar.platform=='apple' else '' }}>Apple Calendar
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="platform-status">
+                        <div class="status-indicator" id="platform-status">
+                            <div class="status-dot"></div>
+                            <span>연동 상태를 확인 중...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeCalendarSettings()">취소</button>
+                <button class="btn-primary" onclick="saveCalendarSettings()">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Attendee Modal -->
+    <div class="modal-overlay" id="add-attendee-modal" style="display: none;">
+        <div class="modal-content attendee-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">참석자 추가</h2>
+                <button class="modal-close" onclick="closeAddAttendeeModal()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>이름</label>
+                    <input type="text" id="attendee-name" placeholder="참석자 이름 입력">
+                </div>
+
+                <div class="form-group">
+                    <label>이메일</label>
+                    <input type="email" id="attendee-email" placeholder="참석자 이메일 입력">
+                </div>
+
+                <div class="form-group">
+                    <label>역할</label>
+                    <select id="attendee-role">
+                        <option value="attendee">참석자</option>
+                        <option value="organizer">주최자</option>
+                        <option value="optional">선택 참석</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="send-invitation">
+                        <span>초대 이메일 전송</span>
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn-cancel" onclick="closeAddAttendeeModal()">취소</button>
+                    <button class="btn-save" onclick="addAttendee()">추가</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Calendar Modal -->
+    <div class="modal-overlay" id="share-modal" style="display: none;">
+        <div class="modal-content share-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">캘린더 공유</h2>
+                <button class="modal-close" onclick="closeShareModal()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="share-section">
+                    <h3 class="section-title">사용자 초대</h3>
+
+                    <div class="invite-form">
+                        <div class="form-group">
+                            <label>이메일 주소</label>
+                            <div class="email-input-wrapper">
+                                <input type="email" id="share-email" placeholder="example@email.com">
+                                <select id="share-permission" class="permission-select">
+                                    <option value="viewer">보기 전용</option>
+                                    <option value="editor">편집 가능</option>
+                                    <option value="admin">관리자</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button class="btn-invite" onclick="inviteUser()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M12 5v14m7-7H5" />
+                            </svg>
+                            초대하기
+                        </button>
+                    </div>
+                </div>
+
+                <div class="share-section">
+                    <h3 class="section-title">공유된 사용자</h3>
+
+                    <div class="shared-users-list" id="shared-users-list">
+                        <!-- 공유된 사용자 목록이 여기 표시됩니다 -->
+                        <div class="empty-state">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                opacity="0.3">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                            </svg>
+                            <p>아직 공유된 사용자가 없습니다</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="share-section">
+                    <h3 class="section-title">공유 링크</h3>
+
+                    <div class="share-link-section">
+                        <div class="link-toggle">
+                            <label class="switch">
+                                <input type="checkbox" id="share-link-toggle" onchange="toggleShareLink()">
+                                <span class="slider"></span>
+                            </label>
+                            <span>링크 공유 활성화</span>
+                        </div>
+
+                        <div class="share-link-content" id="share-link-content" style="display: none;">
+                            <div class="link-display">
+                                <input type="text" id="share-link-url" readonly value="">
+                                <button class="btn-copy" onclick="copyShareLink()">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                                    </svg>
+                                    복사
+                                </button>
+                            </div>
+
+                            <div class="link-permission">
+                                <label>링크 권한</label>
+                                <select id="link-permission">
+                                    <option value="viewer">보기 전용</option>
+                                    <option value="editor">편집 가능</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- API Keys Management Modal -->
-<div class="modal-overlay" id="api-keys-modal" style="display: none;">
-    <div class="modal-content api-keys-modal">
-        <div class="modal-header">
-            <h2 class="modal-title">API 키 관리</h2>
-            <button class="modal-close" onclick="closeAPISettingsModal()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-        </div>
-        
-        <div class="modal-body">
-            <div class="api-keys-list">
-                <!-- Google Calendar -->
-                <div class="api-key-item">
-                    <div class="api-platform">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                        </svg>
-                        <span>Google Calendar</span>
-                    </div>
-                    <div class="api-key-input-group">
-                        <input type="password" id="google-api-key" placeholder="Google API 키 입력" class="api-key-input">
-                        <button class="toggle-visibility-btn" onclick="toggleAPIKeyVisibility('google-api-key')">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                <circle cx="12" cy="12" r="3"/>
-                            </svg>
-                        </button>
-                        <button class="save-api-key-btn" onclick="saveAPIKey('google')">저장</button>
-                    </div>
-                </div>
-
-                <!-- Outlook -->
-                <div class="api-key-item">
-                    <div class="api-platform">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                            <path d="M7.462 14.475V9.525c0-.563.45-1.013 1.013-1.013h6.75c.563 0 1.125.45 1.125 1.013v4.95c0 .563-.562 1.013-1.125 1.013h-6.75c-.563 0-1.013-.45-1.013-1.013z" fill="#0078D4"/>
-                        </svg>
-                        <span>Outlook / Microsoft</span>
-                    </div>
-                    <div class="api-key-input-group">
-                        <input type="password" id="outlook-api-key" placeholder="Microsoft Graph API 키 입력" class="api-key-input">
-                        <button class="toggle-visibility-btn" onclick="toggleAPIKeyVisibility('outlook-api-key')">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                <circle cx="12" cy="12" r="3"/>
-                            </svg>
-                        </button>
-                        <button class="save-api-key-btn" onclick="saveAPIKey('outlook')">저장</button>
-                    </div>
-                </div>
-
-                <!-- Notion -->
-                <div class="api-key-item">
-                    <div class="api-platform">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                            <path d="M4.5 4.5v15h15v-15h-15zm13.5 13.5h-12v-12h12v12z" fill="#000"/>
-                        </svg>
-                        <span>Notion</span>
-                    </div>
-                    <div class="api-key-input-group">
-                        <input type="password" id="notion-api-key" placeholder="Notion API 키 입력" class="api-key-input">
-                        <button class="toggle-visibility-btn" onclick="toggleAPIKeyVisibility('notion-api-key')">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                <circle cx="12" cy="12" r="3"/>
-                            </svg>
-                        </button>
-                        <button class="save-api-key-btn" onclick="saveAPIKey('notion')">저장</button>
-                    </div>
-                </div>
-
-                <!-- Zoom -->
-                <div class="api-key-item">
-                    <div class="api-platform">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                            <rect x="2" y="6" width="20" height="12" rx="4" fill="#2D8CFF"/>
-                            <circle cx="8" cy="10" r="1.5" fill="white"/>
-                            <circle cx="16" cy="10" r="1.5" fill="white"/>
-                            <path d="M6 14h12" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                        </svg>
-                        <span>Zoom</span>
-                    </div>
-                    <div class="api-key-input-group">
-                        <input type="password" id="zoom-api-key" placeholder="Zoom API 키 입력" class="api-key-input">
-                        <button class="toggle-visibility-btn" onclick="toggleAPIKeyVisibility('zoom-api-key')">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                <circle cx="12" cy="12" r="3"/>
-                            </svg>
-                        </button>
-                        <button class="save-api-key-btn" onclick="saveAPIKey('zoom')">저장</button>
-                    </div>
-                </div>
-
-                <!-- Slack -->
-                <div class="api-key-item">
-                    <div class="api-platform">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                            <path d="M6 15a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H6z" fill="#4A154B"/>
-                        </svg>
-                        <span>Slack</span>
-                    </div>
-                    <div class="api-key-input-group">
-                        <input type="password" id="slack-api-key" placeholder="Slack API 토큰 입력" class="api-key-input">
-                        <button class="toggle-visibility-btn" onclick="toggleAPIKeyVisibility('slack-api-key')">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                <circle cx="12" cy="12" r="3"/>
-                            </svg>
-                        </button>
-                        <button class="save-api-key-btn" onclick="saveAPIKey('slack')">저장</button>
-                    </div>
-                </div>
-
-                <!-- Trello -->
-                <div class="api-key-item">
-                    <div class="api-platform">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                            <rect x="2" y="2" width="20" height="20" rx="3" fill="#0079BF"/>
-                            <rect x="5" y="5" width="5" height="10" rx="1" fill="white"/>
-                            <rect x="14" y="5" width="5" height="6" rx="1" fill="white"/>
-                        </svg>
-                        <span>Trello</span>
-                    </div>
-                    <div class="api-key-input-group">
-                        <input type="password" id="trello-api-key" placeholder="Trello API 키 입력" class="api-key-input">
-                        <button class="toggle-visibility-btn" onclick="toggleAPIKeyVisibility('trello-api-key')">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                <circle cx="12" cy="12" r="3"/>
-                            </svg>
-                        </button>
-                        <button class="save-api-key-btn" onclick="saveAPIKey('trello')">저장</button>
-                    </div>
-                </div>
-
-                <!-- Asana -->
-                <div class="api-key-item">
-                    <div class="api-platform">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                            <circle cx="7" cy="12" r="3" fill="#F06A6A"/>
-                            <circle cx="17" cy="12" r="3" fill="#F06A6A"/>
-                            <circle cx="12" cy="6" r="3" fill="#F06A6A"/>
-                        </svg>
-                        <span>Asana</span>
-                    </div>
-                    <div class="api-key-input-group">
-                        <input type="password" id="asana-api-key" placeholder="Asana API 키 입력" class="api-key-input">
-                        <button class="toggle-visibility-btn" onclick="toggleAPIKeyVisibility('asana-api-key')">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                <circle cx="12" cy="12" r="3"/>
-                            </svg>
-                        </button>
-                        <button class="save-api-key-btn" onclick="saveAPIKey('asana')">저장</button>
-                    </div>
-                </div>
+    <!-- API Keys Management Modal -->
+    <div class="modal-overlay" id="api-keys-modal" style="display: none;">
+        <div class="modal-content api-keys-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">API 키 관리</h2>
+                <button class="modal-close" onclick="closeAPISettingsModal()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
             </div>
 
-            <div class="api-keys-help">
-                <h4>API 키 가져오기 도움말</h4>
-                <div class="help-links">
-                    <a href="https://developers.google.com/calendar/api/guides/auth" target="_blank" class="help-link">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <circle cx="12" cy="12" r="10"/>
-                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                            <path d="M12 17h.01"/>
-                        </svg>
-                        Google Calendar API 설정
-                    </a>
-                    <a href="https://docs.microsoft.com/en-us/graph/auth/auth-concepts" target="_blank" class="help-link">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <circle cx="12" cy="12" r="10"/>
-                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                            <path d="M12 17h.01"/>
-                        </svg>
-                        Microsoft Graph API 설정
-                    </a>
-                    <a href="https://developers.notion.com/docs/getting-started" target="_blank" class="help-link">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <circle cx="12" cy="12" r="10"/>
-                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                            <path d="M12 17h.01"/>
-                        </svg>
-                        Notion API 설정
-                    </a>
+            <div class="modal-body">
+                <div class="api-keys-list">
+                    <!-- Google Calendar -->
+                    <div class="api-key-item">
+                        <div class="api-platform">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <path
+                                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                                    fill="#4285F4" />
+                                <path
+                                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                                    fill="#34A853" />
+                                <path
+                                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                                    fill="#FBBC05" />
+                                <path
+                                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                                    fill="#EA4335" />
+                            </svg>
+                            <span>Google Calendar</span>
+                        </div>
+                        <div class="api-key-input-group">
+                            <input type="password" id="google-api-key" placeholder="Google API 키 입력"
+                                class="api-key-input">
+                            <button class="toggle-visibility-btn" onclick="toggleAPIKeyVisibility('google-api-key')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                            </button>
+                            <button class="save-api-key-btn" onclick="saveAPIKey('google')">저장</button>
+                        </div>
+                    </div>
+
+                    <!-- Outlook -->
+                    <div class="api-key-item">
+                        <div class="api-platform">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <path
+                                    d="M7.462 14.475V9.525c0-.563.45-1.013 1.013-1.013h6.75c.563 0 1.125.45 1.125 1.013v4.95c0 .563-.562 1.013-1.125 1.013h-6.75c-.563 0-1.013-.45-1.013-1.013z"
+                                    fill="#0078D4" />
+                            </svg>
+                            <span>Outlook / Microsoft</span>
+                        </div>
+                        <div class="api-key-input-group">
+                            <input type="password" id="outlook-api-key" placeholder="Microsoft Graph API 키 입력"
+                                class="api-key-input">
+                            <button class="toggle-visibility-btn" onclick="toggleAPIKeyVisibility('outlook-api-key')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                            </button>
+                            <button class="save-api-key-btn" onclick="saveAPIKey('outlook')">저장</button>
+                        </div>
+                    </div>
+
+                    <!-- Notion -->
+                    <div class="api-key-item">
+                        <div class="api-platform">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <path d="M4.5 4.5v15h15v-15h-15zm13.5 13.5h-12v-12h12v12z" fill="#000" />
+                            </svg>
+                            <span>Notion</span>
+                        </div>
+                        <div class="api-key-input-group">
+                            <input type="password" id="notion-api-key" placeholder="Notion API 키 입력"
+                                class="api-key-input">
+                            <button class="toggle-visibility-btn" onclick="toggleAPIKeyVisibility('notion-api-key')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                            </button>
+                            <button class="save-api-key-btn" onclick="saveAPIKey('notion')">저장</button>
+                        </div>
+                    </div>
+
+                    <!-- Zoom -->
+                    <div class="api-key-item">
+                        <div class="api-platform">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <rect x="2" y="6" width="20" height="12" rx="4" fill="#2D8CFF" />
+                                <circle cx="8" cy="10" r="1.5" fill="white" />
+                                <circle cx="16" cy="10" r="1.5" fill="white" />
+                                <path d="M6 14h12" stroke="white" stroke-width="2" stroke-linecap="round" />
+                            </svg>
+                            <span>Zoom</span>
+                        </div>
+                        <div class="api-key-input-group">
+                            <input type="password" id="zoom-api-key" placeholder="Zoom API 키 입력" class="api-key-input">
+                            <button class="toggle-visibility-btn" onclick="toggleAPIKeyVisibility('zoom-api-key')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                            </button>
+                            <button class="save-api-key-btn" onclick="saveAPIKey('zoom')">저장</button>
+                        </div>
+                    </div>
+
+                    <!-- Slack -->
+                    <div class="api-key-item">
+                        <div class="api-platform">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <path d="M6 15a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H6z"
+                                    fill="#4A154B" />
+                            </svg>
+                            <span>Slack</span>
+                        </div>
+                        <div class="api-key-input-group">
+                            <input type="password" id="slack-api-key" placeholder="Slack API 토큰 입력"
+                                class="api-key-input">
+                            <button class="toggle-visibility-btn" onclick="toggleAPIKeyVisibility('slack-api-key')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                            </button>
+                            <button class="save-api-key-btn" onclick="saveAPIKey('slack')">저장</button>
+                        </div>
+                    </div>
+
+                    <!-- Trello -->
+                    <div class="api-key-item">
+                        <div class="api-platform">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <rect x="2" y="2" width="20" height="20" rx="3" fill="#0079BF" />
+                                <rect x="5" y="5" width="5" height="10" rx="1" fill="white" />
+                                <rect x="14" y="5" width="5" height="6" rx="1" fill="white" />
+                            </svg>
+                            <span>Trello</span>
+                        </div>
+                        <div class="api-key-input-group">
+                            <input type="password" id="trello-api-key" placeholder="Trello API 키 입력"
+                                class="api-key-input">
+                            <button class="toggle-visibility-btn" onclick="toggleAPIKeyVisibility('trello-api-key')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                            </button>
+                            <button class="save-api-key-btn" onclick="saveAPIKey('trello')">저장</button>
+                        </div>
+                    </div>
+
+                    <!-- Asana -->
+                    <div class="api-key-item">
+                        <div class="api-platform">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <circle cx="7" cy="12" r="3" fill="#F06A6A" />
+                                <circle cx="17" cy="12" r="3" fill="#F06A6A" />
+                                <circle cx="12" cy="6" r="3" fill="#F06A6A" />
+                            </svg>
+                            <span>Asana</span>
+                        </div>
+                        <div class="api-key-input-group">
+                            <input type="password" id="asana-api-key" placeholder="Asana API 키 입력"
+                                class="api-key-input">
+                            <button class="toggle-visibility-btn" onclick="toggleAPIKeyVisibility('asana-api-key')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                            </button>
+                            <button class="save-api-key-btn" onclick="saveAPIKey('asana')">저장</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="api-keys-help">
+                    <h4>API 키 가져오기 도움말</h4>
+                    <div class="help-links">
+                        <a href="https://developers.google.com/calendar/api/guides/auth" target="_blank"
+                            class="help-link">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                                <path d="M12 17h.01" />
+                            </svg>
+                            Google Calendar API 설정
+                        </a>
+                        <a href="https://docs.microsoft.com/en-us/graph/auth/auth-concepts" target="_blank"
+                            class="help-link">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                                <path d="M12 17h.01" />
+                            </svg>
+                            Microsoft Graph API 설정
+                        </a>
+                        <a href="https://developers.notion.com/docs/getting-started" target="_blank" class="help-link">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                                <path d="M12 17h.01" />
+                            </svg>
+                            Notion API 설정
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-
-<style>
-/* Event Search and List - Enhanced Design */
-.event-list-container {
-    margin-top: 0;
-}
-
-.event-search {
-    position: relative;
-    margin-bottom: 16px;
-}
-
-.event-search input {
-    width: 100%;
-    padding: 12px 16px 12px 40px;
-    border: 1.5px solid #e5e7eb;
-    border-radius: 12px;
-    font-size: 14px;
-    background: #ffffff;
-    transition: all 0.2s ease;
-    font-weight: 400;
-    color: #374151;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.event-search input:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.event-search input::placeholder {
-    color: #9ca3af;
-    font-weight: 400;
-}
-
-.event-search::before {
-    content: "🔍";
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 14px;
-    pointer-events: none;
-    z-index: 1;
-}
-
-.event-list {
-    max-height: 320px;
-    overflow-y: auto;
-    margin-top: 4px;
-    padding-right: 4px;
-}
-
-.event-list-item {
-    padding: 14px 16px;
-    margin-bottom: 10px;
-    background: #ffffff;
-    border: 1.5px solid #f1f5f9;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 13px;
-    line-height: 1.5;
-    position: relative;
-    overflow: hidden;
-}
-
-.event-list-item::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 4px;
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.event-list-item:hover::before {
-    opacity: 1;
-}
-
-.event-list-item:hover {
-    background: #f8fafc;
-    border-color: #e2e8f0;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-
-.event-list-item.highlighted {
-    background: #eff6ff;
-    border-color: #3b82f6;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
-}
-
-.event-list-item.highlighted::before {
-    opacity: 1;
-}
-
-.event-list-item-title {
-    font-weight: 600;
-    color: #1f2937;
-    margin-bottom: 6px;
-    font-size: 14px;
-    line-height: 1.3;
-}
-
-.event-list-item-time {
-    color: #6b7280;
-    font-size: 12px;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: #f9fafb;
-    padding: 4px 8px;
-    border-radius: 6px;
-    width: fit-content;
-}
-
-.event-list-item-time::before {
-    content: "📅";
-    font-size: 12px;
-}
-
-.event-list-empty {
-    text-align: center;
-    color: #9ca3af;
-    padding: 32px 16px;
-    font-style: italic;
-    background: #f9fafb;
-    border-radius: 12px;
-    border: 2px dashed #e5e7eb;
-    font-size: 14px;
-}
-
-/* Event Context Menu - Enhanced */
-.event-context-menu {
-    position: absolute;
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15), 0 4px 8px rgba(0,0,0,0.1);
-    z-index: 10000;
-    min-width: 160px;
-    overflow: hidden;
-    animation: contextMenuFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes contextMenuFadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-8px) scale(0.92);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-.context-menu-item {
-    padding: 12px 16px;
-    cursor: pointer;
-    font-size: 14px;
-    color: #374151;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: all 0.15s ease;
-    font-weight: 500;
-    border-bottom: 1px solid #f3f4f6;
-}
-
-.context-menu-item:last-child {
-    border-bottom: none;
-}
-
-.context-menu-item:hover {
-    background: #f8fafc;
-    color: #1f2937;
-    transform: translateX(2px);
-}
-
-.context-menu-item:active {
-    background: #f1f5f9;
-}
-
-/* Search Results Highlighting */
-.event-search-result {
-    background: #fff3cd;
-    border-color: #ffc107;
-}
-
-.event-search-result .event-list-item-title {
-    color: #856404;
-}
-
-/* No Events Message */
-.no-events-message {
-    text-align: center;
-    color: #9aa0a6;
-    padding: 30px 20px;
-    font-style: italic;
-    font-size: 14px;
-}
-
-/* Enhanced Scrollbar for Event List */
-.event-list::-webkit-scrollbar {
-    width: 8px;
-}
-
-.event-list::-webkit-scrollbar-track {
-    background: #f8fafc;
-    border-radius: 4px;
-    margin: 4px 0;
-}
-
-.event-list::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #cbd5e1, #94a3b8);
-    border-radius: 4px;
-    border: 1px solid #e2e8f0;
-}
-
-.event-list::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #94a3b8, #64748b);
-}
-
-.event-list::-webkit-scrollbar-corner {
-    background: #f8fafc;
-}
-
-/* Enhanced Animations */
-.event-list-item-enter {
-    opacity: 0;
-    transform: translateY(-15px) scale(0.95);
-    animation: eventItemEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes eventItemEnter {
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-.event-list-item-exit {
-    animation: eventItemExit 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
-}
-
-@keyframes eventItemExit {
-    to {
-        opacity: 0;
-        transform: translateY(-15px) scale(0.9);
-    }
-}
-
-/* Enhanced Search Highlighting */
-.calendar-event.search-highlighted {
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4) !important;
-    border: 2px solid #3b82f6 !important;
-    animation: searchPulse 2s ease-in-out infinite;
-    z-index: 200 !important;
-}
-
-@keyframes searchPulse {
-    0%, 100% {
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4), 0 4px 12px rgba(59, 130, 246, 0.2);
-    }
-    50% {
-        box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.2), 0 6px 20px rgba(59, 130, 246, 0.3);
-    }
-}
-
-/* Search Feedback and Results */
-.search-feedback {
-    margin-top: 8px;
-    animation: fadeInScale 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.search-results-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    background: #eff6ff;
-    color: #1d4ed8;
-    font-size: 11px;
-    font-weight: 600;
-    padding: 4px 8px;
-    border-radius: 8px;
-    border: 1px solid #bfdbfe;
-    box-shadow: 0 1px 3px rgba(59, 130, 246, 0.1);
-    transition: opacity 0.3s ease;
-}
-
-.search-result-item {
-    border-left: 3px solid #3b82f6 !important;
-    background: #f8faff !important;
-}
-
-.search-result-item .event-list-item-title {
-    color: #1e40af !important;
-}
-
-@keyframes fadeInScale {
-    from {
-        opacity: 0;
-        transform: scale(0.9) translateY(-4px);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
-}
-
-/* Enhanced Empty State */
-.event-list-empty {
-    text-align: center;
-    color: #9ca3af;
-    padding: 32px 16px;
-    background: #f9fafb;
-    border-radius: 12px;
-    border: 2px dashed #e5e7eb;
-    font-size: 14px;
-    line-height: 1.6;
-}
-
-/* Bottom Fixed Event Creation Bar (Compact One-Line Style) */
-.event-creation-popup {
-    position: fixed;
-    bottom: 0;
-    left: var(--sidebar-width, 250px);
-    width: var(--main-content-width, calc(100vw - 250px));
-    background: #ffffff;
-    border-top: 1px solid #e5e7eb;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
-    z-index: 10000;
-    padding: 16px 20px;
-    animation: slideUpFromBottom 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    transition: all 0.3s ease;
-    box-sizing: border-box;
-}
-
-/* Hide header for compact layout */
-.event-creation-popup .popup-header {
-    display: none;
-}
-
-.event-creation-popup .popup-content {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-/* First row: Title, Date, Time in one line */
-.event-first-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
-}
-
-.event-title-input {
-    flex: 2;
-    padding: 10px 14px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 14px;
-    font-family: inherit;
-    background: #ffffff;
-    transition: all 0.2s ease;
-    color: #1f2937;
-}
-
-.event-title-input:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
-}
-
-.event-title-input::placeholder {
-    color: #9ca3af;
-    font-weight: 400;
-}
-
-.event-datetime-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.datetime-button {
-    background: #ffffff;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    padding: 8px 12px;
-    font-size: 13px;
-    color: #1f2937;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    min-width: 100px;
-    white-space: nowrap;
-}
-
-.datetime-button:hover {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.05);
-}
-
-.datetime-button svg {
-    width: 14px;
-    height: 14px;
-    color: #6b7280;
-}
-
-.datetime-button:hover svg {
-    color: #3b82f6;
-}
-
-.datetime-button.active {
-    border-color: #3b82f6;
-    background: #eff6ff;
-    color: #1e40af;
-}
-
-.time-range-separator {
-    font-size: 13px;
-    color: #9ca3af;
-    font-weight: 400;
-    margin: 0 4px;
-}
-
-/* Second row: Description */
-.event-description-input {
-    width: 100%;
-    padding: 10px 14px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 14px;
-    font-family: inherit;
-    background: #ffffff;
-    min-height: 40px;
-    resize: none;
-    transition: all 0.2s ease;
-    color: #1f2937;
-    line-height: 1.4;
-}
-
-.event-description-input:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
-}
-
-.event-description-input::placeholder {
-    color: #9ca3af;
-    font-weight: 400;
-}
-
-/* Action buttons (save/cancel) */
-.event-actions {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-
-.event-save-btn {
-    background: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 10px 16px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s ease;
-}
-
-.event-save-btn:hover {
-    background: #2563eb;
-}
-
-.event-cancel-btn {
-    background: transparent;
-    color: #6b7280;
-    border: none;
-    cursor: pointer;
-    font-size: 14px;
-    padding: 10px 12px;
-    transition: all 0.2s ease;
-}
-
-.event-cancel-btn:hover {
-    color: #374151;
-}
-
-.btn-primary {
-    background: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 10px 20px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.btn-primary:hover {
-    background: #2563eb;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
-}
-
-.btn-secondary {
-    background: #ffffff;
-    color: #6b7280;
-    border: 1px solid #e5e7eb;
-    border-radius: 6px;
-    padding: 10px 16px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s ease;
-}
-
-.btn-secondary:hover {
-    background: #f9fafb;
-    border-color: #d1d5db;
-    color: #374151;
-}
-
-/* Animations */
-@keyframes slideUpFromBottom {
-    from {
-        transform: translateY(100%);
-        opacity: 0.8;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
-@keyframes slideDownToBottom {
-    from {
-        transform: translateY(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateY(100%);
-        opacity: 0.8;
-    }
-}
-
-@keyframes fadeOut {
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0;
-    }
-}
-
-/* Responsive adjustments for bottom-fixed form */
-@media (max-width: 768px) {
-    .overlay-form-content {
-        max-height: 90vh;
-        border-radius: 12px 12px 0 0;
-    }
-    .overlay-form-content .form-header {
-        padding: 20px 20px 12px;
-    }
-    .overlay-form-content .form-group {
-        padding: 0 20px 16px;
-    }
-    .overlay-form-content .form-actions {
-        padding: 16px 20px 24px;
-    }
-}
-
-@media (max-width: 480px) {
-    .overlay-form-content {
-        max-height: 95vh;
-        border-radius: 8px 8px 0 0;
-    }
-}
-
-/* Mobile Responsiveness */
-@media (max-width: 768px) {
-    .event-creation-popup {
-        max-height: 80vh;
-    }
-    
-    .datetime-row {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 6px;
-    }
-    
-    .datetime-button {
-        width: 100%;
-        justify-content: flex-start;
-    }
-    
-    .time-range-separator {
-        align-self: center;
-        margin: 4px 0;
-    }
-    
-    .form-actions {
-        padding: 10px 16px;
-    }
-}
-
-.time-separator {
-    color: #9ca3af;
-    font-size: 16px;
-    margin: 0 8px;
-}
-
-.event-creation-popup form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.event-creation-popup label {
-    font-size: 13px;
-    color: #4b5563;
-    font-weight: 500;
-    margin-bottom: 4px;
-    display: block;
-}
-
-.event-creation-popup input,
-.event-creation-popup textarea {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1.5px solid #e5e7eb;
-    border-radius: 8px;
-    font-size: 14px;
-    transition: all 0.2s ease;
-}
-
-.event-creation-popup input:focus,
-.event-creation-popup textarea:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
-}
-
-.event-creation-popup .time-inputs {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-}
-
-.event-creation-popup .popup-buttons {
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
-    margin-top: 20px;
-}
-
-.event-creation-popup .btn-cancel,
-.event-creation-popup .btn-save {
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.event-creation-popup .btn-cancel {
-    background: #f3f4f6;
-    color: #6b7280;
-}
-
-.event-creation-popup .btn-cancel:hover {
-    background: #e5e7eb;
-}
-
-.event-creation-popup .btn-save {
-    background: #3b82f6;
-    color: white;
-}
-
-.event-creation-popup .btn-save:hover {
-    background: #2563eb;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Event Form Widget Styles */
-.event-form-widget {
-    position: sticky;
-    bottom: 0;
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    margin-top: 16px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.event-form-widget .widget-header {
-    position: relative;
-    padding: 16px;
-    border-bottom: 1px solid #f3f4f6;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.event-form-widget .widget-header h4 {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 600;
-    color: #1f2937;
-}
-
-.close-form-btn {
-    background: none;
-    border: none;
-    padding: 4px;
-    cursor: pointer;
-    border-radius: 4px;
-    color: #6b7280;
-    transition: all 0.2s ease;
-}
-
-.close-form-btn:hover {
-    background: #f3f4f6;
-    color: #374151;
-}
-
-.event-form-content {
-    padding: 16px;
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.event-form-content .form-group {
-    margin-bottom: 16px;
-}
-
-.event-form-content .form-group:last-child {
-    margin-bottom: 0;
-}
-
-.event-form-content label {
-    display: block;
-    font-size: 13px;
-    font-weight: 500;
-    color: #374151;
-    margin-bottom: 6px;
-}
-
-.event-form-content input,
-.event-form-content textarea {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 14px;
-    transition: all 0.2s ease;
-    box-sizing: border-box;
-}
-
-.event-form-content input:focus,
-.event-form-content textarea:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.event-form-content .time-inputs {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-}
-
-.event-form-content .color-picker {
-    display: flex;
-    gap: 8px;
-    margin-top: 4px;
-}
-
-.event-form-content .color-option {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: all 0.2s ease;
-}
-
-.event-form-content .color-option:hover,
-.event-form-content .color-option.active {
-    border-color: #374151;
-    transform: scale(1.1);
-}
-
-.event-form-content .form-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 20px;
-}
-
-.event-form-content .btn-cancel,
-.event-form-content .btn-save {
-    flex: 1;
-    padding: 10px 16px;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.event-form-content .btn-cancel {
-    background: #f3f4f6;
-    color: #6b7280;
-}
-
-.event-form-content .btn-cancel:hover {
-    background: #e5e7eb;
-    color: #374151;
-}
-
-.event-form-content .btn-save {
-    background: #3b82f6;
-    color: white;
-}
-
-.event-form-content .btn-save:hover {
-    background: #2563eb;
-}
-
-/* Calendar Overlay Event Form Styles */
-.calendar-overlay-form {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(2px);
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    z-index: 1000;
-    animation: fadeIn 0.3s ease;
-}
-
-.overlay-form-content {
-    background: white;
-    border-radius: 16px 16px 0 0;
-    box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.1), 0 -4px 10px -5px rgba(0, 0, 0, 0.04);
-    width: 100%;
-    max-height: 80vh;
-    overflow-y: auto;
-    animation: slideUpFromBottom 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.overlay-form-content .form-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 24px 24px 16px;
-    border-bottom: 1px solid #f3f4f6;
-}
-
-.overlay-form-content .form-header h2 {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 600;
-    color: #1f2937;
-}
-
-.close-overlay-btn {
-    background: none;
-    border: none;
-    padding: 8px;
-    cursor: pointer;
-    border-radius: 8px;
-    color: #6b7280;
-    transition: all 0.2s ease;
-}
-
-.close-overlay-btn:hover {
-    background: #f3f4f6;
-    color: #374151;
-}
-
-.overlay-form-content form {
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.overlay-form-content .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.overlay-form-content label {
-    font-size: 14px;
-    font-weight: 500;
-    color: #374151;
-}
-
-.overlay-form-content input,
-.overlay-form-content textarea {
-    width: 100%;
-    padding: 12px 16px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    font-size: 14px;
-    transition: all 0.2s ease;
-    box-sizing: border-box;
-}
-
-.overlay-form-content input:focus,
-.overlay-form-content textarea:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.overlay-form-content .time-inputs {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-}
-
-.overlay-form-content .color-picker {
-    display: flex;
-    gap: 12px;
-    margin-top: 8px;
-}
-
-.overlay-form-content .color-option {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    cursor: pointer;
-    border: 3px solid transparent;
-    transition: all 0.2s ease;
-}
-
-.overlay-form-content .color-option:hover,
-.overlay-form-content .color-option.active {
-    border-color: #374151;
-    transform: scale(1.1);
-}
-
-.overlay-form-content .form-actions {
-    display: flex;
-    gap: 12px;
-    margin-top: 8px;
-}
-
-.overlay-form-content .btn-cancel,
-.overlay-form-content .btn-save {
-    flex: 1;
-    padding: 12px 24px;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.overlay-form-content .btn-cancel {
-    background: #f3f4f6;
-    color: #6b7280;
-}
-
-.overlay-form-content .btn-cancel:hover {
-    background: #e5e7eb;
-    color: #374151;
-}
-
-.overlay-form-content .btn-save {
-    background: #3b82f6;
-    color: white;
-}
-
-.overlay-form-content .btn-save:hover {
-    background: #2563eb;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-</style>
-
-<!-- JavaScript -->
-<script src="{{ url_for('static', filename='js/calendar-detail.js') }}?v={{ range(100000, 999999) | random }}"></script>
-<script src="{{ url_for('static', filename='js/calendar-time-grid.js') }}?v={{ range(100000, 999999) | random }}"></script>
-<script src="{{ url_for('static', filename='js/google-calendar-grid.js') }}?v={{ range(100000, 999999) | random }}"></script>
-<script src="{{ url_for('static', filename='js/calendar-view-controller.js') }}?v={{ range(100000, 999999) | random }}"></script>
+
+    <style>
+        /* Event Search and List - Enhanced Design */
+        .event-list-container {
+            margin-top: 0;
+        }
+
+        .event-search {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .event-search input {
+            width: 100%;
+            padding: 12px 16px 12px 40px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 14px;
+            background: #ffffff;
+            transition: all 0.2s ease;
+            font-weight: 400;
+            color: #374151;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .event-search input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .event-search input::placeholder {
+            color: #9ca3af;
+            font-weight: 400;
+        }
+
+        .event-search::before {
+            content: "🔍";
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .event-list {
+            max-height: 320px;
+            overflow-y: auto;
+            margin-top: 4px;
+            padding-right: 4px;
+        }
+
+        .event-list-item {
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            background: #ffffff;
+            border: 1.5px solid #f1f5f9;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 13px;
+            line-height: 1.5;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .event-list-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .event-list-item:hover::before {
+            opacity: 1;
+        }
+
+        .event-list-item:hover {
+            background: #f8fafc;
+            border-color: #e2e8f0;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .event-list-item.highlighted {
+            background: #eff6ff;
+            border-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+
+        .event-list-item.highlighted::before {
+            opacity: 1;
+        }
+
+        .event-list-item-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 6px;
+            font-size: 14px;
+            line-height: 1.3;
+        }
+
+        .event-list-item-time {
+            color: #6b7280;
+            font-size: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #f9fafb;
+            padding: 4px 8px;
+            border-radius: 6px;
+            width: fit-content;
+        }
+
+        .event-list-item-time::before {
+            content: "📅";
+            font-size: 12px;
+        }
+
+        .event-list-empty {
+            text-align: center;
+            color: #9ca3af;
+            padding: 32px 16px;
+            font-style: italic;
+            background: #f9fafb;
+            border-radius: 12px;
+            border: 2px dashed #e5e7eb;
+            font-size: 14px;
+        }
+
+        /* Event Context Menu - Enhanced */
+        .event-context-menu {
+            position: absolute;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 10000;
+            min-width: 160px;
+            overflow: hidden;
+            animation: contextMenuFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes contextMenuFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px) scale(0.92);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .context-menu-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.15s ease;
+            font-weight: 500;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .context-menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .context-menu-item:hover {
+            background: #f8fafc;
+            color: #1f2937;
+            transform: translateX(2px);
+        }
+
+        .context-menu-item:active {
+            background: #f1f5f9;
+        }
+
+        /* Search Results Highlighting */
+        .event-search-result {
+            background: #fff3cd;
+            border-color: #ffc107;
+        }
+
+        .event-search-result .event-list-item-title {
+            color: #856404;
+        }
+
+        /* No Events Message */
+        .no-events-message {
+            text-align: center;
+            color: #9aa0a6;
+            padding: 30px 20px;
+            font-style: italic;
+            font-size: 14px;
+        }
+
+        /* Enhanced Scrollbar for Event List */
+        .event-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .event-list::-webkit-scrollbar-track {
+            background: #f8fafc;
+            border-radius: 4px;
+            margin: 4px 0;
+        }
+
+        .event-list::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #cbd5e1, #94a3b8);
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .event-list::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #94a3b8, #64748b);
+        }
+
+        .event-list::-webkit-scrollbar-corner {
+            background: #f8fafc;
+        }
+
+        /* Enhanced Animations */
+        .event-list-item-enter {
+            opacity: 0;
+            transform: translateY(-15px) scale(0.95);
+            animation: eventItemEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes eventItemEnter {
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .event-list-item-exit {
+            animation: eventItemExit 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
+        }
+
+        @keyframes eventItemExit {
+            to {
+                opacity: 0;
+                transform: translateY(-15px) scale(0.9);
+            }
+        }
+
+        /* Enhanced Search Highlighting */
+        .calendar-event.search-highlighted {
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4) !important;
+            border: 2px solid #3b82f6 !important;
+            animation: searchPulse 2s ease-in-out infinite;
+            z-index: 200 !important;
+        }
+
+        @keyframes searchPulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4), 0 4px 12px rgba(59, 130, 246, 0.2);
+            }
+
+            50% {
+                box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.2), 0 6px 20px rgba(59, 130, 246, 0.3);
+            }
+        }
+
+        /* Search Feedback and Results */
+        .search-feedback {
+            margin-top: 8px;
+            animation: fadeInScale 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .search-results-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #eff6ff;
+            color: #1d4ed8;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 8px;
+            border: 1px solid #bfdbfe;
+            box-shadow: 0 1px 3px rgba(59, 130, 246, 0.1);
+            transition: opacity 0.3s ease;
+        }
+
+        .search-result-item {
+            border-left: 3px solid #3b82f6 !important;
+            background: #f8faff !important;
+        }
+
+        .search-result-item .event-list-item-title {
+            color: #1e40af !important;
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(-4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* Enhanced Empty State */
+        .event-list-empty {
+            text-align: center;
+            color: #9ca3af;
+            padding: 32px 16px;
+            background: #f9fafb;
+            border-radius: 12px;
+            border: 2px dashed #e5e7eb;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* Bottom Fixed Event Creation Bar (Compact One-Line Style) */
+        .event-creation-popup {
+            position: fixed;
+            bottom: 0;
+            left: var(--sidebar-width, 250px);
+            width: var(--main-content-width, calc(100vw - 250px));
+            background: #ffffff;
+            border-top: 1px solid #e5e7eb;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
+            z-index: 10000;
+            padding: 16px 20px;
+            animation: slideUpFromBottom 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        /* Hide header for compact layout */
+        .event-creation-popup .popup-header {
+            display: none;
+        }
+
+        .event-creation-popup .popup-content {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* First row: Title, Date, Time in one line */
+        .event-first-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .event-title-input {
+            flex: 2;
+            padding: 10px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            background: #ffffff;
+            transition: all 0.2s ease;
+            color: #1f2937;
+        }
+
+        .event-title-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+        }
+
+        .event-title-input::placeholder {
+            color: #9ca3af;
+            font-weight: 400;
+        }
+
+        .event-datetime-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .datetime-button {
+            background: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 13px;
+            color: #1f2937;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 100px;
+            white-space: nowrap;
+        }
+
+        .datetime-button:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.05);
+        }
+
+        .datetime-button svg {
+            width: 14px;
+            height: 14px;
+            color: #6b7280;
+        }
+
+        .datetime-button:hover svg {
+            color: #3b82f6;
+        }
+
+        .datetime-button.active {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            color: #1e40af;
+        }
+
+        .time-range-separator {
+            font-size: 13px;
+            color: #9ca3af;
+            font-weight: 400;
+            margin: 0 4px;
+        }
+
+        /* Second row: Description */
+        .event-description-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            background: #ffffff;
+            min-height: 40px;
+            resize: none;
+            transition: all 0.2s ease;
+            color: #1f2937;
+            line-height: 1.4;
+        }
+
+        .event-description-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+        }
+
+        .event-description-input::placeholder {
+            color: #9ca3af;
+            font-weight: 400;
+        }
+
+        /* Action buttons (save/cancel) */
+        .event-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .event-save-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .event-save-btn:hover {
+            background: #2563eb;
+        }
+
+        .event-cancel-btn {
+            background: transparent;
+            color: #6b7280;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 10px 12px;
+            transition: all 0.2s ease;
+        }
+
+        .event-cancel-btn:hover {
+            color: #374151;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-secondary {
+            background: #ffffff;
+            color: #6b7280;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 10px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+            color: #374151;
+        }
+
+        /* Animations */
+        @keyframes slideUpFromBottom {
+            from {
+                transform: translateY(100%);
+                opacity: 0.8;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideDownToBottom {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateY(100%);
+                opacity: 0.8;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+
+        /* Responsive adjustments for bottom-fixed form */
+        @media (max-width: 768px) {
+            .overlay-form-content {
+                max-height: 90vh;
+                border-radius: 12px 12px 0 0;
+                width: calc(100% - 12px);
+                margin: 0 6px;
+            }
+
+            .overlay-form-content .form-header {
+                padding: 20px 20px 12px;
+            }
+
+            .overlay-form-content .form-group {
+                padding: 0 20px 16px;
+            }
+
+            .overlay-form-content .form-actions {
+                padding: 16px 20px 24px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .overlay-form-content {
+                max-height: 95vh;
+                border-radius: 8px 8px 0 0;
+                width: calc(100% - 8px);
+                margin: 0 4px;
+            }
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .event-creation-popup {
+                max-height: 80vh;
+            }
+
+            .datetime-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+
+            .datetime-button {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .time-range-separator {
+                align-self: center;
+                margin: 4px 0;
+            }
+
+            .form-actions {
+                padding: 10px 16px;
+            }
+        }
+
+        .time-separator {
+            color: #9ca3af;
+            font-size: 16px;
+            margin: 0 8px;
+        }
+
+        .event-creation-popup form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .event-creation-popup label {
+            font-size: 13px;
+            color: #4b5563;
+            font-weight: 500;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .event-creation-popup input,
+        .event-creation-popup textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .event-creation-popup input:focus,
+        .event-creation-popup textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+        }
+
+        .event-creation-popup .time-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .event-creation-popup .popup-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .event-creation-popup .btn-cancel,
+        .event-creation-popup .btn-save {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .event-creation-popup .btn-cancel {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .event-creation-popup .btn-cancel:hover {
+            background: #e5e7eb;
+        }
+
+        .event-creation-popup .btn-save {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .event-creation-popup .btn-save:hover {
+            background: #2563eb;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Event Form Widget Styles */
+        .event-form-widget {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            margin-top: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .event-form-widget .widget-header {
+            position: relative;
+            padding: 16px;
+            border-bottom: 1px solid #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .event-form-widget .widget-header h4 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .close-form-btn {
+            background: none;
+            border: none;
+            padding: 4px;
+            cursor: pointer;
+            border-radius: 4px;
+            color: #6b7280;
+            transition: all 0.2s ease;
+        }
+
+        .close-form-btn:hover {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .event-form-content {
+            padding: 16px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .event-form-content .form-group {
+            margin-bottom: 16px;
+        }
+
+        .event-form-content .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .event-form-content label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+
+        .event-form-content input,
+        .event-form-content textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .event-form-content input:focus,
+        .event-form-content textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .event-form-content .time-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .event-form-content .color-picker {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .event-form-content .color-option {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .event-form-content .color-option:hover,
+        .event-form-content .color-option.active {
+            border-color: #374151;
+            transform: scale(1.1);
+        }
+
+        .event-form-content .form-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .event-form-content .btn-cancel,
+        .event-form-content .btn-save {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .event-form-content .btn-cancel {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .event-form-content .btn-cancel:hover {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .event-form-content .btn-save {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .event-form-content .btn-save:hover {
+            background: #2563eb;
+        }
+
+        /* Calendar Overlay Event Form Styles */
+        .calendar-overlay-form {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(2px);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .overlay-form-content {
+            background: white;
+            border-radius: 16px 16px 0 0;
+            box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.1), 0 -4px 10px -5px rgba(0, 0, 0, 0.04);
+            width: calc(100% - 16px);
+            margin: 0 8px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideUpFromBottom 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .overlay-form-content .form-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px 12px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .overlay-form-content .form-header h2 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .close-overlay-btn {
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 8px;
+            color: #6b7280;
+            transition: all 0.2s ease;
+        }
+
+        .close-overlay-btn:hover {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .overlay-form-content form {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .overlay-form-content .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 0 24px;
+            margin-bottom: 16px;
+        }
+
+        .overlay-form-content label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .overlay-form-content input,
+        .overlay-form-content textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .overlay-form-content input:focus,
+        .overlay-form-content textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .overlay-form-content .time-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .overlay-form-content .color-picker {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .overlay-form-content .color-option {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .overlay-form-content .color-option:hover,
+        .overlay-form-content .color-option.active {
+            border-color: #374151;
+            transform: scale(1.1);
+        }
+
+        .overlay-form-content .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .overlay-form-content .btn-cancel,
+        .overlay-form-content .btn-save {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .overlay-form-content .btn-cancel {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .overlay-form-content .btn-cancel:hover {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .overlay-form-content .btn-save {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .overlay-form-content .btn-save:hover {
+            background: #2563eb;
+        }
+
+        /* 날짜-시간 가로 배치 스타일 */
+        .date-time-row {
+            display: flex;
+            align-items: end;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .date-time-row .date-input {
+            flex: 1.5;
+            margin-bottom: 0;
+        }
+
+        .date-time-row .time-input {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .time-separator {
+            font-size: 18px;
+            font-weight: 500;
+            color: #6b7280;
+            margin: 0 4px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* 큰 설명 영역 스타일 */
+        .form-group.description-large {
+            flex: 1;
+            margin-bottom: 20px;
+        }
+
+        .form-group.description-large textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        /* 반응형 조정 */
+        @media (max-width: 600px) {
+            .date-time-row {
+                flex-direction: column;
+                gap: 16px;
+                align-items: stretch;
+            }
+
+            .date-time-row .date-input,
+            .date-time-row .time-input {
+                flex: none;
+                margin-bottom: 0;
+            }
+
+            .time-separator {
+                display: none;
+            }
+
+            /* 모바일에서는 시간 입력을 가로로 배치 */
+            .date-time-row .time-input:first-of-type::after {
+                content: "~";
+                position: absolute;
+                right: -12px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #6b7280;
+                font-weight: 500;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+
+    <!-- JavaScript -->
+    <script
+        src="{{ url_for('static', filename='js/calendar-selector.js') }}?v={{ range(100000, 999999) | random }}"></script>
+    <script
+        src="{{ url_for('static', filename='js/calendar-detail.js') }}?v={{ range(100000, 999999) | random }}"></script>
+    <script
+        src="{{ url_for('static', filename='js/calendar-time-grid.js') }}?v={{ range(100000, 999999) | random }}"></script>
+    <script
+        src="{{ url_for('static', filename='js/google-calendar-grid.js') }}?v={{ range(100000, 999999) | random }}"></script>
+    <script
+        src="{{ url_for('static', filename='js/calendar-view-controller.js') }}?v={{ range(100000, 999999) | random }}"></script>
+
+    <script>
+        // Initialize calendar selector when page loads
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize calendar selector
+            calendarSelector.init('calendar-selector-widget', {
+                onSelectionChange: function (events, calendarIds) {
+                    console.log('Selected calendars changed:', calendarIds);
+                    console.log('Events loaded:', events.length);
+
+                    // Update calendar grid with new events
+                    if (typeof updateCalendarGrid === 'function') {
+                        updateCalendarGrid(events);
+                    }
+
+                    // Update time grid if it exists
+                    if (typeof updateTimeGrid === 'function') {
+                        updateTimeGrid(events);
+                    }
+                }
+            });
+
+            // Check if calendar has media file and show media player
+            setTimeout(() => {
+                checkAndShowMediaPlayer();
+            }, 1000);
+        });
+
+        function checkAndShowMediaPlayer() {
+            console.log('🎵 Checking for media player initialization...');
+
+            // Get media data from workspace element
+            const workspace = document.querySelector('.calendar-workspace');
+            if (!workspace) {
+                console.log('📻 Calendar workspace element not found');
+                return;
+            }
+
+            const mediaUrl = workspace.dataset.calendarMedia;
+            const mediaTitle = workspace.dataset.calendarMediaTitle || 'Calendar Media';
+            const mediaType = workspace.dataset.calendarMediaType || 'audio';
+
+            console.log('📻 Media data from workspace:', { mediaUrl, mediaTitle, mediaType });
+
+            if (mediaUrl && mediaUrl.trim() !== '') {
+                console.log('📻 Calendar has media, media player should be initialized');
+
+                // The media player initialization is handled by calendar-detail.js
+                // This function just confirms the media is available
+                const sidebarMediaSection = document.querySelector('.media-player-section');
+                if (sidebarMediaSection) {
+                    sidebarMediaSection.style.display = 'block';
+                }
+
+                console.log('✅ Media player check completed - media available');
+            } else {
+                console.log('📻 No media file found for calendar');
+
+                // Hide media players if no media
+                const sidebarMediaSection = document.querySelector('.media-player-section');
+                if (sidebarMediaSection) {
+                    sidebarMediaSection.style.display = 'none';
+                }
+            }
+        }
+    </script>
 
 </body>
+
 </html>

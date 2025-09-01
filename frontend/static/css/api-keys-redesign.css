@@ -80,7 +80,7 @@ body {
     padding: var(--spacing-8);
     position: fixed;
     top: 1px;
-    left: calc(272px + 1px); /* 사이드바 + 1px 간격 */
+    left: calc(250px + 1px); /* 사이드바 + 1px 간격 */
     right: 1px;
     bottom: 1px;
     overflow-y: auto;

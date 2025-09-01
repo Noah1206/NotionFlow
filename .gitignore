@@ -52,6 +52,12 @@ logs/
 # Uploads (keep folders but not contents)
 uploads/media/*
 !uploads/media/.gitkeep
+
+# Test/Mock media files
+test_video.*
+test_audio.*
+mock_*.*
+sample_*.*
 frontend/static/uploads/avatars/*
 !frontend/static/uploads/avatars/.gitkeep
 frontend/data/calendars/*

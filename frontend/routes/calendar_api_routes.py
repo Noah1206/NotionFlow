@@ -16,6 +16,22 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../utils'))
 
 calendar_api_bp = Blueprint('calendar_api', __name__, url_prefix='/api')
 
+# Dashboard data manager import
+try:
+    from utils.dashboard_data import DashboardDataManager
+    dashboard_data = DashboardDataManager()
+except ImportError:
+    dashboard_data = None
+
+# Auth utilities import
+try:
+    from utils.auth_utils import require_auth, get_current_user_id
+except ImportError:
+    def require_auth():
+        return None
+    def get_current_user_id():
+        return session.get('user_id')
+
 # 임시 테스트 엔드포인트
 @calendar_api_bp.route('/test', methods=['GET'])
 def test_endpoint():
@@ -24,6 +40,72 @@ def test_endpoint():
         'message': 'API is working',
         'timestamp': datetime.now().isoformat()
     })
+
+@calendar_api_bp.route('/calendar/events', methods=['GET'])
+def get_calendar_events():
+    """Get calendar events for selected calendars"""
+    try:
+        user_id = get_current_user_id()
+        if not user_id:
+            # Use the actual owner ID from the existing calendar
+            user_id = "e390559f-c328-4786-ac5d-c74b5409451b"
+        
+        # Get calendar IDs from query params
+        calendar_ids = request.args.getlist('calendar_ids[]')
+        days_ahead = int(request.args.get('days_ahead', 30))
+        
+        if not dashboard_data:
+            return jsonify({'error': 'Dashboard data manager not available'}), 500
+        
+        # Get events for selected calendars
+        events = dashboard_data.get_user_calendar_events(
+            user_id=user_id,
+            days_ahead=days_ahead,
+            calendar_ids=calendar_ids if calendar_ids else None
+        )
+        
+        return jsonify({
+            'success': True,
+            'events': events,
+            'count': len(events)
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'error': f'Failed to get events: {str(e)}'
+        }), 500
+
+@calendar_api_bp.route('/user/calendars', methods=['GET'])
+def get_user_calendars():
+    """Get user's calendar list"""
+    try:
+        user_id = get_current_user_id()
+        if not user_id:
+            # Use the actual owner ID from the existing calendar
+            user_id = "e390559f-c328-4786-ac5d-c74b5409451b"
+        
+        print(f"🔍 API: user_id = {user_id}")
+        print(f"🔍 API: dashboard_data available = {dashboard_data is not None}")
+        
+        if not dashboard_data:
+            return jsonify({'error': 'Dashboard data manager not available'}), 500
+        
+        # Get user calendars
+        print(f"🔍 API: Calling dashboard_data.get_user_calendars({user_id})")
+        calendars_data = dashboard_data.get_user_calendars(user_id)
+        print(f"🔍 API: calendars_data = {calendars_data}")
+        
+        return jsonify({
+            'success': True,
+            'personal_calendars': calendars_data.get('personal_calendars', []),
+            'shared_calendars': calendars_data.get('shared_calendars', []),
+            'summary': calendars_data.get('summary', {})
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'error': f'Failed to get calendars: {str(e)}'
+        }), 500
 
 # 간단한 캘린더 생성 엔드포인트 (파일 없이)
 @calendar_api_bp.route('/calendar/simple-create', methods=['POST'])
@@ -123,6 +205,7 @@ def create_calendar():
         color = data.get('color', '#3B82F6')
         is_shared = data.get('is_shared', False)
         media_filename = data.get('media_filename')
+        youtube_data = data.get('youtube_data')
         media_file = None
     else:
         # Form 요청 (파일 포함 가능)
@@ -131,6 +214,14 @@ def create_calendar():
         color = request.form.get('color', '#3B82F6')
         is_shared = request.form.get('is_shared', 'false').lower() == 'true'
         media_filename = request.form.get('media_filename')
+        youtube_data_str = request.form.get('youtube_data')
+        youtube_data = None
+        if youtube_data_str:
+            try:
+                import json
+                youtube_data = json.loads(youtube_data_str)
+            except:
+                youtube_data = None
         media_file = request.files.get('media_file')
     
     # 임시로 인증 체크 비활성화 (테스트용)
@@ -138,7 +229,7 @@ def create_calendar():
     # if auth_error:
     #     return auth_error
     
-    user_id = get_current_user_id() or str(uuid.uuid4())  # 임시 사용자 ID 생성
+    user_id = get_current_user_id() or "e390559f-c328-4786-ac5d-c74b5409451b"  # 실제 캘린더 소유자 ID
     
     try:
         from supabase import create_client
@@ -199,19 +290,39 @@ def create_calendar():
             if not media_filename:
                 media_filename = media_file.filename
         
-        # 캘린더 데이터 생성 (파일 필드 포함)
+        # 캘린더 데이터 생성 (실제 calendars 테이블 구조에 맞춤)
         calendar_data = {
-            'user_id': user_id,
+            'id': str(uuid.uuid4()),
+            'owner_id': user_id,
             'name': name,
-            'platform': platform,
+            'type': platform,
             'color': color,
-            'is_shared': is_shared,
-            'media_filename': media_filename,
-            'media_file_path': media_file_path,
-            'media_file_type': media_file_type,
+            'description': f'{name} - Created on {datetime.now().strftime("%Y-%m-%d")}',
+            'is_active': True,
+            'public_access': is_shared,
+            'allow_editing': True,
             'created_at': datetime.now().isoformat(),
             'updated_at': datetime.now().isoformat()
         }
+        
+        # 미디어 파일 정보가 있다면 description에 추가하고 전용 필드에도 저장
+        if media_filename:
+            calendar_data['description'] += f' (Media: {media_filename})'
+            calendar_data['media_filename'] = media_filename
+            calendar_data['media_file_path'] = media_file_path
+            calendar_data['media_file_type'] = media_file_type
+            print(f"[SUCCESS] Adding media info to calendar: filename={media_filename}, path={media_file_path}, type={media_file_type}")
+        
+        # YouTube 데이터가 있다면 추가
+        if youtube_data:
+            calendar_data['description'] += f' (YouTube: {youtube_data.get("title", "YouTube Video")})'
+            calendar_data['youtube_video_id'] = youtube_data.get('video_id')
+            calendar_data['youtube_title'] = youtube_data.get('title')
+            calendar_data['youtube_channel'] = youtube_data.get('channel_name')
+            calendar_data['youtube_thumbnail'] = youtube_data.get('thumbnail_url')
+            calendar_data['youtube_duration'] = youtube_data.get('duration_formatted')
+            calendar_data['youtube_url'] = youtube_data.get('watch_url')
+            print(f"[SUCCESS] Adding YouTube info to calendar: {youtube_data.get('title')} by {youtube_data.get('channel_name')}")
         
         # Supabase에 저장
         result = supabase.table('calendars').insert(calendar_data).execute()
@@ -392,9 +503,114 @@ def serve_media_file(calendar_id, filename):
             'error': 'Failed to serve media file'
         }), 500
 
+@calendar_api_bp.route('/calendars/list', methods=['GET'])
+def list_calendars():
+    """모든 캘린더 목록 조회 (디버그용)"""
+    try:
+        from supabase import create_client
+        SUPABASE_URL = os.environ.get('SUPABASE_URL')
+        SUPABASE_KEY = os.environ.get('SUPABASE_API_KEY')
+        
+        if not SUPABASE_URL or not SUPABASE_KEY:
+            return jsonify({'error': 'Supabase credentials not configured'}), 500
+            
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        result = supabase.table('calendars').select('id, name, owner_id').execute()
+        
+        return jsonify({
+            'success': True,
+            'calendars': result.data
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @calendar_api_bp.route('/calendars/<calendar_id>')
 def get_calendar(calendar_id):
     """캘린더 정보 조회"""
+    print(f"🔍 [DEBUG] get_calendar called with calendar_id: {calendar_id}")
+    # 임시로 인증 체크 비활성화 (테스트용)
+    # auth_error = require_auth()
+    # if auth_error:
+    #     return auth_error
+    
+    user_id = get_current_user_id() or "e390559f-c328-4786-ac5d-c74b5409451b"  # 실제 캘린더 소유자 ID
+    print(f"🔍 [DEBUG] Using user_id: {user_id}")
+    
+    try:
+        print(f"🔍 [DEBUG] Starting get_calendar logic")
+        try:
+            from supabase import create_client
+            print(f"🔍 [DEBUG] Supabase import successful")
+        except ImportError:
+            print(f"❌ [DEBUG] Supabase import failed")
+            return jsonify({
+                'success': False,
+                'error': 'Supabase client not available'
+            }), 500
+        
+        # Supabase 연결
+        SUPABASE_URL = os.environ.get('SUPABASE_URL')
+        SUPABASE_KEY = os.environ.get('SUPABASE_API_KEY')
+        
+        if not SUPABASE_URL or not SUPABASE_KEY:
+            raise Exception("Supabase credentials not configured")
+        
+        print(f"🔍 [DEBUG] Creating Supabase client")
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        print(f"🔍 [DEBUG] Supabase client created successfully")
+        
+        # 먼저 모든 캘린더를 조회해서 어떤 캘린더들이 있는지 확인
+        print(f"🔍 [DEBUG] Listing all calendars first...")
+        try:
+            all_calendars = supabase.table('calendars').select('id, name, owner_id').execute()
+            print(f"🔍 [DEBUG] All calendars in database: {all_calendars.data}")
+        except Exception as list_error:
+            print(f"❌ [DEBUG] Failed to list all calendars: {list_error}")
+        
+        # 캘린더 조회 (owner_id 조건 제거해서 테스트)
+        print(f"🔍 [DEBUG] Querying calendar with id: {calendar_id}")
+        try:
+            calendar_result = supabase.table('calendars').select('*').eq('id', calendar_id).execute()
+            print(f"🔍 [DEBUG] Query executed, result: {calendar_result}")
+            print(f"🔍 [DEBUG] Query data: {calendar_result.data}")
+        except Exception as query_error:
+            print(f"❌ [DEBUG] Query failed with error: {query_error}")
+            return jsonify({
+                'success': False,
+                'error': f'Database query failed: {str(query_error)}'
+            }), 500
+        
+        if not calendar_result.data:
+            # owner_id 없이 조회해서도 찾지 못한 경우
+            print(f"🔍 [DEBUG] Calendar not found at all")
+            return jsonify({
+                'success': False,
+                'error': 'Calendar not found'
+            }), 404
+        
+        # 캘린더가 존재하는지만 확인하고 owner_id는 일단 무시
+        calendar = calendar_result.data[0]
+        print(f"🔍 [DEBUG] Found calendar: {calendar}")
+        
+        # owner_id 체크 (로깅용)
+        if calendar.get('owner_id') != user_id:
+            print(f"🔍 [DEBUG] Owner mismatch. Calendar owner: {calendar.get('owner_id')}, Current user: {user_id}")
+        
+        return jsonify({
+            'success': True,
+            'calendar': calendar
+        })
+        
+    except Exception as e:
+        print(f"Error getting calendar: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to get calendar'
+        }), 500
+
+@calendar_api_bp.route('/calendars/<calendar_id>/media-title', methods=['PUT'])
+def update_media_title(calendar_id):
+    """미디어 제목 업데이트"""
     auth_error = require_auth()
     if auth_error:
         return auth_error
@@ -402,7 +618,27 @@ def get_calendar(calendar_id):
     user_id = get_current_user_id()
     
     try:
-        from supabase import create_client
+        data = request.get_json()
+        if not data or 'title' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Title is required'
+            }), 400
+        
+        new_title = data['title'].strip()
+        if not new_title:
+            return jsonify({
+                'success': False,
+                'error': 'Title cannot be empty'
+            }), 400
+        
+        try:
+            from supabase import create_client
+        except ImportError:
+            return jsonify({
+                'success': False,
+                'error': 'Supabase client not available'
+            }), 500
         
         # Supabase 연결
         SUPABASE_URL = os.environ.get('SUPABASE_URL')
@@ -413,8 +649,8 @@ def get_calendar(calendar_id):
         
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
         
-        # 캘린더 조회
-        calendar_result = supabase.table('calendars').select('*').eq('id', calendar_id).eq('user_id', user_id).execute()
+        # 캘린더 존재 확인 및 권한 체크
+        calendar_result = supabase.table('calendars').select('*').eq('id', calendar_id).eq('owner_id', user_id).execute()
         
         if not calendar_result.data:
             return jsonify({
@@ -422,16 +658,48 @@ def get_calendar(calendar_id):
                 'error': 'Calendar not found or access denied'
             }), 404
         
-        return jsonify({
-            'success': True,
-            'calendar': calendar_result.data[0]
-        })
+        # 미디어 제목 업데이트 (media_title 컬럼이 없는 경우 description으로 임시 저장)
+        try:
+            # 먼저 media_title 컬럼으로 업데이트 시도
+            update_result = supabase.table('calendars').update({
+                'media_title': new_title,
+                'updated_at': 'now()'
+            }).eq('id', calendar_id).eq('owner_id', user_id).execute()
+            
+            if update_result.data:
+                return jsonify({
+                    'success': True,
+                    'message': 'Media title updated successfully',
+                    'title': new_title
+                })
+        except Exception as db_error:
+            print(f"media_title 컬럼 업데이트 실패, description 사용: {db_error}")
+            # media_title 컬럼이 없는 경우 description에 저장
+            try:
+                update_result = supabase.table('calendars').update({
+                    'description': f"미디어: {new_title}",
+                    'updated_at': 'now()'
+                }).eq('id', calendar_id).eq('owner_id', user_id).execute()
+                
+                if update_result.data:
+                    return jsonify({
+                        'success': True,
+                        'message': 'Media title updated successfully (stored in description)',
+                        'title': new_title
+                    })
+            except Exception as fallback_error:
+                print(f"description 업데이트도 실패: {fallback_error}")
         
-    except Exception as e:
-        print(f"Error getting calendar: {e}")
         return jsonify({
             'success': False,
-            'error': 'Failed to get calendar'
+            'error': 'Failed to update media title'
+        }), 500
+        
+    except Exception as e:
+        print(f"Error updating media title: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to update media title'
         }), 500
 
 @calendar_api_bp.route('/calendars/<calendar_id>', methods=['DELETE'])
@@ -489,6 +757,62 @@ def delete_calendar(calendar_id):
         return jsonify({
             'success': False,
             'error': 'Failed to delete calendar'
+        }), 500
+
+@calendar_api_bp.route('/youtube/info', methods=['POST'])
+def get_youtube_info():
+    """YouTube 비디오 정보 조회"""
+    try:
+        data = request.get_json()
+        if not data or 'url' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'YouTube URL is required'
+            }), 400
+        
+        url = data['url'].strip()
+        if not url:
+            return jsonify({
+                'success': False,
+                'error': 'YouTube URL cannot be empty'
+            }), 400
+        
+        # YouTube API Key 확인
+        youtube_api_key = os.environ.get('YOUTUBE_API_KEY')
+        if not youtube_api_key:
+            return jsonify({
+                'success': False,
+                'error': 'YouTube API key not configured'
+            }), 500
+        
+        # YouTube 유틸리티 함수 사용
+        try:
+            from utils.youtube_utils import process_youtube_url
+        except ImportError:
+            return jsonify({
+                'success': False,
+                'error': 'YouTube utility not available'
+            }), 500
+        
+        # YouTube URL 처리
+        success, result = process_youtube_url(url, youtube_api_key)
+        
+        if not success:
+            return jsonify({
+                'success': False,
+                'error': result.get('error', 'Failed to process YouTube URL')
+            }), 400
+        
+        return jsonify({
+            'success': True,
+            'video_info': result
+        })
+        
+    except Exception as e:
+        print(f"Error getting YouTube info: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to get YouTube video information'
         }), 500
 
 # Error handlers

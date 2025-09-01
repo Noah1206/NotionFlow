@@ -4,52 +4,74 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+    width: 100%;
+    min-width: 100%;
+    /* Force grid to use full available space */
     background: white;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    /* 깔끔한 흰색 배경 */
+    /* border: 외곽선 제거 */
     overflow: hidden;
 }
 
 /* Header with days */
 .calendar-header {
     display: grid;
-    grid-template-columns: 60px repeat(7, 1fr);
-    border-bottom: 1px solid #dadce0;
-    background: #f8f9fa;
+    grid-template-columns: 80px repeat(7, minmax(250px, 1fr));
+    /* 시간 컬럼 80px, 각 요일 최소 200px (250px에서 줄임) */
+    border-bottom: 1px solid #e0e0e0;
+    /* 깔끔한 회색 선 */
+    background: white;
+    /* 흰색 배경 */
     position: sticky;
     top: 0;
     z-index: 100;
+    width: 100%;
+    max-width: 100%;
 }
 
 .calendar-header .time-header {
-    padding: 16px 8px;
+    padding: 8px 0;
+    /* 좌우 패딩 제거로 정확한 정렬 */
     text-align: center;
     font-size: 11px;
     color: #70757a;
-    border-right: 1px solid #dadce0;
+    border-right: 1px solid #e0e0e0;
+    /* 깔끔한 격자선 */
+    background: white;
+    box-sizing: border-box;
+    /* 정확한 크기 계산 */
 }
 
 .calendar-header .day-header {
-    padding: 16px 8px;
+    padding: 12px 0;
+    /* 좌우 패딩 제거로 정확한 정렬 */
     text-align: center;
-    border-right: 1px solid #dadce0;
+    border-right: 1px solid #e0e0e0;
+    /* 깔끔한 격자선 */
     position: relative;
+    background: white;
+    box-sizing: border-box;
+    /* 정확한 크기 계산 */
 }
 
 .calendar-header .day-header:last-child {
     border-right: none;
+    /* 맨 오른쪽 경계선 제거 */
 }
 
 .day-header .day-name {
-    font-size: 11px;
+    font-size: 10px;
+    /* Smaller font for compactness */
     color: #70757a;
     text-transform: uppercase;
     font-weight: 500;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
+    /* Reduced margin */
 }
 
 .day-header .day-date {
-    font-size: 24px;
+    font-size: 14px;
+    /* Very compact font */
     color: #3c4043;
     font-weight: 400;
     line-height: 1;
@@ -71,56 +93,90 @@
 .calendar-grid-body {
     flex: 1;
     display: grid;
-    grid-template-columns: 60px repeat(7, 1fr);
+    grid-template-columns: 80px repeat(7, minmax(250px, 1fr));
+    /* 시간 컬럼 80px, 각 요일 최소 200px (250px에서 줄임) */
     overflow-y: auto;
     position: relative;
+    width: 100%;
+    max-width: 100%;
+    background: white;
+    /* 흰색 배경 */
 }
 
 /* Time column */
 .time-column {
-    background: #f1f3f4;
-    border-right: 1px solid #dadce0;
+    background: white;
+    /* 흰색 배경 */
+    border-right: 1px solid #e0e0e0;
+    /* 깔끔한 격자선 */
+    border-top: none;
+    /* 위쪽 경계선 제거 */
+    border-bottom: none;
+    /* 아래쪽 경계선 제거 */
     position: relative;
 }
 
 .time-slot {
-    height: 90px; /* Compact size for better layout */
-    border-bottom: 1px solid #dadce0;
+    height: 60px;
+    /* More compact size for better layout */
+    border-bottom: none;
+    /* 아래쪽 경계선 제거 */
+    border-top: none;
+    /* 위쪽 경계선 제거 */
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    padding-top: 4px;
+    padding: 2px 0 0 0;
+    /* 좌우 패딩 제거, 위쪽만 유지 */
     position: relative;
+    background: white;
+    box-sizing: border-box;
+    /* 정확한 크기 계산 */
 }
 
 .time-slot .time-label {
     font-size: 12px;
-    color: #3c4043;
+    color: #666666;
     font-weight: 500;
     line-height: 1;
-    background: #f1f3f4;
+    background: white;
+    /* 흰색 배경 */
     padding: 0 4px;
-    transform: translateY(-50%);
+    transform: translateY(-40%);
+    /* 시간 라벨을 약간 위로 조정 */
 }
 
 /* Day columns */
 .day-column {
-    border-right: 1px solid #dadce0;
+    border-right: 1px solid #e0e0e0;
+    /* 깔끔한 세로선 */
     position: relative;
     background: white;
+    /* 흰색 배경 */
+    width: 100%;
+    flex: 1;
 }
 
 .day-column:last-child {
     border-right: none;
+    /* 맨 오른쪽 경계선 제거 */
 }
 
 /* Time cells - clickable areas */
 .time-cell {
-    height: 90px; /* Compact size for better layout */
-    border-bottom: 1px solid #dadce0;
+    height: 60px;
+    /* More compact size for better layout */
+    border-bottom: 1px solid #e0e0e0;
+    /* 깔끔한 가로선 */
     cursor: pointer;
     position: relative;
     transition: background-color 0.15s ease;
+    background: white;
+    /* 흰색 배경 */
+    box-sizing: border-box;
+    /* 정확한 크기 계산 */
+    padding: 0;
+    /* 모든 패딩 제거 */
 }
 
 .time-cell:hover {
@@ -143,7 +199,8 @@
     left: 0;
     right: 0;
     height: 1px;
-    background: #f1f3f4;
+    background: #f0f0f0;
+    /* 연한 회색 30분 구분선 */
     pointer-events: none;
 }
 
@@ -152,9 +209,9 @@
 .time-cell,
 div.time-slot,
 div.time-cell {
-    height: 90px !important;
-    min-height: 90px !important;
-    max-height: 90px !important;
+    height: 100px !important;
+    min-height: 100px !important;
+    max-height: 100px !important;
 }
 
 /* Current time indicator */
@@ -300,11 +357,25 @@ div.time-cell {
     color: #6b7280;
 }
 
-.calendar-event.green { background: #0d8043; }
-.calendar-event.red { background: #d50000; }
-.calendar-event.orange { background: #f57c00; }
-.calendar-event.purple { background: #8e24aa; }
-.calendar-event.teal { background: #00695c; }
+.calendar-event.green {
+    background: #0d8043;
+}
+
+.calendar-event.red {
+    background: #d50000;
+}
+
+.calendar-event.orange {
+    background: #f57c00;
+}
+
+.calendar-event.purple {
+    background: #8e24aa;
+}
+
+.calendar-event.teal {
+    background: #00695c;
+}
 
 /* Event creation popup */
 .event-creation-popup {
@@ -383,7 +454,8 @@ div.time-cell {
     resize: vertical;
 }
 
-.form-field input:focus, .form-field textarea:focus {
+.form-field input:focus,
+.form-field textarea:focus {
     outline: none;
     border-color: #1a73e8;
     box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
@@ -454,23 +526,23 @@ div.time-cell {
     .calendar-header {
         grid-template-columns: 50px repeat(7, 1fr);
     }
-    
+
     .calendar-grid-body {
         grid-template-columns: 50px repeat(7, 1fr);
     }
-    
+
     .day-header .day-date {
         font-size: 18px;
     }
-    
+
     .time-cell {
         height: 36px;
     }
-    
+
     .time-slot {
         height: 36px;
     }
-    
+
     .event-creation-popup {
         min-width: 320px;
         max-width: 380px;

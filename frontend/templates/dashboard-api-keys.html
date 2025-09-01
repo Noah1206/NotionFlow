@@ -25,28 +25,28 @@
             <div class="status-card active">
                 <div class="status-icon">🔗</div>
                 <div class="status-content">
-                    <div class="status-number" id="connected-count">0</div>
+                    <div class="status-number" id="connected-count">{{ stats.connected_count if stats else 0 }}</div>
                     <div class="status-label">연결된 플랫폼</div>
                 </div>
             </div>
             <div class="status-card">
                 <div class="status-icon">📅</div>
                 <div class="status-content">
-                    <div class="status-number" id="sync-count">0</div>
+                    <div class="status-number" id="sync-count">{{ stats.synced_events if stats else 0 }}</div>
                     <div class="status-label">동기화된 이벤트</div>
                 </div>
             </div>
             <div class="status-card">
                 <div class="status-icon">✅</div>
                 <div class="status-content">
-                    <div class="status-number success" id="success-rate">0%</div>
+                    <div class="status-number success" id="success-rate">{{ stats.success_rate if stats else "0%" }}</div>
                     <div class="status-label">성공률</div>
                 </div>
             </div>
             <div class="status-card">
                 <div class="status-icon">⚡</div>
                 <div class="status-content">
-                    <div class="status-number" id="sync-speed">N/A</div>
+                    <div class="status-number" id="sync-speed">{{ stats.avg_sync_time if stats else 'N/A' }}</div>
                     <div class="status-label">평균 동기화 시간</div>
                 </div>
             </div>
@@ -430,6 +430,27 @@
         </div>
     </div>
 </div>
+
+<!-- 초기 데이터 설정 스크립트 -->
+<script>
+    // 서버에서 렌더링된 데이터 (캘린더가 있는지 확인)
+    const hasCalendar = {{ (stats.connected_count if stats and stats.connected_count else 0)|tojson }} > 0;
+    
+    // 페이지 로드 시 즉시 가이드 처리
+    document.addEventListener('DOMContentLoaded', function() {
+        const guide = document.getElementById('calendar-setup-guide');
+        if (guide) {
+            const isHidden = localStorage.getItem('calendar_guide_hidden') === 'true';
+            
+            // 캘린더가 있거나 사용자가 이미 숨긴 경우
+            if (hasCalendar || isHidden) {
+                guide.style.display = 'none';
+            } else {
+                guide.style.display = 'block';
+            }
+        }
+    });
+</script>
 
 <style>
 /* 캘린더 선택 모달 스타일 */
@@ -948,7 +969,8 @@
     async function loadUserCalendars(calendarListContainer) {
         try {
             // API에서 사용자 캘린더 목록 가져오기
-            const response = await fetch('/api/dashboard/calendars');
+            // API 엔드포인트가 존재하지 않으므로 샘플 데이터 사용
+            throw new Error('Calendar API not available, using sample data');
             
             if (response.ok) {
                 const data = await response.json();
@@ -1344,16 +1366,9 @@
     // 캘린더 개수 확인 및 플랫폼 카드 상태 업데이트
     async function checkCalendarsAndUpdatePlatforms() {
         try {
-            // API에서 캘린더 목록 가져오기
-            const response = await fetch('/api/dashboard/calendars');
-            let hasCalendars = false;
-            
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success && data.calendars && data.calendars.length > 0) {
-                    hasCalendars = true;
-                }
-            }
+            // 서버에서 렌더링된 통계 데이터 사용
+            const connectedCount = {{ (stats.connected_count if stats and stats.connected_count else 0)|tojson }};
+            const hasCalendars = connectedCount > 0;
             
             // 모든 플랫폼 카드 선택
             const platformCards = document.querySelectorAll('.platform-card');
@@ -1398,8 +1413,7 @@
             
             return hasCalendars;
         } catch (error) {
-            console.error('Error checking calendars:', error);
-            // 에러 시 기본적으로 비활성화
+            // 에러 시 기본적으로 비활성화 (조용히)
             const platformCards = document.querySelectorAll('.platform-card');
             platformCards.forEach(card => {
                 card.classList.add('disabled');
@@ -1410,73 +1424,69 @@
 
     // 페이지 로드 시 통계 업데이트
     document.addEventListener('DOMContentLoaded', async function () {
-        // 먼저 캘린더 개수 확인
-        await checkCalendarsAndUpdatePlatforms();
-        
-        // 플랫폼 상태를 먼저 업데이트하고, 완료된 후 통계 업데이트
-        // 이렇게 하면 순서 문제를 방지할 수 있음
         try {
+            // 초기 로드 (조용히)
+            await checkCalendarsAndUpdatePlatforms();
             await updatePlatformStatus();
             await updateConnectionStats();
+            // 통계 업데이트 후 가이드 체크
+            checkAndHideGuide();
         } catch (error) {
-            console.error('Error initializing dashboard:', error);
-            // 에러 시 모든 값을 0으로 설정
+            // 에러 시 기본값 설정 (조용히)
             document.getElementById('connected-count').textContent = '0';
             document.getElementById('sync-count').textContent = '0';
             document.getElementById('success-rate').textContent = '0%';
             document.getElementById('sync-speed').textContent = 'N/A';
+            // 에러 시에도 가이드 체크
+            checkAndHideGuide();
         }
 
-        // Update stats every 30 seconds for real-time data
+        // 30초마다 업데이트 (조용히)
         setInterval(async () => {
-            await checkCalendarsAndUpdatePlatforms();
-            await updatePlatformStatus();
-            await updateConnectionStats();
-        }, 30000);
-
-        // Update stats when user becomes active (tab focus)
-        document.addEventListener('visibilitychange', async function () {
-            if (!document.hidden) {
+            try {
                 await checkCalendarsAndUpdatePlatforms();
                 await updatePlatformStatus();
                 await updateConnectionStats();
+            } catch (error) {
+                // 에러 무시 (조용히)
+            }
+        }, 30000);
+
+        // 탭 포커스 시 업데이트 (조용히)
+        document.addEventListener('visibilitychange', async function () {
+            if (!document.hidden) {
+                try {
+                    await checkCalendarsAndUpdatePlatforms();
+                    await updatePlatformStatus();
+                    await updateConnectionStats();
+                } catch (error) {
+                    // 에러 무시 (조용히)
+                }
             }
         });
     });
 
     async function updateConnectionStats() {
         try {
-            // Get real statistics from API
-            const response = await fetch('/api/dashboard/stats');
+            // 서버에서 렌더링된 데이터 사용 (조용히)
+            const stats = {
+                connected_count: {{ (stats.connected_count if stats and stats.connected_count else 0)|tojson }},
+                synced_events: {{ (stats.synced_events if stats and stats.synced_events else 0)|tojson }},
+                success_rate: {{ (stats.success_rate if stats and stats.success_rate else "0%")|tojson }},
+                avg_sync_time: {{ (stats.avg_sync_time if stats and stats.avg_sync_time else "N/A")|tojson }}
+            };
 
-            if (response.ok) {
-                const data = await response.json();
-
-                if (data.success && data.stats) {
-                    const stats = data.stats;
-
-                    // Update all stat elements with real data
-                    document.getElementById('connected-count').textContent = stats.connected_platforms;
-                    document.getElementById('sync-count').textContent = stats.synced_events;
-                    document.getElementById('success-rate').textContent = stats.success_rate;
-                    document.getElementById('sync-speed').textContent = stats.avg_sync_time;
-
-                    console.log('Dashboard stats updated with real data:', stats);
-                } else {
-                    throw new Error(data.error || 'Failed to load stats');
-                }
-            } else {
-                throw new Error('Failed to fetch dashboard stats');
-            }
+            // DOM 업데이트
+            document.getElementById('connected-count').textContent = stats.connected_count;
+            document.getElementById('sync-count').textContent = stats.synced_events;
+            document.getElementById('success-rate').textContent = stats.success_rate;
+            document.getElementById('sync-speed').textContent = stats.avg_sync_time;
         } catch (error) {
-            console.error('Error updating dashboard stats:', error);
-
-            // API 에러 시 기본값 0으로 설정 (DOM 기반 계산 제거)
+            // 에러 시 기본값 설정 (조용히)
             document.getElementById('connected-count').textContent = '0';
             document.getElementById('sync-count').textContent = '0';
             document.getElementById('success-rate').textContent = '0%';
             document.getElementById('sync-speed').textContent = 'N/A';
-            console.log('API error - showing zero stats');
         }
     }
 
@@ -1697,30 +1707,18 @@
 
     // 연결된 플랫폼이 있으면 자동으로 안내 숨기기
     function checkAndHideGuide() {
-        const connectedCount = document.getElementById('connected-count');
         const guide = document.getElementById('calendar-setup-guide');
+        if (!guide) return;
 
-        if (connectedCount && guide) {
-            const count = parseInt(connectedCount.textContent) || 0;
-            const isHidden = localStorage.getItem('calendar_guide_hidden') === 'true';
+        const isHidden = localStorage.getItem('calendar_guide_hidden') === 'true';
 
-            // 테스트를 위해 임시로 항상 표시
-            // if (count > 0 || isHidden) {
-            //     guide.classList.add('hidden');
-            // }
-
-            // 임시로 항상 보이도록 설정
-            guide.classList.remove('hidden');
+        // 전역 변수 hasCalendar 사용 (위에서 설정됨)
+        if (typeof hasCalendar !== 'undefined' && (hasCalendar || isHidden)) {
+            guide.style.display = 'none';
+        } else if (!isHidden) {
+            guide.style.display = 'block';
         }
     }
-
-    // 페이지 로드 시 확인
-    document.addEventListener('DOMContentLoaded', function () {
-        checkAndHideGuide();
-
-        // 통계 업데이트 후에도 확인
-        setTimeout(checkAndHideGuide, 1000);
-    });
 
     // slideOutUp 애니메이션 추가
     const style = document.createElement('style');

@@ -169,15 +169,11 @@ def update_profile():
 @require_auth
 def upload_avatar():
     """아바타 이미지 업로드"""
-    # Railway 환경에서 os 모듈 강제 import
-    import os as os_module
-    import sys as sys_module
-    import uuid as uuid_module
-    import traceback as traceback_module
-    from datetime import datetime as datetime_class
-    from supabase import create_client as create_client_func
+    import traceback as tb
+    import uuid as uuid_gen
+    from datetime import datetime as dt
     
-    print("🔍 upload_avatar function started with local imports")
+    print("🔍 Avatar upload started")
     
     try:
         user_id = AuthManager.get_current_user_id()
@@ -204,15 +200,14 @@ def upload_avatar():
         
         # 파일명 생성
         file_extension = file.filename.rsplit('.', 1)[1].lower()
-        filename = f"avatar_{user_id}_{uuid_module.uuid4().hex[:8]}.{file_extension}"
+        filename = f"avatar_{user_id}_{uuid_gen.uuid4().hex[:8]}.{file_extension}"
         
         # Supabase Storage에 업로드
-        
         if not SUPABASE_URL or not SUPABASE_ANON_KEY:
             return jsonify({'error': 'Supabase configuration missing'}), 500
         
         try:
-            supabase = create_client_func(SUPABASE_URL, SUPABASE_ANON_KEY)
+            supabase = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
             
             # 파일을 바이트로 읽기
             file_data = file.read()
@@ -234,7 +229,7 @@ def upload_avatar():
             # 데이터베이스에 아바타 URL 업데이트
             db_result = supabase.table('user_profiles').update({
                 'avatar_url': avatar_url,
-                'updated_at': datetime_class.now().isoformat()
+                'updated_at': dt.now().isoformat()
             }).eq('user_id', user_id).execute()
             
             if db_result.data:
@@ -252,7 +247,7 @@ def upload_avatar():
             
     except Exception as e:
         print(f"Error uploading avatar: {e}")
-        print(f"Traceback: {traceback_module.format_exc()}")
+        print(f"Traceback: {tb.format_exc()}")
         return jsonify({'error': f'Failed to upload avatar: {str(e)}'}), 500
 
 @profile_bp.route('/api/profile/initial-setup', methods=['POST'])

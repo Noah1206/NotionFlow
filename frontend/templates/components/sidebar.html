@@ -38,13 +38,13 @@
 <nav class="sidebar-nav">
     <!-- 메인 네비게이션 wrapper - 스크롤 가능 -->
     <div class="sidebar-main-nav">
-        <!-- 프로필 섹션 - 최상단 -->
+        <!-- 프로필 섹션 - 최상단 우선순위 -->
         <div class="nav-section">
             <!-- 프로필 -->
             <div class="nav-item profile-nav-item {{ 'active' if current_page == 'profile' else '' }}"
                 data-section="profile" onclick="handleSidebarItemClick('profile')">
                 <span class="nav-icon profile-avatar-icon">
-                    <img id="sidebar-profile-avatar" src="/static/images/default-avatar.svg" alt="프로필"
+                    <img id="sidebar-profile-avatar" src="" alt="프로필"
                         class="sidebar-avatar">
                 </span>
                 <span class="nav-label">프로필</span>
@@ -81,6 +81,54 @@
             </div>
         </div>
 
+        <!-- Media Player Widget (Calendar Detail Page Only) -->
+        <div class="nav-section media-player-section calendar-detail-only">
+            <div class="media-player-widget">
+                <div class="media-player-header">
+                    <span class="media-player-icon">🎵</span>
+                    <span class="media-player-title">미디어 플레이어</span>
+                </div>
+                <div class="media-player-content">
+                    <div class="media-info">
+                        <div class="media-title" id="sidebar-media-title">미디어 없음</div>
+                        <div class="media-artist" id="sidebar-media-artist">캘린더</div>
+                    </div>
+                    <div class="media-controls">
+                        <button class="media-btn" id="sidebar-prev-btn" onclick="sidebarPrevTrack()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="19,20 9,12 19,4"></polygon>
+                                <line x1="5" y1="19" x2="5" y2="5"></line>
+                            </svg>
+                        </button>
+                        <button class="media-btn media-btn-play" id="sidebar-play-btn" onclick="sidebarTogglePlay()">
+                            <svg class="play-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="5,3 19,12 5,21"></polygon>
+                            </svg>
+                            <svg class="pause-icon" style="display: none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="6" y="4" width="4" height="16"></rect>
+                                <rect x="14" y="4" width="4" height="16"></rect>
+                            </svg>
+                        </button>
+                        <button class="media-btn" id="sidebar-next-btn" onclick="sidebarNextTrack()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="5,4 15,12 5,20"></polygon>
+                                <line x1="19" y1="5" x2="19" y2="19"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="media-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="sidebar-progress-fill"></div>
+                        </div>
+                        <div class="time-info">
+                            <span id="sidebar-current-time">0:00</span>
+                            <span id="sidebar-total-time">0:00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Mini Calendar Widget (Calendar Detail Page Only) -->
         <div class="nav-section mini-calendar-section calendar-detail-only">
             <div class="mini-calendar-widget">
@@ -104,19 +152,21 @@
             </div>
         </div>
 
-        <!-- 기타 기능 섹션 -->
+        <!-- 달력 페이지 섹션 -->
         <div class="nav-section">
-            <!-- AI 알림 수신함 (프리미엄 기능) -->
-            <div class="nav-item" onclick="handleSidebarItemClick('inbox')">
+            <div class="nav-item {{ 'active' if current_page == 'calendar' else '' }}" data-section="calendar"
+                onclick="handleSidebarItemClick('calendar')">
                 <span class="nav-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                        <polyline points="22,6 12,13 2,6" />
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                        <rect x="7" y="14" width="3" height="3" />
                     </svg>
                 </span>
-                <span class="nav-label">수신함</span>
-                <span class="premium-badge">Pro</span>
+                <span class="nav-label">달력</span>
             </div>
         </div>
 
@@ -1326,6 +1376,143 @@
 
         /* 사이드바 스타일은 sidebar.css에서 통일 관리 */
 
+        /* Media Player Widget 스타일 */
+        .media-player-section {
+            margin: 12px 0;
+        }
+
+        .media-player-widget {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .media-player-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .media-player-icon {
+            font-size: 16px;
+        }
+
+        .media-player-title {
+            font-size: 13px;
+        }
+
+        .media-player-content {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .media-info {
+            text-align: center;
+        }
+
+        .media-title {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .media-artist {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 11px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .media-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .media-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .media-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .media-btn-play {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+
+        .media-btn-play:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.1);
+        }
+
+        .media-progress {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+
+        .time-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* 접힌 상태에서 미디어 플레이어 숨김 */
+        .sidebar.collapsed .media-player-section {
+            display: none;
+        }
+
+        /* 다크 모드에서 미디어 플레이어 스타일 */
+        [data-theme="dark"] .media-player-widget {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
         /* 설정 모달도 테마 적용 */
         [data-theme="light"] .calendar-modal-content,
         [data-theme="light"] .settings-modal-content {
@@ -1516,10 +1703,8 @@
                         navigateToSection('sync');
                     }
                     break;
-                case 'inbox':
-                    if (typeof openInbox === 'function') {
-                        openInbox();
-                    }
+                case 'calendar':
+                    window.location.href = '/dashboard/calendar-detail';
                     break;
                 case 'friends':
                     window.location.href = '/friends';
@@ -1639,24 +1824,96 @@
             }
         }
 
-        // 사용자 프로필 아바타 로드 함수
+        // Avatar generation helper functions (same as in friends.js)
+        function generateAvatarColor(name) {
+            if (!name) return '#9333ea'; // 기본 보라색
+            
+            const colors = [
+                '#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16',
+                '#22c55e', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9',
+                '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef',
+                '#ec4899', '#f43f5e', '#9333ea'
+            ];
+            
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) {
+                const char = name.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            
+            return colors[Math.abs(hash) % colors.length];
+        }
+
+        function generateUserAvatar(name) {
+            if (!name) name = '사용자';
+            const initial = name.charAt(0).toUpperCase();
+            const color = generateAvatarColor(name);
+            
+            const svg = `<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                <rect width="32" height="32" fill="${color}" rx="16"/>
+                <text x="50%" y="50%" text-anchor="middle" dy="0.35em" fill="white" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600">${initial}</text>
+            </svg>`;
+            
+            // URL 인코딩을 사용하여 한글 문자 지원
+            return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+        }
+
+        // 사용자 프로필 아바타 로드 함수 (실제 프로필 데이터 사용)
         async function loadUserAvatar() {
+            const sidebarAvatar = document.getElementById('sidebar-profile-avatar');
+            if (!sidebarAvatar) {
+                console.warn('❌ Sidebar avatar element not found');
+                return;
+            }
+
+            // 즉시 기본 아바타 설정 (로딩 중에도 무언가 보이도록)
+            sidebarAvatar.src = generateUserAvatar('사용자');
+
             try {
+                // API를 통해 실제 사용자 프로필 데이터 가져오기
                 const response = await fetch('/api/profile');
-                if (response.ok) {
-                    const result = await response.json();
-                    if (result.success && result.profile) {
-                        const avatarUrl = result.profile.avatar_url || '/static/images/default-avatar.svg';
-                        const sidebarAvatar = document.getElementById('sidebar-profile-avatar');
-                        if (sidebarAvatar) {
-                            sidebarAvatar.src = avatarUrl;
-                            // console.log('✅ Sidebar avatar loaded:', avatarUrl);
-                        }
+                
+                if (!response.ok) {
+                    console.warn('⚠️ Profile API response not OK:', response.status);
+                    return;
+                }
+
+                const data = await response.json();
+                
+                if (data.success && data.profile) {
+                    const profile = data.profile;
+                    const userName = profile.display_name || profile.username || '사용자';
+                    
+                    console.log('👤 Profile data loaded:', { 
+                        display_name: profile.display_name, 
+                        username: profile.username, 
+                        avatar_url: profile.avatar_url 
+                    });
+                    
+                    // 업로드된 아바타가 있으면 그것을 사용, 없으면 이니셜 아바타 생성
+                    if (profile.avatar_url && profile.avatar_url.trim() !== '') {
+                        // 이미지 로드 테스트
+                        const img = new Image();
+                        img.onload = function() {
+                            sidebarAvatar.src = profile.avatar_url;
+                            console.log('🖼️ Using uploaded avatar from profile:', profile.avatar_url);
+                        };
+                        img.onerror = function() {
+                            console.warn('⚠️ Avatar image failed to load, using generated avatar');
+                            sidebarAvatar.src = generateUserAvatar(userName);
+                        };
+                        img.src = profile.avatar_url;
+                    } else {
+                        sidebarAvatar.src = generateUserAvatar(userName);
+                        console.log('🎨 Generated avatar for user:', userName);
                     }
+                } else {
+                    console.warn('⚠️ Profile API returned unsuccessful response:', data);
                 }
             } catch (error) {
-                console.warn('⚠️ Could not load user avatar:', error);
-                // 기본 아바타 사용 (이미 HTML에 설정됨)
+                console.error('❌ Error loading user avatar:', error);
+                // 오류 발생시에도 기본 아바타는 이미 설정되어 있음
             }
         }
 
@@ -1723,6 +1980,145 @@
             }
         }
 
+        // Sidebar Media Player Functions
+        let sidebarMediaPlayer = null;
+        let currentTrackIndex = 0;
+        let sidebarTracks = [];
+
+        function initializeSidebarMediaPlayer() {
+            console.log('🎵 Initializing sidebar media player...');
+            
+            // Get media data from the main page
+            const workspace = document.querySelector('.calendar-workspace');
+            if (workspace && workspace.dataset.calendarMedia) {
+                const mediaUrl = workspace.dataset.calendarMedia;
+                const mediaTitle = workspace.dataset.calendarMediaTitle || 'Unknown Track';
+                const mediaType = workspace.dataset.calendarMediaType || 'audio';
+                
+                if (mediaUrl && mediaUrl !== '' && mediaUrl !== 'None') {
+                    sidebarTracks = [{
+                        title: mediaTitle,
+                        artist: '내 음악',
+                        src: mediaUrl,
+                        type: mediaType
+                    }];
+                    
+                    updateSidebarMediaInfo(sidebarTracks[0]);
+                    console.log('✅ Sidebar media player initialized with track:', mediaTitle);
+                } else {
+                    updateSidebarMediaInfo(null);
+                }
+            } else {
+                updateSidebarMediaInfo(null);
+            }
+        }
+
+        function updateSidebarMediaInfo(track) {
+            const titleEl = document.getElementById('sidebar-media-title');
+            const artistEl = document.getElementById('sidebar-media-artist');
+            
+            if (track) {
+                if (titleEl) titleEl.textContent = track.title || 'Unknown Track';
+                if (artistEl) artistEl.textContent = track.artist || 'Unknown Artist';
+            } else {
+                if (titleEl) titleEl.textContent = '미디어 없음';
+                if (artistEl) artistEl.textContent = '캘린더';
+            }
+        }
+
+        function sidebarTogglePlay() {
+            if (!sidebarTracks || sidebarTracks.length === 0) {
+                console.warn('⚠️ No tracks available in sidebar player');
+                return;
+            }
+
+            // Try to use the main media player if available
+            if (window.mediaPlayer && typeof togglePlay === 'function') {
+                togglePlay();
+                updateSidebarPlayButton();
+            } else {
+                console.warn('⚠️ Main media player not available');
+            }
+        }
+
+        function sidebarPrevTrack() {
+            if (typeof prevTrack === 'function') {
+                prevTrack();
+                updateSidebarFromMainPlayer();
+            }
+        }
+
+        function sidebarNextTrack() {
+            if (typeof nextTrack === 'function') {
+                nextTrack();
+                updateSidebarFromMainPlayer();
+            }
+        }
+
+        function updateSidebarPlayButton() {
+            const playBtn = document.getElementById('sidebar-play-btn');
+            const playIcon = playBtn?.querySelector('.play-icon');
+            const pauseIcon = playBtn?.querySelector('.pause-icon');
+            
+            if (window.mediaPlayer && !window.mediaPlayer.paused) {
+                playIcon?.style.setProperty('display', 'none');
+                pauseIcon?.style.setProperty('display', 'block');
+            } else {
+                playIcon?.style.setProperty('display', 'block');
+                pauseIcon?.style.setProperty('display', 'none');
+            }
+        }
+
+        function updateSidebarProgress() {
+            if (!window.mediaPlayer) return;
+            
+            const progressFill = document.getElementById('sidebar-progress-fill');
+            const currentTimeEl = document.getElementById('sidebar-current-time');
+            const totalTimeEl = document.getElementById('sidebar-total-time');
+            
+            if (progressFill && window.mediaPlayer.duration) {
+                const progress = (window.mediaPlayer.currentTime / window.mediaPlayer.duration) * 100;
+                progressFill.style.width = progress + '%';
+            }
+            
+            if (currentTimeEl && window.mediaPlayer.currentTime) {
+                currentTimeEl.textContent = formatTime(window.mediaPlayer.currentTime);
+            }
+            
+            if (totalTimeEl && window.mediaPlayer.duration) {
+                totalTimeEl.textContent = formatTime(window.mediaPlayer.duration);
+            }
+        }
+
+        function updateSidebarFromMainPlayer() {
+            // Update sidebar when main player changes track
+            if (window.currentTracks && window.currentTrackIndex !== undefined) {
+                const track = window.currentTracks[window.currentTrackIndex];
+                if (track) {
+                    updateSidebarMediaInfo(track);
+                }
+            }
+            updateSidebarPlayButton();
+        }
+
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return mins + ':' + (secs < 10 ? '0' : '') + secs;
+        }
+
+        // Sync with main media player events
+        function setupSidebarMediaSync() {
+            if (window.mediaPlayer) {
+                window.mediaPlayer.addEventListener('timeupdate', updateSidebarProgress);
+                window.mediaPlayer.addEventListener('play', updateSidebarPlayButton);
+                window.mediaPlayer.addEventListener('pause', updateSidebarPlayButton);
+                window.mediaPlayer.addEventListener('ended', updateSidebarPlayButton);
+                console.log('🔗 Sidebar media player synced with main player');
+            }
+        }
+
         // Add DOM ready event listener
         document.addEventListener('DOMContentLoaded', function () {
             // 사이드바 상태 복원
@@ -1745,6 +2141,14 @@
             if (currentPage === 'calendar-detail') {
                 console.log('✅ Generating mini calendar for calendar detail page');
                 generateMiniCalendar();
+                
+                // Initialize sidebar media player
+                initializeSidebarMediaPlayer();
+                
+                // Setup media player sync after a short delay to ensure main player is ready
+                setTimeout(() => {
+                    setupSidebarMediaSync();
+                }, 1000);
             } else {
                 console.log('ℹ️ Not generating mini calendar for page type:', currentPage);
             }

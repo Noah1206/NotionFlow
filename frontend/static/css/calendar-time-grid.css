@@ -3,7 +3,7 @@
 .time-grid-container {
     height: 100%;
     width: 100%;
-    min-width: 1800px; /* Much larger minimum width for spacious layout */
+    max-width: 100%; /* Force container to respect parent width */
     display: flex;
     flex-direction: column;
     background: white;
@@ -17,14 +17,14 @@
     display: flex;
     border-bottom: 1px solid #e1e5e9;
     background: #f1f5f9;
-    min-height: 50px;
+    min-height: 40px;
     position: sticky;
     top: 0;
     z-index: 100;
 }
 
 .time-gutter-header {
-    width: 140px; /* Match the time-labels-column width */
+    width: 60px; /* Even more compact time column */
     border-right: 1px solid #e1e5e9;
     flex-shrink: 0;
 }
@@ -36,11 +36,12 @@
 
 .day-header {
     flex: 1;
-    min-width: 220px; /* Much larger minimum width for each day column */
+    min-width: 0; /* Allow complete flexibility */
     text-align: center;
-    padding: 20px 16px; /* Even more padding */
+    padding: 4px 2px; /* Minimal padding */
     border-right: 1px solid #e1e5e9;
     position: relative;
+    overflow: hidden;
 }
 
 .day-header:last-child {
@@ -82,33 +83,33 @@
     display: flex;
     overflow-y: auto;
     position: relative;
-    min-height: 15000px !important; /* Force minimum height to accommodate tall cells */
+    min-height: 1500px !important; /* Force minimum height to accommodate tall cells */
     height: auto !important;
 }
 
 /* Time Labels Column */
 .time-labels-column {
-    width: 140px; /* Further increased width to prevent M cutoff */
+    width: 60px; /* Even more compact time column */
     flex-shrink: 0;
     border-right: 1px solid #e1e5e9;
     background: #f1f5f9;
     position: relative;
-    padding-right: 16px; /* More padding for better spacing */
+    padding-right: 4px; /* Minimal padding */
     padding-top: 10px; /* Add padding to align with grid */
 }
 
 .time-label {
     position: absolute;
-    right: 16px; /* Match the increased padding */
-    font-size: 12px;
+    right: 8px; /* Match the reduced padding */
+    font-size: 10px; /* Smaller font for compactness */
     color: #374151;
     font-weight: 600;
     background: #f1f5f9;
-    padding: 3px 8px; /* More padding for better spacing */
+    padding: 2px 4px; /* Reduced padding for compactness */
     user-select: none;
     display: flex;
     align-items: center;
-    gap: 3px; /* Slightly more gap */
+    gap: 2px; /* Reduced gap */
 }
 
 /* Main hour labels */
@@ -156,7 +157,7 @@
     flex: 1;
     position: relative;
     padding-top: 10px; /* Add padding to create space at the top */
-    min-height: 15000px; /* Force container to be tall enough for 600px cells */
+    min-height: 1500px; /* Force container to be tall enough for 60px cells */
 }
 
 /* Time Grid Lines */
@@ -167,12 +168,12 @@
     right: 0;
     bottom: 0;
     pointer-events: none;
-    min-height: 15000px; /* Ensure grid lines extend full height */
+    min-height: 1500px; /* Ensure grid lines extend full height */
 }
 
 .hour-line {
-    height: 600px !important;  /* Force height with !important */
-    min-height: 600px !important;
+    height: 60px !important;  /* Force height with !important */
+    min-height: 60px !important;
     max-height: none !important;
     border-bottom: 1px solid #e1e5e9;
     position: relative;
@@ -187,7 +188,7 @@
     position: absolute;
     top: 0;
     bottom: 0;
-    min-width: 220px; /* Much larger minimum width for day columns */
+    min-width: 0; /* Allow complete flexibility */
     border-right: 1px solid #f1f5f9;
 }
 
@@ -709,10 +710,10 @@ div.hour-line,
 .events-grid-container .hour-line,
 div[class*="hour-line"],
 *[class="hour-line"] {
-    height: 600px !important;
-    min-height: 600px !important;
-    max-height: 600px !important;
-    line-height: 600px !important;
+    height: 60px !important;
+    min-height: 60px !important;
+    max-height: 60px !important;
+    line-height: 60px !important;
     box-sizing: border-box !important;
 }
 
@@ -720,21 +721,21 @@ div[class*="hour-line"],
 .time-grid-body,
 .events-grid-container,
 .time-grid-lines {
-    min-height: 15000px !important;
+    min-height: 1500px !important;
     height: auto !important;
 }
 
 /* Add inline style override */
 [data-height="600"] {
-    height: 600px !important;
-    min-height: 600px !important;
-    max-height: 600px !important;
+    height: 60px !important;
+    min-height: 60px !important;
+    max-height: 60px !important;
 }
 
 /* Force container heights */
 .time-grid-body,
 .events-grid-container,
 .time-grid-lines {
-    min-height: 15000px !important;
+    min-height: 1500px !important;
     height: auto !important;
 }
