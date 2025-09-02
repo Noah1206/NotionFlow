@@ -69,10 +69,10 @@ class GoogleCalendarGrid {
         this.loadExistingEvents(); // Load existing events from backend
         this.updateCurrentTimeIndicator();
         
-        // Update time indicator every minute
+        // Update time indicator every 30 minutes
         setInterval(() => {
             this.updateCurrentTimeIndicator();
-        }, 60000);
+        }, 30 * 60 * 1000); // 30분 = 30 * 60 * 1000 밀리초
         
         console.log('🎯 Google Calendar Grid initialized');
     }
@@ -262,11 +262,18 @@ class GoogleCalendarGrid {
         const cell = e.target.closest('.time-cell');
         if (!cell || this.isSelecting) return;
         
+        console.log('🖱️ Cell clicked:', cell, {
+            day: cell.dataset.day,
+            hour: cell.dataset.hour,
+            rect: cell.getBoundingClientRect()
+        });
+        
         // Single cell click - create 1 hour event
         const day = parseInt(cell.dataset.day);
         const hour = parseInt(cell.dataset.hour);
         
-        this.createEvent(day, hour, day, hour);
+        // Pass the actual clicked cell to createEvent
+        this.createEvent(day, hour, day, hour, cell);
     }
     
     startSelection(cell) {
@@ -385,7 +392,7 @@ class GoogleCalendarGrid {
         this.createEvent(startDay, startHour, endDay, endHour);
     }
     
-    createEvent(startDay, startHour, endDay, endHour) {
+    createEvent(startDay, startHour, endDay, endHour, clickedCell = null) {
         console.log('🎯 createEvent called:', {startDay, startHour, endDay, endHour});
         
         // Ensure weekStart is properly initialized
@@ -408,21 +415,24 @@ class GoogleCalendarGrid {
         console.log('📍 Expected day column:', startDay, 'Actual date:', startDate.toDateString());
         console.log('📍 Day of week - Start:', startDate.getDay(), 'Expected:', startDay);
         
-        // Open sidebar event form instead of popup
-        const dateStr = startDate.toISOString().split('T')[0];
-        const startTimeStr = String(startHour).padStart(2, '0') + ':00';
-        const endTimeStr = String(endHour + 1).padStart(2, '0') + ':00';
+        // Show overlay form instead of popup
+        const dateStr = this.formatDateForInput(startDate);
+        const timeStr = startDate.toTimeString().slice(0, 5); // HH:MM format
         
-        // Open sidebar form with pre-filled data
-        openEventForm(dateStr, null);
-        
-        // Pre-fill time fields after form opens
-        setTimeout(() => {
-            const startTimeInput = document.getElementById('overlay-start-time');
-            const endTimeInput = document.getElementById('overlay-end-time');
-            if (startTimeInput) startTimeInput.value = startTimeStr;
-            if (endTimeInput) endTimeInput.value = endTimeStr;
-        }, 100);
+        // Use the existing overlay form with clicked cell information
+        if (typeof showOverlayEventForm !== 'undefined') {
+            // Find the clicked cell to pass position information
+            let cellElement = clickedCell;
+            if (!cellElement) {
+                // Try to find the cell by day and hour if not provided
+                cellElement = document.querySelector(`.time-cell[data-day="${startDay}"][data-hour="${startHour}"]`);
+            }
+            console.log('🎯 Passing clicked cell to overlay form:', cellElement);
+            showOverlayEventForm(dateStr, timeStr, cellElement);
+        } else {
+            // Fallback to original popup if function doesn't exist
+            this.showEventCreationPopup(startDate, endDate, startDay, startHour, clickedCell);
+        }
     }
     
     formatDateForInput(date) {
@@ -925,12 +935,31 @@ class GoogleCalendarGrid {
         }
     }
     
-    showEventCreationPopup(startDate, endDate, day, hour) {
-        // Remove existing popup
-        const existingPopup = this.container.querySelector('.event-creation-popup');
-        if (existingPopup) {
-            existingPopup.remove();
+    showEventCreationPopup(startDate, endDate, day, hour, clickedCell = null) {
+        // Check if popup already exists - if so, reposition it instead of creating new one
+        const existingPopup = document.querySelector('.event-creation-popup');
+        if (existingPopup && window.eventCreationPopupActive && clickedCell) {
+            // Reposition existing popup to new clicked cell location
+            this.repositionPopup(existingPopup, clickedCell);
+            // Update the time values in the existing popup
+            this.updatePopupTimeValues(existingPopup, startDate, endDate, day);
+            return;
         }
+        
+        // Set popup active flag
+        window.eventCreationPopupActive = true;
+        
+        // Remove all existing popups from entire document
+        const existingPopups = document.querySelectorAll('.event-creation-popup');
+        existingPopups.forEach(popup => {
+            popup.remove();
+        });
+        
+        // Also remove any backdrop overlays that might still exist
+        const existingBackdrops = document.querySelectorAll('.popup-backdrop');
+        existingBackdrops.forEach(backdrop => {
+            backdrop.remove();
+        });
         
         const popup = document.createElement('div');
         popup.className = 'event-creation-popup';
@@ -945,59 +974,102 @@ class GoogleCalendarGrid {
             minute: '2-digit',
             hour12: false 
         });
-        const dateStr = startDate.toLocaleDateString('ko-KR');
+        const dateStr = startDate.toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            weekday: 'long'
+        });
+        
+        // Generate random gradient colors
+        const gradients = [
+            'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+            'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+            'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+            'linear-gradient(135deg, #30cfd0 0%, #330867 100%)'
+        ];
+        const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];
         
         popup.innerHTML = `
+            <div class="popup-header" style="background: ${randomGradient};">
+                <h2 class="popup-title">새 일정</h2>
+                <button type="button" class="popup-close-btn" onclick="window.googleCalendarGrid.closeEventPopup()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
             <div class="popup-content">
-                <div class="event-first-row">
-                    <input type="text" name="title" class="event-title-input" placeholder="새 일정" required>
-                    
-                    <div class="event-datetime-group">
-                        <button type="button" class="datetime-button" id="date-button" onclick="window.googleCalendarGrid.showDatePicker(this)">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                                <line x1="16" y1="2" x2="16" y2="6"/>
-                                <line x1="8" y1="2" x2="8" y2="6"/>
-                                <line x1="3" y1="10" x2="21" y2="10"/>
-                            </svg>
-                            <span class="date-display">${dateStr}</span>
-                        </button>
-                        
-                        <button type="button" class="datetime-button" id="start-time-button" onclick="window.googleCalendarGrid.showTimePicker(this, 'start')">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <circle cx="12" cy="12" r="10"/>
-                                <polyline points="12,6 12,12 16,14"/>
-                            </svg>
-                            <span class="time-display">${startTimeStr}</span>
-                        </button>
-                        
-                        <span class="time-range-separator">-</span>
-                        
-                        <button type="button" class="datetime-button" id="end-time-button" onclick="window.googleCalendarGrid.showTimePicker(this, 'end')">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <circle cx="12" cy="12" r="10"/>
-                                <polyline points="12,6 12,12 16,14"/>
-                            </svg>
-                            <span class="time-display">${endTimeStr}</span>
-                        </button>
+                <div class="event-form-wrapper">
+                    <!-- Title Input -->
+                    <div class="form-group title-group-compact">
+                        <input type="text" name="title" class="event-title-input-compact" placeholder="제목을 입력하세요" required>
                     </div>
                     
-                    <div class="event-actions">
-                        <button type="button" class="event-save-btn" onclick="window.googleCalendarGrid.saveEventFromFullScreen()">
-                            저장
-                        </button>
-                        <button type="button" class="event-cancel-btn" onclick="this.closest('.event-creation-popup').remove()">
-                            취소
-                        </button>
+                    <!-- Date & Time Row -->
+                    <div class="form-group datetime-compact">
+                        <div class="datetime-row-compact">
+                            <div class="date-info">
+                                <span class="date-label">📅</span>
+                                <span class="date-text">${dateStr.split(' ').slice(1, 3).join(' ')}</span>
+                            </div>
+                            <div class="time-range-compact">
+                                <button type="button" class="time-btn" data-type="start" onclick="window.googleCalendarGrid.showTimePicker(this, 'start')">
+                                    ${startTimeStr}
+                                </button>
+                                <span class="time-separator">–</span>
+                                <button type="button" class="time-btn" data-type="end" onclick="window.googleCalendarGrid.showTimePicker(this, 'end')">
+                                    ${endTimeStr}
+                                </button>
+                            </div>
+                            <div class="all-day-compact">
+                                <label class="toggle-compact">
+                                    <input type="checkbox" class="all-day-checkbox" onchange="window.googleCalendarGrid.toggleAllDay(this)">
+                                    <span class="toggle-switch-compact"></span>
+                                    <span class="toggle-text-compact">종일</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Description (Optional & Compact) -->
+                    <div class="form-group description-compact">
+                        <textarea name="description" class="description-input-compact" placeholder="설명 (선택사항)" rows="1"></textarea>
+                    </div>
+                    
+                    <!-- Color Selection (Horizontal & Compact) -->
+                    <div class="form-group color-compact">
+                        <div class="color-row">
+                            <span class="color-label">🎨</span>
+                            <div class="color-options-compact">
+                                <button type="button" class="color-dot active" style="background: #4285f4;" data-color="#4285f4" onclick="window.googleCalendarGrid.selectEventColor(this)"></button>
+                                <button type="button" class="color-dot" style="background: #ea4335;" data-color="#ea4335" onclick="window.googleCalendarGrid.selectEventColor(this)"></button>
+                                <button type="button" class="color-dot" style="background: #fbbc04;" data-color="#fbbc04" onclick="window.googleCalendarGrid.selectEventColor(this)"></button>
+                                <button type="button" class="color-dot" style="background: #34a853;" data-color="#34a853" onclick="window.googleCalendarGrid.selectEventColor(this)"></button>
+                                <button type="button" class="color-dot" style="background: #673ab7;" data-color="#673ab7" onclick="window.googleCalendarGrid.selectEventColor(this)"></button>
+                                <button type="button" class="color-dot" style="background: #ff6b6b;" data-color="#ff6b6b" onclick="window.googleCalendarGrid.selectEventColor(this)"></button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
-                <textarea name="description" class="event-description-input" placeholder="설명 추가..."></textarea>
+                <div class="popup-footer-compact">
+                    <button type="button" class="btn-cancel-compact" onclick="window.googleCalendarGrid.closeEventPopup()">
+                        취소
+                    </button>
+                    <button type="button" class="btn-save-compact" onclick="window.googleCalendarGrid.saveEventFromFullScreen()">
+                        저장
+                    </button>
+                </div>
                 
                 <form style="display: none;" id="event-creation-form">
                     <input type="hidden" name="date" value="${this.formatDateForInput(startDate)}">
                     <input type="hidden" name="startTime" value="${startTimeStr}">
                     <input type="hidden" name="endTime" value="${endTimeStr}">
+                    <input type="hidden" name="color" value="#1a73e8">
                 </form>
             </div>
         `;
@@ -1005,8 +1077,81 @@ class GoogleCalendarGrid {
         // Update main content dimensions before showing popup
         this.updateMainContentDimensions();
         
-        // Append to body for modal overlay effect
+        // Position popup relative to clicked cell
+        console.log('🎯 Positioning popup, clickedCell:', clickedCell);
+        
+        let cellToUse = clickedCell;
+        
+        // If no clickedCell provided, try to find the cell by day and hour
+        if (!cellToUse) {
+            console.log('⚠️ No clickedCell provided, searching for cell by day/hour:', day, hour);
+            cellToUse = document.querySelector(`.time-cell[data-day="${day}"][data-hour="${hour}"]`);
+            console.log('🔍 Found cell by search:', cellToUse);
+        }
+        
+        if (cellToUse) {
+            const cellRect = cellToUse.getBoundingClientRect();
+            console.log('📍 Cell rect:', cellRect);
+            
+            // Calculate position
+            let left = cellRect.right + 10;
+            let top = cellRect.top;
+            
+            // Fixed popup positioning - always use clicked cell position
+            const popupWidth = 360;
+            const popupHeight = 400;
+            
+            // Ensure popup doesn't go off-screen
+            if (left + popupWidth > window.innerWidth) {
+                left = cellRect.left - popupWidth - 10; // Position to the left of cell
+            }
+            
+            if (top + popupHeight > window.innerHeight) {
+                top = window.innerHeight - popupHeight - 20; // Position above
+            }
+            
+            console.log('📍 Final position:', {left, top});
+            
+            // Always use fixed positioning with consistent size
+            popup.style.cssText = `
+                position: fixed;
+                left: ${left}px;
+                top: ${top}px;
+                z-index: 1000;
+                width: 360px !important;
+                height: auto !important;
+                transform: none !important;
+            `;
+        } else {
+            console.log('❌ No valid cell found, using center positioning');
+            // Fallback to center positioning with fixed size
+            popup.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 1000;
+                width: 360px !important;
+                height: auto !important;
+            `;
+        }
+        
+        // Close popup when pressing Escape key
+        const handleEscape = (event) => {
+            if (event.key === 'Escape') {
+                this.closeEventPopup();
+                document.removeEventListener('keydown', handleEscape);
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+        
+        // Append to body
         document.body.appendChild(popup);
+        
+        // Trigger slide-in animation after a brief delay
+        setTimeout(() => {
+            popup.classList.add('show');
+        }, 10);
         
         // Focus on title input
         setTimeout(() => {
@@ -1039,7 +1184,7 @@ class GoogleCalendarGrid {
         popup.innerHTML = `
             <div class="popup-header">
                 <div class="popup-title">일정 편집</div>
-                <button class="close-btn" onclick="this.closest('.event-creation-popup').remove()">×</button>
+                <button class="close-btn" onclick="window.googleCalendarGrid.closeEventPopup()">×</button>
             </div>
             <div class="popup-content">
                 <div class="datetime-section">
@@ -1110,8 +1255,44 @@ class GoogleCalendarGrid {
         // Update main content dimensions before showing popup
         this.updateMainContentDimensions();
         
+        // Add backdrop overlay
+        const backdrop = document.createElement('div');
+        backdrop.className = 'popup-backdrop';
+        backdrop.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        `;
+        
+        // Close popup when clicking backdrop
+        backdrop.addEventListener('click', () => {
+            this.closeEventPopup();
+        });
+        
+        // Close popup when pressing Escape key
+        const handleEscape = (event) => {
+            if (event.key === 'Escape') {
+                this.closeEventPopup();
+                document.removeEventListener('keydown', handleEscape);
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+        
         // Append to body for modal overlay effect
+        document.body.appendChild(backdrop);
         document.body.appendChild(popup);
+        
+        // Trigger slide-in animation after a brief delay
+        setTimeout(() => {
+            backdrop.style.opacity = '1';
+            popup.classList.add('show');
+        }, 10);
         
         // Focus on title input
         setTimeout(() => {
@@ -2037,7 +2218,10 @@ class GoogleCalendarGrid {
             return; // Not current week
         }
         
-        const currentHour = now.getHours() + now.getMinutes() / 60;
+        // 30분 간격으로 반올림 (0분 또는 30분)
+        const minutes = now.getMinutes();
+        const roundedMinutes = minutes >= 30 ? 30 : 0;
+        const currentHour = now.getHours() + roundedMinutes / 60;
         const dayIndex = now.getDay();
         
         if (currentHour < this.startHour || currentHour > this.endHour + 1) {
@@ -2048,11 +2232,73 @@ class GoogleCalendarGrid {
         const timeLine = document.createElement('div');
         timeLine.className = 'current-time-line';
         
-        const top = (currentHour - this.startHour) * this.timeSlotHeight;
+        const top = (currentHour - this.startHour) * this.timeSlotHeight + 10; // 40px 아래로 이동
         timeLine.style.top = `${top}px`;
         
         const gridBody = this.container.querySelector('.calendar-grid-body');
         gridBody.appendChild(timeLine);
+    }
+
+    closeEventPopup() {
+        const popup = document.querySelector('.event-creation-popup');
+        if (popup) {
+            // Start slide-out animation
+            popup.classList.remove('show');
+            
+            // Wait for animation to complete before removing
+            setTimeout(() => {
+                if (popup && popup.parentNode) {
+                    popup.remove();
+                }
+            }, 300); // Match CSS transition duration
+        }
+        
+        
+        // Clear popup reference
+        if (this.currentPopup) {
+            this.currentPopup = null;
+        }
+        
+        // Reset popup active flag
+        window.eventCreationPopupActive = false;
+        
+        console.log('🚪 Event popup closed');
+    }
+
+    selectEventColor(color) {
+        // Remove active class from all color options
+        document.querySelectorAll('.color-option').forEach(option => {
+            option.classList.remove('active');
+        });
+        
+        // Add active class to selected color
+        const selectedOption = document.querySelector(`.color-option[data-color="${color}"]`);
+        if (selectedOption) {
+            selectedOption.classList.add('active');
+        }
+        
+        // Update the selected color value
+        const colorInput = document.getElementById('event-color');
+        if (colorInput) {
+            colorInput.value = color;
+        }
+    }
+
+    toggleAllDay() {
+        const allDayToggle = document.getElementById('all-day-toggle');
+        const timeInputs = document.querySelectorAll('.time-input-group');
+        
+        if (allDayToggle && allDayToggle.checked) {
+            // Hide time inputs when all-day is selected
+            timeInputs.forEach(group => {
+                group.style.display = 'none';
+            });
+        } else {
+            // Show time inputs when all-day is not selected
+            timeInputs.forEach(group => {
+                group.style.display = 'flex';
+            });
+        }
     }
 
     // Event Search and List Methods
@@ -2261,6 +2507,87 @@ class GoogleCalendarGrid {
         if (eventElement) {
             eventElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
+    }
+
+    // Reposition existing popup to new clicked cell location
+    repositionPopup(popup, clickedCell) {
+        if (!popup || !clickedCell) {
+            return;
+        }
+
+        const cellRect = clickedCell.getBoundingClientRect();
+        let left = cellRect.right + 10;
+        let top = cellRect.top;
+        
+        // Fixed popup positioning - always use clicked cell position
+        const popupWidth = 360;
+        const popupHeight = 400;
+        
+        // Ensure popup doesn't go off-screen
+        if (left + popupWidth > window.innerWidth) {
+            left = cellRect.left - popupWidth - 10; // Position to the left of cell
+        }
+        
+        if (top + popupHeight > window.innerHeight) {
+            top = window.innerHeight - popupHeight - 20; // Position above
+        }
+        
+        // Update popup position with smooth transition
+        popup.style.transition = 'left 0.3s ease, top 0.3s ease';
+        popup.style.left = `${left}px`;
+        popup.style.top = `${top}px`;
+        
+        // Remove transition after animation completes
+        setTimeout(() => {
+            popup.style.transition = '';
+        }, 300);
+    }
+
+    // Update time values in existing popup
+    updatePopupTimeValues(popup, startDate, endDate, day) {
+        if (!popup) {
+            return;
+        }
+
+        const startTimeStr = startDate.toLocaleTimeString('ko-KR', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: false
+        });
+        const endTimeStr = endDate.toLocaleTimeString('ko-KR', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: false 
+        });
+        const dateStr = startDate.toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            weekday: 'long'
+        });
+
+        // Update popup subtitle with new date
+        const popupSubtitle = popup.querySelector('.popup-subtitle');
+        if (popupSubtitle) {
+            popupSubtitle.textContent = dateStr;
+        }
+
+        // Update start time button
+        const startTimeButton = popup.querySelector('.time-select-btn[data-type="start"]');
+        if (startTimeButton) {
+            startTimeButton.textContent = startTimeStr;
+        }
+
+        // Update end time button  
+        const endTimeButton = popup.querySelector('.time-select-btn[data-type="end"]');
+        if (endTimeButton) {
+            endTimeButton.textContent = endTimeStr;
+        }
+
+        // Store new date/time values
+        popup.setAttribute('data-start-date', startDate.toISOString());
+        popup.setAttribute('data-end-date', endDate.toISOString());
+        popup.setAttribute('data-day', day);
     }
 }
 

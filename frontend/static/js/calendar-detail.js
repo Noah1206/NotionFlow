@@ -1242,7 +1242,6 @@ function clearEventForm() {
 }
 
 function addEventToDay() {
-    closeEventModal();
     openEventModal();
 }
 

@@ -28,7 +28,11 @@
     <link rel="stylesheet"
         href="{{ url_for('static', filename='css/sidebar.css') }}?v={{ range(100000, 999999) | random }}">
     <link rel="stylesheet"
-        href="{{ url_for('static', filename='css/calendar-detail.css') }}?v=20250827110500&nocache=1">
+        href="{{ url_for('static', filename='css/calendar-detail.css') }}?v=20250901225000&nocache=2">
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/calendar-detail-custom.css') }}?v={{ range(100000, 999999) | random }}">
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/popup-redesign-urgent.css') }}?v={{ range(100000, 999999) | random }}"">
 
     <style>
         /* 전체 레이아웃 수정 */
@@ -36,20 +40,31 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
-            background: #f8f9fa;
+            background: #fafbfc;
         }
 
-        /* 상단 헤더 스타일 복원 */
+        /* 깔끔한 헤더 디자인 */
         .calendar-topbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 20px;
-            background: white;
-            border-bottom: 1px solid #e5e5e5;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            padding: 16px 24px;
+            background: #ffffff;
+            border-bottom: 1px solid #f0f0f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             flex-shrink: 0;
-            height: 60px;
+            height: 72px;
+            position: relative;
+        }
+
+        .calendar-topbar::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
         }
 
         .topbar-left,
@@ -57,41 +72,129 @@
         .topbar-right {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 20px;
         }
 
         .btn-back {
-            padding: 8px;
-            border: 1px solid #e5e5e5;
-            background: white;
-            border-radius: 6px;
-            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            border: 1px solid #e5e7eb;
+            background: #ffffff;
+            border-radius: 8px;
+            color: #374151;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .btn-back:hover {
-            background: #f5f5f5;
+            background: #f9fafb;
             border-color: #3b82f6;
+            color: #3b82f6;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.15);
         }
 
         .calendar-header-info {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 16px;
         }
 
         .calendar-name {
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
+            font-size: 20px;
+            font-weight: 700;
+            color: #111827;
             margin: 0;
+            letter-spacing: -0.025em;
         }
 
         .calendar-icon-small {
-            width: 20px;
-            height: 20px;
-            border-radius: 4px;
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 뷰 토글 버튼 스타일 */
+        .view-toggle {
+            display: flex;
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 4px;
+            gap: 2px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .view-option {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .view-option:hover {
+            color: #3b82f6;
+            background: #f1f5f9;
+        }
+
+        .view-option.active {
+            background: #3b82f6;
+            color: #ffffff;
+            box-shadow: 0 1px 2px rgba(59, 130, 246, 0.3);
+        }
+
+        /* 액션 버튼 스타일 */
+        .btn-share,
+        .btn-settings {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            border-radius: 8px;
+            color: #374151;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-share:hover,
+        .btn-settings:hover {
+            background: #f8fafc;
+            border-color: #3b82f6;
+            color: #3b82f6;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.15);
+        }
+
+        .btn-settings {
+            padding: 10px;
+            min-width: 40px;
+            justify-content: center;
+        }
+
+        /* 버튼 아이콘 스타일 */
+        .btn-share svg,
+        .btn-settings svg {
+            stroke-width: 2;
+            transition: transform 0.2s ease;
+        }
+
+        .btn-share:hover svg,
+        .btn-settings:hover svg {
+            transform: scale(1.1);
         }
 
         /* 가로 배치 콘텐츠 */
@@ -105,15 +208,16 @@
         .left-sidebar {
             width: 300px;
             min-width: 300px;
-            background: white;
-            border-right: 1px solid #e5e5e5;
+            background: #ffffff;
+            border-right: 1px solid #f0f0f0;
             overflow-y: auto;
             height: 100%;
+            box-shadow: 1px 0 3px rgba(0, 0, 0, 0.04);
         }
 
         .calendar-main-content {
             flex: 1;
-            background: white;
+            background: #ffffff;
             margin: 0;
             overflow: hidden;
             display: flex;
@@ -153,50 +257,63 @@
 
         /* 사이드바 위젯 스타일 개선 */
         .sidebar-widget {
-            margin: 12px 16px;
-            background: white;
-            border: 1px solid #e5e5e5;
-            border-radius: 8px;
+            margin: 16px 20px;
+            background: #ffffff;
+            border: 1px solid #f0f0f0;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            box-shadow: none;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-widget:hover {
+            box-shadow: none;
+            border-color: #e2e8f0;
         }
 
         .widget-header {
-            background: #f8f9fa;
-            padding: 10px 14px;
-            border-bottom: 1px solid #e5e5e5;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            padding: 14px 18px;
+            border-bottom: 1px solid #f0f0f0;
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
 
         .widget-header h4 {
-            font-size: 13px;
-            font-weight: 600;
-            color: #333;
+            font-size: 14px;
+            font-weight: 700;
+            color: #1e293b;
             margin: 0;
+            letter-spacing: -0.025em;
         }
 
         /* 검색 입력 스타일 */
         .event-search-container {
-            padding: 12px;
+            padding: 16px;
         }
 
         #event-search-input {
             width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #e5e5e5;
-            border-radius: 6px;
-            font-size: 13px;
-            background: #f8f9fa;
-            transition: all 0.2s;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #f8fafc;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
         }
 
         #event-search-input:focus {
-            background: white;
+            background: #ffffff;
             border-color: #3b82f6;
             outline: none;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+            transform: translateY(-1px);
+        }
+
+        #event-search-input::placeholder {
+            color: #64748b;
         }
 
         /* 일정 목록 스타일 */
@@ -464,7 +581,9 @@
             color: white;
         }
     </style>
-    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-detail-new.css') }}?v={{ range(100000, 999999) | random }}"> -->
+    <!-- <link rel=" stylesheet"
+        href="{{ url_for('static', filename='css/calendar-detail-new.css') }}?v={{ range(100000, 999999) | random }}">
+    -->
     <link rel="stylesheet"
         href="{{ url_for('static', filename='css/calendar-time-grid.css') }}?v={{ range(100000, 999999) | random }}">
     <link rel="stylesheet"
@@ -526,13 +645,6 @@
                     <button class="view-option" data-view="agenda">일정</button>
                 </div>
 
-                <button class="btn-add-event" onclick="openEventModal()">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <line x1="12" y1="5" x2="12" y2="19" />
-                        <line x1="5" y1="12" x2="19" y2="12" />
-                    </svg>
-                    새 이벤트
-                </button>
 
                 <button class="btn-share" onclick="openShareModal()" title="참석자 추가">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -953,19 +1065,21 @@
 
                 <!-- Calendar Overlay Event Form -->
                 <div class="calendar-overlay-form" id="calendar-overlay-form" style="display: none;"
-                    onclick="handleOverlayClick(event)">
+                    onclick="window.handleOverlayClick(event)">
                     <div class="overlay-form-content" onclick="event.stopPropagation()">
                         <div class="form-header">
                             <h2 id="overlay-form-title">새 일정</h2>
-                            <button class="close-overlay-btn" onclick="closeOverlayEventForm()" title="닫기">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            <button class="close-overlay-btn"
+                                onclick="console.log('❌ Close button clicked'); window.closeOverlayEventForm()"
+                                title="닫기">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2">
                                     <path d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                         </div>
 
-                        <form id="overlay-event-form" onsubmit="saveOverlayEvent(event)">
+                        <form id="overlay-event-form" onsubmit="window.saveOverlayEvent(event)">
                             <div class="form-group">
                                 <label for="overlay-event-title">제목</label>
                                 <input type="text" id="overlay-event-title" placeholder="일정 제목을 입력하세요" required>
@@ -979,26 +1093,71 @@
                                 </div>
                                 <div class="form-group time-input">
                                     <label for="overlay-start-time">시작시간</label>
-                                    <input type="time" id="overlay-start-time" value="09:00">
+                                    <div class="time-picker-container">
+                                        <button type="button" class="time-picker-btn" id="overlay-start-time-btn" onclick="openTimePicker('start')">
+                                            <span id="overlay-start-time-display">오전 09:00</span>
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"/>
+                                                <polyline points="12,6 12,12 16,14"/>
+                                            </svg>
+                                        </button>
+                                        <input type="hidden" id="overlay-start-time" value="09:00">
+                                    </div>
                                 </div>
                                 <div class="time-separator">~</div>
                                 <div class="form-group time-input">
                                     <label for="overlay-end-time">종료시간</label>
-                                    <input type="time" id="overlay-end-time" value="10:00">
+                                    <div class="time-picker-container">
+                                        <button type="button" class="time-picker-btn" id="overlay-end-time-btn" onclick="openTimePicker('end')">
+                                            <span id="overlay-end-time-display">오전 10:00</span>
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"/>
+                                                <polyline points="12,6 12,12 16,14"/>
+                                            </svg>
+                                        </button>
+                                        <input type="hidden" id="overlay-end-time" value="10:00">
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- 큰 설명 영역 -->
-                            <div class="form-group description-large">
+                            <div class="form-group">
                                 <label for="overlay-event-description">설명 (선택사항)</label>
-                                <textarea id="overlay-event-description" rows="6" placeholder="일정 설명을 입력하세요"></textarea>
+                                <textarea id="overlay-event-description" rows="2" placeholder="간단한 설명 추가"></textarea>
+                            </div>
+                            <!-- 색상 선택 -->
+                            <div class="form-group">
+                                <label>색상</label>
+                                <div class="color-picker">
+                                    <div class="color-option active" data-color="#6366f1" style="background: #6366f1;">
+                                    </div>
+                                    <div class="color-option" data-color="#ef4444" style="background: #ef4444;"></div>
+                                    <div class="color-option" data-color="#f59e0b" style="background: #f59e0b;"></div>
+                                    <div class="color-option" data-color="#10b981" style="background: #10b981;"></div>
+                                    <div class="color-option" data-color="#8b5cf6" style="background: #8b5cf6;"></div>
+                                    <div class="color-option" data-color="#ec4899" style="background: #ec4899;"></div>
+                                </div>
                             </div>
 
                             <div class="form-actions">
-                                <button type="button" class="btn-cancel" onclick="closeOverlayEventForm()">취소</button>
+                                <button type="button" class="btn-cancel"
+                                    onclick="console.log('⛔ Cancel button clicked'); window.closeOverlayEventForm()">취소</button>
                                 <button type="submit" class="btn-save">저장</button>
                             </div>
                         </form>
+                    </div>
+                </div>
+
+                <!-- Time Picker Dropdown -->
+                <div class="time-picker-dropdown" id="time-picker-dropdown" style="display: none;">
+                    <div class="time-picker-header">
+                        <span id="time-picker-title">시작시간 선택</span>
+                        <button type="button" class="time-picker-close" onclick="closeTimePicker()">×</button>
+                    </div>
+                    <div class="time-picker-content">
+                        <div class="time-list" id="time-list">
+                            <!-- Time options will be generated here -->
+                        </div>
                     </div>
                 </div>
 
@@ -2482,56 +2641,95 @@
             background: #2563eb;
         }
 
-        /* Calendar Overlay Event Form Styles */
+        /* Calendar Overlay Event Form Styles - 컴팩트 버전 */
         .calendar-overlay-form {
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(2px);
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
+            background: rgba(0, 0, 0, 0.2);
             z-index: 1000;
-            animation: fadeIn 0.3s ease;
+            pointer-events: none;
         }
 
         .overlay-form-content {
+            position: absolute;
             background: white;
-            border-radius: 16px 16px 0 0;
-            box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.1), 0 -4px 10px -5px rgba(0, 0, 0, 0.04);
-            width: calc(100% - 16px);
-            margin: 0 8px;
-            max-height: 80vh;
-            overflow-y: auto;
-            animation: slideUpFromBottom 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05);
+            width: 320px;
+            max-width: 90vw;
+            padding: 0;
+            animation: fadeInScale 0.2s ease;
+            pointer-events: all;
         }
 
         .overlay-form-content .form-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 20px 24px 12px;
-            border-bottom: 1px solid #f3f4f6;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f9fafb;
+            border-radius: 12px 12px 0 0;
         }
 
         .overlay-form-content .form-header h2 {
             margin: 0;
-            font-size: 20px;
+            font-size: 16px;
             font-weight: 600;
             color: #1f2937;
+        }
+
+        /* 헤더에 있는 액션 버튼들 */
+        .header-actions {
+            display: flex !important;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn-cancel-header,
+        .btn-save-header {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-cancel-header {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .btn-cancel-header:hover {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-save-header {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-save-header:hover {
+            background: #2563eb;
         }
 
         .close-overlay-btn {
             background: none;
             border: none;
-            padding: 8px;
+            padding: 4px;
             cursor: pointer;
-            border-radius: 8px;
-            color: #6b7280;
+            border-radius: 4px;
+            color: #9ca3af;
             transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .close-overlay-btn:hover {
@@ -2540,35 +2738,41 @@
         }
 
         .overlay-form-content form {
-            padding: 24px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 16px;
         }
 
         .overlay-form-content .form-group {
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            padding: 0 24px;
-            margin-bottom: 16px;
+            gap: 4px;
+            padding: 0;
+            margin-bottom: 0;
         }
 
         .overlay-form-content label {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
-            color: #374151;
+            color: #6b7280;
         }
 
         .overlay-form-content input,
         .overlay-form-content textarea {
             width: 100%;
-            padding: 12px 16px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
+            padding: 8px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
             font-size: 14px;
             transition: all 0.2s ease;
             box-sizing: border-box;
+        }
+
+        /* 제목 입력 필드 특별 스타일링 */
+        #overlay-event-title {
+            font-size: 14px !important;
+            font-weight: 500 !important;
         }
 
         .overlay-form-content input:focus,
@@ -2606,30 +2810,35 @@
         }
 
         .overlay-form-content .form-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 8px;
+            display: flex !important;
+            gap: 8px;
+            margin-top: 4px;
+            padding: 16px 20px;
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            border-radius: 0 0 12px 12px;
         }
 
         .overlay-form-content .btn-cancel,
         .overlay-form-content .btn-save {
             flex: 1;
-            padding: 12px 24px;
+            padding: 8px 16px;
             border: none;
-            border-radius: 8px;
-            font-size: 14px;
+            border-radius: 6px;
+            font-size: 13px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s ease;
         }
 
         .overlay-form-content .btn-cancel {
-            background: #f3f4f6;
+            background: white;
             color: #6b7280;
+            border: 1px solid #e5e7eb;
         }
 
         .overlay-form-content .btn-cancel:hover {
-            background: #e5e7eb;
+            background: #f9fafb;
             color: #374151;
         }
 
@@ -2646,18 +2855,37 @@
         .date-time-row {
             display: flex;
             align-items: end;
-            gap: 16px;
-            margin-bottom: 16px;
+            gap: 8px;
+            margin-bottom: 0;
         }
 
         .date-time-row .date-input {
-            flex: 1.5;
+            flex: 2;
             margin-bottom: 0;
         }
 
         .date-time-row .time-input {
             flex: 1;
             margin-bottom: 0;
+        }
+
+        .time-separator {
+            color: #9ca3af;
+            font-size: 14px;
+            padding-bottom: 8px;
+        }
+
+        /* 애니메이션 추가 */
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         .time-separator {
@@ -2810,6 +3038,725 @@
                 }
             }
         }
+
+        // Overlay Event Form Functions
+        function showOverlayEventForm(date, time, clickedCell = null) {
+            const overlay = document.getElementById('calendar-overlay-form');
+            if (overlay) {
+                // Check if overlay is already visible
+                const isAlreadyVisible = overlay.style.display !== 'none' && !overlay.classList.contains('hidden');
+                console.log('📍 Overlay already visible:', isAlreadyVisible);
+
+                // If popup is already visible, close it first before creating new one
+                if (isAlreadyVisible) {
+                    console.log('🔄 Closing existing popup to create new one at different position');
+                    closeOverlayEventForm();
+                    // Wait a moment for the close animation, then show at new position
+                    setTimeout(() => {
+                        showOverlayEventForm(date, time, clickedCell);
+                    }, 100);
+                    return;
+                }
+
+                // Show the overlay with multiple methods
+                overlay.style.display = 'block';
+                overlay.style.visibility = 'visible';
+                overlay.style.opacity = '1';
+                overlay.style.pointerEvents = 'auto';
+                overlay.classList.remove('hidden');
+                overlay.classList.add('show');
+
+                // Set the date and time if provided
+                if (date) {
+                    document.getElementById('overlay-event-date').value = date;
+                }
+                if (time) {
+                    document.getElementById('overlay-start-time').value = time;
+                    document.getElementById('overlay-start-time-display').textContent = convertToAMPM(time);
+                    
+                    // Set end time to one hour later
+                    const [hours, minutes] = time.split(':');
+                    const endHour = (parseInt(hours) + 1).toString().padStart(2, '0');
+                    const endTime = `${endHour}:${minutes}`;
+                    document.getElementById('overlay-end-time').value = endTime;
+                    document.getElementById('overlay-end-time-display').textContent = convertToAMPM(endTime);
+                }
+
+                // Position popup at clicked cell location
+                if (clickedCell) {
+                    console.log('🎯 Creating new popup at clicked cell position');
+                    repositionOverlayPopup(overlay, clickedCell);
+                } else {
+                    // Fallback to default position if no cell provided
+                    const content = overlay.querySelector('.overlay-form-content');
+                    if (content) {
+                        content.style.setProperty('left', '50px', 'important');
+                        content.style.setProperty('top', '100px', 'important');
+                    }
+                }
+
+                // Focus on title input for new popup
+                setTimeout(() => {
+                    const titleInput = document.getElementById('overlay-event-title');
+                    if (titleInput) {
+                        titleInput.focus();
+                    }
+                }, 100);
+            }
+        }
+
+        // Position overlay popup based on clicked cell (reusing existing repositionPopup logic)
+        function repositionOverlayPopup(overlay, clickedCell) {
+            if (!overlay || !clickedCell) {
+                console.log('❌ Missing overlay or clicked cell for positioning', { overlay: !!overlay, clickedCell: !!clickedCell });
+                return;
+            }
+
+            const content = overlay.querySelector('.overlay-form-content');
+            if (!content) {
+                console.log('❌ Overlay content not found');
+                return;
+            }
+
+            // Use the exact logic from google-calendar-grid.js repositionPopup function
+            const cellRect = clickedCell.getBoundingClientRect();
+            let left = cellRect.right + 10;
+            let top = cellRect.top;
+
+            // Fixed popup positioning - always use clicked cell position
+            const popupWidth = 540;
+            const popupHeight = 450;
+
+            // Ensure popup doesn't go off-screen
+            if (left + popupWidth > window.innerWidth) {
+                left = cellRect.left - popupWidth - 10; // Position to the left of cell
+            }
+
+            if (top + popupHeight > window.innerHeight) {
+                top = window.innerHeight - popupHeight - 20; // Position above
+            }
+
+            // Update popup position with smooth transition and !important
+            content.style.transition = 'left 0.3s ease, top 0.3s ease';
+            content.style.setProperty('left', `${left}px`, 'important');
+            content.style.setProperty('top', `${top}px`, 'important');
+
+            console.log('✅ Position applied using existing repositionPopup logic:', left, top);
+
+            // Remove transition after animation completes
+            setTimeout(() => {
+                content.style.transition = '';
+            }, 300);
+        }
+
+        function closeOverlayEventForm() {
+            console.log('🚫 closeOverlayEventForm called');
+            const overlay = document.getElementById('calendar-overlay-form');
+            if (overlay) {
+                console.log('✅ Found overlay element, hiding it');
+                // Use more forceful hiding methods
+                overlay.style.display = 'none !important';
+                overlay.style.visibility = 'hidden';
+                overlay.style.opacity = '0';
+                overlay.style.pointerEvents = 'none';
+                overlay.classList.add('hidden');
+                overlay.classList.remove('show');
+                clearOverlayEventForm();
+            } else {
+                console.log('❌ Overlay element not found');
+            }
+        }
+
+        function handleOverlayClick(event) {
+            console.log('🖱️ handleOverlayClick called', event.target);
+            console.log('🎯 Event target classes:', event.target.classList);
+            // Close overlay when clicking on background
+            if (event.target.classList.contains('calendar-overlay-form')) {
+                console.log('✅ Clicked on background, closing overlay');
+                closeOverlayEventForm();
+            } else {
+                console.log('❌ Not clicking on background');
+            }
+        }
+
+        function clearOverlayEventForm() {
+            document.getElementById('overlay-event-title').value = '';
+            document.getElementById('overlay-event-date').value = '';
+            document.getElementById('overlay-start-time').value = '09:00';
+            document.getElementById('overlay-end-time').value = '10:00';
+            document.getElementById('overlay-start-time-display').textContent = '오전 09:00';
+            document.getElementById('overlay-end-time-display').textContent = '오전 10:00';
+            const description = document.getElementById('overlay-event-description');
+            if (description) description.value = '';
+        }
+
+        function saveOverlayEvent(event) {
+            event.preventDefault();
+
+            const title = document.getElementById('overlay-event-title').value;
+            const date = document.getElementById('overlay-event-date').value;
+            const startTime = document.getElementById('overlay-start-time').value;
+            const endTime = document.getElementById('overlay-end-time').value;
+            const description = document.getElementById('overlay-event-description')?.value || '';
+
+            if (!title || !date || !startTime || !endTime) {
+                alert('모든 필수 필드를 입력해주세요.');
+                return;
+            }
+
+            // Create event data
+            const eventData = {
+                title: title,
+                start: `${date}T${startTime}`,
+                end: `${date}T${endTime}`,
+                description: description
+            };
+
+            console.log('🗓️ Saving event:', eventData);
+
+            // Save event to backend
+            saveEventToBackend(eventData);
+            
+            closeOverlayEventForm();
+            showNotification('일정이 저장되었습니다.');
+        }
+
+        async function saveEventToBackend(eventData) {
+            try {
+                const calendarId = document.querySelector('.calendar-workspace')?.dataset.calendarId || 'default';
+                
+                // Convert eventData to match the API format
+                const apiData = {
+                    title: eventData.title,
+                    date: eventData.start.split('T')[0], // Extract date part
+                    subtitle: eventData.description || '',
+                    type: 'event',
+                    start_time: eventData.start,
+                    end_time: eventData.end,
+                    calendar_id: calendarId
+                };
+                
+                console.log('📤 Sending event to backend:', apiData);
+                
+                const response = await fetch('/api/events', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(apiData)
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('✅ Event saved to backend successfully:', result);
+                    // Refresh the calendar to show the new event
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    const errorData = await response.json();
+                    console.error('❌ Failed to save event:', response.status, errorData);
+                    showNotification('일정 저장에 실패했습니다.');
+                }
+            } catch (error) {
+                console.error('❌ Error saving event to backend:', error);
+                showNotification('일정 저장 중 오류가 발생했습니다.');
+            }
+        }
+
+        function showNotification(message) {
+            // Simple notification - you can enhance this
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #10b981;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 6px;
+                font-size: 14px;
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+            `;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Add a simple test function to show the overlay
+
+        // Force popup redesign styles - preserve functionality
+        const forcePopupStyles = () => {
+            const style = document.createElement('style');
+            style.innerHTML = `
+                /* CELL-POSITIONED POPUP SYSTEM */
+                .calendar-overlay-form {
+                    position: fixed !important;
+                    top: 0 !important;
+                    left: 0 !important;
+                    width: 100vw !important;
+                    height: 100vh !important;
+                    background: transparent !important;
+                    z-index: 1000 !important;
+                    pointer-events: none !important;
+                    display: none !important;
+                }
+                
+                .calendar-overlay-form .overlay-form-content {
+                    position: fixed !important;
+                    background: #ffffff !important;
+                    border-radius: 16px !important;
+                    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 8px 32px rgba(0, 0, 0, 0.12), 0 24px 64px rgba(0, 0, 0, 0.08) !important;
+                    width: 540px !important;
+                    max-height: 550px !important;
+                    padding: 0 !important;
+                    pointer-events: auto !important;
+                    /* Position will be set dynamically by JavaScript */
+                    transform: none !important;
+                    border: 1px solid rgba(229, 231, 235, 0.8) !important;
+                    animation: popupSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+                }
+                
+                .calendar-overlay-form .form-header {
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: space-between !important;
+                    padding: 24px 24px 16px 24px !important;
+                    border-bottom: none !important;
+                    background: transparent !important;
+                    margin: 0 !important;
+                }
+                
+                .calendar-overlay-form .form-header h2 {
+                    margin: 0 !important;
+                    font-size: 20px !important;
+                    font-weight: 600 !important;
+                    color: #0f0f0f !important;
+                    line-height: 1.3 !important;
+                    letter-spacing: -0.02em !important;
+                }
+                
+                .calendar-overlay-form .close-overlay-btn {
+                    background: none !important;
+                    border: none !important;
+                    padding: 8px !important;
+                    cursor: pointer !important;
+                    border-radius: 8px !important;
+                    color: #6b7280 !important;
+                    transition: all 0.15s ease !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    width: 32px !important;
+                    height: 32px !important;
+                }
+                
+                .calendar-overlay-form form {
+                    padding: 0 24px 24px 24px !important;
+                    display: flex !important;
+                    flex-direction: column !important;
+                    gap: 20px !important;
+                    margin: 0 !important;
+                }
+                
+                .calendar-overlay-form .form-group {
+                    display: flex !important;
+                    flex-direction: column !important;
+                    gap: 8px !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                }
+                
+                .calendar-overlay-form label {
+                    font-size: 14px !important;
+                    font-weight: 500 !important;
+                    color: #374151 !important;
+                    line-height: 1.4 !important;
+                    margin: 0 !important;
+                }
+                
+                .calendar-overlay-form input,
+                .calendar-overlay-form textarea {
+                    width: 100% !important;
+                    padding: 12px 14px !important;
+                    border: 1.5px solid #e5e7eb !important;
+                    border-radius: 8px !important;
+                    font-size: 15px !important;
+                    font-weight: 400 !important;
+                    line-height: 1.5 !important;
+                    transition: all 0.15s ease !important;
+                    box-sizing: border-box !important;
+                    background: #ffffff !important;
+                    color: #0f0f0f !important;
+                    margin: 0 !important;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+                }
+                
+                .calendar-overlay-form input:focus,
+                .calendar-overlay-form textarea:focus {
+                    outline: none !important;
+                    border-color: #6366f1 !important;
+                    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08) !important;
+                }
+                
+                .calendar-overlay-form .form-actions {
+                    display: flex !important;
+                    gap: 10px !important;
+                    margin: 16px 0 0 0 !important;
+                    padding: 0 !important;
+                }
+                
+                .calendar-overlay-form .btn-cancel,
+                .calendar-overlay-form .btn-save {
+                    flex: 1 !important;
+                    padding: 12px 18px !important;
+                    border: none !important;
+                    border-radius: 8px !important;
+                    font-size: 14px !important;
+                    font-weight: 500 !important;
+                    cursor: pointer !important;
+                    transition: all 0.15s ease !important;
+                    line-height: 1.4 !important;
+                    margin: 0 !important;
+                }
+                
+                .calendar-overlay-form .btn-save {
+                    background: #6366f1 !important;
+                    color: white !important;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24) !important;
+                }
+                
+                .calendar-overlay-form .btn-cancel {
+                    background: #ffffff !important;
+                    color: #374151 !important;
+                    border: 1px solid #d1d5db !important;
+                    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+                }
+                
+                .calendar-overlay-form .color-picker {
+                    display: flex !important;
+                    gap: 8px !important;
+                    margin-top: 4px !important;
+                    flex-wrap: wrap !important;
+                }
+                
+                .calendar-overlay-form .color-option {
+                    width: 28px !important;
+                    height: 28px !important;
+                    border-radius: 8px !important;
+                    cursor: pointer !important;
+                    border: 2px solid transparent !important;
+                    transition: all 0.15s ease !important;
+                    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1) inset !important;
+                    position: relative !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                }
+                
+                .calendar-overlay-form .color-option.active {
+                    border-color: #ffffff !important;
+                    box-shadow: 0 0 0 2px #6366f1, 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+                    transform: scale(1.05) !important;
+                }
+                
+                .calendar-overlay-form .color-option.active::after {
+                    content: '✓' !important;
+                    position: absolute !important;
+                    top: 50% !important;
+                    left: 50% !important;
+                    transform: translate(-50%, -50%) !important;
+                    color: white !important;
+                    font-size: 12px !important;
+                    font-weight: bold !important;
+                    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+                }
+                
+                @keyframes popupSlideIn {
+                    from {
+                        opacity: 0;
+                        transform: translateY(-10px) scale(0.98);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0) scale(1);
+                    }
+                }
+                
+                @keyframes popupFadeIn {
+                    from {
+                        opacity: 0;
+                        transform: scale(0.96);
+                        filter: blur(4px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: scale(1);
+                        filter: blur(0);
+                    }
+                }
+                
+                /* Show popup when explicitly activated */
+                .calendar-overlay-form.show {
+                    display: block !important;
+                    pointer-events: auto !important;
+                }
+                
+                /* Force hide when hidden class is added */
+                .calendar-overlay-form.hidden {
+                    display: none !important;
+                    visibility: hidden !important;
+                    opacity: 0 !important;
+                    pointer-events: none !important;
+                }
+                
+                /* Time Picker Styles */
+                .time-picker-btn {
+                    width: 100% !important;
+                    padding: 12px 14px !important;
+                    border: 1.5px solid #e5e7eb !important;
+                    border-radius: 8px !important;
+                    background: #ffffff !important;
+                    font-size: 15px !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: space-between !important;
+                    cursor: pointer !important;
+                    transition: all 0.15s ease !important;
+                }
+                
+                .time-picker-btn:hover {
+                    border-color: #3b82f6 !important;
+                    background: #f8fafc !important;
+                }
+                
+                .time-picker-dropdown {
+                    position: fixed !important;
+                    background: #ffffff !important;
+                    border: 1px solid #e5e7eb !important;
+                    border-radius: 12px !important;
+                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+                    z-index: 10000 !important;
+                    width: 280px !important;
+                    max-height: 320px !important;
+                }
+                
+                .time-picker-header {
+                    padding: 16px 20px !important;
+                    border-bottom: 1px solid #f3f4f6 !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: space-between !important;
+                }
+                
+                .time-picker-header span {
+                    font-size: 16px !important;
+                    font-weight: 600 !important;
+                    color: #1f2937 !important;
+                }
+                
+                .time-picker-close {
+                    background: none !important;
+                    border: none !important;
+                    font-size: 20px !important;
+                    color: #6b7280 !important;
+                    cursor: pointer !important;
+                    padding: 4px !important;
+                    border-radius: 4px !important;
+                }
+                
+                .time-picker-close:hover {
+                    background: #f3f4f6 !important;
+                }
+                
+                .time-picker-content {
+                    max-height: 260px !important;
+                    overflow-y: auto !important;
+                }
+                
+                .time-list {
+                    padding: 8px !important;
+                }
+                
+                .time-option {
+                    padding: 10px 16px !important;
+                    cursor: pointer !important;
+                    border-radius: 6px !important;
+                    font-size: 14px !important;
+                    color: #374151 !important;
+                    transition: all 0.15s ease !important;
+                }
+                
+                .time-option:hover {
+                    background: #f3f4f6 !important;
+                    color: #1f2937 !important;
+                }
+                
+                .time-option.selected {
+                    background: #3b82f6 !important;
+                    color: #ffffff !important;
+                }
+            `;
+            document.head.appendChild(style);
+        };
+
+        // Apply styles immediately
+        document.addEventListener('DOMContentLoaded', forcePopupStyles);
+        forcePopupStyles();
+
+        // Make functions globally available
+        window.showOverlayEventForm = showOverlayEventForm;
+        window.closeOverlayEventForm = closeOverlayEventForm;
+        window.handleOverlayClick = handleOverlayClick;
+        window.clearOverlayEventForm = clearOverlayEventForm;
+        window.saveOverlayEvent = saveOverlayEvent;
+        window.repositionOverlayPopup = repositionOverlayPopup;
+        // Test functions for debugging
+        window.testOverlay = function () {
+            // Test with a mock cell for positioning
+            const mockCell = {
+                getBoundingClientRect: () => ({
+                    left: 200,
+                    top: 150,
+                    right: 300,
+                    bottom: 180,
+                    width: 100,
+                    height: 30
+                })
+            };
+            showOverlayEventForm('2025-09-02', '14:00', mockCell);
+        };
+
+        window.testOverlayClose = function () {
+            closeOverlayEventForm();
+        };
+
+        window.testOverlayReposition = function () {
+            const overlay = document.getElementById('calendar-overlay-form');
+            const mockCell = {
+                getBoundingClientRect: () => ({
+                    left: 500,
+                    top: 300,
+                    right: 600,
+                    bottom: 330,
+                    width: 100,
+                    height: 30
+                })
+            };
+            if (overlay) {
+                repositionOverlayPopup(overlay, mockCell);
+            }
+        };
+
+        // Debug function to check if functions exist
+        window.debugFunctions = function () {
+            console.log('showOverlayEventForm exists:', typeof showOverlayEventForm !== 'undefined');
+            console.log('closeOverlayEventForm exists:', typeof closeOverlayEventForm !== 'undefined');
+            console.log('handleOverlayClick exists:', typeof handleOverlayClick !== 'undefined');
+            console.log('repositionOverlayPopup exists:', typeof repositionOverlayPopup !== 'undefined');
+        };
+
+        // Time Picker Functions
+        let currentTimePickerType = null; // 'start' or 'end'
+
+        function generateTimeOptions() {
+            const times = [];
+            for (let hour = 0; hour < 24; hour++) {
+                for (let minute = 0; minute < 60; minute += 30) {
+                    const time24 = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                    const hour12 = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+                    const ampm = hour < 12 ? '오전' : '오후';
+                    const timeDisplay = `${ampm} ${hour12.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                    times.push({ value: time24, display: timeDisplay });
+                }
+            }
+            return times;
+        }
+
+        function openTimePicker(type) {
+            currentTimePickerType = type;
+            const dropdown = document.getElementById('time-picker-dropdown');
+            const title = document.getElementById('time-picker-title');
+            const timeList = document.getElementById('time-list');
+            
+            // Set title
+            title.textContent = type === 'start' ? '시작시간 선택' : '종료시간 선택';
+            
+            // Get current value
+            const currentValue = document.getElementById(`overlay-${type}-time`).value;
+            
+            // Generate time options
+            const times = generateTimeOptions();
+            timeList.innerHTML = '';
+            
+            times.forEach(time => {
+                const option = document.createElement('div');
+                option.className = 'time-option';
+                if (time.value === currentValue) {
+                    option.classList.add('selected');
+                }
+                option.textContent = time.display;
+                option.onclick = () => selectTime(time.value, time.display);
+                timeList.appendChild(option);
+            });
+            
+            // Position dropdown near the button
+            const btn = document.getElementById(`overlay-${type}-time-btn`);
+            const btnRect = btn.getBoundingClientRect();
+            
+            dropdown.style.display = 'block';
+            dropdown.style.left = `${btnRect.left}px`;
+            dropdown.style.top = `${btnRect.bottom + 8}px`;
+            
+            // Ensure dropdown doesn't go off-screen
+            const dropdownRect = dropdown.getBoundingClientRect();
+            if (dropdownRect.right > window.innerWidth) {
+                dropdown.style.left = `${btnRect.right - 280}px`;
+            }
+            if (dropdownRect.bottom > window.innerHeight) {
+                dropdown.style.top = `${btnRect.top - dropdownRect.height - 8}px`;
+            }
+            
+            // Scroll to selected option
+            const selectedOption = timeList.querySelector('.selected');
+            if (selectedOption) {
+                selectedOption.scrollIntoView({ block: 'center' });
+            }
+        }
+
+        function selectTime(value, display) {
+            if (!currentTimePickerType) return;
+            
+            // Update hidden input
+            document.getElementById(`overlay-${currentTimePickerType}-time`).value = value;
+            
+            // Update display
+            document.getElementById(`overlay-${currentTimePickerType}-time-display`).textContent = display;
+            
+            closeTimePicker();
+        }
+
+        function closeTimePicker() {
+            document.getElementById('time-picker-dropdown').style.display = 'none';
+            currentTimePickerType = null;
+        }
+
+        // Convert 24-hour time to AM/PM display
+        function convertToAMPM(time24) {
+            const [hours, minutes] = time24.split(':');
+            const hour = parseInt(hours);
+            const hour12 = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+            const ampm = hour < 12 ? '오전' : '오후';
+            return `${ampm} ${hour12.toString().padStart(2, '0')}:${minutes}`;
+        }
+
+        // Make functions globally available
+        window.openTimePicker = openTimePicker;
+        window.closeTimePicker = closeTimePicker;
+        window.selectTime = selectTime;
     </script>
 
 </body>
