@@ -72,3 +72,4 @@ frontend/data/calendars/*
 *.temp
 .tmp/
 .cache/
+.env.railway
