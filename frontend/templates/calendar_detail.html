@@ -288,25 +288,470 @@
             letter-spacing: -0.025em;
         }
 
-        /* 검색 입력 스타일 */
-        .event-search-container {
+        /* Event Widget Actions */
+        .event-widget-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-search-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: #ffffff;
+            border-radius: 6px;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .toggle-search-btn:hover {
+            background: #f3f4f6;
+            color: #3b82f6;
+            transform: scale(1.05);
+        }
+
+        .toggle-search-btn.active {
+            background: #3b82f6;
+            color: white;
+        }
+
+        /* Event Search Section */
+        .event-search-section {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            background: #fafbfc;
+        }
+
+        .event-list-section {
+            padding: 0;
+        }
+
+        /* ===== MODERN AGENDA VIEW (Linear/Notion/Google Calendar Style) ===== */
+        .agenda-view-container {
+            display: none;
+            padding: 32px;
+            max-width: 1100px;
+            margin: 0 auto;
+            background: #ffffff;
+            height: 100%;
+            overflow-y: auto;
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
+        }
+        
+        .agenda-view-container.active {
+            display: block;
+        }
+        
+        /* Modern Header */
+        .agenda-header {
+            margin-bottom: 40px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 24px;
+        }
+        
+        .agenda-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 8px;
+            letter-spacing: -0.025em;
+        }
+        
+        .agenda-subtitle {
+            color: #64748b;
+            font-size: 16px;
+            font-weight: 400;
+            margin: 0;
+        }
+        
+        /* 3-Column Grid Layout - Modern Spacing */
+        .agenda-grid-layout {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            margin-top: 0;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            .agenda-grid-layout {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 28px;
+            }
+            .agenda-view-container {
+                padding: 24px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .agenda-grid-layout {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            .agenda-view-container {
+                padding: 20px;
+            }
+            .agenda-title {
+                font-size: 28px;
+            }
+        }
+        
+        /* Modern Section Container */
+        .agenda-section {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 24px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            height: fit-content;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+        
+        .agenda-section:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        /* Modern Section Title */
+        .agenda-section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            letter-spacing: -0.015em;
+        }
+        
+        /* Event Count Badge */
+        .event-count {
+            background: #f1f5f9;
+            color: #64748b;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            min-width: 20px;
+            text-align: center;
+        }
+        
+        /* Events Container */
+        .agenda-events {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        /* Modern Event Cards */
+        .agenda-event-card {
+            background: #ffffff;
+            border: 1px solid #f1f5f9;
+            border-radius: 6px;
             padding: 16px;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .agenda-event-card:hover {
+            border-color: #cbd5e1;
+            background: #fafbfc;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        }
+        
+        /* Event Header Layout */
+        .agenda-event-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            gap: 12px;
+        }
+        
+        /* Event Title */
+        .agenda-event-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: #0f172a;
+            margin: 0;
+            line-height: 1.4;
+            flex: 1;
+        }
+        
+        /* Event Time */
+        .agenda-event-time {
+            font-size: 13px;
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+            color: #64748b;
+        }
+        
+        /* Event Description */
+        .agenda-event-description {
+            color: #64748b;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-top: 6px;
+            margin-bottom: 0;
+        }
+        
+        /* Event Tags */
+        .agenda-event-tags {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .agenda-event-tag {
+            background: #f8fafc;
+            color: #64748b;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            border: 1px solid #e2e8f0;
+        }
+        
+        /* Empty State */
+        .agenda-no-events {
+            text-align: center;
+            padding: 32px 16px;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+        
+        .agenda-no-events svg {
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+
+        /* ===== SECTION-SPECIFIC MODERN STYLING ===== */
+        
+        /* Upcoming Events (남은 일정) - Green Theme */
+        .agenda-section-upcoming {
+            border-top: 3px solid #22c55e;
+            background: #ffffff;
+        }
+        
+        .agenda-section-title.upcoming {
+            color: #166534;
+        }
+        
+        .agenda-section-title.upcoming .event-count {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .agenda-event-card.upcoming {
+            border-left: 3px solid #22c55e;
+            background: #ffffff;
+        }
+        
+        .agenda-event-card.upcoming:hover {
+            border-left-color: #16a34a;
+            background: #f0fdf4;
+        }
+        
+        .agenda-event-time.upcoming {
+            color: #22c55e;
+            font-weight: 500;
+        }
+        
+        .agenda-event-tag.upcoming {
+            background: #dcfce7;
+            color: #166534;
+            border-color: #bbf7d0;
+        }
+        
+        /* Past Events (지나간 일정) - Gray Theme */
+        .agenda-section-past {
+            border-top: 3px solid #94a3b8;
+            background: #ffffff;
+        }
+        
+        .agenda-section-title.past {
+            color: #475569;
+        }
+        
+        .agenda-section-title.past .event-count {
+            background: #f1f5f9;
+            color: #475569;
+        }
+        
+        .agenda-event-card.past {
+            border-left: 3px solid #94a3b8;
+            background: #ffffff;
+            opacity: 0.75;
+        }
+        
+        .agenda-event-card.past:hover {
+            border-left-color: #64748b;
+            background: #f8fafc;
+            opacity: 1;
+        }
+        
+        .agenda-event-title.past {
+            color: #64748b;
+        }
+        
+        .agenda-event-time.past {
+            color: #94a3b8;
+        }
+        
+        .agenda-event-description.past {
+            color: #94a3b8;
+        }
+        
+        .agenda-event-tag.past {
+            background: #f1f5f9;
+            color: #64748b;
+            border-color: #e2e8f0;
+        }
+        
+        /* Routine Events (루틴 일정) - Purple Theme */
+        .agenda-section-routine {
+            border-top: 3px solid #8b5cf6;
+            background: #ffffff;
+        }
+        
+        .agenda-section-title.routine {
+            color: #6d28d9;
+        }
+        
+        .agenda-section-title.routine .event-count {
+            background: #f3e8ff;
+            color: #6d28d9;
+        }
+        
+        .agenda-event-card.routine {
+            border-left: 3px solid #8b5cf6;
+            background: #ffffff;
+            position: relative;
+        }
+        
+        .agenda-event-card.routine::before {
+            content: '↻';
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            font-size: 12px;
+            opacity: 0.5;
+            color: #8b5cf6;
+            font-weight: 600;
+        }
+        
+        .agenda-event-card.routine:hover {
+            border-left-color: #7c3aed;
+            background: #faf5ff;
+        }
+        
+        .agenda-event-time.routine {
+            color: #8b5cf6;
+            font-weight: 500;
+        }
+        
+        .agenda-event-tag.routine {
+            background: #f3e8ff;
+            color: #6d28d9;
+            border-color: #e9d5ff;
+        }
+
+        /* ===== MODERN DATE GROUPING STYLES ===== */
+        .agenda-date-group {
+            margin-bottom: 20px;
+        }
+        
+        .agenda-date-title {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 12px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            display: inline-block;
+            letter-spacing: -0.01em;
+        }
+        
+        .agenda-date-group.upcoming .agenda-date-title {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+        
+        .agenda-date-group.past .agenda-date-title {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .agenda-date-group.routine .agenda-date-title {
+            background: #f3e8ff;
+            color: #6d28d9;
+            border: 1px solid #e9d5ff;
+        }
+        
+        .agenda-date-events {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-left: 12px;
+        }
+
+        /* ===== MODERN EMPTY SECTION STYLING ===== */
+        .agenda-empty-section {
+            text-align: center;
+            padding: 40px 20px;
+            color: #94a3b8;
+            font-size: 14px;
+            border: 2px dashed #e2e8f0;
+            border-radius: 8px;
+            background: #ffffff;
+        }
+        
+        .agenda-empty-section svg {
+            margin-bottom: 8px;
+            opacity: 0.5;
+        }
+
+        /* ===== MODERN SEARCH INPUT STYLES ===== */
+        .event-search-container {
+            padding: 20px 32px;
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
         }
 
         #event-search-input {
             width: 100%;
-            padding: 12px 16px;
+            padding: 12px 16px 12px 40px;
             border: 1px solid #e2e8f0;
             border-radius: 8px;
             font-size: 14px;
-            background: #f8fafc;
-            transition: all 0.2s ease;
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
+            background: #ffffff url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%2394a3b8' viewBox='0 0 24 24'%3e%3ccircle cx='11' cy='11' r='8'/%3e%3cpath d='m21 21-4.35-4.35'/%3e%3c/svg%3e") no-repeat 12px center;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
             box-sizing: border-box;
+            color: #0f172a;
+        }
+        
+        #event-search-input::placeholder {
+            color: #94a3b8;
         }
 
         #event-search-input:focus {
-            background: #ffffff;
+            background: #ffffff url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%233b82f6' viewBox='0 0 24 24'%3e%3ccircle cx='11' cy='11' r='8'/%3e%3cpath d='m21 21-4.35-4.35'/%3e%3c/svg%3e") no-repeat 12px center;
             border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
             outline: none;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
             transform: translateY(-1px);
@@ -358,6 +803,55 @@
         .mini-nav-btn:hover {
             background: #f0f0f0;
             color: #3b82f6;
+        }
+
+        /* ===== HEADER NAVIGATION BUTTONS STYLING ===== */
+        .date-navigator {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .nav-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #374151;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        
+        .nav-btn:hover {
+            background: #f3f4f6;
+            color: #111827;
+            transform: translateY(-1px);
+        }
+        
+        .nav-btn:active {
+            transform: translateY(0);
+            background: #e5e7eb;
+        }
+        
+        .nav-btn svg {
+            width: 16px;
+            height: 16px;
+            stroke-width: 2.5;
+        }
+        
+        .current-date {
+            font-size: 16px;
+            font-weight: 600;
+            color: #111827;
+            letter-spacing: -0.015em;
+            min-width: 140px;
+            text-align: center;
+            user-select: none;
         }
 
         /* 미니 캘린더 그리드 - 원래 스타일로 복원 */
@@ -670,35 +1164,43 @@
         <div class="calendar-workspace-content">
             <!-- Left Sidebar -->
             <div class="left-sidebar" id="left-sidebar">
-                <!-- Event Search Widget -->
+                <!-- Unified Event Widget -->
                 <div class="sidebar-widget">
                     <div class="widget-header">
-                        <h4>일정 검색</h4>
-                    </div>
-                    <div class="event-search-container">
-                        <div class="search-input-wrapper">
-                            <input type="text" id="event-search-input" placeholder="일정 제목 검색..." autocomplete="off">
-                            <button class="search-clear-btn" id="search-clear-btn" onclick="clearEventSearch()"
-                                style="display: none;">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <path d="M6 18L18 6M6 6l12 12" />
+                        <h4>일정 관리</h4>
+                        <div class="event-widget-actions">
+                            <button class="toggle-search-btn" id="toggle-search-btn" onclick="toggleEventSearch()" title="검색">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <path d="m21 21-4.35-4.35"></path>
                                 </svg>
                             </button>
                         </div>
-                        <div class="search-results" id="search-results" style="display: none;">
-                            <!-- Search results will be populated here -->
+                    </div>
+                    
+                    <!-- Search Section (Initially Hidden) -->
+                    <div class="event-search-section" id="event-search-section" style="display: none;">
+                        <div class="event-search-container">
+                            <div class="search-input-wrapper">
+                                <input type="text" id="event-search-input" placeholder="일정 제목 검색..." autocomplete="off">
+                                <button class="search-clear-btn" id="search-clear-btn" onclick="clearEventSearch()" style="display: none;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="search-results" id="search-results" style="display: none;">
+                                <!-- Search results will be populated here -->
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Event List Widget -->
-                <div class="sidebar-widget">
-                    <div class="widget-header">
-                        <h4>일정 목록</h4>
-                    </div>
-                    <div class="event-list-container">
-                        <div class="event-list" id="event-list">
-                            <!-- Event list will be populated here -->
+                    
+                    <!-- Event List Section -->
+                    <div class="event-list-section" id="event-list-section">
+                        <div class="event-list-container">
+                            <div class="event-list" id="event-list">
+                                <!-- Event list will be populated here -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1199,6 +1701,18 @@
             <div class="calendar-main-content">
                 <div id="calendar-grid-container" class="calendar-grid-container">
                     <!-- Google Calendar Grid will be rendered here by JS -->
+                </div>
+                
+                <!-- Agenda View Container -->
+                <div id="agenda-view-container" class="agenda-view-container">
+                    <div class="agenda-header">
+                        <h1 class="agenda-title">📅 일정 목록</h1>
+                        <p class="agenda-subtitle">모든 일정을 한 눈에 확인하세요</p>
+                    </div>
+                    
+                    <div id="agenda-content" class="agenda-grid-layout">
+                        <!-- Agenda content will be rendered here by JavaScript -->
+                    </div>
                 </div>
             </div>
 
@@ -3225,20 +3739,19 @@
             try {
                 const calendarId = document.querySelector('.calendar-workspace')?.dataset.calendarId || 'default';
                 
-                // Convert eventData to match the API format
+                // Convert eventData to match the calendar API format
                 const apiData = {
                     title: eventData.title,
-                    date: eventData.start.split('T')[0], // Extract date part
-                    subtitle: eventData.description || '',
-                    type: 'event',
-                    start_time: eventData.start,
-                    end_time: eventData.end,
-                    calendar_id: calendarId
+                    description: eventData.description || '',
+                    date: eventData.start.split('T')[0], // Extract date part (YYYY-MM-DD)
+                    startTime: eventData.start.split('T')[1], // Extract time part (HH:MM)
+                    endTime: eventData.end.split('T')[1], // Extract time part (HH:MM)
+                    color: '#3b82f6' // Default blue color
                 };
                 
                 console.log('📤 Sending event to backend:', apiData);
                 
-                const response = await fetch('/api/events', {
+                const response = await fetch(`/api/calendars/${calendarId}/events`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

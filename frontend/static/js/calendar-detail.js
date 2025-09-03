@@ -1,6 +1,6 @@
 // Calendar Detail - Modern Notion Style
 let currentDate = new Date();
-let currentView = 'month';
+let currentView = 'week'; // Match HTML default active view
 let selectedDate = null;
 let calendarEvents = [];
 let todoList = [];
@@ -151,6 +151,13 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeCalendar() {
+    // Check active view from HTML and sync currentView
+    const activeViewBtn = document.querySelector('.view-option.active');
+    if (activeViewBtn) {
+        currentView = activeViewBtn.dataset.view;
+        console.log('🎯 Initialized with view:', currentView);
+    }
+    
     updateDateDisplay();
     renderMonthView();
     updateStats();
@@ -193,38 +200,74 @@ function setupEventListeners() {
 function updateDateDisplay() {
     const dateElement = document.getElementById('current-date');
     if (dateElement) {
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth() + 1;
-        dateElement.textContent = `${year}년 ${month}월`;
+        if (currentView === 'week') {
+            // Show week range for week view
+            const weekStart = getWeekStart(currentDate);
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+            
+            const startMonth = weekStart.getMonth() + 1;
+            const startDate = weekStart.getDate();
+            const endMonth = weekEnd.getMonth() + 1;
+            const endDate = weekEnd.getDate();
+            
+            // Format as "3월 2일 - 3월 8일" or "2월 26일 - 3월 4일" if crossing months
+            if (startMonth === endMonth) {
+                dateElement.textContent = `${startMonth}월 ${startDate}일 - ${endDate}일`;
+            } else {
+                dateElement.textContent = `${startMonth}월 ${startDate}일 - ${endMonth}월 ${endDate}일`;
+            }
+        } else {
+            // Show month for month view and agenda view
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth() + 1;
+            dateElement.textContent = `${year}년 ${month}월`;
+        }
     }
 }
 
 function switchView(viewType) {
+    console.log(`🔍 Switching to ${viewType} view`);
+    
     // Update active button
     document.querySelectorAll('.view-option').forEach(btn => btn.classList.remove('active'));
-    document.querySelector(`[data-view="${viewType}"]`).classList.add('active');
+    const activeBtn = document.querySelector(`[data-view="${viewType}"]`);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+    }
     
-    // Hide all views
-    document.querySelectorAll('.calendar-view-container').forEach(view => {
-        view.classList.remove('active');
-    });
+    currentView = viewType;
     
-    // Show selected view
-    const targetView = document.getElementById(`${viewType}-view`);
-    if (targetView) {
-        targetView.classList.add('active');
-        currentView = viewType;
+    // Get main containers
+    const calendarGrid = document.getElementById('calendar-grid-container');
+    const agendaContainer = document.getElementById('agenda-view-container');
+    
+    // Handle view switching
+    if (viewType === 'agenda') {
+        // Show agenda view
+        if (calendarGrid) {
+            calendarGrid.style.display = 'none';
+        }
+        if (agendaContainer) {
+            agendaContainer.classList.add('active');
+        }
+        renderAgendaView();
+    } else {
+        // Show calendar views (month, week)
+        if (agendaContainer) {
+            agendaContainer.classList.remove('active');
+        }
+        if (calendarGrid) {
+            calendarGrid.style.display = 'block';
+        }
         
-        // Render appropriate content
+        // Render appropriate calendar view
         switch(viewType) {
             case 'month':
                 renderMonthView();
                 break;
             case 'week':
                 renderWeekView();
-                break;
-            case 'agenda':
-                renderAgendaView();
                 break;
         }
     }
@@ -235,6 +278,7 @@ let mediaPlayer = null; // Supports both audio and video
 let currentPlaylist = [];
 let currentTrackIndex = 0;
 let isPlaying = false;
+let mediaInitializing = false; // Prevent infinite loops
 
 function initializeMediaPlayer() {
     console.log('🎵 Initializing media player...');
@@ -284,11 +328,11 @@ function createMediaElement(type) {
         mediaPlayer.addEventListener('timeupdate', updateProgress);
         mediaPlayer.addEventListener('ended', handleTrackEnd);
         mediaPlayer.addEventListener('error', function(e) {
-            console.warn('Media error event:', e);
-            console.warn('Media error code:', mediaPlayer.error?.code);
-            console.warn('Media error message:', mediaPlayer.error?.message);
-            console.warn('Media src:', mediaPlayer.src);
-            console.warn('Network state:', mediaPlayer.networkState);
+            console.log('🎵 미디어 로드 문제 (정상):', {
+                code: mediaPlayer.error?.code,
+                message: mediaPlayer.error?.message,
+                src: mediaPlayer.src?.substring(0, 50) + '...'
+            });
             handleMediaError(e);
         });
     }
@@ -313,6 +357,14 @@ function createMediaElement(type) {
 }
 
 function checkForMediaFiles() {
+    // Prevent infinite loops
+    if (mediaInitializing) {
+        console.log('🎵 미디어 초기화 중, 중복 호출 방지');
+        return;
+    }
+    
+    mediaInitializing = true;
+    
     // Get calendar media URL from data attribute
     const workspace = document.querySelector('.calendar-workspace');
     const calendarId = workspace?.dataset.calendarId;
@@ -343,6 +395,23 @@ function checkForMediaFiles() {
             // If it's a single URL string
             console.log('Loading single media file:', mediaUrl);
             
+            // Check if it's a YouTube URL and handle it specially
+            if (mediaUrl.includes('youtube.com') || mediaUrl.includes('youtu.be')) {
+                console.log('🎵 YouTube URL detected in single media file');
+                const embedUrl = convertToYouTubeEmbedUrl(mediaUrl);
+                if (embedUrl) {
+                    // Show media players
+                    const mediaPlayer = document.getElementById('media-player');
+                    if (mediaPlayer) {
+                        mediaPlayer.style.display = 'flex';
+                    }
+                    showCompactMediaPlayer();
+                    
+                    initializeYouTubePlayer(embedUrl, { title: 'YouTube Video', artist: 'YouTube' });
+                    return;
+                }
+            }
+            
             // Show media players before loading track
             const mediaPlayer = document.getElementById('media-player');
             if (mediaPlayer) {
@@ -365,6 +434,11 @@ function checkForMediaFiles() {
         console.log('No media URL in data attribute, fetching from API...');
         fetchCalendarMedia(calendarId);
     }
+    
+    // Reset initialization flag
+    setTimeout(() => {
+        mediaInitializing = false;
+    }, 100);
 }
 
 function fetchCalendarMedia(calendarId) {
@@ -384,6 +458,23 @@ function fetchCalendarMedia(calendarId) {
         console.log('📻 Media data from workspace:', { mediaUrl, mediaTitle, mediaType });
         
         if (mediaUrl && mediaUrl.trim() !== '') {
+            // Check if it's a YouTube URL and handle it specially
+            if (mediaUrl.includes('youtube.com') || mediaUrl.includes('youtu.be')) {
+                console.log('🎵 YouTube URL detected in fetchCalendarMedia');
+                const embedUrl = convertToYouTubeEmbedUrl(mediaUrl);
+                if (embedUrl) {
+                    // Show media players
+                    const mediaPlayer = document.getElementById('media-player');
+                    if (mediaPlayer) {
+                        mediaPlayer.style.display = 'flex';
+                    }
+                    showCompactMediaPlayer();
+                    
+                    initializeYouTubePlayer(embedUrl, { title: 'YouTube Video', artist: 'YouTube' });
+                    return;
+                }
+            }
+            
             // Create media files array from workspace data
             const data = {
                 success: true,
@@ -434,8 +525,8 @@ function hideMediaPlayers() {
 }
 
 function handleMediaError(e) {
-    // Use warn instead of error for less intrusive logging
-    console.warn('Media playback error:', e.type);
+    // Quiet logging for better user experience
+    console.log('🎵 미디어 재생 문제:', e.type);
     
     if (e.target?.error) {
         const errorCode = e.target.error.code;
@@ -444,7 +535,7 @@ function handleMediaError(e) {
         // Add failed URL to blacklist to prevent future attempts
         if (e.target?.src) {
             blacklistedMediaUrls.add(e.target.src);
-            console.warn(`Adding URL to blacklist: ${e.target.src}`);
+            console.log(`🎵 URL 블랙리스트 추가: ${e.target.src?.substring(0, 50)}...`);
         }
         
         switch (errorCode) {
@@ -464,7 +555,7 @@ function handleMediaError(e) {
                 errorMessage = 'Unknown media error';
         }
         
-        console.warn(`Media error (${errorCode}): ${errorMessage}`);
+        console.log(`🎵 ${errorMessage} (오류 코드: ${errorCode})`);
     }
     
     // Update both players with appropriate message but keep them visible
@@ -498,18 +589,36 @@ function handleTrackEnd() {
 function loadTrack(track) {
     console.log('🎵 loadTrack called with:', track);
     if (!mediaPlayer || !track) {
-        console.warn('Cannot load track: missing mediaPlayer or track data');
+        console.log('🎵 트랙 로드 불가: 플레이어 또는 데이터 없음');
         return;
     }
     
-    // Skip if no valid source or placeholder source or blacklisted URL
+    // Check for YouTube URLs and handle them specially
+    if (track.src && (track.src.includes('youtube.com') || track.src.includes('youtu.be'))) {
+        console.log('🎵 유튜브 URL 감지됨, 임베드 플레이어로 변환:', track.src);
+        const embedUrl = convertToYouTubeEmbedUrl(track.src);
+        if (embedUrl) {
+            // Update UI with track info first
+            updateCompactPlayerInfo(track);
+            const mediaTitle = document.getElementById('media-title');
+            const mediaArtist = document.getElementById('media-artist');
+            if (mediaTitle) mediaTitle.textContent = track.title || 'YouTube Video';
+            if (mediaArtist) mediaArtist.textContent = track.artist || 'YouTube';
+            
+            // Initialize YouTube player
+            initializeYouTubePlayer(embedUrl);
+        }
+        return;
+    }
+    
+    // Skip if no valid source, placeholder source or blacklisted URL
     if (!track.src || 
         track.src === '#' || 
         track.src === '' || 
         track.src.includes('undefined') || 
         track.src.includes('null') ||
         blacklistedMediaUrls.has(track.src)) {
-        console.warn('No valid source for track or URL blacklisted, skipping media load entirely');
+        console.log('🎵 유효하지 않은 소스이거나 블랙리스트된 URL, 미디어 로드 건너뜀');
         // Clear any existing source to prevent browser from trying to load invalid files
         if (mediaPlayer.src) {
             mediaPlayer.removeAttribute('src');
@@ -525,6 +634,19 @@ function loadTrack(track) {
     }
     
     try {
+        // Remove any YouTube iframe and restore regular controls when loading non-YouTube media
+        const existingYouTubeFrame = document.getElementById('youtube-player');
+        if (existingYouTubeFrame) {
+            existingYouTubeFrame.remove();
+        }
+        const sidebarPlayerContainer = document.querySelector('.compact-media-player');
+        if (sidebarPlayerContainer) {
+            const mediaControls = sidebarPlayerContainer.querySelector('.compact-media-controls');
+            if (mediaControls) {
+                mediaControls.style.display = 'flex'; // Restore regular controls
+            }
+        }
+        
         // Determine media type from file extension or MIME type
         const isVideo = track.src.toLowerCase().includes('.mp4') || 
                        track.src.toLowerCase().includes('.webm') || 
@@ -564,7 +686,7 @@ function loadTrack(track) {
             // Check network state after a short delay
             setTimeout(() => {
                 if (mediaPlayer.error) {
-                    console.warn('🎵 Media still has error after timeout');
+                    console.log('🎵 미디어 에러 지속 (정상)');
                 }
             }, 500);
             
@@ -648,14 +770,14 @@ function updatePlayButton() {
 
 function togglePlay() {
     if (!mediaPlayer) {
-        console.warn('Media player not initialized');
+        console.log('🎵 미디어 플레이어 초기화되지 않음');
         return;
     }
     
     // Check if there's a valid source
     if (!mediaPlayer.src || mediaPlayer.src === '') {
-        console.warn('No media source loaded');
-        alert('재생할 미디어 파일이 없습니다.');
+        console.log('🎵 미디어 소스 없음');
+        showNotification('미디어 파일이 없습니다.');
         return;
     }
     
@@ -671,11 +793,11 @@ function togglePlay() {
                 updatePlayButton();
                 updateCompactPlayButton();
             }).catch(e => {
-                console.error('Playback failed:', e);
+                console.log('🎵 재생 실패 (정상):', e.name);
                 if (e.name === 'AbortError') {
-                    console.log('Play was interrupted, possibly by another action');
+                    console.log('🎵 재생이 다른 액션에 의해 중단됨');
                 } else {
-                    alert('음원을 재생할 수 없습니다. 브라우저 설정을 확인해주세요.');
+                    showNotification('미디어 재생이 불가능합니다.');
                 }
             });
         } else {
@@ -687,7 +809,7 @@ function togglePlay() {
                     updatePlayButton();
                     updateCompactPlayButton();
                 }).catch(e => {
-                    console.error('Playback failed after waiting:', e);
+                    console.log('🎵 대기 후 재생 실패 (정상):', e.name);
                 });
             }, { once: true });
         }
@@ -793,7 +915,7 @@ function updateVolumeIcon() {
     }
     
     if (!mediaPlayer) {
-        console.warn('Media player not available');
+        console.log('🎵 미디어 플레이어 사용 불가');
         return;
     }
     
@@ -1001,8 +1123,306 @@ function renderWeekView() {
 }
 
 function renderAgendaView() {
-    // Agenda view is already populated in HTML template
-    console.log('Agenda view rendered');
+    console.log('🔍 Rendering agenda view');
+    
+    // Hide calendar grid and show agenda container
+    const calendarGrid = document.getElementById('calendar-grid-container');
+    const agendaContainer = document.getElementById('agenda-view-container');
+    
+    if (calendarGrid) {
+        calendarGrid.style.display = 'none';
+    }
+    
+    if (agendaContainer) {
+        agendaContainer.classList.add('active');
+    }
+    
+    // Render agenda content
+    renderAgendaContent();
+}
+
+function renderAgendaContent() {
+    const agendaContent = document.getElementById('agenda-content');
+    if (!agendaContent) return;
+    
+    // Get events from calendar
+    const events = getAllCalendarEvents();
+    
+    if (events.length === 0) {
+        agendaContent.innerHTML = `
+            <div class="agenda-no-events">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <p>등록된 일정이 없습니다</p>
+                <p style="font-size: 14px; margin-top: 8px;">새 일정을 추가해보세요</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Classify events into categories
+    const { upcomingEvents, pastEvents, routineEvents } = classifyEvents(events);
+    
+    let html = '';
+    
+    // Render sections in grid layout order: upcoming, routine, past
+    html += renderEventSection('upcoming', '📅 남은 일정', upcomingEvents, '예정된 일정이 없습니다');
+    
+    // Render routine events section  
+    html += renderEventSection('routine', '🔄 루틴 일정', routineEvents, '반복 일정이 없습니다');
+    
+    // Render past events section
+    html += renderEventSection('past', '📋 지나간 일정', pastEvents, '지나간 일정이 없습니다');
+    
+    agendaContent.innerHTML = html;
+}
+
+function classifyEvents(events) {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    const upcomingEvents = [];
+    const pastEvents = [];
+    const routineEvents = [];
+    
+    for (const event of events) {
+        const eventDate = event.date || event.start_date;
+        if (!eventDate) continue;
+        
+        const date = eventDate instanceof Date ? eventDate : new Date(eventDate);
+        const eventDateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        
+        // Check if it's a routine/recurring event
+        if (event.is_recurring || event.routine || event.frequency || event.repeat_type) {
+            routineEvents.push(event);
+        } else if (eventDateOnly >= today) {
+            // Future or today events
+            upcomingEvents.push(event);
+        } else {
+            // Past events
+            pastEvents.push(event);
+        }
+    }
+    
+    // Sort events
+    upcomingEvents.sort((a, b) => {
+        const dateA = a.date || a.start_date;
+        const dateB = b.date || b.start_date;
+        return new Date(dateA) - new Date(dateB);
+    });
+    
+    pastEvents.sort((a, b) => {
+        const dateA = a.date || a.start_date;
+        const dateB = b.date || b.start_date;
+        return new Date(dateB) - new Date(dateA); // Recent past events first
+    });
+    
+    routineEvents.sort((a, b) => {
+        const titleA = a.title || '';
+        const titleB = b.title || '';
+        return titleA.localeCompare(titleB);
+    });
+    
+    return { upcomingEvents, pastEvents, routineEvents };
+}
+
+function renderEventSection(sectionType, title, events, emptyMessage) {
+    const sectionClass = `agenda-section-${sectionType}`;
+    
+    let html = `
+        <div class="agenda-section ${sectionClass}">
+            <h2 class="agenda-section-title ${sectionType}">
+                ${title}
+                <span class="event-count">(${events.length}개)</span>
+            </h2>
+    `;
+    
+    if (events.length === 0) {
+        html += `
+            <div class="agenda-empty-section">
+                <p>${emptyMessage}</p>
+            </div>
+        `;
+    } else {
+        html += '<div class="agenda-events">';
+        
+        // Group by date for upcoming and past events, or render directly for routine
+        if (sectionType === 'routine') {
+            for (const event of events) {
+                html += renderEventCard(event, sectionType);
+            }
+        } else {
+            const groupedEvents = groupEventsByDate(events);
+            const sortedDates = Object.keys(groupedEvents).sort((a, b) => {
+                return sectionType === 'past' ? 
+                    new Date(b) - new Date(a) : // Past events: recent first
+                    new Date(a) - new Date(b);  // Upcoming events: soonest first
+            });
+            
+            for (const dateStr of sortedDates) {
+                const dateEvents = groupedEvents[dateStr];
+                const date = new Date(dateStr);
+                const isToday = isDateToday(date);
+                
+                let dateTitle = '';
+                if (sectionType === 'upcoming') {
+                    dateTitle = isToday ? '오늘' : formatDateForAgenda(date);
+                } else {
+                    dateTitle = formatDateForAgenda(date);
+                }
+                
+                html += `
+                    <div class="agenda-date-group ${sectionType}">
+                        <h3 class="agenda-date-title">${dateTitle}</h3>
+                        <div class="agenda-date-events">
+                `;
+                
+                // Sort events by time within each date
+                dateEvents.sort((a, b) => {
+                    const timeA = a.start_time || '00:00';
+                    const timeB = b.start_time || '00:00';
+                    return timeA.localeCompare(timeB);
+                });
+                
+                for (const event of dateEvents) {
+                    html += renderEventCard(event, sectionType);
+                }
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        html += '</div>';
+    }
+    
+    html += '</div>';
+    return html;
+}
+
+function renderEventCard(event, sectionType) {
+    const cardClass = `agenda-event-card ${sectionType}`;
+    
+    return `
+        <div class="${cardClass}" onclick="openEventDetail('${event.id}')">
+            <div class="agenda-event-header">
+                <h3 class="agenda-event-title">${escapeHtml(event.title)}</h3>
+                <span class="agenda-event-time ${sectionType}">${formatEventTime(event)}</span>
+            </div>
+            ${event.description ? `<div class="agenda-event-description">${escapeHtml(event.description)}</div>` : ''}
+            ${renderEventTags(event, sectionType)}
+        </div>
+    `;
+}
+
+function getAllCalendarEvents() {
+    // Get events from various sources
+    let events = [];
+    
+    // Add calendar events
+    if (calendarEvents && calendarEvents.length > 0) {
+        events = events.concat(calendarEvents);
+    }
+    
+    // Add any additional events from other sources
+    // This can be extended to include events from other calendars or sources
+    
+    return events;
+}
+
+function groupEventsByDate(events) {
+    const grouped = {};
+    
+    for (const event of events) {
+        const date = event.date || event.start_date;
+        if (!date) continue;
+        
+        const dateStr = date instanceof Date ? date.toDateString() : new Date(date).toDateString();
+        
+        if (!grouped[dateStr]) {
+            grouped[dateStr] = [];
+        }
+        
+        grouped[dateStr].push(event);
+    }
+    
+    return grouped;
+}
+
+function isDateToday(date) {
+    const today = new Date();
+    return date.toDateString() === today.toDateString();
+}
+
+function formatDateForAgenda(date) {
+    const options = { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        weekday: 'long' 
+    };
+    return date.toLocaleDateString('ko-KR', options);
+}
+
+function formatEventTime(event) {
+    if (event.start_time && event.end_time) {
+        return `${event.start_time} - ${event.end_time}`;
+    } else if (event.start_time) {
+        return event.start_time;
+    } else if (event.time) {
+        return event.time;
+    } else {
+        return '종일';
+    }
+}
+
+function renderEventTags(event, sectionType = '') {
+    const tags = [];
+    
+    if (event.category) {
+        tags.push(event.category);
+    }
+    
+    if (event.priority) {
+        tags.push(`우선순위: ${event.priority}`);
+    }
+    
+    if (event.attendees && event.attendees.length > 0) {
+        tags.push(`참석자 ${event.attendees.length}명`);
+    }
+    
+    // Add specific tags based on section type
+    if (sectionType === 'routine' && (event.frequency || event.repeat_type)) {
+        const frequency = event.frequency || event.repeat_type;
+        tags.push(`반복: ${frequency}`);
+    }
+    
+    if (tags.length === 0) {
+        return '';
+    }
+    
+    return `
+        <div class="agenda-event-tags ${sectionType}">
+            ${tags.map(tag => `<span class="agenda-event-tag ${sectionType}">${escapeHtml(tag)}</span>`).join('')}
+        </div>
+    `;
+}
+
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 }
 
 // Mini Calendar functionality is handled by initMiniCalendar() function
@@ -1010,10 +1430,60 @@ function renderAgendaView() {
 
 // Navigation functions
 function changeMonth(direction) {
+    // Check if we're in week view - change to week navigation
+    if (currentView === 'week') {
+        changeWeek(direction);
+        return;
+    }
+    
+    // Original month navigation for month view
     currentDate.setMonth(currentDate.getMonth() + direction);
     updateDateDisplay();
     renderMonthView();
     renderMiniCalendar();
+}
+
+// Week navigation function
+function changeWeek(direction) {
+    currentDate.setDate(currentDate.getDate() + (direction * 7));
+    updateDateDisplay();
+    
+    // Update Google Calendar Grid if it exists
+    if (window.googleCalendarGrid) {
+        window.googleCalendarGrid.navigateWeek(direction);
+    }
+    
+    // Update agenda view if active
+    updateAgendaView();
+    renderMiniCalendar();
+}
+
+// Update agenda view with current week data
+function updateAgendaView() {
+    const agendaContainer = document.getElementById('agenda-view-container');
+    if (!agendaContainer || !agendaContainer.classList.contains('active')) {
+        return; // Agenda view not active
+    }
+    
+    // This function should be implemented to refresh agenda content
+    // based on the current week range
+    console.log('🗓️ Updating agenda view for week starting:', getWeekStart(currentDate));
+    
+    // TODO: Implement agenda view update logic here
+    // This could involve:
+    // 1. Fetching events for the current week
+    // 2. Organizing them into upcoming/past/routine categories
+    // 3. Re-rendering the agenda content
+}
+
+// Helper function to get week start
+function getWeekStart(date) {
+    const d = new Date(date.getTime());
+    const day = d.getDay();
+    const daysToSunday = day;
+    const weekStart = new Date(d.getTime() - (daysToSunday * 24 * 60 * 60 * 1000));
+    weekStart.setHours(0, 0, 0, 0);
+    return weekStart;
 }
 
 function changeMiniMonth(direction) {
@@ -1798,6 +2268,13 @@ async function loadCustomMediaTitle() {
     try {
         const calendarId = window.location.pathname.split('/').pop();
         const response = await fetch(`/api/calendars/${calendarId}`);
+        
+        // 404 에러는 조용히 처리
+        if (!response.ok) {
+            console.log('🎵 커스텀 미디어 제목 API 사용 불가 (정상)');
+            return null;
+        }
+        
         const data = await response.json();
         
         if (data.success && data.calendar) {
@@ -1812,7 +2289,7 @@ async function loadCustomMediaTitle() {
         }
         return null;
     } catch (error) {
-        console.error('커스텀 미디어 제목 로드 실패:', error);
+        console.log('🎵 커스텀 미디어 제목 로드 오류 (무시됨):', error.message);
         return null;
     }
 }
@@ -1933,7 +2410,7 @@ function togglePlay() {
     
     // Check if we have a valid source
     if (!mediaPlayer.src || mediaPlayer.src === '' || mediaPlayer.src.endsWith('#')) {
-        console.warn('No valid media source to play');
+        console.log('🎵 재생 가능한 미디어 소스 없음');
         showNotification('미디어 파일이 없습니다. 캘린더에 미디어를 추가해주세요.');
         return;
     }
@@ -1954,17 +2431,17 @@ function togglePlay() {
                     updateCompactPlayButton();
                 })
                 .catch(error => {
-                    console.error('Playback failed:', error);
+                    console.log('🎵 재생 실패 (정상):', error.name);
                     isPlaying = false;
                     updatePlayButton();
                     updateCompactPlayButton();
                     
                     if (error.name === 'AbortError') {
-                        console.log('Playback was interrupted');
+                        console.log('🎵 재생이 중단됨');
                     } else if (error.name === 'NotAllowedError') {
                         showNotification('자동 재생이 차단되었습니다. 재생 버튼을 다시 클릭해주세요.');
                     } else {
-                        showNotification('미디어 재생 중 오류가 발생했습니다.');
+                        showNotification('미디어 재생이 불가능합니다.');
                     }
                 });
         }
@@ -2122,16 +2599,24 @@ function saveMediaTitleToServer(title) {
         },
         body: JSON.stringify({ filename: filename, title: title })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            // 404나 다른 에러 상태일 때 조용히 처리
+            console.log('📝 미디어 제목 API 사용 불가 (정상)');
+            return { success: false, silent: true };
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             console.log('✅ 미디어 제목이 저장되었습니다:', title);
-        } else {
-            console.error('❌ 미디어 제목 저장 실패:', data.error);
+        } else if (!data.silent) {
+            console.log('📝 미디어 제목 저장 불가:', data.error || 'API 미지원');
         }
     })
     .catch(error => {
-        console.error('❌ 미디어 제목 저장 중 오류:', error);
+        // 네트워크 에러나 기타 에러를 조용히 처리
+        console.log('📝 미디어 제목 API 오류 (무시됨):', error.message);
     });
 }
 
@@ -2184,11 +2669,14 @@ function initializeMediaPlayerFromWorkspace() {
         console.log('🎵 Media URL from data attribute:', mediaUrl);
         console.log('🎵 Media type from data attribute:', mediaType);
         
-        // Check if it's a YouTube video
-        if (mediaType === 'youtube' && mediaUrl && mediaUrl.includes('youtube.com/embed/')) {
-            console.log('🎵 YouTube video detected, initializing YouTube player');
-            initializeYouTubePlayer(mediaUrl);
-            return;
+        // Check if it's a YouTube video (any YouTube URL format)
+        if ((mediaType === 'youtube' || mediaUrl?.includes('youtube.com') || mediaUrl?.includes('youtu.be')) && mediaUrl) {
+            console.log('🎵 YouTube video detected, converting to embed URL and initializing YouTube player');
+            const embedUrl = convertToYouTubeEmbedUrl(mediaUrl);
+            if (embedUrl) {
+                initializeYouTubePlayer(embedUrl, { title: 'YouTube Video', artist: 'YouTube' });
+                return;
+            }
         }
         
         // More robust validation of regular media URL
@@ -2222,13 +2710,58 @@ function initializeMediaPlayerFromWorkspace() {
     }
 }
 
+// Convert YouTube URL to embed format
+function convertToYouTubeEmbedUrl(url) {
+    if (!url) return null;
+    
+    // Already an embed URL
+    if (url.includes('youtube.com/embed/')) {
+        return url;
+    }
+    
+    let videoId = null;
+    
+    // Handle different YouTube URL formats
+    if (url.includes('youtube.com/watch?v=')) {
+        // Regular YouTube URL: https://www.youtube.com/watch?v=VIDEO_ID
+        const urlParams = new URLSearchParams(new URL(url).search);
+        videoId = urlParams.get('v');
+    } else if (url.includes('youtu.be/')) {
+        // Short YouTube URL: https://youtu.be/VIDEO_ID
+        const match = url.match(/youtu\.be\/([^?&]+)/);
+        if (match) {
+            videoId = match[1];
+        }
+    } else if (url.includes('youtube.com/v/')) {
+        // Old embed format: https://www.youtube.com/v/VIDEO_ID
+        const match = url.match(/youtube\.com\/v\/([^?&]+)/);
+        if (match) {
+            videoId = match[1];
+        }
+    }
+    
+    if (videoId) {
+        console.log('🎵 Extracted YouTube video ID:', videoId);
+        return `https://www.youtube.com/embed/${videoId}`;
+    }
+    
+    console.log('🎵 Could not extract video ID from YouTube URL:', url);
+    return null;
+}
+
 // YouTube player initialization
-function initializeYouTubePlayer(embedUrl) {
+function initializeYouTubePlayer(embedUrl, trackInfo = { title: 'YouTube Video', artist: 'YouTube' }) {
     console.log('🎵 Initializing YouTube player with embed URL:', embedUrl);
     
     // Create a YouTube iframe in the sidebar
     const sidebarPlayerContainer = document.querySelector('.compact-media-player');
     if (sidebarPlayerContainer) {
+        // Remove any existing YouTube iframe
+        const existingFrame = document.getElementById('youtube-player');
+        if (existingFrame) {
+            existingFrame.remove();
+        }
+        
         // Hide regular media controls since we'll use YouTube's controls
         const mediaControls = sidebarPlayerContainer.querySelector('.compact-media-controls');
         if (mediaControls) {
@@ -2253,24 +2786,18 @@ function initializeYouTubePlayer(embedUrl) {
             mediaInfo.insertAdjacentElement('afterend', youtubeFrame);
         }
         
-        // Update media info with YouTube video details
-        const calendarWorkspace = document.querySelector('.calendar-workspace');
-        if (calendarWorkspace) {
-            const youtubeTitle = calendarWorkspace.dataset.youtubeTitle || 'YouTube Video';
-            const youtubeChannel = calendarWorkspace.dataset.youtubeChannel || 'YouTube';
-            
-            const titleElement = document.getElementById('compact-media-title');
-            const artistElement = document.getElementById('compact-media-artist');
-            
-            if (titleElement) titleElement.textContent = youtubeTitle;
-            if (artistElement) artistElement.textContent = youtubeChannel;
-            
-            // Also update main player info if it exists
-            const mediaTitle = document.getElementById('media-title');
-            const mediaArtist = document.getElementById('media-artist');
-            if (mediaTitle) mediaTitle.textContent = youtubeTitle;
-            if (mediaArtist) mediaArtist.textContent = youtubeChannel;
-        }
+        // Update media info with track details
+        const titleElement = document.getElementById('compact-media-title');
+        const artistElement = document.getElementById('compact-media-artist');
+        
+        if (titleElement) titleElement.textContent = trackInfo.title;
+        if (artistElement) artistElement.textContent = trackInfo.artist;
+        
+        // Also update main player info if it exists
+        const mediaTitle = document.getElementById('media-title');
+        const mediaArtist = document.getElementById('media-artist');
+        if (mediaTitle) mediaTitle.textContent = trackInfo.title;
+        if (mediaArtist) mediaArtist.textContent = trackInfo.artist;
     }
 }
 
@@ -3087,6 +3614,35 @@ function clearEventSearch() {
     
     hideSearchResults();
     console.log('🔍 Search cleared');
+}
+
+// Toggle event search section visibility
+function toggleEventSearch() {
+    const searchSection = document.getElementById('event-search-section');
+    const toggleBtn = document.getElementById('toggle-search-btn');
+    
+    if (searchSection && toggleBtn) {
+        const isVisible = searchSection.style.display !== 'none';
+        
+        if (isVisible) {
+            // Hide search section
+            searchSection.style.display = 'none';
+            toggleBtn.classList.remove('active');
+            clearEventSearch(); // Clear any ongoing search
+        } else {
+            // Show search section
+            searchSection.style.display = 'block';
+            toggleBtn.classList.add('active');
+            
+            // Focus on search input
+            setTimeout(() => {
+                const searchInput = document.getElementById('event-search-input');
+                if (searchInput) {
+                    searchInput.focus();
+                }
+            }, 100);
+        }
+    }
 }
 
 function navigateToEventDay(dateString, eventId) {

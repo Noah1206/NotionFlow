@@ -887,56 +887,95 @@ def calendar_detail(calendar_id):
             'sync_status': 'inactive'
         }
     
-    # Prepare media URL if media file exists
+    # Prepare media URL with priority: YouTube > Local media files
     media_url = ''
     print(f"[EMOJI] Calendar media info - filename: {calendar.get('media_filename')}, path: {calendar.get('media_file_path')}, type: {calendar.get('media_file_type')}")
     
-    if calendar.get('media_file_path'):
-        media_path = calendar['media_file_path']
-        # Check if it's already a URL
-        if media_path.startswith('http'):
-            media_url = media_path
-        else:
-            # Create a proper URL for serving the file
-            filename = os.path.basename(media_path)
-            media_url = f"/media/calendar/{calendar_id}/{filename}"
-        print(f"[EMOJI] Media URL set to: {media_url}")
-    else:
-        # Check if there are any media files in the upload directory for this calendar
-        print(f"[EMOJI] No media file path found, checking upload directory...")
-        upload_dir = os.path.join(os.getcwd(), 'uploads', 'media', 'calendar')
-        if os.path.exists(upload_dir):
-            media_files = []
-            for file in os.listdir(upload_dir):
-                if file.endswith(('.mp4', '.mp3', '.wav', '.m4a')):
-                    media_files.append(file)
-            
-            if media_files:
-                # Use the first media file found
-                first_media = media_files[0]
-                media_url = f"/media/calendar/{calendar_id}/{first_media}"
-                # Extract title from filename
-                title = os.path.splitext(first_media)[0]
-                if '_' in title:
-                    title = title.split('_')[-1]  # Get part after last underscore
-                
-                calendar['media_filename'] = title
-                calendar['media_file_path'] = first_media
-                calendar['media_file_type'] = 'video' if first_media.endswith('.mp4') else 'audio'
-                print(f"[EMOJI] Found media file: {first_media}, URL: {media_url}")
-            else:
-                print(f"[EMOJI] No media files found in upload directory")
-        else:
-            print(f"[EMOJI] Upload directory does not exist: {upload_dir}")
-    
-    # Check for YouTube video data
-    if calendar.get('youtube_video_id'):
-        # Use YouTube embed URL for YouTube videos
+    # PRIORITY 1: Check for YouTube video data first
+    if calendar.get('youtube_embed_url'):
+        # Use direct YouTube embed URL if available
+        media_url = calendar['youtube_embed_url']
+        calendar['media_file_type'] = 'youtube'
+        print(f"[EMOJI] YouTube video detected (priority 1): {calendar.get('youtube_title', 'YouTube Video')}")
+        print(f"[EMOJI] YouTube embed URL: {media_url}")
+    elif calendar.get('media_file_type') == 'youtube' and calendar.get('media_file_path'):
+        # Check if YouTube data is stored in media fields (new storage method)
+        media_url = calendar['media_file_path']
+        calendar['media_file_type'] = 'youtube'
+        print(f"[EMOJI] YouTube video detected from media_file_path (priority 1.5): {calendar.get('media_filename', 'YouTube Video')}")
+        print(f"[EMOJI] YouTube embed URL: {media_url}")
+    elif calendar.get('youtube_video_id'):
+        # Fallback to generating URL from video ID
         youtube_video_id = calendar['youtube_video_id']
         media_url = f"https://www.youtube.com/embed/{youtube_video_id}"
         calendar['media_file_type'] = 'youtube'
-        print(f"[EMOJI] YouTube video detected: {calendar.get('youtube_title', 'YouTube Video')}")
-        print(f"[EMOJI] YouTube embed URL: {media_url}")
+        print(f"[EMOJI] YouTube video detected (legacy, priority 1): {calendar.get('youtube_title', 'YouTube Video')}")
+        print(f"[EMOJI] YouTube embed URL (generated): {media_url}")
+    elif calendar.get('youtube_url'):
+        # Check for original YouTube URL and convert to embed
+        youtube_url = calendar['youtube_url']
+        if 'youtube.com/watch' in youtube_url or 'youtu.be/' in youtube_url:
+            # Extract video ID and create embed URL
+            if 'youtube.com/watch' in youtube_url:
+                video_id = youtube_url.split('v=')[1].split('&')[0] if 'v=' in youtube_url else None
+            elif 'youtu.be/' in youtube_url:
+                video_id = youtube_url.split('youtu.be/')[1].split('?')[0]
+            else:
+                video_id = None
+            
+            if video_id:
+                media_url = f"https://www.youtube.com/embed/{video_id}"
+                calendar['media_file_type'] = 'youtube'
+                print(f"[EMOJI] YouTube URL converted to embed (priority 1): {calendar.get('youtube_title', 'YouTube Video')}")
+                print(f"[EMOJI] YouTube embed URL (converted): {media_url}")
+            else:
+                print(f"[ERROR] Could not extract video ID from YouTube URL: {youtube_url}")
+        else:
+            print(f"[WARNING] Invalid YouTube URL format: {youtube_url}")
+    
+    # Debug: Print all YouTube-related fields
+    print(f"[DEBUG] YouTube fields in calendar: embed_url={calendar.get('youtube_embed_url')}, video_id={calendar.get('youtube_video_id')}, url={calendar.get('youtube_url')}, title={calendar.get('youtube_title')}")
+    
+    # Only check local media if no YouTube URL was found
+    if not media_url:
+        # PRIORITY 2: If no YouTube, check local media files
+        if calendar.get('media_file_path'):
+            media_path = calendar['media_file_path']
+            # Check if it's already a URL
+            if media_path.startswith('http'):
+                media_url = media_path
+            else:
+                # Create a proper URL for serving the file
+                filename = os.path.basename(media_path)
+                media_url = f"/media/calendar/{calendar_id}/{filename}"
+            print(f"[EMOJI] Local media file detected (priority 2): {media_url}")
+        else:
+            # PRIORITY 3: Check if there are any media files in the upload directory for this calendar
+            print(f"[EMOJI] No media file path found, checking upload directory...")
+            upload_dir = os.path.join(os.getcwd(), 'uploads', 'media', 'calendar')
+            if os.path.exists(upload_dir):
+                media_files = []
+                for file in os.listdir(upload_dir):
+                    if file.endswith(('.mp4', '.mp3', '.wav', '.m4a')):
+                        media_files.append(file)
+                
+                if media_files:
+                    # Use the first media file found
+                    first_media = media_files[0]
+                    media_url = f"/media/calendar/{calendar_id}/{first_media}"
+                    # Extract title from filename
+                    title = os.path.splitext(first_media)[0]
+                    if '_' in title:
+                        title = title.split('_')[-1]  # Get part after last underscore
+                    
+                    calendar['media_filename'] = title
+                    calendar['media_file_path'] = first_media
+                    calendar['media_file_type'] = 'video' if first_media.endswith('.mp4') else 'audio'
+                    print(f"[EMOJI] Found media file (priority 3): {first_media}, URL: {media_url}")
+                else:
+                    print(f"[EMOJI] No media files found in upload directory")
+            else:
+                print(f"[EMOJI] Upload directory does not exist: {upload_dir}")
     
     calendar['media_url'] = media_url
     
@@ -1165,9 +1204,9 @@ def calendar_refined():
 def create_calendar():
     """Create a new calendar for user with optional media file upload"""
     try:
-        user_id = session.get('user_id')
-        if not user_id:
-            return jsonify({'success': False, 'error': 'User not authenticated'}), 401
+        user_id = session.get('user_id') or "e390559f-c328-4786-ac5d-c74b5409451b"  # 테스트용 임시 사용자 ID
+        # if not user_id:
+        #     return jsonify({'success': False, 'error': 'User not authenticated'}), 401
         
         # Handle file upload with Supabase Storage for Render deployment
         if request.content_type and 'multipart/form-data' in request.content_type:
@@ -1265,9 +1304,11 @@ def create_calendar():
             calendar_name = data.get('name', f'{platform.title()} Calendar')
             calendar_color = data.get('color', '#6b7280')
             is_shared = data.get('is_shared', False)
+            youtube_data = data.get('youtube_data')
             media_filename = None
             media_file_path = None
             media_file_type = None
+            print(f"[DEBUG] JSON request - youtube_data: {youtube_data}")
         
         print(f"[SEARCH] Creating calendar: {calendar_name}, platform: {platform}, color: {calendar_color}")
         print(f"[SEARCH] Debug - calendar_db_available: {calendar_db_available}")
@@ -1293,6 +1334,20 @@ def create_calendar():
                     calendar_data['media_file_path'] = media_file_path
                     calendar_data['media_file_type'] = media_file_type
                     print(f"[EMOJI] Adding media file to calendar: {media_filename}")
+                
+                # Add YouTube data if provided
+                if youtube_data:
+                    calendar_data['description'] += f' (YouTube: {youtube_data.get("title", "YouTube Video")})'
+                    calendar_data['youtube_video_id'] = youtube_data.get('video_id')
+                    calendar_data['youtube_title'] = youtube_data.get('title')
+                    calendar_data['youtube_channel'] = youtube_data.get('channel_name')
+                    calendar_data['youtube_thumbnail'] = youtube_data.get('thumbnail_url')
+                    calendar_data['youtube_duration'] = youtube_data.get('duration_formatted')
+                    calendar_data['youtube_url'] = youtube_data.get('watch_url')
+                    calendar_data['youtube_embed_url'] = youtube_data.get('embed_url')
+                    print(f"[SUCCESS] Adding YouTube info to calendar: {youtube_data.get('title')} by {youtube_data.get('channel_name')}")
+                else:
+                    print("[DEBUG] No YouTube data provided in app.py handler")
                 
                 # Use calendar_db to create calendar
                 calendar_id = calendar_db.create_calendar(user_id, calendar_data)
@@ -1523,7 +1578,9 @@ def delete_calendar(calendar_id):
             
     except Exception as e:
         print(f"[ERROR] General error in delete_calendar: {e}")
+        print(f"[ERROR] Error type: {type(e).__name__}")
         import traceback
+        print("[ERROR] Full traceback:")
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 

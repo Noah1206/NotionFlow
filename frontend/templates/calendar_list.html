@@ -19,6 +19,20 @@
             <p class="page-subtitle">일정과 이벤트를 관리하세요</p>
         </div>
         <div class="header-actions">
+            <button class="btn-deselect-all" id="deselectAllBtn" onclick="deselectAllCalendars()" style="display: none;">
+                <svg class="btn-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span>선택 해제</span>
+            </button>
+            <button class="btn-delete-selected" id="deleteSelectedBtn" onclick="deleteSelectedCalendars()" style="display: none;">
+                <svg class="btn-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span>선택 삭제</span>
+            </button>
             <button class="btn-new-calendar" onclick="createNewCalendar()">
                 <svg class="btn-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -86,13 +100,12 @@
                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
                             </button>
-                            <button class="btn-open-calendar" onclick="event.stopPropagation(); openCalendar('{{ calendar.id }}');">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                </svg>
-                                열기
-                            </button>
+                            <label class="calendar-checkbox-container" onclick="event.stopPropagation()">
+                                <input type="checkbox" class="calendar-select-checkbox" 
+                                       value="{{ calendar.id }}" 
+                                       onchange="toggleCalendarSelection('{{ calendar.id }}')">
+                                <span class="calendar-checkbox-checkmark"></span>
+                            </label>
                         </div>
                     </div>
                     <div
@@ -967,8 +980,7 @@
     opacity: 1;
 }
 
-.card-menu-btn,
-.btn-open-calendar {
+.card-menu-btn {
     background: #f9fafb;
     border: 1px solid #e5e7eb;
     border-radius: 6px;
@@ -981,16 +993,66 @@
     transition: all 0.2s ease;
 }
 
-.card-menu-btn:hover,
-.btn-open-calendar:hover {
+.card-menu-btn:hover {
     background: #f3f4f6;
     color: #374151;
 }
 
-.btn-open-calendar {
-    padding: 4px 8px;
-    font-size: 12px;
-    font-weight: 500;
+/* 체크박스 스타일 */
+.calendar-checkbox-container {
+    position: relative;
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.calendar-select-checkbox {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.calendar-checkbox-checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 20px;
+    width: 20px;
+    background-color: #f9fafb;
+    border: 2px solid #e5e7eb;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.calendar-checkbox-container:hover .calendar-checkbox-checkmark {
+    background-color: #f3f4f6;
+    border-color: #d1d5db;
+}
+
+.calendar-select-checkbox:checked ~ .calendar-checkbox-checkmark {
+    background-color: #6366f1;
+    border-color: #6366f1;
+}
+
+.calendar-checkbox-checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.calendar-select-checkbox:checked ~ .calendar-checkbox-checkmark:after {
+    display: block;
+}
     gap: 4px;
 }
 
@@ -1228,6 +1290,60 @@
     background: #94a3b8;
     cursor: not-allowed;
 }
+
+/* Bulk Action Buttons */
+.btn-deselect-all {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-right: 8px;
+}
+
+.btn-deselect-all:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #475569;
+    transform: translateY(-1px);
+}
+
+.btn-delete-selected {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    color: #dc2626;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-right: 8px;
+}
+
+.btn-delete-selected:hover {
+    background: #fee2e2;
+    border-color: #fca5a5;
+    color: #b91c1c;
+    transform: translateY(-1px);
+}
+
+.btn-delete-selected:disabled,
+.btn-deselect-all:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
 </style>
 
 <!-- Delete Confirmation Modal -->
@@ -1464,18 +1580,21 @@
         loadingElement.style.display = 'none';
         errorElement.style.display = 'none';
 
+        // video_info 객체에서 데이터 추출
+        const info = videoData.video_info;
+
         // 미리보기 데이터 설정
-        document.getElementById('youtube-thumbnail').src = videoData.thumbnail_url;
-        document.getElementById('youtube-title').textContent = videoData.title;
-        document.getElementById('youtube-channel').textContent = videoData.channel_name;
-        document.getElementById('youtube-duration').textContent = videoData.duration_formatted;
+        document.getElementById('youtube-thumbnail').src = info.thumbnail_url;
+        document.getElementById('youtube-title').textContent = info.title;
+        document.getElementById('youtube-channel').textContent = info.channel_name;
+        document.getElementById('youtube-duration').textContent = info.duration_formatted;
         
         // 조회수 포맷팅
-        const viewCount = parseInt(videoData.view_count);
+        const viewCount = parseInt(info.view_count);
         document.getElementById('youtube-views').textContent = formatNumber(viewCount);
         
         // 게시일 포맷팅
-        const publishDate = new Date(videoData.published_at);
+        const publishDate = new Date(info.published_at);
         document.getElementById('youtube-publish-date').textContent = formatDate(publishDate);
 
         // 미리보기 표시
@@ -1577,9 +1696,13 @@
             // 폼 데이터 수집
             const name = document.getElementById('calendar-name').value.trim();
             const isShared = false; // 항상 개인 캘린더로 생성
-            // 색상 자동 선택 - 랜덤으로 선택
-            const defaultColors = ['#2563eb', '#059669', '#d97706', '#7c3aed', '#dc2626', '#f59e0b', '#10b981', '#8b5cf6', '#ef4444'];
-            const color = defaultColors[Math.floor(Math.random() * defaultColors.length)];
+            // 색상 랜덤 선택 - 다양한 색상 팔레트에서 랜덤 선택
+            const colorPalette = [
+                '#2563eb', '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef',
+                '#ec4899', '#f43f5e', '#ef4444', '#f97316', '#f59e0b', '#eab308',
+                '#84cc16', '#22c55e', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9'
+            ];
+            const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
             const platform = 'custom'; // 항상 독립 캘린더로 설정
 
             console.log('🔍 Form data collected:', {
@@ -1999,6 +2122,22 @@
 
         // Create notification
         const notification = document.createElement('div');
+        // Determine background color based on type
+        let backgroundColor;
+        switch (type) {
+            case 'success':
+                backgroundColor = '#10b981';
+                break;
+            case 'error':
+                backgroundColor = '#ef4444';
+                break;
+            case 'warning':
+                backgroundColor = '#f59e0b';
+                break;
+            default:
+                backgroundColor = '#3b82f6';
+        }
+        
         notification.style.cssText = `
             position: fixed;
             top: 20px;
@@ -2012,7 +2151,7 @@
             color: white;
             font-weight: 500;
             animation: slideIn 0.3s ease-out;
-            ${type === 'success' ? 'background: #10b981;' : type === 'error' ? 'background: #ef4444;' : 'background: #3b82f6;'}
+            background: ${backgroundColor};
         `;
         
         notification.innerHTML = `
@@ -2059,6 +2198,162 @@
             closeDeleteModal();
         }
     });
+
+    // Calendar selection management
+    let selectedCalendars = new Set();
+
+    function toggleCalendarSelection(calendarId) {
+        const checkbox = document.querySelector(`.calendar-select-checkbox[value="${calendarId}"]`);
+        const calendarCard = document.querySelector(`[data-calendar="${calendarId}"]`);
+        
+        if (checkbox.checked) {
+            selectedCalendars.add(calendarId);
+            if (calendarCard) {
+                calendarCard.classList.add('selected');
+            }
+        } else {
+            selectedCalendars.delete(calendarId);
+            if (calendarCard) {
+                calendarCard.classList.remove('selected');
+            }
+        }
+        
+        updateDeleteButtonVisibility();
+    }
+
+    function updateDeleteButtonVisibility() {
+        const deleteBtn = document.getElementById('deleteSelectedBtn');
+        const deselectBtn = document.getElementById('deselectAllBtn');
+        
+        if (selectedCalendars.size > 0) {
+            deleteBtn.style.display = 'flex';
+            deselectBtn.style.display = 'flex';
+        } else {
+            deleteBtn.style.display = 'none';
+            deselectBtn.style.display = 'none';
+        }
+    }
+
+    function deleteSelectedCalendars() {
+        if (selectedCalendars.size === 0) {
+            return;
+        }
+        
+        const count = selectedCalendars.size;
+        const message = count === 1 
+            ? '선택한 캘린더 1개를 삭제하시겠습니까?' 
+            : `선택한 캘린더 ${count}개를 삭제하시겠습니까?`;
+            
+        if (!confirm(`${message}\n\n이 작업은 되돌릴 수 없으며, 캘린더의 모든 이벤트와 데이터가 영구적으로 삭제됩니다.`)) {
+            return;
+        }
+        
+        const deleteBtn = document.getElementById('deleteSelectedBtn');
+        const originalHTML = deleteBtn.innerHTML;
+        
+        // Show loading state
+        deleteBtn.disabled = true;
+        deleteBtn.innerHTML = `
+            <svg class="btn-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" stroke-width="2" style="animation: spin 1s linear infinite; stroke-dasharray: 31.416; stroke-dashoffset: 31.416;"/>
+            </svg>
+            <span>삭제 중...</span>
+        `;
+        
+        // Convert Set to Array for processing
+        const calendarsToDelete = Array.from(selectedCalendars);
+        let deletedCount = 0;
+        let failedCount = 0;
+        
+        // Delete calendars one by one
+        const deletePromises = calendarsToDelete.map(calendarId => 
+            fetch(`/api/calendar/${calendarId}/delete`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    deletedCount++;
+                    
+                    // Remove calendar card from UI with animation
+                    const calendarCard = document.querySelector(`[data-calendar="${calendarId}"]`);
+                    if (calendarCard) {
+                        calendarCard.classList.remove('selected');
+                        calendarCard.style.transition = 'all 0.3s ease';
+                        calendarCard.style.opacity = '0';
+                        calendarCard.style.transform = 'scale(0.95)';
+                        setTimeout(() => {
+                            calendarCard.remove();
+                            updateCalendarCounts();
+                        }, 300);
+                    }
+                    
+                    // Remove from selected set
+                    selectedCalendars.delete(calendarId);
+                } else {
+                    throw new Error(data.error || 'Failed to delete calendar');
+                }
+            })
+            .catch(error => {
+                console.error(`Error deleting calendar ${calendarId}:`, error);
+                failedCount++;
+            })
+        );
+        
+        Promise.all(deletePromises).finally(() => {
+            // Reset button state
+            deleteBtn.disabled = false;
+            deleteBtn.innerHTML = originalHTML;
+            
+            // Update UI
+            updateDeleteButtonVisibility();
+            
+            // Show result notification
+            if (deletedCount > 0 && failedCount === 0) {
+                showNotification(`${deletedCount}개의 캘린더가 성공적으로 삭제되었습니다.`, 'success');
+            } else if (deletedCount > 0 && failedCount > 0) {
+                showNotification(`${deletedCount}개의 캘린더가 삭제되었으나, ${failedCount}개는 실패했습니다.`, 'warning');
+            } else if (failedCount > 0) {
+                showNotification('캘린더 삭제 중 오류가 발생했습니다. 다시 시도해주세요.', 'error');
+            }
+        });
+    }
+
+    function selectAllCalendars() {
+        const checkboxes = document.querySelectorAll('.calendar-select-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = true;
+            selectedCalendars.add(checkbox.value);
+            
+            const calendarCard = document.querySelector(`[data-calendar="${checkbox.value}"]`);
+            if (calendarCard) {
+                calendarCard.classList.add('selected');
+            }
+        });
+        updateDeleteButtonVisibility();
+    }
+
+    function deselectAllCalendars() {
+        const checkboxes = document.querySelectorAll('.calendar-select-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = false;
+            
+            const calendarCard = document.querySelector(`[data-calendar="${checkbox.value}"]`);
+            if (calendarCard) {
+                calendarCard.classList.remove('selected');
+            }
+        });
+        selectedCalendars.clear();
+        updateDeleteButtonVisibility();
+    }
 
     // 🔍 Log when page is loaded
     document.addEventListener('DOMContentLoaded', function() {

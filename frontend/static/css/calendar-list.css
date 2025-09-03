@@ -126,13 +126,13 @@
     gap: var(--spacing-3);
 }
 
-/* ===== PRIMARY BUTTON ===== */
-.btn-new-calendar {
+/* ===== PRIMARY BUTTONS ===== */
+.btn-new-calendar,
+.btn-delete-selected {
     display: inline-flex;
     align-items: center;
     gap: var(--spacing-2);
     padding: var(--spacing-3) var(--spacing-4);
-    background: var(--color-primary);
     color: white;
     border: none;
     border-radius: var(--radius-base);
@@ -141,10 +141,25 @@
     cursor: pointer;
     transition: all var(--transition-fast);
     box-shadow: var(--shadow-sm);
+    margin-right: var(--spacing-2);
+}
+
+.btn-new-calendar {
+    background: var(--color-primary);
+}
+
+.btn-delete-selected {
+    background: #ef4444;
 }
 
 .btn-new-calendar:hover {
     background: var(--color-primary-hover);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+.btn-delete-selected:hover {
+    background: #dc2626;
     box-shadow: var(--shadow-md);
     transform: translateY(-1px);
 }
@@ -265,6 +280,19 @@
 .calendar-card-refined:hover .card-actions-hover {
     opacity: 1;
     visibility: visible;
+}
+
+/* Selected calendar card styles */
+.calendar-card-refined.selected {
+    background: var(--color-primary-light) !important;
+    border-color: var(--color-primary) !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2), var(--shadow-lg) !important;
+    transform: translateY(-1px) !important;
+}
+
+.calendar-card-refined.selected .card-actions-hover {
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 .calendar-card-refined:hover .calendar-color-refined {
@@ -693,3 +721,61 @@
 .calendar-card-refined:nth-child(4) { animation-delay: 0.25s; }
 .calendar-card-refined:nth-child(5) { animation-delay: 0.3s; }
 .calendar-card-refined:nth-child(6) { animation-delay: 0.35s; }
+
+/* ===== CHECKBOX STYLES ===== */
+.calendar-checkbox-container {
+    position: relative;
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    padding: 8px;
+    margin: -8px;
+}
+
+.calendar-select-checkbox {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.calendar-checkbox-checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 20px;
+    width: 20px;
+    background-color: var(--color-gray-100);
+    border: 2px solid var(--color-gray-200);
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-fast);
+}
+
+.calendar-checkbox-container:hover .calendar-checkbox-checkmark {
+    background-color: var(--color-gray-100);
+    border-color: var(--color-gray-300);
+}
+
+.calendar-select-checkbox:checked ~ .calendar-checkbox-checkmark {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.calendar-checkbox-checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.calendar-select-checkbox:checked ~ .calendar-checkbox-checkmark:after {
+    display: block;
+}

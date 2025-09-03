@@ -89,6 +89,24 @@ class GoogleCalendarGrid {
         console.log('🗓️ Week start calculated:', weekStart, 'from date:', date, 'day:', day, 'daysToSunday:', daysToSunday);
         return weekStart;
     }
+
+    // Week navigation method
+    navigateWeek(direction) {
+        // Move current date by week
+        this.currentDate.setDate(this.currentDate.getDate() + (direction * 7));
+        
+        // Recalculate week start
+        this.weekStart = this.getWeekStart(this.currentDate);
+        
+        console.log('🗓️ Week navigation:', direction > 0 ? 'Next week' : 'Previous week', 
+                   'New date:', this.currentDate, 'New week start:', this.weekStart);
+        
+        // Re-render the calendar
+        this.render();
+        
+        // Update current time indicator
+        this.updateCurrentTimeIndicator();
+    }
     
     render() {
         // 🔧 DYNAMIC WIDTH: 컨테이너 너비에 맞게 동적으로 크기 조정
@@ -1421,9 +1439,16 @@ class GoogleCalendarGrid {
         console.log('🎯 renderEvent called with data:', eventData);
         
         // Check for null/undefined event data
-        if (!eventData || !eventData.date || !eventData.id) {
+        if (!eventData || !eventData.id) {
             console.warn('⚠️ Skipping null or invalid event data:', eventData);
             return;
+        }
+        
+        // Fix null date issue
+        if (!eventData.date || eventData.date === null || eventData.date === undefined) {
+            console.warn('⚠️ Event has null date, providing fallback:', eventData);
+            const today = new Date();
+            eventData.date = today.toISOString().split('T')[0];
         }
         
         // Ensure weekStart is properly initialized
@@ -2158,19 +2183,51 @@ class GoogleCalendarGrid {
     }
     
     convertBackendEventToFrontend(backendEvent) {
+        // Debug: Log the backend event structure
+        console.log('🔍 Converting backend event:', backendEvent);
+        
         // Convert backend event format to match frontend expectations
-        return {
+        let date = backendEvent.date;
+        let startTime = backendEvent.startTime || backendEvent.start_time;
+        let endTime = backendEvent.endTime || backendEvent.end_time;
+        
+        // Fallback: If no date (null, undefined, or empty), provide a default
+        if (!date || date === null || date === undefined || date === '') {
+            // Try to extract from startTime if available
+            if (startTime && (startTime.includes('T') || startTime.includes('-'))) {
+                try {
+                    date = new Date(startTime).toISOString().split('T')[0];
+                } catch (e) {
+                    date = '2025-09-02'; // Default fallback
+                }
+            } else {
+                // Use today's date or a reasonable default
+                const today = new Date();
+                date = today.toISOString().split('T')[0];
+            }
+        }
+        
+        // Ensure we have time values
+        if (!startTime || startTime.length < 5) {
+            startTime = '09:00';
+        }
+        if (!endTime || endTime.length < 5) {
+            endTime = '10:00';
+        }
+        
+        const convertedEvent = {
             id: backendEvent.id || Date.now().toString(),
             backendId: backendEvent.id, // Store the backend ID separately
             title: backendEvent.title || backendEvent.summary || 'Untitled',
             description: backendEvent.description || '',
-            date: backendEvent.date || backendEvent.start?.split('T')[0],
-            startTime: backendEvent.startTime || backendEvent.start_time || 
-                      (backendEvent.start ? new Date(backendEvent.start).toTimeString().slice(0,5) : '09:00'),
-            endTime: backendEvent.endTime || backendEvent.end_time ||
-                    (backendEvent.end ? new Date(backendEvent.end).toTimeString().slice(0,5) : '10:00'),
+            date: date,
+            startTime: startTime,
+            endTime: endTime,
             color: backendEvent.color || '#3b82f6'
         };
+        
+        console.log('✅ Converted to frontend event:', convertedEvent);
+        return convertedEvent;
     }
     
     saveToLocalStorage(eventData) {

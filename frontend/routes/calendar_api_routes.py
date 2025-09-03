@@ -193,8 +193,11 @@ def create_calendar():
         return '', 200
     
     # Content-Type 디버깅
+    print(f"🔍 create_calendar() called at {datetime.now()}")
     print(f"Content-Type: {request.content_type}")
     print(f"Request Headers: {dict(request.headers)}")
+    import sys
+    sys.stdout.flush()
     
     # multipart/form-data와 JSON 모두 지원
     if request.is_json:
@@ -207,6 +210,7 @@ def create_calendar():
         media_filename = data.get('media_filename')
         youtube_data = data.get('youtube_data')
         media_file = None
+        print(f"[DEBUG] JSON request - youtube_data: {youtube_data}")
     else:
         # Form 요청 (파일 포함 가능)
         name = request.form.get('name')
@@ -220,9 +224,13 @@ def create_calendar():
             try:
                 import json
                 youtube_data = json.loads(youtube_data_str)
-            except:
+                print(f"[DEBUG] Form request - parsed youtube_data: {youtube_data}")
+            except Exception as parse_error:
+                print(f"[ERROR] Failed to parse youtube_data: {parse_error}")
                 youtube_data = None
         media_file = request.files.get('media_file')
+        print(f"[DEBUG] Form request - youtube_data_str: {youtube_data_str}")
+        print(f"[DEBUG] Form request - final youtube_data: {youtube_data}")
     
     # 임시로 인증 체크 비활성화 (테스트용)
     # auth_error = require_auth()
@@ -313,19 +321,31 @@ def create_calendar():
             calendar_data['media_file_type'] = media_file_type
             print(f"[SUCCESS] Adding media info to calendar: filename={media_filename}, path={media_file_path}, type={media_file_type}")
         
-        # YouTube 데이터가 있다면 추가
+        # YouTube 데이터가 있다면 기존 media 필드에 저장 (기존 DB 스키마 사용)
         if youtube_data:
             calendar_data['description'] += f' (YouTube: {youtube_data.get("title", "YouTube Video")})'
-            calendar_data['youtube_video_id'] = youtube_data.get('video_id')
-            calendar_data['youtube_title'] = youtube_data.get('title')
-            calendar_data['youtube_channel'] = youtube_data.get('channel_name')
-            calendar_data['youtube_thumbnail'] = youtube_data.get('thumbnail_url')
-            calendar_data['youtube_duration'] = youtube_data.get('duration_formatted')
-            calendar_data['youtube_url'] = youtube_data.get('watch_url')
-            print(f"[SUCCESS] Adding YouTube info to calendar: {youtube_data.get('title')} by {youtube_data.get('channel_name')}")
+            # YouTube 데이터를 기존 media 필드에 저장
+            calendar_data['media_file_path'] = youtube_data.get('embed_url')  # embed URL을 path로 사용
+            calendar_data['media_file_type'] = 'youtube'  # 타입을 youtube로 설정
+            calendar_data['media_filename'] = f"{youtube_data.get('title', 'YouTube Video')} - {youtube_data.get('channel_name', 'Unknown')}"
+            print(f"[SUCCESS] Adding YouTube info to calendar (via media fields): {youtube_data.get('title')} by {youtube_data.get('channel_name')}")
+            print(f"[DEBUG] YouTube embed URL: {youtube_data.get('embed_url')}")
+        else:
+            print("[DEBUG] No YouTube data provided")
+        
+        # 데이터베이스에 저장하기 전에 전체 데이터 로그
+        print(f"[DEBUG] Final calendar_data before DB insert:")
+        import json
+        print(json.dumps(calendar_data, indent=2, default=str))
         
         # Supabase에 저장
-        result = supabase.table('calendars').insert(calendar_data).execute()
+        print("[DEBUG] Attempting to insert calendar into database...")
+        try:
+            result = supabase.table('calendars').insert(calendar_data).execute()
+            print(f"[DEBUG] Database insert result: {result}")
+        except Exception as db_error:
+            print(f"[ERROR] Database insert failed: {db_error}")
+            raise db_error
         
         if result.data:
             return jsonify({
@@ -779,10 +799,10 @@ def get_youtube_info():
         
         # YouTube API Key 확인
         youtube_api_key = os.environ.get('YOUTUBE_API_KEY')
-        if not youtube_api_key:
+        if not youtube_api_key or youtube_api_key == 'YOUR_API_KEY_HERE':
             return jsonify({
                 'success': False,
-                'error': 'YouTube API key not configured'
+                'error': 'YouTube API key not configured. Please set YOUTUBE_API_KEY in your .env file with a valid Google Cloud API key.'
             }), 500
         
         # YouTube 유틸리티 함수 사용

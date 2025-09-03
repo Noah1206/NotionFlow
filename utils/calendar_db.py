@@ -131,6 +131,39 @@ class CalendarDatabase:
                 except Exception as e:
                     print(f"⚠️ Could not add media_file_type: {e}")
             
+            # Add YouTube data if provided - store in existing fields since schema doesn't have YouTube columns
+            if 'youtube_embed_url' in calendar_data and calendar_data['youtube_embed_url']:
+                # Store YouTube embed URL in media_file_path field and set type to indicate it's YouTube
+                db_data['media_file_path'] = calendar_data['youtube_embed_url']
+                db_data['media_file_type'] = 'youtube'
+                db_data['media_filename'] = calendar_data.get('youtube_title', 'YouTube Video')
+                print(f"🎬 Stored YouTube embed URL in media_file_path: {calendar_data['youtube_embed_url']}")
+                print(f"🎬 Set media_file_type to 'youtube' to indicate YouTube content")
+                print(f"🎬 Set media_filename to YouTube title: {calendar_data.get('youtube_title', 'YouTube Video')}")
+                
+                # Add detailed YouTube info to description
+                if 'youtube_title' in calendar_data:
+                    youtube_info = {
+                        'type': 'youtube',
+                        'video_id': calendar_data.get('youtube_video_id'),
+                        'title': calendar_data.get('youtube_title'), 
+                        'channel': calendar_data.get('youtube_channel'),
+                        'duration': calendar_data.get('youtube_duration'),
+                        'thumbnail': calendar_data.get('youtube_thumbnail'),
+                        'url': calendar_data.get('youtube_url'),
+                        'embed_url': calendar_data.get('youtube_embed_url')
+                    }
+                    
+                    # Append YouTube metadata as JSON to description for future retrieval
+                    import json
+                    youtube_json = json.dumps(youtube_info, separators=(',', ':'))
+                    db_data['description'] += f' [YOUTUBE:{youtube_json}]'
+                    print(f"🎬 Added YouTube metadata to description")
+                    
+                print(f"✅ YouTube data stored in existing database schema")
+            else:
+                print(f"ℹ️ No YouTube data provided")
+            
             print(f"📝 Database data to insert: {db_data}")
             
             # Insert into database
@@ -189,7 +222,7 @@ class CalendarDatabase:
             # Delete with user verification for security
             result = self.supabase.table('calendars').delete().eq('id', calendar_id).eq('owner_id', user_id).execute()
             
-            if result.data:
+            if result.data is not None:  # Changed: result.data could be empty list for successful deletes
                 print(f"✅ Calendar deleted: {calendar_id}")
                 return True
             else:
@@ -198,6 +231,10 @@ class CalendarDatabase:
                 
         except Exception as e:
             print(f"❌ Failed to delete calendar: {e}")
+            print(f"❌ Error type: {type(e).__name__}")
+            import traceback
+            print("❌ Full traceback:")
+            traceback.print_exc()
             return False
     
     def get_calendar_by_id(self, calendar_id: str, user_id: str) -> Optional[Dict[str, Any]]:
