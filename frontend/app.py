@@ -554,37 +554,26 @@ def calendar_list():
                 traceback.print_exc()
                 # Continue to file storage fallback
         
-        # Final fallback to file storage
-        # Use file storage if no calendars were loaded from database sources
-        if not calendar_context.get('personal_calendars') and not calendar_context.get('shared_calendars'):
-            print("[EMOJI] Using file storage for calendar list")
+        # Final fallback to file storage - DISABLED to prevent deleted calendars from reappearing
+        # The database should be the single source of truth for calendars
+        # JSON files were causing deleted calendars to reappear after page refresh
+        
+        # Only use file storage as an absolute last resort when database is completely unavailable
+        if False:  # Disabled file storage fallback
+            print("[EMOJI] File storage fallback is disabled")
             
-            # Load user calendars from file
-            user_calendars = load_user_calendars_legacy(user_id)
-            print(f"[CALENDAR] Loaded calendars for user {user_id}: {len(user_calendars)} total")
-            
-            # Separate personal and shared calendars
-            personal_calendars = [cal for cal in user_calendars if not cal.get('is_shared', False)]
-            shared_calendars = [cal for cal in user_calendars if cal.get('is_shared', False)]
-            print(f"[USER] Personal calendars: {len(personal_calendars)}")
-            print(f"[EMOJI] Shared calendars: {len(shared_calendars)}")
-            
-            # If no calendars exist, keep empty
-            if not user_calendars:
-                print("[EMOJI] No calendars found, starting with empty calendar list")
-                personal_calendars = []
-                shared_calendars = []
-            
-            calendar_context.update({
-                'personal_calendars': personal_calendars,
-                'shared_calendars': shared_calendars,
-                'summary': {
-                    'total_calendars': len(personal_calendars) + len(shared_calendars),
-                    'personal_calendars': len(personal_calendars),
-                    'shared_calendars': len(shared_calendars),
-                    'total_events': sum(cal.get('event_count', 0) for cal in user_calendars if user_calendars)
-                }
-            })
+        # Ensure empty lists if no calendars were loaded
+        if not calendar_context.get('personal_calendars'):
+            calendar_context['personal_calendars'] = []
+        if not calendar_context.get('shared_calendars'):
+            calendar_context['shared_calendars'] = []
+        if not calendar_context.get('summary'):
+            calendar_context['summary'] = {
+                'total_calendars': 0,
+                'personal_calendars': 0,
+                'shared_calendars': 0,
+                'total_events': 0
+            }
     except Exception as e:
         print(f"[ERROR] Error loading calendar data: {e}")
         # Keep default empty data on error
@@ -978,6 +967,28 @@ def calendar_detail(calendar_id):
                 print(f"[EMOJI] Upload directory does not exist: {upload_dir}")
     
     calendar['media_url'] = media_url
+    
+    # Extract YouTube metadata from media_filename if it's a YouTube video
+    if calendar.get('media_file_type') == 'youtube' and calendar.get('media_filename'):
+        media_filename = calendar['media_filename']
+        print(f"[DEBUG] Processing YouTube media_filename: {media_filename}")
+        
+        # Try to extract title and channel from "Title - Channel" format
+        if ' - ' in media_filename:
+            parts = media_filename.split(' - ', 1)  # Split only on first ' - '
+            youtube_title = parts[0].strip()
+            youtube_channel = parts[1].strip()
+            
+            calendar['youtube_title'] = youtube_title
+            calendar['youtube_channel'] = youtube_channel
+            
+            print(f"[SUCCESS] Extracted YouTube metadata: title='{youtube_title}', channel='{youtube_channel}'")
+        else:
+            # Fallback: use entire filename as title
+            calendar['youtube_title'] = media_filename
+            calendar['youtube_channel'] = 'YouTube'
+            
+            print(f"[FALLBACK] Using media_filename as YouTube title: '{media_filename}'")
     
     context.update({
         'calendar': calendar,

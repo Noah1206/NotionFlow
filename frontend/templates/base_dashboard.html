@@ -322,14 +322,13 @@
             bottom: auto !important;
             width: 250px !important;
             height: 100vh !important;
-            background: #f5f5f5 !important;
-            /* 사이드바 배경 */
+            background: #1a1a1a !important;
+            /* Dark sidebar background */
             border: none !important;
             border-top: none !important;
             border-left: none !important;
             border-bottom: none !important;
-            border-right: 3px solid #000000 !important;
-            /* 오른쪽 경계선만 */
+            border-right: none !important;
             border-radius: 0 !important;
             z-index: 100 !important;
             overflow-y: auto !important;
@@ -341,6 +340,37 @@
             opacity: 1 !important;
             display: block !important;
             transform: none !important;
+        }
+
+        /* Dark sidebar text colors */
+        .sidebar *,
+        .sidebar a,
+        .sidebar .nav-item a,
+        .sidebar .nav-text,
+        .sidebar .sidebar-brand,
+        .sidebar .sidebar-brand *,
+        .sidebar .sidebar-nav *,
+        .sidebar .nav-link,
+        .sidebar .nav-item,
+        .sidebar span,
+        .sidebar p,
+        .sidebar div {
+            color: #e5e7eb !important;
+            background-color: transparent !important;
+        }
+
+        /* Sidebar hover states */
+        .sidebar .nav-item:hover,
+        .sidebar .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            color: #ffffff !important;
+        }
+
+        /* Active sidebar states */
+        .sidebar .nav-item.active,
+        .sidebar .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.15) !important;
+            color: #ffffff !important;
         }
 
         /* Responsive */

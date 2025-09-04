@@ -5,9 +5,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const style = document.createElement('style');
     style.textContent = `
         .hour-line { 
-            height: 600px !important; 
-            min-height: 600px !important; 
-            max-height: 600px !important; 
+            height: 60px !important; 
+            min-height: 60px !important; 
+            max-height: 60px !important; 
         }
     `;
     document.head.appendChild(style);
@@ -18,42 +18,29 @@ const TIME_GRID_CONFIG = {
     startHour: 0,   // Start at 12 AM (midnight)
     endHour: 23,    // End at 11 PM
     defaultViewStart: 7, // Default visible start at 7 AM
-    hourHeight: 600, // Massively increased to 600px for extremely tall cells
+    hourHeight: 60, // Fixed to match CSS styling (60px per hour)
     snapMinutes: 15, // Snap to 15-minute intervals
     showHalfHours: true, // Show 30-minute marks
     showQuarterHours: true, // Show 15-minute marks
     compactMode: false // More detailed view
 };
 
-// Available event colors for random selection
-const EVENT_COLORS = [
-    '#3b82f6', // Blue
-    '#10b981', // Emerald
-    '#f59e0b', // Amber
-    '#ef4444', // Red
-    '#8b5cf6', // Purple
-    '#ec4899', // Pink
-    '#14b8a6', // Teal
-    '#f97316', // Orange
-    '#06b6d4', // Sky Blue
-    '#84cc16', // Lime
-    '#a855f7', // Violet
-    '#6366f1', // Indigo
-    '#dc2626', // Red-600
-    '#059669', // Emerald-600
-    '#d97706', // Amber-600
-    '#7c3aed', // Violet-600
-    '#db2777', // Pink-600
-    '#0891b2', // Cyan-600
-    '#65a30d', // Lime-600
-    '#4f46e5', // Indigo-600
-    '#be123c', // Rose-600
-    '#047857'  // Emerald-700
+// Professional event color schemes for Linear/Slack style
+const EVENT_COLOR_SCHEMES = [
+    { name: 'blue', color: '#3b82f6' },
+    { name: 'green', color: '#10b981' },
+    { name: 'orange', color: '#f59e0b' },
+    { name: 'red', color: '#ef4444' },
+    { name: 'purple', color: '#8b5cf6' },
+    { name: 'pink', color: '#ec4899' },
+    { name: 'indigo', color: '#6366f1' },
+    { name: 'slate', color: '#64748b' }
 ];
 
-// Get random color from the palette
-function getRandomEventColor() {
-    return EVENT_COLORS[Math.floor(Math.random() * EVENT_COLORS.length)];
+// Get random color scheme from the palette
+function getRandomEventColorScheme() {
+    const scheme = EVENT_COLOR_SCHEMES[Math.floor(Math.random() * EVENT_COLOR_SCHEMES.length)];
+    return scheme;
 }
 
 // Adjust color brightness for borders
@@ -87,8 +74,12 @@ let originalEventData = null;
 function initializeTimeGrid() {
     console.log('🕒 Initializing enhanced time grid view...');
     
-    // Set current week start
-    currentWeekStart = getWeekStart(currentDate);
+    // Set current week start - use today if currentDate is not defined
+    const baseDate = (typeof currentDate !== 'undefined') ? currentDate : new Date();
+    currentWeekStart = getWeekStart(baseDate);
+    
+    console.log('📅 Base date for time grid:', baseDate.toDateString());
+    console.log('📅 Current week start:', currentWeekStart.toDateString());
     
     // Render the time grid
     renderTimeGrid();
@@ -98,7 +89,7 @@ function initializeTimeGrid() {
     
     // Enhanced initialization sequence
     setTimeout(() => {
-        // Auto-scroll to current time or default
+        // Auto-scroll to current time or default (increased delay for DOM readiness)
         autoScrollToCurrentTime();
         
         // Update current time indicator
@@ -111,7 +102,7 @@ function initializeTimeGrid() {
         window.timeGridClockInterval = clockInterval;
         
         console.log('⏰ Live clock and time indicator initialized');
-    }, 100);
+    }, 300);
     
     // Update current time indicator every minute
     setInterval(updateCurrentTimeIndicator, 60000);
@@ -242,16 +233,32 @@ function getWeekStart(date) {
 // Scroll to specific time
 function scrollToTime(hour) {
     const timeGridBody = document.querySelector('.time-grid-body');
-    if (!timeGridBody) return;
+    if (!timeGridBody) {
+        console.log('⚠️ Cannot scroll: time-grid-body element not found');
+        return;
+    }
+    
+    console.log('⏰ Scrolling to hour:', hour);
     
     // Calculate scroll position
     const hoursFromStart = hour - TIME_GRID_CONFIG.startHour;
     const scrollTop = hoursFromStart * TIME_GRID_CONFIG.hourHeight;
     
-    // Smooth scroll to position
-    timeGridBody.scrollTo({
-        top: Math.max(0, scrollTop),
-        behavior: 'smooth'
+    console.log('📍 Scroll to time calculation:', {
+        hour: hour,
+        hoursFromStart: hoursFromStart,
+        scrollTop: scrollTop
+    });
+    
+    // Use requestAnimationFrame to ensure DOM is fully rendered
+    requestAnimationFrame(() => {
+        // Smooth scroll to position
+        timeGridBody.scrollTo({
+            top: Math.max(0, scrollTop),
+            behavior: 'smooth'
+        });
+        
+        console.log('✅ Scrolled to hour', hour, 'at position:', scrollTop);
     });
 }
 
@@ -373,8 +380,9 @@ function renderGridLines() {
     
     gridContainer.innerHTML = '';
     
-    // Force container style
-    gridContainer.style.minHeight = '15000px';
+    // Calculate and set proper container height
+    const totalHeight = (TIME_GRID_CONFIG.endHour - TIME_GRID_CONFIG.startHour + 1) * TIME_GRID_CONFIG.hourHeight;
+    gridContainer.style.minHeight = `${totalHeight}px`;
     gridContainer.style.height = 'auto';
     
     // Add horizontal lines for each hour and sub-divisions
@@ -388,7 +396,7 @@ function renderGridLines() {
         const hourLine = document.createElement('div');
         hourLine.className = 'hour-line'; // Match CSS class exactly
         hourLine.style.top = `${baseTop}px`;
-        hourLine.style.height = `${TIME_GRID_CONFIG.hourHeight}px !important`; // Force height in JavaScript with !important
+        hourLine.style.height = `${TIME_GRID_CONFIG.hourHeight}px`;
         hourLine.style.minHeight = `${TIME_GRID_CONFIG.hourHeight}px`;
         hourLine.style.maxHeight = `${TIME_GRID_CONFIG.hourHeight}px`;
         hourLine.setAttribute('data-height', TIME_GRID_CONFIG.hourHeight);
@@ -603,17 +611,24 @@ function createEventElement(event) {
     const left = (dayIndex * 100) / 7;
     const width = 100 / 7;
     
-    // Assign random color if not set
-    if (!event.color) {
-        event.color = getRandomEventColor();
+    // Assign color scheme if not set
+    let colorScheme;
+    if (!event.color || !event.colorScheme) {
+        colorScheme = getRandomEventColorScheme();
+        event.colorScheme = colorScheme.name;
+        event.color = colorScheme.color;
+    } else if (event.color && !event.colorScheme) {
+        // Find matching color scheme by color
+        colorScheme = EVENT_COLOR_SCHEMES.find(s => s.color === event.color) || EVENT_COLOR_SCHEMES[0];
+        event.colorScheme = colorScheme.name;
+    } else {
+        colorScheme = EVENT_COLOR_SCHEMES.find(s => s.name === event.colorScheme) || EVENT_COLOR_SCHEMES[0];
     }
     
-    // Create event block
+    // Create event block with color scheme class
     const eventBlock = document.createElement('div');
-    eventBlock.className = 'event-block';
+    eventBlock.className = `event-block ${colorScheme.name}`;
     eventBlock.dataset.eventId = event.id;
-    eventBlock.style.backgroundColor = event.color;
-    eventBlock.style.borderLeftColor = adjustColorBrightness(event.color, -20);
     eventBlock.style.top = `${top}px`;
     eventBlock.style.height = `${height}px`;
     eventBlock.style.left = `${left}%`;
@@ -624,6 +639,8 @@ function createEventElement(event) {
     const endTimeStr = endDate.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
     
     eventBlock.innerHTML = `
+        <div class="node-dot"></div>
+        <div class="status-badge"></div>
         <div class="resize-handle top"></div>
         <div class="event-title">${event.title}</div>
         <div class="event-time">${startTimeStr} - ${endTimeStr}</div>
@@ -908,13 +925,19 @@ function initializeContextMenu() {
 // Enhanced current time indicator with dynamic updates
 function updateCurrentTimeIndicator() {
     const indicator = document.getElementById('current-time-indicator');
-    if (!indicator) return;
+    if (!indicator) {
+        console.log('🚨 Current time indicator element not found');
+        return;
+    }
     
     const now = new Date();
     const currentHour = now.getHours() + now.getMinutes() / 60;
     
+    console.log('🕐 Current time:', now.toLocaleTimeString('ko-KR'), 'Hour decimal:', currentHour);
+    
     // Check if current time is within grid range
     if (currentHour < TIME_GRID_CONFIG.startHour || currentHour > TIME_GRID_CONFIG.endHour) {
+        console.log('⏰ Current time outside grid range:', TIME_GRID_CONFIG.startHour, 'to', TIME_GRID_CONFIG.endHour);
         indicator.style.display = 'none';
         return;
     }
@@ -924,12 +947,20 @@ function updateCurrentTimeIndicator() {
     const weekStart = getWeekStart(today);
     const dayIndex = Math.floor((today - weekStart) / (24 * 60 * 60 * 1000));
     
+    console.log('📅 Today:', today.toDateString());
+    console.log('📅 Week start:', weekStart.toDateString());
+    console.log('📅 Current week start:', currentWeekStart ? currentWeekStart.toDateString() : 'undefined');
+    console.log('📅 Day index:', dayIndex);
+    console.log('📅 Week comparison:', Math.abs(currentWeekStart.getTime() - weekStart.getTime()));
+    
     // Only show if we're viewing the current week and it's today
-    if (Math.abs(currentWeekStart - weekStart) < 24 * 60 * 60 * 1000 && dayIndex >= 0 && dayIndex < 7) {
+    if (currentWeekStart && Math.abs(currentWeekStart.getTime() - weekStart.getTime()) < 24 * 60 * 60 * 1000 && dayIndex >= 0 && dayIndex < 7) {
         // Calculate position from the start hour
         const top = (currentHour - TIME_GRID_CONFIG.startHour) * TIME_GRID_CONFIG.hourHeight;
         indicator.style.top = `${top}px`;
         indicator.style.display = 'block';
+        
+        console.log('✅ Showing time indicator at position:', top + 'px');
         
         // Update the time indicator with current time
         const timeText = now.toLocaleTimeString('ko-KR', { 
@@ -950,6 +981,7 @@ function updateCurrentTimeIndicator() {
         // Highlight current time column
         highlightCurrentTimeColumn(dayIndex);
     } else {
+        console.log('❌ Not showing time indicator - week mismatch or invalid day index');
         indicator.style.display = 'none';
     }
 }
@@ -1000,28 +1032,89 @@ function flashTimeLabel(hour) {
     }
 }
 
-// Auto-scroll to current time on page load
+// Auto-scroll to current time on page load with current time line centered
 function autoScrollToCurrentTime() {
-    const now = new Date();
-    const currentHour = now.getHours();
+    // Ensure DOM is ready for scrolling
+    const timeGridBody = document.querySelector('.time-grid-body');
+    if (!timeGridBody) {
+        console.log('⚠️ Auto-scroll failed: time-grid-body element not found');
+        return;
+    }
     
-    // Only auto-scroll if we're viewing today
+    const now = new Date();
+    const currentHour = now.getHours() + now.getMinutes() / 60; // Include minutes for precise positioning
+    
+    console.log('🔄 Auto-scroll check - Current time:', now.toLocaleTimeString('ko-KR'));
+    console.log('🔄 Current hour decimal:', currentHour);
+    
+    // Check if we're viewing today for current time line display
     const today = new Date();
     const weekStart = getWeekStart(today);
-    const isCurrentWeek = Math.abs(currentWeekStart - weekStart) < 24 * 60 * 60 * 1000;
+    const isCurrentWeek = currentWeekStart && Math.abs(currentWeekStart.getTime() - weekStart.getTime()) < 24 * 60 * 60 * 1000;
     
+    console.log('🔄 Today:', today.toDateString());
+    console.log('🔄 Week start:', weekStart.toDateString());
+    console.log('🔄 Current week start:', currentWeekStart ? currentWeekStart.toDateString() : 'undefined');
+    console.log('🔄 Is current week:', isCurrentWeek);
+    console.log('🔄 Hour range check:', currentHour >= TIME_GRID_CONFIG.startHour && currentHour <= TIME_GRID_CONFIG.endHour);
+    
+    // Always auto-scroll to show appropriate time range for better UX
     if (isCurrentWeek && currentHour >= TIME_GRID_CONFIG.startHour && currentHour <= TIME_GRID_CONFIG.endHour) {
-        // Scroll to 1 hour before current time for context
-        const scrollToHour = Math.max(TIME_GRID_CONFIG.startHour, currentHour - 1);
-        setTimeout(() => {
-            scrollToTime(scrollToHour);
-        }, 500);
+        // If it's current week and current time is in range, center the current time line
+        console.log('✅ Auto-scrolling to current time:', now.toLocaleTimeString('ko-KR'));
+        scrollToCurrentTimeCentered();
     } else {
-        // Default scroll to work hours start
-        setTimeout(() => {
-            scrollToTime(TIME_GRID_CONFIG.defaultViewStart);
-        }, 500);
+        // For any other case (different week or out of range), scroll to show working hours
+        // Calculate optimal view position (around 9AM-10AM area like in the screenshot)
+        const optimalHour = 9; // 9 AM for good visibility
+        console.log('⏰ Auto-scrolling to optimal view around:', optimalHour + 'AM for better visibility');
+        scrollToTime(optimalHour);
     }
+}
+
+// Scroll to current time with the red line centered in viewport
+function scrollToCurrentTimeCentered() {
+    const timeGridBody = document.querySelector('.time-grid-body');
+    if (!timeGridBody) {
+        console.log('⚠️ Cannot scroll: time-grid-body element not found');
+        return;
+    }
+    
+    const now = new Date();
+    const currentHour = now.getHours() + now.getMinutes() / 60;
+    
+    console.log('🎯 Centering current time line - Hour:', currentHour);
+    
+    // Calculate exact position of current time
+    const hoursFromStart = currentHour - TIME_GRID_CONFIG.startHour;
+    const currentTimePosition = hoursFromStart * TIME_GRID_CONFIG.hourHeight;
+    
+    // Get viewport height to center the current time line
+    const viewportHeight = timeGridBody.clientHeight;
+    const centerOffset = viewportHeight / 2;
+    
+    // Calculate scroll position to center current time line
+    const scrollTop = Math.max(0, currentTimePosition - centerOffset);
+    
+    console.log('📍 Scroll calculation:', {
+        currentHour: currentHour,
+        hoursFromStart: hoursFromStart,
+        currentTimePosition: currentTimePosition,
+        viewportHeight: viewportHeight,
+        centerOffset: centerOffset,
+        scrollTop: scrollTop
+    });
+    
+    // Use requestAnimationFrame to ensure DOM is fully rendered
+    requestAnimationFrame(() => {
+        // Smooth scroll to centered position
+        timeGridBody.scrollTo({
+            top: scrollTop,
+            behavior: 'smooth'
+        });
+        
+        console.log('🎯 Centered current time line in viewport at scroll position:', scrollTop);
+    });
 }
 
 // Live clock update for better user experience
@@ -1115,7 +1208,8 @@ function goToCurrentTime() {
     const currentHour = now.getHours();
     
     if (currentHour >= TIME_GRID_CONFIG.startHour && currentHour <= TIME_GRID_CONFIG.endHour) {
-        scrollToTime(currentHour);
+        // Use the new centered scroll function instead of scrollToTime
+        scrollToCurrentTimeCentered();
         
         // Flash current time indicator
         const indicator = document.getElementById('current-time-indicator');
@@ -1130,10 +1224,13 @@ function goToCurrentTime() {
         if (window.showNotification) {
             showNotification('현재 시간으로 이동했습니다', 'info');
         }
+        
+        console.log('🎯 Navigated to current time (centered):', now.toLocaleTimeString('ko-KR'));
     } else {
         if (window.showNotification) {
             showNotification('현재 시간이 표시 범위를 벗어났습니다', 'warning');
         }
+        console.log('⚠️ Current time is outside working hours range');
     }
 }
 
@@ -1507,5 +1604,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const calendarWorkspace = document.querySelector('.calendar-workspace');
     if (calendarWorkspace) {
         initializeTimeGrid();
+        
+        // Add additional fallback to ensure auto-scroll works
+        setTimeout(() => {
+            const timeGridBody = document.querySelector('.time-grid-body');
+            if (timeGridBody && timeGridBody.scrollTop === 0) {
+                console.log('🔄 Fallback auto-scroll triggered');
+                autoScrollToCurrentTime();
+            }
+        }, 1000);
     }
 });

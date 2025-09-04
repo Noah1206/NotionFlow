@@ -220,14 +220,29 @@ class CalendarDatabase:
         
         try:
             # Delete with user verification for security
-            result = self.supabase.table('calendars').delete().eq('id', calendar_id).eq('owner_id', user_id).execute()
+            print(f"🔍 Attempting to delete calendar: {calendar_id} for user: {user_id}")
             
-            if result.data is not None:  # Changed: result.data could be empty list for successful deletes
-                print(f"✅ Calendar deleted: {calendar_id}")
-                return True
-            else:
-                print(f"❌ Failed to delete calendar: {calendar_id}")
+            # First check if calendar exists
+            check_result = self.supabase.table('calendars').select('*').eq('id', calendar_id).eq('owner_id', user_id).execute()
+            if not check_result.data:
+                print(f"⚠️ Calendar {calendar_id} not found for user {user_id}")
                 return False
+            
+            print(f"📋 Calendar exists before deletion: {check_result.data}")
+            
+            # Perform the delete operation
+            delete_result = self.supabase.table('calendars').delete().eq('id', calendar_id).eq('owner_id', user_id).execute()
+            
+            print(f"🔍 Delete operation result: {delete_result.data}")
+            
+            # Verify deletion by checking if calendar still exists
+            verify_result = self.supabase.table('calendars').select('*').eq('id', calendar_id).execute()
+            if verify_result.data:
+                print(f"❌ Calendar still exists after delete attempt: {verify_result.data}")
+                return False
+            else:
+                print(f"✅ Calendar {calendar_id} successfully deleted and verified")
+                return True
                 
         except Exception as e:
             print(f"❌ Failed to delete calendar: {e}")

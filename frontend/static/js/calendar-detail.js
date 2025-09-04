@@ -150,6 +150,31 @@ document.addEventListener('DOMContentLoaded', function() {
     // initializeAttendees(); // Initialize attendees functionality - disabled
 });
 
+// Utility function to extract YouTube video ID from various URL formats
+function extractVideoId(url) {
+    if (!url) return null;
+    
+    // Handle different YouTube URL formats
+    const patterns = [
+        /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([a-zA-Z0-9_-]+)/,
+        /youtube\.com\/watch\?.*v=([a-zA-Z0-9_-]+)/
+    ];
+    
+    for (const pattern of patterns) {
+        const match = url.match(pattern);
+        if (match && match[1]) {
+            return match[1];
+        }
+    }
+    
+    // If it's already just a video ID (11 characters, alphanumeric and underscores/hyphens)
+    if (url.match(/^[a-zA-Z0-9_-]{11}$/)) {
+        return url;
+    }
+    
+    return null;
+}
+
 function initializeCalendar() {
     // Check active view from HTML and sync currentView
     const activeViewBtn = document.querySelector('.view-option.active');
@@ -280,6 +305,341 @@ let currentTrackIndex = 0;
 let isPlaying = false;
 let mediaInitializing = false; // Prevent infinite loops
 
+// YouTube Player functionality
+let youtubePlayer = null;
+let isYouTubePlayerReady = false;
+let currentYouTubeVideoId = null;
+let isYouTubeMode = false;
+
+// YouTube Player API Callback Functions
+function onYouTubeIframeAPIReady() {
+    console.log('🎵 YouTube Iframe API is ready');
+    isYouTubePlayerReady = true;
+    
+    // If there's a pending initialization, run it now
+    if (pendingYouTubeInit) {
+        console.log('🎵 Executing pending YouTube initialization');
+        const {videoId, trackInfo} = pendingYouTubeInit;
+        pendingYouTubeInit = null;
+        initYouTubePlayer(videoId, trackInfo);
+    }
+}
+
+// Make the callback available globally for YouTube API
+window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
+
+// Track pending YouTube player initializations
+let pendingYouTubeInit = null;
+
+function initYouTubePlayer(videoIdOrUrl, trackInfo = null) {
+    console.log('🎵 Initializing YouTube Player with video ID/URL:', videoIdOrUrl);
+    
+    // Extract video ID from URL if needed
+    let videoId = videoIdOrUrl;
+    if (videoIdOrUrl && (videoIdOrUrl.includes('youtube.com') || videoIdOrUrl.includes('youtu.be'))) {
+        videoId = extractVideoId(videoIdOrUrl);
+        console.log('🎬 Extracted video ID from URL:', videoId);
+    }
+    
+    // Set thumbnail immediately if we have a valid video ID
+    if (videoId) {
+        setYouTubeThumbnail(videoId);
+    }
+    
+    if (!window.YT || !window.YT.Player) {
+        console.error('❌ YouTube API not loaded');
+        return;
+    }
+
+    // Stop any playing regular media first (if initialized)
+    try {
+        if (typeof mediaPlayer !== 'undefined' && mediaPlayer && !mediaPlayer.paused) {
+            mediaPlayer.pause();
+            isPlaying = false;
+            updatePlayButton();
+            updateCompactPlayButton();
+        }
+    } catch (e) {
+        console.log('Media player not yet initialized, skipping pause');
+    }
+
+    // Destroy existing YouTube player if any
+    if (youtubePlayer && typeof youtubePlayer.destroy === 'function') {
+        try {
+            youtubePlayer.destroy();
+            youtubePlayer = null;
+            isYouTubePlayerReady = false;
+        } catch (e) {
+            console.log('Error destroying existing player:', e);
+        }
+    }
+    
+    // Reset YouTube player div
+    const playerDiv = document.getElementById('youtube-player');
+    if (playerDiv) {
+        playerDiv.innerHTML = '';  // Clear any existing iframe
+    }
+
+    const playerContainer = document.getElementById('youtube-player-container');
+    const regularCover = document.getElementById('regular-media-cover');
+    const headerPlayer = document.getElementById('header-media-player');
+    
+    if (!playerContainer) {
+        console.error('❌ YouTube player container not found');
+        return;
+    }
+
+    // Show header media player
+    if (headerPlayer) {
+        headerPlayer.style.display = 'block';
+    }
+
+    // Show YouTube player in sidebar/compact mode, but keep regular cover for header
+    playerContainer.style.display = 'block';
+    
+    // In header mode, we want to show thumbnail, not the video player
+    // Regular cover stays visible for thumbnail display
+    if (regularCover) {
+        regularCover.style.display = 'block'; // Keep visible for thumbnail
+    }
+    
+    // Enable YouTube mode styling
+    mediaPlayer = document.querySelector('.header-media-player');
+    if (mediaPlayer) {
+        mediaPlayer.classList.add('youtube-mode');
+    }
+    isYouTubeMode = true;
+    currentYouTubeVideoId = videoId;
+
+    try {
+        youtubePlayer = new YT.Player('youtube-player', {
+            height: '60',
+            width: '80',
+            videoId: videoId,
+            playerVars: {
+                'playsinline': 1,
+                'controls': 0,          // Hide player controls
+                'disablekb': 1,         // Disable keyboard controls
+                'showinfo': 0,          // Hide video info
+                'rel': 0,               // Don't show related videos
+                'modestbranding': 1,    // Minimal YouTube branding
+                'iv_load_policy': 3,    // Hide video annotations
+                'fs': 0,                // Disable fullscreen button
+                'cc_load_policy': 0,    // Hide closed captions
+                'autohide': 1,          // Hide video controls automatically
+                'enablejsapi': 1,       // Enable JavaScript API
+                'origin': window.location.origin  // Set origin for security
+            },
+            events: {
+                'onReady': onYouTubePlayerReady,
+                'onStateChange': onYouTubePlayerStateChange
+            }
+        });
+        console.log('✅ YouTube Player created successfully');
+    } catch (error) {
+        console.error('❌ Error creating YouTube Player:', error);
+    }
+}
+
+function onYouTubePlayerReady(event) {
+    console.log('🎵 YouTube Player is ready');
+    isYouTubePlayerReady = true;
+    
+    // Clear loading message
+    clearLoadingMessage();
+    
+    // Set YouTube thumbnail in header
+    setTimeout(() => {
+        try {
+            if (youtubePlayer && typeof youtubePlayer.getVideoData === 'function') {
+                const videoData = youtubePlayer.getVideoData();
+                console.log('🎬 YouTube video data:', videoData);
+                
+                if (videoData && videoData.video_id) {
+                    console.log('🎬 Found video ID from player:', videoData.video_id);
+                    setYouTubeThumbnail(videoData.video_id);
+                } else {
+                    // Try to extract video ID from URL if available
+                    const videoUrl = youtubePlayer.getVideoUrl ? youtubePlayer.getVideoUrl() : null;
+                    console.log('🎬 Video URL from player:', videoUrl);
+                    
+                    if (videoUrl) {
+                        const videoId = extractVideoId(videoUrl);
+                        console.log('🎬 Extracted video ID from URL:', videoId);
+                        
+                        if (videoId) {
+                            setYouTubeThumbnail(videoId);
+                        } else {
+                            console.log('📺 Could not extract video ID, using icon');
+                            setYouTubeThumbnail(null);
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.log('❌ Error getting video data:', error);
+            setYouTubeThumbnail(null);
+        }
+    }, 500); // Small delay to ensure video data is available
+    
+    // Load custom title from localStorage if available
+    loadYouTubeCustomTitle();
+    
+    // Update title tooltip for YouTube mode
+    const headerTitleElement = document.getElementById('header-media-title');
+    if (headerTitleElement) {
+        headerTitleElement.title = '클릭하여 YouTube 제목 편집';
+    }
+    
+    // Update media player UI to show YouTube is ready
+    const playButton = document.getElementById('header-play-pause-btn');
+    if (playButton) {
+        playButton.disabled = false;
+        playButton.style.opacity = '1';
+    }
+    
+    // Get video duration and update display
+    if (youtubePlayer && typeof youtubePlayer.getDuration === 'function') {
+        const duration = youtubePlayer.getDuration();
+        const durationSpan = document.getElementById('header-total-time');
+        if (durationSpan && duration > 0) {
+            durationSpan.textContent = formatTime(duration);
+        }
+    }
+    
+    // Initialize play button states
+    const playIcon = document.getElementById('header-play-icon');
+    const pauseIcon = document.getElementById('header-pause-icon');
+    if (playIcon && pauseIcon) {
+        playIcon.style.display = 'block';
+        pauseIcon.style.display = 'none';
+    }
+}
+
+function onYouTubePlayerStateChange(event) {
+    console.log('🎵 YouTube Player state changed:', event.data);
+    
+    const playIcon = document.getElementById('header-play-icon');
+    const pauseIcon = document.getElementById('header-pause-icon');
+    
+    switch (event.data) {
+        case YT.PlayerState.PLAYING:
+            console.log('▶️ YouTube video is playing');
+            if (playIcon && pauseIcon) {
+                playIcon.style.display = 'none';
+                pauseIcon.style.display = 'block';
+            }
+            startYouTubeProgressUpdate();
+            break;
+        case YT.PlayerState.PAUSED:
+            console.log('⏸️ YouTube video is paused');
+            if (playIcon && pauseIcon) {
+                playIcon.style.display = 'block';
+                pauseIcon.style.display = 'none';
+            }
+            stopYouTubeProgressUpdate();
+            break;
+        case YT.PlayerState.ENDED:
+            console.log('⏹️ YouTube video ended');
+            if (playIcon && pauseIcon) {
+                playIcon.style.display = 'block';
+                pauseIcon.style.display = 'none';
+            }
+            stopYouTubeProgressUpdate();
+            break;
+        case YT.PlayerState.BUFFERING:
+            console.log('🔄 YouTube video is buffering');
+            break;
+    }
+}
+
+let youtubeProgressInterval = null;
+
+function startYouTubeProgressUpdate() {
+    if (youtubeProgressInterval) return;
+    
+    youtubeProgressInterval = setInterval(() => {
+        if (youtubePlayer && typeof youtubePlayer.getCurrentTime === 'function') {
+            const currentTime = youtubePlayer.getCurrentTime();
+            const duration = youtubePlayer.getDuration();
+            
+            if (duration > 0) {
+                const progress = (currentTime / duration) * 100;
+                const progressBar = document.getElementById('header-progress-fill');
+                const currentTimeSpan = document.getElementById('header-current-time');
+                const durationSpan = document.getElementById('header-total-time');
+                
+                if (progressBar) progressBar.style.width = `${progress}%`;
+                if (currentTimeSpan) currentTimeSpan.textContent = formatTime(currentTime);
+                if (durationSpan) durationSpan.textContent = formatTime(duration);
+            }
+        }
+    }, 1000);
+}
+
+function stopYouTubeProgressUpdate() {
+    if (youtubeProgressInterval) {
+        clearInterval(youtubeProgressInterval);
+        youtubeProgressInterval = null;
+    }
+}
+
+function playPauseYouTube() {
+    if (!youtubePlayer || !isYouTubePlayerReady) {
+        console.log('❌ YouTube player not ready');
+        return;
+    }
+    
+    try {
+        const playerState = youtubePlayer.getPlayerState();
+        if (playerState === YT.PlayerState.PLAYING) {
+            youtubePlayer.pauseVideo();
+        } else {
+            youtubePlayer.playVideo();
+        }
+    } catch (error) {
+        console.error('❌ Error controlling YouTube player:', error);
+    }
+}
+
+function seekYouTube(percentage) {
+    if (!youtubePlayer || !isYouTubePlayerReady) return;
+    
+    try {
+        const duration = youtubePlayer.getDuration();
+        if (duration > 0) {
+            const seekTime = (percentage / 100) * duration;
+            youtubePlayer.seekTo(seekTime, true);
+        }
+    } catch (error) {
+        console.error('❌ Error seeking YouTube player:', error);
+    }
+}
+
+function stopYouTubePlayer() {
+    if (youtubePlayer && isYouTubePlayerReady) {
+        try {
+            youtubePlayer.stopVideo();
+        } catch (error) {
+            console.error('❌ Error stopping YouTube player:', error);
+        }
+    }
+    
+    stopYouTubeProgressUpdate();
+    
+    // Hide YouTube player, show regular media cover
+    const playerContainer = document.getElementById('youtube-player-container');
+    const regularCover = document.getElementById('regular-media-cover');
+    
+    if (playerContainer) playerContainer.style.display = 'none';
+    if (regularCover) regularCover.style.display = 'flex';
+    
+    // Disable YouTube mode styling
+    document.querySelector('.header-media-player')?.classList.remove('youtube-mode');
+    isYouTubeMode = false;
+    currentYouTubeVideoId = null;
+}
+
 function initializeMediaPlayer() {
     console.log('🎵 Initializing media player...');
     
@@ -377,9 +737,9 @@ function checkForMediaFiles() {
     // Check if we have media files associated with this calendar
     if (mediaUrl && mediaUrl !== '' && mediaUrl !== 'None') {
         // Show media players
-        const mediaPlayer = document.getElementById('media-player');
-        if (mediaPlayer) {
-            mediaPlayer.style.display = 'flex';
+        const mediaElement = document.getElementById('media-player');
+        if (mediaElement) {
+            mediaElement.style.display = 'flex';
         }
         showCompactMediaPlayer();
         
@@ -401,9 +761,9 @@ function checkForMediaFiles() {
                 const embedUrl = convertToYouTubeEmbedUrl(mediaUrl);
                 if (embedUrl) {
                     // Show media players
-                    const mediaPlayer = document.getElementById('media-player');
-                    if (mediaPlayer) {
-                        mediaPlayer.style.display = 'flex';
+                    const mediaElement = document.getElementById('media-player');
+                    if (mediaElement) {
+                        mediaElement.style.display = 'flex';
                     }
                     showCompactMediaPlayer();
                     
@@ -413,9 +773,9 @@ function checkForMediaFiles() {
             }
             
             // Show media players before loading track
-            const mediaPlayer = document.getElementById('media-player');
-            if (mediaPlayer) {
-                mediaPlayer.style.display = 'flex';
+            const mediaElement = document.getElementById('media-player');
+            if (mediaElement) {
+                mediaElement.style.display = 'flex';
                 console.log('✅ Main media player shown');
             }
             showCompactMediaPlayer();
@@ -464,9 +824,9 @@ function fetchCalendarMedia(calendarId) {
                 const embedUrl = convertToYouTubeEmbedUrl(mediaUrl);
                 if (embedUrl) {
                     // Show media players
-                    const mediaPlayer = document.getElementById('media-player');
-                    if (mediaPlayer) {
-                        mediaPlayer.style.display = 'flex';
+                    const mediaElement = document.getElementById('media-player');
+                    if (mediaElement) {
+                        mediaElement.style.display = 'flex';
                     }
                     showCompactMediaPlayer();
                     
@@ -489,9 +849,9 @@ function fetchCalendarMedia(calendarId) {
             console.log('Media data loaded from workspace:', data);
             if (data.media_files && data.media_files.length > 0) {
                 // Show media players
-                const mediaPlayer = document.getElementById('media-player');
-                if (mediaPlayer) {
-                    mediaPlayer.style.display = 'flex';
+                const mediaElement = document.getElementById('media-player');
+                if (mediaElement) {
+                    mediaElement.style.display = 'flex';
                 }
                 showCompactMediaPlayer();
                 
@@ -515,6 +875,7 @@ function fetchCalendarMedia(calendarId) {
 function hideMediaPlayers() {
     const mainPlayer = document.getElementById('media-player');
     const compactPlayer = document.getElementById('sidebar-media-player');
+    const headerPlayer = document.getElementById('header-media-player');
     
     if (mainPlayer) {
         mainPlayer.style.display = 'none';
@@ -522,6 +883,20 @@ function hideMediaPlayers() {
     if (compactPlayer) {
         compactPlayer.style.display = 'none';
     }
+    if (headerPlayer) {
+        headerPlayer.style.display = 'none';
+    }
+    
+    // Reset regular media cover to default music icon
+    const regularCover = document.getElementById('regular-media-cover');
+    if (regularCover) {
+        regularCover.style.backgroundImage = 'none';
+        regularCover.style.color = '#3b82f6';
+        regularCover.innerHTML = '🎵';
+    }
+    
+    // Remove class from body to remove space for header media player
+    document.body.classList.remove('has-media-player');
 }
 
 function handleMediaError(e) {
@@ -626,6 +1001,8 @@ function loadTrack(track) {
         }
         // Just update UI without trying to load media
         updateCompactPlayerInfo(track);
+        // Set regular media icon
+        setRegularMediaIcon(track);
         const mediaTitle = document.getElementById('media-title');
         const mediaArtist = document.getElementById('media-artist');
         if (mediaTitle) mediaTitle.textContent = track.title || 'No Media';
@@ -710,6 +1087,9 @@ function loadTrack(track) {
             // Update compact player info
             updateCompactPlayerInfo(track);
             
+            // Set regular media icon
+            setRegularMediaIcon(track);
+            
             // Update UI with track info safely
             const mediaTitle = document.getElementById('media-title');
             const mediaArtist = document.getElementById('media-artist');
@@ -769,6 +1149,13 @@ function updatePlayButton() {
 }
 
 function togglePlay() {
+    // Check if we're in YouTube mode first
+    if (isYouTubeMode && youtubePlayer && isYouTubePlayerReady) {
+        console.log('🎵 YouTube mode: toggling YouTube player');
+        playPauseYouTube();
+        return;
+    }
+    
     if (!mediaPlayer) {
         console.log('🎵 미디어 플레이어 초기화되지 않음');
         return;
@@ -835,6 +1222,18 @@ function nextTrack() {
 }
 
 function seekTo(event) {
+    // Check if we're in YouTube mode first
+    if (isYouTubeMode && youtubePlayer && isYouTubePlayerReady) {
+        const progressBar = event.currentTarget;
+        const clickX = event.offsetX;
+        const width = progressBar.offsetWidth;
+        const percentage = (clickX / width) * 100;
+        
+        console.log('🎵 YouTube mode: seeking to', percentage, '%');
+        seekYouTube(percentage);
+        return;
+    }
+    
     if (!mediaPlayer) return;
     
     const progressBar = event.currentTarget;
@@ -875,9 +1274,18 @@ function updateTotalTime() {
 }
 
 function formatTime(seconds) {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    const totalSecs = Math.floor(seconds);
+    const hours = Math.floor(totalSecs / 3600);
+    const mins = Math.floor((totalSecs % 3600) / 60);
+    const secs = totalSecs % 60;
+    
+    if (hours > 0) {
+        // 1시간 이상: 00:00:00 형식
+        return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    } else {
+        // 1시간 미만: 00:00 형식 (분:초)
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
 }
 
 function toggleMute() {
@@ -1145,40 +1553,315 @@ function renderAgendaContent() {
     const agendaContent = document.getElementById('agenda-content');
     if (!agendaContent) return;
     
-    // Get events from calendar
-    const events = getAllCalendarEvents();
+    // Get events from calendar or create demo data
+    let events = getAllCalendarEvents();
+    
+    // If no real events, create rich demo data
+    if (events.length === 0) {
+        events = createDemoAgendaData();
+    }
     
     if (events.length === 0) {
         agendaContent.innerHTML = `
-            <div class="agenda-no-events">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <div class="agenda-empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                     <line x1="16" y1="2" x2="16" y2="6"></line>
                     <line x1="8" y1="2" x2="8" y2="6"></line>
                     <line x1="3" y1="10" x2="21" y2="10"></line>
                 </svg>
-                <p>등록된 일정이 없습니다</p>
-                <p style="font-size: 14px; margin-top: 8px;">새 일정을 추가해보세요</p>
+                <h3>일정이 없습니다</h3>
+                <p>새로운 일정을 추가해서 스마트하게 관리해보세요</p>
+                <button onclick="openOverlayEventForm()">첫 일정 만들기</button>
             </div>
         `;
         return;
     }
     
-    // Classify events into categories
-    const { upcomingEvents, pastEvents, routineEvents } = classifyEvents(events);
+    // Update stats
+    updateAgendaStats(events);
     
+    // Render modern event cards
     let html = '';
     
-    // Render sections in grid layout order: upcoming, routine, past
-    html += renderEventSection('upcoming', '📅 남은 일정', upcomingEvents, '예정된 일정이 없습니다');
-    
-    // Render routine events section  
-    html += renderEventSection('routine', '🔄 루틴 일정', routineEvents, '반복 일정이 없습니다');
-    
-    // Render past events section
-    html += renderEventSection('past', '📋 지나간 일정', pastEvents, '지나간 일정이 없습니다');
+    events.forEach(event => {
+        html += renderModernEventCard(event);
+    });
     
     agendaContent.innerHTML = html;
+    
+    // Initialize interactive features
+    initializeAgendaInteractions();
+}
+
+function createDemoAgendaData() {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const nextWeek = new Date(today);
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    
+    return [
+        {
+            id: 'demo-1',
+            title: '팀 기획 회의 - Q4 로드맵 논의',
+            description: '4분기 제품 로드맵과 우선순위를 결정하는 중요한 회의입니다. 마케팅팀과 개발팀이 함께 참여합니다.',
+            start_date: today,
+            end_date: new Date(today.getTime() + 2 * 60 * 60 * 1000),
+            priority: 'high',
+            status: 'upcoming',
+            calendar_name: '업무 캘린더',
+            tags: ['회의', '기획', '우선순위'],
+            attendees: 5,
+            location: '회의실 A'
+        },
+        {
+            id: 'demo-2', 
+            title: '클라이언트 프레젠테이션',
+            description: '새로운 프로젝트 제안서를 클라이언트에게 발표하는 자리입니다.',
+            start_date: tomorrow,
+            end_date: new Date(tomorrow.getTime() + 90 * 60 * 1000),
+            priority: 'high',
+            status: 'upcoming',
+            calendar_name: '영업 캘린더',
+            tags: ['프레젠테이션', '영업', '중요'],
+            attendees: 3,
+            location: '클라이언트 사무실'
+        },
+        {
+            id: 'demo-3',
+            title: '개인 학습 시간 - React 18 스터디',
+            description: '최신 React 18 기능들을 학습하고 실습하는 시간입니다. 특히 Concurrent Features에 집중해보겠습니다.',
+            start_date: new Date(today.getTime() + 4 * 60 * 60 * 1000),
+            end_date: new Date(today.getTime() + 6 * 60 * 60 * 1000),
+            priority: 'medium',
+            status: 'ongoing',
+            calendar_name: '개인 성장',
+            tags: ['학습', 'React', '개발'],
+            attendees: 1,
+            is_personal: true
+        },
+        {
+            id: 'demo-4',
+            title: '주간 운동 - 헬스장',
+            description: '건강한 몸과 마음을 위한 정기적인 운동 시간입니다.',
+            start_date: new Date(today.getTime() + 19 * 60 * 60 * 1000),
+            end_date: new Date(today.getTime() + 21 * 60 * 60 * 1000),
+            priority: 'low',
+            status: 'upcoming', 
+            calendar_name: '라이프스타일',
+            tags: ['운동', '건강', '루틴'],
+            attendees: 1,
+            is_recurring: true,
+            routine: true
+        },
+        {
+            id: 'demo-5',
+            title: '디자인 시스템 리뷰',
+            description: '새로 구축한 디자인 시스템의 가이드라인과 컴포넌트들을 검토합니다.',
+            start_date: nextWeek,
+            end_date: new Date(nextWeek.getTime() + 3 * 60 * 60 * 1000),
+            priority: 'medium',
+            status: 'upcoming',
+            calendar_name: '디자인팀',
+            tags: ['디자인', '시스템', '리뷰'],
+            attendees: 4,
+            location: '디자인 스튜디오'
+        },
+        {
+            id: 'demo-6',
+            title: '코드 리팩토링 완료',
+            description: '레거시 코드 리팩토링 작업을 완료했습니다. 성능이 30% 향상되었습니다.',
+            start_date: new Date(today.getTime() - 24 * 60 * 60 * 1000),
+            end_date: new Date(today.getTime() - 20 * 60 * 60 * 1000),
+            priority: 'medium',
+            status: 'completed',
+            calendar_name: '개발 일정',
+            tags: ['리팩토링', '완료', '성과'],
+            attendees: 2
+        }
+    ];
+}
+
+function renderModernEventCard(event) {
+    const startTime = formatEventTime(event.start_date);
+    const endTime = formatEventTime(event.end_date);
+    const timeRange = `${startTime} - ${endTime}`;
+    
+    // Determine card classes
+    let cardClasses = 'agenda-event-card';
+    if (isEventToday(event)) cardClasses += ' today';
+    if (event.status === 'completed') cardClasses += ' completed';
+    if (event.is_recurring || event.routine) cardClasses += ' routine';
+    if (isEventOverdue(event)) cardClasses += ' overdue';
+    
+    // Priority color
+    const priority = event.priority || 'medium';
+    
+    // Format tags
+    const tagsHtml = event.tags ? event.tags.map(tag => 
+        `<span class="event-tag">${tag}</span>`
+    ).join('') : '';
+    
+    // Status badge
+    const statusClass = event.status || 'upcoming';
+    const statusText = getStatusText(statusClass);
+    
+    return `
+        <div class="${cardClasses}" data-event-id="${event.id}" onclick="openEventDetails('${event.id}')">
+            <div class="event-card-priority ${priority}"></div>
+            
+            <div class="event-card-header">
+                <div>
+                    <h3 class="event-title">${event.title}</h3>
+                    <div class="event-time">
+                        <svg class="event-time-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12,6 12,12 16,14"/>
+                        </svg>
+                        ${timeRange}
+                    </div>
+                </div>
+            </div>
+            
+            ${event.description ? `<p class="event-description">${event.description}</p>` : ''}
+            
+            <div class="event-meta">
+                <div class="event-calendar">
+                    <div class="event-calendar-dot"></div>
+                    ${event.calendar_name || '내 캘린더'}
+                    ${event.location ? `· ${event.location}` : ''}
+                    ${event.attendees > 1 ? `· ${event.attendees}명` : ''}
+                </div>
+                <div class="event-status ${statusClass}">${statusText}</div>
+            </div>
+            
+            ${tagsHtml ? `<div class="event-tags">${tagsHtml}</div>` : ''}
+        </div>
+    `;
+}
+
+function updateAgendaStats(events) {
+    const totalEventsEl = document.getElementById('total-events-count');
+    const todayEventsEl = document.getElementById('today-events-count');
+    
+    if (totalEventsEl) {
+        totalEventsEl.textContent = events.length;
+    }
+    
+    if (todayEventsEl) {
+        const todayEvents = events.filter(event => isEventToday(event));
+        todayEventsEl.textContent = todayEvents.length;
+    }
+}
+
+function formatEventTime(dateTime) {
+    if (!dateTime) return '';
+    const date = dateTime instanceof Date ? dateTime : new Date(dateTime);
+    return date.toLocaleTimeString('ko-KR', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+function isEventToday(event) {
+    if (!event.start_date) return false;
+    const eventDate = event.start_date instanceof Date ? event.start_date : new Date(event.start_date);
+    const today = new Date();
+    
+    return eventDate.getDate() === today.getDate() &&
+           eventDate.getMonth() === today.getMonth() &&
+           eventDate.getFullYear() === today.getFullYear();
+}
+
+function isEventOverdue(event) {
+    if (!event.start_date || event.status === 'completed') return false;
+    const eventDate = event.start_date instanceof Date ? event.start_date : new Date(event.start_date);
+    return eventDate < new Date() && event.status !== 'completed';
+}
+
+function getStatusText(status) {
+    const statusMap = {
+        'upcoming': '예정',
+        'ongoing': '진행중',
+        'completed': '완료',
+        'overdue': '지연'
+    };
+    return statusMap[status] || '예정';
+}
+
+function openEventDetails(eventId) {
+    console.log('Opening event details for:', eventId);
+    // Here you can implement event detail modal or navigation
+}
+
+function initializeAgendaInteractions() {
+    // Initialize filter tabs
+    const filterTabs = document.querySelectorAll('.filter-tab');
+    filterTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active from all tabs
+            filterTabs.forEach(t => t.classList.remove('active'));
+            // Add active to clicked tab
+            tab.classList.add('active');
+            
+            // Filter events based on selection
+            const filter = tab.dataset.filter;
+            filterAgendaEvents(filter);
+        });
+    });
+    
+    // Initialize search
+    const searchInput = document.getElementById('agenda-search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            searchAgendaEvents(e.target.value);
+        });
+    }
+}
+
+function filterAgendaEvents(filter) {
+    const allCards = document.querySelectorAll('.agenda-event-card');
+    
+    allCards.forEach(card => {
+        let show = true;
+        
+        switch (filter) {
+            case 'today':
+                show = card.classList.contains('today');
+                break;
+            case 'upcoming':
+                show = !card.classList.contains('completed') && !card.classList.contains('today');
+                break;
+            case 'routine':
+                show = card.classList.contains('routine');
+                break;
+            case 'all':
+            default:
+                show = true;
+                break;
+        }
+        
+        card.style.display = show ? 'block' : 'none';
+    });
+}
+
+function searchAgendaEvents(query) {
+    const allCards = document.querySelectorAll('.agenda-event-card');
+    const lowercaseQuery = query.toLowerCase();
+    
+    allCards.forEach(card => {
+        const title = card.querySelector('.event-title')?.textContent.toLowerCase() || '';
+        const description = card.querySelector('.event-description')?.textContent.toLowerCase() || '';
+        const tags = Array.from(card.querySelectorAll('.event-tag')).map(tag => tag.textContent.toLowerCase()).join(' ');
+        
+        const matches = title.includes(lowercaseQuery) || 
+                       description.includes(lowercaseQuery) || 
+                       tags.includes(lowercaseQuery);
+        
+        card.style.display = matches ? 'block' : 'none';
+    });
 }
 
 function classifyEvents(events) {
@@ -2233,9 +2916,19 @@ document.addEventListener('click', function(e) {
 // ============ COMPACT MEDIA PLAYER FUNCTIONALITY ============
 
 function showCompactMediaPlayer() {
+    // Show header media player instead of sidebar
+    const headerPlayer = document.getElementById('header-media-player');
+    if (headerPlayer) {
+        headerPlayer.style.display = 'block';
+    }
+    
+    // Add class to body to create space for header media player
+    document.body.classList.add('has-media-player');
+    
+    // Keep sidebar player hidden
     const compactPlayer = document.getElementById('sidebar-media-player');
     if (compactPlayer) {
-        compactPlayer.style.display = 'block';
+        compactPlayer.style.display = 'none';
     }
 }
 
@@ -2245,22 +2938,111 @@ function updateCompactPlayerInfo(track) {
         return;
     }
     
+    // Update both sidebar and header player elements
     const titleElement = document.getElementById('compact-media-title');
     const artistElement = document.getElementById('compact-media-artist');
+    const headerTitleElement = document.getElementById('header-media-title');
+    const headerArtistElement = document.getElementById('header-media-artist');
     
-    if (titleElement) {
-        // 커스텀 제목이 있다면 사용, 없으면 기본 제목
+    // Check for YouTube data first
+    const workspace = document.querySelector('.calendar-workspace');
+    const youtubeTitle = workspace ? workspace.dataset.youtubeTitle : '';
+    const youtubeChannel = workspace ? workspace.dataset.youtubeChannel : '';
+    
+    // Use YouTube title if available, otherwise use track title or custom title
+    if (youtubeTitle) {
+        const titleText = youtubeTitle;
+        const artistText = youtubeChannel || 'YouTube';
+        
+        if (titleElement) {
+            titleElement.textContent = titleText;
+            titleElement.title = titleText;
+        }
+        if (headerTitleElement) {
+            headerTitleElement.textContent = titleText;
+            headerTitleElement.title = titleText;
+        }
+        
+        if (artistElement) {
+            artistElement.textContent = artistText;
+        }
+        if (headerArtistElement) {
+            headerArtistElement.textContent = artistText;
+        }
+        
+        console.log('🎵 Updated media player with YouTube info:', titleText, 'by', artistText);
+    } else {
+        // Fallback to custom title or track title
         loadCustomMediaTitle().then(customTitle => {
-            if (customTitle) {
-                titleElement.textContent = customTitle;
-            } else {
-                titleElement.textContent = track.title || 'Unknown Track';
+            const titleText = customTitle || track.title || 'Unknown Track';
+            
+            if (titleElement) {
+                titleElement.textContent = titleText;
+            }
+            if (headerTitleElement) {
+                headerTitleElement.textContent = titleText;
             }
         });
+        
+        const artistText = track.artist || 'Unknown Artist';
+        if (artistElement) {
+            artistElement.textContent = artistText;
+        }
+        if (headerArtistElement) {
+            headerArtistElement.textContent = artistText;
+        }
     }
-    if (artistElement) {
-        artistElement.textContent = track.artist || 'Unknown Artist';
+}
+
+function updateMainMediaInfo(track) {
+    if (!track) {
+        console.warn('No track data provided to updateMainMediaInfo');
+        return;
     }
+    
+    // Update main media player info (not compact)
+    const mediaTitle = document.getElementById('media-title');
+    const mediaArtist = document.getElementById('media-artist');
+    
+    if (track.isYoutube) {
+        // For YouTube, show the video title and a special indicator
+        if (mediaTitle) {
+            mediaTitle.textContent = track.title;
+            mediaTitle.title = track.title;
+        }
+        if (mediaArtist) {
+            mediaArtist.textContent = track.artist;
+            mediaArtist.title = track.artist;
+        }
+        
+        // Stop showing loading message
+        clearLoadingMessage();
+    } else {
+        // For regular media or no media
+        if (mediaTitle) {
+            mediaTitle.textContent = track.title;
+            mediaTitle.title = track.title;
+        }
+        if (mediaArtist) {
+            mediaArtist.textContent = track.artist;
+            mediaArtist.title = track.artist;
+        }
+    }
+}
+
+function clearLoadingMessage() {
+    // Clear any loading messages that might be showing
+    const mediaTitle = document.getElementById('media-title');
+    const mediaArtist = document.getElementById('media-artist');
+    const compactTitle = document.getElementById('compact-media-title');
+    const headerTitle = document.getElementById('header-media-title');
+    
+    // Remove loading text if it exists
+    [mediaTitle, compactTitle, headerTitle].forEach(element => {
+        if (element && element.textContent.includes('로드중')) {
+            element.textContent = element.textContent.replace('로드중', '');
+        }
+    });
 }
 
 // 데이터베이스에서 커스텀 미디어 제목 불러오기
@@ -2303,7 +3085,7 @@ function updateCompactProgress() {
     if (duration > 0) {
         const percentage = (currentTime / duration) * 100;
         
-        // Update compact progress bar
+        // Update compact progress bar (sidebar)
         const compactProgressFill = document.getElementById('compact-progress-fill');
         const compactProgressHandle = document.getElementById('compact-progress-handle');
         
@@ -2313,6 +3095,18 @@ function updateCompactProgress() {
         
         if (compactProgressHandle) {
             compactProgressHandle.style.left = percentage + '%';
+        }
+        
+        // Update header progress bar
+        const headerProgressFill = document.getElementById('header-progress-fill');
+        const headerProgressHandle = document.getElementById('header-progress-handle');
+        
+        if (headerProgressFill) {
+            headerProgressFill.style.width = percentage + '%';
+        }
+        
+        if (headerProgressHandle) {
+            headerProgressHandle.style.left = percentage + '%';
         }
         
         // Update compact time display
@@ -2326,10 +3120,23 @@ function updateCompactProgress() {
         if (compactTotalTime) {
             compactTotalTime.textContent = formatTime(duration);
         }
+        
+        // Update header time display
+        const headerCurrentTime = document.getElementById('header-current-time');
+        const headerTotalTime = document.getElementById('header-total-time');
+        
+        if (headerCurrentTime) {
+            headerCurrentTime.textContent = formatTime(currentTime);
+        }
+        
+        if (headerTotalTime) {
+            headerTotalTime.textContent = formatTime(duration);
+        }
     }
 }
 
 function updateCompactPlayButton() {
+    // Update sidebar player icons
     const compactPlayIcon = document.getElementById('compact-play-icon');
     const compactPauseIcon = document.getElementById('compact-pause-icon');
     
@@ -2341,8 +3148,20 @@ function updateCompactPlayButton() {
             compactPlayIcon.style.display = 'block';
             compactPauseIcon.style.display = 'none';
         }
-    } else {
-        console.warn('Compact toggle icons not found');
+    }
+    
+    // Update header player icons
+    const headerPlayIcon = document.getElementById('header-play-icon');
+    const headerPauseIcon = document.getElementById('header-pause-icon');
+    
+    if (headerPlayIcon && headerPauseIcon) {
+        if (isPlaying) {
+            headerPlayIcon.style.display = 'none';
+            headerPauseIcon.style.display = 'block';
+        } else {
+            headerPlayIcon.style.display = 'block';
+            headerPauseIcon.style.display = 'none';
+        }
     }
 }
 
@@ -2350,10 +3169,17 @@ function updateCompactVolume() {
     if (!mediaPlayer) return;
     
     const volumePercentage = mediaPlayer.volume * 100;
-    const compactVolumeFill = document.getElementById('compact-volume-fill');
     
+    // Update sidebar volume
+    const compactVolumeFill = document.getElementById('compact-volume-fill');
     if (compactVolumeFill) {
         compactVolumeFill.style.width = volumePercentage + '%';
+    }
+    
+    // Update header volume
+    const headerVolumeFill = document.getElementById('header-volume-fill');
+    if (headerVolumeFill) {
+        headerVolumeFill.style.width = volumePercentage + '%';
     }
     
     // Update volume icon
@@ -2385,9 +3211,21 @@ function updateProgress() {
             progressFill.style.width = percentage + '%';
         }
         
+        // Update header progress bar
+        const headerProgressFill = document.getElementById('header-progress-fill');
+        const headerProgressHandle = document.getElementById('header-progress-handle');
+        if (headerProgressFill) {
+            headerProgressFill.style.width = percentage + '%';
+        }
+        if (headerProgressHandle) {
+            headerProgressHandle.style.left = percentage + '%';
+        }
+        
         // Update time display
         const currentTimeElement = document.getElementById('compact-current-time');
         const totalTimeElement = document.getElementById('compact-total-time');
+        const headerCurrentTime = document.getElementById('header-current-time');
+        const headerTotalTime = document.getElementById('header-total-time');
         
         if (currentTimeElement) {
             currentTimeElement.textContent = formatTime(currentTime);
@@ -2396,61 +3234,21 @@ function updateProgress() {
         if (totalTimeElement) {
             totalTimeElement.textContent = formatTime(duration);
         }
+        
+        // Update header time display
+        if (headerCurrentTime) {
+            headerCurrentTime.textContent = formatTime(currentTime);
+        }
+        if (headerTotalTime) {
+            headerTotalTime.textContent = formatTime(duration);
+        }
     }
     
     // Update compact player as well
     updateCompactProgress();
 }
 
-function togglePlay() {
-    if (!mediaPlayer) {
-        console.warn('No audio player available');
-        return;
-    }
-    
-    // Check if we have a valid source
-    if (!mediaPlayer.src || mediaPlayer.src === '' || mediaPlayer.src.endsWith('#')) {
-        console.log('🎵 재생 가능한 미디어 소스 없음');
-        showNotification('미디어 파일이 없습니다. 캘린더에 미디어를 추가해주세요.');
-        return;
-    }
-    
-    if (isPlaying) {
-        mediaPlayer.pause();
-        isPlaying = false;
-    } else {
-        // Use promise to handle play errors
-        const playPromise = mediaPlayer.play();
-        
-        if (playPromise !== undefined) {
-            playPromise
-                .then(() => {
-                    console.log('Playback started successfully');
-                    isPlaying = true;
-                    updatePlayButton();
-                    updateCompactPlayButton();
-                })
-                .catch(error => {
-                    console.log('🎵 재생 실패 (정상):', error.name);
-                    isPlaying = false;
-                    updatePlayButton();
-                    updateCompactPlayButton();
-                    
-                    if (error.name === 'AbortError') {
-                        console.log('🎵 재생이 중단됨');
-                    } else if (error.name === 'NotAllowedError') {
-                        showNotification('자동 재생이 차단되었습니다. 재생 버튼을 다시 클릭해주세요.');
-                    } else {
-                        showNotification('미디어 재생이 불가능합니다.');
-                    }
-                });
-        }
-    }
-    
-    // Update both players
-    updatePlayButton();
-    updateCompactPlayButton();
-}
+// Duplicate function removed - using the first togglePlay function that handles YouTube mode
 
 function updatePlayButton() {
     const playIcon = document.getElementById('play-icon');
@@ -2468,11 +3266,20 @@ function updatePlayButton() {
 }
 
 function formatTime(seconds) {
-    if (isNaN(seconds)) return '0:00';
+    if (isNaN(seconds)) return '00:00';
     
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    const totalSecs = Math.floor(seconds);
+    const hours = Math.floor(totalSecs / 3600);
+    const mins = Math.floor((totalSecs % 3600) / 60);
+    const secs = totalSecs % 60;
+    
+    if (hours > 0) {
+        // 1시간 이상: 00:00:00 형식
+        return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    } else {
+        // 1시간 미만: 00:00 형식 (분:초)
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
 }
 
 // Add event listeners for compact player updates safely
@@ -2528,6 +3335,21 @@ function closeCalendarSettings() {
 
 // 미디어 제목 편집 기능
 function editMediaTitle() {
+    // 헤더 미디어 플레이어 제목 편집
+    const headerTitleElement = document.getElementById('header-media-title');
+    const headerInputElement = document.getElementById('header-media-title-input');
+    
+    if (headerTitleElement && headerInputElement) {
+        // 헤더 미디어 플레이어 편집
+        headerInputElement.value = headerTitleElement.textContent;
+        headerTitleElement.style.display = 'none';
+        headerInputElement.style.display = 'block';
+        headerInputElement.focus();
+        headerInputElement.select();
+        return;
+    }
+    
+    // 컴팩트 미디어 플레이어 편집 (기존 코드)
     const titleElement = document.getElementById('compact-media-title');
     const inputElement = document.getElementById('compact-media-title-input');
     
@@ -2544,6 +3366,30 @@ function editMediaTitle() {
 }
 
 function saveMediaTitle() {
+    // 헤더 미디어 플레이어 제목 저장
+    const headerTitleElement = document.getElementById('header-media-title');
+    const headerInputElement = document.getElementById('header-media-title-input');
+    
+    if (headerTitleElement && headerInputElement && headerInputElement.style.display === 'block') {
+        const newTitle = headerInputElement.value.trim() || headerTitleElement.textContent;
+        
+        // 헤더 제목 업데이트
+        headerTitleElement.textContent = newTitle;
+        headerInputElement.style.display = 'none';
+        headerTitleElement.style.display = 'block';
+        
+        // 컴팩트 미디어 플레이어 제목도 동기화
+        const compactTitleElement = document.getElementById('compact-media-title');
+        if (compactTitleElement) {
+            compactTitleElement.textContent = newTitle;
+        }
+        
+        // 서버에 저장
+        saveMediaTitleToServer(newTitle);
+        return;
+    }
+    
+    // 컴팩트 미디어 플레이어 제목 저장 (기존 코드)
     const titleElement = document.getElementById('compact-media-title');
     const inputElement = document.getElementById('compact-media-title-input');
     
@@ -2568,17 +3414,46 @@ function handleTitleKeydown(event) {
         saveMediaTitle();
     } else if (event.key === 'Escape') {
         event.preventDefault();
-        // 변경 취소
+        
+        // 헤더 미디어 플레이어 취소
+        const headerTitleElement = document.getElementById('header-media-title');
+        const headerInputElement = document.getElementById('header-media-title-input');
+        
+        if (headerTitleElement && headerInputElement && headerInputElement.style.display === 'block') {
+            headerInputElement.style.display = 'none';
+            headerTitleElement.style.display = 'block';
+            return;
+        }
+        
+        // 컴팩트 미디어 플레이어 취소 (기존 코드)
         const titleElement = document.getElementById('compact-media-title');
         const inputElement = document.getElementById('compact-media-title-input');
         
-        inputElement.style.display = 'none';
-        titleElement.style.display = 'block';
+        if (titleElement && inputElement) {
+            inputElement.style.display = 'none';
+            titleElement.style.display = 'block';
+        }
     }
 }
 
 function saveMediaTitleToServer(title) {
     const calendarId = window.location.pathname.split('/').pop();
+    
+    // YouTube 모드일 때 처리
+    if (isYouTubeMode && youtubePlayer) {
+        // YouTube 커스텀 제목을 로컬 스토리지에 저장
+        const videoUrl = youtubePlayer.getVideoUrl();
+        if (videoUrl) {
+            const videoId = extractVideoId(videoUrl);
+            if (videoId) {
+                const youtubeCustomTitles = JSON.parse(localStorage.getItem('youtubeCustomTitles') || '{}');
+                youtubeCustomTitles[videoId] = title;
+                localStorage.setItem('youtubeCustomTitles', JSON.stringify(youtubeCustomTitles));
+                console.log('✅ YouTube 커스텀 제목이 저장되었습니다:', title);
+                return;
+            }
+        }
+    }
     
     // Extract filename from media player source
     let filename = '';
@@ -2588,7 +3463,7 @@ function saveMediaTitleToServer(title) {
     }
     
     if (!filename) {
-        console.error('❌ 미디어 파일명을 찾을 수 없습니다.');
+        console.log('📝 미디어 파일명을 찾을 수 없습니다. YouTube 모드이거나 미디어가 로드되지 않았습니다.');
         return;
     }
     
@@ -2674,7 +3549,18 @@ function initializeMediaPlayerFromWorkspace() {
             console.log('🎵 YouTube video detected, converting to embed URL and initializing YouTube player');
             const embedUrl = convertToYouTubeEmbedUrl(mediaUrl);
             if (embedUrl) {
-                initializeYouTubePlayer(embedUrl, { title: 'YouTube Video', artist: 'YouTube' });
+                // Get YouTube metadata from workspace data attributes
+                const youtubeTitle = calendarWorkspace.dataset.youtubeTitle || 'YouTube Video';
+                const youtubeChannel = calendarWorkspace.dataset.youtubeChannel || 'YouTube';
+                const youtubeThumbnail = calendarWorkspace.dataset.youtubeThumbnail || '';
+                
+                console.log('🎵 YouTube metadata:', { title: youtubeTitle, channel: youtubeChannel });
+                
+                initializeYouTubePlayer(embedUrl, { 
+                    title: youtubeTitle, 
+                    artist: youtubeChannel,
+                    thumbnail: youtubeThumbnail
+                });
                 return;
             }
         }
@@ -2693,17 +3579,45 @@ function initializeMediaPlayerFromWorkspace() {
             initializeMediaPlayerWithUrl(mediaUrl);
         } else {
             console.log('🎵 No valid media file available for this calendar');
-            // Set default no-media info
-            const defaultTrack = {
-                title: '미디어 없음',
-                artist: '캘린더',
-                src: ''
-            };
-            updateCompactPlayerInfo(defaultTrack);
-            const mediaTitle = document.getElementById('media-title');
-            const mediaArtist = document.getElementById('media-artist');
-            if (mediaTitle) mediaTitle.textContent = defaultTrack.title;
-            if (mediaArtist) mediaArtist.textContent = defaultTrack.artist;
+            // Check if we have YouTube data even without playable media
+            const youtubeTitle = calendarWorkspace.dataset.youtubeTitle;
+            const youtubeChannel = calendarWorkspace.dataset.youtubeChannel;
+            
+            if (youtubeTitle && youtubeChannel) {
+                console.log('🎵 YouTube metadata found without URL, trying to find YouTube link');
+                // Try to find YouTube URL from media_filename or other sources
+                const mediaFilename = calendarWorkspace.dataset.mediaFilename;
+                if (mediaFilename && (mediaFilename.includes('youtube.com') || mediaFilename.includes('youtu.be'))) {
+                    console.log('🎵 Found YouTube URL in media filename:', mediaFilename);
+                    const embedUrl = convertToYouTubeEmbedUrl(mediaFilename);
+                    if (embedUrl) {
+                        initializeYouTubePlayer(embedUrl, {
+                            title: youtubeTitle,
+                            artist: youtubeChannel
+                        });
+                        return;
+                    }
+                }
+                
+                // If no YouTube URL found, just show the metadata
+                const youtubeTrack = {
+                    title: youtubeTitle,
+                    artist: youtubeChannel,
+                    src: '',
+                    isYoutube: true
+                };
+                updateCompactPlayerInfo(youtubeTrack);
+                updateMainMediaInfo(youtubeTrack);
+            } else {
+                // Set default no-media info
+                const defaultTrack = {
+                    title: '미디어 없음',
+                    artist: '캘린더',
+                    src: ''
+                };
+                updateCompactPlayerInfo(defaultTrack);
+                updateMainMediaInfo(defaultTrack);
+            }
         }
     } else {
         console.warn('Calendar workspace element not found');
@@ -2749,55 +3663,66 @@ function convertToYouTubeEmbedUrl(url) {
     return null;
 }
 
-// YouTube player initialization
+// YouTube player initialization - now uses YouTube Player API for actual playback
 function initializeYouTubePlayer(embedUrl, trackInfo = { title: 'YouTube Video', artist: 'YouTube' }) {
-    console.log('🎵 Initializing YouTube player with embed URL:', embedUrl);
+    console.log('🎵 Initializing YouTube Player with embed URL:', embedUrl);
     
-    // Create a YouTube iframe in the sidebar
-    const sidebarPlayerContainer = document.querySelector('.compact-media-player');
-    if (sidebarPlayerContainer) {
-        // Remove any existing YouTube iframe
-        const existingFrame = document.getElementById('youtube-player');
-        if (existingFrame) {
-            existingFrame.remove();
+    // Extract video ID from various YouTube URL formats
+    let videoId = null;
+    if (embedUrl.includes('/embed/')) {
+        const match = embedUrl.match(/\/embed\/([^?&]+)/);
+        if (match) {
+            videoId = match[1];
         }
-        
-        // Hide regular media controls since we'll use YouTube's controls
-        const mediaControls = sidebarPlayerContainer.querySelector('.compact-media-controls');
-        if (mediaControls) {
-            mediaControls.style.display = 'none';
+    } else if (embedUrl.includes('watch?v=')) {
+        // Regular YouTube URL: https://www.youtube.com/watch?v=VIDEO_ID
+        const urlParams = new URLSearchParams(new URL(embedUrl).search);
+        videoId = urlParams.get('v');
+    } else if (embedUrl.includes('youtu.be/')) {
+        // Short YouTube URL: https://youtu.be/VIDEO_ID
+        const match = embedUrl.match(/youtu\.be\/([^?&]+)/);
+        if (match) {
+            videoId = match[1];
         }
-        
-        // Create YouTube iframe
-        const youtubeFrame = document.createElement('iframe');
-        youtubeFrame.id = 'youtube-player';
-        youtubeFrame.width = '100%';
-        youtubeFrame.height = '200';
-        youtubeFrame.src = embedUrl + '?enablejsapi=1&origin=' + window.location.origin;
-        youtubeFrame.frameBorder = '0';
-        youtubeFrame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-        youtubeFrame.allowFullscreen = true;
-        youtubeFrame.style.borderRadius = '8px';
-        youtubeFrame.style.marginTop = '10px';
-        
-        // Insert YouTube player after media info
-        const mediaInfo = sidebarPlayerContainer.querySelector('.compact-media-info');
-        if (mediaInfo) {
-            mediaInfo.insertAdjacentElement('afterend', youtubeFrame);
+    } else if (embedUrl.includes('youtube.com/v/')) {
+        // Old embed format: https://www.youtube.com/v/VIDEO_ID
+        const match = embedUrl.match(/youtube\.com\/v\/([^?&]+)/);
+        if (match) {
+            videoId = match[1];
         }
-        
-        // Update media info with track details
-        const titleElement = document.getElementById('compact-media-title');
-        const artistElement = document.getElementById('compact-media-artist');
-        
-        if (titleElement) titleElement.textContent = trackInfo.title;
-        if (artistElement) artistElement.textContent = trackInfo.artist;
-        
-        // Also update main player info if it exists
-        const mediaTitle = document.getElementById('media-title');
-        const mediaArtist = document.getElementById('media-artist');
-        if (mediaTitle) mediaTitle.textContent = trackInfo.title;
-        if (mediaArtist) mediaArtist.textContent = trackInfo.artist;
+    }
+    
+    if (!videoId) {
+        console.error('❌ Could not extract video ID from embed URL:', embedUrl);
+        showNotification('YouTube 비디오 ID를 추출할 수 없습니다.', 'error');
+        return;
+    }
+    
+    console.log('🎵 Extracted YouTube video ID:', videoId);
+    
+    // Update media player info first
+    const youtubeTrack = {
+        title: trackInfo.title,
+        artist: trackInfo.artist,
+        thumbnail: trackInfo.thumbnail,
+        src: embedUrl, // Store embed URL for reference
+        isYoutube: true
+    };
+    
+    // Update both compact and main media info
+    updateCompactPlayerInfo(youtubeTrack);
+    updateMainMediaInfo(youtubeTrack);
+    
+    // Initialize the actual YouTube Player API
+    if (window.YT && window.YT.Player) {
+        console.log('✅ YouTube API already loaded, initializing player immediately');
+        initYouTubePlayer(videoId);
+        showNotification('YouTube 플레이어가 준비되었습니다.', 'success');
+    } else {
+        console.log('⏳ YouTube API not ready yet, will initialize when ready...');
+        // Store the initialization for later when API is ready
+        pendingYouTubeInit = { videoId, trackInfo };
+        showNotification('YouTube API 로딩 중...', 'info');
     }
 }
 
@@ -4259,4 +5184,302 @@ function copyShareLink() {
     document.execCommand('copy');
     
     showNotification('링크가 복사되었습니다.', 'success');
+}
+
+// ===== YOUTUBE CUSTOM TITLE FUNCTIONS =====
+
+// Load custom title for current YouTube video
+function loadYouTubeCustomTitle() {
+    if (!isYouTubeMode || !youtubePlayer) return;
+    
+    try {
+        const videoUrl = youtubePlayer.getVideoUrl();
+        if (videoUrl) {
+            const videoId = extractVideoId(videoUrl);
+            if (videoId) {
+                const youtubeCustomTitles = JSON.parse(localStorage.getItem('youtubeCustomTitles') || '{}');
+                const customTitle = youtubeCustomTitles[videoId];
+                
+                if (customTitle) {
+                    // Update header media player title
+                    const headerTitleElement = document.getElementById('header-media-title');
+                    if (headerTitleElement) {
+                        headerTitleElement.textContent = customTitle;
+                    }
+                    
+                    // Update compact media player title
+                    const compactTitleElement = document.getElementById('compact-media-title');
+                    if (compactTitleElement) {
+                        compactTitleElement.textContent = customTitle;
+                    }
+                    
+                    // Update artist to show YouTube
+                    const headerArtistElement = document.getElementById('header-media-artist');
+                    if (headerArtistElement) {
+                        headerArtistElement.textContent = 'YouTube';
+                    }
+                    
+                    const compactArtistElement = document.getElementById('compact-media-artist');
+                    if (compactArtistElement) {
+                        compactArtistElement.textContent = 'YouTube';
+                    }
+                    
+                    console.log('✅ YouTube 커스텀 제목을 불러왔습니다:', customTitle);
+                } else {
+                    // Set default title if no custom title exists
+                    setDefaultYouTubeTitle();
+                }
+            }
+        }
+    } catch (error) {
+        console.log('📝 YouTube 커스텀 제목 로드 중 오류:', error.message);
+        setDefaultYouTubeTitle();
+    }
+}
+
+// Set default title for YouTube videos
+function setDefaultYouTubeTitle() {
+    const defaultTitle = 'YouTube 비디오';
+    
+    // Update header media player title
+    const headerTitleElement = document.getElementById('header-media-title');
+    if (headerTitleElement) {
+        headerTitleElement.textContent = defaultTitle;
+    }
+    
+    // Update compact media player title
+    const compactTitleElement = document.getElementById('compact-media-title');
+    if (compactTitleElement) {
+        compactTitleElement.textContent = defaultTitle;
+    }
+    
+    // Update artist to show YouTube
+    const headerArtistElement = document.getElementById('header-media-artist');
+    if (headerArtistElement) {
+        headerArtistElement.textContent = 'YouTube';
+    }
+    
+    const compactArtistElement = document.getElementById('compact-media-artist');
+    if (compactArtistElement) {
+        compactArtistElement.textContent = 'YouTube';
+    }
+}
+
+// Extract YouTube video ID from URL
+
+// Get YouTube thumbnail URL
+function getYouTubeThumbnailUrl(videoId, quality = 'mqdefault') {
+    // Available qualities: default, mqdefault, hqdefault, sddefault, maxresdefault
+    return `https://img.youtube.com/vi/${videoId}/${quality}.jpg`;
+}
+
+// Set YouTube thumbnail or icon in header media player
+function setYouTubeThumbnail(videoId) {
+    const regularCover = document.getElementById('regular-media-cover');
+    const youtubeContainer = document.getElementById('youtube-player-container');
+    
+    console.log('🎬 Setting YouTube thumbnail for video ID:', videoId);
+    
+    if (videoId && regularCover) {
+        // Try multiple thumbnail qualities in order of preference
+        const qualities = ['hqdefault', 'mqdefault', 'default'];
+        let currentQualityIndex = 0;
+        
+        function tryLoadThumbnail() {
+            if (currentQualityIndex >= qualities.length) {
+                // All qualities failed, show YouTube icon
+                console.log('❌ All thumbnail qualities failed, using icon');
+                regularCover.style.backgroundImage = 'none';
+                regularCover.style.color = '#ff0000';
+                regularCover.innerHTML = '📺';
+                return;
+            }
+            
+            const quality = qualities[currentQualityIndex];
+            const thumbnailUrl = getYouTubeThumbnailUrl(videoId, quality);
+            const img = new Image();
+            
+            console.log(`🎬 Trying to load thumbnail (${quality}):`, thumbnailUrl);
+            
+            img.onload = function() {
+                console.log(`✅ YouTube thumbnail loaded successfully (${quality}):`, thumbnailUrl);
+                // Success: Show thumbnail image
+                regularCover.style.backgroundImage = `url(${thumbnailUrl})`;
+                regularCover.style.backgroundSize = 'cover';
+                regularCover.style.backgroundPosition = 'center';
+                regularCover.style.backgroundColor = '#000';
+                regularCover.style.color = 'transparent';
+                regularCover.textContent = '';
+            };
+            
+            img.onerror = function() {
+                console.log(`❌ Failed to load thumbnail (${quality}):`, thumbnailUrl);
+                currentQualityIndex++;
+                tryLoadThumbnail(); // Try next quality
+            };
+            
+            // Add crossorigin to handle CORS issues
+            img.crossOrigin = 'anonymous';
+            img.src = thumbnailUrl;
+        }
+        
+        tryLoadThumbnail();
+        
+    } else if (regularCover) {
+        // No video ID: Show YouTube icon
+        console.log('📺 No video ID provided, showing YouTube icon');
+        regularCover.style.backgroundImage = 'none';
+        regularCover.style.backgroundColor = '#fff';
+        regularCover.style.color = '#ff0000';
+        regularCover.innerHTML = '📺';
+    }
+    
+    // Hide the actual video player container in header
+    if (youtubeContainer) {
+        youtubeContainer.style.display = 'none';
+    }
+}
+
+// Set icon for regular (non-YouTube) media
+function setRegularMediaIcon(track) {
+    const regularCover = document.getElementById('regular-media-cover');
+    if (!regularCover) return;
+    
+    // Reset any background image
+    regularCover.style.backgroundImage = 'none';
+    regularCover.style.backgroundSize = 'initial';
+    regularCover.style.backgroundPosition = 'initial';
+    regularCover.style.color = '#3b82f6';
+    
+    // Set appropriate icon based on media type
+    if (track && track.isVideo) {
+        regularCover.innerHTML = '🎬'; // Video icon
+    } else {
+        regularCover.innerHTML = '🎵'; // Music icon
+    }
+}
+
+// ===== YOUTUBE LINK CHANGE FUNCTIONS =====
+
+// Show YouTube link input modal
+function showYouTubeLinkInput() {
+    const modal = document.getElementById('youtube-link-modal');
+    const input = document.getElementById('youtube-link-input');
+    
+    if (modal && input) {
+        modal.style.display = 'flex';
+        input.value = '';
+        input.focus();
+        
+        // Add backdrop click to close
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                hideYouTubeLinkInput();
+            }
+        });
+    }
+}
+
+// Hide YouTube link input modal
+function hideYouTubeLinkInput() {
+    const modal = document.getElementById('youtube-link-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Handle keyboard events in YouTube link input
+function handleYouTubeLinkKeydown(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        changeYouTubeVideo();
+    } else if (event.key === 'Escape') {
+        event.preventDefault();
+        hideYouTubeLinkInput();
+    }
+}
+
+// Change YouTube video based on provided link
+function changeYouTubeVideo() {
+    const input = document.getElementById('youtube-link-input');
+    if (!input) return;
+    
+    const url = input.value.trim();
+    if (!url) {
+        alert('YouTube 링크를 입력해주세요.');
+        return;
+    }
+    
+    // Extract video ID from URL
+    const videoId = extractVideoId(url);
+    if (!videoId) {
+        alert('올바른 YouTube 링크를 입력해주세요.\n예시: https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+        return;
+    }
+    
+    console.log('🎵 Changing YouTube video to:', videoId);
+    
+    // Hide modal first
+    hideYouTubeLinkInput();
+    
+    // Set thumbnail immediately with the video ID
+    setYouTubeThumbnail(videoId);
+    
+    // Initialize new YouTube player with the video ID
+    try {
+        initializeYouTubePlayer(url, { title: 'YouTube 비디오', artist: 'YouTube' });
+        
+        // Show success message
+        showNotification('YouTube 동영상이 변경되었습니다!', 'success');
+        
+    } catch (error) {
+        console.error('❌ YouTube 동영상 변경 중 오류:', error);
+        showNotification('YouTube 동영상 변경 중 오류가 발생했습니다.', 'error');
+    }
+}
+
+// Enhanced notification function (if not already exists)
+function showNotification(message, type = 'info', duration = 3000) {
+    // Check if notification system exists, create simple alert if not
+    if (typeof window.showNotification === 'undefined') {
+        // Create a simple notification div
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        `;
+        
+        // Set colors based on type
+        switch(type) {
+            case 'success':
+                notification.style.background = '#10b981';
+                break;
+            case 'error':
+                notification.style.background = '#ef4444';
+                break;
+            default:
+                notification.style.background = '#3b82f6';
+        }
+        
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        // Remove after duration
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, duration);
+    } else {
+        // Use existing notification system
+        window.showNotification(message, type);
+    }
 }

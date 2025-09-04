@@ -35,6 +35,18 @@
         href="{{ url_for('static', filename='css/popup-redesign-urgent.css') }}?v={{ range(100000, 999999) | random }}"">
 
     <style>
+        /* Body 기본 스타일 및 헤더 미디어 플레이어를 위한 공간 확보 */
+        body.calendar-detail-standalone {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        }
+
+        /* 헤더 미디어 플레이어가 표시될 때 body에 top padding 추가 */
+        body.calendar-detail-standalone.has-media-player {
+            padding-top: 61px; /* 헤더 미디어 플레이어 높이(60px) + 보더(1px) */
+        }
+
         /* 전체 레이아웃 수정 */
         .calendar-workspace {
             display: flex;
@@ -53,8 +65,11 @@
             border-bottom: 1px solid #f0f0f0;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             flex-shrink: 0;
-            height: 72px;
+            height: auto;
+            min-height: 72px;
             position: relative;
+            flex-wrap: wrap;
+            gap: 12px;
         }
 
         .calendar-topbar::after {
@@ -335,10 +350,10 @@
         /* ===== MODERN AGENDA VIEW (Linear/Notion/Google Calendar Style) ===== */
         .agenda-view-container {
             display: none;
-            padding: 32px;
-            max-width: 1100px;
+            padding: 0;
+            max-width: 1400px;
             margin: 0 auto;
-            background: #ffffff;
+            background: #fafbfc;
             height: 100%;
             overflow-y: auto;
             font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
@@ -348,58 +363,465 @@
             display: block;
         }
         
-        /* Modern Header */
+        /* Modern Header Design */
         .agenda-header {
-            margin-bottom: 40px;
-            text-align: left;
-            border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 24px;
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 32px 40px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        
+        .agenda-header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1320px;
+            margin: 0 auto;
+        }
+        
+        .agenda-title-section {
+            flex: 1;
         }
         
         .agenda-title {
             font-size: 32px;
-            font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 8px;
-            letter-spacing: -0.025em;
+            font-weight: 800;
+            color: #111827;
+            margin: 0 0 6px 0;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #111827 0%, #374151 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         
         .agenda-subtitle {
-            color: #64748b;
+            color: #6b7280;
             font-size: 16px;
-            font-weight: 400;
+            font-weight: 500;
             margin: 0;
         }
         
-        /* 3-Column Grid Layout - Modern Spacing */
-        .agenda-grid-layout {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 32px;
-            margin-top: 0;
+        .agenda-actions {
+            display: flex;
+            align-items: center;
+            gap: 24px;
         }
         
-        /* Responsive adjustments */
-        @media (max-width: 1200px) {
-            .agenda-grid-layout {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 28px;
+        .agenda-stats {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            display: block;
+            font-size: 24px;
+            font-weight: 700;
+            color: #111827;
+            line-height: 1;
+        }
+        
+        .stat-label {
+            display: block;
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 500;
+            margin-top: 2px;
+        }
+        
+        .agenda-add-btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .agenda-add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        /* Enhanced Filter & Search Bar */
+        .agenda-filters {
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 16px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 97px;
+            z-index: 99;
+            backdrop-filter: blur(10px);
+        }
+        
+        .filter-tabs {
+            display: flex;
+            gap: 4px;
+            background: #f3f4f6;
+            padding: 4px;
+            border-radius: 12px;
+        }
+        
+        .filter-tab {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .filter-tab.active,
+        .filter-tab:hover {
+            background: #ffffff;
+            color: #111827;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .agenda-search {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .agenda-search svg {
+            position: absolute;
+            left: 12px;
+            color: #9ca3af;
+            z-index: 1;
+        }
+        
+        .agenda-search input {
+            width: 280px;
+            padding: 10px 12px 10px 40px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #ffffff;
+            color: #111827;
+            transition: all 0.2s ease;
+        }
+        
+        .agenda-search input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Modern Card Grid Layout */
+        .agenda-modern-grid {
+            padding: 32px 40px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 24px;
+            max-width: 1320px;
+            margin: 0 auto;
+        }
+        
+        /* Event Card Design - Linear/Notion Style */
+        .agenda-event-card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .agenda-event-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border-color: #3b82f6;
+        }
+        
+        .event-card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        
+        .event-card-priority {
+            width: 4px;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        }
+        
+        .event-card-priority.high {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+        
+        .event-card-priority.medium {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+        
+        .event-card-priority.low {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        
+        .event-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111827;
+            line-height: 1.3;
+            margin: 0 0 8px 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .event-time {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: #3b82f6;
+            font-weight: 600;
+        }
+        
+        .event-time-icon {
+            width: 16px;
+            height: 16px;
+            color: #3b82f6;
+        }
+        
+        .event-description {
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 12px 0 16px 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .event-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        
+        .event-calendar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .event-calendar-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #3b82f6;
+        }
+        
+        .event-status {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .event-status.upcoming {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        
+        .event-status.ongoing {
+            background: #d1fae5;
+            color: #059669;
+        }
+        
+        .event-status.completed {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+        
+        .event-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        
+        .event-tag {
+            background: #f9fafb;
+            color: #374151;
+            border: 1px solid #e5e7eb;
+            font-size: 11px;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        
+        .event-tag:hover {
+            background: #f3f4f6;
+        }
+        
+        /* Special Card Variants */
+        .agenda-event-card.today {
+            background: linear-gradient(135deg, #fef3cd 0%, #fde68a 100%);
+            border-color: #f59e0b;
+        }
+        
+        .agenda-event-card.today .event-card-priority {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+        
+        .agenda-event-card.overdue {
+            background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+            border-color: #ef4444;
+        }
+        
+        .agenda-event-card.overdue .event-title {
+            color: #dc2626;
+        }
+        
+        .agenda-event-card.routine {
+            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+            border-color: #8b5cf6;
+            position: relative;
+        }
+        
+        .agenda-event-card.routine::after {
+            content: '🔄';
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            font-size: 16px;
+        }
+        
+        /* Empty State */
+        .agenda-empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 80px 40px;
+            grid-column: 1 / -1;
+        }
+        
+        .agenda-empty-state svg {
+            width: 64px;
+            height: 64px;
+            color: #d1d5db;
+            margin-bottom: 16px;
+        }
+        
+        .agenda-empty-state h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #374151;
+            margin: 0 0 8px 0;
+        }
+        
+        .agenda-empty-state p {
+            color: #6b7280;
+            margin: 0 0 24px 0;
+        }
+        
+        .agenda-empty-state button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        .agenda-empty-state button:hover {
+            background: #1d4ed8;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .agenda-modern-grid {
+                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+                padding: 24px 24px;
             }
-            .agenda-view-container {
-                padding: 24px;
+            
+            .agenda-header {
+                padding: 24px 24px 20px;
+            }
+            
+            .agenda-filters {
+                padding: 12px 24px;
+            }
+            
+            .agenda-search input {
+                width: 200px;
             }
         }
         
         @media (max-width: 768px) {
-            .agenda-grid-layout {
+            .agenda-modern-grid {
                 grid-template-columns: 1fr;
-                gap: 24px;
+                padding: 20px 16px;
+                gap: 16px;
             }
-            .agenda-view-container {
-                padding: 20px;
+            
+            .agenda-header {
+                padding: 20px 16px 16px;
             }
+            
+            .agenda-header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+            
             .agenda-title {
-                font-size: 28px;
+                font-size: 26px;
+            }
+            
+            .agenda-filters {
+                padding: 12px 16px;
+                flex-direction: column;
+                gap: 12px;
+                align-items: stretch;
+            }
+            
+            .agenda-search input {
+                width: 100%;
+            }
+            
+            .agenda-stats {
+                gap: 16px;
             }
         }
         
@@ -444,57 +866,140 @@
             text-align: center;
         }
         
-        /* Events Container */
+        /* Events Container - Linear/Slack Style Connected Nodes */
         .agenda-events {
             display: flex;
-            flex-direction: column;
-            gap: 8px;
+            flex-direction: row;
+            gap: 0;
+            overflow-x: auto;
+            padding: 20px 0;
+            position: relative;
+            align-items: center;
+            min-height: 120px;
         }
         
-        /* Modern Event Cards */
+        /* Connection line between events */
+        .agenda-events::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 20px;
+            right: 20px;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                #e2e8f0 10%, 
+                #e2e8f0 90%, 
+                transparent 100%);
+            z-index: 0;
+            transform: translateY(-50%);
+        }
+        
+        /* Modern Event Cards - Connected Node Style */
         .agenda-event-card {
-            background: #ffffff;
-            border: 1px solid #f1f5f9;
-            border-radius: 6px;
-            padding: 16px;
-            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid #3b82f6;
+            border-radius: 10px;
+            padding: 14px 18px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
             position: relative;
+            min-width: 220px;
+            max-width: 280px;
+            flex-shrink: 0;
+            margin: 0 12px;
+            box-shadow: 
+                0 1px 2px rgba(0, 0, 0, 0.04),
+                0 2px 4px rgba(0, 0, 0, 0.02);
+            backdrop-filter: blur(8px);
+            display: flex;
+            flex-direction: column;
+            z-index: 1;
         }
         
-        .agenda-event-card:hover {
-            border-color: #cbd5e1;
-            background: #fafbfc;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        /* Node connector dots */
+        .agenda-event-card::before,
+        .agenda-event-card::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #3b82f6;
+            border: 3px solid white;
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+            transform: translateY(-50%);
+            z-index: 2;
         }
+        
+        .agenda-event-card::before {
+            left: -18px;
+        }
+        
+        .agenda-event-card::after {
+            right: -18px;
+        }
+        
+        /* First and last card special styling */
+        .agenda-event-card:first-child::before {
+            display: none;
+        }
+        
+        .agenda-event-card:last-child::after {
+            display: none;
+        }
+        
+        /* Hover effect removed - keep cards static */
         
         /* Event Header Layout */
         .agenda-event-header {
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
-            margin-bottom: 6px;
-            gap: 12px;
+            margin-bottom: 8px;
+            gap: 8px;
         }
         
-        /* Event Title */
+        /* Event Title - Professional & Bold */
         .agenda-event-title {
-            font-size: 15px;
-            font-weight: 500;
+            font-size: 14px;
+            font-weight: 600;
             color: #0f172a;
             margin: 0;
-            line-height: 1.4;
+            line-height: 1.3;
             flex: 1;
+            letter-spacing: -0.01em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
         }
         
-        /* Event Time */
+        /* Event Time - Clean & Minimal */
         .agenda-event-time {
-            font-size: 13px;
+            font-size: 11px;
             font-weight: 500;
             font-variant-numeric: tabular-nums;
             white-space: nowrap;
             color: #64748b;
+            background: #f8fafc;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+        
+        .agenda-event-time::before {
+            content: '';
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 6v6l4 2'/%3E%3C/svg%3E") center/contain no-repeat;
+            opacity: 0.6;
         }
         
         /* Event Description */
@@ -536,6 +1041,72 @@
             margin-bottom: 12px;
             opacity: 0.4;
         }
+        
+        /* Horizontal scrollbar styling for connected nodes */
+        .agenda-events::-webkit-scrollbar {
+            height: 6px;
+        }
+        
+        .agenda-events::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+        
+        .agenda-events::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        
+        .agenda-events::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        /* Smooth scroll behavior */
+        .agenda-events {
+            scroll-behavior: smooth;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f1f5f9;
+        }
+        
+        /* Status indicator for event cards */
+        .agenda-event-card .status-dot {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+        }
+        
+        /* Priority indicator */
+        .agenda-event-card.high-priority .status-dot {
+            background: #ef4444;
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+        }
+        
+        /* Fade in animation for cards */
+        .agenda-event-card {
+            animation: slideInFromLeft 0.3s ease-out;
+        }
+        
+        @keyframes slideInFromLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
 
         /* ===== SECTION-SPECIFIC MODERN STYLING ===== */
         
@@ -554,15 +1125,17 @@
             color: #166534;
         }
         
-        .agenda-event-card.upcoming {
-            border-left: 3px solid #22c55e;
-            background: #ffffff;
+        .agenda-section-upcoming .agenda-event-card {
+            border-left-color: #22c55e;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
         }
         
-        .agenda-event-card.upcoming:hover {
-            border-left-color: #16a34a;
-            background: #f0fdf4;
+        .agenda-section-upcoming .agenda-event-card::before,
+        .agenda-section-upcoming .agenda-event-card::after {
+            background: #22c55e;
         }
+        
+        /* Hover effect removed for upcoming section */
         
         .agenda-event-time.upcoming {
             color: #22c55e;
@@ -596,11 +1169,7 @@
             opacity: 0.75;
         }
         
-        .agenda-event-card.past:hover {
-            border-left-color: #64748b;
-            background: #f8fafc;
-            opacity: 1;
-        }
+        /* Hover effect removed for past section */
         
         .agenda-event-title.past {
             color: #64748b;
@@ -652,10 +1221,7 @@
             font-weight: 600;
         }
         
-        .agenda-event-card.routine:hover {
-            border-left-color: #7c3aed;
-            background: #faf5ff;
-        }
+        /* Hover effect removed for routine section */
         
         .agenda-event-time.routine {
             color: #8b5cf6;
@@ -1074,6 +1640,508 @@
             background: #2196f3;
             color: white;
         }
+
+        /* Header Media Player Styles */
+        .header-media-player {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            height: 60px;
+            padding: 8px 24px;
+            background: #3b82f6;
+            border-bottom: 1px solid #2563eb;
+            z-index: 1000;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .header-media-container {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            width: 100%;
+            height: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header-media-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 200px;
+        }
+
+        .header-media-cover {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: #3b82f6;
+            font-size: 16px;
+            overflow: hidden;
+        }
+
+        .header-media-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .header-media-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+            line-height: 1.3;
+            margin: 0;
+        }
+
+        .header-media-title:hover {
+            text-decoration: underline;
+        }
+
+        .header-media-title-input {
+            background: #ffffff;
+            border: 1px solid #2563eb;
+            color: #000000;
+            padding: 2px 6px;
+            font-size: 14px;
+            border-radius: 4px;
+            width: 200px;
+        }
+
+        .header-media-artist {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.9);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.3;
+            margin: 0;
+        }
+
+        /* YouTube 모드 스타일 */
+        .header-media-player.youtube-mode .header-media-title::before {
+            content: "📺 ";
+            margin-right: 4px;
+        }
+        
+        .header-media-player.youtube-mode .header-media-artist {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .header-media-player.youtube-mode .header-media-title {
+            color: #fff1b5;
+        }
+
+        /* YouTube 버튼 스타일 */
+        .header-youtube-btn {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            display: none; /* 기본적으로 숨김 */
+        }
+
+        /* YouTube 모드일 때 YouTube 버튼 표시 */
+        .header-media-player.youtube-mode .header-youtube-btn {
+            display: block;
+        }
+
+        .header-youtube-btn:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .header-youtube-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* YouTube Link Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .youtube-link-modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        .youtube-link-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+
+        .youtube-link-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .modal-close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: color 0.2s ease;
+        }
+
+        .modal-close-btn:hover {
+            color: #374151;
+        }
+
+        .youtube-link-body {
+            padding: 24px;
+        }
+
+        .youtube-link-body label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        #youtube-link-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s ease;
+        }
+
+        #youtube-link-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .youtube-link-examples {
+            margin-top: 8px;
+            color: #6b7280;
+        }
+
+        .youtube-link-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 20px 24px;
+            background: #f8fafc;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .btn-cancel,
+        .btn-confirm {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .btn-cancel {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-cancel:hover {
+            background: #e5e7eb;
+        }
+
+        .btn-confirm {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-confirm:hover {
+            background: #2563eb;
+        }
+
+        .btn-confirm:active {
+            transform: scale(0.98);
+        }
+
+        .header-media-center {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-media-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-right: 12px;
+        }
+
+        .header-control-btn,
+        .header-play-btn {
+            background: #ffffff;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            color: #3b82f6;
+        }
+
+        .header-control-btn {
+            width: 28px;
+            height: 28px;
+        }
+
+        .header-play-btn {
+            width: 32px;
+            height: 32px;
+        }
+
+        .header-control-btn:hover,
+        .header-play-btn:hover {
+            background: #ffffff;
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .header-progress-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 700px;
+        }
+
+        .header-current-time,
+        .header-total-time {
+            font-size: 11px;
+            color: #ffffff;
+            font-weight: 500;
+            min-width: 32px;
+        }
+
+        .header-progress-bar {
+            flex: 1;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .header-progress-fill {
+            height: 100%;
+            background: #ffffff;
+            border-radius: 2px;
+            width: 0;
+            transition: width 0.1s linear;
+        }
+
+        .header-progress-handle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ffffff;
+            border-radius: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            left: 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            cursor: grab;
+        }
+
+        .header-media-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 150px;
+        }
+
+        .header-volume-btn,
+        .header-edit-btn {
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .header-volume-btn:hover,
+        .header-edit-btn:hover {
+            color: #ffffff;
+        }
+
+        .header-volume-slider {
+            width: 70px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .header-volume-fill {
+            height: 100%;
+            background: #ffffff;
+            border-radius: 2px;
+            width: 70%;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .header-media-player {
+                height: auto;
+                min-height: 60px;
+                padding: 10px 16px;
+            }
+
+            .header-media-container {
+                flex-wrap: nowrap;
+                gap: 8px;
+            }
+
+            .header-media-left {
+                min-width: auto;
+            }
+
+            .header-media-center {
+                flex: 1;
+            }
+
+            .header-media-right {
+                min-width: auto;
+                gap: 8px;
+            }
+
+            .header-media-title {
+                max-width: 150px;
+            }
+        }
+
+        /* YouTube Player Styles */
+        #youtube-player-container {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+            background: #000;
+        }
+
+        #youtube-player {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 6px;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        /* Overlay to prevent YouTube player interaction */
+        #youtube-player-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            z-index: 100;
+            cursor: default;
+        }
+
+        /* Hide iframe click events */
+        #youtube-player iframe {
+            pointer-events: none;
+        }
+
+        /* Enable pointer events only for our overlay */
+        .youtube-mode #youtube-player-overlay {
+            pointer-events: auto;
+        }
+
+        /* Enable YouTube Player controls when in YouTube mode */
+        .youtube-mode .header-media-controls {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .youtube-mode .header-progress-section {
+            opacity: 1;
+        }
+
+        /* Ensure proper media cover transitions */
+        .media-cover-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 6px;
+            font-size: 20px;
+            transition: all 0.3s ease;
+        }
+
+        /* Header media cover placeholder (smaller) */
+        .header-media-cover .media-cover-placeholder {
+            width: 40px;
+            height: 40px;
+            background: #ffffff;
+            color: #3b82f6;
+            font-size: 16px;
+        }
+
+        /* YouTube Player in Compact Mode */
+        .compact-youtube-player {
+            width: 60px;
+            height: 45px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
     </style>
     <!-- <link rel=" stylesheet"
         href="{{ url_for('static', filename='css/calendar-detail-new.css') }}?v={{ range(100000, 999999) | random }}">
@@ -1090,6 +2158,27 @@
     <!-- Core notification system -->
     <script
         src="{{ url_for('static', filename='js/notification-utils.js') }}?v={{ range(100000, 999999) | random }}"></script>
+    
+    <!-- YouTube Player API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+        // YouTube API debugging
+        console.log('🎵 YouTube API script loaded');
+        window.addEventListener('load', function() {
+            console.log('🎵 Page loaded, checking YouTube API...');
+            console.log('🎵 window.YT available:', !!window.YT);
+            
+            // Wait a bit for YouTube API to load
+            setTimeout(function() {
+                console.log('🎵 YouTube API check after 2s:', !!window.YT);
+                if (window.YT && window.YT.Player) {
+                    console.log('✅ YouTube Player API is ready!');
+                } else {
+                    console.log('❌ YouTube Player API not loaded');
+                }
+            }, 2000);
+        });
+    </script>
 </head>
 
 <body class="calendar-detail-standalone">
@@ -1134,7 +2223,6 @@
 
             <div class="topbar-right">
                 <div class="view-toggle">
-                    <button class="view-option" data-view="month">월</button>
                     <button class="view-option active" data-view="week">주</button>
                     <button class="view-option" data-view="agenda">일정</button>
                 </div>
@@ -1160,6 +2248,83 @@
             </div>
         </div>
 
+        <!-- Horizontal Media Player in Header -->
+        <div class="header-media-player" id="header-media-player" style="display: none;">
+            <div class="header-media-container">
+                <div class="header-media-left">
+                    <div class="header-media-cover">
+                        <!-- YouTube Player Container (hidden by default) -->
+                        <div id="youtube-player-container" style="display: none;">
+                            <div id="youtube-player"></div>
+                            <!-- Overlay to prevent direct YouTube player interaction -->
+                            <div id="youtube-player-overlay"></div>
+                        </div>
+                        <!-- Regular Media Cover (shown by default) -->
+                        <div class="media-cover-placeholder" id="regular-media-cover">🎵</div>
+                    </div>
+                    <div class="header-media-info">
+                        <div class="header-media-title" id="header-media-title" onclick="editMediaTitle()" title="클릭하여 제목 편집">미디어 로드 중...</div>
+                        <label for="header-media-title-input" style="display: none;">미디어 제목</label>
+                        <input type="text" class="header-media-title-input" id="header-media-title-input" name="header-media-title" style="display: none;" onblur="saveMediaTitle()" onkeydown="handleTitleKeydown(event)">
+                        <div class="header-media-artist" id="header-media-artist">내 음악</div>
+                    </div>
+                </div>
+
+                <div class="header-media-center">
+                    <div class="header-progress-section">
+                        <div class="header-media-controls">
+                            <button class="header-control-btn" onclick="previousTrack()" title="이전">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
+                                </svg>
+                            </button>
+                            <button class="header-play-btn" id="header-play-pause-btn" onclick="togglePlay()" title="재생/일시정지">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" id="header-play-icon">
+                                    <path d="M8 5v14l11-7z" />
+                                </svg>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" id="header-pause-icon" style="display: none;">
+                                    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                                </svg>
+                            </button>
+                            <button class="header-control-btn" onclick="nextTrack()" title="다음">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <span class="header-current-time" id="header-current-time">0:00</span>
+                        <div class="header-progress-bar" onclick="seekTo(event)">
+                            <div class="header-progress-fill" id="header-progress-fill"></div>
+                            <div class="header-progress-handle" id="header-progress-handle"></div>
+                        </div>
+                        <span class="header-total-time" id="header-total-time">0:00</span>
+                    </div>
+                </div>
+
+                <div class="header-media-right">
+                    <button class="header-volume-btn" onclick="toggleMute()" title="음소거">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" id="header-volume-icon">
+                            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" />
+                        </svg>
+                    </button>
+                    <div class="header-volume-slider" onclick="setVolume(event)">
+                        <div class="header-volume-fill" id="header-volume-fill"></div>
+                    </div>
+                    <button class="header-edit-btn" onclick="editMediaTitle()" title="제목 편집">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                        </svg>
+                    </button>
+                    <button class="header-youtube-btn" id="header-youtube-btn" onclick="showYouTubeLinkInput()" title="YouTube 동영상 변경">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Main Workspace Content -->
         <div class="calendar-workspace-content">
             <!-- Left Sidebar -->
@@ -1182,7 +2347,8 @@
                     <div class="event-search-section" id="event-search-section" style="display: none;">
                         <div class="event-search-container">
                             <div class="search-input-wrapper">
-                                <input type="text" id="event-search-input" placeholder="일정 제목 검색..." autocomplete="off">
+                                <label for="event-search-input" style="position: absolute; left: -9999px;">일정 검색</label>
+                                <input type="text" id="event-search-input" name="event-search" placeholder="일정 제목 검색..." autocomplete="off">
                                 <button class="search-clear-btn" id="search-clear-btn" onclick="clearEventSearch()" style="display: none;">
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                         <path d="M6 18L18 6M6 6l12 12" />
@@ -1304,8 +2470,8 @@
                     </div>
                 </div>
 
-                <!-- Compact Media Player -->
-                <div class="sidebar-widget compact-media-widget" id="sidebar-media-player" style="display: none;">
+                <!-- Compact Media Player (Hidden - Moved to Header) -->
+                <div class="sidebar-widget compact-media-widget" id="sidebar-media-player" style="display: none !important;">
                     <div class="compact-media-player">
                         <div class="compact-media-info">
                             <div class="compact-media-cover">
@@ -1315,7 +2481,8 @@
                                 <div class="compact-media-title-container">
                                     <div class="compact-media-title" id="compact-media-title" onclick="editMediaTitle()"
                                         title="클릭하여 제목 편집">미디어 로드 중...</div>
-                                    <input type="text" class="compact-media-title-input" id="compact-media-title-input"
+                                    <label for="compact-media-title-input" style="display: none;">미디어 제목</label>
+                                    <input type="text" class="compact-media-title-input" id="compact-media-title-input" name="compact-media-title"
                                         style="display: none;" onblur="saveMediaTitle()"
                                         onkeydown="handleTitleKeydown(event)">
                                     <button class="edit-title-btn" onclick="editMediaTitle()" title="제목 편집">
@@ -1594,7 +2761,7 @@
                                     <input type="date" id="overlay-event-date" required>
                                 </div>
                                 <div class="form-group time-input">
-                                    <label for="overlay-start-time">시작시간</label>
+                                    <label for="overlay-start-time-btn">시작시간</label>
                                     <div class="time-picker-container">
                                         <button type="button" class="time-picker-btn" id="overlay-start-time-btn" onclick="openTimePicker('start')">
                                             <span id="overlay-start-time-display">오전 09:00</span>
@@ -1608,7 +2775,7 @@
                                 </div>
                                 <div class="time-separator">~</div>
                                 <div class="form-group time-input">
-                                    <label for="overlay-end-time">종료시간</label>
+                                    <label for="overlay-end-time-btn">종료시간</label>
                                     <div class="time-picker-container">
                                         <button type="button" class="time-picker-btn" id="overlay-end-time-btn" onclick="openTimePicker('end')">
                                             <span id="overlay-end-time-display">오전 10:00</span>
@@ -1705,13 +2872,55 @@
                 
                 <!-- Agenda View Container -->
                 <div id="agenda-view-container" class="agenda-view-container">
+                    <!-- Modern Header -->
                     <div class="agenda-header">
-                        <h1 class="agenda-title">📅 일정 목록</h1>
-                        <p class="agenda-subtitle">모든 일정을 한 눈에 확인하세요</p>
+                        <div class="agenda-header-content">
+                            <div class="agenda-title-section">
+                                <h1 class="agenda-title">📅 내 일정</h1>
+                                <p class="agenda-subtitle">체계적으로 관리하는 스마트 스케줄</p>
+                            </div>
+                            <div class="agenda-actions">
+                                <div class="agenda-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-number" id="total-events-count">12</span>
+                                        <span class="stat-label">총 일정</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-number" id="today-events-count">3</span>
+                                        <span class="stat-label">오늘</span>
+                                    </div>
+                                </div>
+                                <button class="agenda-add-btn" onclick="openOverlayEventForm()">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    </svg>
+                                    새 일정
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Enhanced Filter & Search Bar -->
+                    <div class="agenda-filters">
+                        <div class="filter-tabs">
+                            <button class="filter-tab active" data-filter="all">모든 일정</button>
+                            <button class="filter-tab" data-filter="today">오늘</button>
+                            <button class="filter-tab" data-filter="upcoming">예정</button>
+                            <button class="filter-tab" data-filter="routine">루틴</button>
+                        </div>
+                        <div class="agenda-search">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            <input type="text" placeholder="일정 검색..." id="agenda-search-input">
+                        </div>
                     </div>
                     
-                    <div id="agenda-content" class="agenda-grid-layout">
-                        <!-- Agenda content will be rendered here by JavaScript -->
+                    <!-- Modern Card Grid Layout -->
+                    <div id="agenda-content" class="agenda-modern-grid">
+                        <!-- Agenda cards will be rendered here by JavaScript -->
                     </div>
                 </div>
             </div>
@@ -1795,24 +3004,24 @@
 
             <div class="modal-body">
                 <div class="form-group">
-                    <label>제목</label>
-                    <input type="text" id="event-title" placeholder="이벤트 제목 입력">
+                    <label for="event-title">제목</label>
+                    <input type="text" id="event-title" name="event-title" placeholder="이벤트 제목 입력">
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label>시작일</label>
-                        <input type="datetime-local" id="event-start">
+                        <label for="event-start">시작일</label>
+                        <input type="datetime-local" id="event-start" name="event-start">
                     </div>
                     <div class="form-group">
-                        <label>종료일</label>
-                        <input type="datetime-local" id="event-end">
+                        <label for="event-end">종료일</label>
+                        <input type="datetime-local" id="event-end" name="event-end">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label>설명</label>
-                    <textarea id="event-description" rows="4" placeholder="이벤트 설명 (선택사항)"></textarea>
+                    <label for="event-description">설명</label>
+                    <textarea id="event-description" name="event-description" rows="4" placeholder="이벤트 설명 (선택사항)"></textarea>
                 </div>
 
                 <div class="form-group">
@@ -1928,18 +3137,18 @@
 
             <div class="modal-body">
                 <div class="form-group">
-                    <label>이름</label>
-                    <input type="text" id="attendee-name" placeholder="참석자 이름 입력">
+                    <label for="attendee-name">이름</label>
+                    <input type="text" id="attendee-name" name="attendee-name" placeholder="참석자 이름 입력">
                 </div>
 
                 <div class="form-group">
-                    <label>이메일</label>
-                    <input type="email" id="attendee-email" placeholder="참석자 이메일 입력">
+                    <label for="attendee-email">이메일</label>
+                    <input type="email" id="attendee-email" name="attendee-email" placeholder="참석자 이메일 입력">
                 </div>
 
                 <div class="form-group">
-                    <label>역할</label>
-                    <select id="attendee-role">
+                    <label for="attendee-role">역할</label>
+                    <select id="attendee-role" name="attendee-role">
                         <option value="attendee">참석자</option>
                         <option value="organizer">주최자</option>
                         <option value="optional">선택 참석</option>
@@ -1979,10 +3188,10 @@
 
                     <div class="invite-form">
                         <div class="form-group">
-                            <label>이메일 주소</label>
+                            <label for="share-email">이메일 주소</label>
                             <div class="email-input-wrapper">
-                                <input type="email" id="share-email" placeholder="example@email.com">
-                                <select id="share-permission" class="permission-select">
+                                <input type="email" id="share-email" name="share-email" placeholder="example@email.com">
+                                <select id="share-permission" name="share-permission" class="permission-select">
                                     <option value="viewer">보기 전용</option>
                                     <option value="editor">편집 가능</option>
                                     <option value="admin">관리자</option>
@@ -3528,27 +4737,69 @@
             const mediaUrl = workspace.dataset.calendarMedia;
             const mediaTitle = workspace.dataset.calendarMediaTitle || 'Calendar Media';
             const mediaType = workspace.dataset.calendarMediaType || 'audio';
+            const youtubeTitle = workspace.dataset.youtubeTitle || '';
+            const youtubeChannel = workspace.dataset.youtubeChannel || '';
 
-            console.log('📻 Media data from workspace:', { mediaUrl, mediaTitle, mediaType });
+            console.log('📻 Media data from workspace:', { mediaUrl, mediaTitle, mediaType, youtubeTitle, youtubeChannel });
 
             if (mediaUrl && mediaUrl.trim() !== '') {
                 console.log('📻 Calendar has media, media player should be initialized');
 
-                // The media player initialization is handled by calendar-detail.js
-                // This function just confirms the media is available
-                const sidebarMediaSection = document.querySelector('.media-player-section');
-                if (sidebarMediaSection) {
-                    sidebarMediaSection.style.display = 'block';
+                // Show header media player instead of sidebar
+                const headerMediaPlayer = document.getElementById('header-media-player');
+                if (headerMediaPlayer) {
+                    headerMediaPlayer.style.display = 'block';
+                }
+
+                // Hide sidebar media player (already hidden in HTML)
+                const sidebarMediaPlayer = document.getElementById('sidebar-media-player');
+                if (sidebarMediaPlayer) {
+                    sidebarMediaPlayer.style.display = 'none !important';
+                }
+
+                // Update media player with YouTube title if available
+                if (youtubeTitle) {
+                    const headerTitleElement = document.getElementById('header-media-title');
+                    const compactTitleElement = document.getElementById('compact-media-title');
+                    
+                    if (headerTitleElement) {
+                        headerTitleElement.textContent = youtubeTitle;
+                        headerTitleElement.title = youtubeTitle;
+                    }
+                    
+                    if (compactTitleElement) {
+                        compactTitleElement.textContent = youtubeTitle;
+                        compactTitleElement.title = youtubeTitle;
+                    }
+                }
+
+                // Update artist/channel info
+                if (youtubeChannel) {
+                    const headerArtistElement = document.getElementById('header-media-artist');
+                    const compactArtistElement = document.getElementById('compact-media-artist');
+                    
+                    if (headerArtistElement) {
+                        headerArtistElement.textContent = youtubeChannel;
+                    }
+                    
+                    if (compactArtistElement) {
+                        compactArtistElement.textContent = youtubeChannel;
+                    }
                 }
 
                 console.log('✅ Media player check completed - media available');
             } else {
                 console.log('📻 No media file found for calendar');
 
-                // Hide media players if no media
-                const sidebarMediaSection = document.querySelector('.media-player-section');
-                if (sidebarMediaSection) {
-                    sidebarMediaSection.style.display = 'none';
+                // Hide both media players if no media
+                const headerMediaPlayer = document.getElementById('header-media-player');
+                if (headerMediaPlayer) {
+                    headerMediaPlayer.style.display = 'none';
+                }
+                
+                const sidebarMediaPlayer = document.getElementById('sidebar-media-player');
+                if (sidebarMediaPlayer) {
+                    sidebarMediaPlayer.style.display = 'none';
                 }
             }
         }
@@ -4271,6 +5522,27 @@
         window.closeTimePicker = closeTimePicker;
         window.selectTime = selectTime;
     </script>
+
+    <!-- YouTube Link Input Modal -->
+    <div id="youtube-link-modal" class="modal-overlay" style="display: none;">
+        <div class="youtube-link-modal-content">
+            <div class="youtube-link-header">
+                <h3>YouTube 동영상 변경</h3>
+                <button class="modal-close-btn" onclick="hideYouTubeLinkInput()">&times;</button>
+            </div>
+            <div class="youtube-link-body">
+                <label for="youtube-link-input">YouTube 링크를 입력하세요:</label>
+                <input type="url" id="youtube-link-input" placeholder="https://www.youtube.com/watch?v=..." onkeydown="handleYouTubeLinkKeydown(event)">
+                <div class="youtube-link-examples">
+                    <small>예시: https://www.youtube.com/watch?v=dQw4w9WgXcQ 또는 https://youtu.be/dQw4w9WgXcQ</small>
+                </div>
+            </div>
+            <div class="youtube-link-footer">
+                <button class="btn-cancel" onclick="hideYouTubeLinkInput()">취소</button>
+                <button class="btn-confirm" onclick="changeYouTubeVideo()">동영상 변경</button>
+            </div>
+        </div>
+    </div>
 
 </body>
 

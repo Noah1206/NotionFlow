@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>YouTube Player API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        #player-container {
+            position: relative;
+            width: 640px;
+            height: 360px;
+            margin: 20px 0;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        #player-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            z-index: 10;
+            pointer-events: auto;
+        }
+        .controls {
+            background: #333;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #555;
+            border-radius: 3px;
+            margin: 15px 0;
+            cursor: pointer;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #007bff;
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.1s;
+        }
+        .info {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>YouTube Player API Test</h1>
+        
+        <div id="player-container">
+            <div id="player"></div>
+            <div id="player-overlay"></div>
+        </div>
+        
+        <div class="controls">
+            <button onclick="playVideo()">Play</button>
+            <button onclick="pauseVideo()">Pause</button>
+            <button onclick="stopVideo()">Stop</button>
+            
+            <div class="progress-bar" onclick="seekTo(event)">
+                <div class="progress-fill" id="progress"></div>
+            </div>
+            
+            <div class="info">
+                <span id="current-time">0:00</span> / 
+                <span id="duration">0:00</span>
+                <span style="margin-left: 20px;">Status: <span id="status">Loading...</span></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var player;
+        var progressInterval;
+        
+        // YouTube API Ready callback
+        function onYouTubeIframeAPIReady() {
+            console.log('YouTube API Ready');
+            document.getElementById('status').textContent = 'API Ready';
+            
+            player = new YT.Player('player', {
+                height: '360',
+                width: '640',
+                videoId: 'dQw4w9WgXcQ', // Test video
+                playerVars: {
+                    'controls': 0,
+                    'disablekb': 1,
+                    'showinfo': 0,
+                    'rel': 0,
+                    'modestbranding': 1,
+                    'iv_load_policy': 3,
+                    'fs': 0,
+                    'cc_load_policy': 0,
+                    'autohide': 1,
+                    'enablejsapi': 1,
+                    'playsinline': 1,
+                    'origin': window.location.origin
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+        
+        function onPlayerReady(event) {
+            console.log('Player Ready');
+            document.getElementById('status').textContent = 'Ready';
+            updateDuration();
+        }
+        
+        function onPlayerStateChange(event) {
+            const states = {
+                '-1': 'Unstarted',
+                '0': 'Ended',
+                '1': 'Playing',
+                '2': 'Paused',
+                '3': 'Buffering',
+                '5': 'Video cued'
+            };
+            document.getElementById('status').textContent = states[event.data];
+            
+            if (event.data === YT.PlayerState.PLAYING) {
+                startProgressUpdate();
+            } else {
+                stopProgressUpdate();
+            }
+        }
+        
+        function playVideo() {
+            if (player) player.playVideo();
+        }
+        
+        function pauseVideo() {
+            if (player) player.pauseVideo();
+        }
+        
+        function stopVideo() {
+            if (player) player.stopVideo();
+        }
+        
+        function seekTo(event) {
+            if (!player) return;
+            const bar = event.currentTarget;
+            const clickX = event.offsetX;
+            const width = bar.offsetWidth;
+            const duration = player.getDuration();
+            
+            if (duration) {
+                const seekTime = (clickX / width) * duration;
+                player.seekTo(seekTime, true);
+            }
+        }
+        
+        function startProgressUpdate() {
+            stopProgressUpdate();
+            progressInterval = setInterval(updateProgress, 100);
+        }
+        
+        function stopProgressUpdate() {
+            if (progressInterval) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+            }
+        }
+        
+        function updateProgress() {
+            if (!player || !player.getCurrentTime) return;
+            
+            const currentTime = player.getCurrentTime();
+            const duration = player.getDuration();
+            
+            if (duration > 0) {
+                const progress = (currentTime / duration) * 100;
+                document.getElementById('progress').style.width = progress + '%';
+                document.getElementById('current-time').textContent = formatTime(currentTime);
+            }
+        }
+        
+        function updateDuration() {
+            if (!player || !player.getDuration) return;
+            const duration = player.getDuration();
+            if (duration > 0) {
+                document.getElementById('duration').textContent = formatTime(duration);
+            }
+        }
+        
+        function formatTime(seconds) {
+            const totalSecs = Math.floor(seconds);
+            const hours = Math.floor(totalSecs / 3600);
+            const mins = Math.floor((totalSecs % 3600) / 60);
+            const secs = totalSecs % 60;
+            
+            if (hours > 0) {
+                // 1시간 이상: 00:00:00 형식
+                return (hours < 10 ? '0' : '') + hours + ':' + 
+                       (mins < 10 ? '0' : '') + mins + ':' + 
+                       (secs < 10 ? '0' : '') + secs;
+            } else {
+                // 1시간 미만: 00:00 형식 (분:초)
+                return (mins < 10 ? '0' : '') + mins + ':' + 
+                       (secs < 10 ? '0' : '') + secs;
+            }
+        }
+    </script>
+    
+    <!-- YouTube API Script -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+</body>
+</html>
