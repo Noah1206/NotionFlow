@@ -273,13 +273,13 @@
         .hero {
             min-height: 100vh;
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             justify-content: center;
             text-align: center;
             background: var(--bg-primary);
             position: relative;
             overflow: visible;
-            padding: 8rem 2rem 3rem;
+            padding: 6rem 2rem 4rem;
         }
 
         /* Product Screenshot - Linear Style */
@@ -416,13 +416,14 @@
 
 
         .hero-content {
-            max-width: 720px;
+            max-width: 1200px;
             position: relative;
             z-index: 10;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            width: 100%;
         }
 
         /* Responsive adjustments for dashboard background */
@@ -454,27 +455,27 @@
         }
 
         .hero-illustration img {
-            width: 350px;
-            height: 350px;
+            width: 500px;
+            height: 500px;
             object-fit: contain;
         }
 
         .hero-title {
-            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-size: clamp(3rem, 7vw, 5.5rem);
             font-weight: 800;
-            line-height: 1.3;
-            margin-bottom: 2rem;
-            letter-spacing: -0.02em;
+            line-height: 1.15;
+            margin-bottom: 2.5rem;
+            letter-spacing: -0.03em;
             color: var(--text-primary);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
         .hero-subtitle {
-            font-size: 1.125rem;
+            font-size: 1.375rem;
             color: var(--text-secondary);
-            margin-bottom: 3rem;
-            line-height: 1.8;
-            max-width: 600px;
+            margin-bottom: 3.5rem;
+            line-height: 1.7;
+            max-width: 720px;
             font-weight: 500;
             margin-left: auto;
             margin-right: auto;
@@ -491,13 +492,13 @@
         .btn-primary {
             background: var(--accent-primary);
             color: var(--text-inverse);
-            padding: 0.875rem 1.5rem;
-            border-radius: 8px;
+            padding: 1.125rem 2rem;
+            border-radius: 10px;
             text-decoration: none;
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 1.125rem;
             transition: all 0.2s ease;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 0.5rem;
             border: none;
@@ -513,11 +514,11 @@
         .btn-secondary {
             background: transparent;
             color: var(--text-secondary);
-            padding: 0.875rem 1.5rem;
-            border-radius: 8px;
+            padding: 1.125rem 2rem;
+            border-radius: 10px;
             text-decoration: none;
             font-weight: 500;
-            font-size: 1rem;
+            font-size: 1.125rem;
             transition: all 0.2s ease;
             border: 1px solid var(--border-primary);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -2593,6 +2594,32 @@
             }
         }
 
+        /* Large screen optimization */
+        @media (min-width: 1200px) {
+            .hero {
+                min-height: 90vh;
+                padding: 4rem 2rem;
+            }
+            
+            .hero .container {
+                max-width: 1400px;
+            }
+            
+            .hero .title {
+                font-size: 4.5rem;
+            }
+            
+            .hero .lead {
+                font-size: 1.5rem;
+                max-width: 800px;
+            }
+            
+            .btn {
+                padding: 18px 36px;
+                font-size: 1.25rem;
+            }
+        }
+
         /* Mobile responsiveness */
         @media (max-width: 768px) {
             .hero {
@@ -2701,13 +2728,18 @@
         /* ---------------- UTILITIES ---------------- */
         .grid-2{display:grid;grid-template-columns:1.05fr .95fr;gap:var(--gap-6);align-items:center}
         .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap-5)}
-        @media (max-width:960px){.grid-2,.grid-3{grid-template-columns:1fr}}
+        @media (max-width:960px){
+            .grid-2,.grid-3{grid-template-columns:1fr}
+            .btn{padding:14px 24px;font-size:1rem}
+            .hero .title{font-size:2.5rem}
+            .hero .lead{font-size:1.125rem}
+        }
         .surface{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
         .surface-2{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius)}
 
         /* ---------------- COMPONENTS ---------------- */
         /* Buttons */
-        .btn{display:inline-flex;align-items:center;gap:var(--gap-2);padding:12px 16px;border-radius:999px;font-weight:600;border:1px solid transparent;transition:all var(--speed-1) var(--ease)}
+        .btn{display:inline-flex;align-items:center;gap:var(--gap-2);padding:16px 32px;border-radius:999px;font-weight:600;font-size:1.125rem;border:1px solid transparent;transition:all var(--speed-1) var(--ease)}
         .btn.primary{background:var(--accent);color:var(--text-inverse)}
         .btn.ghost{background:transparent;color:var(--text);border-color:var(--border)}
         .btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-1)}
@@ -2755,6 +2787,75 @@
         .tabs{display:flex;gap:var(--gap-3);border-bottom:1px solid var(--border)}
         .tab{padding:10px 2px;color:var(--text-muted);border-bottom:2px solid transparent;cursor:pointer}
         .tab[aria-selected="true"]{color:var(--text);border-color:var(--accent)}
+
+        /* Linear-style Platform Logos Section */
+        .section-logos {
+          padding: 96px 0;
+          background: linear-gradient(to bottom, #fafafa, #ffffff);
+          background-image:
+            repeating-linear-gradient(45deg, rgba(0,0,0,.02) 0, rgba(0,0,0,.02) 1px, transparent 1px, transparent 20px),
+            radial-gradient(circle at 50% 50%, rgba(0,0,0,.015), transparent 60%);
+          background-blend-mode: overlay;
+          text-align: center;
+        }
+        .section-logos h2 {
+          font-size: var(--fs-2);
+          font-weight: 700;
+          color: var(--text);
+          margin-bottom: 12px;
+        }
+        .section-logos p {
+          max-width: 640px;
+          margin: 0 auto 48px;
+          color: var(--text-muted);
+        }
+        .section-logos .logo-row {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 64px;
+          flex-wrap: wrap;
+        }
+        .section-logos .logo-row .platform-logo {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 1;
+          transition: transform .3s var(--ease);
+          background: none;
+          width: auto;
+          height: auto;
+        }
+        .section-logos .logo-row .platform-logo svg {
+          max-height: 40px;
+          filter: none; /* keep original colors */
+          transition: transform .3s var(--ease);
+        }
+        .section-logos .logo-row .platform-logo:hover {
+          transform: scale(1.05);
+        }
+        @media (max-width: 768px) {
+          .section-logos {
+            padding: 64px 0;
+          }
+          .section-logos .logo-row {
+            gap: 32px;
+          }
+        }
+
+        /* Fade-in animation */
+        .section-logos {
+          opacity: 0;
+          transform: translateY(20px);
+          animation: fadeInUp 600ms var(--ease) forwards;
+          animation-delay: 200ms;
+        }
+        @keyframes fadeInUp {
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
     </style>
 </head>
 
@@ -2792,14 +2893,11 @@
         </section>
 
         <!-- Platforms Section -->
-        <section class="platforms-section" id="platforms">
+        <section class="section section-logos" id="platforms">
             <div class="container">
-                <div class="platforms-header">
-                    <h2 class="platforms-title">모든 일정, 하나의 대시보드</h2>
-                    <p class="platforms-subtitle">좋아하는 캘린더와 생산성 앱을 Notion에 연결하세요.
-                        회의, 마감일, 중요한 업데이트를 놓치지 마세요.</p>
-                </div>
-                <div class="platform-logos">
+                <h2>All your schedules, in one dashboard</h2>
+                <p>Connect your favorite calendars and productivity apps. Never miss a meeting, deadline, or important update.</p>
+                <div class="logo-row">
                     <!-- Notion -->
                     <div class="platform-logo">
                         <svg viewBox="0 0 100 100" style="width: 60px" xmlns="http://www.w3.org/2000/svg">
