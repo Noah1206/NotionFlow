@@ -734,11 +734,11 @@
 
         /* Features Section */
         .features-section {
-            padding: 2rem 2rem 6rem;
+            padding: 4rem 2rem 6rem;
             background: var(--bg-primary);
             position: relative;
-            margin-top: -6rem !important;
-            transform: translateY(-40px) !important;
+            margin-top: -4rem !important;
+            transform: translateY(-20px) !important;
         }
 
         .features-header {
@@ -3135,15 +3135,15 @@
 
         /* Linear-style Platform Logos Section */
         .section-logos {
-            padding: 48px 0 72px;
+            padding: 48px 0 120px;
             background: linear-gradient(to bottom, #fafafa, #ffffff);
             background-image:
                 repeating-linear-gradient(45deg, rgba(0, 0, 0, .02) 0, rgba(0, 0, 0, .02) 1px, transparent 1px, transparent 20px),
                 radial-gradient(circle at 50% 50%, rgba(0, 0, 0, .015), transparent 60%);
             background-blend-mode: overlay;
             text-align: center;
-            margin-top: -8rem !important;
-            transform: translateY(-40px) !important;
+            margin-top: -6rem !important;
+            transform: translateY(-20px) !important;
         }
 
         .section-logos h2 {
@@ -3192,9 +3192,9 @@
 
         @media (max-width: 768px) {
             .section-logos {
-                padding: 32px 0 48px;
-                margin-top: -6rem !important;
-                transform: translateY(-40px) !important;
+                padding: 32px 0 80px;
+                margin-top: -4rem !important;
+                transform: translateY(-20px) !important;
             }
             .section-logos .logo-row {
                 gap: 40px;
@@ -3416,6 +3416,93 @@
         }
         /* ========== END PAGE LOAD ANIMATIONS ========== */
         /* ========== END LINEAR STYLE CSS ========== */
+        /* === LINEAR STYLE PRICING SECTION === */
+        :root{
+          /* fallbacks if not already defined */
+          --accent:#111827; /* neutral dark accent; change if needed */
+          --text:#0f1115; --text-muted:#6b7280; --bg:#ffffff;
+          --surface:#fafafa; --surface-2:#f6f7f9; --border:#e6e7eb;
+          --radius:16px; --radius-sm:12px;
+          --shadow-1:0 8px 24px rgba(0,0,0,.06); --shadow-2:0 20px 60px rgba(0,0,0,.10);
+          --fs-h:clamp(32px,4.5vw,48px); --fs-sub:18px; --fs-price:48px; --fs-mini:13px;
+          --gap-3:16px; --gap-4:24px; --gap-5:32px; --gap-6:48px; --gap-7:72px; --gap-8:96px;
+        }
+
+        /* Section shell (subtle texture like Linear) */
+        .pricing-section{
+          padding:var(--gap-8) 0;
+          background:
+            linear-gradient(to bottom,#ffffff, #ffffff),
+            radial-gradient(100% 50% at 50% -10%, rgba(0,0,0,.04), transparent 60%),
+            repeating-linear-gradient(45deg, rgba(0,0,0,.025) 0 1px, transparent 1px 22px);
+          background-blend-mode:normal,overlay,normal;
+          text-align:center;
+        }
+        .pricing-title{font-size:var(--fs-h); letter-spacing:-.02em; margin:0 0 10px; color:var(--text)}
+        .pricing-sub  {font-size:var(--fs-sub); color:var(--text-muted); margin:0 0 var(--gap-6)}
+
+        /* Card */
+        .pricing-card{
+          width:min(720px, 92vw);
+          margin:0 auto;
+          background:var(--surface);
+          border:1px solid var(--border);
+          border-radius:calc(var(--radius) + 4px);
+          box-shadow: var(--shadow-1);
+          padding:28px 26px;
+          text-align:left;
+          position:relative;
+        }
+        .pricing-card::before{ /* thin outer keyline */
+          content:""; position:absolute; inset:-12px; border-radius:calc(var(--radius) + 12px);
+          border:1px solid rgba(0,0,0,.08); pointer-events:none;
+        }
+
+        /* Card header */
+        .plan-name{font-weight:700; color:var(--text); margin:0 0 6px; text-align:center}
+        .plan-desc{color:var(--text-muted); text-align:center; margin:0 0 16px}
+
+        /* Price block */
+        .price-row{display:flex; align-items:baseline; justify-content:center; gap:8px; margin:8px 0 6px}
+        .price     {font-size:var(--fs-price); font-weight:800; letter-spacing:-.02em; color:var(--text)}
+        .per       {color:var(--text-muted); font-size:15px}
+        .mini-copy {text-align:center; color:var(--text-muted); font-size:var(--fs-mini); margin-bottom:18px}
+
+        /* Divider system */
+        .rule{height:1px; background:var(--border); margin:16px 0}
+
+        /* Features (checklist) */
+        .features{display:flex; flex-direction:column; gap:12px; margin:10px 0 20px}
+        .feature{display:flex; align-items:flex-start; gap:12px; color:var(--text)}
+        .feature::before{
+          content:""; width:18px; height:18px; margin-top:2px; border-radius:5px;
+          border:1px solid var(--border);
+          background:
+            radial-gradient(circle at 50% 50%, #10b981 0 48%, transparent 51%) center/18px 18px no-repeat,
+            radial-gradient(circle at 50% 50%, #fff 0 47%, transparent 48%) center/18px 18px no-repeat;
+          /* green check dot with white center to mimic Linear's neat checks without brand icons */
+        }
+
+        /* CTA */
+        .cta-wrap{display:flex; justify-content:center; margin-top:22px}
+        .cta{
+          appearance:none; border:1px solid #0f1115; background:#0f1115; color:#fff;
+          border-radius:999px; padding:14px 18px; font-weight:700;
+          transition:transform .18s ease, box-shadow .18s ease, background .18s ease;
+        }
+        .cta:hover{transform:translateY(-1px); box-shadow:0 8px 20px rgba(0,0,0,.12)}
+        .cta:active{transform:translateY(0)}
+        .cta:focus-visible{outline:2px solid #0f1115; outline-offset:2px}
+
+        /* Micro motion on entrance */
+        .reveal{opacity:0; transform:translateY(10px); transition:opacity .45s ease, transform .45s ease}
+        .reveal.is-in{opacity:1; transform:none}
+
+        /* Responsive tweaks */
+        @media (max-width:640px){
+          .pricing-card{padding:22px 18px}
+          .features{gap:10px}
+        }
     </style>
 </head>
 
@@ -3716,38 +3803,42 @@
         </section>
 
         <!-- Pricing Section -->
-        <section class="pricing-preview-section" id="pricing-preview">
+        <section class="pricing-preview-section pricing-section" id="pricing-preview">
             <div class="container">
                 <div class="pricing-preview-content">
-                    <h2 class="pricing-preview-title">
+                    <h2 class="pricing-preview-title pricing-title">
                         워크플로우에 <span class="highlight-text">완벽한 발전</span>을 선택하세요
                     </h2>
-                    <p class="pricing-preview-subtitle">
+                    <p class="pricing-preview-subtitle pricing-sub">
                         개발자와 팀을 위한 강력한 캘린더 동기화 플랫폼.<br>
                         무료 체험으로 시작하고 성장에 따라 확장하세요.
                     </p>
                     <div class="pricing-preview-cards">
-                        <div class="pricing-preview-card featured single-plan">
+                        <div class="pricing-preview-card featured single-plan pricing-card reveal">
                             <div class="plan-header">
-                                <h3 class="pricing-preview-plan">캘린더 통합</h3>
-                                <p class="plan-tagline">모든 기능을 포함한 완전한 캘린더 동기화 솔루션</p>
+                                <h3 class="pricing-preview-plan plan-name">캘린더 통합</h3>
+                                <p class="plan-tagline plan-desc">모든 기능을 포함한 완전한 캘린더 동기화 솔루션</p>
                             </div>
-                            <div class="pricing-preview-price">
-                                <span class="currency">$</span>
-                                <span class="amount">12</span>
-                                <span class="period">/월</span>
+                            <div class="pricing-preview-price price-row">
+                                <span class="currency price">$</span>
+                                <span class="amount price">12</span>
+                                <span class="period per">/월</span>
                             </div>
-                            <div class="price-note">연간 결제 시 $9/월 (25% 할인) • 14일 무료 체험</div>
-                            <ul class="pricing-preview-features">
-                                <li><span class="check">✓</span> 무제한 캘린더 동기화</li>
-                                <li><span class="check">✓</span> 모든 플랫폼 연결 (Google, Apple, Notion, Outlook, Slack)</li>
-                                <li><span class="check">✓</span> 실시간 동기화</li>
-                                <li><span class="check">✓</span> 고급 대시보드 & 분석</li>
-                                <li><span class="check">✓</span> 팀 협업 도구</li>
-                                <li><span class="check">✓</span> 우선 고객 지원</li>
-                                <li><span class="check">✓</span> 자동 백업 & 복구</li>
-                            </ul>
-                            <a href="/payment" class="plan-button primary">14일 무료 체험 시작</a>
+                            <div class="price-note mini-copy">연간 결제 시 $9/월 (25% 할인) • 14일 무료 체험</div>
+                            <div class="rule"></div>
+                            <div class="pricing-preview-features features">
+                                <div class="feature">무제한 캘린더 동기화</div>
+                                <div class="feature">모든 플랫폼 연결 (Google, Apple, Notion, Outlook, Slack)</div>
+                                <div class="feature">실시간 동기화</div>
+                                <div class="feature">고급 대시보드 & 분석</div>
+                                <div class="feature">팀 협업 도구</div>
+                                <div class="feature">우선 고객 지원</div>
+                                <div class="feature">자동 백업 & 복구</div>
+                            </div>
+                            <div class="rule"></div>
+                            <div class="cta-wrap">
+                                <a href="/payment" class="plan-button primary cta">14일 무료 체험 시작</a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -4060,6 +4151,12 @@
       window.addEventListener('load', () => {
         setTimeout(triggerPageLoadAnimations, 200);
       });
+    })();
+    </script>
+    <script>
+    (function(){
+      const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('is-in'); io.unobserve(e.target)}}),{threshold:.15});
+      document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
     })();
     </script>
 </body>
