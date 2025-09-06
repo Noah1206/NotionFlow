@@ -2597,26 +2597,30 @@
         /* Large screen optimization */
         @media (min-width: 1200px) {
             .hero {
-                min-height: 90vh;
-                padding: 4rem 2rem;
+                min-height: 100vh;
+                padding: 2rem;
             }
-            
+
             .hero .container {
-                max-width: 1400px;
+                max-width: 1600px;
             }
-            
+
             .hero .title {
-                font-size: 4.5rem;
+                font-size: 5.5rem;
             }
-            
+
             .hero .lead {
-                font-size: 1.5rem;
-                max-width: 800px;
+                font-size: 1.75rem;
+                max-width: 85%;
             }
-            
+
             .btn {
-                padding: 18px 36px;
-                font-size: 1.25rem;
+                padding: 20px 40px;
+                font-size: 1.375rem;
+            }
+
+            .figure {
+                max-width: 700px;
             }
         }
 
@@ -2673,189 +2677,592 @@
 
         /* ---------------- DESIGN TOKENS ---------------- */
         :root {
-          /* Single accent to customize project-wide */
-          --accent:        #3b82f6;
-          --accent-weak:   color-mix(in oklab, var(--accent) 65%, white);
-          --accent-strong: color-mix(in oklab, var(--accent) 85%, black);
+            /* Single accent to customize project-wide */
+            --accent: #3b82f6;
+            --accent-weak: color-mix(in oklab, var(--accent) 65%, white);
+            --accent-strong: color-mix(in oklab, var(--accent) 85%, black);
 
-          /* Neutral grayscale */
-          --gray-0:#ffffff; --gray-1:#f7f7f8; --gray-2:#eff0f2; --gray-3:#e3e4e8; --gray-4:#cfd2d9;
-          --gray-5:#a8aeb8; --gray-6:#888f9a; --gray-7:#6a717c; --gray-8:#3b4047; --gray-9:#1a1d21; --black:#0b0c0e;
+            /* Neutral grayscale */
+            --gray-0: #ffffff;
+            --gray-1: #f7f7f8;
+            --gray-2: #eff0f2;
+            --gray-3: #e3e4e8;
+            --gray-4: #cfd2d9;
+            --gray-5: #a8aeb8;
+            --gray-6: #888f9a;
+            --gray-7: #6a717c;
+            --gray-8: #3b4047;
+            --gray-9: #1a1d21;
+            --black: #0b0c0e;
 
-          /* Semantic aliases (use these in components; do not hardcode raw colors) */
-          --bg: var(--gray-0); --surface: var(--gray-1); --surface-2: var(--gray-2); --border: var(--gray-3);
-          --text: var(--gray-9); --text-muted: var(--gray-7); --text-inverse: var(--gray-0);
+            /* Semantic aliases (use these in components; do not hardcode raw colors) */
+            --bg: var(--gray-0);
+            --surface: var(--gray-1);
+            --surface-2: var(--gray-2);
+            --border: var(--gray-3);
+            --text: var(--gray-9);
+            --text-muted: var(--gray-7);
+            --text-inverse: var(--gray-0);
 
-          /* Radii, shadows, motion */
-          --radius-xs:8px; --radius:12px; --radius-lg:16px;
-          --shadow-1:0 2px 10px rgba(0,0,0,.06); --shadow-2:0 6px 24px rgba(0,0,0,.10);
-          --ease:cubic-bezier(.2,.7,.2,1); --speed-1:120ms; --speed-2:240ms;
+            /* Radii, shadows, motion */
+            --radius-xs: 8px;
+            --radius: 12px;
+            --radius-lg: 16px;
+            --shadow-1: 0 2px 10px rgba(0, 0, 0, .06);
+            --shadow-2: 0 6px 24px rgba(0, 0, 0, .10);
+            --ease: cubic-bezier(.2, .7, .2, 1);
+            --speed-1: 120ms;
+            --speed-2: 240ms;
 
-          /* Typography & layout */
-          --font-body:system-ui,-apple-system,"Segoe UI",Roboto,Inter,"Helvetica Neue",Arial,sans-serif;
-          --font-mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
-          --fs-1:clamp(40px,6vw,64px); --fs-2:clamp(28px,4vw,40px); --fs-3:22px; --fs-4:18px; --fs-5:16px;
-          --container:1200px;
-          --gap-1:8px; --gap-2:12px; --gap-3:16px; --gap-4:24px; --gap-5:32px; --gap-6:48px; --gap-7:72px; --gap-8:96px;
+            /* Typography & layout */
+            --font-body: system-ui, -apple-system, "Segoe UI", Roboto, Inter, "Helvetica Neue", Arial, sans-serif;
+            --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+            --fs-1: clamp(40px, 6vw, 64px);
+            --fs-2: clamp(28px, 4vw, 40px);
+            --fs-3: 22px;
+            --fs-4: 18px;
+            --fs-5: 16px;
+            --container: 1200px;
+            --gap-1: 8px;
+            --gap-2: 12px;
+            --gap-3: 16px;
+            --gap-4: 24px;
+            --gap-5: 32px;
+            --gap-6: 48px;
+            --gap-7: 72px;
+            --gap-8: 96px;
         }
-        :root[data-theme="dark"]{
-          --bg:var(--black); --surface:#111316; --surface-2:#15181c; --border:#24282e;
-          --text:#e8e9ec; --text-muted:#aab0bb; --text-inverse:#0b0c0e;
-          --shadow-1:0 2px 10px rgba(0,0,0,.35); --shadow-2:0 10px 36px rgba(0,0,0,.5);
+
+        :root[data-theme="dark"] {
+            --bg: var(--black);
+            --surface: #111316;
+            --surface-2: #15181c;
+            --border: #24282e;
+            --text: #e8e9ec;
+            --text-muted: #aab0bb;
+            --text-inverse: #0b0c0e;
+            --shadow-1: 0 2px 10px rgba(0, 0, 0, .35);
+            --shadow-2: 0 10px 36px rgba(0, 0, 0, .5);
         }
+
         /* Optional high-contrast */
-        :root[data-contrast="high"]{ --border: color-mix(in oklab, var(--text) 30%, transparent); }
+        :root[data-contrast="high"] {
+            --border: color-mix(in oklab, var(--text) 30%, transparent);
+        }
 
         /* ---------------- RESET & BASE ---------------- */
-        *{box-sizing:border-box}
-        html,body{height:100%}
-        body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.6;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
-        img,svg,video{max-width:100%;display:block}
-        a{color:inherit;text-decoration:none}
-        html:focus-within{scroll-behavior:smooth}
-        ::selection{background:var(--accent-weak);color:var(--text-inverse)}
-        a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-body);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility
+        }
+
+        img,
+        svg,
+        video {
+            max-width: 100%;
+            display: block
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none
+        }
+
+        html:focus-within {
+            scroll-behavior: smooth
+        }
+
+        ::selection {
+            background: var(--accent-weak);
+            color: var(--text-inverse)
+        }
+
+        a:focus-visible,
+        button:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px
+        }
 
         /* Container & sections */
-        .container{max-width:var(--container);margin-inline:auto;padding-inline:24px}
-        .section{padding:var(--gap-8) 0;border-bottom:1px solid var(--border)}
+        .container {
+            max-width: 1600px;
+            margin-inline: auto;
+            padding-inline: 40px
+        }
+
+        .section {
+            padding: var(--gap-8) 0;
+            border-bottom: 1px solid var(--border)
+        }
 
         /* Headings */
-        h1,h2,h3{margin:0 0 var(--gap-3);line-height:1.15;letter-spacing:-.02em}
-        h1{font-size:var(--fs-1)} h2{font-size:var(--fs-2)} h3{font-size:var(--fs-3)}
-        p.lead{font-size:var(--fs-4);color:var(--text-muted);margin:0 0 var(--gap-4)}
+        h1,
+        h2,
+        h3 {
+            margin: 0 0 var(--gap-3);
+            line-height: 1.15;
+            letter-spacing: -.02em
+        }
+
+        h1 {
+            font-size: var(--fs-1)
+        }
+
+        h2 {
+            font-size: var(--fs-2)
+        }
+
+        h3 {
+            font-size: var(--fs-3)
+        }
+
+        p.lead {
+            font-size: var(--fs-4);
+            color: var(--text-muted);
+            margin: 0 0 var(--gap-4)
+        }
 
         /* ---------------- UTILITIES ---------------- */
-        .grid-2{display:grid;grid-template-columns:1.05fr .95fr;gap:var(--gap-6);align-items:center}
-        .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap-5)}
-        @media (max-width:960px){
-            .grid-2,.grid-3{grid-template-columns:1fr}
-            .btn{padding:14px 24px;font-size:1rem}
-            .hero .title{font-size:2.5rem}
-            .hero .lead{font-size:1.125rem}
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--gap-10);
+            align-items: center;
+            min-height: 80vh
         }
-        .surface{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
-        .surface-2{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius)}
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--gap-5)
+        }
+
+        @media (max-width:960px) {
+
+            .grid-2,
+            .grid-3 {
+                grid-template-columns: 1fr
+            }
+
+            .btn {
+                padding: 14px 24px;
+                font-size: 1rem
+            }
+
+            .hero .title {
+                font-size: 2.5rem
+            }
+
+            .hero .lead {
+                font-size: 1.125rem
+            }
+        }
+
+        .surface {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius)
+        }
+
+        .surface-2 {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius)
+        }
 
         /* ---------------- COMPONENTS ---------------- */
         /* Buttons */
-        .btn{display:inline-flex;align-items:center;gap:var(--gap-2);padding:16px 32px;border-radius:999px;font-weight:600;font-size:1.125rem;border:1px solid transparent;transition:all var(--speed-1) var(--ease)}
-        .btn.primary{background:var(--accent);color:var(--text-inverse)}
-        .btn.ghost{background:transparent;color:var(--text);border-color:var(--border)}
-        .btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-1)}
-        .btn:active{transform:translateY(0)}
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--gap-2);
+            padding: 18px 36px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 1.25rem;
+            border: 1px solid transparent;
+            transition: all var(--speed-1) var(--ease)
+        }
+
+        .btn.primary {
+            background: var(--accent);
+            color: var(--text-inverse)
+        }
+
+        .btn.ghost {
+            background: transparent;
+            color: var(--text);
+            border-color: var(--border)
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-1)
+        }
+
+        .btn:active {
+            transform: translateY(0)
+        }
 
         /* Badge */
-        .badge{display:inline-block;padding:6px 10px;border-radius:999px;font-size:13px;color:var(--text-muted);border:1px solid var(--border);background:var(--surface-2)}
+        .badge {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 13px;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            background: var(--surface-2)
+        }
 
         /* Card */
-        .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-1)}
-        .card .card-body{padding:var(--gap-5)}
-        .card.elevated{box-shadow:var(--shadow-2)}
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-1)
+        }
+
+        .card .card-body {
+            padding: var(--gap-5)
+        }
+
+        .card.elevated {
+            box-shadow: var(--shadow-2)
+        }
 
         /* Navbar (sticky + soft blur) */
-        .navbar{position:sticky;top:0;z-index:50;backdrop-filter:saturate(140%) blur(8px);border-bottom:1px solid var(--border);background:color-mix(in oklab, var(--bg) 84%, transparent)}
-        .navbar .inner{display:flex;align-items:center;justify-content:space-between;height:64px;gap:var(--gap-4)}
-        .navbar .links{display:flex;gap:var(--gap-4);color:var(--text-muted)}
-        .navbar .cta{display:flex;gap:var(--gap-2)}
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: saturate(140%) blur(8px);
+            border-bottom: 1px solid var(--border);
+            background: color-mix(in oklab, var(--bg) 84%, transparent)
+        }
+
+        .navbar .inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+            gap: var(--gap-4)
+        }
+
+        .navbar .links {
+            display: flex;
+            gap: var(--gap-4);
+            color: var(--text-muted)
+        }
+
+        .navbar .cta {
+            display: flex;
+            gap: var(--gap-2)
+        }
 
         /* Hero */
-        .hero .title{margin-bottom:var(--gap-3)}
-        .hero .actions{display:flex;gap:var(--gap-3);align-items:center}
+        .hero .title {
+            margin-bottom: var(--gap-5);
+            font-size: clamp(3.5rem, 7vw, 5.5rem);
+            line-height: 1.1;
+            font-weight: 800;
+            letter-spacing: -0.02em
+        }
+
+        .hero .lead {
+            font-size: clamp(1.375rem, 2.5vw, 1.75rem);
+            line-height: 1.6;
+            margin-bottom: var(--gap-6);
+            color: var(--text-muted);
+            max-width: 90%
+        }
+
+        .hero .actions {
+            display: flex;
+            gap: var(--gap-5);
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: var(--gap-2)
+        }
+
+        .hero .badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: color-mix(in oklab, var(--accent) 15%, white);
+            color: var(--accent);
+            border-radius: 100px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: var(--gap-4)
+        }
 
         /* Feature cards */
-        .features .item{padding:var(--gap-5);border-radius:var(--radius);border:1px solid var(--border);background:var(--surface)}
-        .features .item h3{margin-bottom:var(--gap-2)}
-        .features .item p{color:var(--text-muted)}
+        .features .item {
+            padding: var(--gap-5);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            background: var(--surface)
+        }
+
+        .features .item h3 {
+            margin-bottom: var(--gap-2)
+        }
+
+        .features .item p {
+            color: var(--text-muted)
+        }
 
         /* Media frame */
-        .figure{padding:12px;border-radius:var(--radius-lg);background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-2)}
-        .figure img{border-radius:calc(var(--radius-lg) - 6px)}
+        .figure {
+            padding: 24px;
+            border-radius: var(--radius-lg);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
+            transform: perspective(1000px) rotateY(-8deg) rotateX(3deg);
+            transition: transform 0.6s ease;
+            max-width: 600px;
+            margin-left: auto
+        }
+
+        .figure:hover {
+            transform: perspective(1000px) rotateY(-3deg) rotateX(1deg) scale(1.02)
+        }
+
+        .figure img {
+            border-radius: calc(var(--radius-lg) - 12px);
+            width: 100%;
+            height: auto;
+            display: block
+        }
 
         /* Footer */
-        .footer{color:var(--text-muted)}
-        .footer .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:var(--gap-5)}
-        .footer a{color:var(--text-muted)}
-        .footer a:hover{color:var(--text)}
-        @media (max-width:960px){.footer .grid{grid-template-columns:1fr 1fr}}
+        .footer {
+            color: var(--text-muted)
+        }
+
+        .footer .grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: var(--gap-5)
+        }
+
+        .footer a {
+            color: var(--text-muted)
+        }
+
+        .footer a:hover {
+            color: var(--text)
+        }
+
+        @media (max-width:960px) {
+            .footer .grid {
+                grid-template-columns: 1fr 1fr
+            }
+        }
 
         /* Simple form controls */
-        .input,select,textarea{width:100%;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-xs);padding:10px 12px;transition:border var(--speed-1) var(--ease),box-shadow var(--speed-1) var(--ease)}
-        .input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in oklab, var(--accent) 25%, transparent);outline:none}
+        .input,
+        select,
+        textarea {
+            width: 100%;
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xs);
+            padding: 10px 12px;
+            transition: border var(--speed-1) var(--ease), box-shadow var(--speed-1) var(--ease)
+        }
+
+        .input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 25%, transparent);
+            outline: none
+        }
 
         /* Tabs */
-        .tabs{display:flex;gap:var(--gap-3);border-bottom:1px solid var(--border)}
-        .tab{padding:10px 2px;color:var(--text-muted);border-bottom:2px solid transparent;cursor:pointer}
-        .tab[aria-selected="true"]{color:var(--text);border-color:var(--accent)}
+        .tabs {
+            display: flex;
+            gap: var(--gap-3);
+            border-bottom: 1px solid var(--border)
+        }
+
+        .tab {
+            padding: 10px 2px;
+            color: var(--text-muted);
+            border-bottom: 2px solid transparent;
+            cursor: pointer
+        }
+
+        .tab[aria-selected="true"] {
+            color: var(--text);
+            border-color: var(--accent)
+        }
 
         /* Linear-style Platform Logos Section */
         .section-logos {
-          padding: 96px 0;
-          background: linear-gradient(to bottom, #fafafa, #ffffff);
-          background-image:
-            repeating-linear-gradient(45deg, rgba(0,0,0,.02) 0, rgba(0,0,0,.02) 1px, transparent 1px, transparent 20px),
-            radial-gradient(circle at 50% 50%, rgba(0,0,0,.015), transparent 60%);
-          background-blend-mode: overlay;
-          text-align: center;
+            padding: 96px 0;
+            background: linear-gradient(to bottom, #fafafa, #ffffff);
+            background-image:
+                repeating-linear-gradient(45deg, rgba(0, 0, 0, .02) 0, rgba(0, 0, 0, .02) 1px, transparent 1px, transparent 20px),
+                radial-gradient(circle at 50% 50%, rgba(0, 0, 0, .015), transparent 60%);
+            background-blend-mode: overlay;
+            text-align: center;
         }
+
         .section-logos h2 {
-          font-size: var(--fs-2);
-          font-weight: 700;
-          color: var(--text);
-          margin-bottom: 12px;
+            font-size: var(--fs-2);
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 12px;
         }
+
         .section-logos p {
-          max-width: 640px;
-          margin: 0 auto 48px;
-          color: var(--text-muted);
+            max-width: 640px;
+            margin: 0 auto 48px;
+            color: var(--text-muted);
         }
+
         .section-logos .logo-row {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          gap: 64px;
-          flex-wrap: wrap;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 64px;
+            flex-wrap: wrap;
         }
+
         .section-logos .logo-row .platform-logo {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          opacity: 1;
-          transition: transform .3s var(--ease);
-          background: none;
-          width: auto;
-          height: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+            transition: transform .3s var(--ease);
+            background: none;
+            width: auto;
+            height: auto;
         }
+
         .section-logos .logo-row .platform-logo svg {
-          max-height: 40px;
-          filter: none; /* keep original colors */
-          transition: transform .3s var(--ease);
+            max-height: 40px;
+            filter: none;
+            /* keep original colors */
+            transition: transform .3s var(--ease);
         }
+
         .section-logos .logo-row .platform-logo:hover {
-          transform: scale(1.05);
+            transform: scale(1.05);
         }
+
         @media (max-width: 768px) {
-          .section-logos {
-            padding: 64px 0;
-          }
-          .section-logos .logo-row {
-            gap: 32px;
-          }
+            .section-logos {
+                padding: 64px 0;
+            }
+
+            .section-logos .logo-row {
+                gap: 32px;
+            }
         }
 
         /* Fade-in animation */
         .section-logos {
-          opacity: 0;
-          transform: translateY(20px);
-          animation: fadeInUp 600ms var(--ease) forwards;
-          animation-delay: 200ms;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 600ms var(--ease) forwards;
+            animation-delay: 200ms;
         }
+
         @keyframes fadeInUp {
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+        
+        /* ========== LINEAR STYLE CSS ========== */
+        /* Minimal tokens fallback (use if not already defined) */
+        :root{
+          --accent:#3b82f6; --text:#0f1115; --text-muted:#6b7280; --bg:#fff;
+          --surface:#fafafa; --surface-2:#f5f6f8; --border:#e6e7eb;
+          --radius:14px; --radius-sm:10px; --shadow:0 8px 30px rgba(0,0,0,.06);
+          --fs-1:clamp(28px,4vw,40px); --fs-2:22px; --fs-3:16px;
+          --gap-2:12px; --gap-3:16px; --gap-4:24px; --gap-5:32px; --gap-6:48px; --gap-7:72px; --gap-8:96px;
+        }
+        /* Section shell */
+        .linear-section{padding:var(--gap-8) 0; background:
+          linear-gradient(to bottom,#fff, #fff),
+          radial-gradient(80% 80% at 50% 0%, rgba(0,0,0,.03), transparent 60%),
+          repeating-linear-gradient(45deg, rgba(0,0,0,.025) 0 1px, transparent 1px 22px);
+          background-blend-mode:normal,overlay,normal;
+        }
+        .linear-center{text-align:center}
+        .linear-eyebrow{color:var(--text-muted); font-size:var(--fs-3); margin-top:8px}
+        
+        /* Two-column layout */
+        .linear-grid{display:grid; grid-template-columns:1.05fr .95fr; gap:var(--gap-6); align-items:center}
+        @media (max-width: 960px){ .linear-grid{grid-template-columns:1fr; gap:var(--gap-5)} }
+        
+        /* Left: team card */
+        .team-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:28px}
+        .avatar-row{display:flex; flex-direction:column; gap:14px; margin-bottom:18px}
+        .role-pill{display:flex; align-items:center; gap:10px; background:var(--bg); border:1px solid var(--border);
+          border-radius:999px; padding:8px 12px; width:max-content}
+        .role-pill img{width:28px; height:28px; border-radius:50%}
+        .team-bullets{margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:10px}
+        .team-bullets li{display:flex; align-items:center; gap:10px; color:var(--text)}
+        .team-bullets li::before{content:""; width:6px; height:6px; border-radius:50%; background:currentColor; opacity:.75}
+        .team-bullets li[data-c="blue"]{color:#3b82f6}
+        .team-bullets li[data-c="purple"]{color:#8b5cf6}
+        .team-bullets li[data-c="pink"]{color:#ec4899}
+        
+        /* Right: copy block with checks */
+        .copy h3{font-size:var(--fs-1); margin:0 0 8px; letter-spacing:-.02em}
+        .copy p.desc{color:var(--text-muted); margin:0 0 var(--gap-4); max-width:52ch}
+        .checks{display:flex; flex-direction:column; gap:10px; color:var(--text)}
+        .check{display:flex; align-items:center; gap:10px}
+        .check::before{content:"✓"; color:var(--accent); font-weight:700}
+        
+        /* Below: calendar options + widget */
+        .subgrid{display:grid; grid-template-columns:1fr 1fr; gap:var(--gap-6); align-items:start; margin-top:var(--gap-7)}
+        @media (max-width: 960px){ .subgrid{grid-template-columns:1fr} }
+        
+        .subcopy h4{font-size:var(--fs-2); margin:0 0 10px}
+        .subcopy p{color:var(--text-muted); margin:0 0 var(--gap-4)}
+        .tick{display:flex; align-items:flex-start; gap:10px; margin:6px 0}
+        .tick::before{content:""; width:8px; height:8px; border-radius:50%; background:var(--accent); margin-top:8px; opacity:.9}
+        
+        .calendar-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px}
+        .tabs{display:flex; gap:8px; background:var(--surface-2); border:1px solid var(--border);
+          border-radius:999px; padding:6px; width:max-content; margin-bottom:14px}
+        .tab{padding:8px 14px; border-radius:999px; color:var(--text-muted); cursor:pointer; border:1px solid transparent}
+        .tab[aria-selected="true"]{background:var(--bg); color:var(--text); border-color:var(--border)}
+        .cal-head{display:flex; justify-content:space-between; align-items:center; margin:10px 4px 8px}
+        .cal-title{font-weight:600}
+        .cal-grid{width:100%; border-collapse:collapse; font-size:14px; color:var(--text)}
+        .cal-grid th{font-weight:600; color:var(--text-muted); padding:10px 0}
+        .cal-grid td{padding:10px; text-align:center; border:1px solid var(--border); background:#fff}
+        .cal-grid td.is-today{position:relative; z-index:0}
+        .cal-grid td.is-today::after{content:""; position:absolute; inset:4px; border-radius:10px; border:2px solid var(--accent); z-index:-1; background:transparent}
+        
+        /* Micro motion */
+        .reveal{opacity:0; transform:translateY(12px); transition:opacity .45s ease, transform .45s ease}
+        .reveal.is-in{opacity:1; transform:none}
+        /* ========== END LINEAR STYLE CSS ========== */
     </style>
 </head>
 
@@ -2868,7 +3275,6 @@
         <section class="hero section">
             <div class="container grid-2">
                 <div>
-                    <span class="badge">New</span>
                     <h1 class="hero-title title">
                         모든 캘린더를 한 곳에서 연결하세요
                     </h1>
@@ -2896,7 +3302,8 @@
         <section class="section section-logos" id="platforms">
             <div class="container">
                 <h2>All your schedules, in one dashboard</h2>
-                <p>Connect your favorite calendars and productivity apps. Never miss a meeting, deadline, or important update.</p>
+                <p>Connect your favorite calendars and productivity apps. Never miss a meeting, deadline, or important
+                    update.</p>
                 <div class="logo-row">
                     <!-- Notion -->
                     <div class="platform-logo">
@@ -3052,218 +3459,104 @@
                 </div>
         </section>
 
-        <!-- Collaboration Features Section -->
-        <section class="collaboration-section" id="collaboration">
+        <!-- Team Collaboration + Calendar Sharing - Linear Style -->
+        <section class="collaboration-section linear-section" id="collaboration">
             <div class="container">
-                <div class="collaboration-header">
-                    <h2 class="collaboration-title">팀과 함께 더 강력하게</h2>
-                    <p class="collaboration-subtitle">개인 캘린더를 넘어 팀 협업을 위한 스마트한 캘린더 공유 플랫폼</p>
-                </div>
-
-                <div class="collaboration-features">
-                    <div class="collaboration-feature">
-                        <div class="feature-visual">
-                            <div class="shared-calendar-demo">
-                                <div class="calendar-user user-1">
-                                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face"
-                                        alt="User 1" class="user-avatar">
-                                    <span class="user-name">디자이너</span>
-                                </div>
-                                <div class="calendar-user user-2">
-                                    <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&h=40&fit=crop&crop=face"
-                                        alt="User 2" class="user-avatar">
-                                    <span class="user-name">개발자</span>
-                                </div>
-                                <div class="calendar-user user-3">
-                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face"
-                                        alt="User 3" class="user-avatar">
-                                    <span class="user-name">기획자</span>
-                                </div>
-                                <div class="shared-events">
-                                    <div class="shared-event">
-                                        <span class="event-dot user-1-color"></span>
-                                        <span class="event-text">스프린트 리뷰</span>
-                                    </div>
-                                    <div class="shared-event">
-                                        <span class="event-dot user-2-color"></span>
-                                        <span class="event-text">디자인 시스템 회의</span>
-                                    </div>
-                                    <div class="shared-event">
-                                        <span class="event-dot user-3-color"></span>
-                                        <span class="event-text">기획 브레인스토밍</span>
-                                    </div>
-                                </div>
+                <!-- 1) Main headline + subline (centered) -->
+                <h2 class="collaboration-title linear-center">팀과 함께 더 강력하게</h2>
+                <p class="collaboration-subtitle linear-center linear-eyebrow">개인 캘린더를 넘어 팀 협업을 위한 스마트한 캘린더 공유 플랫폼</p>
+                
+                <!-- 4) First row: team card (left) + copy (right) -->
+                <div class="linear-grid">
+                    <!-- Left: team card -->
+                    <div class="team-card reveal">
+                        <div class="avatar-row">
+                            <div class="role-pill">
+                                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face"
+                                     alt="User 1">
+                                <span>디자이너</span>
+                            </div>
+                            <div class="role-pill">
+                                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&h=40&fit=crop&crop=face"
+                                     alt="User 2">
+                                <span>개발자</span>
+                            </div>
+                            <div class="role-pill">
+                                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face"
+                                     alt="User 3">
+                                <span>기획자</span>
                             </div>
                         </div>
-                        <div class="feature-content">
-                            <h3>스마트 캘린더 공유</h3>
-                            <p>팀원들과 캘린더를 공유하고 서로의 일정을 실시간으로 확인하세요. Google, Notion, Apple 캘린더 등 어떤 플랫폼을 사용하든 모든 팀원의 일정이 한
-                                곳에서 보입니다.</p>
-                            <ul class="feature-benefits">
-                                <li>✓ 팀원별 색상 구분으로 일정 구분</li>
-                                <li>✓ 권한별 캘린더 접근 제어</li>
-                                <li>✓ 회의실 예약과 자동 연동</li>
-                            </ul>
+                        
+                        <ul class="team-bullets">
+                            <li data-c="blue">스프린트 리뷰</li>
+                            <li data-c="purple">디자인 시스템 회의</li>
+                            <li data-c="pink">기획 브레인스토밍</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Right: copy block -->
+                    <div class="copy reveal">
+                        <h3>스마트 캘린더 공유</h3>
+                        <p class="desc">팀원들과 캘린더를 공유하고 서로의 일정을 실시간으로 확인하세요. Google, Notion, Apple 캘린더 등 어떤 플랫폼을 사용하든 모든 팀원의 일정이 한 곳에서 보입니다.</p>
+                        
+                        <div class="checks">
+                            <div class="check">팀원별 색상 구분으로 일정 구분</div>
+                            <div class="check">권한별 캘린더 접근 제어</div>
+                            <div class="check">회의실 예약과 자동 연동</div>
                         </div>
                     </div>
-
-                    <div class="collaboration-feature reverse">
-                        <div class="feature-visual">
-                            <div class="calendar-views-demo">
-                                <div class="view-toggle">
-                                    <button class="view-btn active" data-view="monthly">월간</button>
-                                    <button class="view-btn" data-view="weekly">주간</button>
-                                    <button class="view-btn" data-view="daily">일간</button>
-                                </div>
-
-                                <div class="calendar-container">
-                                    <div class="calendar-view monthly-view active">
-                                        <div class="calendar-header">
-                                            <h4>2024년 8월</h4>
-                                        </div>
-                                        <div class="calendar-grid monthly">
-                                            <div class="day-header">월</div>
-                                            <div class="day-header">화</div>
-                                            <div class="day-header">수</div>
-                                            <div class="day-header">목</div>
-                                            <div class="day-header">금</div>
-                                            <div class="day-header">토</div>
-                                            <div class="day-header">일</div>
-
-                                            <div class="day-cell empty"></div>
-                                            <div class="day-cell empty"></div>
-                                            <div class="day-cell empty"></div>
-                                            <div class="day-cell">1</div>
-                                            <div class="day-cell">2</div>
-                                            <div class="day-cell">3</div>
-                                            <div class="day-cell">4</div>
-
-                                            <div class="day-cell">5</div>
-                                            <div class="day-cell">6</div>
-                                            <div class="day-cell">7</div>
-                                            <div class="day-cell">8</div>
-                                            <div class="day-cell has-event">9
-                                                <div class="event-dot google-event"></div>
-                                            </div>
-                                            <div class="day-cell">10</div>
-                                            <div class="day-cell">11</div>
-
-                                            <div class="day-cell">12</div>
-                                            <div class="day-cell">13</div>
-                                            <div class="day-cell">14</div>
-                                            <div class="day-cell has-event">15
-                                                <div class="event-dot notion-event"></div>
-                                            </div>
-                                            <div class="day-cell">16</div>
-                                            <div class="day-cell">17</div>
-                                            <div class="day-cell">18</div>
-
-                                            <div class="day-cell">19</div>
-                                            <div class="day-cell today has-event">20
-                                                <div class="event-dot apple-event"></div>
-                                            </div>
-                                            <div class="day-cell">21</div>
-                                            <div class="day-cell">22</div>
-                                            <div class="day-cell">23</div>
-                                            <div class="day-cell">24</div>
-                                            <div class="day-cell">25</div>
-                                        </div>
-                                    </div>
-
-                                    <div class="calendar-view weekly-view">
-                                        <div class="calendar-header">
-                                            <h4>8월 19일 - 25일</h4>
-                                        </div>
-                                        <div class="calendar-grid weekly">
-                                            <div class="time-slot">
-                                                <span class="time">09:00</span>
-                                                <div class="event google-event">팀 스탠드업</div>
-                                            </div>
-                                            <div class="time-slot">
-                                                <span class="time">14:00</span>
-                                                <div class="event notion-event">프로젝트 리뷰</div>
-                                            </div>
-                                            <div class="time-slot">
-                                                <span class="time">16:30</span>
-                                                <div class="event apple-event">디자인 미팅</div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="calendar-view daily-view">
-                                        <div class="calendar-header">
-                                            <h4>오늘 - 8월 20일</h4>
-                                        </div>
-                                        <div class="calendar-grid daily">
-                                            <div class="hour-slot">
-                                                <div class="hour">09:00</div>
-                                                <div class="hour-content">
-                                                    <div class="event-block google-event">
-                                                        <span class="event-title">팀 스탠드업</span>
-                                                        <span class="event-desc">Google Meet</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="hour-slot">
-                                                <div class="hour">10:00</div>
-                                                <div class="hour-content"></div>
-                                            </div>
-                                            <div class="hour-slot">
-                                                <div class="hour">11:00</div>
-                                                <div class="hour-content"></div>
-                                            </div>
-                                            <div class="hour-slot">
-                                                <div class="hour">12:00</div>
-                                                <div class="hour-content"></div>
-                                            </div>
-                                            <div class="hour-slot">
-                                                <div class="hour">13:00</div>
-                                                <div class="hour-content"></div>
-                                            </div>
-                                            <div class="hour-slot">
-                                                <div class="hour">14:00</div>
-                                                <div class="hour-content">
-                                                    <div class="event-block notion-event">
-                                                        <span class="event-title">프로젝트 리뷰</span>
-                                                        <span class="event-desc">Notion에서 동기화됨</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="hour-slot">
-                                                <div class="hour">15:00</div>
-                                                <div class="hour-content"></div>
-                                            </div>
-                                            <div class="hour-slot">
-                                                <div class="hour">16:00</div>
-                                                <div class="hour-content">
-                                                    <div class="event-block apple-event">
-                                                        <span class="event-title">디자인 미팅</span>
-                                                        <span class="event-desc">Apple 캘린더</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="hour-slot">
-                                                <div class="hour">17:00</div>
-                                                <div class="hour-content"></div>
-                                            </div>
-                                            <div class="hour-slot">
-                                                <div class="hour">18:00</div>
-                                                <div class="hour-content"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                </div>
+                
+                <!-- 5) Second row: calendar options (left) + calendar widget (right) -->
+                <div class="subgrid">
+                    <!-- Left: copy -->
+                    <div class="subcopy reveal">
+                        <h4>다양한 캘린더 보기 옵션</h4>
+                        <p>월간, 주간, 일간 뷰를 자유롭게 전환하며 일정을 확인하세요. 각 플랫폼에서 가져온 일정들이 색상으로 구분되어 한 눈에 파악할 수 있습니다.</p>
+                        
+                        <div class="tick">월간 뷰로 전체 일정 파악</div>
+                        <div class="tick">주간 뷰로 세부 계획 수립</div>
+                        <div class="tick">일간 뷰로 시간별 상세 관리</div>
+                    </div>
+                    
+                    <!-- Right: calendar widget -->
+                    <div class="calendar-card reveal">
+                        <div class="tabs" role="tablist">
+                            <button class="tab" role="tab" aria-selected="true">월간</button>
+                            <button class="tab" role="tab">주간</button>
+                            <button class="tab" role="tab">일간</button>
                         </div>
-                        <div class="feature-content">
-                            <h3>다양한 캘린더 보기 옵션</h3>
-                            <p>월간, 주간, 일간 뷰를 자유롭게 전환하며 일정을 확인하세요. 각 플랫폼에서 가져온 일정들이 색상으로 구분되어 한 눈에 파악할 수 있습니다.</p>
-                            <ul class="feature-benefits">
-                                <li>✓ 월간 뷰로 전체 일정 파악</li>
-                                <li>✓ 주간 뷰로 세부 계획 수립</li>
-                                <li>✓ 일간 뷰로 시간별 상세 관리</li>
-                            </ul>
+                        
+                        <div class="cal-head">
+                            <div class="cal-title">2024년 8월</div>
+                            <div class="cal-ctrl"></div>
                         </div>
+                        
+                        <table class="cal-grid">
+                            <thead>
+                                <tr>
+                                    <th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td></td><td></td><td></td><td>1</td><td>2</td><td>3</td><td>4</td>
+                                </tr>
+                                <tr>
+                                    <td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td>
+                                </tr>
+                                <tr>
+                                    <td>12</td><td>13</td><td>14</td><td>15</td><td>16</td><td>17</td><td>18</td>
+                                </tr>
+                                <tr>
+                                    <td>19</td><td class="is-today">20</td><td>21</td><td>22</td><td>23</td><td>24</td><td>25</td>
+                                </tr>
+                                <tr>
+                                    <td>26</td><td>27</td><td>28</td><td>29</td><td>30</td><td>31</td><td></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -3526,6 +3819,20 @@
                 });
             });
         });
+    </script>
+
+    <!-- Linear Style JavaScript for Reveal-on-Scroll and Tabs -->
+    <script>
+    (function(){
+      const io = new IntersectionObserver(es=>es.forEach(e=>e.isIntersecting&&e.target.classList.add('is-in')), {threshold:.12});
+      document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+      // Simple tabs (visual only)
+      document.addEventListener('click', e=>{
+        const btn = e.target.closest('.tab'); if(!btn) return;
+        const group = btn.closest('.tabs'); group.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected','false'));
+        btn.setAttribute('aria-selected','true');
+      });
+    })();
     </script>
 </body>
 
