@@ -280,7 +280,9 @@
             position: relative;
             overflow: visible;
             padding: 0.5rem 2rem 1rem;
-            padding-top: calc(80px - 20px);
+            padding-top: 0px !important;
+            margin-top: -80px !important;
+            transform: translateY(-40px) !important;
         }
 
         /* Product Screenshot - Linear Style */
@@ -425,7 +427,8 @@
             align-items: center;
             justify-content: flex-start;
             width: 100%;
-            margin-top: -2rem;
+            margin-top: -6rem !important;
+            transform: translateY(-40px) !important;
         }
 
         /* Responsive adjustments for dashboard background */
@@ -734,7 +737,8 @@
             padding: 2rem 2rem 6rem;
             background: var(--bg-primary);
             position: relative;
-            margin-top: -1rem;
+            margin-top: -6rem !important;
+            transform: translateY(-40px) !important;
         }
 
         .features-header {
@@ -2431,8 +2435,10 @@
             }
 
             .hero {
-                padding: 7rem 1rem 2rem;
+                padding: 2rem 1rem 2rem !important;
                 min-height: 100vh;
+                margin-top: -100px !important;
+                transform: translateY(-40px) !important;
             }
 
             .hero-actions {
@@ -2602,7 +2608,9 @@
             .hero {
                 min-height: 70vh;
                 padding: 0.5rem 2rem;
-                padding-top: calc(80px - 20px);
+                padding-top: 0px !important;
+                margin-top: -80px !important;
+                transform: translateY(-40px) !important;
             }
 
             .hero .container {
@@ -2633,7 +2641,9 @@
             .hero {
                 padding: 0.5rem 1rem 1rem;
                 min-height: 70vh;
-                padding-top: calc(60px - 15px);
+                padding-top: 0px !important;
+                margin-top: -70px !important;
+                transform: translateY(-40px) !important;
             }
 
             .hero-illustration img {
@@ -2659,7 +2669,9 @@
             .hero {
                 padding: 1rem 1rem 1.5rem;
                 min-height: 75vh;
-                padding-top: calc(60px + 0.5rem);
+                padding-top: 0px !important;
+                margin-top: -70px !important;
+                transform: translateY(-40px) !important;
             }
 
             .platforms-section {
@@ -3130,7 +3142,8 @@
                 radial-gradient(circle at 50% 50%, rgba(0, 0, 0, .015), transparent 60%);
             background-blend-mode: overlay;
             text-align: center;
-            margin-top: -2rem;
+            margin-top: -8rem !important;
+            transform: translateY(-40px) !important;
         }
 
         .section-logos h2 {
@@ -3180,7 +3193,8 @@
         @media (max-width: 768px) {
             .section-logos {
                 padding: 32px 0 48px;
-                margin-top: -1rem;
+                margin-top: -6rem !important;
+                transform: translateY(-40px) !important;
             }
             .section-logos .logo-row {
                 gap: 40px;
