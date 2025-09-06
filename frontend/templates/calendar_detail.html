@@ -123,24 +123,18 @@
             align-items: center;
             justify-content: center;
             padding: 10px;
-            border: 1px solid #e5e7eb;
-            background: #ffffff;
-            /* 반투명 흰색 배경 */
+            border: none;
+            background: transparent;
             border-radius: 8px;
             color: #374151;
-            /* 흰색 아이콘 */
             cursor: pointer;
             transition: all 0.2s ease;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
 
         .btn-back:hover {
-            background: #f9fafb;
-            /* 호버시 더 밝게 */
-            border-color: #3b82f6;
+            background: #f3f4f6;
             color: #3b82f6;
             transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
         }
 
         .calendar-header-info {
@@ -182,22 +176,118 @@
             border-radius: 6px;
             font-size: 14px;
             font-weight: 500;
-            color: rgba(255, 255, 255, 0.8);
-            /* 반투명 흰색 */
+            color: #6b7280;
+            /* 더 선명한 회색으로 변경 */
             cursor: pointer;
             transition: all 0.2s ease;
             white-space: nowrap;
         }
 
         .view-option:hover {
-            color: #ffffff;
-            background: rgba(255, 255, 255, 0.2);
+            color: #3b82f6;
+            background: #f1f5f9;
         }
 
         .view-option.active {
-            background: rgba(255, 255, 255, 0.3);
+            background: #3b82f6;
             color: #ffffff;
-            box-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+            box-shadow: 0 1px 2px rgba(59, 130, 246, 0.3);
+        }
+
+        /* 오늘 버튼 스타일 */
+        .btn-today {
+            padding: 8px 16px;
+            border: 1px solid #e5e7eb;
+            background: #ffffff;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn-today:hover {
+            background: #f9fafb;
+            border-color: #3b82f6;
+            color: #3b82f6;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 날짜 네비게이션 화살표 스타일 */
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            padding: 8px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn svg {
+            color: #000000 !important;
+            stroke: #000000 !important;
+        }
+
+        .nav-btn:hover {
+            background: #f3f4f6;
+            transform: translateY(-1px);
+        }
+
+        .nav-btn:hover svg {
+            color: #000000 !important;
+            stroke: #000000 !important;
+        }
+
+        /* 미니 캘린더 네비게이션 화살표도 동일하게 적용 */
+        .mini-nav-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            padding: 6px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mini-nav-btn svg {
+            color: #000000 !important;
+            stroke: #000000 !important;
+        }
+
+        .mini-nav-btn:hover {
+            background: #f3f4f6;
+        }
+
+        .mini-nav-btn:hover svg {
+            color: #000000 !important;
+            stroke: #000000 !important;
+        }
+
+        /* 날짜 네비게이터 레이아웃 - 화살표 양옆 배치 */
+        .date-navigator {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .current-date {
+            font-size: 16px;
+            font-weight: 600;
+            color: #111827;
+            min-width: 120px;
+            text-align: center;
         }
 
         /* 액션 버튼 스타일 */
@@ -2285,25 +2375,6 @@
                     <button class="view-option active" data-view="week">주</button>
                     <button class="view-option" data-view="agenda">일정</button>
                 </div>
-
-
-                <button class="btn-share" onclick="openShareModal()" title="참석자 추가">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                        <circle cx="8.5" cy="7" r="4" />
-                        <line x1="20" y1="8" x2="20" y2="14" />
-                        <line x1="23" y1="11" x2="17" y2="11" />
-                    </svg>
-                    참석자 추가
-                </button>
-
-                <button class="btn-settings" onclick="openCalendarSettings()" title="캘린더 설정">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <circle cx="12" cy="12" r="3" />
-                        <path
-                            d="M12 1v6m0 10v6m11-7h-6m-10 0H1m15-4a3 3 0 11-6 0 3 3 0 016 0zm-8 8a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                </button>
             </div>
         </div>
 

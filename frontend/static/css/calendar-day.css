@@ -17,9 +17,23 @@ body.calendar-day-page {
 }
 
 /* Typography Scale */
-h1 { font-size: 18px; font-weight: 600; margin: 0; }
-h2 { font-size: 16px; font-weight: 600; margin: 0; }
-h3 { font-size: 15px; font-weight: 500; margin: 0; }
+h1 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+h2 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+}
+
+h3 {
+    font-size: 15px;
+    font-weight: 500;
+    margin: 0;
+}
 
 /* ============================================================================
    2. LAYOUT SYSTEM
@@ -628,7 +642,8 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
     gap: 12px;
 }
 
-.current-time, .next-event {
+.current-time,
+.next-event {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1175,8 +1190,15 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.8; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.8;
+    }
 }
 
 .activity-cell {
@@ -1307,11 +1329,25 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
 }
 
 /* Tag Colors */
-.tag-1 { background: #fee2e2; }
-.tag-2 { background: #fef3c7; }
-.tag-3 { background: #dcfce7; }
-.tag-4 { background: #e0e7ff; }
-.tag-5 { background: #fce7f3; }
+.tag-1 {
+    background: #fee2e2;
+}
+
+.tag-2 {
+    background: #fef3c7;
+}
+
+.tag-3 {
+    background: #dcfce7;
+}
+
+.tag-4 {
+    background: #e0e7ff;
+}
+
+.tag-5 {
+    background: #fce7f3;
+}
 
 .tasks-table .table-body {
     max-height: 600px;
@@ -1855,41 +1891,41 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
         grid-template-columns: 1fr;
         gap: 16px;
     }
-    
+
     .daily-routine-section,
     .tasks-section {
         grid-column: 1;
     }
-    
+
     .calendar-day-content {
         max-width: 100%;
         padding: 20px;
     }
-    
+
     .commitment-widget .widget-header {
         padding: 20px 24px 16px 24px;
     }
-    
+
     .commitment-content {
         padding: 20px 24px;
     }
-    
+
     /* Weekly calendar responsive */
     .week-grid {
         gap: 8px;
         padding: 16px;
     }
-    
+
     .day-cell {
         padding: 12px 8px;
         min-height: 120px;
         aspect-ratio: 3/4;
     }
-    
+
     .day-date {
         font-size: 16px;
     }
-    
+
     .commitment-sticky {
         font-size: 10px;
         padding: 6px 8px;
@@ -1901,35 +1937,35 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
         padding: 16px;
         gap: 12px;
     }
-    
+
     .week-grid {
         gap: 6px;
         padding: 12px;
     }
-    
+
     .day-cell {
         padding: 10px 6px;
         min-height: 100px;
         aspect-ratio: 3/4;
     }
-    
+
     .day-name {
         font-size: 10px;
     }
-    
+
     .day-date {
         font-size: 14px;
     }
-    
+
     .commitment-sticky {
         font-size: 9px;
         padding: 4px 6px;
     }
-    
+
     .commitment-widget .widget-header {
         padding: 16px 20px 12px 20px;
     }
-    
+
     .commitment-content {
         padding: 16px 20px;
     }
@@ -1947,37 +1983,38 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
         padding: 16px;
         gap: 16px;
     }
-    
+
     .calendar-topbar {
         padding: 12px 16px;
     }
-    
+
     .excel-widget {
         border-radius: 20px;
     }
-    
+
     .widget-header {
         padding: 16px 20px;
     }
-    
+
     .cell {
         padding: 12px 16px;
     }
-    
+
     .routine-table .table-header,
     .routine-table .table-row {
         grid-template-columns: 60px 1fr 50px;
     }
-    
+
     .tasks-table .table-header,
     .tasks-table .table-row {
         grid-template-columns: 45px 1fr repeat(5, 60px) 70px 50px;
     }
-    
-    .tag-column, .tag-cell {
+
+    .tag-column,
+    .tag-cell {
         font-size: 10px;
     }
-    
+
     .form-row {
         grid-template-columns: 1fr;
     }
@@ -1987,19 +2024,19 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
     .topbar-left {
         gap: 12px;
     }
-    
+
     .calendar-name {
         font-size: 14px;
     }
-    
+
     .formatted-date {
         font-size: 13px;
     }
-    
+
     .notes-container {
         padding: 20px;
     }
-    
+
     .modal-content {
         border-radius: 16px;
     }
@@ -2064,6 +2101,7 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
         opacity: 0;
         transform: translateX(-50%) translateY(-4px);
     }
+
     to {
         opacity: 0.9;
         transform: translateX(-50%) translateY(0);
@@ -2083,10 +2121,12 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
         background: #f0fdf4;
         transform: scale(1.02);
     }
+
     50% {
         background: #dcfce7;
         transform: scale(1.05);
     }
+
     100% {
         background: transparent;
         transform: scale(1);
@@ -2122,6 +2162,7 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
         box-shadow: inset 0 0 0 2px #10b981;
         background: #f0fdf4;
     }
+
     100% {
         box-shadow: inset 0 0 0 0 #10b981;
         background: transparent;
@@ -2136,9 +2177,19 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
 }
 
 @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-4px); }
-    75% { transform: translateX(4px); }
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-4px);
+    }
+
+    75% {
+        transform: translateX(4px);
+    }
 }
 
 /* Improved placeholder styling */
@@ -2184,6 +2235,7 @@ h3 { font-size: 15px; font-weight: 500; margin: 0; }
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -2257,10 +2309,12 @@ input[type="checkbox"]:checked {
         transform: scale(1);
         background: rgba(59, 130, 246, 0.05);
     }
+
     50% {
         transform: scale(1.05);
         background: rgba(59, 130, 246, 0.15);
     }
+
     100% {
         transform: scale(1.02);
         background: rgba(59, 130, 246, 0.1);
@@ -2323,6 +2377,7 @@ input[type="checkbox"]:checked {
         opacity: 0;
         transform: translateX(50px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
@@ -2453,8 +2508,13 @@ input[type="checkbox"]:checked {
 }
 
 @keyframes weather-spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* 날씨 에러 상태 */
@@ -2479,13 +2539,13 @@ input[type="checkbox"]:checked {
         padding: 3px 5px;
         min-width: 38px;
     }
-    
+
     .weather-emoji {
         font-size: 16px;
         width: 20px;
         height: 20px;
     }
-    
+
     .weather-temp {
         font-size: 9px;
     }
@@ -2498,7 +2558,7 @@ input[type="checkbox"]:checked {
         border-color: rgba(156, 163, 175, 0.3);
         color: #f3f4f6;
     }
-    
+
     .weather-temp {
         color: #d1d5db;
     }

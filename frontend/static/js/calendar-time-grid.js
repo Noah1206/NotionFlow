@@ -151,43 +151,9 @@ function addTimeNavigationControls() {
         align-items: center;
         gap: 4px;
     `;
-    currentTimeBtn.innerHTML = `
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M12 6v6l4 2"/>
-        </svg>
-        지금
-    `;
-    
-    // Morning button (9 AM)
-    const morningBtn = document.createElement('button');
-    morningBtn.className = 'btn-time-nav';
-    morningBtn.title = '오전 시간으로 이동';
-    morningBtn.onclick = () => scrollToTime(9);
-    morningBtn.style.cssText = currentTimeBtn.style.cssText;
-    morningBtn.innerHTML = `
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 6.34L4.93 4.93M19.07 19.07l-1.41-1.41"/>
-        </svg>
-        오전
-    `;
-    
-    // Afternoon button (2 PM)
-    const afternoonBtn = document.createElement('button');
-    afternoonBtn.className = 'btn-time-nav';
-    afternoonBtn.title = '오후 시간으로 이동';
-    afternoonBtn.onclick = () => scrollToTime(14);
-    afternoonBtn.style.cssText = currentTimeBtn.style.cssText;
-    afternoonBtn.innerHTML = `
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="5"/>
-            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2"/>
-        </svg>
-        오후
-    `;
     
     // Add hover effects
-    [currentTimeBtn, morningBtn, afternoonBtn].forEach(btn => {
+    [currentTimeBtn].forEach(btn => {
         btn.onmouseenter = () => {
             btn.style.borderColor = '#3b82f6';
             btn.style.color = '#3b82f6';
@@ -199,8 +165,6 @@ function addTimeNavigationControls() {
     });
     
     timeNavContainer.appendChild(currentTimeBtn);
-    timeNavContainer.appendChild(morningBtn);
-    timeNavContainer.appendChild(afternoonBtn);
     
     // Insert before existing buttons
     const addEventBtn = topbar.querySelector('.btn-add-event');
