@@ -573,85 +573,47 @@ def list_calendars():
 @calendar_api_bp.route('/calendars/<calendar_id>')
 def get_calendar(calendar_id):
     """캘린더 정보 조회"""
-    print(f"🔍 [DEBUG] get_calendar called with calendar_id: {calendar_id}")
-    # 임시로 인증 체크 비활성화 (테스트용)
-    # auth_error = require_auth()
-    # if auth_error:
-    #     return auth_error
-    
-    user_id = get_current_user_id() or "e390559f-c328-4786-ac5d-c74b5409451b"  # 실제 캘린더 소유자 ID
-    print(f"🔍 [DEBUG] Using user_id: {user_id}")
+    print(f"🚨 [CALENDAR API] NEW FUNCTION CALLED with calendar_id: {calendar_id}")
+    print(f"🔍 [CALENDAR API] Function get_calendar is definitely being called!")
     
     try:
-        print(f"🔍 [DEBUG] Starting get_calendar logic")
-        try:
-            from supabase import create_client
-            print(f"🔍 [DEBUG] Supabase import successful")
-        except ImportError:
-            print(f"❌ [DEBUG] Supabase import failed")
+        # dashboard_data는 이미 파일 상단에서 DashboardDataManager() 인스턴스로 생성됨
+        print(f"🔍 [CALENDAR API] Using dashboard_data.admin_client for query")
+        
+        if not dashboard_data or not dashboard_data.admin_client:
+            print(f"❌ [CALENDAR API] Dashboard data or admin_client not available")
             return jsonify({
                 'success': False,
-                'error': 'Supabase client not available'
+                'error': 'Database not available'
             }), 500
         
-        # Supabase 연결
-        SUPABASE_URL = os.environ.get('SUPABASE_URL')
-        SUPABASE_KEY = os.environ.get('SUPABASE_API_KEY')
+        # dashboard_data.admin_client 사용 (성공적으로 작동하는 방법)
+        print(f"🔍 [CALENDAR API] Querying calendar with id: {calendar_id} using admin_client")
+        result = dashboard_data.admin_client.table('calendars').select('*').eq('id', calendar_id).execute()
+        print(f"🔍 [CALENDAR API] Query result: {result.data}")
         
-        if not SUPABASE_URL or not SUPABASE_KEY:
-            raise Exception("Supabase credentials not configured")
-        
-        print(f"🔍 [DEBUG] Creating Supabase client")
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-        print(f"🔍 [DEBUG] Supabase client created successfully")
-        
-        # 먼저 모든 캘린더를 조회해서 어떤 캘린더들이 있는지 확인
-        print(f"🔍 [DEBUG] Listing all calendars first...")
-        try:
-            all_calendars = supabase.table('calendars').select('id, name, owner_id').execute()
-            print(f"🔍 [DEBUG] All calendars in database: {all_calendars.data}")
-        except Exception as list_error:
-            print(f"❌ [DEBUG] Failed to list all calendars: {list_error}")
-        
-        # 캘린더 조회 (owner_id 조건 제거해서 테스트)
-        print(f"🔍 [DEBUG] Querying calendar with id: {calendar_id}")
-        try:
-            calendar_result = supabase.table('calendars').select('*').eq('id', calendar_id).execute()
-            print(f"🔍 [DEBUG] Query executed, result: {calendar_result}")
-            print(f"🔍 [DEBUG] Query data: {calendar_result.data}")
-        except Exception as query_error:
-            print(f"❌ [DEBUG] Query failed with error: {query_error}")
+        if result.data and len(result.data) > 0:
+            calendar = result.data[0]
+            print(f"✅ [CALENDAR API] Calendar found: {calendar.get('name', 'Unknown')}")
+            
             return jsonify({
-                'success': False,
-                'error': f'Database query failed: {str(query_error)}'
-            }), 500
-        
-        if not calendar_result.data:
-            # owner_id 없이 조회해서도 찾지 못한 경우
-            print(f"🔍 [DEBUG] Calendar not found at all")
+                'success': True,
+                'calendar': calendar
+            })
+        else:
+            print(f"❌ [CALENDAR API] Calendar not found for ID: {calendar_id}")
             return jsonify({
                 'success': False,
                 'error': 'Calendar not found'
             }), 404
-        
-        # 캘린더가 존재하는지만 확인하고 owner_id는 일단 무시
-        calendar = calendar_result.data[0]
-        print(f"🔍 [DEBUG] Found calendar: {calendar}")
-        
-        # owner_id 체크 (로깅용)
-        if calendar.get('owner_id') != user_id:
-            print(f"🔍 [DEBUG] Owner mismatch. Calendar owner: {calendar.get('owner_id')}, Current user: {user_id}")
-        
-        return jsonify({
-            'success': True,
-            'calendar': calendar
-        })
-        
+            
     except Exception as e:
-        print(f"Error getting calendar: {e}")
+        print(f"💥 [CALENDAR API ERROR] Exception in get_calendar: {str(e)}")
+        import traceback
+        print(f"💥 [CALENDAR API ERROR] Traceback: {traceback.format_exc()}")
         return jsonify({
             'success': False,
-            'error': 'Failed to get calendar'
+            'error': 'Internal server error'
         }), 500
 
 @calendar_api_bp.route('/calendars/<calendar_id>/media-title', methods=['PUT'])

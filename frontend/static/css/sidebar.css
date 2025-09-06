@@ -255,7 +255,9 @@
 /* ✨ 사이드바 기본 구조 - 전체 화면 세로 레이아웃 */
 .sidebar,
 .sidebar-container,
-body .sidebar {
+.left-sidebar,
+body .sidebar,
+body .left-sidebar {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
@@ -289,7 +291,7 @@ body .sidebar {
 }
 
 /* 사이드바 축소 상태 비활성화 - 전체 화면에서는 불필요 */
-.sidebar.collapsed {
+.left-sidebar.collapsed, .sidebar.collapsed {
     width: 100% !important;
     min-width: 100% !important;
     max-width: 100% !important;
@@ -386,11 +388,11 @@ body .sidebar {
     display: none !important;
 }
 
-.sidebar.collapsed .expanded-header {
+.left-sidebar.collapsed, .sidebar.collapsed .expanded-header {
     display: none !important;
 }
 
-.sidebar.collapsed .collapsed-header {
+.left-sidebar.collapsed, .sidebar.collapsed .collapsed-header {
     display: flex !important;
 }
 
@@ -414,7 +416,7 @@ body .sidebar {
 }
 
 /* 접힌 상태에서 로고 숨기기 */
-.sidebar.collapsed .sidebar-logo {
+.left-sidebar.collapsed, .sidebar.collapsed .sidebar-logo {
     display: none !important;
 }
 
@@ -437,7 +439,7 @@ body .sidebar {
 }
 
 /* 접힌 상태에서 네비게이션 패딩 조정 */
-.sidebar.collapsed .sidebar-main-nav {
+.left-sidebar.collapsed, .sidebar.collapsed .sidebar-main-nav {
     padding: 0 8px;
 }
 
@@ -525,11 +527,11 @@ body .sidebar {
 }
 
 /* 접힌 상태에서 레이블 숨기기 */
-.sidebar.collapsed .nav-label {
+.left-sidebar.collapsed, .sidebar.collapsed .nav-label {
     display: none;
 }
 
-.sidebar.collapsed .nav-item {
+.left-sidebar.collapsed, .sidebar.collapsed .nav-item {
     justify-content: center;
     padding: 12px 4px;
     margin: 2px 0;
@@ -581,8 +583,8 @@ body .sidebar {
 }
 
 /* 접힌 상태에서 배지 숨기기 */
-.sidebar.collapsed .count-badge,
-.sidebar.collapsed .premium-badge {
+.left-sidebar.collapsed, .sidebar.collapsed .count-badge,
+.left-sidebar.collapsed, .sidebar.collapsed .premium-badge {
     display: none;
 }
 
@@ -704,7 +706,7 @@ body.sidebar-collapsed {
 }
 
 /* Hide reminders in collapsed state */
-.sidebar.collapsed .reminders-section {
+.left-sidebar.collapsed, .sidebar.collapsed .reminders-section {
     display: none !important;
 }
 
@@ -784,7 +786,7 @@ body.sidebar-collapsed {
 }
 
 /* Hide mini calendar in collapsed state */
-.sidebar.collapsed .mini-calendar-section {
+.left-sidebar.collapsed, .sidebar.collapsed .mini-calendar-section {
     display: none !important;
 }
 
@@ -800,8 +802,8 @@ body.calendar-detail-page .sidebar .calendar-detail-only,
 }
 
 /* Hide in collapsed state even on calendar detail page */
-body.calendar-detail-page .sidebar.collapsed .calendar-detail-only,
-.calendar-detail-page .sidebar.collapsed .calendar-detail-only {
+body.calendar-detail-page .left-sidebar.collapsed, .sidebar.collapsed .calendar-detail-only,
+.calendar-detail-page .left-sidebar.collapsed, .sidebar.collapsed .calendar-detail-only {
     display: none !important;
 }
 

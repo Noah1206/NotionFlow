@@ -330,6 +330,35 @@ def update_profile():
     except Exception as e:
         return jsonify({'error': f'Profile update failed: {str(e)}'}), 500
 
+@auth_bp.route('/current', methods=['GET'])
+def get_current_user():
+    """Get current authenticated user information"""
+    try:
+        user_id = AuthManager.get_current_user_id()
+        
+        if user_id:
+            # Get user profile if user is authenticated
+            profile = AuthManager.get_user_profile(user_id)
+            
+            return jsonify({
+                'success': True,
+                'user_id': user_id,
+                'email': profile.get('email') if profile else None,
+                'username': profile.get('username') if profile else None,
+                'display_name': profile.get('display_name') if profile else None
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Not authenticated'
+            }), 401
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Failed to get current user: {str(e)}'
+        }), 500
+
 @auth_bp.route('/dashboard-url', methods=['POST'])
 def get_dashboard_url():
     """Generate dashboard URL based on encrypted email"""

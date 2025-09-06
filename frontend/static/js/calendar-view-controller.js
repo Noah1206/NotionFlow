@@ -30,14 +30,9 @@ class CalendarViewController {
     }
     
     initializeDefaultView() {
-        // Default to week view (Google Calendar Grid)
-        setTimeout(() => {
-            const weekButton = document.querySelector('.view-option[data-view="week"]');
-            if (weekButton) {
-                weekButton.classList.add('active');
-                this.switchView('week');
-            }
-        }, 100);
+        // calendar-detail.js에서 이미 초기화를 처리하므로 여기서는 중복 처리하지 않음
+        // calendar-detail.js의 initializeCalendar()가 기본 뷰를 설정함
+        console.log('📋 Calendar view initialization delegated to calendar-detail.js');
     }
     
     switchView(view) {

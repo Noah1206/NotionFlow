@@ -66,11 +66,34 @@ def get_current_user_id():
 
 def encrypt_credentials(credentials: Dict) -> str:
     """Encrypt credentials using AES-256 encryption"""
-    return config.encrypt_credentials(credentials)
+    from utils.config import encrypt_api_key  # Use function directly
+    return encrypt_api_key(credentials)
 
 def decrypt_credentials(encrypted_credentials: str) -> Dict:
     """Decrypt credentials using AES-256 encryption"""
-    return config.decrypt_credentials(encrypted_credentials)
+    from utils.config import decrypt_api_key
+    return decrypt_api_key(encrypted_credentials)
+
+@api_key_bp.route('/current', methods=['GET'])
+def get_current_user():
+    """Get current authenticated user information"""
+    try:
+        user_id = get_current_user_id()
+        if user_id:
+            return jsonify({
+                'success': True,
+                'user_id': user_id
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Not authenticated'
+            }), 401
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 @api_key_bp.route('/save', methods=['POST'])
 def save_api_key():
@@ -142,7 +165,8 @@ def save_api_key():
         encrypted_credentials = encrypt_credentials(credentials_data)
         
         # Get Supabase client
-        supabase = config.get_client_for_user(user_id)
+        from utils.config import get_supabase_admin  # Use function directly
+        supabase = get_supabase_admin()
         
         # Check if configuration already exists
         existing_result = supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', platform).execute()
@@ -211,23 +235,62 @@ def save_api_key():
 def get_user_keys(user_id):
     """Get all configured platform credentials for a user"""
     try:
-        # Validate user access
+        print(f"🚨 ROUTE ENTRY: /api/keys/user/{user_id} - START")
+        import traceback
+        print(f"🚨 Traceback for debugging: {traceback.format_stack()[-3:]}")  # Show last 3 stack frames
+        print(f"🔍 get_user_keys called for user: {user_id}")
+        
+        # Validate user access - try both session methods
         current_user = get_current_user_id()
+        print(f"🔍 Current user from AuthManager: {current_user}")
+        
+        # Fallback to direct session check
         if not current_user:
+            current_user = session.get('user_id')
+            print(f"🔍 Current user from direct session: {current_user}")
+            
+            # Debug the full session contents
+            print(f"🔍 Full session data: {dict(session)}")
+            
+            # Try other session keys
+            if not current_user:
+                user_info = session.get('user_info')
+                print(f"🔍 User info from session: {user_info}")
+                if user_info and isinstance(user_info, dict):
+                    current_user = user_info.get('id')
+                    print(f"🔍 User ID from user_info: {current_user}")
+        
+        if not current_user:
+            print("❌ No current user found, authentication required")
             return jsonify({'error': 'Authentication required'}), 401
         
         # Users can only access their own data
         if current_user != user_id:
+            print(f"❌ User mismatch: {current_user} != {user_id}")
             return jsonify({'error': 'Access denied'}), 403
         
+        print("🔍 Attempting to get database client...")
         # Get Supabase client
-        supabase = config.get_client_for_user(user_id)
+        from utils.config import get_supabase_admin  # Use function directly
+        supabase = get_supabase_admin()
+        print(f"🔍 Supabase client obtained: {supabase is not None}")
         
         # Get all sync configurations for user
-        result = supabase.table('calendar_sync_configs').select('''
-            platform, credential_type, is_enabled, last_sync_at, 
-            consecutive_failures, sync_frequency_minutes, created_at, health_status
-        ''').eq('user_id', user_id).execute()
+        print("🔍 Querying calendar_sync_configs table...")
+        try:
+            result = supabase.table('calendar_sync_configs').select('''
+                platform, credential_type, is_enabled, last_sync_at, 
+                consecutive_failures, sync_frequency_minutes, created_at, health_status
+            ''').eq('user_id', user_id).execute()
+            print(f"🔍 Query successful, got {len(result.data) if result.data else 0} records")
+        except Exception as db_error:
+            print(f"❌ Database query failed: {str(db_error)}")
+            # Check if the table doesn't exist
+            if 'does not exist' in str(db_error) or 'relation' in str(db_error):
+                print("🔍 Table calendar_sync_configs doesn't exist, returning empty configuration")
+                result = type('Result', (), {'data': []})()  # Create empty result
+            else:
+                return jsonify({'error': f'Database query failed: {str(db_error)}'}), 500
         
         # Format response
         platforms = {}
@@ -262,6 +325,7 @@ def get_user_keys(user_id):
                     'created_at': None
                 }
         
+        print(f"🔍 Returning response with {len(platforms)} platforms")
         return jsonify({
             'success': True,
             'user_id': user_id,
@@ -274,6 +338,9 @@ def get_user_keys(user_id):
         })
         
     except Exception as e:
+        print(f"❌ Unexpected error in get_user_keys: {str(e)}")
+        import traceback
+        print(f"❌ Full traceback: {traceback.format_exc()}")
         return jsonify({'error': f'Failed to get user keys: {str(e)}'}), 500
 
 @api_key_bp.route('/test/<platform>', methods=['POST'])
@@ -465,7 +532,8 @@ def disable_platform(platform):
             return jsonify({'error': 'Authentication required'}), 401
         
         # Get Supabase client
-        supabase = config.get_client_for_user(user_id)
+        from utils.config import get_supabase_admin  # Use function directly
+        supabase = get_supabase_admin()
         
         # Update configuration to disable
         result = supabase.table('calendar_sync_configs').update({
@@ -493,7 +561,8 @@ def remove_platform(platform):
             return jsonify({'error': 'Authentication required'}), 401
         
         # Get Supabase client
-        supabase = config.get_client_for_user(user_id)
+        from utils.config import get_supabase_admin  # Use function directly
+        supabase = get_supabase_admin()
         
         # Delete configuration
         result = supabase.table('calendar_sync_configs').delete().eq('user_id', user_id).eq('platform', platform).execute()
