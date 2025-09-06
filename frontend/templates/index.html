@@ -271,7 +271,7 @@
 
         /* Hero Section - Clean Modern Design */
         .hero {
-            min-height: 85vh;
+            min-height: 75vh;
             display: flex;
             align-items: flex-start;
             justify-content: center;
@@ -279,8 +279,8 @@
             background: var(--bg-primary);
             position: relative;
             overflow: visible;
-            padding: 3rem 2rem 2rem;
-            padding-top: calc(80px + 2rem);
+            padding: 1.5rem 2rem 2rem;
+            padding-top: calc(80px + 0.5rem);
         }
 
         /* Product Screenshot - Linear Style */
@@ -423,8 +423,9 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             width: 100%;
+            margin-top: -1rem;
         }
 
         /* Responsive adjustments for dashboard background */
@@ -465,7 +466,7 @@
             font-size: clamp(3rem, 7vw, 5.5rem);
             font-weight: 800;
             line-height: 1.15;
-            margin-bottom: 2.5rem;
+            margin-bottom: 1.5rem;
             letter-spacing: -0.03em;
             color: var(--text-primary);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -474,7 +475,7 @@
         .hero-subtitle {
             font-size: 1.375rem;
             color: var(--text-secondary);
-            margin-bottom: 3.5rem;
+            margin-bottom: 2.5rem;
             line-height: 1.7;
             max-width: 720px;
             font-weight: 500;
@@ -2598,9 +2599,9 @@
         /* Large screen optimization */
         @media (min-width: 1200px) {
             .hero {
-                min-height: 85vh;
-                padding: 2rem;
-                padding-top: calc(80px + 1rem);
+                min-height: 75vh;
+                padding: 1.5rem 2rem;
+                padding-top: calc(80px + 0.5rem);
             }
 
             .hero .container {
@@ -2629,9 +2630,9 @@
         /* Mobile responsiveness */
         @media (max-width: 768px) {
             .hero {
-                padding: 6rem 1rem 2rem;
-                min-height: 85vh;
-                padding-top: calc(60px + 1.5rem);
+                padding: 1rem 1rem 2rem;
+                min-height: 75vh;
+                padding-top: calc(60px + 1rem);
             }
 
             .hero-illustration img {
@@ -2655,8 +2656,9 @@
 
         @media (max-width: 480px) {
             .hero {
-                padding: 6rem 1rem 1.5rem;
-                min-height: 100vh;
+                padding: 1rem 1rem 1.5rem;
+                min-height: 75vh;
+                padding-top: calc(60px + 0.5rem);
             }
 
             .platforms-section {
