@@ -3436,10 +3436,23 @@
             radial-gradient(100% 50% at 50% -10%, rgba(0,0,0,.04), transparent 60%),
             repeating-linear-gradient(45deg, rgba(0,0,0,.025) 0 1px, transparent 1px 22px);
           background-blend-mode:normal,overlay,normal;
-          text-align:center;
+          text-align:center !important;
         }
-        .pricing-title{font-size:var(--fs-h); letter-spacing:-.02em; margin:0 0 10px; color:var(--text)}
-        .pricing-sub  {font-size:var(--fs-sub); color:var(--text-muted); margin:0 0 var(--gap-6)}
+        .pricing-title{font-size:var(--fs-h); letter-spacing:-.02em; margin:0 0 10px; color:var(--text); text-align:center !important;}
+        .pricing-sub  {font-size:var(--fs-sub); color:var(--text-muted); margin:0 0 var(--gap-6); text-align:center !important;}
+        
+        /* Override any existing pricing content styles */
+        .pricing-preview-content {
+          text-align: center !important;
+        }
+        
+        .pricing-preview-title {
+          text-align: center !important;
+        }
+        
+        .pricing-preview-subtitle {
+          text-align: center !important;
+        }
 
         /* Card */
         .pricing-card{
