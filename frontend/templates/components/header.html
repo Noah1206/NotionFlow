@@ -1,24 +1,29 @@
 <!-- 🎨 NotionFlow Fixed Header Component -->
-<header class="main-header">
+<header class="main-header navbar">
     <nav class="navbar">
-        <div class="nav-container">
+        <div class="nav-container container inner">
             <a href="/" class="logo">
                 <span class="logo-text">NodeFlow</span>
             </a>
 
-            <div class="nav-menu">
-                <div class="nav-actions">
-                    <a href="/login" class="nav-link login-link">로그인</a>
+            <div class="nav-menu links">
+                <a href="#features">Features</a>
+                <a href="#pricing-preview">Pricing</a>
+                <a href="#faq">FAQ</a>
+                <a href="#contact">Contact</a>
+            </div>
 
-                    <!-- Fixed CTA Button with Arrow -->
-                    <a href="/payment" class="header-cta-button">
-                        <span>시작하기</span>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M5 12H19M12 5L19 12L12 19" />
-                        </svg>
-                    </a>
-                </div>
+            <div class="nav-actions cta">
+                <a href="/login" class="nav-link login-link btn ghost">로그인</a>
+
+                <!-- Fixed CTA Button with Arrow -->
+                <a href="/payment" class="header-cta-button btn primary">
+                    <span>시작하기</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12H19M12 5L19 12L12 19" />
+                    </svg>
+                </a>
             </div>
 
             <!-- Mobile Menu Button -->

@@ -2643,6 +2643,118 @@
                 margin-bottom: 1.5rem;
             }
         }
+
+        /* ---------------- DESIGN TOKENS ---------------- */
+        :root {
+          /* Single accent to customize project-wide */
+          --accent:        #3b82f6;
+          --accent-weak:   color-mix(in oklab, var(--accent) 65%, white);
+          --accent-strong: color-mix(in oklab, var(--accent) 85%, black);
+
+          /* Neutral grayscale */
+          --gray-0:#ffffff; --gray-1:#f7f7f8; --gray-2:#eff0f2; --gray-3:#e3e4e8; --gray-4:#cfd2d9;
+          --gray-5:#a8aeb8; --gray-6:#888f9a; --gray-7:#6a717c; --gray-8:#3b4047; --gray-9:#1a1d21; --black:#0b0c0e;
+
+          /* Semantic aliases (use these in components; do not hardcode raw colors) */
+          --bg: var(--gray-0); --surface: var(--gray-1); --surface-2: var(--gray-2); --border: var(--gray-3);
+          --text: var(--gray-9); --text-muted: var(--gray-7); --text-inverse: var(--gray-0);
+
+          /* Radii, shadows, motion */
+          --radius-xs:8px; --radius:12px; --radius-lg:16px;
+          --shadow-1:0 2px 10px rgba(0,0,0,.06); --shadow-2:0 6px 24px rgba(0,0,0,.10);
+          --ease:cubic-bezier(.2,.7,.2,1); --speed-1:120ms; --speed-2:240ms;
+
+          /* Typography & layout */
+          --font-body:system-ui,-apple-system,"Segoe UI",Roboto,Inter,"Helvetica Neue",Arial,sans-serif;
+          --font-mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+          --fs-1:clamp(40px,6vw,64px); --fs-2:clamp(28px,4vw,40px); --fs-3:22px; --fs-4:18px; --fs-5:16px;
+          --container:1200px;
+          --gap-1:8px; --gap-2:12px; --gap-3:16px; --gap-4:24px; --gap-5:32px; --gap-6:48px; --gap-7:72px; --gap-8:96px;
+        }
+        :root[data-theme="dark"]{
+          --bg:var(--black); --surface:#111316; --surface-2:#15181c; --border:#24282e;
+          --text:#e8e9ec; --text-muted:#aab0bb; --text-inverse:#0b0c0e;
+          --shadow-1:0 2px 10px rgba(0,0,0,.35); --shadow-2:0 10px 36px rgba(0,0,0,.5);
+        }
+        /* Optional high-contrast */
+        :root[data-contrast="high"]{ --border: color-mix(in oklab, var(--text) 30%, transparent); }
+
+        /* ---------------- RESET & BASE ---------------- */
+        *{box-sizing:border-box}
+        html,body{height:100%}
+        body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.6;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+        img,svg,video{max-width:100%;display:block}
+        a{color:inherit;text-decoration:none}
+        html:focus-within{scroll-behavior:smooth}
+        ::selection{background:var(--accent-weak);color:var(--text-inverse)}
+        a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+        /* Container & sections */
+        .container{max-width:var(--container);margin-inline:auto;padding-inline:24px}
+        .section{padding:var(--gap-8) 0;border-bottom:1px solid var(--border)}
+
+        /* Headings */
+        h1,h2,h3{margin:0 0 var(--gap-3);line-height:1.15;letter-spacing:-.02em}
+        h1{font-size:var(--fs-1)} h2{font-size:var(--fs-2)} h3{font-size:var(--fs-3)}
+        p.lead{font-size:var(--fs-4);color:var(--text-muted);margin:0 0 var(--gap-4)}
+
+        /* ---------------- UTILITIES ---------------- */
+        .grid-2{display:grid;grid-template-columns:1.05fr .95fr;gap:var(--gap-6);align-items:center}
+        .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap-5)}
+        @media (max-width:960px){.grid-2,.grid-3{grid-template-columns:1fr}}
+        .surface{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+        .surface-2{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius)}
+
+        /* ---------------- COMPONENTS ---------------- */
+        /* Buttons */
+        .btn{display:inline-flex;align-items:center;gap:var(--gap-2);padding:12px 16px;border-radius:999px;font-weight:600;border:1px solid transparent;transition:all var(--speed-1) var(--ease)}
+        .btn.primary{background:var(--accent);color:var(--text-inverse)}
+        .btn.ghost{background:transparent;color:var(--text);border-color:var(--border)}
+        .btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-1)}
+        .btn:active{transform:translateY(0)}
+
+        /* Badge */
+        .badge{display:inline-block;padding:6px 10px;border-radius:999px;font-size:13px;color:var(--text-muted);border:1px solid var(--border);background:var(--surface-2)}
+
+        /* Card */
+        .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-1)}
+        .card .card-body{padding:var(--gap-5)}
+        .card.elevated{box-shadow:var(--shadow-2)}
+
+        /* Navbar (sticky + soft blur) */
+        .navbar{position:sticky;top:0;z-index:50;backdrop-filter:saturate(140%) blur(8px);border-bottom:1px solid var(--border);background:color-mix(in oklab, var(--bg) 84%, transparent)}
+        .navbar .inner{display:flex;align-items:center;justify-content:space-between;height:64px;gap:var(--gap-4)}
+        .navbar .links{display:flex;gap:var(--gap-4);color:var(--text-muted)}
+        .navbar .cta{display:flex;gap:var(--gap-2)}
+
+        /* Hero */
+        .hero .title{margin-bottom:var(--gap-3)}
+        .hero .actions{display:flex;gap:var(--gap-3);align-items:center}
+
+        /* Feature cards */
+        .features .item{padding:var(--gap-5);border-radius:var(--radius);border:1px solid var(--border);background:var(--surface)}
+        .features .item h3{margin-bottom:var(--gap-2)}
+        .features .item p{color:var(--text-muted)}
+
+        /* Media frame */
+        .figure{padding:12px;border-radius:var(--radius-lg);background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-2)}
+        .figure img{border-radius:calc(var(--radius-lg) - 6px)}
+
+        /* Footer */
+        .footer{color:var(--text-muted)}
+        .footer .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:var(--gap-5)}
+        .footer a{color:var(--text-muted)}
+        .footer a:hover{color:var(--text)}
+        @media (max-width:960px){.footer .grid{grid-template-columns:1fr 1fr}}
+
+        /* Simple form controls */
+        .input,select,textarea{width:100%;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-xs);padding:10px 12px;transition:border var(--speed-1) var(--ease),box-shadow var(--speed-1) var(--ease)}
+        .input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in oklab, var(--accent) 25%, transparent);outline:none}
+
+        /* Tabs */
+        .tabs{display:flex;gap:var(--gap-3);border-bottom:1px solid var(--border)}
+        .tab{padding:10px 2px;color:var(--text-muted);border-bottom:2px solid transparent;cursor:pointer}
+        .tab[aria-selected="true"]{color:var(--text);border-color:var(--accent)}
     </style>
 </head>
 
@@ -2652,29 +2764,30 @@
         {% include 'components/header.html' %}
 
         <!-- Hero Section -->
-        <section class="hero">
-            <!-- 3D Dashboard Background -->
-            <div class="hero-background">
-                <div class="dashboard-3d">
+        <section class="hero section">
+            <div class="container grid-2">
+                <div>
+                    <span class="badge">New</span>
+                    <h1 class="hero-title title">
+                        모든 캘린더를 한 곳에서 연결하세요
+                    </h1>
+                    <p class="hero-subtitle lead">
+                        Google, Apple, Outlook, Slack - 흩어진 일정을
+                        Notion에서 한눈에 관리하는 올인원 동기화 플랫폼
+                    </p>
+                    <div class="hero-actions actions">
+                        <a href="/payment" class="btn-primary btn primary">
+                            14일 무료 체험 시작
+                        </a>
+                        <a href="#platforms" class="btn ghost">
+                            연결 플랫폼 보기
+                        </a>
+                    </div>
+                </div>
+                <figure class="figure">
                     <img src="https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=1600&h=900&fit=crop"
                         alt="Calendar Dashboard Background">
-                </div>
-            </div>
-
-            <div class="hero-content">
-
-                <h1 class="hero-title">
-                    모든 캘린더를 한 곳에서 연결하세요
-                </h1>
-                <p class="hero-subtitle">
-                    Google, Apple, Outlook, Slack - 흩어진 일정을
-                    Notion에서 한눈에 관리하는 올인원 동기화 플랫폼
-                </p>
-                <div class="hero-actions">
-                    <a href="/payment" class="btn-primary">
-                        14일 무료 체험 시작
-                    </a>
-                </div>
+                </figure>
             </div>
         </section>
 
@@ -2756,71 +2869,26 @@
         </section>
 
         <!-- Features Section -->
-        <section class="features-section" id="features">
+        <section class="features-section section features" id="features">
             <div class="container">
-                <div class="features-header">
-                    <h2 class="features-title">강력한 기능들</h2>
-                    <p class="features-subtitle">모든 캘린더를 하나로 통합하는 스마트한 솔루션</p>
-                </div>
-                <div class="features-grid">
-                    <div class="feature-card">
-                        <div class="feature-icon"
-                            style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
-                                    fill="currentColor" />
-                            </svg>
-                        </div>
-                        <h3 class="feature-title">빠른 시작</h3>
-                        <p class="feature-description">복잡한 개발 작업 없이 <span class="text-blue">5분만에 설정 완료</span>하세요.
+                <div class="grid-3">
+                    <div class="feature-card item">
+                        <h3>빠른 시작</h3>
+                        <p>복잡한 개발 작업 없이 5분만에 설정 완료하세요.
                             Google 캘린더, Apple 캘린더, Notion을 즉시 연결하고
                             오늘부터 자동 동기화를 시작할 수 있습니다.</p>
                     </div>
-
-                    <div class="feature-card">
-                        <div class="feature-icon"
-                            style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                    d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"
-                                    fill="currentColor" />
-                            </svg>
-                        </div>
-                        <h3 class="feature-title">스마트 일정 관리</h3>
-                        <p class="feature-description"><span class="text-blue">모든 캘린더를 한눈에</span> 보고 관리하세요.
+                    <div class="feature-card item">
+                        <h3>스마트 일정 관리</h3>
+                        <p>모든 캘린더를 한눈에 보고 관리하세요.
                             중복 일정 방지, 자동 알림 설정, 팀원과의 일정 공유까지
                             번거로운 일정 관리를 완전 자동화합니다.</p>
                     </div>
-
-                    <div class="feature-card">
-                        <div class="feature-icon"
-                            style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"
-                                    fill="currentColor" />
-                            </svg>
-                        </div>
-                        <h3 class="feature-title">어디서나 동기화</h3>
-                        <p class="feature-description"><span class="text-blue">실시간 양방향 동기화</span>로 언제 어디서든
+                    <div class="feature-card item">
+                        <h3>실시간 동기화</h3>
+                        <p>실시간 양방향 동기화로 언제 어디서든
                             최신 일정을 확인하세요. 휴대폰에서 추가한 일정이
                             노션과 구글 캘린더에 즉시 반영됩니다.</p>
-                    </div>
-
-                    <div class="feature-card">
-                        <div class="feature-icon"
-                            style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
-                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-                                    fill="currentColor" />
-                            </svg>
-                        </div>
-                        <h3 class="feature-title">생산성 대시보드</h3>
-                        <p class="feature-description">일정 통계와 <span class="text-blue">업무 패턴 분석</span>으로 시간 관리를 개선하세요.
-                            월별 회의 시간, 집중 시간, 효율적인 시간대를 한눈에 파악하고
-                            더 나은 일정 계획을 세울 수 있습니다.</p>
                     </div>
                 </div>
             </div>
@@ -3244,9 +3312,22 @@
         </section>
 
         <!-- Footer -->
-        <footer class="footer">
-            <div class="footer-content">
-                <p>&copy; 2025 NodeFlow. 모든 권리 보유. 생산성의 미래를 위해 만들어졌습니다.</p>
+        <footer class="footer section">
+            <div class="container">
+                <div class="grid">
+                    <div><strong>Product</strong><br><a href="#features">Features</a></div>
+                    <div><strong>Company</strong><br><a href="#about">About</a></div>
+                    <div><strong>Resources</strong><br><a href="#faq">FAQ</a></div>
+                    <div><strong>Legal</strong><br><a href="#privacy">Privacy</a></div>
+                    <div><strong>Contact</strong><br><a href="#contact">Support</a></div>
+                </div>
+                <div class="footer-content" style="text-align: center; margin-top: 2rem;">
+                    <button class="btn ghost" onclick="
+                      const r=document.documentElement;
+                      r.dataset.theme = r.dataset.theme==='dark' ? 'light' : 'dark';
+                    " style="margin-bottom: 1rem;">Toggle theme</button>
+                    <p>&copy; 2025 NodeFlow. 모든 권리 보유. 생산성의 미래를 위해 만들어졌습니다.</p>
+                </div>
             </div>
         </footer>
     </div>
