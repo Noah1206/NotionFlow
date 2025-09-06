@@ -274,8 +274,8 @@
             min-height: 70vh;
             display: flex;
             align-items: flex-start;
-            justify-content: center;
-            text-align: center;
+            justify-content: flex-start;
+            text-align: left;
             background: var(--bg-primary);
             position: relative;
             overflow: visible;
@@ -424,11 +424,13 @@
             z-index: 10;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            align-items: flex-start;
             justify-content: flex-start;
             width: 100%;
+            margin: 0 auto;
             margin-top: -6rem !important;
             transform: translateY(-40px) !important;
+            text-align: left;
         }
 
         /* Responsive adjustments for dashboard background */
@@ -473,6 +475,7 @@
             letter-spacing: -0.03em;
             color: var(--text-primary);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            text-align: left;
         }
 
         .hero-subtitle {
@@ -482,14 +485,13 @@
             line-height: 1.6;
             max-width: 800px;
             font-weight: 500;
-            margin-left: auto;
-            margin-right: auto;
+            text-align: left;
         }
 
         .hero-actions {
             display: flex;
             gap: 1rem;
-            justify-content: center;
+            justify-content: flex-start;
             flex-wrap: wrap;
             align-items: center;
         }
