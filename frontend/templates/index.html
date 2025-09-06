@@ -271,15 +271,16 @@
 
         /* Hero Section - Clean Modern Design */
         .hero {
-            min-height: 100vh;
+            min-height: 85vh;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
             text-align: center;
             background: var(--bg-primary);
             position: relative;
             overflow: visible;
-            padding: 6rem 2rem 4rem;
+            padding: 3rem 2rem 2rem;
+            padding-top: calc(80px + 2rem);
         }
 
         /* Product Screenshot - Linear Style */
@@ -2597,8 +2598,9 @@
         /* Large screen optimization */
         @media (min-width: 1200px) {
             .hero {
-                min-height: 100vh;
+                min-height: 85vh;
                 padding: 2rem;
+                padding-top: calc(80px + 1rem);
             }
 
             .hero .container {
@@ -2627,8 +2629,9 @@
         /* Mobile responsiveness */
         @media (max-width: 768px) {
             .hero {
-                padding: 7rem 1rem 2rem;
-                min-height: 100vh;
+                padding: 6rem 1rem 2rem;
+                min-height: 85vh;
+                padding-top: calc(60px + 1.5rem);
             }
 
             .hero-illustration img {
@@ -3262,6 +3265,134 @@
         /* Micro motion */
         .reveal{opacity:0; transform:translateY(12px); transition:opacity .45s ease, transform .45s ease}
         .reveal.is-in{opacity:1; transform:none}
+        
+        /* ========== PAGE LOAD ANIMATIONS ========== */
+        /* Initial state for all animated elements */
+        .animate-on-load {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .animate-on-load.loaded {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Staggered animation delays for sequential reveal */
+        .animate-on-load:nth-child(1) { transition-delay: 0.1s; }
+        .animate-on-load:nth-child(2) { transition-delay: 0.2s; }
+        .animate-on-load:nth-child(3) { transition-delay: 0.3s; }
+        .animate-on-load:nth-child(4) { transition-delay: 0.4s; }
+        .animate-on-load:nth-child(5) { transition-delay: 0.5s; }
+        
+        /* Hero section specific animations */
+        .hero-animate {
+            opacity: 0;
+            transform: translateY(40px) scale(0.95);
+            transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .hero-animate.loaded {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        
+        .hero .badge {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transition-delay: 0.1s;
+        }
+        
+        .hero .badge.loaded {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .hero .title {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transition-delay: 0.2s;
+        }
+        
+        .hero .title.loaded {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .hero .lead {
+            opacity: 0;
+            transform: translateY(25px);
+            transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+            transition-delay: 0.4s;
+        }
+        
+        .hero .lead.loaded {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .hero .actions {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transition-delay: 0.6s;
+        }
+        
+        .hero .actions.loaded {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .hero .figure {
+            opacity: 0;
+            transform: translateY(40px) scale(0.9);
+            transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+            transition-delay: 0.3s;
+        }
+        
+        .hero .figure.loaded {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        
+        /* Platform logos section animation */
+        .platforms-section .platform-logo {
+            opacity: 0;
+            transform: translateY(20px) scale(0.9);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .platforms-section .platform-logo.loaded {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        
+        /* Sequential delay for platform logos */
+        .platform-logo:nth-child(1) { transition-delay: 0.1s; }
+        .platform-logo:nth-child(2) { transition-delay: 0.15s; }
+        .platform-logo:nth-child(3) { transition-delay: 0.2s; }
+        .platform-logo:nth-child(4) { transition-delay: 0.25s; }
+        .platform-logo:nth-child(5) { transition-delay: 0.3s; }
+        .platform-logo:nth-child(6) { transition-delay: 0.35s; }
+        
+        /* Loading state management */
+        body.page-loading * {
+            animation-play-state: paused !important;
+        }
+        
+        body.page-loaded .animate-on-load,
+        body.page-loaded .hero-animate,
+        body.page-loaded .hero .badge,
+        body.page-loaded .hero .title,
+        body.page-loaded .hero .lead,
+        body.page-loaded .hero .actions,
+        body.page-loaded .hero .figure {
+            animation-play-state: running;
+        }
+        /* ========== END PAGE LOAD ANIMATIONS ========== */
         /* ========== END LINEAR STYLE CSS ========== */
     </style>
 </head>
@@ -3299,14 +3430,14 @@
         </section>
 
         <!-- Platforms Section -->
-        <section class="section section-logos" id="platforms">
+        <section class="section section-logos animate-on-load" id="platforms">
             <div class="container">
-                <h2>All your schedules, in one dashboard</h2>
-                <p>Connect your favorite calendars and productivity apps. Never miss a meeting, deadline, or important
+                <h2 class="animate-on-load">All your schedules, in one dashboard</h2>
+                <p class="animate-on-load">Connect your favorite calendars and productivity apps. Never miss a meeting, deadline, or important
                     update.</p>
                 <div class="logo-row">
                     <!-- Notion -->
-                    <div class="platform-logo">
+                    <div class="platform-logo animate-on-load">
                         <svg viewBox="0 0 100 100" style="width: 60px" xmlns="http://www.w3.org/2000/svg">
                             <rect width="100" height="100" rx="20" fill="white" />
                             <path
@@ -3316,7 +3447,7 @@
                     </div>
 
                     <!-- Google -->
-                    <div class="platform-logo">
+                    <div class="platform-logo animate-on-load">
                         <svg viewBox="0 0 272 92" style="width: 140px" xmlns="http://www.w3.org/2000/svg">
                             <path fill="#4285F4"
                                 d="M115.75 47.18c0 12.77-9.99 22.18-22.25 22.18s-22.25-9.41-22.25-22.18C71.25 34.32 81.24 25 93.5 25s22.25 9.32 22.25 22.18zm-9.74 0c0-7.98-5.79-13.44-12.51-13.44S80.99 39.2 80.99 47.18c0 7.9 5.79 13.44 12.51 13.44s12.51-5.55 12.51-13.44z" />
@@ -3333,7 +3464,7 @@
                     </div>
 
                     <!-- Apple -->
-                    <div class="platform-logo">
+                    <div class="platform-logo animate-on-load">
                         <svg viewBox="0 0 170 170" style="width: 50px" xmlns="http://www.w3.org/2000/svg">
                             <path
                                 d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.197-2.12-9.973-3.17-14.34-3.17-4.58 0-9.492 1.05-14.746 3.17-5.262 2.13-9.501 3.24-12.742 3.35-4.929.21-9.842-1.96-14.746-6.52-3.13-2.73-7.045-7.41-11.735-14.04-5.032-7.08-9.169-15.29-12.41-24.65-3.471-10.11-5.211-19.9-5.211-29.378 0-10.857 2.346-20.221 7.045-28.068 3.693-6.303 8.606-11.275 14.755-14.925s12.793-5.51 19.948-5.629c3.915 0 9.049 1.211 15.429 3.591 6.362 2.388 10.447 3.599 12.238 3.599 1.339 0 5.877-1.416 13.57-4.239 7.275-2.618 13.415-3.702 18.445-3.275 13.63 1.1 23.87 6.473 30.68 16.153-12.19 7.386-18.22 17.731-18.1 31.002.11 10.337 3.86 18.939 11.23 25.769 3.34 3.17 7.07 5.62 11.22 7.36-.9 2.61-1.85 5.11-2.86 7.51zM119.11 7.24c0 8.102-2.96 15.667-8.86 22.669-7.12 8.324-15.732 13.134-25.071 12.375a25.222 25.222 0 0 1-.188-3.07c0-7.778 3.386-16.102 9.399-22.908 3.002-3.446 6.82-6.311 11.45-8.597 4.62-2.252 8.99-3.497 13.1-3.71.12 1.083.17 2.166.17 3.24z"
@@ -3342,7 +3473,7 @@
                     </div>
 
                     <!-- Outlook -->
-                    <div class="platform-logo">
+                    <div class="platform-logo animate-on-load">
                         <svg viewBox="0 0 120 120" style="width: 60px" xmlns="http://www.w3.org/2000/svg">
                             <rect x="10" y="10" width="100" height="100" rx="5" fill="#0078D4" />
                             <path d="M30 30h60v60H30z" fill="white" />
@@ -3351,7 +3482,7 @@
                     </div>
 
                     <!-- Slack -->
-                    <div class="platform-logo">
+                    <div class="platform-logo animate-on-load">
                         <svg viewBox="0 0 270 270" style="width: 60px" xmlns="http://www.w3.org/2000/svg">
                             <g>
                                 <path
@@ -3374,22 +3505,22 @@
         </section>
 
         <!-- Features Section -->
-        <section class="features-section section features" id="features">
+        <section class="features-section section features animate-on-load" id="features">
             <div class="container">
                 <div class="grid-3">
-                    <div class="feature-card item">
+                    <div class="feature-card item animate-on-load">
                         <h3>빠른 시작</h3>
                         <p>복잡한 개발 작업 없이 5분만에 설정 완료하세요.
                             Google 캘린더, Apple 캘린더, Notion을 즉시 연결하고
                             오늘부터 자동 동기화를 시작할 수 있습니다.</p>
                     </div>
-                    <div class="feature-card item">
+                    <div class="feature-card item animate-on-load">
                         <h3>스마트 일정 관리</h3>
                         <p>모든 캘린더를 한눈에 보고 관리하세요.
                             중복 일정 방지, 자동 알림 설정, 팀원과의 일정 공유까지
                             번거로운 일정 관리를 완전 자동화합니다.</p>
                     </div>
-                    <div class="feature-card item">
+                    <div class="feature-card item animate-on-load">
                         <h3>실시간 동기화</h3>
                         <p>실시간 양방향 동기화로 언제 어디서든
                             최신 일정을 확인하세요. 휴대폰에서 추가한 일정이
@@ -3460,11 +3591,11 @@
         </section>
 
         <!-- Team Collaboration + Calendar Sharing - Linear Style -->
-        <section class="collaboration-section linear-section" id="collaboration">
+        <section class="collaboration-section linear-section animate-on-load" id="collaboration">
             <div class="container">
                 <!-- 1) Main headline + subline (centered) -->
-                <h2 class="collaboration-title linear-center">팀과 함께 더 강력하게</h2>
-                <p class="collaboration-subtitle linear-center linear-eyebrow">개인 캘린더를 넘어 팀 협업을 위한 스마트한 캘린더 공유 플랫폼</p>
+                <h2 class="collaboration-title linear-center animate-on-load">팀과 함께 더 강력하게</h2>
+                <p class="collaboration-subtitle linear-center linear-eyebrow animate-on-load">개인 캘린더를 넘어 팀 협업을 위한 스마트한 캘린더 공유 플랫폼</p>
                 
                 <!-- 4) First row: team card (left) + copy (right) -->
                 <div class="linear-grid">
@@ -3831,6 +3962,81 @@
         const btn = e.target.closest('.tab'); if(!btn) return;
         const group = btn.closest('.tabs'); group.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected','false'));
         btn.setAttribute('aria-selected','true');
+      });
+    })();
+    </script>
+
+    <!-- Page Load Animation System -->
+    <script>
+    (function(){
+      // Set initial loading state
+      document.body.classList.add('page-loading');
+      
+      // Animation controller
+      function triggerPageLoadAnimations() {
+        // Remove loading state
+        document.body.classList.remove('page-loading');
+        document.body.classList.add('page-loaded');
+        
+        // Trigger hero section animations with staggered timing
+        setTimeout(() => {
+          const badge = document.querySelector('.hero .badge');
+          if (badge) badge.classList.add('loaded');
+        }, 100);
+        
+        setTimeout(() => {
+          const title = document.querySelector('.hero .title');
+          if (title) title.classList.add('loaded');
+        }, 200);
+        
+        setTimeout(() => {
+          const lead = document.querySelector('.hero .lead');
+          if (lead) lead.classList.add('loaded');
+        }, 400);
+        
+        setTimeout(() => {
+          const figure = document.querySelector('.hero .figure');
+          if (figure) figure.classList.add('loaded');
+        }, 300);
+        
+        setTimeout(() => {
+          const actions = document.querySelector('.hero .actions');
+          if (actions) actions.classList.add('loaded');
+        }, 600);
+        
+        // Animate platform logos
+        setTimeout(() => {
+          const logos = document.querySelectorAll('.platform-logo');
+          logos.forEach((logo, index) => {
+            setTimeout(() => {
+              logo.classList.add('loaded');
+            }, index * 50);
+          });
+        }, 800);
+        
+        // Animate other sections
+        setTimeout(() => {
+          const animateElements = document.querySelectorAll('.animate-on-load');
+          animateElements.forEach((el, index) => {
+            setTimeout(() => {
+              el.classList.add('loaded');
+            }, index * 100);
+          });
+        }, 1000);
+      }
+      
+      // Trigger animations after page load
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          setTimeout(triggerPageLoadAnimations, 100);
+        });
+      } else {
+        setTimeout(triggerPageLoadAnimations, 100);
+      }
+      
+      // Also trigger on window load for complete resources
+      window.addEventListener('load', () => {
+        setTimeout(triggerPageLoadAnimations, 200);
       });
     })();
     </script>
