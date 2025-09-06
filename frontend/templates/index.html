@@ -271,7 +271,7 @@
 
         /* Hero Section - Clean Modern Design */
         .hero {
-            min-height: 75vh;
+            min-height: 70vh;
             display: flex;
             align-items: flex-start;
             justify-content: center;
@@ -279,8 +279,8 @@
             background: var(--bg-primary);
             position: relative;
             overflow: visible;
-            padding: 1.5rem 2rem 2rem;
-            padding-top: calc(80px + 0.5rem);
+            padding: 0.5rem 2rem 1rem;
+            padding-top: calc(80px + 0.25rem);
         }
 
         /* Product Screenshot - Linear Style */
@@ -417,7 +417,7 @@
 
 
         .hero-content {
-            max-width: 1200px;
+            max-width: 1400px;
             position: relative;
             z-index: 10;
             display: flex;
@@ -425,7 +425,7 @@
             align-items: center;
             justify-content: flex-start;
             width: 100%;
-            margin-top: -1rem;
+            margin-top: -1.5rem;
         }
 
         /* Responsive adjustments for dashboard background */
@@ -463,21 +463,21 @@
         }
 
         .hero-title {
-            font-size: clamp(3rem, 7vw, 5.5rem);
+            font-size: clamp(3.5rem, 8vw, 6.5rem);
             font-weight: 800;
-            line-height: 1.15;
-            margin-bottom: 1.5rem;
+            line-height: 1.1;
+            margin-bottom: 1rem;
             letter-spacing: -0.03em;
             color: var(--text-primary);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
         .hero-subtitle {
-            font-size: 1.375rem;
+            font-size: 1.5rem;
             color: var(--text-secondary);
-            margin-bottom: 2.5rem;
-            line-height: 1.7;
-            max-width: 720px;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+            max-width: 800px;
             font-weight: 500;
             margin-left: auto;
             margin-right: auto;
@@ -731,9 +731,10 @@
 
         /* Features Section */
         .features-section {
-            padding: 4rem 2rem 10rem;
+            padding: 2rem 2rem 6rem;
             background: var(--bg-primary);
             position: relative;
+            margin-top: -1rem;
         }
 
         .features-header {
@@ -2618,21 +2619,21 @@
             }
 
             .btn {
-                padding: 20px 40px;
-                font-size: 1.375rem;
+                padding: 22px 44px;
+                font-size: 1.5rem;
             }
 
             .figure {
-                max-width: 700px;
+                max-width: 750px;
             }
         }
 
         /* Mobile responsiveness */
         @media (max-width: 768px) {
             .hero {
-                padding: 1rem 1rem 2rem;
-                min-height: 75vh;
-                padding-top: calc(60px + 1rem);
+                padding: 0.5rem 1rem 1rem;
+                min-height: 70vh;
+                padding-top: calc(60px + 0.5rem);
             }
 
             .hero-illustration img {
@@ -3122,33 +3123,35 @@
 
         /* Linear-style Platform Logos Section */
         .section-logos {
-            padding: 96px 0;
+            padding: 48px 0 72px;
             background: linear-gradient(to bottom, #fafafa, #ffffff);
             background-image:
                 repeating-linear-gradient(45deg, rgba(0, 0, 0, .02) 0, rgba(0, 0, 0, .02) 1px, transparent 1px, transparent 20px),
                 radial-gradient(circle at 50% 50%, rgba(0, 0, 0, .015), transparent 60%);
             background-blend-mode: overlay;
             text-align: center;
+            margin-top: -2rem;
         }
 
         .section-logos h2 {
-            font-size: var(--fs-2);
+            font-size: clamp(1.75rem, 3vw, 2.5rem);
             font-weight: 700;
             color: var(--text);
-            margin-bottom: 12px;
+            margin-bottom: 16px;
         }
 
         .section-logos p {
-            max-width: 640px;
-            margin: 0 auto 48px;
+            max-width: 700px;
+            margin: 0 auto 40px;
             color: var(--text-muted);
+            font-size: 1.125rem;
         }
 
         .section-logos .logo-row {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 64px;
+            gap: 72px;
             flex-wrap: wrap;
         }
 
@@ -3164,7 +3167,7 @@
         }
 
         .section-logos .logo-row .platform-logo svg {
-            max-height: 40px;
+            max-height: 48px;
             filter: none;
             /* keep original colors */
             transition: transform .3s var(--ease);
@@ -3176,11 +3179,14 @@
 
         @media (max-width: 768px) {
             .section-logos {
-                padding: 64px 0;
+                padding: 32px 0 48px;
+                margin-top: -1rem;
             }
-
             .section-logos .logo-row {
-                gap: 32px;
+                gap: 40px;
+            }
+            .section-logos h2 {
+                font-size: 1.75rem;
             }
         }
 
