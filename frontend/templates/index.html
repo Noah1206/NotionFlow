@@ -3738,17 +3738,28 @@
         /* Override any existing pricing content styles */
         .pricing-preview-content {
             text-align: center !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
 
         .pricing-preview-title {
             text-align: center !important;
+            width: 100% !important;
         }
 
         .pricing-preview-subtitle {
             text-align: center !important;
             white-space: nowrap !important;
             display: block !important;
-            margin: 0 auto !important;
+            width: 100% !important;
+        }
+        
+        .pricing-preview-cards {
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
             width: 100% !important;
         }
 
