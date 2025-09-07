@@ -427,29 +427,55 @@ class GoogleCalendarGrid {
         startDate.setHours(startHour, 0, 0, 0);
         
         const endDate = new Date(this.weekStart.getTime() + (endDay * millisecondsPerDay));
-        endDate.setHours(endHour + 1, 0, 0, 0); // +1 for end time
+        endDate.setHours(endHour + 1, 0, 0, 0); // +1 for end time to include the full hour
         
         console.log('📅 Created dates - Start:', startDate, 'End:', endDate);
         console.log('📍 Expected day column:', startDay, 'Actual date:', startDate.toDateString());
         console.log('📍 Day of week - Start:', startDate.getDay(), 'Expected:', startDay);
         
-        // Show overlay form instead of popup
-        const dateStr = this.formatDateForInput(startDate);
-        const timeStr = startDate.toTimeString().slice(0, 5); // HH:MM format
+        // Check if this is a multi-day event
+        const isMultiDay = startDay !== endDay;
         
-        // Use the existing overlay form with clicked cell information
-        if (typeof showOverlayEventForm !== 'undefined') {
-            // Find the clicked cell to pass position information
-            let cellElement = clickedCell;
-            if (!cellElement) {
-                // Try to find the cell by day and hour if not provided
-                cellElement = document.querySelector(`.time-cell[data-day="${startDay}"][data-hour="${startHour}"]`);
+        if (isMultiDay) {
+            // Multi-day event: create as all-day event spanning multiple days
+            console.log('🗓️ Multi-day event detected, creating all-day event');
+            
+            const startDateStr = this.formatDateForInput(startDate);
+            const endDateStr = this.formatDateForInput(endDate);
+            
+            console.log('📅 Multi-day range - Start Date:', startDateStr, 'End Date:', endDateStr);
+            
+            // Use special handling for multi-day events
+            if (typeof showOverlayEventForm !== 'undefined') {
+                let cellElement = clickedCell;
+                if (!cellElement) {
+                    cellElement = document.querySelector(`.time-cell[data-day="${startDay}"][data-hour="${startHour}"]`);
+                }
+                
+                // Pass multi-day information to the form
+                showOverlayEventFormMultiDay(startDateStr, endDateStr, cellElement);
             }
-            console.log('🎯 Passing clicked cell to overlay form:', cellElement);
-            showOverlayEventForm(dateStr, timeStr, cellElement);
         } else {
-            // Fallback to original popup if function doesn't exist
-            this.showEventCreationPopup(startDate, endDate, startDay, startHour, clickedCell);
+            // Single-day event: use existing time-based logic
+            console.log('📅 Single-day event, using time-based handling');
+            
+            const dateStr = this.formatDateForInput(startDate);
+            const startTimeStr = startDate.toTimeString().slice(0, 5); // HH:MM format
+            const endTimeStr = endDate.toTimeString().slice(0, 5); // HH:MM format
+            
+            console.log('🕐 Single-day drag times - Start:', startTimeStr, 'End:', endTimeStr);
+            
+            // Use the existing overlay form with clicked cell information
+            if (typeof showOverlayEventForm !== 'undefined') {
+                // Find the clicked cell to pass position information
+                let cellElement = clickedCell;
+                if (!cellElement) {
+                    // Try to find the cell by day and hour if not provided
+                    cellElement = document.querySelector(`.time-cell[data-day="${startDay}"][data-hour="${startHour}"]`);
+                }
+                console.log('🎯 Passing clicked cell to overlay form with both times:', { startTimeStr, endTimeStr });
+                showOverlayEventForm(dateStr, startTimeStr, cellElement, endTimeStr);
+            }
         }
     }
     
@@ -1583,6 +1609,127 @@ class GoogleCalendarGrid {
         dayColumn.appendChild(eventElement);
         console.log('✅ Event element added to DOM:', eventElement, 'Parent:', dayColumn);
         console.log('📍 Event position - top:', eventElement.style.top, 'height:', eventElement.style.height);
+    }
+    
+    renderMultiDayEvent(eventData) {
+        console.log('🎯 renderMultiDayEvent called with data:', eventData);
+        
+        // Check for null/undefined event data
+        if (!eventData || !eventData.id) {
+            console.warn('⚠️ Skipping null or invalid multi-day event data:', eventData);
+            return;
+        }
+        
+        // Ensure we have start and end dates
+        if (!eventData.date || !eventData.endDate) {
+            console.warn('⚠️ Multi-day event missing start or end date:', eventData);
+            return;
+        }
+        
+        // Ensure weekStart is properly initialized
+        if (!this.weekStart || !(this.weekStart instanceof Date)) {
+            this.weekStart = this.getWeekStart(new Date());
+            console.log('⚠️ weekStart was undefined in renderMultiDayEvent, recalculated:', this.weekStart);
+        }
+        
+        // Parse start and end dates
+        const [startYear, startMonth, startDay] = eventData.date.split('-').map(Number);
+        const [endYear, endMonth, endDay] = eventData.endDate.split('-').map(Number);
+        
+        const startDate = new Date(startYear, startMonth - 1, startDay, 12, 0, 0);
+        const endDate = new Date(endYear, endMonth - 1, endDay, 12, 0, 0);
+        
+        const weekStart = new Date(this.weekStart);
+        weekStart.setHours(12, 0, 0, 0);
+        
+        // Calculate start and end day indices
+        const startTimeDiff = startDate.getTime() - weekStart.getTime();
+        const endTimeDiff = endDate.getTime() - weekStart.getTime();
+        
+        const startDayIndex = Math.round(startTimeDiff / (24 * 60 * 60 * 1000));
+        const endDayIndex = Math.round(endTimeDiff / (24 * 60 * 60 * 1000));
+        
+        console.log('📅 Multi-day event - Start:', startDate, 'End:', endDate);
+        console.log('📅 Day indices - Start:', startDayIndex, 'End:', endDayIndex);
+        
+        // Render the event on each day it spans (within the current week)
+        for (let dayIndex = Math.max(0, startDayIndex); dayIndex <= Math.min(6, endDayIndex); dayIndex++) {
+            const dayColumn = this.container.querySelector(`.day-column[data-day="${dayIndex}"]`);
+            
+            if (!dayColumn) {
+                console.log('❌ Day column not found for dayIndex:', dayIndex);
+                continue;
+            }
+            
+            const eventElement = document.createElement('div');
+            eventElement.className = 'calendar-event multi-day-event';
+            
+            // Apply color as inline style
+            if (eventData.color && eventData.color.startsWith('#')) {
+                eventElement.style.backgroundColor = eventData.color;
+            } else {
+                eventElement.style.backgroundColor = '#3b82f6';
+            }
+            
+            // Add visual indicator for multi-day span
+            let titlePrefix = '';
+            if (dayIndex === startDayIndex && startDayIndex >= 0) {
+                titlePrefix = '▶ '; // Start indicator
+            } else if (dayIndex === endDayIndex && endDayIndex <= 6) {
+                titlePrefix = '◀ '; // End indicator  
+            } else {
+                titlePrefix = '─ '; // Middle indicator
+            }
+            
+            eventElement.innerHTML = `
+                <div class="calendar-event-actions">
+                    <button class="calendar-event-edit" onclick="window.googleCalendarGrid.showEditEventPopup('${eventData.id}'); event.stopPropagation();" title="편집">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="m18.5 2.5 a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                    </button>
+                    <button class="calendar-event-delete" onclick="window.googleCalendarGrid.deleteEventById('${eventData.id}'); event.stopPropagation();" title="삭제">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="3,6 5,6 21,6"/>
+                            <path d="m19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2,2h4a2,2 0 0,1,2,2v2"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="calendar-event-content">
+                    <div style="font-weight: 500; margin-bottom: 2px; padding-left: 2px;">${titlePrefix}${eventData.title}</div>
+                    ${eventData.description ? `<div style="font-size: 11px; opacity: 0.9; padding-left: 2px;">${eventData.description}</div>` : ''}
+                    <div style="font-size: 10px; opacity: 0.7; padding-left: 2px;">종일 일정</div>
+                </div>
+            `;
+            
+            // Position the event at the top of the day (all-day area)
+            eventElement.style.position = 'absolute';
+            eventElement.style.top = '5px';
+            eventElement.style.left = '2px';
+            eventElement.style.right = '2px';
+            eventElement.style.height = '50px'; // Fixed height for all-day events
+            eventElement.style.zIndex = '200'; // Higher z-index than timed events
+            eventElement.style.cursor = 'pointer';
+            eventElement.style.border = '1px solid rgba(0,0,0,0.1)';
+            eventElement.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+            eventElement.style.borderRadius = '4px';
+            
+            // Add event data
+            eventElement.dataset.eventId = eventData.id;
+            eventElement.dataset.eventData = JSON.stringify(eventData);
+            eventElement.dataset.isMultiDay = 'true';
+            
+            // Add right-click context menu
+            eventElement.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                this.showEventContextMenu(e, eventData);
+            });
+            
+            dayColumn.appendChild(eventElement);
+            
+            console.log(`✅ Multi-day event "${eventData.title}" rendered on day ${dayIndex}`);
+        }
     }
     
     handleEventDrop(e) {

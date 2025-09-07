@@ -624,8 +624,19 @@ function createEventElement(event) {
 
 // Initialize drag and drop
 function initializeDragAndDrop() {
+    console.log('🔧 Initializing drag and drop...');
     const eventsGrid = document.getElementById('events-grid');
-    if (!eventsGrid) return;
+    if (!eventsGrid) {
+        console.log('❌ events-grid not found');
+        return;
+    }
+    
+    console.log('✅ events-grid found, adding event listeners');
+    
+    // Remove existing listeners to avoid duplicates
+    eventsGrid.removeEventListener('mousedown', handleGridMouseDown);
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
     
     // Grid click to create new event
     eventsGrid.addEventListener('mousedown', handleGridMouseDown);
@@ -633,15 +644,26 @@ function initializeDragAndDrop() {
     // Global mouse events for dragging
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
+    
+    console.log('✅ Drag and drop initialized');
 }
 
 // Handle grid mouse down (create new event with drag)
 function handleGridMouseDown(e) {
-    if (e.target.closest('.event-block')) return; // Ignore if clicking on event
+    console.log('🖱️ Grid mousedown triggered', e.target);
+    
+    if (e.target.closest('.event-block')) {
+        console.log('🚫 Clicked on event block, ignoring');
+        return; // Ignore if clicking on event
+    }
+    
+    console.log('✅ Starting event creation...');
     
     const rect = e.currentTarget.getBoundingClientRect();
     const relativeY = e.clientY - rect.top - 10; // Subtract padding-top
     const relativeX = e.clientX - rect.left;
+    
+    console.log('📍 Click position:', { relativeX, relativeY });
     
     // Start creating new event
     isCreatingEvent = true;
@@ -1286,12 +1308,19 @@ function goToCurrentTime() {
 
 // Open event modal with pre-filled time
 function openEventModalWithTime(startDate, endDate = null) {
-    const modal = document.getElementById('event-modal');
-    if (!modal) return;
+    console.log('🕐 Opening event modal with time:', { startDate, endDate });
     
-    // Set start time
-    const startInput = document.getElementById('event-start');
-    const endInput = document.getElementById('event-end');
+    const modal = document.getElementById('calendar-overlay-form');
+    if (!modal) {
+        console.error('❌ calendar-overlay-form modal not found');
+        return;
+    }
+    
+    // Set start time inputs
+    const startDateInput = document.querySelector('#calendar-overlay-form input[name="start_date"]');
+    const startTimeInput = document.querySelector('#calendar-overlay-form input[name="start_time"]');
+    const endDateInput = document.querySelector('#calendar-overlay-form input[name="end_date"]');
+    const endTimeInput = document.querySelector('#calendar-overlay-form input[name="end_time"]');
     
     // If no end date provided, default to 1 hour later
     const finalEndDate = endDate || (() => {
@@ -1300,11 +1329,34 @@ function openEventModalWithTime(startDate, endDate = null) {
         return defaultEnd;
     })();
     
-    startInput.value = formatDateTimeLocal(startDate);
-    endInput.value = formatDateTimeLocal(finalEndDate);
+    console.log('📅 Setting form values:', { start: startDate, end: finalEndDate });
+    
+    // Set date and time values
+    if (startDateInput) startDateInput.value = formatDateForInput(startDate);
+    if (startTimeInput) startTimeInput.value = formatTimeForInput(startDate);
+    if (endDateInput) endDateInput.value = formatDateForInput(finalEndDate);
+    if (endTimeInput) endTimeInput.value = formatTimeForInput(finalEndDate);
+    
+    // Set modal title
+    const titleElement = document.querySelector('#calendar-overlay-form #overlay-form-title');
+    if (titleElement) {
+        titleElement.textContent = '새 일정';
+    }
     
     // Show modal
     modal.style.display = 'flex';
+    console.log('✅ Event modal opened');
+}
+
+// Helper functions for date/time formatting
+function formatDateForInput(date) {
+    return date.toISOString().split('T')[0];
+}
+
+function formatTimeForInput(date) {
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
 }
 
 // Format date for datetime-local input
@@ -1650,6 +1702,116 @@ async function importFromICS() {
     };
     
     input.click();
+}
+
+// Form submission handlers
+window.saveSidebarEvent = async function(event) {
+    event.preventDefault(); // Prevent page refresh
+    console.log('💾 Saving sidebar event...');
+    
+    try {
+        const form = event.target;
+        const formData = new FormData(form);
+        const calendarId = document.querySelector('.calendar-workspace').dataset.calendarId;
+        
+        // Create event data object
+        const eventData = {
+            title: formData.get('title') || 'New Event',
+            description: formData.get('description') || '',
+            start_date: formData.get('start_date'),
+            end_date: formData.get('end_date') || formData.get('start_date'),
+            start_time: formData.get('start_time'),
+            end_time: formData.get('end_time'),
+            color: formData.get('color') || '#3b82f6',
+            is_all_day: formData.get('is_all_day') === 'on'
+        };
+        
+        console.log('📤 Sending event data:', eventData);
+        
+        const response = await fetch(`/api/calendars/${calendarId}/events`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(eventData)
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            console.log('✅ Event created successfully:', result);
+            showNotification('일정이 생성되었습니다', 'success');
+            closeEventForm();
+            loadTimeGridEvents(); // Reload events
+        } else {
+            throw new Error('Failed to create event');
+        }
+        
+    } catch (error) {
+        console.error('❌ Failed to save event:', error);
+        showNotification('일정 생성 실패', 'error');
+    }
+};
+
+window.saveOverlayEvent = async function(event) {
+    event.preventDefault(); // Prevent page refresh
+    console.log('💾 Saving overlay event...');
+    
+    try {
+        const form = event.target;
+        const formData = new FormData(form);
+        const calendarId = document.querySelector('.calendar-workspace').dataset.calendarId;
+        
+        // Create event data object
+        const eventData = {
+            title: formData.get('title') || 'New Event',
+            description: formData.get('description') || '',
+            start_date: formData.get('start_date'),
+            end_date: formData.get('end_date') || formData.get('start_date'),
+            start_time: formData.get('start_time'),
+            end_time: formData.get('end_time'),
+            color: formData.get('color') || '#3b82f6',
+            is_all_day: formData.get('is_all_day') === 'on'
+        };
+        
+        console.log('📤 Sending overlay event data:', eventData);
+        
+        const response = await fetch(`/api/calendars/${calendarId}/events`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(eventData)
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            console.log('✅ Overlay event created successfully:', result);
+            showNotification('일정이 생성되었습니다', 'success');
+            closeOverlayForm();
+            loadTimeGridEvents(); // Reload events
+        } else {
+            throw new Error('Failed to create overlay event');
+        }
+        
+    } catch (error) {
+        console.error('❌ Failed to save overlay event:', error);
+        showNotification('일정 생성 실패', 'error');
+    }
+};
+
+// Helper functions for closing forms
+function closeEventForm() {
+    const widget = document.getElementById('event-form-widget');
+    if (widget) {
+        widget.style.display = 'none';
+    }
+}
+
+function closeOverlayForm() {
+    const overlay = document.getElementById('calendar-overlay-form');
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
 }
 
 // Initialize on page load
