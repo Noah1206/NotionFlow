@@ -4850,8 +4850,8 @@
         }
 
         // Multi-day Overlay Event Form Function
-        function showOverlayEventFormMultiDay(startDate, endDate, clickedCell = null) {
-            console.log('🗓️ showOverlayEventFormMultiDay called:', { startDate, endDate });
+        function showOverlayEventFormMultiDay(startDate, endDate, clickedCell = null, startHour = 0, endHour = 1) {
+            console.log('🗓️ showOverlayEventFormMultiDay called:', { startDate, endDate, startHour, endHour });
             
             const overlay = document.getElementById('calendar-overlay-form');
             if (overlay) {
@@ -4875,19 +4875,31 @@
                     endDateInput.required = true;
                 }
                 
-                // Set as all-day event for multi-day events
+                // Set time for multi-day events (not all-day)
                 const isAllDayCheckbox = document.getElementById('overlay-all-day');
                 if (isAllDayCheckbox) {
-                    isAllDayCheckbox.checked = true;
-                    // Hide time inputs for all-day events
-                    const timeInputs = overlay.querySelectorAll('.time-input-group, .time-input');
-                    timeInputs.forEach(input => input.style.display = 'none');
+                    isAllDayCheckbox.checked = false; // Not an all-day event
                 }
                 
-                // Store end date information (we'll use this when saving)
-                overlay.setAttribute('data-end-date', endDate);
+                // Show and set time inputs
+                const timeInputs = overlay.querySelectorAll('.time-input-group, .time-input');
+                timeInputs.forEach(input => input.style.display = 'block');
                 
-                console.log('🎯 Multi-day event form configured:', { startDate, endDate, allDay: true });
+                // Set start and end times based on the drag hours
+                const startTimeStr = `${String(startHour).padStart(2, '0')}:00`;
+                const endTimeStr = `${String(endHour).padStart(2, '0')}:00`;
+                
+                document.getElementById('overlay-start-time').value = startTimeStr;
+                document.getElementById('overlay-end-time').value = endTimeStr;
+                document.getElementById('overlay-start-time-display').textContent = convertToAMPM(startTimeStr);
+                document.getElementById('overlay-end-time-display').textContent = convertToAMPM(endTimeStr);
+                
+                // Store end date and time information (we'll use this when saving)
+                overlay.setAttribute('data-end-date', endDate);
+                overlay.setAttribute('data-start-hour', startHour);
+                overlay.setAttribute('data-end-hour', endHour);
+                
+                console.log('🎯 Multi-day event form configured:', { startDate, endDate, startTimeStr, endTimeStr, allDay: false });
                 
                 // Position popup
                 if (clickedCell) {
@@ -5085,23 +5097,29 @@
             let eventData;
             
             if (isMultiDay) {
-                // Multi-day event (all-day event)
+                // Multi-day event with time
                 const endDate = endDateInput.value;
                 if (!title || !startDate || !endDate) {
                     alert('모든 필수 필드를 입력해주세요.');
                     return;
                 }
                 
+                // Get time values for multi-day events
+                const multiStartTime = startTime || '09:00'; // Default to 9 AM if not set
+                const multiEndTime = endTime || '10:00'; // Default to 10 AM if not set
+                
                 eventData = {
                     title: title,
-                    start: startDate, // Just the date for all-day events
-                    end: endDate,     // End date for multi-day events
+                    start: startDate,
+                    end: endDate,
+                    startTime: multiStartTime,
+                    endTime: multiEndTime,
                     description: description,
-                    isAllDay: true,
+                    isAllDay: false,  // Not an all-day event
                     isMultiDay: true
                 };
                 
-                console.log('🗓️ Saving multi-day event:', eventData);
+                console.log('🗓️ Saving multi-day event with time:', eventData);
             } else {
                 // Single-day timed event
                 if (!title || !startDate || !startTime || !endTime) {
@@ -5133,8 +5151,9 @@
                 const calendarId = document.querySelector('.calendar-workspace')?.dataset.calendarId || 'default';
 
                 if (eventData.isMultiDay) {
-                    // Multi-day event: create individual events for each day
-                    console.log('🗓️ Creating individual events for multi-day range:', eventData.start, 'to', eventData.end);
+                    // Multi-day event: create individual timed events for each day
+                    console.log('🗓️ Creating individual timed events for multi-day range:', eventData.start, 'to', eventData.end);
+                    console.log('🕐 Using time range:', eventData.startTime, 'to', eventData.endTime);
                     
                     const startDate = new Date(eventData.start);
                     const endDate = new Date(eventData.end);
@@ -5149,7 +5168,9 @@
                             title: eventData.title,
                             description: eventData.description || '',
                             date: dateStr,
-                            isAllDay: true,
+                            startTime: eventData.startTime, // Use the time from the drag selection
+                            endTime: eventData.endTime,     // Use the time from the drag selection
+                            isAllDay: false,  // Not an all-day event
                             isMultiDay: false, // Each individual event is single-day
                             color: '#3b82f6' // Default blue color
                         };
@@ -5177,7 +5198,9 @@
                                         title: apiData.title,
                                         description: apiData.description || '',
                                         date: apiData.date,
-                                        isAllDay: true,
+                                        startTime: apiData.startTime,
+                                        endTime: apiData.endTime,
+                                        isAllDay: false,  // Not an all-day event
                                         isMultiDay: false,
                                         color: apiData.color || '#3b82f6',
                                         backendId: result.id

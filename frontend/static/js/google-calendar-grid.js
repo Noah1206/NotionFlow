@@ -437,23 +437,26 @@ class GoogleCalendarGrid {
         const isMultiDay = startDay !== endDay;
         
         if (isMultiDay) {
-            // Multi-day event: create as all-day event spanning multiple days
-            console.log('🗓️ Multi-day event detected, creating all-day event');
+            // Multi-day event: create time-based events for each day
+            console.log('🗓️ Multi-day event detected, creating time-based events');
             
             const startDateStr = this.formatDateForInput(startDate);
             const endDateStr = this.formatDateForInput(endDate);
+            const startTimeStr = startDate.toTimeString().slice(0, 5); // HH:MM format
+            const endTimeStr = endDate.toTimeString().slice(0, 5); // HH:MM format
             
             console.log('📅 Multi-day range - Start Date:', startDateStr, 'End Date:', endDateStr);
+            console.log('🕐 Time range - Start:', startTimeStr, 'End:', endTimeStr);
             
-            // Use special handling for multi-day events
-            if (typeof showOverlayEventForm !== 'undefined') {
+            // Use special handling for multi-day events with time
+            if (typeof showOverlayEventFormMultiDay !== 'undefined') {
                 let cellElement = clickedCell;
                 if (!cellElement) {
                     cellElement = document.querySelector(`.time-cell[data-day="${startDay}"][data-hour="${startHour}"]`);
                 }
                 
-                // Pass multi-day information to the form
-                showOverlayEventFormMultiDay(startDateStr, endDateStr, cellElement);
+                // Pass multi-day information with time to the form
+                showOverlayEventFormMultiDay(startDateStr, endDateStr, cellElement, startHour, endHour + 1);
             }
         } else {
             // Single-day event: use existing time-based logic
