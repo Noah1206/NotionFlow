@@ -1517,6 +1517,13 @@ class GoogleCalendarGrid {
             console.log('⚠️ Event from next week, adjusting...');
         }
         
+        // Check if this is a multi-day event - skip individual rendering
+        if (eventData.isMultiDay) {
+            console.log('🔄 Skipping individual render for multi-day event:', eventData.title);
+            console.log('   Multi-day events should be rendered via renderMultiDayEvent');
+            return;
+        }
+        
         // Check if this is an all-day event
         if (eventData.isAllDay) {
             console.log('📅 Rendering all-day event:', eventData.title);
@@ -1797,9 +1804,29 @@ class GoogleCalendarGrid {
             return;
         }
         
-        // Calculate column width for spanning
-        const columnWidth = firstDayColumn.offsetWidth;
-        const totalWidth = columnWidth * spanDays - 4; // -4 for margins
+        // Calculate accurate width for spanning
+        let totalWidth;
+        if (spanDays === 1) {
+            totalWidth = firstDayColumn.offsetWidth - 4; // Single day event
+        } else {
+            // Multi-day spanning: find the last column and calculate actual distance
+            const lastDayColumn = this.container.querySelector(`.day-column[data-day="${lastDayIndex}"]`);
+            if (lastDayColumn) {
+                const firstColRect = firstDayColumn.getBoundingClientRect();
+                const lastColRect = lastDayColumn.getBoundingClientRect();
+                totalWidth = (lastColRect.right - firstColRect.left) - 4; // Actual span minus margins
+                console.log('📏 Spanning calculation:', {
+                    spanDays,
+                    firstCol: firstColRect.left,
+                    lastCol: lastColRect.right,
+                    totalWidth
+                });
+            } else {
+                // Fallback calculation
+                totalWidth = firstDayColumn.offsetWidth * spanDays - 4;
+                console.log('⚠️ Using fallback width calculation');
+            }
+        }
         
         // Create the spanning event element
         const eventElement = document.createElement('div');
