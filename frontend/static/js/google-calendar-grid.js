@@ -1770,6 +1770,120 @@ class GoogleCalendarGrid {
         console.log('📅 Multi-day event - Start:', startDate, 'End:', endDate);
         console.log('📅 Day indices - Start:', startDayIndex, 'End:', endDayIndex);
         
+        // Parse time for positioning (if available)
+        let startHour = 9, startMin = 0, endHour = 10, endMin = 0;
+        if (eventData.startTime && eventData.endTime) {
+            [startHour, startMin] = eventData.startTime.split(':').map(Number);
+            [endHour, endMin] = eventData.endTime.split(':').map(Number);
+            console.log('🕐 Time range:', eventData.startTime, 'to', eventData.endTime);
+        } else {
+            console.log('⚠️ No time info, using default 9AM-10AM');
+        }
+        
+        const startPosition = startHour + startMin / 60;
+        const endPosition = endHour + endMin / 60;
+        const duration = endPosition - startPosition;
+        
+        // Create a single continuous element that spans multiple days
+        const firstDayIndex = Math.max(0, startDayIndex);
+        const lastDayIndex = Math.min(6, endDayIndex);
+        const spanDays = lastDayIndex - firstDayIndex + 1;
+        
+        // Find the first day column to start the event
+        const firstDayColumn = this.container.querySelector(`.day-column[data-day="${firstDayIndex}"]`);
+        
+        if (!firstDayColumn) {
+            console.log('❌ First day column not found for dayIndex:', firstDayIndex);
+            return;
+        }
+        
+        // Calculate column width for spanning
+        const columnWidth = firstDayColumn.offsetWidth;
+        const totalWidth = columnWidth * spanDays - 4; // -4 for margins
+        
+        // Create the spanning event element
+        const eventElement = document.createElement('div');
+        eventElement.className = 'calendar-event multi-day-event spanning-event';
+        eventElement.dataset.eventId = eventData.id;
+        eventElement.dataset.eventData = JSON.stringify(eventData);
+        eventElement.dataset.isMultiDay = 'true';
+        
+        // Apply color
+        const bgColor = (eventData.color && eventData.color.startsWith('#')) ? eventData.color : '#3b82f6';
+        
+        eventElement.style.cssText = `
+            position: absolute;
+            top: ${startPosition * 60}px;
+            left: 2px;
+            width: ${totalWidth}px;
+            height: ${Math.max(duration * 60, 24)}px;
+            background-color: ${bgColor};
+            z-index: 200;
+            border-radius: 4px;
+            padding: 4px;
+            color: white;
+            cursor: pointer;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.2);
+        `;
+        
+        // Add continuity indicators
+        let continuityIndicator = '';
+        if (startDayIndex < 0) continuityIndicator = '◀ ';
+        if (endDayIndex > 6) continuityIndicator += ' ▶';
+        
+        eventElement.innerHTML = `
+            <div class="calendar-event-actions" style="position: absolute; top: 2px; right: 2px; display: none; gap: 2px;">
+                <button class="calendar-event-edit" onclick="window.googleCalendarGrid.showEditEventPopup('${eventData.id}'); event.stopPropagation();" title="편집" style="background: rgba(0,0,0,0.3); border: none; color: white; cursor: pointer; padding: 4px; border-radius: 2px;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="m18.5 2.5 a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                </button>
+                <button class="calendar-event-delete" onclick="window.googleCalendarGrid.deleteEventById('${eventData.id}'); event.stopPropagation();" title="삭제" style="background: rgba(220,38,38,0.8); border: none; color: white; cursor: pointer; padding: 4px; border-radius: 2px;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <polyline points="3,6 5,6 21,6"/>
+                        <path d="m19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2-2h4a2,2 0 0,1,2,2v2"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="calendar-event-content">
+                <div style="font-weight: 600; font-size: 12px; line-height: 1.2;">${eventData.title}${continuityIndicator}</div>
+                ${duration > 1 && eventData.startTime ? `<div style="font-size: 10px; opacity: 0.9; margin-top: 1px;">${eventData.startTime} - ${eventData.endTime}</div>` : ''}
+                ${spanDays > 1 ? `<div style="font-size: 9px; opacity: 0.8; background: rgba(255,255,255,0.2); display: inline-block; padding: 1px 4px; border-radius: 2px; margin-top: 2px;">${spanDays}일간</div>` : ''}
+            </div>
+        `;
+        
+        // Add hover effects
+        eventElement.addEventListener('mouseenter', () => {
+            const actions = eventElement.querySelector('.calendar-event-actions');
+            if (actions) actions.style.display = 'flex';
+        });
+        
+        eventElement.addEventListener('mouseleave', () => {
+            const actions = eventElement.querySelector('.calendar-event-actions');
+            if (actions) actions.style.display = 'none';
+        });
+        
+        // Add click handler
+        eventElement.addEventListener('click', (e) => {
+            if (!e.target.closest('.calendar-event-actions')) {
+                this.showEditEventPopup(eventData.id);
+            }
+        });
+        
+        // Add right-click context menu
+        eventElement.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            this.showEventContextMenu(e, eventData);
+        });
+        
+        // Add to the first day column
+        firstDayColumn.appendChild(eventElement);
+        
+        console.log(`✅ Multi-day spanning event "${eventData.title}" rendered across ${spanDays} days (${firstDayIndex} to ${lastDayIndex})`);
+        
         // Render the event on each day it spans (within the current week)
         for (let dayIndex = Math.max(0, startDayIndex); dayIndex <= Math.min(6, endDayIndex); dayIndex++) {
             const dayColumn = this.container.querySelector(`.day-column[data-day="${dayIndex}"]`);

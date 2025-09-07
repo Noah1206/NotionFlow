@@ -5151,80 +5151,83 @@
                 const calendarId = document.querySelector('.calendar-workspace')?.dataset.calendarId || 'default';
 
                 if (eventData.isMultiDay) {
-                    // Multi-day event: create individual timed events for each day
-                    console.log('🗓️ Creating individual timed events for multi-day range:', eventData.start, 'to', eventData.end);
+                    // Multi-day event: create a single event spanning multiple days
+                    console.log('🗓️ Creating multi-day event spanning from:', eventData.start, 'to', eventData.end);
                     console.log('🕐 Using time range:', eventData.startTime, 'to', eventData.endTime);
                     
-                    const startDate = new Date(eventData.start);
-                    const endDate = new Date(eventData.end);
-                    const createdEvents = [];
+                    const apiData = {
+                        title: eventData.title,
+                        description: eventData.description || '',
+                        date: eventData.start,  // Start date
+                        endDate: eventData.end, // End date for multi-day span
+                        startTime: eventData.startTime,
+                        endTime: eventData.endTime,
+                        isAllDay: false,
+                        isMultiDay: true,  // Mark as multi-day event
+                        color: '#3b82f6'
+                    };
                     
-                    // Create events for each day in the range (inclusive of both start and end dates)
-                    const currentDate = new Date(startDate);
-                    while (currentDate <= endDate) {
-                        const dateStr = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+                    console.log('📤 Creating multi-day event:', apiData);
+                    
+                    try {
+                        const response = await fetch(`/api/calendars/${calendarId}/events`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(apiData)
+                        });
                         
-                        const apiData = {
-                            title: eventData.title,
-                            description: eventData.description || '',
-                            date: dateStr,
-                            startTime: eventData.startTime, // Use the time from the drag selection
-                            endTime: eventData.endTime,     // Use the time from the drag selection
-                            isAllDay: false,  // Not an all-day event
-                            isMultiDay: false, // Each individual event is single-day
-                            color: '#3b82f6' // Default blue color
-                        };
-                        
-                        console.log('📤 Creating event for date:', dateStr, apiData);
-                        
-                        try {
-                            const response = await fetch(`/api/calendars/${calendarId}/events`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify(apiData)
-                            });
+                        if (response.ok) {
+                            const result = await response.json();
+                            console.log('✅ Multi-day event created:', result);
                             
-                            if (response.ok) {
-                                const result = await response.json();
-                                console.log('✅ Event created for', dateStr, ':', result);
-                                createdEvents.push(result);
+                            // Add the new event directly to the calendar without page refresh
+                            if (window.googleCalendarGrid) {
+                                const newEventForGrid = {
+                                    id: result.id || Date.now().toString(),
+                                    title: apiData.title,
+                                    description: apiData.description || '',
+                                    date: apiData.date,        // Start date
+                                    endDate: apiData.endDate,   // End date
+                                    startTime: apiData.startTime,
+                                    endTime: apiData.endTime,
+                                    isAllDay: false,
+                                    isMultiDay: true,
+                                    color: apiData.color || '#3b82f6',
+                                    backendId: result.id
+                                };
                                 
-                                // Add the new event directly to the calendar without page refresh
-                                if (window.googleCalendarGrid) {
-                                    const newEventForGrid = {
-                                        id: result.id || Date.now().toString(),
-                                        title: apiData.title,
-                                        description: apiData.description || '',
-                                        date: apiData.date,
-                                        startTime: apiData.startTime,
-                                        endTime: apiData.endTime,
-                                        isAllDay: false,  // Not an all-day event
-                                        isMultiDay: false,
-                                        color: apiData.color || '#3b82f6',
-                                        backendId: result.id
-                                    };
-                                    
-                                    // Add to events array
-                                    window.googleCalendarGrid.events.push(newEventForGrid);
-                                    
-                                    // Render the event on the calendar
+                                console.log('📅 Adding multi-day event to grid:', newEventForGrid);
+                                
+                                // Add to events array
+                                window.googleCalendarGrid.events.push(newEventForGrid);
+                                
+                                // Render the multi-day event on the calendar
+                                if (typeof window.googleCalendarGrid.renderMultiDayEvent === 'function') {
+                                    window.googleCalendarGrid.renderMultiDayEvent(newEventForGrid);
+                                } else {
+                                    // Fallback: render on each day if multi-day render doesn't exist
+                                    console.warn('⚠️ renderMultiDayEvent not found, using fallback');
                                     window.googleCalendarGrid.renderEvent(newEventForGrid);
                                 }
-                            } else {
-                                const errorData = await response.json();
-                                console.error('❌ Failed to create event for', dateStr, ':', response.status, errorData);
+                                
+                                // Update the event list if it exists
+                                if (typeof window.googleCalendarGrid.updateEventList === 'function') {
+                                    window.googleCalendarGrid.updateEventList();
+                                }
+                                
+                                // Save to localStorage for persistence
+                                window.googleCalendarGrid.saveToLocalStorage();
                             }
-                        } catch (error) {
-                            console.error('❌ Network error creating event for', dateStr, ':', error);
+                        } else {
+                            const errorData = await response.json();
+                            console.error('❌ Failed to create multi-day event:', response.status, errorData);
                         }
-                        
-                        // Move to next day
-                        currentDate.setDate(currentDate.getDate() + 1);
+                    } catch (error) {
+                        console.error('❌ Network error creating multi-day event:', error);
                     }
                     
-                    console.log('✅ All individual events created successfully:', createdEvents.length, 'events');
                     return;
                 } else {
                     // Single-day timed event format
