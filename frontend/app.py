@@ -4303,8 +4303,11 @@ def create_calendar_event(calendar_id):
             'title': data.get('title', 'Untitled Event'),
             'description': data.get('description', ''),
             'date': data.get('date'),
+            'endDate': data.get('endDate'),  # For multi-day events
             'startTime': data.get('startTime') or data.get('start_time'),
             'endTime': data.get('endTime') or data.get('end_time'),
+            'isAllDay': data.get('isAllDay', False),
+            'isMultiDay': data.get('isMultiDay', False),
             'color': data.get('color', '#3b82f6'),
             'created_at': dt.now().isoformat(),
             'user_id': user_id

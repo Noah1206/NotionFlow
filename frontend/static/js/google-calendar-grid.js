@@ -1639,6 +1639,13 @@ class GoogleCalendarGrid {
     renderAllDayEvent(eventData, dayIndex) {
         console.log('🎯 renderAllDayEvent called with data:', eventData, 'dayIndex:', dayIndex);
         
+        // Check if this is a multi-day event - skip all-day rendering
+        if (eventData.isMultiDay) {
+            console.log('🔄 Skipping all-day render for multi-day event:', eventData.title);
+            console.log('   Multi-day events should be rendered via renderMultiDayEvent only');
+            return;
+        }
+        
         // Ensure dayIndex is within valid range (0-6 for day columns)
         const validDayIndex = Math.max(0, Math.min(6, dayIndex));
         
@@ -1784,7 +1791,9 @@ class GoogleCalendarGrid {
             [endHour, endMin] = eventData.endTime.split(':').map(Number);
             console.log('🕐 Time range:', eventData.startTime, 'to', eventData.endTime);
         } else {
-            console.log('⚠️ No time info, using default 9AM-10AM');
+            console.warn('⚠️ Multi-day event missing time info:', eventData);
+            console.warn('   This event should have been created with time information');
+            console.warn('   Using default 9AM-10AM as fallback');
         }
         
         const startPosition = startHour + startMin / 60;
