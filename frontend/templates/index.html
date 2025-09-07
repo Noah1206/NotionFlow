@@ -3961,8 +3961,17 @@
             aspect-ratio: 16/9;
         }
 
-        /* Video fills the card */
-        .dbx-card > video {
+        /* Hero slider container */
+        .hero-slider {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* Image fills the card */
+        .hero-image {
             position: absolute;
             inset: 0;
             width: 100%;
@@ -3970,7 +3979,12 @@
             object-fit: cover;
             object-position: center;
             filter: none;
-            will-change: transform, opacity;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+        }
+
+        .hero-image.active {
+            opacity: 1;
         }
 
         /* Optional: subtle window bar dots */
@@ -4037,17 +4051,20 @@
                     </div>
                 </div>
                 <figure class="figure dbx-card">
-                    <video 
-                        id="heroVideo" 
-                        autoplay 
-                        loop 
-                        muted 
-                        playsinline 
-                        class="hero-video"
-                        src="{{ url_for('static', filename='videos/second_demo.mp4') }}"
-                        style="background: #000;">
-                        Your browser does not support the video tag.
-                    </video>
+                    <div class="hero-slider">
+                        <img 
+                            class="hero-image active"
+                            src="{{ url_for('static', filename='images/demo1.png') }}"
+                            alt="NotionFlow Demo Screenshot 1">
+                        <img 
+                            class="hero-image"
+                            src="{{ url_for('static', filename='images/demo2.png') }}"
+                            alt="NotionFlow Demo Screenshot 2">
+                        <img 
+                            class="hero-image"
+                            src="{{ url_for('static', filename='images/demo3.png') }}"
+                            alt="NotionFlow Demo Screenshot 3">
+                    </div>
                 </figure>
             </div>
         </section>
@@ -4712,26 +4729,36 @@
             document.querySelectorAll('.reveal').forEach(el => io.observe(el));
         })();
 
-        /* Dropbox-style video card animation and auto-play control */
+        /* Dropbox-style image card animation with slider */
         (function(){
             const card = document.querySelector('.dbx-card');
             if(!card) return;
-            const vid = card.querySelector('video');
 
             const io = new IntersectionObserver(([e])=>{
                 if(e.isIntersecting){
                     card.classList.add('is-in');
-                    if(vid && vid.paused) vid.play().catch(()=>{});
-                }else{
-                    if(vid && !vid.paused) vid.pause();
+                    startSlider();
                 }
             },{threshold:.2});
             io.observe(card);
 
-            /* Respect reduced motion: disable autoplay */
-            if (matchMedia('(prefers-reduced-motion: reduce)').matches && vid){
-                vid.removeAttribute('autoplay');
-                vid.pause();
+            let sliderInterval;
+            function startSlider() {
+                const images = document.querySelectorAll('.hero-image');
+                if(images.length === 0) return;
+                
+                let currentIndex = 0;
+                
+                sliderInterval = setInterval(() => {
+                    // 현재 이미지 숨기기
+                    images[currentIndex].classList.remove('active');
+                    
+                    // 다음 인덱스로 이동
+                    currentIndex = (currentIndex + 1) % images.length;
+                    
+                    // 새 이미지 보이기
+                    images[currentIndex].classList.add('active');
+                }, 3000); // 3초 간격
             }
         })();
     </script>
