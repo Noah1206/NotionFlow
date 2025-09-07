@@ -462,6 +462,7 @@ async function loadTimeGridEvents() {
     } catch (error) {
         console.error('Failed to load events:', error);
         // Load demo events for testing
+        console.log('⚠️ API failed, loading demo events instead');
         loadDemoEvents();
     }
 }
@@ -470,11 +471,18 @@ async function loadTimeGridEvents() {
 function loadDemoEvents() {
     const demoEvents = [
         {
+            id: 'demo0',
+            title: 'wpqkf',
+            start_time: new Date(currentWeekStart.getTime() + 24*60*60*1000).toISOString().replace('T00:', 'T02:'),
+            end_time: new Date(currentWeekStart.getTime() + 24*60*60*1000).toISOString().replace('T00:', 'T04:'),
+            color: 'blue'
+        },
+        {
             id: 'demo1',
             title: '🌅 모닝 미팅',
             start_time: new Date(currentWeekStart.getTime() + 24*60*60*1000).toISOString().replace('T00:', 'T09:'),
             end_time: new Date(currentWeekStart.getTime() + 24*60*60*1000).toISOString().replace('T00:', 'T09:').replace(':00.000Z', ':30.000Z'),
-            color: 'blue'
+            color: 'green'
         },
         {
             id: 'demo2', 
@@ -504,8 +512,19 @@ function renderEvents(events) {
     // Clear existing events
     eventsLayer.innerHTML = '';
     
+    console.log('📅 Rendering events:', events);
+    
     events.forEach(event => {
-        if (!event.start_time || event.all_day) return; // Skip all-day events for now
+        console.log('🔍 Processing event:', event);
+        
+        // Handle different field naming patterns
+        const hasStartTime = event.start_time || event.start_datetime;
+        const isAllDay = event.all_day || event.is_all_day;
+        
+        if (!hasStartTime || isAllDay) {
+            console.log('⏭️ Skipping event (no start time or all-day):', event.title);
+            return; // Skip all-day events for now
+        }
         
         const eventElement = createEventElement(event);
         if (eventElement) {
@@ -558,8 +577,20 @@ function adjustTimeLabelsForEvents(events) {
 
 // Create an event element
 function createEventElement(event) {
-    const startDate = new Date(event.start_time);
-    const endDate = new Date(event.end_time || event.start_time);
+    // Handle different API response field names
+    const startDateTime = event.start_datetime || event.start_time;
+    const endDateTime = event.end_datetime || event.end_time || startDateTime;
+    
+    const startDate = new Date(startDateTime);
+    const endDate = new Date(endDateTime);
+    
+    console.log('🎯 Creating event element:', {
+        title: event.title,
+        startDateTime: startDateTime,
+        endDateTime: endDateTime,
+        startDate: startDate,
+        endDate: endDate
+    });
     
     // Check if event is in current week
     const weekEnd = new Date(currentWeekStart);
@@ -578,6 +609,16 @@ function createEventElement(event) {
     const height = (endHour - startHour) * TIME_GRID_CONFIG.hourHeight;
     const left = (dayIndex * 100) / 7;
     const width = 100 / 7;
+    
+    console.log('📐 Position calculation:', {
+        dayIndex: dayIndex,
+        startHour: startHour,
+        endHour: endHour,
+        top: top,
+        height: height,
+        left: left,
+        TIME_GRID_CONFIG: TIME_GRID_CONFIG
+    });
     
     // Assign color scheme if not set
     let colorScheme;
