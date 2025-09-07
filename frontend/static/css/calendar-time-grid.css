@@ -936,3 +936,21 @@ div[class*="hour-line"],
     min-height: 1440px !important;
     height: auto !important;
 }
+
+/* Event preview during creation */
+.event-preview {
+    pointer-events: none !important;
+    opacity: 0.8 !important;
+    animation: pulse 1.5s infinite;
+    cursor: crosshair !important;
+}
+
+.event-preview:hover {
+    opacity: 0.9 !important;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.7; }
+    50% { opacity: 0.9; }
+    100% { opacity: 0.7; }
+}

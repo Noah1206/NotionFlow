@@ -66,9 +66,13 @@ let currentWeekStart = null;
 let selectedEvent = null;
 let isDragging = false;
 let isResizing = false;
+let isCreatingEvent = false;
 let dragStartY = 0;
 let dragStartTime = null;
 let originalEventData = null;
+let newEventPreview = null;
+let createStartY = 0;
+let createStartX = 0;
 
 // Initialize time grid with enhanced features
 function initializeTimeGrid() {
@@ -631,7 +635,7 @@ function initializeDragAndDrop() {
     document.addEventListener('mouseup', handleMouseUp);
 }
 
-// Handle grid mouse down (create new event)
+// Handle grid mouse down (create new event with drag)
 function handleGridMouseDown(e) {
     if (e.target.closest('.event-block')) return; // Ignore if clicking on event
     
@@ -639,21 +643,37 @@ function handleGridMouseDown(e) {
     const relativeY = e.clientY - rect.top - 10; // Subtract padding-top
     const relativeX = e.clientX - rect.left;
     
-    // Calculate time from Y position
-    const hourOffset = relativeY / TIME_GRID_CONFIG.hourHeight;
-    const minutes = Math.floor((hourOffset % 1) * 60 / TIME_GRID_CONFIG.snapMinutes) * TIME_GRID_CONFIG.snapMinutes;
-    const hour = Math.floor(hourOffset) + TIME_GRID_CONFIG.startHour;
+    // Start creating new event
+    isCreatingEvent = true;
+    createStartY = relativeY;
+    createStartX = relativeX;
     
     // Calculate day from X position
     const dayIndex = Math.floor((relativeX / rect.width) * 7);
+    const dayColumnWidth = rect.width / 7;
+    const leftPosition = (dayIndex * dayColumnWidth / rect.width) * 100;
     
-    // Create new event at this position
-    const eventDate = new Date(currentWeekStart);
-    eventDate.setDate(eventDate.getDate() + dayIndex);
-    eventDate.setHours(hour, minutes, 0, 0);
+    // Snap to grid
+    const snappedY = Math.round(relativeY / (TIME_GRID_CONFIG.hourHeight / 4)) * (TIME_GRID_CONFIG.hourHeight / 4);
     
-    // Open event creation modal with pre-filled time
-    openEventModalWithTime(eventDate);
+    // Create preview event block
+    newEventPreview = document.createElement('div');
+    newEventPreview.className = 'event-block event-preview';
+    newEventPreview.style.position = 'absolute';
+    newEventPreview.style.left = `${leftPosition}%`;
+    newEventPreview.style.top = `${snappedY}px`;
+    newEventPreview.style.height = `${TIME_GRID_CONFIG.hourHeight / 4}px`; // Minimum 15 minutes
+    newEventPreview.style.width = `${100/7}%`;
+    newEventPreview.style.backgroundColor = 'rgba(66, 133, 244, 0.7)';
+    newEventPreview.style.border = '2px dashed #4285f4';
+    newEventPreview.style.borderRadius = '6px';
+    newEventPreview.style.zIndex = '1000';
+    newEventPreview.innerHTML = '<div style="padding: 4px; font-size: 12px; color: white;">새 일정</div>';
+    
+    e.currentTarget.appendChild(newEventPreview);
+    
+    // Prevent text selection
+    e.preventDefault();
 }
 
 // Handle event mouse down (drag or resize)
@@ -686,11 +706,41 @@ function handleEventMouseDown(e) {
     }
 }
 
-// Handle mouse move (dragging or resizing)
+// Handle mouse move (dragging, resizing, or creating)
 function handleMouseMove(e) {
-    if (!isDragging && !isResizing) return;
+    if (!isDragging && !isResizing && !isCreatingEvent) return;
     
-    if (isDragging && selectedEvent) {
+    if (isCreatingEvent && newEventPreview) {
+        const eventsGrid = document.getElementById('events-grid');
+        const rect = eventsGrid.getBoundingClientRect();
+        const currentY = e.clientY - rect.top - 10;
+        
+        // Calculate height based on drag distance
+        const startY = Math.min(createStartY, currentY);
+        const endY = Math.max(createStartY, currentY);
+        const height = endY - startY;
+        
+        // Snap to grid
+        const snappedStartY = Math.round(startY / (TIME_GRID_CONFIG.hourHeight / 4)) * (TIME_GRID_CONFIG.hourHeight / 4);
+        const snappedHeight = Math.max(
+            TIME_GRID_CONFIG.hourHeight / 4, // Minimum 15 minutes
+            Math.round(height / (TIME_GRID_CONFIG.hourHeight / 4)) * (TIME_GRID_CONFIG.hourHeight / 4)
+        );
+        
+        // Update preview block
+        newEventPreview.style.top = `${snappedStartY}px`;
+        newEventPreview.style.height = `${snappedHeight}px`;
+        
+        // Update time display in preview
+        const startHour = (snappedStartY / TIME_GRID_CONFIG.hourHeight) + TIME_GRID_CONFIG.startHour;
+        const duration = snappedHeight / TIME_GRID_CONFIG.hourHeight;
+        const endHour = startHour + duration;
+        
+        const startTime = formatTime(startHour);
+        const endTime = formatTime(endHour);
+        newEventPreview.innerHTML = `<div style="padding: 4px; font-size: 12px; color: white;">새 일정<br>${startTime} - ${endTime}</div>`;
+        
+    } else if (isDragging && selectedEvent) {
         const deltaY = e.clientY - dragStartY;
         const newTop = originalEventData.top + deltaY;
         
@@ -714,11 +764,46 @@ function handleMouseMove(e) {
     }
 }
 
-// Handle mouse up (end drag or resize)
+// Handle mouse up (end drag, resize, or create)
 async function handleMouseUp(e) {
-    if (!isDragging && !isResizing) return;
+    if (!isDragging && !isResizing && !isCreatingEvent) return;
     
-    if (selectedEvent) {
+    if (isCreatingEvent && newEventPreview) {
+        // Get the time range from the preview block
+        const top = parseInt(newEventPreview.style.top);
+        const height = parseInt(newEventPreview.style.height);
+        const leftPercent = parseFloat(newEventPreview.style.left);
+        
+        // Calculate start and end time
+        const startHour = (top / TIME_GRID_CONFIG.hourHeight) + TIME_GRID_CONFIG.startHour;
+        const duration = height / TIME_GRID_CONFIG.hourHeight;
+        const endHour = startHour + duration;
+        
+        // Calculate day index
+        const dayIndex = Math.floor(leftPercent / (100 / 7));
+        
+        // Create event date
+        const eventDate = new Date(currentWeekStart);
+        eventDate.setDate(eventDate.getDate() + dayIndex);
+        
+        // Set start time
+        const startTime = new Date(eventDate);
+        const startMinutes = (startHour % 1) * 60;
+        startTime.setHours(Math.floor(startHour), Math.floor(startMinutes), 0, 0);
+        
+        // Set end time  
+        const endTime = new Date(eventDate);
+        const endMinutes = (endHour % 1) * 60;
+        endTime.setHours(Math.floor(endHour), Math.floor(endMinutes), 0, 0);
+        
+        // Remove preview
+        newEventPreview.remove();
+        newEventPreview = null;
+        
+        // Open event creation modal with pre-filled times
+        openEventModalWithTime(startTime, endTime);
+        
+    } else if (selectedEvent) {
         selectedEvent.classList.remove('dragging', 'selected');
         
         // Save the new position/size
@@ -727,6 +812,7 @@ async function handleMouseUp(e) {
     
     isDragging = false;
     isResizing = false;
+    isCreatingEvent = false;
     selectedEvent = null;
     originalEventData = null;
 }
@@ -1199,7 +1285,7 @@ function goToCurrentTime() {
 }
 
 // Open event modal with pre-filled time
-function openEventModalWithTime(date) {
+function openEventModalWithTime(startDate, endDate = null) {
     const modal = document.getElementById('event-modal');
     if (!modal) return;
     
@@ -1207,11 +1293,15 @@ function openEventModalWithTime(date) {
     const startInput = document.getElementById('event-start');
     const endInput = document.getElementById('event-end');
     
-    const endDate = new Date(date);
-    endDate.setHours(endDate.getHours() + 1); // Default 1 hour duration
+    // If no end date provided, default to 1 hour later
+    const finalEndDate = endDate || (() => {
+        const defaultEnd = new Date(startDate);
+        defaultEnd.setHours(defaultEnd.getHours() + 1);
+        return defaultEnd;
+    })();
     
-    startInput.value = formatDateTimeLocal(date);
-    endInput.value = formatDateTimeLocal(endDate);
+    startInput.value = formatDateTimeLocal(startDate);
+    endInput.value = formatDateTimeLocal(finalEndDate);
     
     // Show modal
     modal.style.display = 'flex';
