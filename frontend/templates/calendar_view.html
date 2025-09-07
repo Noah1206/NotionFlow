@@ -209,6 +209,69 @@
         font-weight: 600;
     }
 
+    /* 멀티데이 이벤트 스타일 */
+    .multi-day-event {
+        position: relative;
+        margin-bottom: 0.25rem;
+    }
+
+    .multi-day-event.event-start {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        border-right: none;
+    }
+
+    .multi-day-event.event-middle {
+        border-radius: 0;
+        border-right: none;
+        border-left: none;
+    }
+
+    .multi-day-event.event-end {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        border-left: none;
+    }
+
+    /* 연속된 이벤트 바 효과 */
+    .multi-day-event.event-start::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: -1px;
+        width: 1px;
+        height: 100%;
+        background: var(--accent-primary);
+    }
+
+    .multi-day-event.event-middle::before,
+    .multi-day-event.event-middle::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        width: 1px;
+        height: 100%;
+        background: var(--accent-primary);
+    }
+
+    .multi-day-event.event-middle::before {
+        left: -1px;
+    }
+
+    .multi-day-event.event-middle::after {
+        right: -1px;
+    }
+
+    .multi-day-event.event-end::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -1px;
+        width: 1px;
+        height: 100%;
+        background: var(--accent-primary);
+    }
+
     /* 반응형 */
     @media (max-width: 768px) {
         .calendar-container {
@@ -321,18 +384,57 @@
     let currentYear = currentDate.getFullYear();
     let currentMonth = currentDate.getMonth();
 
-    // 샘플 이벤트 데이터
-    const events = {
-        '2025-01-01': [
-            { id: 1, title: 'Task2', subtitle: '오후', type: 'task', completed: false, status: 'D-1일' }
-        ],
-        '2025-01-08': [
-            { id: 2, title: 'Task3', subtitle: '오후', type: 'task', completed: false }
-        ],
-        '2025-01-14': [
-            { id: 3, title: 'Task 1', subtitle: '개인', type: 'task', completed: true, status: 'D-28일' }
-        ]
-    };
+    // 멀티데이 이벤트 데이터 구조
+    const multiDayEvents = [
+        { 
+            id: 1, 
+            title: 'Task2', 
+            subtitle: '오후', 
+            type: 'task', 
+            completed: false, 
+            status: 'D-1일',
+            startDate: '2025-01-01',
+            endDate: '2025-01-01'
+        },
+        { 
+            id: 2, 
+            title: 'Task3', 
+            subtitle: '오후', 
+            type: 'task', 
+            completed: false,
+            startDate: '2025-01-08',
+            endDate: '2025-01-08'
+        },
+        { 
+            id: 3, 
+            title: 'Task 1', 
+            subtitle: '개인', 
+            type: 'task', 
+            completed: true, 
+            status: 'D-28일',
+            startDate: '2025-01-14',
+            endDate: '2025-01-14'
+        },
+        { 
+            id: 4, 
+            title: '자지', 
+            subtitle: '중일 일정', 
+            type: 'task', 
+            completed: false,
+            startDate: '2025-01-08',
+            endDate: '2025-01-09'
+        }
+    ];
+
+    // 기존 이벤트 형식으로 변환하는 함수
+    function getEventsForDate(dateStr) {
+        return multiDayEvents.filter(event => {
+            const eventStart = new Date(event.startDate);
+            const eventEnd = new Date(event.endDate);
+            const checkDate = new Date(dateStr);
+            return checkDate >= eventStart && checkDate <= eventEnd;
+        });
+    }
 
     function generateCalendar(year, month) {
         const firstDay = new Date(year, month, 1);
@@ -372,43 +474,66 @@
 
             dayElement.appendChild(dayNumber);
 
-            // 이벤트 추가
+            // 이벤트 추가 (멀티데이 지원)
             const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-            if (events[dateStr]) {
-                events[dateStr].forEach(event => {
-                    const eventElement = document.createElement('div');
-                    eventElement.className = `event ${event.type}${event.completed ? ' completed' : ''}`;
+            const dayEvents = getEventsForDate(dateStr);
+            
+            dayEvents.forEach(event => {
+                const eventStart = new Date(event.startDate);
+                const eventEnd = new Date(event.endDate);
+                const currentDate = new Date(dateStr);
+                
+                const eventElement = document.createElement('div');
+                eventElement.className = `event ${event.type}${event.completed ? ' completed' : ''}`;
+                eventElement.setAttribute('data-event-id', event.id);
+                
+                // 멀티데이 이벤트의 경우 연속된 바로 표시
+                if (event.startDate !== event.endDate) {
+                    eventElement.classList.add('multi-day-event');
                     
-                    const eventTitle = document.createElement('div');
-                    eventTitle.className = 'event-title';
-                    eventTitle.textContent = event.title;
-                    eventElement.appendChild(eventTitle);
-
-                    if (event.subtitle) {
-                        const eventSubtitle = document.createElement('div');
-                        eventSubtitle.className = 'event-subtitle';
-                        eventSubtitle.textContent = event.subtitle;
-                        eventElement.appendChild(eventSubtitle);
+                    // 시작일, 중간일, 마지막일에 따른 스타일링
+                    if (dateStr === event.startDate) {
+                        eventElement.classList.add('event-start');
+                    } else if (dateStr === event.endDate) {
+                        eventElement.classList.add('event-end');
+                    } else {
+                        eventElement.classList.add('event-middle');
                     }
+                    
+                    // 이벤트가 며칠간 지속되는지 계산
+                    const daysDiff = Math.ceil((eventEnd - eventStart) / (1000 * 60 * 60 * 24)) + 1;
+                    eventElement.setAttribute('data-duration', daysDiff);
+                }
+                
+                const eventTitle = document.createElement('div');
+                eventTitle.className = 'event-title';
+                eventTitle.textContent = event.title;
+                eventElement.appendChild(eventTitle);
 
-                    if (event.status && !event.completed) {
-                        const eventStatus = document.createElement('div');
-                        eventStatus.className = 'event-subtitle';
-                        eventStatus.textContent = event.status;
-                        eventElement.appendChild(eventStatus);
-                    }
+                if (event.subtitle) {
+                    const eventSubtitle = document.createElement('div');
+                    eventSubtitle.className = 'event-subtitle';
+                    eventSubtitle.textContent = event.subtitle;
+                    eventElement.appendChild(eventSubtitle);
+                }
 
-                    if (event.completed) {
-                        const doneElement = document.createElement('div');
-                        doneElement.className = 'event-done';
-                        doneElement.innerHTML = '✓ DONE';
-                        eventElement.appendChild(doneElement);
-                    }
+                if (event.status && !event.completed) {
+                    const eventStatus = document.createElement('div');
+                    eventStatus.className = 'event-subtitle';
+                    eventStatus.textContent = event.status;
+                    eventElement.appendChild(eventStatus);
+                }
 
-                    eventElement.addEventListener('click', () => openEvent(event));
-                    dayElement.appendChild(eventElement);
-                });
-            }
+                if (event.completed) {
+                    const doneElement = document.createElement('div');
+                    doneElement.className = 'event-done';
+                    doneElement.innerHTML = '✓ DONE';
+                    eventElement.appendChild(doneElement);
+                }
+
+                eventElement.addEventListener('click', () => openEvent(event));
+                dayElement.appendChild(eventElement);
+            });
 
             // Task Dump 추가 (특정 날짜에)
             if (dateStr === '2025-01-27') {
