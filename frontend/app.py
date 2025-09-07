@@ -2936,7 +2936,7 @@ def health_check():
     return jsonify({
         'status': 'healthy',
         'message': 'NotionFlow is running successfully',
-        'timestamp': datetime.utcnow().isoformat()
+        'timestamp': dt.utcnow().isoformat()
     })
 
 # [SEARCH] Debug endpoint for session testing
