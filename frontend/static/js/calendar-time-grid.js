@@ -454,7 +454,7 @@ async function loadTimeGridEvents() {
     const calendarId = document.querySelector('.calendar-workspace').dataset.calendarId;
     
     try {
-        const response = await fetch(`/api/calendars/${calendarId}/events?start=${currentWeekStart.toISOString()}`);
+        const response = await fetch(`/api/calendar/events?start=${currentWeekStart.toISOString()}`);
         if (response.ok) {
             const data = await response.json();
             renderEvents(data.events || []);
@@ -886,7 +886,7 @@ async function saveEventChanges(eventBlock) {
     newEndDate.setHours(newEndDate.getHours() + Math.floor(duration), newEndDate.getMinutes() + Math.round((duration % 1) * 60));
     
     try {
-        const response = await fetch(`/api/calendars/${calendarId}/events/${eventId}`, {
+        const response = await fetch(`/api/calendar/events/${eventId}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1392,7 +1392,7 @@ async function duplicateEvent(eventId) {
     const calendarId = document.querySelector('.calendar-workspace').dataset.calendarId;
     
     try {
-        const response = await fetch(`/api/calendars/${calendarId}/events/${eventId}/duplicate`, {
+        const response = await fetch(`/api/calendar/events/${eventId}/duplicate`, {
             method: 'POST'
         });
         
@@ -1416,7 +1416,7 @@ async function deleteEvent(eventId) {
     const calendarId = document.querySelector('.calendar-workspace').dataset.calendarId;
     
     try {
-        const response = await fetch(`/api/calendars/${calendarId}/events/${eventId}`, {
+        const response = await fetch(`/api/calendar/events/${eventId}`, {
             method: 'DELETE'
         });
         
@@ -1714,21 +1714,28 @@ window.saveSidebarEvent = async function(event) {
         const formData = new FormData(form);
         const calendarId = document.querySelector('.calendar-workspace').dataset.calendarId;
         
-        // Create event data object
+        // Create datetime strings from date and time inputs
+        const startDate = formData.get('start_date');
+        const startTime = formData.get('start_time');
+        const endDate = formData.get('end_date') || formData.get('start_date');
+        const endTime = formData.get('end_time');
+        
+        const startDateTime = `${startDate}T${startTime}:00`;
+        const endDateTime = `${endDate}T${endTime}:00`;
+        
+        // Create event data object matching API requirements
         const eventData = {
             title: formData.get('title') || 'New Event',
             description: formData.get('description') || '',
-            start_date: formData.get('start_date'),
-            end_date: formData.get('end_date') || formData.get('start_date'),
-            start_time: formData.get('start_time'),
-            end_time: formData.get('end_time'),
+            start_datetime: startDateTime,
+            end_datetime: endDateTime,
             color: formData.get('color') || '#3b82f6',
             is_all_day: formData.get('is_all_day') === 'on'
         };
         
         console.log('📤 Sending event data:', eventData);
         
-        const response = await fetch(`/api/calendars/${calendarId}/events`, {
+        const response = await fetch(`/api/calendar/events`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1761,21 +1768,28 @@ window.saveOverlayEvent = async function(event) {
         const formData = new FormData(form);
         const calendarId = document.querySelector('.calendar-workspace').dataset.calendarId;
         
-        // Create event data object
+        // Create datetime strings from date and time inputs
+        const startDate = formData.get('start_date');
+        const startTime = formData.get('start_time');
+        const endDate = formData.get('end_date') || formData.get('start_date');
+        const endTime = formData.get('end_time');
+        
+        const startDateTime = `${startDate}T${startTime}:00`;
+        const endDateTime = `${endDate}T${endTime}:00`;
+        
+        // Create event data object matching API requirements
         const eventData = {
             title: formData.get('title') || 'New Event',
             description: formData.get('description') || '',
-            start_date: formData.get('start_date'),
-            end_date: formData.get('end_date') || formData.get('start_date'),
-            start_time: formData.get('start_time'),
-            end_time: formData.get('end_time'),
+            start_datetime: startDateTime,
+            end_datetime: endDateTime,
             color: formData.get('color') || '#3b82f6',
             is_all_day: formData.get('is_all_day') === 'on'
         };
         
         console.log('📤 Sending overlay event data:', eventData);
         
-        const response = await fetch(`/api/calendars/${calendarId}/events`, {
+        const response = await fetch(`/api/calendar/events`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
