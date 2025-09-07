@@ -1768,8 +1768,20 @@ class GoogleCalendarGrid {
         const [startYear, startMonth, startDay] = eventData.date.split('-').map(Number);
         const [endYear, endMonth, endDay] = eventData.endDate.split('-').map(Number);
         
-        const startDate = new Date(startYear, startMonth - 1, startDay, 12, 0, 0);
-        const endDate = new Date(endYear, endMonth - 1, endDay, 12, 0, 0);
+        // Parse time for positioning (if available)
+        let startHour = 9, startMin = 0, endHour = 10, endMin = 0;
+        if (eventData.startTime && eventData.endTime) {
+            [startHour, startMin] = eventData.startTime.split(':').map(Number);
+            [endHour, endMin] = eventData.endTime.split(':').map(Number);
+            console.log('🕐 Time range:', eventData.startTime, 'to', eventData.endTime);
+        } else {
+            console.warn('⚠️ Multi-day event missing time info:', eventData);
+            console.warn('   This event should have been created with time information');
+            console.warn('   Using default 9AM-10AM as fallback');
+        }
+        
+        const startDate = new Date(startYear, startMonth - 1, startDay, startHour, startMin, 0);
+        const endDate = new Date(endYear, endMonth - 1, endDay, endHour, endMin, 0);
         
         const weekStart = new Date(this.weekStart);
         weekStart.setHours(12, 0, 0, 0);
@@ -1783,18 +1795,6 @@ class GoogleCalendarGrid {
         
         console.log('📅 Multi-day event - Start:', startDate, 'End:', endDate);
         console.log('📅 Day indices - Start:', startDayIndex, 'End:', endDayIndex);
-        
-        // Parse time for positioning (if available)
-        let startHour = 9, startMin = 0, endHour = 10, endMin = 0;
-        if (eventData.startTime && eventData.endTime) {
-            [startHour, startMin] = eventData.startTime.split(':').map(Number);
-            [endHour, endMin] = eventData.endTime.split(':').map(Number);
-            console.log('🕐 Time range:', eventData.startTime, 'to', eventData.endTime);
-        } else {
-            console.warn('⚠️ Multi-day event missing time info:', eventData);
-            console.warn('   This event should have been created with time information');
-            console.warn('   Using default 9AM-10AM as fallback');
-        }
         
         const startPosition = startHour + startMin / 60;
         const endPosition = endHour + endMin / 60;
