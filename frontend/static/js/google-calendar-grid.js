@@ -1514,6 +1514,21 @@ class GoogleCalendarGrid {
             console.log('⚠️ Event from next week, adjusting...');
         }
         
+        // Check if this is an all-day event
+        if (eventData.isAllDay) {
+            console.log('📅 Rendering all-day event:', eventData.title);
+            // For all-day events, render them in a special all-day section or as full-day blocks
+            this.renderAllDayEvent(eventData, dayIndex);
+            return;
+        }
+        
+        // Check if startTime and endTime exist for timed events
+        if (!eventData.startTime || !eventData.endTime) {
+            console.warn('⚠️ Event missing time information, treating as all-day:', eventData);
+            this.renderAllDayEvent(eventData, dayIndex);
+            return;
+        }
+        
         const [startHour, startMin] = eventData.startTime.split(':').map(Number);
         const [endHour, endMin] = eventData.endTime.split(':').map(Number);
         
@@ -1609,6 +1624,106 @@ class GoogleCalendarGrid {
         dayColumn.appendChild(eventElement);
         console.log('✅ Event element added to DOM:', eventElement, 'Parent:', dayColumn);
         console.log('📍 Event position - top:', eventElement.style.top, 'height:', eventElement.style.height);
+    }
+    
+    renderAllDayEvent(eventData, dayIndex) {
+        console.log('🎯 renderAllDayEvent called with data:', eventData, 'dayIndex:', dayIndex);
+        
+        // Ensure dayIndex is within valid range (0-6 for day columns)
+        const validDayIndex = Math.max(0, Math.min(6, dayIndex));
+        
+        const dayColumn = this.container.querySelector(`.day-column[data-day="${validDayIndex}"]`);
+        
+        if (!dayColumn) {
+            console.log('❌ Day column not found for all-day event! DayIndex:', validDayIndex);
+            return;
+        }
+        
+        // Find or create all-day events container at the top of the column
+        let allDayContainer = dayColumn.querySelector('.all-day-events-container');
+        if (!allDayContainer) {
+            allDayContainer = document.createElement('div');
+            allDayContainer.className = 'all-day-events-container';
+            allDayContainer.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                min-height: 30px;
+                background: rgba(59, 130, 246, 0.1);
+                border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+                padding: 4px;
+                z-index: 10;
+            `;
+            dayColumn.insertBefore(allDayContainer, dayColumn.firstChild);
+        }
+        
+        const eventElement = document.createElement('div');
+        eventElement.className = 'calendar-event all-day-event';
+        eventElement.dataset.eventId = eventData.id;
+        
+        // Apply color as inline style
+        if (eventData.color && eventData.color.startsWith('#')) {
+            eventElement.style.backgroundColor = eventData.color;
+        } else {
+            eventElement.style.backgroundColor = '#3b82f6';
+        }
+        
+        eventElement.style.cssText += `
+            position: relative;
+            width: 100%;
+            padding: 4px 8px;
+            margin-bottom: 2px;
+            border-radius: 4px;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        `;
+        
+        eventElement.innerHTML = `
+            <div class="calendar-event-content">
+                <div class="calendar-event-title">${eventData.title || 'Untitled'}</div>
+                <div class="calendar-event-badge" style="display: inline-block; padding: 2px 6px; background: rgba(255,255,255,0.2); border-radius: 3px; font-size: 10px; margin-left: 4px;">All Day</div>
+            </div>
+            <div class="calendar-event-actions" style="position: absolute; top: 4px; right: 4px; display: none;">
+                <button class="calendar-event-edit" onclick="window.googleCalendarGrid.showEditEventPopup('${eventData.id}'); event.stopPropagation();" title="편집" style="background: none; border: none; color: white; cursor: pointer; padding: 2px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="m18.5 2.5 a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                </button>
+                <button class="calendar-event-delete" onclick="window.googleCalendarGrid.deleteEventById('${eventData.id}'); event.stopPropagation();" title="삭제" style="background: none; border: none; color: white; cursor: pointer; padding: 2px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <polyline points="3,6 5,6 21,6"/>
+                        <path d="m19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2-2h4a2,2 0 0,1,2,2v2"/>
+                    </svg>
+                </button>
+            </div>
+        `;
+        
+        // Show actions on hover
+        eventElement.addEventListener('mouseenter', () => {
+            const actions = eventElement.querySelector('.calendar-event-actions');
+            if (actions) actions.style.display = 'flex';
+        });
+        
+        eventElement.addEventListener('mouseleave', () => {
+            const actions = eventElement.querySelector('.calendar-event-actions');
+            if (actions) actions.style.display = 'none';
+        });
+        
+        // Add click handler
+        eventElement.addEventListener('click', (e) => {
+            if (!e.target.closest('.calendar-event-actions')) {
+                this.showEditEventPopup(eventData.id);
+            }
+        });
+        
+        allDayContainer.appendChild(eventElement);
+        console.log('✅ All-day event element added to DOM:', eventElement);
     }
     
     renderMultiDayEvent(eventData) {
