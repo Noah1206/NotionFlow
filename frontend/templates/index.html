@@ -474,6 +474,7 @@
             line-height: 1.1;
             margin-bottom: 1rem;
             letter-spacing: -0.03em;
+            white-space: nowrap;
             color: var(--text-primary);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             text-align: left;
@@ -2403,8 +2404,12 @@
         }
 
         .cta-content {
-            max-width: 700px;
+            max-width: 100%;
             margin: 0 auto;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .cta-title {
@@ -2412,12 +2417,16 @@
             font-weight: 700;
             margin-bottom: 1.5rem;
             color: var(--text-primary);
+            text-align: center;
+            white-space: nowrap;
         }
 
         .cta-subtitle {
             font-size: 1.25rem;
             color: var(--text-secondary);
             margin-bottom: 3rem;
+            text-align: center;
+            white-space: nowrap;
         }
 
         /* Footer */
