@@ -827,10 +827,80 @@ def exchange_code_for_tokens(platform, code, state_data):
     return result
 
 def handle_callback_success(platform, user_info):
-    """Handle successful OAuth callback - 일반 로그인과 동일하게 리다이렉트"""
-    from flask import redirect
-    # 일반 로그인과 동일하게 대시보드로 리다이렉트
-    return redirect('/dashboard')
+    """Handle successful OAuth callback"""
+    from flask import redirect, render_template_string
+    
+    # 사용자 정보를 세션에 저장 (로그인이 되어있지 않은 경우)
+    if not session.get('user_info') and user_info:
+        session['user_info'] = {
+            'email': user_info.get('email'),
+            'name': user_info.get('name', user_info.get('display_name')),
+            'platform': platform,
+            'connected_at': datetime.utcnow().isoformat()
+        }
+    
+    # 팝업 창에서 부모 창에 성공 메시지를 보내고 닫기
+    popup_close_html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>OAuth Success</title>
+        <style>
+            body { 
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                display: flex; 
+                justify-content: center; 
+                align-items: center; 
+                height: 100vh; 
+                margin: 0; 
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+            }
+            .success-message {
+                text-align: center;
+                padding: 40px;
+                border-radius: 12px;
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+            }
+            .checkmark {
+                font-size: 48px;
+                margin-bottom: 16px;
+                animation: bounce 0.5s ease;
+            }
+            @keyframes bounce {
+                0%, 20%, 60%, 100% { transform: translateY(0); }
+                40% { transform: translateY(-10px); }
+                80% { transform: translateY(-5px); }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="success-message">
+            <div class="checkmark">✅</div>
+            <h2>{{ platform.title() }} 연결 완료!</h2>
+            <p>창이 자동으로 닫힙니다...</p>
+        </div>
+        <script>
+            // 부모 창에 성공 메시지 전송
+            if (window.opener) {
+                window.opener.postMessage({
+                    type: 'oauth_success',
+                    platform: '{{ platform }}',
+                    message: '{{ platform.title() }} 계정이 성공적으로 연결되었습니다!'
+                }, window.location.origin);
+            }
+            
+            // 2초 후 창 닫기
+            setTimeout(() => {
+                window.close();
+            }, 2000);
+        </script>
+    </body>
+    </html>
+    """
+    
+    return render_template_string(popup_close_html, platform=platform)
 
 def handle_callback_error(error_message):
     """Handle OAuth callback error"""

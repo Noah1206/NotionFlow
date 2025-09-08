@@ -944,8 +944,16 @@
 
     // 개별 플랫폼 연동 기능 - 캘린더 선택 후 연결
     async function connectPlatform(platformName) {
-        // 먼저 캘린더 선택 모달 표시
-        await showCalendarSelectionModal(platformName);
+        // OAuth 지원 플랫폼 체크
+        const oauthPlatforms = ['google', 'notion', 'slack', 'outlook'];
+        
+        if (oauthPlatforms.includes(platformName)) {
+            // OAuth 플랫폼의 경우 원클릭 연동 실행
+            await oneClickConnect(platformName);
+        } else {
+            // 수동 설정 플랫폼의 경우 캘린더 선택 모달 표시
+            await showCalendarSelectionModal(platformName);
+        }
     }
 
     // 캘린더 선택 모달 표시
@@ -1504,15 +1512,20 @@
         }
 
         const button = document.querySelector(`[data-platform="${platform}"] .one-click-btn-small`);
+        
+        if (!button) {
+            console.error(`Button not found for platform: ${platform}`);
+            showNotification(`${getKoreanPlatformName(platform)} 연결 버튼을 찾을 수 없습니다.`, 'error');
+            return;
+        }
+        
         const loader = button.querySelector('.btn-loader');
         const buttonText = button.querySelector('.btn-text');
-        const buttonIcon = button.querySelector('.btn-icon');
 
         // 버튼 상태 변경
         button.disabled = true;
-        buttonText.style.display = 'none';
-        buttonIcon.style.display = 'none';
-        loader.style.display = 'flex';
+        if (buttonText) buttonText.style.display = 'none';
+        if (loader) loader.style.display = 'flex';
 
         try {
             // OAuth 지원 플랫폼들
@@ -1534,9 +1547,8 @@
             // 버튼 상태 복원
             setTimeout(() => {
                 button.disabled = false;
-                buttonText.style.display = 'inline';
-                buttonIcon.style.display = 'inline';
-                loader.style.display = 'none';
+                if (buttonText) buttonText.style.display = 'inline';
+                if (loader) loader.style.display = 'none';
             }, 1000);
         }
     }
