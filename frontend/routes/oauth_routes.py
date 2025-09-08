@@ -789,9 +789,22 @@ def exchange_code_for_tokens(platform, code, state_data):
         if state_data.get('code_verifier'):
             token_data['code_verifier'] = state_data['code_verifier']
     elif platform == 'notion':
-        # Notion uses JSON format
-        headers = {'Content-Type': 'application/json'}
-        token_data = json.dumps(token_data)
+        # Notion uses JSON format and requires specific headers
+        headers = {
+            'Content-Type': 'application/json',
+            'Notion-Version': '2022-06-28'
+        }
+        # Notion doesn't use PKCE and has different token request format
+        token_data = {
+            'grant_type': 'authorization_code',
+            'code': code,
+            'redirect_uri': redirect_uri
+        }
+        # Add basic auth for Notion (client_id:client_secret)
+        import base64
+        credentials = f"{config['client_id']}:{config['client_secret']}"
+        encoded_credentials = base64.b64encode(credentials.encode()).decode()
+        headers['Authorization'] = f'Basic {encoded_credentials}'
     elif platform == 'outlook':
         # Outlook with PKCE
         token_url = config['token_url'].format(tenant=config['tenant_id'])
@@ -810,7 +823,9 @@ def exchange_code_for_tokens(platform, code, state_data):
     # Make token request
     if platform == 'notion':
         # Notion expects JSON data
-        response = requests.post(config['token_url'], data=token_data, headers=headers)
+        response = requests.post(config['token_url'], json=token_data, headers=headers)
+        print(f"[NOTION DEBUG] Token request - JSON: {token_data}")
+        print(f"[NOTION DEBUG] Headers: {headers}")
     else:
         # Other platforms expect form data  
         response = requests.post(config['token_url'], data=token_data, headers=headers)
