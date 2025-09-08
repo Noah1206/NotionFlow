@@ -272,6 +272,35 @@ def create_or_find_user_from_oauth(platform, user_info, token_data):
             if existing_user and existing_user.user:
                 user_id = existing_user.user.id
                 print(f"Found existing auth user for {email}: {user_id}")
+                
+                # Check if user profile exists, create if missing
+                try:
+                    profile_check = supabase.table('user_profiles').select('*').eq('user_id', user_id).execute()
+                    
+                    if not profile_check.data:
+                        print(f"No profile found for existing user {user_id}, creating one...")
+                        # Generate username from email
+                        username = email.split('@')[0]
+                        
+                        # Insert user profile with basic OAuth info
+                        profile_data = {
+                            'user_id': user_id,
+                            'username': username,
+                            'display_name': name or username,
+                            'birthdate': '1990-01-01',  # Default birthdate to avoid initial-setup
+                            'avatar_url': None,
+                            'bio': f'OAuth user from {platform}',
+                            'is_public': False,
+                            'created_at': datetime.utcnow().isoformat(),
+                            'updated_at': datetime.utcnow().isoformat()
+                        }
+                        
+                        supabase.table('user_profiles').insert(profile_data).execute()
+                        print(f"Created missing profile for existing OAuth user: {user_id}")
+                        
+                except Exception as profile_check_e:
+                    print(f"Warning: Could not check/create profile for existing user: {profile_check_e}")
+                
                 return user_id
         except Exception as auth_e:
             print(f"Error checking auth user: {auth_e}")
@@ -298,6 +327,32 @@ def create_or_find_user_from_oauth(platform, user_info, token_data):
             if signup_result.user:
                 user_id = signup_result.user.id
                 print(f"Created new OAuth user for {email}: {user_id}")
+                
+                # Create user profile to avoid initial-setup redirect
+                try:
+                    # Generate username from email
+                    username = email.split('@')[0]
+                    
+                    # Insert user profile with basic OAuth info
+                    profile_data = {
+                        'user_id': user_id,
+                        'username': username,
+                        'display_name': name or username,
+                        'birthdate': '1990-01-01',  # Default birthdate to avoid initial-setup
+                        'avatar_url': None,
+                        'bio': f'OAuth user from {platform}',
+                        'is_public': False,
+                        'created_at': datetime.utcnow().isoformat(),
+                        'updated_at': datetime.utcnow().isoformat()
+                    }
+                    
+                    profile_result = supabase.table('user_profiles').insert(profile_data).execute()
+                    print(f"Created user profile for OAuth user: {user_id}")
+                    
+                except Exception as profile_e:
+                    print(f"Warning: Could not create user profile for OAuth user: {profile_e}")
+                    # Continue without profile - user can complete setup later
+                
                 return user_id
             else:
                 print(f"Failed to create OAuth user for {email}")
