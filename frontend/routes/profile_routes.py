@@ -358,6 +358,7 @@ def initial_setup():
                     'user_id': user_id,
                     'username': username,
                     'display_name': display_name,
+                    'birthdate': birthdate,
                     'email': email,
                     'is_public': False,
                     'created_at': datetime.now().isoformat(),
