@@ -304,13 +304,19 @@ app = Flask(__name__,
 app.secret_key = config.FLASK_SECRET_KEY
 app.config['TEMPLATES_AUTO_RELOAD'] = True  # 템플릿 자동 리로드 활성화
 
+# Railway/Production HTTPS Proxy 설정
+if os.getenv('FLASK_ENV') == 'production':
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+    print("[INFO] ProxyFix middleware enabled for production environment")
+
 # Calendar data storage functions (using the implementations from lines 118-132)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # 정적 파일 캐싱 비활성화
 app.jinja_env.auto_reload = True  # Jinja2 템플릿 자동 리로드
 
 # Session configuration
 app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+app.config['SESSION_COOKIE_SECURE'] = os.getenv('FLASK_ENV') == 'production'  # True in production with HTTPS
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['PERMANENT_SESSION_LIFETIME'] = 86400  # 24 hours
 

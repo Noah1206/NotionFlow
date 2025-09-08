@@ -80,14 +80,19 @@ def register_google_routes(app):
 
     @google_bp.route("/login/google")
     def login_google():
-        # Railway 환경에서는 명시적으로 redirect_uri 설정
-        if os.getenv('FLASK_ENV') == 'production':
-            base_url = os.getenv('BASE_URL', 'https://notionflow-production.up.railway.app')
+        # Railway 환경에서는 항상 명시적으로 redirect_uri 설정 (HTTPS 프록시 문제 해결)
+        base_url = os.getenv('BASE_URL')
+        if base_url:
             redirect_uri = f"{base_url}/auth/google/callback"
         else:
+            # 로컬 개발 환경
             redirect_uri = url_for("google_bp.google_auth_callback", _external=True)
+            # HTTP로 생성되면 HTTPS로 강제 변경
+            if redirect_uri.startswith('http://') and os.getenv('FLASK_ENV') == 'production':
+                redirect_uri = redirect_uri.replace('http://', 'https://', 1)
         
-        current_app.logger.debug(f"Google OAuth redirect URI: {redirect_uri}")
+        current_app.logger.info(f"Google OAuth redirect URI being used: {redirect_uri}")
+        print(f"[OAUTH DEBUG] Redirect URI: {redirect_uri}")
         return google.authorize_redirect(redirect_uri)
 
     @google_bp.route("/auth/google/callback")
