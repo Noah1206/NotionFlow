@@ -646,28 +646,28 @@ def generic_oauth_authorize(platform):
 def generic_oauth_callback(platform):
     """Generic OAuth callback handler"""
     if platform not in OAUTH_CONFIG:
-        return handle_callback_error('Unsupported platform')
+        return handle_callback_error('Unsupported platform', platform)
     
     code = request.args.get('code')
     state = request.args.get('state')
     error = request.args.get('error')
     
     if error:
-        return handle_callback_error(f'OAuth error: {error}')
+        return handle_callback_error(f'OAuth error: {error}', platform)
     
     if not code or not state:
-        return handle_callback_error('Missing authorization code or state')
+        return handle_callback_error('Missing authorization code or state', platform)
     
     # Verify state
     state_data = verify_oauth_state(state, platform)
     if not state_data:
-        return handle_callback_error('Invalid or expired state')
+        return handle_callback_error('Invalid or expired state', platform)
     
     try:
         # Exchange code for tokens
         token_data = exchange_code_for_tokens(platform, code, state_data)
         if not token_data:
-            return handle_callback_error('Failed to exchange authorization code for tokens')
+            return handle_callback_error('Failed to exchange authorization code for tokens', platform)
         
         # Get user info
         user_info = None
@@ -808,10 +808,22 @@ def exchange_code_for_tokens(platform, code, state_data):
             token_data['code_verifier'] = state_data['code_verifier']
     
     # Make token request
-    response = requests.post(config['token_url'], data=token_data, headers=headers)
+    if platform == 'notion':
+        # Notion expects JSON data
+        response = requests.post(config['token_url'], data=token_data, headers=headers)
+    else:
+        # Other platforms expect form data  
+        response = requests.post(config['token_url'], data=token_data, headers=headers)
     
     if response.status_code != 200:
-        print(f"Token exchange failed for {platform}: {response.status_code} {response.text}")
+        print(f"Token exchange failed for {platform}: {response.status_code}")
+        print(f"Request URL: {config['token_url']}")
+        print(f"Request Headers: {headers}")
+        if platform == 'notion':
+            print(f"Request Data (JSON): {token_data}")
+        else:
+            print(f"Request Data (Form): {token_data}")
+        print(f"Response: {response.text}")
         return None
     
     result = response.json()
@@ -902,9 +914,17 @@ def handle_callback_success(platform, user_info):
     
     return render_template_string(popup_close_html, platform=platform)
 
-def handle_callback_error(error_message):
+def handle_callback_error(error_message, platform=None):
     """Handle OAuth callback error"""
-    error_html = f"""
+    from flask import render_template_string
+    
+    # 더 자세한 에러 로깅
+    if platform:
+        print(f"OAuth Error for {platform}: {error_message}")
+    else:
+        print(f"OAuth Error: {error_message}")
+    
+    error_html = """
     <!DOCTYPE html>
     <html>
     <head>
