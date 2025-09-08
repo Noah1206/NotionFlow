@@ -131,11 +131,11 @@ def generate_apple_client_secret():
         return None
 
 def store_oauth_state(user_id, provider, state, code_verifier=None):
-    """Store OAuth state in database for security"""
+    """Store OAuth state in database or session for security"""
     try:
-        # Prepare data for database insertion
-        data = {
-            'user_id': user_id or 'anonymous',  # OAuth 플로우를 위한 임시 값
+        # OAuth state 데이터 준비
+        state_data = {
+            'user_id': user_id or 'anonymous',
             'provider': provider,
             'state': state,
             'code_verifier': code_verifier,
@@ -143,41 +143,15 @@ def store_oauth_state(user_id, provider, state, code_verifier=None):
             'expires_at': (datetime.utcnow() + timedelta(minutes=10)).isoformat()
         }
         
-        # Insert into oauth_states table
-        result = supabase.table('oauth_states').insert(data).execute()
-        
-        if result.data:
-            print(f"OAuth state stored successfully in database for {provider}: {state[:8]}...")
-            return True
-        else:
-            print(f"Failed to store OAuth state in database for {provider}")
-            # Fallback to session storage if database fails
-            session[f'oauth_state_{state}'] = {
-                'user_id': user_id,
-                'provider': provider,
-                'code_verifier': code_verifier,
-                'created_at': datetime.utcnow().isoformat()
-            }
-            print(f"Fallback: OAuth state stored in session for {provider}")
-            return True
+        # 세션 저장 방식 사용 (RLS 정책 문제 우회)
+        session[f'oauth_state_{state}'] = state_data
+        print(f"OAuth state stored in session for {provider}: {state[:8]}...")
+        return True
             
     except Exception as e:
         print(f"Error storing OAuth state for {provider}: {e}")
         print(f"User ID: {user_id}, Provider: {provider}")
-        
-        # Fallback to session storage on database error
-        try:
-            session[f'oauth_state_{state}'] = {
-                'user_id': user_id,
-                'provider': provider,
-                'code_verifier': code_verifier,
-                'created_at': datetime.utcnow().isoformat()
-            }
-            print(f"Fallback: OAuth state stored in session after database error")
-            return True
-        except Exception as session_error:
-            print(f"Session storage also failed: {session_error}")
-            return False
+        return False
 
 def verify_oauth_state(state, provider):
     """Verify OAuth state from database"""
@@ -277,7 +251,7 @@ def get_user_info_from_provider(platform, access_token):
         return None
 
 def create_or_find_user_from_oauth(platform, user_info, token_data):
-    """OAuth를 통해 사용자를 생성하거나 찾기"""
+    """OAuth를 통해 사용자를 생성하거나 찾기 - 일반 로그인과 동일한 방식"""
     try:
         if not user_info:
             print(f"No user info available for {platform} OAuth")
@@ -291,35 +265,50 @@ def create_or_find_user_from_oauth(platform, user_info, token_data):
             print(f"No email found in {platform} user info")
             return None
         
-        # 기존 사용자 찾기 (이메일로)
-        existing_user = supabase.table('users').select('*').eq('email', email).execute()
+        # Supabase Auth 테이블에서 사용자 찾기 (일반 로그인과 동일한 방식)
+        try:
+            # auth.users 테이블에서 확인
+            existing_user = supabase.auth.get_user_by_email(email)
+            if existing_user and existing_user.user:
+                user_id = existing_user.user.id
+                print(f"Found existing auth user for {email}: {user_id}")
+                return user_id
+        except Exception as auth_e:
+            print(f"Error checking auth user: {auth_e}")
         
-        if existing_user.data:
-            # 기존 사용자 로그인
-            user_id = existing_user.data[0]['id']
-            print(f"Found existing user for {email}: {user_id}")
-            return user_id
-        else:
-            # 새 사용자 생성
-            user_data = {
-                'email': email,
-                'name': name or email.split('@')[0],
-                'created_at': datetime.utcnow().isoformat(),
-                'auth_provider': platform,
-                'is_active': True
-            }
+        # 기존 사용자가 없으면 새로 생성 (Supabase Auth 사용)
+        try:
+            # 임시 비밀번호로 사용자 생성 (OAuth이므로 비밀번호는 사용되지 않음)
+            import secrets
+            temp_password = secrets.token_urlsafe(32)
             
-            result = supabase.table('users').insert(user_data).execute()
-            if result.data:
-                user_id = result.data[0]['id']
-                print(f"Created new user for {email}: {user_id}")
+            # Supabase Auth로 사용자 생성
+            signup_result = supabase.auth.sign_up({
+                "email": email, 
+                "password": temp_password,
+                "options": {
+                    "data": {
+                        "display_name": name,
+                        "auth_provider": platform,
+                        "oauth_signup": True
+                    }
+                }
+            })
+            
+            if signup_result.user:
+                user_id = signup_result.user.id
+                print(f"Created new OAuth user for {email}: {user_id}")
                 return user_id
             else:
-                print(f"Failed to create user for {email}")
+                print(f"Failed to create OAuth user for {email}")
                 return None
                 
+        except Exception as signup_e:
+            print(f"Error creating OAuth user: {signup_e}")
+            return None
+                
     except Exception as e:
-        print(f"Error creating/finding user from {platform} OAuth: {e}")
+        print(f"Error in OAuth user creation/finding: {e}")
         return None
 
 def store_platform_registration(user_id, platform, token_data, user_info=None):
@@ -642,11 +631,37 @@ def generic_oauth_callback(platform):
             if not actual_user_id:
                 return handle_callback_error('Failed to create or find user account')
             
-            # 세션에 사용자 로그인 처리
+            # 일반 로그인과 동일한 세션 생성 방식
+            user_email = get_platform_user_email(platform, user_info)
+            user_name = get_platform_user_name(platform, user_info)
+            
+            # 세션 데이터 구조를 일반 로그인과 동일하게 설정
             session['user_id'] = actual_user_id
-            session['user_email'] = get_platform_user_email(platform, user_info)
-            session['user_name'] = get_platform_user_name(platform, user_info)
+            session['user_info'] = {
+                'id': actual_user_id,
+                'email': user_email,
+                'username': None,  # OAuth에서는 username이 없을 수 있음
+                'display_name': user_name
+            }
+            session['authenticated'] = True
             session.permanent = True
+            
+            # AuthManager와 SessionManager 사용 (일반 로그인과 동일)
+            try:
+                from utils.auth_manager import AuthManager, SessionManager
+                # 가상 user_data 생성
+                oauth_user_data = {
+                    'id': actual_user_id,
+                    'email': user_email,
+                    'username': None,
+                    'display_name': user_name
+                }
+                AuthManager.create_session(oauth_user_data)
+                SessionManager.extend_session()
+                print(f"OAuth Session created for user: {actual_user_id}")
+            except Exception as session_e:
+                print(f"Error creating OAuth session with AuthManager: {session_e}")
+                # 기본 세션은 이미 생성되었으므로 계속 진행
         
         # Store platform registration
         success = store_platform_registration(actual_user_id, platform, token_data, user_info)
@@ -734,122 +749,10 @@ def exchange_code_for_tokens(platform, code, state_data):
     return result
 
 def handle_callback_success(platform, user_info):
-    """Handle successful OAuth callback"""
-    user_name = get_platform_user_name(platform, user_info) or get_platform_user_email(platform, user_info) or 'Unknown User'
-    
-    success_html = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Connected Successfully</title>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-            body {{
-                font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                min-height: 100vh;
-                margin: 0;
-                background: #f9fafb;
-            }}
-            .success {{
-                text-align: center;
-                background: white;
-                padding: 40px;
-                border-radius: 12px;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-                max-width: 400px;
-                width: 90%;
-            }}
-            .success-icon {{
-                width: 64px;
-                height: 64px;
-                margin: 0 auto 24px;
-                background: linear-gradient(135deg, #10b981, #059669);
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: white;
-                font-size: 28px;
-                font-weight: bold;
-            }}
-            .success-title {{
-                margin: 0 0 8px;
-                color: #111827;
-                font-size: 24px;
-                font-weight: 600;
-            }}
-            .success-subtitle {{
-                margin: 0 0 16px;
-                color: #6b7280;
-                font-size: 16px;
-            }}
-            .user-info {{
-                padding: 16px;
-                background: #f3f4f6;
-                border-radius: 8px;
-                margin: 20px 0;
-            }}
-            .user-name {{
-                font-weight: 600;
-                color: #111827;
-                font-size: 16px;
-                margin: 0;
-            }}
-            .close-info {{
-                margin-top: 24px;
-                font-size: 14px;
-                color: #6b7280;
-                padding: 12px;
-                background: #f9fafb;
-                border-radius: 6px;
-                border: 1px solid #e5e7eb;
-            }}
-        </style>
-        <script>
-            // Notify parent window of success
-            if (window.opener && !window.opener.closed) {{
-                window.opener.postMessage({{
-                    type: 'oauth_success',
-                    platform: '{platform}',
-                    user_info: {json.dumps(user_info) if user_info else 'null'}
-                }}, '*');
-            }}
-            
-            // Auto-close after delay
-            let countdown = 3;
-            const countdownElement = document.getElementById('countdown');
-            const timer = setInterval(() => {{
-                countdown--;
-                if (countdownElement) {{
-                    countdownElement.textContent = countdown;
-                }}
-                if (countdown <= 0) {{
-                    clearInterval(timer);
-                    window.close();
-                }}
-            }}, 1000);
-        </script>
-    </head>
-    <body>
-        <div class="success">
-            <div class="success-icon">✓</div>
-            <h1 class="success-title">{platform.title()} Connected!</h1>
-            <p class="success-subtitle">Successfully connected your {platform.title()} account.</p>
-            <div class="user-info">
-                <div class="user-name">{user_name}</div>
-            </div>
-            <div class="close-info">
-                This window will close automatically in <span id="countdown">3</span> seconds.
-            </div>
-        </div>
-    </body>
-    </html>
-    """
-    return success_html
+    """Handle successful OAuth callback - 일반 로그인과 동일하게 리다이렉트"""
+    from flask import redirect
+    # 일반 로그인과 동일하게 대시보드로 리다이렉트
+    return redirect('/dashboard')
 
 def handle_callback_error(error_message):
     """Handle OAuth callback error"""
