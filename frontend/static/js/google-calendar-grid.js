@@ -1396,6 +1396,76 @@ class GoogleCalendarGrid {
         // Store popup reference for later use
         this.currentPopup = popup;
     }
+
+    selectEventInSidebar(eventId) {
+        const eventData = this.events.find(event => event.id === eventId);
+        if (!eventData) {
+            console.error('Event not found:', eventId);
+            return;
+        }
+
+        console.log('🎯 Selecting event in sidebar:', eventData);
+
+        // Show the selected event in the sidebar events section
+        const dayEventsContainer = document.getElementById('day-events');
+        if (!dayEventsContainer) {
+            console.error('Day events container not found');
+            return;
+        }
+
+        // Clear previous selections
+        dayEventsContainer.querySelectorAll('.event-item').forEach(item => {
+            item.classList.remove('selected');
+        });
+
+        // Add or update the event in the sidebar
+        this.displayEventInSidebar(eventData);
+        
+        // Scroll sidebar to show the events section
+        const eventsSection = document.querySelector('.events-section');
+        if (eventsSection) {
+            eventsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
+    displayEventInSidebar(eventData) {
+        const dayEventsContainer = document.getElementById('day-events');
+        if (!dayEventsContainer) return;
+
+        // Check if event is already displayed
+        let existingEvent = dayEventsContainer.querySelector(`[data-event-id="${eventData.id}"]`);
+        
+        if (!existingEvent) {
+            // Create new event element
+            existingEvent = document.createElement('div');
+            existingEvent.className = 'event-item';
+            existingEvent.setAttribute('data-event-id', eventData.id);
+            
+            const eventDate = new Date(eventData.date);
+            const dateStr = eventDate.toLocaleDateString('ko-KR', { 
+                month: 'short', 
+                day: 'numeric'
+            });
+            
+            const timeStr = eventData.allDay ? 'All Day' : 
+                `${this.formatTimeDisplay(eventData.startTime)} - ${this.formatTimeDisplay(eventData.endTime)}`;
+            
+            existingEvent.innerHTML = `
+                <div class="event-time">${timeStr}</div>
+                <div class="event-title">${eventData.title || 'Untitled'}</div>
+                <div class="event-date">${dateStr}</div>
+                ${eventData.description ? `<div class="event-description">${eventData.description}</div>` : ''}
+            `;
+            
+            dayEventsContainer.appendChild(existingEvent);
+        }
+        
+        // Mark as selected
+        existingEvent.classList.add('selected');
+        
+        // Scroll to the selected event
+        existingEvent.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
     
     async saveEvent(form, popup) {
         const formData = new FormData(form);
@@ -1620,7 +1690,7 @@ class GoogleCalendarGrid {
         
         eventElement.innerHTML = `
             <div class="calendar-event-actions">
-                <button class="calendar-event-edit" onclick="window.googleCalendarGrid.showEditEventPopup('${eventData.id}'); event.stopPropagation();" title="편집">
+                <button class="calendar-event-edit" onclick="window.googleCalendarGrid.selectEventInSidebar('${eventData.id}'); event.stopPropagation();" title="편집">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                         <path d="m18.5 2.5 a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -1751,7 +1821,7 @@ class GoogleCalendarGrid {
                 <div class="calendar-event-badge" style="display: inline-block; padding: 2px 6px; background: rgba(255,255,255,0.2); border-radius: 3px; font-size: 10px; margin-left: 4px;">All Day</div>
             </div>
             <div class="calendar-event-actions" style="position: absolute; top: 4px; right: 4px; display: none;">
-                <button class="calendar-event-edit" onclick="window.googleCalendarGrid.showEditEventPopup('${eventData.id}'); event.stopPropagation();" title="편집" style="background: none; border: none; color: white; cursor: pointer; padding: 2px;">
+                <button class="calendar-event-edit" onclick="window.googleCalendarGrid.selectEventInSidebar('${eventData.id}'); event.stopPropagation();" title="편집" style="background: none; border: none; color: white; cursor: pointer; padding: 2px;">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                         <path d="m18.5 2.5 a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -1777,10 +1847,10 @@ class GoogleCalendarGrid {
             if (actions) actions.style.display = 'none';
         });
         
-        // Add click handler
+        // Add click handler to select event in sidebar
         eventElement.addEventListener('click', (e) => {
             if (!e.target.closest('.calendar-event-actions')) {
-                this.showEditEventPopup(eventData.id);
+                this.selectEventInSidebar(eventData.id);
             }
         });
         
@@ -1924,7 +1994,7 @@ class GoogleCalendarGrid {
         
         eventElement.innerHTML = `
             <div class="calendar-event-actions" style="position: absolute; top: 2px; right: 2px; display: none; gap: 2px;">
-                <button class="calendar-event-edit" onclick="window.googleCalendarGrid.showEditEventPopup('${eventData.id}'); event.stopPropagation();" title="편집" style="background: rgba(0,0,0,0.3); border: none; color: white; cursor: pointer; padding: 4px; border-radius: 2px;">
+                <button class="calendar-event-edit" onclick="window.googleCalendarGrid.selectEventInSidebar('${eventData.id}'); event.stopPropagation();" title="편집" style="background: rgba(0,0,0,0.3); border: none; color: white; cursor: pointer; padding: 4px; border-radius: 2px;">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                         <path d="m18.5 2.5 a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -1955,10 +2025,10 @@ class GoogleCalendarGrid {
             if (actions) actions.style.display = 'none';
         });
         
-        // Add click handler
+        // Add click handler to select event in sidebar
         eventElement.addEventListener('click', (e) => {
             if (!e.target.closest('.calendar-event-actions')) {
-                this.showEditEventPopup(eventData.id);
+                this.selectEventInSidebar(eventData.id);
             }
         });
         
@@ -2008,7 +2078,7 @@ class GoogleCalendarGrid {
             
             eventElement.innerHTML = `
                 <div class="calendar-event-actions">
-                    <button class="calendar-event-edit" onclick="window.googleCalendarGrid.showEditEventPopup('${eventData.id}'); event.stopPropagation();" title="편집">
+                    <button class="calendar-event-edit" onclick="window.googleCalendarGrid.selectEventInSidebar('${eventData.id}'); event.stopPropagation();" title="편집">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                             <path d="m18.5 2.5 a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -2935,7 +3005,6 @@ class GoogleCalendarGrid {
                     <div style="font-size: 12px; margin-top: 4px; opacity: 0.7;">다른 키워드로 검색해보세요</div>
                 </div>` : 
                 `<div class="event-list-empty">
-                    <div style="margin-bottom: 8px;">📅</div>
                     <div>등록된 일정이 없습니다</div>
                     <div style="font-size: 12px; margin-top: 4px; opacity: 0.7;">새 일정을 추가해보세요</div>
                 </div>`;

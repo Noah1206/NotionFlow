@@ -2736,10 +2736,11 @@
                                 <label for="sidebar-event-description">설명 (선택사항)</label>
                                 <textarea id="sidebar-event-description" rows="3" placeholder="일정 설명을 입력하세요"></textarea>
                             </div>
-                            
+
                             <div class="form-group">
                                 <label for="sidebar-youtube-url">YouTube 링크 (선택사항)</label>
-                                <input type="url" id="sidebar-youtube-url" placeholder="https://www.youtube.com/watch?v=...">
+                                <input type="url" id="sidebar-youtube-url"
+                                    placeholder="https://www.youtube.com/watch?v=...">
                             </div>
 
                             <div class="form-group">
@@ -2841,11 +2842,12 @@
                                 <label for="overlay-event-description">설명 (선택사항)</label>
                                 <textarea id="overlay-event-description" rows="2" placeholder="간단한 설명 추가"></textarea>
                             </div>
-                            
+
                             <!-- YouTube 링크 선택사항 -->
                             <div class="form-group">
                                 <label for="overlay-youtube-url">YouTube 링크 (선택사항)</label>
-                                <input type="url" id="overlay-youtube-url" placeholder="https://www.youtube.com/watch?v=...">
+                                <input type="url" id="overlay-youtube-url"
+                                    placeholder="https://www.youtube.com/watch?v=...">
                             </div>
                             <!-- 색상 선택 -->
                             <div class="form-group">
@@ -3659,7 +3661,6 @@
         }
 
         .event-list-item-time::before {
-            content: "📅";
             font-size: 12px;
         }
 
@@ -4739,6 +4740,63 @@
                 transform: translateY(0);
             }
         }
+
+        /* Event item styles for sidebar */
+        .event-item {
+            padding: 12px 16px;
+            margin: 8px 0;
+            border-radius: 8px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .event-item:hover {
+            background: #e9ecef;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .event-item.selected {
+            background: #e3f2fd !important;
+            border-color: #2196f3 !important;
+            box-shadow: 0 2px 12px rgba(33, 150, 243, 0.2) !important;
+        }
+
+        .event-item .event-time {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .event-item .event-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .event-item .event-date {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+
+        .event-item .event-description {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .event-item.selected .event-title {
+            color: #1976d2;
+        }
+
+        .event-item.selected .event-time {
+            color: #1976d2;
+        }
     </style>
 
     <!-- JavaScript -->
@@ -4863,7 +4921,7 @@
         // Multi-day Overlay Event Form Function
         function showOverlayEventFormMultiDay(startDate, endDate, clickedCell = null, startHour = 0, endHour = 1) {
             console.log('🗓️ showOverlayEventFormMultiDay called:', { startDate, endDate, startHour, endHour });
-            
+
             const overlay = document.getElementById('calendar-overlay-form');
             if (overlay) {
                 // Show the overlay
@@ -4873,10 +4931,10 @@
                 overlay.style.pointerEvents = 'auto';
                 overlay.classList.remove('hidden');
                 overlay.classList.add('show');
-                
+
                 // Set start date and end date
                 document.getElementById('overlay-event-date').value = startDate;
-                
+
                 // Show end date field and set its value
                 const endDateGroup = document.getElementById('end-date-group');
                 const endDateInput = document.getElementById('overlay-end-date');
@@ -4885,33 +4943,33 @@
                     endDateInput.value = endDate;
                     endDateInput.required = true;
                 }
-                
+
                 // Set time for multi-day events (not all-day)
                 const isAllDayCheckbox = document.getElementById('overlay-all-day');
                 if (isAllDayCheckbox) {
                     isAllDayCheckbox.checked = false; // Not an all-day event
                 }
-                
+
                 // Show and set time inputs
                 const timeInputs = overlay.querySelectorAll('.time-input-group, .time-input');
                 timeInputs.forEach(input => input.style.display = 'block');
-                
+
                 // Set start and end times based on the drag hours
                 const startTimeStr = `${String(startHour).padStart(2, '0')}:00`;
                 const endTimeStr = `${String(endHour).padStart(2, '0')}:00`;
-                
+
                 document.getElementById('overlay-start-time').value = startTimeStr;
                 document.getElementById('overlay-end-time').value = endTimeStr;
                 document.getElementById('overlay-start-time-display').textContent = convertToAMPM(startTimeStr);
                 document.getElementById('overlay-end-time-display').textContent = convertToAMPM(endTimeStr);
-                
+
                 // Store end date and time information (we'll use this when saving)
                 overlay.setAttribute('data-end-date', endDate);
                 overlay.setAttribute('data-start-hour', startHour);
                 overlay.setAttribute('data-end-hour', endHour);
-                
+
                 console.log('🎯 Multi-day event form configured:', { startDate, endDate, startTimeStr, endTimeStr, allDay: false });
-                
+
                 // Position popup
                 if (clickedCell) {
                     repositionOverlayPopup(overlay, clickedCell);
@@ -4950,7 +5008,7 @@
                 if (date) {
                     document.getElementById('overlay-event-date').value = date;
                 }
-                
+
                 // Hide end date field for single-day events
                 const endDateGroup = document.getElementById('end-date-group');
                 const endDateInput = document.getElementById('overlay-end-date');
@@ -4958,7 +5016,7 @@
                     endDateGroup.style.display = 'none';
                     endDateInput.required = false;
                 }
-                
+
                 // Show time inputs for single-day timed events
                 const timeInputs = overlay.querySelectorAll('.time-input-group, .time-input');
                 timeInputs.forEach(input => input.style.display = 'block');
@@ -4978,7 +5036,7 @@
                         finalEndTime = `${endHour}:${minutes}`;
                         console.log('🕐 Using default end time (start + 1 hour):', finalEndTime);
                     }
-                    
+
                     document.getElementById('overlay-end-time').value = finalEndTime;
                     document.getElementById('overlay-end-time-display').textContent = convertToAMPM(finalEndTime);
                 }
@@ -5104,9 +5162,9 @@
 
             // Check if this is a multi-day event
             const isMultiDay = endDateGroup && endDateGroup.style.display !== 'none' && endDateInput && endDateInput.value;
-            
+
             let eventData;
-            
+
             if (isMultiDay) {
                 // Multi-day event with time
                 const endDate = endDateInput.value;
@@ -5114,11 +5172,11 @@
                     alert('모든 필수 필드를 입력해주세요.');
                     return;
                 }
-                
+
                 // Get time values for multi-day events
                 const multiStartTime = startTime || '09:00'; // Default to 9 AM if not set
                 const multiEndTime = endTime || '10:00'; // Default to 10 AM if not set
-                
+
                 eventData = {
                     title: title,
                     start: startDate,
@@ -5129,7 +5187,7 @@
                     isAllDay: false,  // Not an all-day event
                     isMultiDay: true
                 };
-                
+
                 console.log('🗓️ Saving multi-day event with time:', eventData);
             } else {
                 // Single-day timed event
@@ -5137,7 +5195,7 @@
                     alert('모든 필수 필드를 입력해주세요.');
                     return;
                 }
-                
+
                 eventData = {
                     title: title,
                     start: `${startDate}T${startTime}`,
@@ -5146,7 +5204,7 @@
                     isAllDay: false,
                     isMultiDay: false
                 };
-                
+
                 console.log('🗓️ Saving single-day event:', eventData);
             }
 
@@ -5165,7 +5223,7 @@
                     // Multi-day event: create a single event spanning multiple days
                     console.log('🗓️ Creating multi-day event spanning from:', eventData.start, 'to', eventData.end);
                     console.log('🕐 Using time range:', eventData.startTime, 'to', eventData.endTime);
-                    
+
                     const apiData = {
                         title: eventData.title,
                         description: eventData.description || '',
@@ -5177,9 +5235,9 @@
                         isMultiDay: true,  // Mark as multi-day event
                         color: '#3b82f6'
                     };
-                    
+
                     console.log('📤 Creating multi-day event:', apiData);
-                    
+
                     try {
                         const response = await fetch(`/api/calendars/${calendarId}/events`, {
                             method: 'POST',
@@ -5188,11 +5246,11 @@
                             },
                             body: JSON.stringify(apiData)
                         });
-                        
+
                         if (response.ok) {
                             const result = await response.json();
                             console.log('✅ Multi-day event created:', result);
-                            
+
                             // Add the new event directly to the calendar without page refresh
                             if (window.googleCalendarGrid) {
                                 const newEventForGrid = {
@@ -5208,12 +5266,12 @@
                                     color: apiData.color || '#3b82f6',
                                     backendId: result.id
                                 };
-                                
+
                                 console.log('📅 Adding multi-day event to grid:', newEventForGrid);
-                                
+
                                 // Add to events array
                                 window.googleCalendarGrid.events.push(newEventForGrid);
-                                
+
                                 // Render the multi-day event on the calendar
                                 if (typeof window.googleCalendarGrid.renderMultiDayEvent === 'function') {
                                     window.googleCalendarGrid.renderMultiDayEvent(newEventForGrid);
@@ -5222,12 +5280,12 @@
                                     console.warn('⚠️ renderMultiDayEvent not found, using fallback');
                                     window.googleCalendarGrid.renderEvent(newEventForGrid);
                                 }
-                                
+
                                 // Update the event list if it exists
                                 if (typeof window.googleCalendarGrid.updateEventList === 'function') {
                                     window.googleCalendarGrid.updateEventList();
                                 }
-                                
+
                                 // Save to localStorage for persistence
                                 window.googleCalendarGrid.saveToLocalStorage();
                             }
@@ -5238,7 +5296,7 @@
                     } catch (error) {
                         console.error('❌ Network error creating multi-day event:', error);
                     }
-                    
+
                     return;
                 } else {
                     // Single-day timed event format
@@ -5266,7 +5324,7 @@
                     if (response.ok) {
                         const result = await response.json();
                         console.log('✅ Single-day event saved to backend successfully:', result);
-                        
+
                         // Add the new event directly to the calendar without page refresh
                         if (window.googleCalendarGrid) {
                             const newEventForGrid = {
@@ -5281,23 +5339,23 @@
                                 color: apiData.color || '#3b82f6',
                                 backendId: result.id
                             };
-                            
+
                             console.log('📅 Adding new single-day event to grid:', newEventForGrid);
-                            
+
                             // Add to events array
                             window.googleCalendarGrid.events.push(newEventForGrid);
-                            
+
                             // Render the new event on the calendar
                             window.googleCalendarGrid.renderEvent(newEventForGrid);
-                            
+
                             // Update the event list if it exists
                             if (typeof window.googleCalendarGrid.updateEventList === 'function') {
                                 window.googleCalendarGrid.updateEventList();
                             }
-                            
+
                             // Save to localStorage for persistence
                             window.googleCalendarGrid.saveToLocalStorage();
-                            
+
                             console.log('🎉 Single-day event successfully added to calendar without refresh!');
                         } else {
                             console.warn('⚠️ Google Calendar Grid not available');
