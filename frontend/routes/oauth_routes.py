@@ -505,13 +505,25 @@ def generic_oauth_authorize(platform):
         return jsonify({'error': 'Failed to initiate OAuth flow - Database connection issue'}), 500
     
     # Build authorization parameters
+    # Railway 환경에서는 명시적으로 redirect_uri 설정
+    base_url = os.getenv('BASE_URL')
+    if base_url:
+        redirect_uri = f"{base_url}/oauth/{platform}/callback"
+    else:
+        redirect_uri = url_for('oauth.generic_oauth_callback', platform=platform, _external=True)
+        # Production 환경에서 HTTP로 생성되면 HTTPS로 변경
+        if redirect_uri.startswith('http://') and os.getenv('FLASK_ENV') == 'production':
+            redirect_uri = redirect_uri.replace('http://', 'https://', 1)
+    
     params = {
         'client_id': config['client_id'],
         'response_type': 'code',
-        'redirect_uri': url_for('oauth.generic_oauth_callback', platform=platform, _external=True),
+        'redirect_uri': redirect_uri,
         'state': state,
         'scope': config['scope']
     }
+    
+    print(f"[OAUTH DEBUG] {platform} redirect_uri: {redirect_uri}")
     
     # Platform-specific parameters
     if platform == 'google':
@@ -748,14 +760,26 @@ def exchange_code_for_tokens(platform, code, state_data):
     """Exchange authorization code for access tokens"""
     config = OAUTH_CONFIG[platform]
     
+    # Railway 환경에서는 명시적으로 redirect_uri 설정 (authorize와 동일해야 함)
+    base_url = os.getenv('BASE_URL')
+    if base_url:
+        redirect_uri = f"{base_url}/oauth/{platform}/callback"
+    else:
+        redirect_uri = url_for('oauth.generic_oauth_callback', platform=platform, _external=True)
+        # Production 환경에서 HTTP로 생성되면 HTTPS로 변경
+        if redirect_uri.startswith('http://') and os.getenv('FLASK_ENV') == 'production':
+            redirect_uri = redirect_uri.replace('http://', 'https://', 1)
+    
     # Prepare token request data
     token_data = {
         'client_id': config['client_id'],
         'client_secret': config['client_secret'],
         'code': code,
         'grant_type': 'authorization_code',
-        'redirect_uri': url_for('oauth.generic_oauth_callback', platform=platform, _external=True)
+        'redirect_uri': redirect_uri
     }
+    
+    print(f"[OAUTH DEBUG] Token exchange redirect_uri: {redirect_uri}")
     
     # Platform-specific modifications
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
