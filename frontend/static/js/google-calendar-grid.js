@@ -126,7 +126,7 @@ class GoogleCalendarGrid {
         this.dayColumnWidth = dayColumnWidth;
         
         const html = `
-            <div class="google-calendar-grid" style="width: 100%; display: flex; flex-direction: column;">
+            <div class="google-calendar-grid" style="width: 100%; height: 100%; display: flex; flex-direction: column;">
                 ${this.renderHeader()}
                 ${this.renderGrid()}
             </div>
@@ -141,8 +141,8 @@ class GoogleCalendarGrid {
         today.setHours(0, 0, 0, 0);
         
         let headerHTML = `
-            <div class="calendar-header" style="display: grid; grid-template-columns: ${this.timeColumnWidth}px repeat(7, ${this.dayColumnWidth}px); width: 100%; box-sizing: border-box; padding: 0; margin: 0;">
-                <div class="time-header" style="grid-column: 1; width: ${this.timeColumnWidth}px;">GMT+9</div>
+            <div class="calendar-header" style="display: grid; grid-template-columns: ${this.timeColumnWidth}px repeat(7, ${this.dayColumnWidth}px); width: 100%; height: 60px; min-height: 60px; box-sizing: border-box; padding: 0; margin: 0; background: white; border-bottom: 1px solid #e0e0e0; position: sticky; top: 0; z-index: 100;">
+                <div class="time-header" style="grid-column: 1; width: ${this.timeColumnWidth}px; height: 100%; display: flex; align-items: center; justify-content: center; border-right: 1px solid #e0e0e0;">GMT+9</div>
         `;
         
         for (let i = 0; i < 7; i++) {
@@ -153,9 +153,9 @@ class GoogleCalendarGrid {
             const isWeekend = i === 0 || i === 6;
             
             headerHTML += `
-                <div class="day-header ${isToday ? 'today' : ''}" data-day="${i}" style="grid-column: ${i + 2}; width: ${this.dayColumnWidth}px;">
-                    <div class="day-name">${days[i]}</div>
-                    <div class="day-date">${date.getDate()}</div>
+                <div class="day-header ${isToday ? 'today' : ''}" data-day="${i}" style="grid-column: ${i + 2}; width: ${this.dayColumnWidth}px; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: ${i < 6 ? '1px solid #e0e0e0' : 'none'};">
+                    <div class="day-name" style="font-size: 11px; color: #70757a; text-transform: uppercase; font-weight: 500; margin-bottom: 4px;">${days[i]}</div>
+                    <div class="day-date" style="font-size: 26px; color: ${isToday ? 'white' : '#3c4043'}; font-weight: ${isToday ? '500' : '400'}; ${isToday ? 'background: #1a73e8; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;' : ''}">${date.getDate()}</div>
                 </div>
             `;
         }
@@ -1928,7 +1928,11 @@ class GoogleCalendarGrid {
         
         console.log(`✅ Multi-day spanning event "${eventData.title}" rendered across ${spanDays} days (${firstDayIndex} to ${lastDayIndex})`);
         
-        // Render the event on each day it spans (within the current week)
+        // Remove the duplicate rendering - the spanning event already covers all days
+        return;
+        
+        // DISABLED: Individual day rendering (causes duplicate events)
+        /*
         for (let dayIndex = Math.max(0, startDayIndex); dayIndex <= Math.min(6, endDayIndex); dayIndex++) {
             const dayColumn = this.container.querySelector(`.day-column[data-day="${dayIndex}"]`);
             
@@ -2006,6 +2010,7 @@ class GoogleCalendarGrid {
             
             console.log(`✅ Multi-day event "${eventData.title}" rendered on day ${dayIndex}`);
         }
+        */
     }
     
     handleEventDrop(e) {
