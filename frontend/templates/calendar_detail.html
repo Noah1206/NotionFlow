@@ -2789,6 +2789,7 @@
                         </div>
 
                         <form id="overlay-event-form" onsubmit="window.saveOverlayEvent(event)">
+                            <div class="form-body">
                             <div class="form-group">
                                 <label for="overlay-event-title">제목</label>
                                 <input type="text" id="overlay-event-title" placeholder="일정 제목을 입력하세요" required>
@@ -2862,6 +2863,7 @@
                                     <div class="color-option" data-color="#ec4899" style="background: #ec4899;"></div>
                                 </div>
                             </div>
+                            </div> <!-- form-body 닫기 -->
 
                             <div class="form-actions">
                                 <button type="button" class="btn-cancel"
@@ -5058,15 +5060,26 @@
 
             // Fixed popup positioning - always use clicked cell position
             const popupWidth = 540;
-            const popupHeight = 450;
+            const popupHeight = 650; // 실제 모달 콘텐츠에 맞게 높이 증가
 
-            // Ensure popup doesn't go off-screen
+            // Ensure popup doesn't go off-screen horizontally
             if (left + popupWidth > window.innerWidth) {
                 left = cellRect.left - popupWidth - 10; // Position to the left of cell
             }
 
+            // Ensure popup doesn't go off-screen vertically
             if (top + popupHeight > window.innerHeight) {
-                top = window.innerHeight - popupHeight - 20; // Position above
+                top = Math.max(20, window.innerHeight - popupHeight - 20); // Position above, but not above 20px from top
+            }
+
+            // If popup is still too tall for viewport, enable scrolling within popup
+            const availableHeight = window.innerHeight - top - 40;
+            if (popupHeight > availableHeight) {
+                content.style.setProperty('max-height', `${availableHeight}px`, 'important');
+                content.style.setProperty('overflow-y', 'auto', 'important');
+            } else {
+                content.style.removeProperty('max-height');
+                content.style.removeProperty('overflow-y');
             }
 
             // Update popup position with smooth transition and !important
@@ -5394,9 +5407,12 @@
                     border-radius: 16px !important;
                     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 8px 32px rgba(0, 0, 0, 0.12), 0 24px 64px rgba(0, 0, 0, 0.08) !important;
                     width: 540px !important;
-                    max-height: 550px !important;
+                    max-height: 90vh !important;
                     padding: 0 !important;
                     pointer-events: auto !important;
+                    overflow: hidden !important;
+                    display: flex !important;
+                    flex-direction: column !important;
                     /* Position will be set dynamically by JavaScript */
                     transform: none !important;
                     border: 1px solid rgba(229, 231, 235, 0.8) !important;
@@ -5411,6 +5427,7 @@
                     border-bottom: none !important;
                     background: transparent !important;
                     margin: 0 !important;
+                    flex-shrink: 0 !important;
                 }
                 
                 .calendar-overlay-form .form-header h2 {
@@ -5438,11 +5455,23 @@
                 }
                 
                 .calendar-overlay-form form {
-                    padding: 0 24px 24px 24px !important;
+                    padding: 0 !important;
+                    display: flex !important;
+                    flex-direction: column !important;
+                    gap: 0 !important;
+                    margin: 0 !important;
+                    flex: 1 !important;
+                    min-height: 0 !important;
+                    overflow: hidden !important;
+                }
+                
+                .calendar-overlay-form .form-body {
+                    flex: 1 !important;
+                    overflow-y: auto !important;
+                    padding: 0 24px !important;
                     display: flex !important;
                     flex-direction: column !important;
                     gap: 20px !important;
-                    margin: 0 !important;
                 }
                 
                 .calendar-overlay-form .form-group {
@@ -5489,7 +5518,8 @@
                     display: flex !important;
                     gap: 10px !important;
                     margin: 16px 0 0 0 !important;
-                    padding: 0 !important;
+                    padding: 0 24px 24px 24px !important;
+                    flex-shrink: 0 !important;
                 }
                 
                 .calendar-overlay-form .btn-cancel,
