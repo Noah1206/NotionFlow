@@ -135,7 +135,7 @@ def store_oauth_state(user_id, provider, state, code_verifier=None):
     try:
         # Prepare data for database insertion
         data = {
-            'user_id': user_id,
+            'user_id': user_id or 'anonymous',  # OAuth 플로우를 위한 임시 값
             'provider': provider,
             'state': state,
             'code_verifier': code_verifier,
@@ -276,6 +276,52 @@ def get_user_info_from_provider(platform, access_token):
         print(f"Error getting user info from {platform}: {e}")
         return None
 
+def create_or_find_user_from_oauth(platform, user_info, token_data):
+    """OAuth를 통해 사용자를 생성하거나 찾기"""
+    try:
+        if not user_info:
+            print(f"No user info available for {platform} OAuth")
+            return None
+            
+        # 플랫폼별 이메일 추출
+        email = get_platform_user_email(platform, user_info)
+        name = get_platform_user_name(platform, user_info)
+        
+        if not email:
+            print(f"No email found in {platform} user info")
+            return None
+        
+        # 기존 사용자 찾기 (이메일로)
+        existing_user = supabase.table('users').select('*').eq('email', email).execute()
+        
+        if existing_user.data:
+            # 기존 사용자 로그인
+            user_id = existing_user.data[0]['id']
+            print(f"Found existing user for {email}: {user_id}")
+            return user_id
+        else:
+            # 새 사용자 생성
+            user_data = {
+                'email': email,
+                'name': name or email.split('@')[0],
+                'created_at': datetime.utcnow().isoformat(),
+                'auth_provider': platform,
+                'is_active': True
+            }
+            
+            result = supabase.table('users').insert(user_data).execute()
+            if result.data:
+                user_id = result.data[0]['id']
+                print(f"Created new user for {email}: {user_id}")
+                return user_id
+            else:
+                print(f"Failed to create user for {email}")
+                return None
+                
+    except Exception as e:
+        print(f"Error creating/finding user from {platform} OAuth: {e}")
+        return None
+
 def store_platform_registration(user_id, platform, token_data, user_info=None):
     """Store platform registration in registered_platforms table"""
     try:
@@ -382,14 +428,11 @@ def generic_oauth_authorize(platform):
         print(f"Unsupported platform requested: {platform}")
         return jsonify({'error': f'Unsupported platform: {platform}'}), 400
     
+    # OAuth는 자체적으로 인증 수단이므로 사전 로그인을 요구하지 않음
     user_id = session.get('user_id')
     if not user_id:
-        print(f"OAuth authorization attempt without authentication for {platform}")
-        print(f"Session data: {dict(session)}")
-        # Try to get user_id from different possible session keys
-        user_id = session.get('user') or session.get('user_email') or session.get('email')
-        if not user_id:
-            return jsonify({'error': 'Not authenticated - Please login first'}), 401
+        print(f"OAuth authorization initiated without existing session for {platform}")
+        # OAuth 플로우를 계속 진행 - 콜백에서 사용자를 생성/로그인 처리
     
     config = OAUTH_CONFIG[platform]
     
@@ -591,14 +634,28 @@ def generic_oauth_callback(platform):
         elif token_data.get('access_token'):
             user_info = get_user_info_from_provider(platform, token_data['access_token'])
         
+        # 사용자 생성 또는 로그인 처리
+        actual_user_id = state_data.get('user_id')
+        if actual_user_id == 'anonymous' or not actual_user_id:
+            # OAuth를 통해 새 사용자 생성 또는 기존 사용자 찾기
+            actual_user_id = create_or_find_user_from_oauth(platform, user_info, token_data)
+            if not actual_user_id:
+                return handle_callback_error('Failed to create or find user account')
+            
+            # 세션에 사용자 로그인 처리
+            session['user_id'] = actual_user_id
+            session['user_email'] = get_platform_user_email(platform, user_info)
+            session['user_name'] = get_platform_user_name(platform, user_info)
+            session.permanent = True
+        
         # Store platform registration
-        success = store_platform_registration(state_data['user_id'], platform, token_data, user_info)
+        success = store_platform_registration(actual_user_id, platform, token_data, user_info)
         if not success:
             return handle_callback_error('Failed to save platform registration')
         
         # Track the connection event
         sync_tracker.track_sync_event(
-            user_id=state_data['user_id'],
+            user_id=actual_user_id,
             event_type=EventType.PLATFORM_CONNECTED,
             platform=platform,
             status='success',
