@@ -183,7 +183,133 @@
         }
         
         .btn-primary:disabled .loading {
-            display: inline;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Progress Overlay */
+        .progress-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .progress-overlay.active {
+            display: flex;
+        }
+        
+        .progress-modal {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+        
+        .progress-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 20px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .progress-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #1F2937;
+        }
+        
+        .progress-message {
+            font-size: 14px;
+            color: #6B7280;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+        
+        .progress-steps {
+            text-align: left;
+            margin-top: 20px;
+        }
+        
+        .progress-step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .progress-step.active {
+            background: #F3F4F6;
+        }
+        
+        .progress-step.completed {
+            opacity: 0.6;
+        }
+        
+        .step-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #E5E7EB;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6B7280;
+            flex-shrink: 0;
+        }
+        
+        .step-icon.active {
+            background: #000;
+            color: white;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        .step-icon.completed {
+            background: #10B981;
+            color: white;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .step-text {
+            font-size: 14px;
+            color: #374151;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #000;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
         
         @media (max-width: 640px) {
@@ -261,10 +387,43 @@
                 </button>
                 <button type="submit" class="btn btn-primary" id="submit-btn">
                     <span class="btn-text">시작하기</span>
-                    <span class="loading">저장 중...</span>
+                    <span class="loading"><span class="spinner"></span> 저장 중...</span>
                 </button>
             </div>
         </form>
+    </div>
+    
+    <!-- Progress Overlay -->
+    <div class="progress-overlay" id="progressOverlay">
+        <div class="progress-modal">
+            <svg class="progress-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" />
+            </svg>
+            
+            <h2 class="progress-title">계정 설정 중...</h2>
+            <p class="progress-message" id="progressMessage">
+                잠시만 기다려주세요. NotionFlow 계정을 준비하고 있습니다.
+            </p>
+            
+            <div class="progress-steps">
+                <div class="progress-step" id="step1">
+                    <div class="step-icon">1</div>
+                    <div class="step-text">프로필 정보 저장</div>
+                </div>
+                <div class="progress-step" id="step2">
+                    <div class="step-icon">2</div>
+                    <div class="step-text">대시보드 초기화</div>
+                </div>
+                <div class="progress-step" id="step3">
+                    <div class="step-icon">3</div>
+                    <div class="step-text">개인 설정 적용</div>
+                </div>
+                <div class="progress-step" id="step4">
+                    <div class="step-icon">4</div>
+                    <div class="step-text">완료!</div>
+                </div>
+            </div>
+        </div>
     </div>
     
     <script>
@@ -302,10 +461,15 @@
                 return;
             }
             
-            // Loading state
+            // Show progress overlay
             submitBtn.disabled = true;
+            showProgressOverlay();
             
             try {
+                // Step 1: Save profile
+                await updateProgress(1, '프로필 정보를 저장하고 있습니다...');
+                await delay(800);
+                
                 const response = await fetch('/api/profile/initial-setup', {
                     method: 'POST',
                     headers: {
@@ -317,15 +481,29 @@
                 const result = await response.json();
                 
                 if (result.success) {
+                    // Step 2: Initialize dashboard
+                    await updateProgress(2, '대시보드를 준비하고 있습니다...');
+                    await delay(600);
+                    
+                    // Step 3: Apply settings
+                    await updateProgress(3, '개인 설정을 적용하고 있습니다...');
+                    await delay(500);
+                    
+                    // Step 4: Complete
+                    await updateProgress(4, '모든 준비가 완료되었습니다!');
+                    await delay(400);
+                    
                     // Mark setup as complete and redirect
                     sessionStorage.setItem('setup_complete', 'true');
                     window.location.href = '/dashboard';
                 } else {
+                    hideProgressOverlay();
                     alert(result.error || '설정 저장에 실패했습니다.');
                     submitBtn.disabled = false;
                 }
             } catch (error) {
                 console.error('Setup error:', error);
+                hideProgressOverlay();
                 alert('설정 저장 중 오류가 발생했습니다.');
                 submitBtn.disabled = false;
             }
@@ -334,6 +512,51 @@
         function skipSetup() {
             sessionStorage.setItem('setup_skipped', 'true');
             window.location.href = '/dashboard';
+        }
+        
+        // Progress overlay functions
+        function showProgressOverlay() {
+            const overlay = document.getElementById('progressOverlay');
+            overlay.classList.add('active');
+            // Reset all steps
+            for (let i = 1; i <= 4; i++) {
+                const step = document.getElementById(`step${i}`);
+                step.classList.remove('active', 'completed');
+                step.querySelector('.step-icon').classList.remove('active', 'completed');
+            }
+        }
+        
+        function hideProgressOverlay() {
+            const overlay = document.getElementById('progressOverlay');
+            overlay.classList.remove('active');
+        }
+        
+        async function updateProgress(stepNumber, message) {
+            const messageEl = document.getElementById('progressMessage');
+            messageEl.textContent = message;
+            
+            // Update step states
+            for (let i = 1; i <= stepNumber; i++) {
+                const step = document.getElementById(`step${i}`);
+                const icon = step.querySelector('.step-icon');
+                
+                if (i < stepNumber) {
+                    // Mark previous steps as completed
+                    step.classList.remove('active');
+                    step.classList.add('completed');
+                    icon.classList.remove('active');
+                    icon.classList.add('completed');
+                    icon.innerHTML = '✓';
+                } else {
+                    // Mark current step as active
+                    step.classList.add('active');
+                    icon.classList.add('active');
+                }
+            }
+        }
+        
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
         }
     </script>
 </body>
