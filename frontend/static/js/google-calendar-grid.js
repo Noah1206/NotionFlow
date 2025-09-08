@@ -141,7 +141,7 @@ class GoogleCalendarGrid {
         today.setHours(0, 0, 0, 0);
         
         let headerHTML = `
-            <div class="calendar-header" style="display: grid; grid-template-columns: ${this.timeColumnWidth}px repeat(7, ${this.dayColumnWidth}px); width: 100%; height: 60px; min-height: 60px; box-sizing: border-box; padding: 0; margin: 0; background: white; border-bottom: 1px solid #e0e0e0; position: sticky; top: 0; z-index: 100;">
+            <div class="calendar-header" style="display: grid; grid-template-columns: ${this.timeColumnWidth}px repeat(7, ${this.dayColumnWidth}px); width: 100%; height: 60px; min-height: 60px; box-sizing: border-box; padding: 0; margin: 0; background: white; border-bottom: 1px solid #e0e0e0; position: sticky; top: 0; z-index: 1000;">
                 <div class="time-header" style="grid-column: 1; width: ${this.timeColumnWidth}px; height: 100%; display: flex; align-items: center; justify-content: center; border-right: 1px solid #e0e0e0;">GMT+9</div>
         `;
         
