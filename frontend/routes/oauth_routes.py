@@ -924,7 +924,7 @@ def handle_callback_error(error_message, platform=None):
     else:
         print(f"OAuth Error: {error_message}")
     
-    error_html = """
+    error_html = f"""
     <!DOCTYPE html>
     <html>
     <head>
@@ -995,7 +995,9 @@ def handle_callback_error(error_message, platform=None):
             if (window.opener && !window.opener.closed) {{
                 window.opener.postMessage({{
                     type: 'oauth_error',
-                    error: '{error_message}'
+                    platform: '{platform}',
+                    error: '{error_message}',
+                    timestamp: new Date().toISOString()
                 }}, '*');
             }}
             
@@ -1011,7 +1013,7 @@ def handle_callback_error(error_message, platform=None):
             <h1 class="error-title">Connection Failed</h1>
             <p class="error-subtitle">Unable to connect your account.</p>
             <div class="error-details">
-                {error_message}
+                {{ error_message }}
             </div>
             <div class="close-info">
                 This window will close automatically in 5 seconds.
@@ -1020,7 +1022,7 @@ def handle_callback_error(error_message, platform=None):
     </body>
     </html>
     """
-    return error_html
+    return render_template_string(error_html, error_message=error_message, platform=platform or 'unknown')
 
 @oauth_bp.route('/<platform>/check')
 def check_oauth_config(platform):
