@@ -1752,26 +1752,55 @@ window.saveSidebarEvent = async function(event) {
     
     try {
         const form = event.target;
-        const formData = new FormData(form);
         const calendarId = document.querySelector('.calendar-workspace').dataset.calendarId;
         
+        // Get form values directly from DOM elements
+        const title = document.getElementById('sidebar-event-title').value.trim();
+        const date = document.getElementById('sidebar-event-date').value;
+        const startTime = document.getElementById('sidebar-start-time').value;
+        const endTime = document.getElementById('sidebar-end-time').value;
+        const description = document.getElementById('sidebar-event-description').value.trim();
+        const youtubeUrl = document.getElementById('sidebar-youtube-url').value.trim();
+        
+        // Validate required fields
+        if (!title) {
+            alert('일정 제목을 입력해주세요.');
+            return;
+        }
+        
+        if (!date) {
+            alert('날짜를 선택해주세요.');
+            return;
+        }
+        
+        if (!youtubeUrl) {
+            alert('YouTube 링크를 입력해주세요.');
+            return;
+        }
+        
+        // Validate YouTube URL format
+        const youtubePattern = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/)|youtu\.be\/)[\w-]+/;
+        if (!youtubePattern.test(youtubeUrl)) {
+            alert('올바른 YouTube 링크를 입력해주세요.\n예시: https://www.youtube.com/watch?v=...');
+            return;
+        }
+        
         // Create datetime strings from date and time inputs
-        const startDate = formData.get('start_date');
-        const startTime = formData.get('start_time');
-        const endDate = formData.get('end_date') || formData.get('start_date');
-        const endTime = formData.get('end_time');
+        const startDate = date;
+        const endDate = date;
         
         const startDateTime = `${startDate}T${startTime}:00`;
         const endDateTime = `${endDate}T${endTime}:00`;
         
         // Create event data object matching API requirements
         const eventData = {
-            title: formData.get('title') || 'New Event',
-            description: formData.get('description') || '',
+            title: title,
+            description: description,
             start_datetime: startDateTime,
             end_datetime: endDateTime,
-            color: formData.get('color') || '#3b82f6',
-            is_all_day: formData.get('is_all_day') === 'on'
+            color: form.querySelector('.color-option.active')?.dataset.color || '#3b82f6',
+            is_all_day: false,
+            youtube_url: youtubeUrl
         };
         
         console.log('📤 Sending event data:', eventData);
