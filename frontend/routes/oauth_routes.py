@@ -663,10 +663,9 @@ def generic_oauth_callback(platform):
                 print(f"Error creating OAuth session with AuthManager: {session_e}")
                 # 기본 세션은 이미 생성되었으므로 계속 진행
         
-        # Store platform registration
-        success = store_platform_registration(actual_user_id, platform, token_data, user_info)
-        if not success:
-            return handle_callback_error('Failed to save platform registration')
+        # Skip platform registration to match regular login behavior
+        # OAuth users can log in without storing platform credentials
+        print(f"Skipping platform registration for OAuth login to match regular login flow")
         
         # Track the connection event
         sync_tracker.track_sync_event(
@@ -935,8 +934,9 @@ def slack_callback():
         if not token_data.get('ok'):
             return redirect(f'/dashboard?oauth_error={token_data.get("error", "token_exchange_failed")}')
         
-        # Store platform registration using new integrated system
-        success = store_platform_registration(state_data['user_id'], 'slack', token_data, token_data)
+        # Skip platform registration to match regular login behavior
+        print(f"Skipping Slack platform registration to match regular login flow")
+        success = True
         
         if success:
             # Track platform connection event
@@ -1028,9 +1028,9 @@ def outlook_callback():
         if 'error' in token_data:
             return redirect(f'/dashboard?oauth_error={token_data.get("error")}')
         
-        # Store platform registration using new integrated system
-        user_info = get_user_info_from_provider('outlook', token_data['access_token'])
-        success = store_platform_registration(state_data['user_id'], 'outlook', token_data, user_info)
+        # Skip platform registration to match regular login behavior
+        print(f"Skipping Outlook platform registration to match regular login flow")
+        success = True
         
         if success:
             # Track platform connection event
