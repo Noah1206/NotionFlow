@@ -3145,6 +3145,7 @@ function openEventForm(date = null, eventData = null) {
         document.getElementById('overlay-start-time').value = eventData.startTime || '09:00';
         document.getElementById('overlay-end-time').value = eventData.endTime || '10:00';
         document.getElementById('overlay-event-description').value = eventData.description || '';
+        document.getElementById('overlay-youtube-url').value = eventData.youtubeUrl || '';
         
         // 편집 모드에서는 기존 색상 유지 (색상 선택기 제거됨)
         
@@ -3230,6 +3231,7 @@ function saveOverlayEvent(event) {
     const startTime = document.getElementById('overlay-start-time').value;
     const endTime = document.getElementById('overlay-end-time').value;
     const description = document.getElementById('overlay-event-description').value.trim();
+    const youtubeUrl = document.getElementById('overlay-youtube-url').value.trim();
     
     // 색상 설정 (편집 모드에서는 기존 색상 유지, 새 이벤트는 랜덤)
     let color;
@@ -3254,6 +3256,18 @@ function saveOverlayEvent(event) {
         return;
     }
     
+    if (!youtubeUrl) {
+        alert('YouTube 링크를 입력해주세요.');
+        return;
+    }
+    
+    // Validate YouTube URL format
+    const youtubePattern = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/)|youtu\.be\/)[\w-]+/;
+    if (!youtubePattern.test(youtubeUrl)) {
+        alert('올바른 YouTube 링크를 입력해주세요.\n예시: https://www.youtube.com/watch?v=...');
+        return;
+    }
+    
     // Create/update event data
     const eventData = {
         id: eventId || Date.now().toString(),
@@ -3262,7 +3276,8 @@ function saveOverlayEvent(event) {
         startTime,
         endTime,
         description,
-        color
+        color,
+        youtubeUrl: youtubeUrl
     };
     
     // Get calendar instance
