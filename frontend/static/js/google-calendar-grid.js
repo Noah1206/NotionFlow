@@ -1800,6 +1800,14 @@ class GoogleCalendarGrid {
         const endPosition = endHour + endMin / 60;
         const duration = endPosition - startPosition;
         
+        console.log('🎯 Multi-day position calculation:', {
+            startHour, startMin, endHour, endMin,
+            startPosition, endPosition, duration,
+            timeSlotHeight: this.timeSlotHeight,
+            calculatedTop: startPosition * this.timeSlotHeight,
+            calculatedHeight: Math.max(duration * this.timeSlotHeight, 24)
+        });
+        
         // Create a single continuous element that spans multiple days
         const firstDayIndex = Math.max(0, startDayIndex);
         const lastDayIndex = Math.min(6, endDayIndex);
@@ -1849,10 +1857,10 @@ class GoogleCalendarGrid {
         
         eventElement.style.cssText = `
             position: absolute;
-            top: ${startPosition * 60}px;
+            top: ${startPosition * this.timeSlotHeight}px;
             left: 2px;
             width: ${totalWidth}px;
-            height: ${Math.max(duration * 60, 24)}px;
+            height: ${Math.max(duration * this.timeSlotHeight, 24)}px;
             background-color: ${bgColor};
             z-index: 200;
             border-radius: 4px;
