@@ -80,7 +80,13 @@ def register_google_routes(app):
 
     @google_bp.route("/login/google")
     def login_google():
-        redirect_uri = url_for("google_bp.google_auth_callback", _external=True)
+        # Railway 환경에서는 명시적으로 redirect_uri 설정
+        if os.getenv('FLASK_ENV') == 'production':
+            base_url = os.getenv('BASE_URL', 'https://notionflow-production.up.railway.app')
+            redirect_uri = f"{base_url}/auth/google/callback"
+        else:
+            redirect_uri = url_for("google_bp.google_auth_callback", _external=True)
+        
         current_app.logger.debug(f"Google OAuth redirect URI: {redirect_uri}")
         return google.authorize_redirect(redirect_uri)
 
