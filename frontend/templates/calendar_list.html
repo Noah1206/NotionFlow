@@ -249,13 +249,13 @@
                 <span class="divider-text">또는</span>
             </div>
 
-            <!-- YouTube URL 입력 (선택사항) -->
+            <!-- YouTube URL 입력 (필수) -->
             <div class="form-group">
-                <label class="form-label" for="youtube-url">YouTube URL (선택사항)</label>
+                <label class="form-label" for="youtube-url">YouTube URL *</label>
                 <div class="youtube-input-container">
                     <input type="url" id="youtube-url" class="form-input youtube-input" 
                            placeholder="https://www.youtube.com/watch?v=... 또는 https://youtu.be/..." 
-                           onchange="validateYouTubeUrl(this)" onpaste="handleYouTubePaste(event)">
+                           onchange="validateYouTubeUrl(this)" onpaste="handleYouTubePaste(event)" required>
                     <div class="youtube-status" id="youtube-status" style="display: none;">
                         <div class="youtube-loading" style="display: none;">
                             <div class="spinner"></div>
@@ -1714,6 +1714,20 @@
 
             if (!name) {
                 alert('캘린더 이름을 입력해주세요.');
+                return;
+            }
+
+            // YouTube URL 필수 검증
+            const youtubeUrl = document.getElementById('youtube-url').value.trim();
+            if (!youtubeUrl) {
+                alert('YouTube 링크를 입력해주세요.');
+                return;
+            }
+
+            // Validate YouTube URL format
+            const youtubePattern = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/)|youtu\.be\/)[\w-]+/;
+            if (!youtubePattern.test(youtubeUrl)) {
+                alert('올바른 YouTube 링크를 입력해주세요.\n예시: https://www.youtube.com/watch?v=...');
                 return;
             }
 

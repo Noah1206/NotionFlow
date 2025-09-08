@@ -1773,16 +1773,13 @@ window.saveSidebarEvent = async function(event) {
             return;
         }
         
-        if (!youtubeUrl) {
-            alert('YouTube 링크를 입력해주세요.');
-            return;
-        }
-        
-        // Validate YouTube URL format
-        const youtubePattern = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/)|youtu\.be\/)[\w-]+/;
-        if (!youtubePattern.test(youtubeUrl)) {
-            alert('올바른 YouTube 링크를 입력해주세요.\n예시: https://www.youtube.com/watch?v=...');
-            return;
+        // Validate YouTube URL format only if provided
+        if (youtubeUrl && youtubeUrl.trim()) {
+            const youtubePattern = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/)|youtu\.be\/)[\w-]+/;
+            if (!youtubePattern.test(youtubeUrl)) {
+                alert('올바른 YouTube 링크를 입력해주세요.\n예시: https://www.youtube.com/watch?v=...');
+                return;
+            }
         }
         
         // Create datetime strings from date and time inputs
