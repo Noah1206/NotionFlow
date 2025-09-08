@@ -624,7 +624,7 @@ class GoogleCalendarGrid {
                 // Try to delete from backend if it has a backend ID
                 if (eventData.backendId) {
                     const calendarId = document.querySelector('.calendar-workspace')?.dataset.calendarId || 'e3b088c5-58550';
-                    const response = await fetch(`/api/calendar/${calendarId}/attendees/${eventData.backendId}`, {
+                    const response = await fetch(`/api/calendar/${calendarId}/events/${eventData.backendId}`, {
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json'
