@@ -69,6 +69,13 @@ class GoogleCalendarGrid {
         this.loadExistingEvents(); // Load existing events from backend
         this.updateCurrentTimeIndicator();
         
+        // Add resize listener to maintain header visibility
+        window.addEventListener('resize', () => {
+            setTimeout(() => {
+                this.ensureHeaderVisibility();
+            }, 200);
+        });
+        
         // Update time indicator every 30 minutes
         setInterval(() => {
             this.updateCurrentTimeIndicator();
@@ -110,7 +117,22 @@ class GoogleCalendarGrid {
     
     render() {
         // 🔧 DYNAMIC WIDTH: 컨테이너 너비에 맞게 동적으로 크기 조정
-        const containerWidth = this.container.offsetWidth || this.container.getBoundingClientRect().width;
+        let containerWidth = this.container.offsetWidth || this.container.getBoundingClientRect().width;
+        
+        // If container width is 0, try to get parent width or use fallback
+        if (containerWidth === 0) {
+            const parent = this.container.parentElement;
+            if (parent) {
+                containerWidth = parent.offsetWidth || parent.getBoundingClientRect().width;
+            }
+            // If still 0, use window width with sidebar consideration
+            if (containerWidth === 0) {
+                const sidebar = document.querySelector('.sidebar');
+                const sidebarWidth = sidebar ? sidebar.offsetWidth : 320;
+                containerWidth = window.innerWidth - sidebarWidth;
+            }
+        }
+        
         const timeColumnWidth = 80; // 시간 컬럼 너비 최적화
         const availableWidth = containerWidth - timeColumnWidth; // 여백 완전 제거
         const dayColumnWidth = Math.max(250, Math.floor(availableWidth / 7)); // 최소 250px 보장, 7개 요일로 나누기 
@@ -133,6 +155,29 @@ class GoogleCalendarGrid {
         `;
         
         this.container.innerHTML = html;
+        
+        // Force layout recalculation after DOM update
+        setTimeout(() => {
+            this.ensureHeaderVisibility();
+        }, 100);
+    }
+    
+    ensureHeaderVisibility() {
+        const header = this.container.querySelector('.calendar-header');
+        if (header) {
+            // Force header to be visible and properly positioned
+            header.style.display = 'grid';
+            header.style.visibility = 'visible';
+            header.style.zIndex = '1000';
+            header.style.position = 'sticky';
+            header.style.top = '0';
+            header.style.background = 'white';
+            header.style.minHeight = '60px';
+            header.style.height = '60px';
+            console.log('🔧 Header visibility ensured:', header.getBoundingClientRect());
+        } else {
+            console.warn('⚠️ Header not found for visibility check');
+        }
     }
     
     renderHeader() {
