@@ -97,6 +97,8 @@ def register_google_routes(app):
             "name": user_info["name"],
             "user_id": user_id 
         }
-        return redirect('http://127.0.0.1:5003/dashboard')
+        # Railway 배포 환경에 맞게 수정
+        base_url = os.getenv('BASE_URL', 'http://127.0.0.1:5003')
+        return redirect(f'{base_url}/dashboard')
 
     app.register_blueprint(google_bp)
