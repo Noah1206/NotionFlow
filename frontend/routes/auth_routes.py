@@ -90,6 +90,44 @@ def login():
             # Get user profile
             profile = AuthManager.get_user_profile(user_data['id'])
             
+            # If no profile exists, create one for regular login users
+            if not profile:
+                try:
+                    from supabase import create_client
+                    from datetime import datetime
+                    
+                    if not SUPABASE_URL or not SUPABASE_KEY:
+                        print('Database configuration error - cannot create profile')
+                    else:
+                        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+                        
+                        # Generate username from email
+                        username = user_data['email'].split('@')[0]
+                        
+                        # Create profile with basic info
+                        profile_data = {
+                            'user_id': user_data['id'],
+                            'username': username,
+                            'display_name': user_data.get('display_name') or username,
+                            'birthdate': '1990-01-01',  # Default birthdate to avoid initial-setup
+                            'avatar_url': None,
+                            'bio': 'Regular user account',
+                            'is_public': False,
+                            'created_at': datetime.utcnow().isoformat(),
+                            'updated_at': datetime.utcnow().isoformat()
+                        }
+                        
+                        result = supabase.table('user_profiles').insert(profile_data).execute()
+                        
+                        if result.data:
+                            profile = result.data[0]
+                            print(f"Created profile for regular login user: {user_data['id']}")
+                        else:
+                            print(f"Failed to create profile for user: {user_data['id']}")
+                            
+                except Exception as profile_e:
+                    print(f"Error creating profile for regular login user: {profile_e}")
+            
             # Check if initial setup is required
             needs_initial_setup = False
             if profile:

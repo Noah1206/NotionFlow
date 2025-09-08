@@ -549,7 +549,12 @@ class AuthManager:
                 'user_id': user_id,
                 'username': username,
                 'display_name': display_name or (email.split('@')[0] if email else f"User {user_id[:8]}"),
-                'created_at': datetime.now().isoformat()
+                'birthdate': '1990-01-01',  # Default birthdate to avoid initial-setup redirect
+                'bio': 'New user account',
+                'is_public': False,
+                'avatar_url': None,
+                'created_at': datetime.now().isoformat(),
+                'updated_at': datetime.now().isoformat()
             }
             
             # Try to insert profile
