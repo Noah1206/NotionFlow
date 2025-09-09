@@ -1926,25 +1926,7 @@
                                 <p>NotionFlow에서 생성한 캘린더 중 ${platformNames[platform]}와 연동할 캘린더를 선택해주세요.</p>
                             </div>
                             
-                            <div class="calendar-grid">
-                                ${calendars.map(calendar => `
-                                    <div class="calendar-card" data-calendar-id="${calendar.id}" onclick="selectCalendarForSync(this, '${platform}')">
-                                        <div class="calendar-card-header">
-                                            <div class="calendar-icon-large" style="background-color: ${calendar.color || '#3b82f6'}; color: white; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 20px;">📅</div>
-                                            <div class="selection-indicator">
-                                                <div class="radio-button"></div>
-                                            </div>
-                                        </div>
-                                        <div class="calendar-card-body">
-                                            <h5 class="calendar-name">${calendar.name}</h5>
-                                            <p class="calendar-description">${calendar.description || '설명이 없습니다'}</p>
-                                            <div class="calendar-meta">
-                                                <span class="created-date">생성일: ${formatDate(calendar.created_at)}</span>
-                                                <span class="calendar-type">${calendar.type || 'personal'}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                `).join('')}
+                            <div class="calendar-grid" id="calendar-grid">
                             </div>
                         </div>
                         
@@ -2031,6 +2013,13 @@
 
             document.body.appendChild(modal);
             modal.style.display = 'flex';
+            
+            // 캘린더 카드 생성
+            const calendarGrid = document.getElementById('calendar-grid');
+            calendars.forEach(calendar => {
+                const calendarCard = createCalendarCard(calendar, platform);
+                calendarGrid.appendChild(calendarCard);
+            });
 
         } catch (error) {
             console.error('캘린더 연동 모달 오류:', error);
@@ -2314,6 +2303,36 @@
         `;
         document.body.appendChild(modal);
         modal.style.display = 'flex';
+    }
+
+    // 캘린더 카드 생성 함수
+    function createCalendarCard(calendar, platform) {
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'calendar-card';
+        cardDiv.setAttribute('data-calendar-id', calendar.id);
+        cardDiv.onclick = () => selectCalendarForSync(cardDiv, platform);
+        
+        const iconStyle = `background-color: ${calendar.color || '#3b82f6'}; color: white; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 20px;`;
+        const createdDate = calendar.created_at ? formatDate(calendar.created_at) : '날짜 없음';
+        
+        cardDiv.innerHTML = `
+            <div class="calendar-card-header">
+                <div class="calendar-icon-large" style="${iconStyle}">📅</div>
+                <div class="selection-indicator">
+                    <div class="radio-button"></div>
+                </div>
+            </div>
+            <div class="calendar-card-body">
+                <h5 class="calendar-name">${calendar.name || '이름 없음'}</h5>
+                <p class="calendar-description">${calendar.description || '설명이 없습니다'}</p>
+                <div class="calendar-meta">
+                    <span class="created-date">생성일: ${createdDate}</span>
+                    <span class="calendar-type">${calendar.type || 'personal'}</span>
+                </div>
+            </div>
+        `;
+        
+        return cardDiv;
     }
 
     // 기존 selectCalendar 함수 (호환성을 위해 유지)
