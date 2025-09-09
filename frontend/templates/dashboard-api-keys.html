@@ -127,6 +127,12 @@
                             <div class="loader-spinner"></div>
                         </div>
                     </button>
+                    <button class="platform-sync-btn" onclick="openCalendarSyncModal('notion')" data-platform="notion" style="display: none;">
+                        <span class="sync-text">캘린더 연동</span>
+                        <div class="sync-loader" style="display: none;">
+                            <div class="loader-dot"></div>
+                        </div>
+                    </button>
                     <button class="platform-connect-btn" onclick="connectPlatform('notion')" data-platform="notion">
                         <span class="connect-text">연결하기</span>
                         <div class="connect-loader" style="display: none;">
@@ -746,7 +752,8 @@
     z-index: 1;
 }
 
-.platform-connect-btn {
+.platform-connect-btn,
+.platform-sync-btn {
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -765,7 +772,19 @@
     overflow: hidden;
 }
 
-.platform-connect-btn::before {
+.platform-sync-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+}
+
+.platform-sync-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+}
+
+.platform-connect-btn::before,
+.platform-sync-btn::before {
     content: '';
     position: absolute;
     top: 50%;
@@ -956,7 +975,7 @@
         }
     }
 
-    // 캘린더 선택 모달 표시
+    // 캘린더 선택 모달 표시 (일반 연결용)
     async function showCalendarSelectionModal(platformName) {
         currentConnectingPlatform = platformName;
         const modal = document.getElementById('calendar-selection-modal');
@@ -965,6 +984,29 @@
         
         // 플랫폼 이름 표시
         platformDisplay.textContent = getKoreanPlatformName(platformName);
+        
+        // 모달 표시
+        modal.style.display = 'flex';
+        
+        // 캘린더 목록 로딩
+        await loadUserCalendars(calendarList);
+    }
+    
+    // 캘린더 연동 모달 열기 (OAuth 연결 후 캘린더 선택용)
+    async function openCalendarSyncModal(platformName) {
+        currentConnectingPlatform = platformName;
+        const modal = document.getElementById('calendar-selection-modal');
+        const platformDisplay = document.getElementById('platform-name-display');
+        const calendarList = document.getElementById('calendar-list');
+        const modalTitle = modal.querySelector('.modal-title');
+        const confirmBtn = document.getElementById('confirm-calendar-selection');
+        
+        // 모달 제목과 설명 변경
+        modalTitle.textContent = '캘린더 연동 설정';
+        platformDisplay.textContent = getKoreanPlatformName(platformName);
+        
+        // 버튼 텍스트 변경
+        confirmBtn.textContent = '선택한 캘린더와 연동';
         
         // 모달 표시
         modal.style.display = 'flex';
@@ -1672,6 +1714,21 @@
                 </div>
             `;
             }
+
+            // 캘린더 연동 버튼 추가 (연결됨 상태에서만)
+            const buttonContainer = card.querySelector('.platform-buttons');
+            if (buttonContainer && !buttonContainer.querySelector('.calendar-sync-btn')) {
+                const syncBtn = document.createElement('button');
+                syncBtn.className = 'calendar-sync-btn';
+                syncBtn.onclick = () => openCalendarSyncModal(platform);
+                syncBtn.innerHTML = `
+                    <span class="sync-text">캘린더 연동</span>
+                    <div class="sync-loader" style="display: none;">
+                        <div class="loader-dot"></div>
+                    </div>
+                `;
+                buttonContainer.appendChild(syncBtn);
+            }
         } else {
             statusElement.className = 'platform-status disconnected';
             statusElement.innerHTML = '<span class="status-dot"></span>연결되지 않음';
@@ -1686,6 +1743,13 @@
                     <div class="loader-dot"></div>
                 </div>
             `;
+            }
+
+            // 연결되지 않은 상태에서는 캘린더 연동 버튼 제거
+            const buttonContainer = card.querySelector('.platform-buttons');
+            const syncBtn = buttonContainer ? buttonContainer.querySelector('.calendar-sync-btn') : null;
+            if (syncBtn) {
+                syncBtn.remove();
             }
         }
     }
@@ -1733,6 +1797,103 @@
         }
     }
 
+    // 캘린더 연동 모달 열기
+    async function openCalendarSyncModal(platform) {
+        try {
+            // 사용자가 생성한 캘린더 목록 가져오기
+            const response = await fetch('/api/user-calendars');
+            const calendars = await response.json();
+
+            if (!response.ok) {
+                throw new Error(calendars.error || 'Failed to fetch calendars');
+            }
+
+            if (calendars.length === 0) {
+                alert('연동할 캘린더가 없습니다. 먼저 캘린더를 생성해주세요.');
+                return;
+            }
+
+            // 모달 생성
+            const modal = document.createElement('div');
+            modal.className = 'calendar-sync-modal';
+            modal.innerHTML = `
+                <div class="modal-backdrop" onclick="closeCalendarSyncModal()"></div>
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>캘린더 연동 - ${platform.charAt(0).toUpperCase() + platform.slice(1)}</h3>
+                        <button class="modal-close" onclick="closeCalendarSyncModal()">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <p>연동할 캘린더를 선택하세요:</p>
+                        <div class="calendar-list">
+                            ${calendars.map(calendar => `
+                                <div class="calendar-item" data-calendar-id="${calendar.id}" onclick="selectCalendar(this, '${platform}')">
+                                    <div class="calendar-icon">${calendar.icon || '📅'}</div>
+                                    <div class="calendar-info">
+                                        <div class="calendar-name">${calendar.name}</div>
+                                        <div class="calendar-description">${calendar.description || ''}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn-secondary" onclick="closeCalendarSyncModal()">취소</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            modal.style.display = 'flex';
+        } catch (error) {
+            console.error('캘린더 연동 모달 오류:', error);
+            alert('캘린더 목록을 불러오는데 실패했습니다.');
+        }
+    }
+
+    // 캘린더 연동 모달 닫기
+    function closeCalendarSyncModal() {
+        const modal = document.querySelector('.calendar-sync-modal');
+        if (modal) {
+            modal.remove();
+        }
+    }
+
+    // 캘린더 선택 및 연동
+    async function selectCalendar(element, platform) {
+        const calendarId = element.dataset.calendarId;
+        const calendarName = element.querySelector('.calendar-name').textContent;
+        
+        if (!confirm(`"${calendarName}" 캘린더를 ${platform}과 연동하시겠습니까?`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/sync-calendar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    platform: platform,
+                    calendar_id: calendarId
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(`${platform} 캘린더 연동이 완료되었습니다!`);
+                closeCalendarSyncModal();
+            } else {
+                throw new Error(result.error || 'Failed to sync calendar');
+            }
+        } catch (error) {
+            console.error('캘린더 연동 오류:', error);
+            alert('캘린더 연동에 실패했습니다.');
+        }
+    }
+
     // slideOutUp 애니메이션 추가
     const style = document.createElement('style');
     style.textContent = `
@@ -1745,6 +1906,167 @@
             opacity: 0;
             transform: translateY(-20px);
         }
+    }
+    
+    /* 캘린더 연동 버튼 스타일 */
+    .calendar-sync-btn {
+        background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        margin-left: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    }
+    
+    .calendar-sync-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    .calendar-sync-btn:active {
+        transform: translateY(0);
+    }
+    
+    .sync-loader {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+    }
+    
+    .sync-loader .loader-dot {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top: 2px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    /* 캘린더 연동 모달 스타일 */
+    .calendar-sync-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+    
+    .calendar-sync-modal .modal-content {
+        background: white;
+        border-radius: 12px;
+        width: 500px;
+        max-width: 90vw;
+        max-height: 80vh;
+        overflow: hidden;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .calendar-sync-modal .modal-header {
+        padding: 20px;
+        border-bottom: 1px solid #e5e5e5;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .calendar-sync-modal .modal-header h3 {
+        margin: 0;
+        color: #333;
+        font-size: 18px;
+    }
+    
+    .calendar-sync-modal .modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #666;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+    }
+    
+    .calendar-sync-modal .modal-close:hover {
+        background: #f0f0f0;
+    }
+    
+    .calendar-sync-modal .modal-body {
+        padding: 20px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .calendar-sync-modal .calendar-list {
+        margin-top: 16px;
+    }
+    
+    .calendar-sync-modal .calendar-item {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        border: 2px solid #f0f0f0;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .calendar-sync-modal .calendar-item:hover {
+        border-color: #667eea;
+        background: #f8f9ff;
+    }
+    
+    .calendar-sync-modal .calendar-icon {
+        font-size: 24px;
+        margin-right: 12px;
+    }
+    
+    .calendar-sync-modal .calendar-info {
+        flex: 1;
+    }
+    
+    .calendar-sync-modal .calendar-name {
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 4px;
+    }
+    
+    .calendar-sync-modal .calendar-description {
+        font-size: 14px;
+        color: #666;
+    }
+    
+    .calendar-sync-modal .modal-footer {
+        padding: 20px;
+        border-top: 1px solid #e5e5e5;
+        text-align: right;
+    }
+    
+    .calendar-sync-modal .btn-secondary {
+        background: #f0f0f0;
+        color: #666;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    
+    .calendar-sync-modal .btn-secondary:hover {
+        background: #e0e0e0;
     }
 `;
     document.head.appendChild(style);

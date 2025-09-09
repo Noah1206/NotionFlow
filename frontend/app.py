@@ -4398,6 +4398,98 @@ def not_found_error(error):
 
 # Duplicate route removed - using the one defined at line 633
 
+# ===== CALENDAR SYNC API =====
+
+@app.route('/api/user-calendars', methods=['GET'])
+@login_required
+def get_user_calendars():
+    """사용자가 생성한 캘린더 목록 조회"""
+    try:
+        user_id = session['user_id']
+        
+        # Supabase에서 사용자의 캘린더 목록 조회
+        calendars_response = supabase.table('calendars').select('*').eq('user_id', user_id).execute()
+        
+        if calendars_response.data:
+            # 캘린더 데이터 포맷 변경
+            formatted_calendars = []
+            for calendar in calendars_response.data:
+                formatted_calendars.append({
+                    'id': calendar['id'],
+                    'name': calendar['name'],
+                    'description': calendar.get('description', ''),
+                    'icon': calendar.get('color', '📅'),  # color를 icon으로 사용
+                    'created_at': calendar.get('created_at', '')
+                })
+            
+            return jsonify(formatted_calendars), 200
+        else:
+            return jsonify([]), 200
+            
+    except Exception as e:
+        print(f"Error fetching user calendars: {e}")
+        return jsonify({'error': 'Failed to fetch calendars'}), 500
+
+@app.route('/api/sync-calendar', methods=['POST'])
+@login_required
+def sync_calendar():
+    """선택된 캘린더를 플랫폼과 연동"""
+    try:
+        user_id = session['user_id']
+        data = request.get_json()
+        
+        platform = data.get('platform')
+        calendar_id = data.get('calendar_id')
+        
+        if not platform or not calendar_id:
+            return jsonify({'error': 'Platform and calendar_id are required'}), 400
+        
+        # 캘린더 존재 여부 확인
+        calendar_response = supabase.table('calendars').select('*').eq('id', calendar_id).eq('user_id', user_id).execute()
+        
+        if not calendar_response.data:
+            return jsonify({'error': 'Calendar not found'}), 404
+        
+        calendar = calendar_response.data[0]
+        
+        # 플랫폼 연동 정보를 데이터베이스에 저장 (calendar_sync 테이블)
+        sync_data = {
+            'user_id': user_id,
+            'calendar_id': calendar_id,
+            'platform': platform,
+            'synced_at': 'now()',
+            'sync_status': 'active'
+        }
+        
+        # 기존 연동이 있는지 확인
+        existing_sync = supabase.table('calendar_sync').select('*').eq('user_id', user_id).eq('calendar_id', calendar_id).eq('platform', platform).execute()
+        
+        if existing_sync.data:
+            # 기존 연동 업데이트
+            result = supabase.table('calendar_sync').update({
+                'synced_at': 'now()',
+                'sync_status': 'active'
+            }).eq('id', existing_sync.data[0]['id']).execute()
+        else:
+            # 새 연동 생성
+            result = supabase.table('calendar_sync').insert(sync_data).execute()
+        
+        if result.data:
+            return jsonify({
+                'success': True,
+                'message': f'{platform} 캘린더 연동이 완료되었습니다.',
+                'calendar_name': calendar['name'],
+                'platform': platform
+            }), 200
+        else:
+            return jsonify({'error': 'Failed to create sync record'}), 500
+            
+    except Exception as e:
+        print(f"Error syncing calendar: {e}")
+        return jsonify({'error': 'Failed to sync calendar'}), 500
+
+# ===== ERROR HANDLERS =====
+
 @app.errorhandler(500)
 def internal_error(error):
     if os.environ.get('RENDER'):
