@@ -4401,10 +4401,13 @@ def not_found_error(error):
 # ===== CALENDAR SYNC API =====
 
 @app.route('/api/user-calendars', methods=['GET'])
-@login_required
 def get_user_calendars():
     """사용자가 생성한 캘린더 목록 조회"""
     try:
+        # Check if user is logged in
+        if 'user_id' not in session:
+            return jsonify({'error': 'Authentication required'}), 401
+            
         user_id = session['user_id']
         
         # Supabase에서 사용자의 캘린더 목록 조회
@@ -4431,10 +4434,13 @@ def get_user_calendars():
         return jsonify({'error': 'Failed to fetch calendars'}), 500
 
 @app.route('/api/sync-calendar', methods=['POST'])
-@login_required
 def sync_calendar():
     """선택된 캘린더를 플랫폼과 연동"""
     try:
+        # Check if user is logged in
+        if 'user_id' not in session:
+            return jsonify({'error': 'Authentication required'}), 401
+            
         user_id = session['user_id']
         data = request.get_json()
         
