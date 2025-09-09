@@ -1408,11 +1408,11 @@
                                 if (connectBtn) {
                                     connectBtn.className = 'platform-disconnect-btn';
                                     connectBtn.setAttribute('onclick', 'disconnectPlatform(\'' + platformName + '\')');
-                                    connectBtn.innerHTML = '
-                                        < span class="disconnect-text" > 연결 해제</span >
-                                            <div class="disconnect-loader" style="display: none;">
-                                                <div class="loader-dot"></div>
-                                            </div>
+                                    connectBtn.innerHTML = `
+                                        <span class="disconnect-text">연결 해제</span>
+                                        <div class="disconnect-loader" style="display: none;">
+                                            <div class="loader-dot"></div>
+                                        </div>
                                     `;
                                 }
                             } else {
