@@ -4576,12 +4576,12 @@ def get_synced_calendars():
             print("No Supabase client available, returning empty synced calendars data")
             return jsonify({}), 200
         
-        # Try to query calendar sync data with error handling
+        # 연동 정보를 수집할 딕셔너리
+        synced_platforms = {}
+        
+        # 1. 데이터베이스에서 연동 정보 조회 시도
         try:
-            # 사용자의 모든 캘린더 연동 정보 조회
             sync_response = supabase_client.table('calendar_sync').select('*').eq('user_id', user_id).eq('sync_status', 'active').execute()
-            
-            synced_platforms = {}
             
             if sync_response.data:
                 for sync_record in sync_response.data:
@@ -4600,19 +4600,49 @@ def get_synced_calendars():
                                 'calendar_description': calendar.get('description', ''),
                                 'calendar_icon': calendar.get('color', '📅'),
                                 'synced_at': sync_record.get('synced_at', ''),
-                                'sync_status': sync_record.get('sync_status', 'active')
+                                'sync_status': sync_record.get('sync_status', 'active'),
+                                'source': 'database'
                             }
                     except Exception as calendar_error:
                         print(f"Error fetching calendar {calendar_id}: {calendar_error}")
-                        # Continue with other calendars
                         continue
-            
-            return jsonify(synced_platforms), 200
-            
         except Exception as db_error:
             print(f"Database error fetching synced calendars: {db_error}")
-            # Return empty data instead of error when database tables don't exist
-            return jsonify({}), 200
+        
+        # 2. 세션에서 연동 정보도 확인 (데이터베이스 실패 시 fallback)
+        try:
+            for key in session.keys():
+                if key.startswith('calendar_sync_'):
+                    # calendar_sync_{user_id}_{calendar_id}_{platform} 형식
+                    parts = key.split('_')
+                    if len(parts) >= 5 and parts[2] == user_id:
+                        platform = parts[4]
+                        calendar_id = parts[3]
+                        sync_info = session[key]
+                        
+                        # 데이터베이스에서 이미 찾은 정보가 없으면 세션 정보 사용
+                        if platform not in synced_platforms:
+                            # 캘린더 정보 가져오기 (여러 소스 시도)
+                            calendar_name = f'Calendar {calendar_id[:8]}'
+                            user_calendars = load_user_calendars(user_id)
+                            for cal in user_calendars:
+                                if cal.get('id') == calendar_id:
+                                    calendar_name = cal.get('name', calendar_name)
+                                    break
+                            
+                            synced_platforms[platform] = {
+                                'calendar_id': calendar_id,
+                                'calendar_name': calendar_name,
+                                'calendar_description': '',
+                                'calendar_icon': '📅',
+                                'synced_at': sync_info.get('synced_at', ''),
+                                'sync_status': sync_info.get('status', 'active'),
+                                'source': 'session'
+                            }
+        except Exception as session_error:
+            print(f"Session sync info read error: {session_error}")
+        
+        return jsonify(synced_platforms), 200
             
     except Exception as e:
         print(f"Error fetching synced calendars: {e}")

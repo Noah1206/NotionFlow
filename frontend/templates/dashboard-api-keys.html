@@ -2229,6 +2229,16 @@
                     showNotification(`${result.platform} 연동이 완료되었습니다!`, 'success');
                 }
                 
+                // localStorage에 연동 정보 저장
+                const syncInfo = {
+                    calendar_name: result.calendar_name || selectedCalendarData.name,
+                    calendar_id: selectedCalendarData.id,
+                    synced_at: new Date().toLocaleString(),
+                    sync_status: 'active',
+                    platform: result.platform
+                };
+                saveSyncInfoToLocalStorage(result.platform, syncInfo);
+                
                 showStep3();
             } else {
                 throw new Error(result.error || '연동에 실패했습니다.');
@@ -2421,6 +2431,9 @@
                     sync_status: 'active'
                 };
                 updateCalendarSyncStatus(platform, syncInfo);
+                
+                // localStorage에도 저장하여 새로고침 후에도 유지
+                saveSyncInfoToLocalStorage(platform, syncInfo);
             } else {
                 throw new Error(result.error || 'Failed to sync calendar');
             }
@@ -3093,8 +3106,13 @@
                     updateCalendarSyncStatus(platform, syncInfo);
                 });
             }
+            
+            // localStorage에서도 연동 정보 확인 (서버 정보가 없는 경우 fallback)
+            loadSyncInfoFromLocalStorage();
         } catch (error) {
             console.error('연동된 캘린더 정보 로드 실패:', error);
+            // 서버에서 정보를 가져올 수 없으면 localStorage만 사용
+            loadSyncInfoFromLocalStorage();
         }
     }
 
@@ -3112,6 +3130,56 @@
                 syncBtn.classList.add('synced');
                 syncBtn.title = syncInfo.calendar_name + '과 연동됨 (' + syncInfo.synced_at + ')';
             }
+        }
+    }
+    
+    // localStorage에 연동 정보 저장
+    function saveSyncInfoToLocalStorage(platform, syncInfo) {
+        try {
+            const key = `notionflow_sync_${platform}`;
+            localStorage.setItem(key, JSON.stringify(syncInfo));
+            console.log(`Saved sync info for ${platform} to localStorage`);
+        } catch (error) {
+            console.error('localStorage 저장 실패:', error);
+        }
+    }
+    
+    // localStorage에서 연동 정보 불러오기
+    function loadSyncInfoFromLocalStorage() {
+        const platforms = ['notion', 'google', 'apple', 'outlook', 'slack'];
+        
+        platforms.forEach(platform => {
+            try {
+                const key = `notionflow_sync_${platform}`;
+                const storedInfo = localStorage.getItem(key);
+                
+                if (storedInfo) {
+                    const syncInfo = JSON.parse(storedInfo);
+                    
+                    // 서버에서 이미 정보가 없는 경우에만 localStorage 정보 사용
+                    const card = document.querySelector(`[data-platform="${platform}"]`);
+                    const syncBtn = card?.querySelector('.platform-sync-btn');
+                    const syncText = syncBtn?.querySelector('.sync-text');
+                    
+                    if (syncText && !syncBtn.classList.contains('synced')) {
+                        updateCalendarSyncStatus(platform, syncInfo);
+                        console.log(`Restored sync info for ${platform} from localStorage`);
+                    }
+                }
+            } catch (error) {
+                console.error(`localStorage에서 ${platform} 정보 로드 실패:`, error);
+            }
+        });
+    }
+    
+    // localStorage에서 연동 정보 삭제
+    function removeSyncInfoFromLocalStorage(platform) {
+        try {
+            const key = `notionflow_sync_${platform}`;
+            localStorage.removeItem(key);
+            console.log(`Removed sync info for ${platform} from localStorage`);
+        } catch (error) {
+            console.error('localStorage 삭제 실패:', error);
         }
     }
 
@@ -3149,6 +3217,18 @@
             if (response.ok) {
                 // 플랫폼 상태를 연결되지 않음으로 업데이트
                 updatePlatformStatus(platform, 'disconnected');
+                
+                // localStorage에서 연동 정보 삭제
+                removeSyncInfoFromLocalStorage(platform);
+                
+                // 연동 버튼 상태도 초기화
+                const syncBtn = card.querySelector('.platform-sync-btn');
+                const syncText = syncBtn?.querySelector('.sync-text');
+                if (syncText) {
+                    syncText.textContent = '캘린더 연동';
+                    syncBtn.classList.remove('synced');
+                    syncBtn.title = '';
+                }
 
                 // 성공 메시지
                 showNotification(`${getKoreanPlatformName(platform)} 연결이 해제되었습니다.`, 'success');
