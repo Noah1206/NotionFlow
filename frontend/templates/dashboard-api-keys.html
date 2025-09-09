@@ -1409,11 +1409,11 @@
                                     connectBtn.className = 'platform-disconnect-btn';
                                     connectBtn.setAttribute('onclick', 'disconnectPlatform(\'' + platformName + '\')');
                                     connectBtn.innerHTML = '
-                                        <span class="disconnect-text">연결 해제</span>
-                                        <div class="disconnect-loader" style="display: none;">
-                                            <div class="loader-dot"></div>
-                                        </div>
-                                    ';
+                                        < span class="disconnect-text" > 연결 해제</span >
+                                            <div class="disconnect-loader" style="display: none;">
+                                                <div class="loader-dot"></div>
+                                            </div>
+                                    `;
                                 }
                             } else {
                                 // 연결되지 않은 상태
@@ -1428,7 +1428,7 @@
                                         <div class="connect-loader" style="display: none;">
                                             <div class="loader-dot"></div>
                                         </div>
-                                    ';
+                                    `;
                                 }
                             }
                         }
@@ -1455,7 +1455,8 @@
     async function checkCalendarsAndUpdatePlatforms() {
         try {
             // 서버에서 렌더링된 통계 데이터 사용
-            const connectedCount = {{ (stats.connected_count if stats and stats.connected_count else 0)| tojson }};
+            const connectedCount = {{ (stats.connected_count if stats and stats.connected_count else 0)| tojson
+        }};
     const hasCalendars = connectedCount > 0;
 
     // 모든 플랫폼 카드 선택
@@ -1558,10 +1559,11 @@
         try {
             // 서버에서 렌더링된 데이터 사용 (조용히)
             const stats = {
-                connected_count: {{ (stats.connected_count if stats and stats.connected_count else 0)| tojson }},
-                synced_events: {{ (stats.synced_events if stats and stats.synced_events else 0)| tojson }},
-                success_rate: {{ (stats.success_rate if stats and stats.success_rate else "0%")| tojson }},
-                avg_sync_time: {{ (stats.avg_sync_time if stats and stats.avg_sync_time else "N/A")| tojson }}
+                connected_count: {{ (stats.connected_count if stats and stats.connected_count else 0)| tojson
+        }},
+    synced_events: { { (stats.synced_events if stats and stats.synced_events else 0)| tojson } },
+    success_rate: { { (stats.success_rate if stats and stats.success_rate else "0%")| tojson } },
+    avg_sync_time: { { (stats.avg_sync_time if stats and stats.avg_sync_time else "N/A")| tojson } }
             };
 
     // DOM 업데이트
@@ -1754,13 +1756,13 @@
             const oneClickBtn = card.querySelector('.one-click-btn-small');
             if (oneClickBtn) {
                 oneClickBtn.className = 'one-click-disconnect-btn';
-                oneClickBtn.setAttribute('onclick', 'oneClickDisconnect('' + platform + '')');
-                oneClickBtn.innerHTML = '
+                oneClickBtn.setAttribute('onclick', 'oneClickDisconnect(\'' + platform + '\')');
+                oneClickBtn.innerHTML = `
                     <span class="btn-text">연결해제</span>
                     <div class="btn-loader" style="display: none;">
                         <div class="loader-spinner"></div>
                     </div>
-                ';
+                `;
             }
 
             // 캘린더 연동 버튼 표시 (연결됨 상태에서만)
@@ -1787,13 +1789,13 @@
             const oneClickDisconnectBtn = card.querySelector('.one-click-disconnect-btn');
             if (oneClickDisconnectBtn) {
                 oneClickDisconnectBtn.className = 'one-click-btn-small';
-                oneClickDisconnectBtn.setAttribute('onclick', 'oneClickConnect('' + platform + '')');
-                oneClickDisconnectBtn.innerHTML = '
+                oneClickDisconnectBtn.setAttribute('onclick', 'oneClickConnect(\'' + platform + '\')');
+                oneClickDisconnectBtn.innerHTML = `
                     <span class="btn-text">원클릭</span>
                     <div class="btn-loader" style="display: none;">
                         <div class="loader-spinner"></div>
                     </div>
-                ';
+                `;
             }
 
             // 연결되지 않은 상태에서는 캘린더 연동 버튼 숨기기
@@ -1881,10 +1883,10 @@
             // 모달 생성
             const modal = document.createElement('div');
             modal.className = 'calendar-sync-modal';
-            
+
             const platformDisplayName = platformNames[platform] || platform;
-            
-            modal.innerHTML = '
+
+            modal.innerHTML = `
                 <div class="modal-backdrop" onclick="closeCalendarSyncModal()"></div>
                 <div class="modal-content">
                     <div class="modal-header">
@@ -2008,11 +2010,11 @@
                         <button class="btn-primary hidden" id="complete-btn" onclick="closeCalendarSyncModal()">완료</button>
                     </div>
                 </div>
-            ';
+            `;
 
             document.body.appendChild(modal);
             modal.style.display = 'flex';
-            
+
             // 캘린더 카드 생성
             const calendarGrid = document.getElementById('calendar-grid');
             calendars.forEach(calendar => {
@@ -2122,15 +2124,15 @@
 
         // 선택된 캘린더 프리뷰 업데이트
         const previewContainer = document.getElementById('selected-calendar-preview');
-        previewContainer.innerHTML = '
+        previewContainer.innerHTML = `
             <div class="preview-calendar-card">
-                <div class="preview-icon">" + selectedCalendarData.icon + "</div>
+                <div class="preview-icon">${selectedCalendarData.icon}</div>
                 <div class="preview-info">
-                    <h6>" + selectedCalendarData.name + "</h6>
-                    <p>" + selectedCalendarData.description + "</p>
+                    <h6>${selectedCalendarData.name}</h6>
+                    <p>${selectedCalendarData.description}</p>
                 </div>
             </div>
-        ';
+        `;
 
         // 버튼 업데이트
         const nextBtn = document.getElementById('next-step-btn');
@@ -2153,12 +2155,12 @@
 
         // 로딩 상태
         syncBtn.disabled = true;
-        syncBtn.innerHTML = '
+        syncBtn.innerHTML = `
             <div class="btn-loading">
                 <div class="spinner"></div>
                 <span>연동 중...</span>
             </div>
-        ';
+        `;
 
         try {
             const response = await fetch('/api/sync-calendar', {
@@ -2236,10 +2238,10 @@
     function showErrorInModal(message) {
         const errorDiv = document.createElement('div');
         errorDiv.className = 'sync-error';
-        errorDiv.innerHTML = '
+        errorDiv.innerHTML = `
             <div class="error-icon">⚠️</div>
-            <div class="error-message">" + message + "</div>
-        ';
+            <div class="error-message">${message}</div>
+        `;
 
         const modalBody = document.querySelector('.calendar-sync-modal .modal-body');
         modalBody.insertBefore(errorDiv, modalBody.firstChild);
@@ -2254,7 +2256,7 @@
     function showNoCalendarsModal(platform) {
         const modal = document.createElement('div');
         modal.className = 'calendar-sync-modal no-calendars-modal';
-        modal.innerHTML = '
+        modal.innerHTML = `
             <div class="modal-backdrop" onclick="closeCalendarSyncModal()"></div>
             <div class="modal-content">
                 <div class="modal-header">
@@ -2273,7 +2275,7 @@
                     <button class="btn-secondary" onclick="closeCalendarSyncModal()">닫기</button>
                 </div>
             </div>
-        ';
+        `;
         document.body.appendChild(modal);
         modal.style.display = 'flex';
     }
@@ -2282,7 +2284,7 @@
     function showErrorModal(message) {
         const modal = document.createElement('div');
         modal.className = 'calendar-sync-modal error-modal';
-        modal.innerHTML = '
+        modal.innerHTML = `
             <div class="modal-backdrop" onclick="closeCalendarSyncModal()"></div>
             <div class="modal-content">
                 <div class="modal-header">
@@ -2292,14 +2294,14 @@
                 <div class="modal-body">
                     <div class="error-content">
                         <div class="error-icon">⚠️</div>
-                        <p>" + message + "</p>
+                        <p>${message}</p>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button class="btn-primary" onclick="closeCalendarSyncModal()">확인</button>
                 </div>
             </div>
-        ';
+        `;
         document.body.appendChild(modal);
         modal.style.display = 'flex';
     }
@@ -2310,30 +2312,30 @@
         cardDiv.className = 'calendar-card';
         cardDiv.setAttribute('data-calendar-id', calendar.id);
         cardDiv.onclick = () => selectCalendarForSync(cardDiv, platform);
-        
+
         const iconStyle = 'background-color: ' + (calendar.color || '#3b82f6') + '; color: white; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 20px;';
         const createdDate = calendar.created_at ? formatDate(calendar.created_at) : '날짜 없음';
-        
+
         const calendarName = calendar.name || '이름 없음';
         const calendarDesc = calendar.description || '설명이 없습니다';
         const calendarType = calendar.type || 'personal';
-        
-        cardDiv.innerHTML = 
+
+        cardDiv.innerHTML =
             '<div class="calendar-card-header">' +
-                '<div class="calendar-icon-large" style="' + iconStyle + '">📅</div>' +
-                '<div class="selection-indicator">' +
-                    '<div class="radio-button"></div>' +
-                '</div>' +
+            '<div class="calendar-icon-large" style="' + iconStyle + '">📅</div>' +
+            '<div class="selection-indicator">' +
+            '<div class="radio-button"></div>' +
+            '</div>' +
             '</div>' +
             '<div class="calendar-card-body">' +
-                '<h5 class="calendar-name">' + calendarName + '</h5>' +
-                '<p class="calendar-description">' + calendarDesc + '</p>' +
-                '<div class="calendar-meta">' +
-                    '<span class="created-date">생성일: ' + createdDate + '</span>' +
-                    '<span class="calendar-type">' + calendarType + '</span>' +
-                '</div>' +
+            '<h5 class="calendar-name">' + calendarName + '</h5>' +
+            '<p class="calendar-description">' + calendarDesc + '</p>' +
+            '<div class="calendar-meta">' +
+            '<span class="created-date">생성일: ' + createdDate + '</span>' +
+            '<span class="calendar-type">' + calendarType + '</span>' +
+            '</div>' +
             '</div>';
-        
+
         return cardDiv;
     }
 
