@@ -39,7 +39,8 @@
             <div class="status-card">
                 <div class="status-icon">✅</div>
                 <div class="status-content">
-                    <div class="status-number success" id="success-rate">{{ stats.success_rate if stats else "0%" }}</div>
+                    <div class="status-number success" id="success-rate">{{ stats.success_rate if stats else "0%" }}
+                    </div>
                     <div class="status-label">성공률</div>
                 </div>
             </div>
@@ -113,7 +114,6 @@
                     </div>
                     <div class="platform-details">
                         <h3 class="platform-name">Notion</h3>
-                        <p class="platform-description">페이지와 데이터베이스를 캘린더로 동기화</p>
                         <div class="platform-status disconnected">
                             <span class="status-dot"></span>
                             연결되지 않음
@@ -127,7 +127,8 @@
                             <div class="loader-spinner"></div>
                         </div>
                     </button>
-                    <button class="platform-sync-btn" onclick="openCalendarSyncModal('notion')" data-platform="notion" style="display: none;">
+                    <button class="platform-sync-btn" onclick="openCalendarSyncModal('notion')" data-platform="notion"
+                        style="display: none;">
                         <span class="sync-text">캘린더 연동</span>
                         <div class="sync-loader" style="display: none;">
                             <div class="loader-dot"></div>
@@ -181,7 +182,6 @@
                     </div>
                     <div class="platform-details">
                         <h3 class="platform-name">Google Calendar</h3>
-                        <p class="platform-description">구글 캘린더와 실시간 동기화</p>
                         <div class="platform-status disconnected">
                             <span class="status-dot"></span>
                             연결되지 않음
@@ -189,7 +189,8 @@
                     </div>
                 </div>
                 <div class="platform-actions">
-                    <button class="platform-sync-btn" onclick="openCalendarSyncModal('google')" data-platform="google" style="display: none;">
+                    <button class="platform-sync-btn" onclick="openCalendarSyncModal('google')" data-platform="google"
+                        style="display: none;">
                         <span class="sync-text">캘린더 연동</span>
                         <div class="sync-loader" style="display: none;">
                             <div class="loader-dot"></div>
@@ -223,7 +224,6 @@
                     </div>
                     <div class="platform-details">
                         <h3 class="platform-name">Apple Calendar</h3>
-                        <p class="platform-description">iCloud 캘린더와 동기화</p>
                         <div class="platform-status disconnected">
                             <span class="status-dot"></span>
                             연결되지 않음
@@ -231,7 +231,8 @@
                     </div>
                 </div>
                 <div class="platform-actions">
-                    <button class="platform-sync-btn" onclick="openCalendarSyncModal('apple')" data-platform="apple" style="display: none;">
+                    <button class="platform-sync-btn" onclick="openCalendarSyncModal('apple')" data-platform="apple"
+                        style="display: none;">
                         <span class="sync-text">캘린더 연동</span>
                         <div class="sync-loader" style="display: none;">
                             <div class="loader-dot"></div>
@@ -296,7 +297,6 @@
                     </div>
                     <div class="platform-details">
                         <h3 class="platform-name">Outlook</h3>
-                        <p class="platform-description">Outlook 캘린더와 동기화</p>
                         <div class="platform-status disconnected">
                             <span class="status-dot"></span>
                             연결되지 않음
@@ -304,7 +304,8 @@
                     </div>
                 </div>
                 <div class="platform-actions">
-                    <button class="platform-sync-btn" onclick="openCalendarSyncModal('outlook')" data-platform="outlook" style="display: none;">
+                    <button class="platform-sync-btn" onclick="openCalendarSyncModal('outlook')" data-platform="outlook"
+                        style="display: none;">
                         <span class="sync-text">캘린더 연동</span>
                         <div class="sync-loader" style="display: none;">
                             <div class="loader-dot"></div>
@@ -369,7 +370,6 @@
                     </div>
                     <div class="platform-details">
                         <h3 class="platform-name">Slack</h3>
-                        <p class="platform-description">Slack 알림 및 캘린더 연동</p>
                         <div class="platform-status disconnected">
                             <span class="status-dot"></span>
                             연결되지 않음
@@ -377,7 +377,8 @@
                     </div>
                 </div>
                 <div class="platform-actions">
-                    <button class="platform-sync-btn" onclick="openCalendarSyncModal('slack')" data-platform="slack" style="display: none;">
+                    <button class="platform-sync-btn" onclick="openCalendarSyncModal('slack')" data-platform="slack"
+                        style="display: none;">
                         <span class="sync-text">캘린더 연동</span>
                         <div class="sync-loader" style="display: none;">
                             <div class="loader-dot"></div>
@@ -437,7 +438,7 @@
             <h3 class="modal-title">캘린더 선택</h3>
             <button class="modal-close-btn" onclick="closeCalendarSelectionModal()">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M18 6l-12 12M6 6l12 12"/>
+                    <path d="M18 6l-12 12M6 6l12 12" />
                 </svg>
             </button>
         </div>
@@ -464,14 +465,14 @@
 <!-- 초기 데이터 설정 스크립트 -->
 <script>
     // 서버에서 렌더링된 데이터 (캘린더가 있는지 확인)
-    const hasCalendar = {{ (stats.connected_count if stats and stats.connected_count else 0)|tojson }} > 0;
-    
+    const hasCalendar = {{ (stats.connected_count if stats and stats.connected_count else 0)| tojson }} > 0;
+
     // 페이지 로드 시 즉시 가이드 처리
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const guide = document.getElementById('calendar-setup-guide');
         if (guide) {
             const isHidden = localStorage.getItem('calendar_guide_hidden') === 'true';
-            
+
             // 캘린더가 있거나 사용자가 이미 숨긴 경우
             if (hasCalendar || isHidden) {
                 guide.style.display = 'none';
@@ -483,493 +484,503 @@
 </script>
 
 <style>
-/* 캘린더 선택 모달 스타일 */
-.calendar-selection-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 999999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.modal-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-}
-
-.modal-content {
-    position: relative;
-    background: #ffffff;
-    border-radius: 16px;
-    max-width: 600px;
-    width: 90%;
-    max-height: 80vh;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-    overflow: hidden;
-}
-
-.modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 24px 32px;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.modal-title {
-    font-size: 20px;
-    font-weight: 600;
-    color: #000000;
-    margin: 0;
-}
-
-.modal-close-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #6b7280;
-    transition: all 0.2s ease;
-}
-
-.modal-close-btn:hover {
-    background: #f9fafb;
-    color: #000000;
-}
-
-.modal-body {
-    padding: 32px;
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.modal-description {
-    font-size: 16px;
-    color: #6b7280;
-    margin-bottom: 24px;
-    line-height: 1.5;
-}
-
-.calendar-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.calendar-item {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px;
-    border: 2px solid #e5e7eb;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    background: #ffffff;
-}
-
-.calendar-item:hover {
-    border-color: #3b82f6;
-    background: #f8faff;
-}
-
-.calendar-item.selected {
-    border-color: #3b82f6;
-    background: #eff6ff;
-}
-
-.calendar-radio {
-    width: 20px;
-    height: 20px;
-    border: 2px solid #d1d5db;
-    border-radius: 50%;
-    position: relative;
-    flex-shrink: 0;
-}
-
-.calendar-item.selected .calendar-radio {
-    border-color: #3b82f6;
-}
-
-.calendar-item.selected .calendar-radio::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 10px;
-    height: 10px;
-    background: #3b82f6;
-    border-radius: 50%;
-}
-
-.calendar-info {
-    flex: 1;
-}
-
-.calendar-name {
-    font-size: 16px;
-    font-weight: 500;
-    color: #000000;
-    margin-bottom: 4px;
-}
-
-.calendar-description {
-    font-size: 14px;
-    color: #6b7280;
-}
-
-.calendar-type {
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 500;
-    text-transform: uppercase;
-}
-
-.calendar-type.primary {
-    background: #dbeafe;
-    color: #1d4ed8;
-}
-
-.calendar-type.shared {
-    background: #d1fae5;
-    color: #047857;
-}
-
-.calendar-type.personal {
-    background: #fef3c7;
-    color: #d97706;
-}
-
-.loading-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-    padding: 40px 20px;
-    color: #6b7280;
-}
-
-.loading-spinner {
-    width: 32px;
-    height: 32px;
-    border: 3px solid #e5e7eb;
-    border-top: 3px solid #3b82f6;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-.modal-footer {
-    display: flex;
-    gap: 12px;
-    padding: 24px 32px;
-    border-top: 1px solid #f0f0f0;
-    justify-content: flex-end;
-}
-
-.btn-secondary, .btn-primary {
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: none;
-    min-width: 120px;
-}
-
-.btn-secondary {
-    background: #ffffff;
-    color: #6b7280;
-    border: 1px solid #e5e7eb;
-}
-
-.btn-secondary:hover {
-    background: #f9fafb;
-    color: #000000;
-}
-
-.btn-primary {
-    background: #3b82f6;
-    color: #ffffff;
-}
-
-.btn-primary:hover:not(:disabled) {
-    background: #2563eb;
-}
-
-.btn-primary:disabled {
-    background: #9ca3af;
-    cursor: not-allowed;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* 새로운 버튼 디자인 스타일 */
-.one-click-btn-small {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 18px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 12px;
-    position: relative;
-    min-width: 100px;
-    justify-content: center;
-    background: #3b82f6;
-    color: white;
-    border: none;
-    overflow: hidden;
-    letter-spacing: 0.3px;
-}
-
-.one-click-btn-small::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    z-index: 0;
-}
-
-.one-click-btn-small:hover::before {
-    opacity: 1;
-}
-
-.one-click-btn-small:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
-}
-
-.one-click-btn-small .btn-icon {
-    font-size: 16px;
-    position: relative;
-    z-index: 1;
-}
-
-.one-click-btn-small .btn-text {
-    position: relative;
-    z-index: 1;
-}
-
-.platform-connect-btn,
-.platform-sync-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 12px;
-    position: relative;
-    min-width: 110px;
-    justify-content: center;
-    background: #ffffff;
-    color: #1a1a1a;
-    border: 2px solid #e5e7eb;
-    overflow: hidden;
-}
-
-.platform-sync-btn {
-    background: #3b82f6;
-    color: white;
-    border: none;
-}
-
-.platform-sync-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
-}
-
-.platform-connect-btn::before,
-.platform-sync-btn::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: #3b82f6;
-    transform: translate(-50%, -50%);
-    transition: width 0.4s ease, height 0.4s ease;
-    z-index: 0;
-}
-
-.platform-connect-btn:hover::before {
-    width: 300px;
-    height: 300px;
-}
-
-.platform-connect-btn:hover {
-    color: white;
-    border-color: #3b82f6;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-}
-
-.platform-connect-btn .connect-text {
-    position: relative;
-    z-index: 1;
-    transition: color 0.3s ease;
-}
-
-.platform-connect-btn:hover .connect-text {
-    color: white;
-}
-
-.platform-disconnect-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 12px;
-    position: relative;
-    min-width: 110px;
-    justify-content: center;
-    background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%);
-    color: white;
-    border: none;
-}
-
-.platform-disconnect-btn:hover {
-    background: linear-gradient(135deg, #ff5252 0%, #ff6b6b 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
-}
-
-/* 연결하기 버튼 로딩 상태 */
-.platform-connect-btn.loading {
-    pointer-events: none;
-    opacity: 0.8;
-}
-
-.connect-loader {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: inherit;
-    border-radius: inherit;
-}
-
-.loader-dot {
-    width: 8px;
-    height: 8px;
-    background: #3b82f6;
-    border-radius: 50%;
-    animation: bounce 1.4s infinite ease-in-out both;
-}
-
-.loader-dot::before,
-.loader-dot::after {
-    content: '';
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    background: #3b82f6;
-    border-radius: 50%;
-    animation: bounce 1.4s infinite ease-in-out both;
-}
-
-.loader-dot::before {
-    left: -16px;
-    animation-delay: -0.32s;
-}
-
-.loader-dot::after {
-    left: 16px;
-    animation-delay: -0.16s;
-}
-
-@keyframes bounce {
-    0%, 80%, 100% {
-        transform: scale(0);
+    /* 캘린더 선택 모달 스타일 */
+    .calendar-selection-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 999999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
-    40% {
-        transform: scale(1);
+
+    .modal-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
     }
-}
+
+    .modal-content {
+        position: relative;
+        background: #ffffff;
+        border-radius: 16px;
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 24px 32px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .modal-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #000000;
+        margin: 0;
+    }
+
+    .modal-close-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6b7280;
+        transition: all 0.2s ease;
+    }
+
+    .modal-close-btn:hover {
+        background: #f9fafb;
+        color: #000000;
+    }
+
+    .modal-body {
+        padding: 32px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .modal-description {
+        font-size: 16px;
+        color: #6b7280;
+        margin-bottom: 24px;
+        line-height: 1.5;
+    }
+
+    .calendar-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .calendar-item {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: #ffffff;
+    }
+
+    .calendar-item:hover {
+        border-color: #3b82f6;
+        background: #f8faff;
+    }
+
+    .calendar-item.selected {
+        border-color: #3b82f6;
+        background: #eff6ff;
+    }
+
+    .calendar-radio {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #d1d5db;
+        border-radius: 50%;
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .calendar-item.selected .calendar-radio {
+        border-color: #3b82f6;
+    }
+
+    .calendar-item.selected .calendar-radio::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 10px;
+        height: 10px;
+        background: #3b82f6;
+        border-radius: 50%;
+    }
+
+    .calendar-info {
+        flex: 1;
+    }
+
+    .calendar-name {
+        font-size: 16px;
+        font-weight: 500;
+        color: #000000;
+        margin-bottom: 4px;
+    }
+
+    .calendar-description {
+        font-size: 14px;
+        color: #6b7280;
+    }
+
+    .calendar-type {
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+
+    .calendar-type.primary {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .calendar-type.shared {
+        background: #d1fae5;
+        color: #047857;
+    }
+
+    .calendar-type.personal {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .loading-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        padding: 40px 20px;
+        color: #6b7280;
+    }
+
+    .loading-spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid #e5e7eb;
+        border-top: 3px solid #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    .modal-footer {
+        display: flex;
+        gap: 12px;
+        padding: 24px 32px;
+        border-top: 1px solid #f0f0f0;
+        justify-content: flex-end;
+    }
+
+    .btn-secondary,
+    .btn-primary {
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+        min-width: 120px;
+    }
+
+    .btn-secondary {
+        background: #ffffff;
+        color: #6b7280;
+        border: 1px solid #e5e7eb;
+    }
+
+    .btn-secondary:hover {
+        background: #f9fafb;
+        color: #000000;
+    }
+
+    .btn-primary {
+        background: #3b82f6;
+        color: #ffffff;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        background: #2563eb;
+    }
+
+    .btn-primary:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* 새로운 버튼 디자인 스타일 */
+    .one-click-btn-small {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 18px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 12px;
+        position: relative;
+        min-width: 100px;
+        justify-content: center;
+        background: #3b82f6;
+        color: white;
+        border: none;
+        overflow: hidden;
+        letter-spacing: 0.3px;
+    }
+
+    .one-click-btn-small::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 0;
+    }
+
+    .one-click-btn-small:hover::before {
+        opacity: 1;
+    }
+
+    .one-click-btn-small:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+    }
+
+    .one-click-btn-small .btn-icon {
+        font-size: 16px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .one-click-btn-small .btn-text {
+        position: relative;
+        z-index: 1;
+    }
+
+    .platform-connect-btn,
+    .platform-sync-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 12px;
+        position: relative;
+        min-width: 110px;
+        justify-content: center;
+        background: #ffffff;
+        color: #1a1a1a;
+        border: 2px solid #e5e7eb;
+        overflow: hidden;
+    }
+
+    .platform-sync-btn {
+        background: #3b82f6;
+        color: white;
+        border: none;
+    }
+
+    .platform-sync-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+    }
+
+    .platform-connect-btn::before,
+    .platform-sync-btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: #3b82f6;
+        transform: translate(-50%, -50%);
+        transition: width 0.4s ease, height 0.4s ease;
+        z-index: 0;
+    }
+
+    .platform-connect-btn:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    .platform-connect-btn:hover {
+        color: white;
+        border-color: #3b82f6;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .platform-connect-btn .connect-text {
+        position: relative;
+        z-index: 1;
+        transition: color 0.3s ease;
+    }
+
+    .platform-connect-btn:hover .connect-text {
+        color: white;
+    }
+
+    .platform-disconnect-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 12px;
+        position: relative;
+        min-width: 110px;
+        justify-content: center;
+        background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%);
+        color: white;
+        border: none;
+    }
+
+    .platform-disconnect-btn:hover {
+        background: linear-gradient(135deg, #ff5252 0%, #ff6b6b 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+    }
+
+    /* 연결하기 버튼 로딩 상태 */
+    .platform-connect-btn.loading {
+        pointer-events: none;
+        opacity: 0.8;
+    }
+
+    .connect-loader {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: inherit;
+        border-radius: inherit;
+    }
+
+    .loader-dot {
+        width: 8px;
+        height: 8px;
+        background: #3b82f6;
+        border-radius: 50%;
+        animation: bounce 1.4s infinite ease-in-out both;
+    }
+
+    .loader-dot::before,
+    .loader-dot::after {
+        content: '';
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        background: #3b82f6;
+        border-radius: 50%;
+        animation: bounce 1.4s infinite ease-in-out both;
+    }
+
+    .loader-dot::before {
+        left: -16px;
+        animation-delay: -0.32s;
+    }
+
+    .loader-dot::after {
+        left: 16px;
+        animation-delay: -0.16s;
+    }
+
+    @keyframes bounce {
+
+        0%,
+        80%,
+        100% {
+            transform: scale(0);
+        }
+
+        40% {
+            transform: scale(1);
+        }
+    }
 
 
-/* 캘린더가 없을 때 플랫폼 카드 비활성화 스타일 */
-.platform-card.disabled {
-    opacity: 0.5;
-    pointer-events: none;
-    position: relative;
-}
+    /* 캘린더가 없을 때 플랫폼 카드 비활성화 스타일 */
+    .platform-card.disabled {
+        opacity: 0.5;
+        pointer-events: none;
+        position: relative;
+    }
 
-.platform-card.disabled::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 12px;
-    cursor: not-allowed;
-}
+    .platform-card.disabled::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 12px;
+        cursor: not-allowed;
+    }
 
-.platform-card.disabled .platform-actions button {
-    cursor: not-allowed;
-    opacity: 0.6;
-}
+    .platform-card.disabled .platform-actions button {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
 
-.no-calendar-notice {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(255, 255, 255, 0.95);
-    padding: 12px 20px;
-    border-radius: 8px;
-    border: 1px solid #fbbf24;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    z-index: 10;
-    display: none;
-}
+    .no-calendar-notice {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 255, 255, 0.95);
+        padding: 12px 20px;
+        border-radius: 8px;
+        border: 1px solid #fbbf24;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        z-index: 10;
+        display: none;
+    }
 
-.platform-card.disabled:hover .no-calendar-notice {
-    display: block;
-}
+    .platform-card.disabled:hover .no-calendar-notice {
+        display: block;
+    }
 
-.no-calendar-notice-text {
-    color: #92400e;
-    font-size: 14px;
-    font-weight: 500;
-}
+    .no-calendar-notice-text {
+        color: #92400e;
+        font-size: 14px;
+        font-weight: 500;
+    }
 </style>
 {% endblock %}
 
@@ -989,7 +1000,7 @@
     async function connectPlatform(platformName) {
         // OAuth 지원 플랫폼 체크
         const oauthPlatforms = ['google', 'notion', 'slack', 'outlook'];
-        
+
         if (oauthPlatforms.includes(platformName)) {
             // OAuth 플랫폼의 경우 원클릭 연동 실행
             await oneClickConnect(platformName);
@@ -1005,17 +1016,17 @@
         const modal = document.getElementById('calendar-selection-modal');
         const platformDisplay = document.getElementById('platform-name-display');
         const calendarList = document.getElementById('calendar-list');
-        
+
         // 플랫폼 이름 표시
         platformDisplay.textContent = getKoreanPlatformName(platformName);
-        
+
         // 모달 표시
         modal.style.display = 'flex';
-        
+
         // 캘린더 목록 로딩
         await loadUserCalendars(calendarList);
     }
-    
+
     // [REMOVED] Old deprecated openCalendarSyncModal function removed - using new implementation below
     /* DEPRECATED FUNCTION - COMMENTED OUT
     async function openCalendarSyncModal(platformName) {
@@ -1316,7 +1327,7 @@
         try {
             // 백엔드에 연결 해제 표시
             await markPlatformDisconnected(platformName);
-            
+
             // 실제 연결 해제 로직 시뮬레이션
             await new Promise(resolve => setTimeout(resolve, 1500));
 
@@ -1375,27 +1386,27 @@
     async function updatePlatformStatus() {
         try {
             const response = await fetch('/api/dashboard/platforms');
-            
+
             if (response.ok) {
                 const data = await response.json();
-                
+
                 if (data.success && data.platforms) {
                     const platforms = data.platforms;
-                    
+
                     // 각 플랫폼별 상태 업데이트
                     Object.keys(platforms).forEach(platformName => {
                         const platform = platforms[platformName];
                         const platformCard = document.querySelector(`[data-platform="${platformName}"]`);
-                        
+
                         if (platformCard) {
                             const statusElement = platformCard.querySelector('.platform-status');
                             const connectBtn = platformCard.querySelector('.platform-connect-btn');
-                            
+
                             if (statusElement && platform.configured && platform.enabled) {
                                 // 연결된 상태
                                 statusElement.className = 'platform-status connected';
                                 statusElement.innerHTML = '<span class="status-dot"></span>연결됨';
-                                
+
                                 if (connectBtn) {
                                     connectBtn.className = 'platform-disconnect-btn';
                                     connectBtn.setAttribute('onclick', `disconnectPlatform('${platformName}')`);
@@ -1410,7 +1421,7 @@
                                 // 연결되지 않은 상태
                                 statusElement.className = 'platform-status disconnected';
                                 statusElement.innerHTML = '<span class="status-dot"></span>연결되지 않음';
-                                
+
                                 if (connectBtn && connectBtn.className !== 'platform-connect-btn') {
                                     connectBtn.className = 'platform-connect-btn';
                                     connectBtn.setAttribute('onclick', `connectPlatform('${platformName}')`);
@@ -1424,7 +1435,7 @@
                             }
                         }
                     });
-                    
+
                     console.log('Platform status updated with real data:', platforms);
                 }
             }
@@ -1446,59 +1457,60 @@
     async function checkCalendarsAndUpdatePlatforms() {
         try {
             // 서버에서 렌더링된 통계 데이터 사용
-            const connectedCount = {{ (stats.connected_count if stats and stats.connected_count else 0)|tojson }};
-            const hasCalendars = connectedCount > 0;
-            
-            // 모든 플랫폼 카드 선택
-            const platformCards = document.querySelectorAll('.platform-card');
-            
-            platformCards.forEach(card => {
-                if (!hasCalendars) {
-                    // 캘린더가 없으면 카드 비활성화
-                    card.classList.add('disabled');
-                    
-                    // 안내 메시지 추가 (아직 없으면)
-                    if (!card.querySelector('.no-calendar-notice')) {
-                        const notice = document.createElement('div');
-                        notice.className = 'no-calendar-notice';
-                        notice.innerHTML = '<div class="no-calendar-notice-text">📅 먼저 캘린더를 생성해주세요</div>';
-                        card.appendChild(notice);
-                    }
-                    
-                    // 버튼들 비활성화
-                    const buttons = card.querySelectorAll('button');
-                    buttons.forEach(btn => {
-                        btn.disabled = true;
-                        btn.style.pointerEvents = 'none';
-                    });
-                } else {
-                    // 캘린더가 있으면 카드 활성화
-                    card.classList.remove('disabled');
-                    
-                    // 안내 메시지 제거
-                    const notice = card.querySelector('.no-calendar-notice');
-                    if (notice) {
-                        notice.remove();
-                    }
-                    
-                    // 버튼들 활성화
-                    const buttons = card.querySelectorAll('button');
-                    buttons.forEach(btn => {
-                        btn.disabled = false;
-                        btn.style.pointerEvents = '';
-                    });
-                }
+            const connectedCount = {{ (stats.connected_count if stats and stats.connected_count else 0)| tojson
+        }};
+    const hasCalendars = connectedCount > 0;
+
+    // 모든 플랫폼 카드 선택
+    const platformCards = document.querySelectorAll('.platform-card');
+
+    platformCards.forEach(card => {
+        if (!hasCalendars) {
+            // 캘린더가 없으면 카드 비활성화
+            card.classList.add('disabled');
+
+            // 안내 메시지 추가 (아직 없으면)
+            if (!card.querySelector('.no-calendar-notice')) {
+                const notice = document.createElement('div');
+                notice.className = 'no-calendar-notice';
+                notice.innerHTML = '<div class="no-calendar-notice-text">📅 먼저 캘린더를 생성해주세요</div>';
+                card.appendChild(notice);
+            }
+
+            // 버튼들 비활성화
+            const buttons = card.querySelectorAll('button');
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                btn.style.pointerEvents = 'none';
             });
-            
-            return hasCalendars;
-        } catch (error) {
-            // 에러 시 기본적으로 비활성화 (조용히)
-            const platformCards = document.querySelectorAll('.platform-card');
-            platformCards.forEach(card => {
-                card.classList.add('disabled');
+        } else {
+            // 캘린더가 있으면 카드 활성화
+            card.classList.remove('disabled');
+
+            // 안내 메시지 제거
+            const notice = card.querySelector('.no-calendar-notice');
+            if (notice) {
+                notice.remove();
+            }
+
+            // 버튼들 활성화
+            const buttons = card.querySelectorAll('button');
+            buttons.forEach(btn => {
+                btn.disabled = false;
+                btn.style.pointerEvents = '';
             });
-            return false;
         }
+    });
+
+    return hasCalendars;
+        } catch (error) {
+        // 에러 시 기본적으로 비활성화 (조용히)
+        const platformCards = document.querySelectorAll('.platform-card');
+        platformCards.forEach(card => {
+            card.classList.add('disabled');
+        });
+        return false;
+    }
     }
 
     // 페이지 로드 시 통계 업데이트
@@ -1549,24 +1561,25 @@
         try {
             // 서버에서 렌더링된 데이터 사용 (조용히)
             const stats = {
-                connected_count: {{ (stats.connected_count if stats and stats.connected_count else 0)|tojson }},
-                synced_events: {{ (stats.synced_events if stats and stats.synced_events else 0)|tojson }},
-                success_rate: {{ (stats.success_rate if stats and stats.success_rate else "0%")|tojson }},
-                avg_sync_time: {{ (stats.avg_sync_time if stats and stats.avg_sync_time else "N/A")|tojson }}
+                connected_count: {{ (stats.connected_count if stats and stats.connected_count else 0)| tojson
+        }},
+    synced_events: { { (stats.synced_events if stats and stats.synced_events else 0)| tojson } },
+    success_rate: { { (stats.success_rate if stats and stats.success_rate else "0%")| tojson } },
+    avg_sync_time: { { (stats.avg_sync_time if stats and stats.avg_sync_time else "N/A")| tojson } }
             };
 
-            // DOM 업데이트
-            document.getElementById('connected-count').textContent = stats.connected_count;
-            document.getElementById('sync-count').textContent = stats.synced_events;
-            document.getElementById('success-rate').textContent = stats.success_rate;
-            document.getElementById('sync-speed').textContent = stats.avg_sync_time;
+    // DOM 업데이트
+    document.getElementById('connected-count').textContent = stats.connected_count;
+    document.getElementById('sync-count').textContent = stats.synced_events;
+    document.getElementById('success-rate').textContent = stats.success_rate;
+    document.getElementById('sync-speed').textContent = stats.avg_sync_time;
         } catch (error) {
-            // 에러 시 기본값 설정 (조용히)
-            document.getElementById('connected-count').textContent = '0';
-            document.getElementById('sync-count').textContent = '0';
-            document.getElementById('success-rate').textContent = '0%';
-            document.getElementById('sync-speed').textContent = 'N/A';
-        }
+        // 에러 시 기본값 설정 (조용히)
+        document.getElementById('connected-count').textContent = '0';
+        document.getElementById('sync-count').textContent = '0';
+        document.getElementById('success-rate').textContent = '0%';
+        document.getElementById('sync-speed').textContent = 'N/A';
+    }
     }
 
     // 개별 플랫폼 원클릭 연동 기능
@@ -1583,13 +1596,13 @@
         }
 
         const button = document.querySelector(`[data-platform="${platform}"] .one-click-btn-small`);
-        
+
         if (!button) {
             console.error(`Button not found for platform: ${platform}`);
             showNotification(`${getKoreanPlatformName(platform)} 연결 버튼을 찾을 수 없습니다.`, 'error');
             return;
         }
-        
+
         const loader = button.querySelector('.btn-loader');
         const buttonText = button.querySelector('.btn-text');
 
@@ -1671,10 +1684,10 @@
                     if (event.data && event.data.type) {
                         if (event.data.type === 'oauth_success') {
                             cleanup();
-                            
+
                             // Mark platform as connected in backend
                             markPlatformConnected(event.data.platform);
-                            
+
                             updatePlatformStatus(event.data.platform, 'connected');
                             showNotification(`${getKoreanPlatformName(event.data.platform)} 연결 성공!`, 'success');
                             updateConnectionStats();
@@ -1768,7 +1781,7 @@
             if (connectBtn) {
                 connectBtn.style.display = 'inline-flex';
             }
-            
+
             // 연결해제 버튼 숨기기
             if (disconnectBtn) {
                 disconnectBtn.style.display = 'none';
@@ -2018,7 +2031,7 @@
 
             document.body.appendChild(modal);
             modal.style.display = 'flex';
-            
+
         } catch (error) {
             console.error('캘린더 연동 모달 오류:', error);
             showErrorModal('캘린더 목록을 불러오는데 실패했습니다.');
@@ -2069,16 +2082,16 @@
         document.querySelectorAll('.calendar-card').forEach(card => {
             card.classList.remove('selected');
         });
-        
+
         // 새로운 선택
         element.classList.add('selected');
-        
+
         // 선택된 캘린더 데이터 저장
         const calendarId = element.dataset.calendarId;
         const calendarName = element.querySelector('.calendar-name').textContent;
         const calendarDescription = element.querySelector('.calendar-description').textContent;
         const calendarIcon = element.querySelector('.calendar-icon-large').textContent;
-        
+
         selectedCalendarData = {
             id: calendarId,
             name: calendarName,
@@ -2086,7 +2099,7 @@
             icon: calendarIcon,
             platform: platform
         };
-        
+
         // 다음 버튼 활성화
         const nextBtn = document.getElementById('next-step-btn');
         nextBtn.disabled = false;
@@ -2114,11 +2127,11 @@
                 step.classList.remove('active');
             }
         });
-        
+
         // 콘텐츠 전환
         document.getElementById('step1').classList.add('hidden');
         document.getElementById('step2').classList.remove('hidden');
-        
+
         // 선택된 캘린더 프리뷰 업데이트
         const previewContainer = document.getElementById('selected-calendar-preview');
         previewContainer.innerHTML = `
@@ -2130,7 +2143,7 @@
                 </div>
             </div>
         `;
-        
+
         // 버튼 업데이트
         const nextBtn = document.getElementById('next-step-btn');
         nextBtn.textContent = '설정 완료';
@@ -2140,7 +2153,7 @@
     function showSyncButton() {
         const nextBtn = document.getElementById('next-step-btn');
         const syncBtn = document.getElementById('sync-btn');
-        
+
         nextBtn.classList.add('hidden');
         syncBtn.classList.remove('hidden');
     }
@@ -2149,7 +2162,7 @@
     async function performSync(platform) {
         const syncBtn = document.getElementById('sync-btn');
         const originalText = syncBtn.textContent;
-        
+
         // 로딩 상태
         syncBtn.disabled = true;
         syncBtn.innerHTML = `
@@ -2158,7 +2171,7 @@
                 <span>연동 중...</span>
             </div>
         `;
-        
+
         try {
             const response = await fetch('/api/sync-calendar', {
                 method: 'POST',
@@ -2177,7 +2190,7 @@
             });
 
             const result = await response.json();
-            
+
             if (response.ok && result.success) {
                 showStep3();
             } else {
@@ -2186,7 +2199,7 @@
         } catch (error) {
             console.error('캘린더 연동 오류:', error);
             showErrorInModal(error.message);
-            
+
             // 버튼 복원
             syncBtn.disabled = false;
             syncBtn.textContent = originalText;
@@ -2196,7 +2209,7 @@
     // 3단계 표시 (완료)
     function showStep3() {
         currentSyncStep = 3;
-        
+
         // 스텝 인디케이터 업데이트
         document.querySelectorAll('.step').forEach((step, index) => {
             if (index === 2) {
@@ -2206,21 +2219,21 @@
                 step.classList.remove('active');
             }
         });
-        
+
         // 콘텐츠 전환
         document.getElementById('step2').classList.add('hidden');
         document.getElementById('step3').classList.remove('hidden');
-        
+
         // 완료 정보 업데이트
         document.getElementById('synced-calendar-name').textContent = selectedCalendarData.name;
-        
+
         // 버튼 업데이트
         const syncBtn = document.getElementById('sync-btn');
         const completeBtn = document.getElementById('complete-btn');
-        
+
         syncBtn.classList.add('hidden');
         completeBtn.classList.remove('hidden');
-        
+
         // 연동 상태 업데이트
         const syncInfo = {
             calendar_name: selectedCalendarData.name,
@@ -2239,10 +2252,10 @@
             <div class="error-icon">⚠️</div>
             <div class="error-message">${message}</div>
         `;
-        
+
         const modalBody = document.querySelector('.calendar-sync-modal .modal-body');
         modalBody.insertBefore(errorDiv, modalBody.firstChild);
-        
+
         // 3초 후 에러 메시지 제거
         setTimeout(() => {
             errorDiv.remove();
@@ -2307,7 +2320,7 @@
     async function selectCalendar(element, platform) {
         const calendarId = element.dataset.calendarId;
         const calendarName = element.querySelector('.calendar-name').textContent;
-        
+
         if (!confirm(`"${calendarName}" 캘린더를 ${platform}과 연동하시겠습니까?`)) {
             return;
         }
@@ -2329,7 +2342,7 @@
             if (response.ok) {
                 alert(`${platform} 캘린더 연동이 완료되었습니다!`);
                 closeCalendarSyncModal();
-                
+
                 // 연동 상태 즉시 업데이트
                 const syncInfo = {
                     calendar_name: calendarName,
@@ -3034,37 +3047,37 @@
     async function oneClickDisconnect(platform) {
         const card = document.querySelector(`[data-platform="${platform}"]`);
         if (!card) return;
-        
+
         const button = card.querySelector('.one-click-disconnect-btn');
         if (!button) return;
-        
+
         const buttonText = button.querySelector('.btn-text');
         const loader = button.querySelector('.btn-loader');
-        
+
         if (!confirm(`${getKoreanPlatformName(platform)} 연결을 해제하시겠습니까?`)) {
             return;
         }
-        
+
         try {
             // 로딩 상태 표시
             buttonText.style.display = 'none';
             loader.style.display = 'inline-block';
             button.disabled = true;
-            
+
             // 연결 해제 API 호출
             await markPlatformDisconnected(platform);
-            
+
             const response = await fetch(`/api/platform/${platform}/disconnect`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 }
             });
-            
+
             if (response.ok) {
                 // 플랫폼 상태를 연결되지 않음으로 업데이트
                 updatePlatformStatus(platform, 'disconnected');
-                
+
                 // 성공 메시지
                 showNotification(`${getKoreanPlatformName(platform)} 연결이 해제되었습니다.`, 'success');
             } else {
@@ -3091,7 +3104,7 @@
                     'Content-Type': 'application/json'
                 }
             });
-            
+
             if (!response.ok) {
                 console.error(`Failed to mark ${platform} as connected`);
             }
@@ -3099,7 +3112,7 @@
             console.error(`Error marking ${platform} as connected:`, error);
         }
     }
-    
+
     async function markPlatformDisconnected(platform) {
         try {
             const response = await fetch(`/api/platform/${platform}/disconnect`, {
@@ -3108,7 +3121,7 @@
                     'Content-Type': 'application/json'
                 }
             });
-            
+
             if (!response.ok) {
                 console.error(`Failed to mark ${platform} as disconnected`);
             }
@@ -3116,12 +3129,12 @@
             console.error(`Error marking ${platform} as disconnected:`, error);
         }
     }
-    
+
     async function loadAllPlatformStatus() {
         try {
             const response = await fetch('/api/platforms/status');
             const data = await response.json();
-            
+
             if (data.success && data.platforms) {
                 // Update UI based on stored platform statuses
                 for (const [platform, status] of Object.entries(data.platforms)) {
@@ -3139,7 +3152,7 @@
     }
 
     // 페이지 로드 완료 후 연동 정보 불러오기
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         loadSyncedCalendars();
         loadAllPlatformStatus(); // Load platform connection states
     });
