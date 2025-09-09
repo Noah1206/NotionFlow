@@ -2170,7 +2170,7 @@
                 </div>
             `;
             
-            const eventsResponse = await fetch(`/api/calendar/${selectedCalendarData.id}/events`, {
+            const eventsResponse = await fetch(`/api/calendars/${selectedCalendarData.id}/events`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'

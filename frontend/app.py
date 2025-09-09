@@ -4449,11 +4449,12 @@ def sync_calendar():
         calendar = calendar_response.data[0]
         
         # 플랫폼 연동 정보를 데이터베이스에 저장 (calendar_sync 테이블)
+        from datetime import datetime
         sync_data = {
             'user_id': user_id,
             'calendar_id': calendar_id,
             'platform': platform,
-            'synced_at': 'now()',
+            'synced_at': datetime.now().isoformat(),
             'sync_status': 'active'
         }
         
@@ -4463,7 +4464,7 @@ def sync_calendar():
         if existing_sync.data:
             # 기존 연동 업데이트
             result = supabase_client.table('calendar_sync').update({
-                'synced_at': 'now()',
+                'synced_at': datetime.now().isoformat(),
                 'sync_status': 'active'
             }).eq('id', existing_sync.data[0]['id']).execute()
         else:
