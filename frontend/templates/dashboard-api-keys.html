@@ -1888,15 +1888,15 @@
             
             const platformDisplayName = platformNames[platform] || platform;
             
-            modal.innerHTML = '
+            modal.innerHTML = `
                 <div class="modal-backdrop" onclick="closeCalendarSyncModal()"></div>
                 <div class="modal-content">
                     <div class="modal-header">
                         <div class="modal-title-section">
-                            <div class="platform-icon">` + getPlatformIcon(platform) + `</div>
+                            <div class="platform-icon">${getPlatformIcon(platform)}</div>
                             <div class="modal-title-text">
                                 <h3>캘린더 연동</h3>
-                                <p class="platform-subtitle">` + platformDisplayName + ` 연동 설정</p>
+                                <p class="platform-subtitle">${platformDisplayName} 연동 설정</p>
                             </div>
                         </div>
                         <button class="modal-close" onclick="closeCalendarSyncModal()">
@@ -1926,7 +1926,7 @@
                         <div class="step-content" id="step1">
                             <div class="step-description">
                                 <h4>연동할 캘린더를 선택하세요</h4>
-                                <p>NotionFlow에서 생성한 캘린더 중 ` + platformDisplayName + `와 연동할 캘린더를 선택해주세요.</p>
+                                <p>NotionFlow에서 생성한 캘린더 중 ${platformDisplayName}와 연동할 캘린더를 선택해주세요.</p>
                             </div>
                             
                             <div class="calendar-grid" id="calendar-grid">
@@ -1946,7 +1946,7 @@
                                         <span class="checkmark"></span>
                                         양방향 동기화
                                     </label>
-                                    <p class="setting-description">NotionFlow ↔ ` + platformDisplayName + ` 양방향으로 일정을 동기화합니다.</p>
+                                    <p class="setting-description">NotionFlow ↔ ${platformDisplayName} 양방향으로 일정을 동기화합니다.</p>
                                 </div>
                                 
                                 <div class="setting-group">
@@ -1985,7 +1985,7 @@
                                     </svg>
                                 </div>
                                 <h4>연동이 완료되었습니다!</h4>
-                                <p>이제 ` + platformDisplayName + `와 NotionFlow 캘린더가 동기화됩니다.</p>
+                                <p>이제 ${platformDisplayName}와 NotionFlow 캘린더가 동기화됩니다.</p>
                                 
                                 <div class="completion-details">
                                     <div class="detail-item">
@@ -1994,11 +1994,11 @@
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">연동 플랫폼:</span>
-                                        <span class="detail-value">` + platformDisplayName + `</span>
+                                        <span class="detail-value">${platformDisplayName}</span>
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">연동 시간:</span>
-                                        <span class="detail-value">` + new Date().toLocaleString() + `</span>
+                                        <span class="detail-value">${new Date().toLocaleString()}</span>
                                     </div>
                                 </div>
                             </div>
@@ -2008,7 +2008,7 @@
                     <div class="modal-footer">
                         <button class="btn-secondary" onclick="closeCalendarSyncModal()">취소</button>
                         <button class="btn-primary" id="next-step-btn" onclick="nextSyncStep()" disabled>다음</button>
-                        <button class="btn-primary hidden" id="sync-btn" onclick="performSync('` + platform + `')">연동 시작</button>
+                        <button class="btn-primary hidden" id="sync-btn" onclick="performSync('${platform}')">연동 시작</button>
                         <button class="btn-primary hidden" id="complete-btn" onclick="closeCalendarSyncModal()">완료</button>
                     </div>
                 </div>
