@@ -918,11 +918,11 @@
 
     /* 플랫폼 카드 기본 스타일 - 넓이 확장 */
     .platform-card {
-        max-width: none;
-        width: 100%;
-        flex: 1;
+        max-width: none !important;
+        width: 100% !important;
+        flex: 1 !important;
     }
-    
+
     /* 캘린더가 없을 때 플랫폼 카드 비활성화 스타일 */
     .platform-card.disabled {
         opacity: 0.5;
@@ -1489,7 +1489,7 @@
         }
     });
 
-        return hasCalendars;
+    return hasCalendars;
         } catch (error) {
         // 에러 시 기본적으로 비활성화 (조용히)
         const platformCards = document.querySelectorAll('.platform-card');
@@ -1548,10 +1548,11 @@
         try {
             // 서버에서 렌더링된 데이터 사용 (조용히)
             const stats = {
-                connected_count: {{ (stats.connected_count if stats and stats.connected_count else 0)| tojson }},
-                synced_events: {{ (stats.synced_events if stats and stats.synced_events else 0)| tojson }},
-                success_rate: {{ (stats.success_rate if stats and stats.success_rate else "0%")| tojson }},
-                avg_sync_time: {{ (stats.avg_sync_time if stats and stats.avg_sync_time else "N/A")| tojson }}
+                connected_count: {{ (stats.connected_count if stats and stats.connected_count else 0)| tojson
+        }},
+    synced_events: { { (stats.synced_events if stats and stats.synced_events else 0)| tojson } },
+    success_rate: { { (stats.success_rate if stats and stats.success_rate else "0%")| tojson } },
+    avg_sync_time: { { (stats.avg_sync_time if stats and stats.avg_sync_time else "N/A")| tojson } }
             };
 
     // DOM 업데이트
@@ -2155,21 +2156,21 @@
                     <span>노션 일정 조회 중...</span>
                 </div>
             `;
-            
+
             const eventsResponse = await fetch(`/api/calendars/${selectedCalendarData.id}/events`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
                 }
             });
-            
+
             let existingEvents = [];
             if (eventsResponse.ok) {
                 const eventsData = await eventsResponse.json();
                 existingEvents = eventsData.events || [];
                 console.log(`Found ${existingEvents.length} existing events in Notion calendar`);
             }
-            
+
             // 2단계: 플랫폼 연동 및 일정 동기화
             syncBtn.innerHTML = `
                 <div class="btn-loading">
@@ -2203,7 +2204,7 @@
                 if (result.synced_events_count > 0) {
                     console.log(`Successfully synced ${result.synced_events_count}/${result.total_events} events`);
                     showNotification(
-                        `${result.synced_events_count}개의 기존 일정이 ${result.platform}과 동기화되었습니다!`, 
+                        `${result.synced_events_count}개의 기존 일정이 ${result.platform}과 동기화되었습니다!`,
                         'success'
                     );
                 } else if (result.total_events > 0) {
@@ -2212,7 +2213,7 @@
                 } else {
                     showNotification(`${result.platform} 연동이 완료되었습니다!`, 'success');
                 }
-                
+
                 // localStorage에 연동 정보 저장
                 const syncInfo = {
                     calendar_name: result.calendar_name || selectedCalendarData.name,
@@ -2222,7 +2223,7 @@
                     platform: result.platform
                 };
                 saveSyncInfoToLocalStorage(result.platform, syncInfo);
-                
+
                 showStep3();
             } else {
                 throw new Error(result.error || '연동에 실패했습니다.');
@@ -2415,7 +2416,7 @@
                     sync_status: 'active'
                 };
                 updateCalendarSyncStatus(platform, syncInfo);
-                
+
                 // localStorage에도 저장하여 새로고침 후에도 유지
                 saveSyncInfoToLocalStorage(platform, syncInfo);
             } else {
@@ -3095,7 +3096,7 @@
                     updateCalendarSyncStatus(platform, syncInfo);
                 });
             }
-            
+
             // localStorage에서도 연동 정보 확인 (서버 정보가 없는 경우 fallback)
             loadSyncInfoFromLocalStorage();
         } catch (error) {
@@ -3121,7 +3122,7 @@
             }
         }
     }
-    
+
     // localStorage에 연동 정보 저장
     function saveSyncInfoToLocalStorage(platform, syncInfo) {
         try {
@@ -3132,24 +3133,24 @@
             console.error('localStorage 저장 실패:', error);
         }
     }
-    
+
     // localStorage에서 연동 정보 불러오기
     function loadSyncInfoFromLocalStorage() {
         const platforms = ['notion', 'google', 'apple', 'outlook', 'slack'];
-        
+
         platforms.forEach(platform => {
             try {
                 const key = `notionflow_sync_${platform}`;
                 const storedInfo = localStorage.getItem(key);
-                
+
                 if (storedInfo) {
                     const syncInfo = JSON.parse(storedInfo);
-                    
+
                     // 서버에서 이미 정보가 없는 경우에만 localStorage 정보 사용
                     const card = document.querySelector(`[data-platform="${platform}"]`);
                     const syncBtn = card?.querySelector('.platform-sync-btn');
                     const syncText = syncBtn?.querySelector('.sync-text');
-                    
+
                     if (syncText && !syncBtn.classList.contains('synced')) {
                         updateCalendarSyncStatus(platform, syncInfo);
                         console.log(`Restored sync info for ${platform} from localStorage`);
@@ -3160,7 +3161,7 @@
             }
         });
     }
-    
+
     // localStorage에서 연동 정보 삭제
     function removeSyncInfoFromLocalStorage(platform) {
         try {
@@ -3206,10 +3207,10 @@
             if (response.ok) {
                 // 플랫폼 상태를 연결되지 않음으로 업데이트
                 updatePlatformStatus(platform, 'disconnected');
-                
+
                 // localStorage에서 연동 정보 삭제
                 removeSyncInfoFromLocalStorage(platform);
-                
+
                 // 연동 버튼 상태도 초기화
                 const syncBtn = card.querySelector('.platform-sync-btn');
                 const syncText = syncBtn?.querySelector('.sync-text');
