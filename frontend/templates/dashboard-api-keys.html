@@ -1016,7 +1016,8 @@
         await loadUserCalendars(calendarList);
     }
     
-    // 캘린더 연동 모달 열기 (OAuth 연결 후 캘린더 선택용)
+    // [REMOVED] Old deprecated openCalendarSyncModal function removed - using new implementation below
+    /* DEPRECATED FUNCTION - COMMENTED OUT
     async function openCalendarSyncModal(platformName) {
         currentConnectingPlatform = platformName;
         const modal = document.getElementById('calendar-selection-modal');
@@ -1293,6 +1294,7 @@
         closeCalendarSelectionModal();
         window.location.href = '/calendar';
     }
+    END OF DEPRECATED FUNCTIONS */
 
     // 개별 플랫폼 연결 해제 기능
     async function disconnectPlatform(platformName) {
@@ -1840,12 +1842,18 @@
     async function openCalendarSyncModal(platform) {
         try {
             // 사용자가 생성한 캘린더 목록 가져오기
-            const response = await fetch('/api/user-calendars');
-            const calendars = await response.json();
+            const response = await fetch('/api/user/calendars');
+            const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(calendars.error || 'Failed to fetch calendars');
+                throw new Error(data.error || 'Failed to fetch calendars');
             }
+
+            // API 응답에서 개인 캘린더와 공유 캘린더를 합친다
+            const calendars = [
+                ...(data.personal_calendars || []),
+                ...(data.shared_calendars || [])
+            ];
 
             if (calendars.length === 0) {
                 showNoCalendarsModal(platform);
@@ -1909,7 +1917,7 @@
                                 ${calendars.map(calendar => `
                                     <div class="calendar-card" data-calendar-id="${calendar.id}" onclick="selectCalendarForSync(this, '${platform}')">
                                         <div class="calendar-card-header">
-                                            <div class="calendar-icon-large">${calendar.icon || '📅'}</div>
+                                            <div class="calendar-icon-large">${calendar.color || calendar.icon || '📅'}</div>
                                             <div class="selection-indicator">
                                                 <div class="radio-button"></div>
                                             </div>
@@ -1919,6 +1927,7 @@
                                             <p class="calendar-description">${calendar.description || '설명이 없습니다'}</p>
                                             <div class="calendar-meta">
                                                 <span class="created-date">생성일: ${formatDate(calendar.created_at)}</span>
+                                                <span class="calendar-type">${calendar.type || 'personal'}</span>
                                             </div>
                                         </div>
                                     </div>

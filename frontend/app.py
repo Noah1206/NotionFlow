@@ -4408,91 +4408,12 @@ def not_found_error(error):
 
 # ===== CALENDAR SYNC API =====
 
+# 기존 엔드포인트를 새 엔드포인트로 리다이렉트 (호환성 유지)
 @app.route('/api/user-calendars', methods=['GET'])
-def get_user_calendars():
-    """사용자가 생성한 캘린더 목록 조회"""
-    try:
-        # Check if user is logged in
-        if 'user_id' not in session:
-            return jsonify({'error': 'Authentication required'}), 401
-            
-        user_id = session['user_id']
-        
-        # Get Supabase client
-        supabase_client = get_supabase()
-        if not supabase_client:
-            # Return mock data for development/testing when database not available
-            print("No Supabase client available, returning mock calendar data")
-            return jsonify([
-                {
-                    'id': 'cal_001',
-                    'name': '개인 일정',
-                    'description': '개인적인 일정을 관리하는 캘린더',
-                    'icon': '📅',
-                    'created_at': '2024-01-01T00:00:00Z'
-                },
-                {
-                    'id': 'cal_002', 
-                    'name': '업무 일정',
-                    'description': '업무 관련 일정을 관리하는 캘린더',
-                    'icon': '💼',
-                    'created_at': '2024-01-01T00:00:00Z'
-                }
-            ]), 200
-        
-        # Try to query calendar data with error handling
-        try:
-            # Supabase에서 사용자의 캘린더 목록 조회
-            calendars_response = supabase_client.table('calendars').select('*').eq('user_id', user_id).execute()
-            
-            if calendars_response.data:
-                # 캘린더 데이터 포맷 변경
-                formatted_calendars = []
-                for calendar in calendars_response.data:
-                    formatted_calendars.append({
-                        'id': calendar['id'],
-                        'name': calendar['name'],
-                        'description': calendar.get('description', ''),
-                        'icon': calendar.get('color', '📅'),  # color를 icon으로 사용
-                        'created_at': calendar.get('created_at', '')
-                    })
-                
-                return jsonify(formatted_calendars), 200
-            else:
-                return jsonify([]), 200
-                
-        except Exception as db_error:
-            print(f"Database error fetching user calendars: {db_error}")
-            # Return mock data when database tables don't exist
-            return jsonify([
-                {
-                    'id': 'cal_001',
-                    'name': '개인 일정',
-                    'description': '개인적인 일정을 관리하는 캘린더',
-                    'icon': '📅',
-                    'created_at': '2024-01-01T00:00:00Z'
-                },
-                {
-                    'id': 'cal_002', 
-                    'name': '업무 일정',
-                    'description': '업무 관련 일정을 관리하는 캘린더',
-                    'icon': '💼',
-                    'created_at': '2024-01-01T00:00:00Z'
-                }
-            ]), 200
-            
-    except Exception as e:
-        print(f"Error fetching user calendars: {e}")
-        # Return mock data instead of error for better UX
-        return jsonify([
-            {
-                'id': 'cal_001',
-                'name': '개인 일정',
-                'description': '개인적인 일정을 관리하는 캘린더',
-                'icon': '📅',
-                'created_at': '2024-01-01T00:00:00Z'
-            }
-        ]), 200
+def get_user_calendars_redirect():
+    """기존 엔드포인트를 새 실제 엔드포인트로 리다이렉트"""
+    from flask import redirect
+    return redirect('/api/user/calendars', code=302)
 
 @app.route('/api/sync-calendar', methods=['POST'])
 def sync_calendar():
