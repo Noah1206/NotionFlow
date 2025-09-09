@@ -1917,7 +1917,7 @@
                                 ${calendars.map(calendar => `
                                     <div class="calendar-card" data-calendar-id="${calendar.id}" onclick="selectCalendarForSync(this, '${platform}')">
                                         <div class="calendar-card-header">
-                                            <div class="calendar-icon-large">${calendar.color || calendar.icon || '📅'}</div>
+                                            <div class="calendar-icon-large" style="background-color: ${calendar.color || '#3b82f6'}; color: white; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 20px;">📅</div>
                                             <div class="selection-indicator">
                                                 <div class="radio-button"></div>
                                             </div>
