@@ -140,11 +140,6 @@
                             <div class="loader-dot"></div>
                         </div>
                     </button>
-                    <button class="platform-expand-btn" onclick="togglePlatformDetails('notion')">
-                        <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M6 9l6 6 6-6" />
-                        </svg>
-                    </button>
                 </div>
             </div>
 
@@ -250,11 +245,6 @@
                             <div class="loader-dot"></div>
                         </div>
                     </button>
-                    <button class="platform-expand-btn" onclick="togglePlatformDetails('apple')">
-                        <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M6 9l6 6 6-6" />
-                        </svg>
-                    </button>
                 </div>
             </div>
 
@@ -323,11 +313,6 @@
                             <div class="loader-dot"></div>
                         </div>
                     </button>
-                    <button class="platform-expand-btn" onclick="togglePlatformDetails('outlook')">
-                        <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M6 9l6 6 6-6" />
-                        </svg>
-                    </button>
                 </div>
             </div>
 
@@ -395,11 +380,6 @@
                         <div class="connect-loader" style="display: none;">
                             <div class="loader-dot"></div>
                         </div>
-                    </button>
-                    <button class="platform-expand-btn" onclick="togglePlatformDetails('slack')">
-                        <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M6 9l6 6 6-6" />
-                        </svg>
                     </button>
                 </div>
             </div>
@@ -1814,10 +1794,7 @@
             const isVisible = details.style.display !== 'none';
             details.style.display = isVisible ? 'none' : 'block';
 
-            const expandBtn = document.querySelector('[data-platform="' + platform + '"] .platform-expand-btn');
-            if (expandBtn) {
-                expandBtn.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
-            }
+            // Expand button removed - no longer needed
         }
     }
 
@@ -3063,26 +3040,31 @@
     
     /* 원클릭 연결해제 버튼 스타일 */
     .one-click-disconnect-btn {
-        background: linear-gradient(45deg, #dc3545 0%, #c82333 100%);
-        color: white;
-        border: none;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 12px;
+        background: #ffffff;
+        color: #6b7280;
+        border: 2px solid #e5e7eb;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-size: 14px;
         font-weight: 500;
         cursor: pointer;
         transition: all 0.3s ease;
-        box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+        box-shadow: none;
+        min-width: 100px;
+        text-align: center;
     }
     
     .one-click-disconnect-btn:hover {
-        background: linear-gradient(45deg, #c82333 0%, #a71e2a 100%);
+        background: #f9fafb;
+        border-color: #d1d5db;
+        color: #374151;
         transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
     
     .one-click-disconnect-btn:active {
         transform: translateY(0);
+        background: #f3f4f6;
     }
     
     .one-click-disconnect-btn:disabled {
