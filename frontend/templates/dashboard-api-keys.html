@@ -189,6 +189,12 @@
                     </div>
                 </div>
                 <div class="platform-actions">
+                    <button class="platform-sync-btn" onclick="openCalendarSyncModal('google')" data-platform="google" style="display: none;">
+                        <span class="sync-text">캘린더 연동</span>
+                        <div class="sync-loader" style="display: none;">
+                            <div class="loader-dot"></div>
+                        </div>
+                    </button>
                     <button class="one-click-btn-small" onclick="oneClickConnect('google')" data-platform="google">
                         <span class="btn-text">원클릭</span>
                         <div class="btn-loader" style="display: none;">
@@ -225,6 +231,12 @@
                     </div>
                 </div>
                 <div class="platform-actions">
+                    <button class="platform-sync-btn" onclick="openCalendarSyncModal('apple')" data-platform="apple" style="display: none;">
+                        <span class="sync-text">캘린더 연동</span>
+                        <div class="sync-loader" style="display: none;">
+                            <div class="loader-dot"></div>
+                        </div>
+                    </button>
                     <button class="one-click-btn-small" onclick="oneClickConnect('apple')" data-platform="apple">
                         <span class="btn-text">원클릭</span>
                         <div class="btn-loader" style="display: none;">
@@ -292,6 +304,12 @@
                     </div>
                 </div>
                 <div class="platform-actions">
+                    <button class="platform-sync-btn" onclick="openCalendarSyncModal('outlook')" data-platform="outlook" style="display: none;">
+                        <span class="sync-text">캘린더 연동</span>
+                        <div class="sync-loader" style="display: none;">
+                            <div class="loader-dot"></div>
+                        </div>
+                    </button>
                     <button class="one-click-btn-small" onclick="oneClickConnect('outlook')" data-platform="outlook">
                         <span class="btn-text">원클릭</span>
                         <div class="btn-loader" style="display: none;">
@@ -359,6 +377,12 @@
                     </div>
                 </div>
                 <div class="platform-actions">
+                    <button class="platform-sync-btn" onclick="openCalendarSyncModal('slack')" data-platform="slack" style="display: none;">
+                        <span class="sync-text">캘린더 연동</span>
+                        <div class="sync-loader" style="display: none;">
+                            <div class="loader-dot"></div>
+                        </div>
+                    </button>
                     <button class="one-click-btn-small" onclick="oneClickConnect('slack')" data-platform="slack">
                         <span class="btn-text">원클릭</span>
                         <div class="btn-loader" style="display: none;">
@@ -1715,19 +1739,11 @@
             `;
             }
 
-            // 캘린더 연동 버튼 추가 (연결됨 상태에서만)
-            const buttonContainer = card.querySelector('.platform-buttons');
-            if (buttonContainer && !buttonContainer.querySelector('.calendar-sync-btn')) {
-                const syncBtn = document.createElement('button');
-                syncBtn.className = 'calendar-sync-btn';
+            // 캘린더 연동 버튼 표시 (연결됨 상태에서만)
+            const syncBtn = card.querySelector('.platform-sync-btn');
+            if (syncBtn) {
+                syncBtn.style.display = 'inline-flex';
                 syncBtn.onclick = () => openCalendarSyncModal(platform);
-                syncBtn.innerHTML = `
-                    <span class="sync-text">캘린더 연동</span>
-                    <div class="sync-loader" style="display: none;">
-                        <div class="loader-dot"></div>
-                    </div>
-                `;
-                buttonContainer.appendChild(syncBtn);
             }
         } else {
             statusElement.className = 'platform-status disconnected';
@@ -1745,11 +1761,10 @@
             `;
             }
 
-            // 연결되지 않은 상태에서는 캘린더 연동 버튼 제거
-            const buttonContainer = card.querySelector('.platform-buttons');
-            const syncBtn = buttonContainer ? buttonContainer.querySelector('.calendar-sync-btn') : null;
+            // 연결되지 않은 상태에서는 캘린더 연동 버튼 숨기기
+            const syncBtn = card.querySelector('.platform-sync-btn');
             if (syncBtn) {
-                syncBtn.remove();
+                syncBtn.style.display = 'none';
             }
         }
     }
