@@ -8,21 +8,6 @@ from notion_client import Client as NotionClient
 
 logger = logging.getLogger(__name__)
 
-class NotionProvider:
-    """Provider class for Notion integrations"""
-    
-    def __init__(self, api_key: Optional[str] = None):
-        """Initialize Notion provider with API key"""
-        self.service = NotionService(api_key)
-    
-    def get_service(self) -> NotionService:
-        """Get the underlying Notion service"""
-        return self.service
-    
-    def test_connection(self) -> Dict[str, Any]:
-        """Test Notion connection"""
-        return self.service.test_connection()
-
 class NotionService:
     """Service for Notion integration and synchronization"""
     
@@ -110,3 +95,19 @@ class NotionService:
         except Exception as e:
             logger.error(f"Failed to delete event: {str(e)}")
             return False
+
+
+class NotionProvider:
+    """Provider class for Notion integrations"""
+    
+    def __init__(self, api_key: Optional[str] = None):
+        """Initialize Notion provider with API key"""
+        self.service = NotionService(api_key)
+    
+    def get_service(self) -> NotionService:
+        """Get the underlying Notion service"""
+        return self.service
+    
+    def test_connection(self) -> Dict[str, Any]:
+        """Test Notion connection"""
+        return self.service.test_connection()
