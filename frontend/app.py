@@ -350,7 +350,11 @@ def add_cache_headers(response):
 # Get Supabase client from configuration (동적으로 접근)
 def get_supabase():
     """동적으로 Supabase 클라이언트를 가져옴"""
-    return getattr(config, 'supabase_client', None)
+    try:
+        return config.supabase_client if hasattr(config, 'supabase_client') else None
+    except Exception as e:
+        print(f"Error accessing Supabase client: {e}")
+        return None
 
 # User Profile Manager (비동기 로딩 - Mock으로 시작)
 user_profile_available = False
@@ -2688,18 +2692,22 @@ def get_platform_status(platform):
                 'error': 'User not authenticated'
             }), 401
         
-        # 시뮬레이션 데이터 - 실제로는 데이터베이스에서 조회
-        mock_status = {
-            'connected': False,
-            'last_sync': None,
-            'sync_count': 0,
-            'status': 'inactive'
+        # Check connection status in session/localStorage as a fallback
+        # Since we don't have database access, check if platform was connected in this session
+        session_key = f'platform_{platform}_connected'
+        connected = session.get(session_key, False)
+        
+        platform_status = {
+            'connected': connected,
+            'last_sync': session.get(f'platform_{platform}_last_sync'),
+            'sync_count': session.get(f'platform_{platform}_sync_count', 0),
+            'status': 'active' if connected else 'inactive'
         }
         
         return jsonify({
             'success': True,
             'platform': platform,
-            **mock_status
+            **platform_status
         })
         
     except Exception as e:
@@ -4410,8 +4418,29 @@ def get_user_calendars():
             
         user_id = session['user_id']
         
+        # Get Supabase client
+        supabase_client = get_supabase()
+        if not supabase_client:
+            # Return mock data for development/testing
+            return jsonify([
+                {
+                    'id': 'cal_001',
+                    'name': '개인 일정',
+                    'description': '개인적인 일정을 관리하는 캘린더',
+                    'icon': '📅',
+                    'created_at': '2024-01-01T00:00:00Z'
+                },
+                {
+                    'id': 'cal_002', 
+                    'name': '업무 일정',
+                    'description': '업무 관련 일정을 관리하는 캘린더',
+                    'icon': '💼',
+                    'created_at': '2024-01-01T00:00:00Z'
+                }
+            ]), 200
+        
         # Supabase에서 사용자의 캘린더 목록 조회
-        calendars_response = supabase.table('calendars').select('*').eq('user_id', user_id).execute()
+        calendars_response = supabase_client.table('calendars').select('*').eq('user_id', user_id).execute()
         
         if calendars_response.data:
             # 캘린더 데이터 포맷 변경
@@ -4450,8 +4479,13 @@ def sync_calendar():
         if not platform or not calendar_id:
             return jsonify({'error': 'Platform and calendar_id are required'}), 400
         
+        # Get Supabase client
+        supabase_client = get_supabase()
+        if not supabase_client:
+            return jsonify({'error': 'Database connection not available'}), 503
+        
         # 캘린더 존재 여부 확인
-        calendar_response = supabase.table('calendars').select('*').eq('id', calendar_id).eq('user_id', user_id).execute()
+        calendar_response = supabase_client.table('calendars').select('*').eq('id', calendar_id).eq('user_id', user_id).execute()
         
         if not calendar_response.data:
             return jsonify({'error': 'Calendar not found'}), 404
@@ -4468,17 +4502,17 @@ def sync_calendar():
         }
         
         # 기존 연동이 있는지 확인
-        existing_sync = supabase.table('calendar_sync').select('*').eq('user_id', user_id).eq('calendar_id', calendar_id).eq('platform', platform).execute()
+        existing_sync = supabase_client.table('calendar_sync').select('*').eq('user_id', user_id).eq('calendar_id', calendar_id).eq('platform', platform).execute()
         
         if existing_sync.data:
             # 기존 연동 업데이트
-            result = supabase.table('calendar_sync').update({
+            result = supabase_client.table('calendar_sync').update({
                 'synced_at': 'now()',
                 'sync_status': 'active'
             }).eq('id', existing_sync.data[0]['id']).execute()
         else:
             # 새 연동 생성
-            result = supabase.table('calendar_sync').insert(sync_data).execute()
+            result = supabase_client.table('calendar_sync').insert(sync_data).execute()
         
         if result.data:
             return jsonify({
@@ -4504,8 +4538,14 @@ def get_synced_calendars():
             
         user_id = session['user_id']
         
+        # Get Supabase client
+        supabase_client = get_supabase()
+        if not supabase_client:
+            # Return mock data for development/testing
+            return jsonify({}), 200
+        
         # 사용자의 모든 캘린더 연동 정보 조회
-        sync_response = supabase.table('calendar_sync').select('*').eq('user_id', user_id).eq('sync_status', 'active').execute()
+        sync_response = supabase_client.table('calendar_sync').select('*').eq('user_id', user_id).eq('sync_status', 'active').execute()
         
         synced_platforms = {}
         
@@ -4515,7 +4555,7 @@ def get_synced_calendars():
                 calendar_id = sync_record['calendar_id']
                 
                 # 캘린더 정보 조회
-                calendar_response = supabase.table('calendars').select('*').eq('id', calendar_id).execute()
+                calendar_response = supabase_client.table('calendars').select('*').eq('id', calendar_id).execute()
                 
                 if calendar_response.data:
                     calendar = calendar_response.data[0]
@@ -4542,6 +4582,103 @@ def internal_error(error):
         print(f"500 Error - URL: {request.url}")
         print(f"Error: {error}")
     return render_template('404.html'), 500
+
+# ===== PLATFORM CONNECTION MANAGEMENT =====
+
+@app.route('/api/platform/<platform>/connect', methods=['POST'])
+def mark_platform_connected(platform):
+    """플랫폼을 연결됨으로 표시 (OAuth 성공 후 호출)"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({
+                'success': False,
+                'error': 'User not authenticated'
+            }), 401
+        
+        # Mark platform as connected in session
+        session[f'platform_{platform}_connected'] = True
+        session[f'platform_{platform}_last_sync'] = None
+        session[f'platform_{platform}_sync_count'] = 0
+        session.permanent = True  # Make session persistent
+        
+        return jsonify({
+            'success': True,
+            'message': f'{platform} marked as connected',
+            'platform': platform,
+            'connected': True
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/platform/<platform>/disconnect', methods=['POST'])
+def mark_platform_disconnected(platform):
+    """플랫폼 연결 해제"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({
+                'success': False,
+                'error': 'User not authenticated'
+            }), 401
+        
+        # Mark platform as disconnected in session
+        session[f'platform_{platform}_connected'] = False
+        session[f'platform_{platform}_last_sync'] = None
+        session[f'platform_{platform}_sync_count'] = 0
+        
+        return jsonify({
+            'success': True,
+            'message': f'{platform} disconnected',
+            'platform': platform,
+            'connected': False
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/platforms/status', methods=['GET'])
+def get_all_platform_status():
+    """모든 플랫폼의 연결 상태 조회"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({
+                'success': False,
+                'error': 'User not authenticated'
+            }), 401
+        
+        platforms = ['notion', 'google', 'apple', 'outlook', 'slack']
+        platform_statuses = {}
+        
+        for platform in platforms:
+            session_key = f'platform_{platform}_connected'
+            connected = session.get(session_key, False)
+            
+            platform_statuses[platform] = {
+                'connected': connected,
+                'last_sync': session.get(f'platform_{platform}_last_sync'),
+                'sync_count': session.get(f'platform_{platform}_sync_count', 0),
+                'status': 'active' if connected else 'inactive'
+            }
+        
+        return jsonify({
+            'success': True,
+            'platforms': platform_statuses
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 # ===== CACHE CONTROL =====
 # (Cache control functions already defined above with proper decorators)

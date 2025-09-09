@@ -1312,6 +1312,9 @@
         loader.style.display = 'flex';
 
         try {
+            // 백엔드에 연결 해제 표시
+            await markPlatformDisconnected(platformName);
+            
             // 실제 연결 해제 로직 시뮬레이션
             await new Promise(resolve => setTimeout(resolve, 1500));
 
@@ -1666,6 +1669,10 @@
                     if (event.data && event.data.type) {
                         if (event.data.type === 'oauth_success') {
                             cleanup();
+                            
+                            // Mark platform as connected in backend
+                            markPlatformConnected(event.data.platform);
+                            
                             updatePlatformStatus(event.data.platform, 'connected');
                             showNotification(`${getKoreanPlatformName(event.data.platform)} 연결 성공!`, 'success');
                             updateConnectionStats();
@@ -2214,9 +2221,11 @@
             loader.style.display = 'inline-block';
             button.disabled = true;
             
-            // 연결 해제 API 호출 (기존 disconnectPlatform과 동일한 API 사용)
+            // 연결 해제 API 호출
+            await markPlatformDisconnected(platform);
+            
             const response = await fetch(`/api/platform/${platform}/disconnect`, {
-                method: 'DELETE',
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 }
@@ -2243,9 +2252,66 @@
         }
     }
 
+    // Platform connection management functions
+    async function markPlatformConnected(platform) {
+        try {
+            const response = await fetch(`/api/platform/${platform}/connect`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                console.error(`Failed to mark ${platform} as connected`);
+            }
+        } catch (error) {
+            console.error(`Error marking ${platform} as connected:`, error);
+        }
+    }
+    
+    async function markPlatformDisconnected(platform) {
+        try {
+            const response = await fetch(`/api/platform/${platform}/disconnect`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                console.error(`Failed to mark ${platform} as disconnected`);
+            }
+        } catch (error) {
+            console.error(`Error marking ${platform} as disconnected:`, error);
+        }
+    }
+    
+    async function loadAllPlatformStatus() {
+        try {
+            const response = await fetch('/api/platforms/status');
+            const data = await response.json();
+            
+            if (data.success && data.platforms) {
+                // Update UI based on stored platform statuses
+                for (const [platform, status] of Object.entries(data.platforms)) {
+                    if (status.connected) {
+                        updatePlatformStatus(platform, 'connected');
+                    } else {
+                        updatePlatformStatus(platform, 'disconnected');
+                    }
+                }
+                console.log('Platform statuses loaded:', data.platforms);
+            }
+        } catch (error) {
+            console.error('Error loading platform statuses:', error);
+        }
+    }
+
     // 페이지 로드 완료 후 연동 정보 불러오기
     document.addEventListener('DOMContentLoaded', function() {
         loadSyncedCalendars();
+        loadAllPlatformStatus(); // Load platform connection states
     });
 
 </script>
