@@ -1307,7 +1307,7 @@
 
     // 개별 플랫폼 연결 해제 기능
     async function disconnectPlatform(platformName) {
-        const button = document.querySelector('[data-platform="' + platformName + '"]');
+        const button = document.querySelector(`[data-platform="${platformName}"]`);
         const loader = button.querySelector('.disconnect-loader');
         const buttonText = button.querySelector('.disconnect-text');
         const card = document.querySelector('[data-platform="' + platformName + '"]');
@@ -1335,14 +1335,14 @@
 
             // 버튼을 연결 버튼으로 변경
             button.className = 'platform-connect-btn';
-            button.setAttribute('onclick', 'connectPlatform('' + platformName + '')');
+            button.setAttribute('onclick', `connectPlatform('${platformName}')`);
             buttonText.textContent = '연결하기';
 
             // 통계 및 플랫폼 상태 업데이트
             updateConnectionStats();
             updatePlatformStatus();
 
-            showNotification('' + getKoreanPlatformName(platformName) + ' 연결 해제 완료', 'success');
+            showNotification(`${getKoreanPlatformName(platformName)} 연결 해제 완료`, 'success');
         } catch (error) {
             console.error('연결 해제 중 오류:', error);
             showNotification('연결 해제 중 오류가 발생했습니다.', 'error');
@@ -1377,7 +1377,7 @@
             return window.NotificationUtils.show(message, type);
         }
         // Fallback if NotificationUtils not loaded
-        console.log('[' + type + '] ' + message);
+        console.log(`[${type}] ${message}`);
     }
 
     // 실제 플랫폼 연결 상태 업데이트
@@ -1394,7 +1394,7 @@
                     // 각 플랫폼별 상태 업데이트
                     Object.keys(platforms).forEach(platformName => {
                         const platform = platforms[platformName];
-                        const platformCard = document.querySelector('[data-platform="' + platformName + '"]');
+                        const platformCard = document.querySelector(`[data-platform="${platformName}"]`);
 
                         if (platformCard) {
                             const statusElement = platformCard.querySelector('.platform-status');
@@ -1407,13 +1407,13 @@
 
                                 if (connectBtn) {
                                     connectBtn.className = 'platform-disconnect-btn';
-                                    connectBtn.setAttribute('onclick', 'disconnectPlatform('' + platformName + '')');
-                                    connectBtn.innerHTML = '
+                                    connectBtn.setAttribute('onclick', `disconnectPlatform('${platformName}')`);
+                                    connectBtn.innerHTML = `
                                         <span class="disconnect-text">연결 해제</span>
                                         <div class="disconnect-loader" style="display: none;">
                                             <div class="loader-dot"></div>
                                         </div>
-                                    ';
+                                    `;
                                 }
                             } else {
                                 // 연결되지 않은 상태
@@ -1422,13 +1422,13 @@
 
                                 if (connectBtn && connectBtn.className !== 'platform-connect-btn') {
                                     connectBtn.className = 'platform-connect-btn';
-                                    connectBtn.setAttribute('onclick', 'connectPlatform('' + platformName + '')');
-                                    connectBtn.innerHTML = '
+                                    connectBtn.setAttribute('onclick', `connectPlatform('${platformName}')`);
+                                    connectBtn.innerHTML = `
                                         <span class="connect-text">연결하기</span>
                                         <div class="connect-loader" style="display: none;">
                                             <div class="loader-dot"></div>
                                         </div>
-                                    ';
+                                    `;
                                 }
                             }
                         }
@@ -1593,11 +1593,11 @@
             return;
         }
 
-        const button = document.querySelector('[data-platform="' + platform + '"] .one-click-btn-small');
+        const button = document.querySelector(`[data-platform="${platform}"] .one-click-btn-small`);
 
         if (!button) {
-            console.error('Button not found for platform: ' + platform + '');
-            showNotification('' + getKoreanPlatformName(platform) + ' 연결 버튼을 찾을 수 없습니다.', 'error');
+            console.error(`Button not found for platform: ${platform}`);
+            showNotification(`${getKoreanPlatformName(platform)} 연결 버튼을 찾을 수 없습니다.`, 'error');
             return;
         }
 
@@ -1618,13 +1618,13 @@
                 await performOAuthConnection(platform);
             } else {
                 // 일반 API 키 방식
-                showNotification('' + getKoreanPlatformName(platform) + ' 연결을 위해 설정 폼을 작성해주세요.', 'info');
+                showNotification(`${getKoreanPlatformName(platform)} 연결을 위해 설정 폼을 작성해주세요.`, 'info');
                 togglePlatformDetails(platform);
             }
 
         } catch (error) {
-            console.error('' + platform + ' 연동 중 오류:', error);
-            showNotification('' + getKoreanPlatformName(platform) + ' 연동 중 오류가 발생했습니다.', 'error');
+            console.error(`${platform} 연동 중 오류:`, error);
+            showNotification(`${getKoreanPlatformName(platform)} 연동 중 오류가 발생했습니다.`, 'error');
         } finally {
             // 버튼 상태 복원
             setTimeout(() => {
@@ -1639,12 +1639,12 @@
     async function performOAuthConnection(platform) {
         try {
             // OAuth 설정 확인
-            const configCheck = await fetch('/oauth/' + platform + '/check');
+            const configCheck = await fetch(`/oauth/${platform}/check`);
             const configData = await configCheck.json();
 
             if (!configData.configured) {
                 showNotification(
-                    '' + getKoreanPlatformName(platform) + ' OAuth가 설정되지 않았습니다. 수동 설정을 사용해주세요.',
+                    `${getKoreanPlatformName(platform)} OAuth가 설정되지 않았습니다. 수동 설정을 사용해주세요.`,
                     'warning'
                 );
                 // 수동 설정 폼 표시
@@ -1658,9 +1658,9 @@
             const top = (screen.height - height) / 2;
 
             const popup = window.open(
-                '/oauth/' + platform + '/authorize',
-                'oauth_' + platform + '',
-                'width=' + width + ',height=' + height + ',left=' + left + ',top=' + top + ',scrollbars=yes,resizable=yes'
+                `/oauth/${platform}/authorize`,
+                `oauth_${platform}`,
+                `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`
             );
 
             if (!popup) {
@@ -1687,14 +1687,14 @@
                             markPlatformConnected(event.data.platform);
 
                             updatePlatformStatus(event.data.platform, 'connected');
-                            showNotification('' + getKoreanPlatformName(event.data.platform) + ' 연결 성공!', 'success');
+                            showNotification(`${getKoreanPlatformName(event.data.platform)} 연결 성공!`, 'success');
                             updateConnectionStats();
                             updatePlatformStatus();
                             resolve(event.data);
                         } else if (event.data.type === 'oauth_error') {
                             cleanup();
-                            console.error('OAuth Error for ' + platform + ':', event.data);
-                            showNotification('연결 실패: ' + event.data.error || '알 수 없는 오류' + '', 'error');
+                            console.error(`OAuth Error for ${platform}:`, event.data);
+                            showNotification(`연결 실패: ${event.data.error || '알 수 없는 오류'}`, 'error');
                             reject(new Error(event.data.error || 'OAuth 인증에 실패했습니다'));
                         }
                     }
@@ -1736,7 +1736,7 @@
 
     // 플랫폼 상태 업데이트
     function updatePlatformStatus(platform, status) {
-        const card = document.querySelector('[data-platform="' + platform + '"]');
+        const card = document.querySelector(`[data-platform="${platform}"]`);
         if (!card) return;
 
         const statusElement = card.querySelector('.platform-status');
@@ -1756,13 +1756,13 @@
             const oneClickBtn = card.querySelector('.one-click-btn-small');
             if (oneClickBtn) {
                 oneClickBtn.className = 'one-click-disconnect-btn';
-                oneClickBtn.setAttribute('onclick', 'oneClickDisconnect('' + platform + '')');
-                oneClickBtn.innerHTML = '
+                oneClickBtn.setAttribute('onclick', `oneClickDisconnect('${platform}')`);
+                oneClickBtn.innerHTML = `
                     <span class="btn-text">연결해제</span>
                     <div class="btn-loader" style="display: none;">
                         <div class="loader-spinner"></div>
                     </div>
-                ';
+                `;
             }
 
             // 캘린더 연동 버튼 표시 (연결됨 상태에서만)
@@ -1789,13 +1789,13 @@
             const oneClickDisconnectBtn = card.querySelector('.one-click-disconnect-btn');
             if (oneClickDisconnectBtn) {
                 oneClickDisconnectBtn.className = 'one-click-btn-small';
-                oneClickDisconnectBtn.setAttribute('onclick', 'oneClickConnect('' + platform + '')');
-                oneClickDisconnectBtn.innerHTML = '
+                oneClickDisconnectBtn.setAttribute('onclick', `oneClickConnect('${platform}')`);
+                oneClickDisconnectBtn.innerHTML = `
                     <span class="btn-text">원클릭</span>
                     <div class="btn-loader" style="display: none;">
                         <div class="loader-spinner"></div>
                     </div>
-                ';
+                `;
             }
 
             // 연결되지 않은 상태에서는 캘린더 연동 버튼 숨기기
@@ -1808,12 +1808,12 @@
 
     // 플랫폼 세부사항 토글
     function togglePlatformDetails(platform) {
-        const details = document.getElementById('' + platform + '-details');
+        const details = document.getElementById(`${platform}-details`);
         if (details) {
             const isVisible = details.style.display !== 'none';
             details.style.display = isVisible ? 'none' : 'block';
 
-            const expandBtn = document.querySelector('[data-platform="' + platform + '"] .platform-expand-btn');
+            const expandBtn = document.querySelector(`[data-platform="${platform}"] .platform-expand-btn`);
             if (expandBtn) {
                 expandBtn.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
             }
@@ -2124,15 +2124,15 @@
 
         // 선택된 캘린더 프리뷰 업데이트
         const previewContainer = document.getElementById('selected-calendar-preview');
-        previewContainer.innerHTML = '
+        previewContainer.innerHTML = `
             <div class="preview-calendar-card">
-                <div class="preview-icon">" + selectedCalendarData.icon + "</div>
+                <div class="preview-icon">${selectedCalendarData.icon}</div>
                 <div class="preview-info">
-                    <h6>" + selectedCalendarData.name + "</h6>
-                    <p>" + selectedCalendarData.description + "</p>
+                    <h6>${selectedCalendarData.name}</h6>
+                    <p>${selectedCalendarData.description}</p>
                 </div>
             </div>
-        ';
+        `;
 
         // 버튼 업데이트
         const nextBtn = document.getElementById('next-step-btn');
@@ -2155,12 +2155,12 @@
 
         // 로딩 상태
         syncBtn.disabled = true;
-        syncBtn.innerHTML = '
+        syncBtn.innerHTML = `
             <div class="btn-loading">
                 <div class="spinner"></div>
                 <span>연동 중...</span>
             </div>
-        ';
+        `;
 
         try {
             const response = await fetch('/api/sync-calendar', {
@@ -2238,10 +2238,10 @@
     function showErrorInModal(message) {
         const errorDiv = document.createElement('div');
         errorDiv.className = 'sync-error';
-        errorDiv.innerHTML = '
+        errorDiv.innerHTML = `
             <div class="error-icon">⚠️</div>
-            <div class="error-message">" + message + "</div>
-        ';
+            <div class="error-message">${message}</div>
+        `;
 
         const modalBody = document.querySelector('.calendar-sync-modal .modal-body');
         modalBody.insertBefore(errorDiv, modalBody.firstChild);
@@ -2256,7 +2256,7 @@
     function showNoCalendarsModal(platform) {
         const modal = document.createElement('div');
         modal.className = 'calendar-sync-modal no-calendars-modal';
-        modal.innerHTML = '
+        modal.innerHTML = `
             <div class="modal-backdrop" onclick="closeCalendarSyncModal()"></div>
             <div class="modal-content">
                 <div class="modal-header">
@@ -2275,7 +2275,7 @@
                     <button class="btn-secondary" onclick="closeCalendarSyncModal()">닫기</button>
                 </div>
             </div>
-        ';
+        `;
         document.body.appendChild(modal);
         modal.style.display = 'flex';
     }
@@ -2284,7 +2284,7 @@
     function showErrorModal(message) {
         const modal = document.createElement('div');
         modal.className = 'calendar-sync-modal error-modal';
-        modal.innerHTML = '
+        modal.innerHTML = `
             <div class="modal-backdrop" onclick="closeCalendarSyncModal()"></div>
             <div class="modal-content">
                 <div class="modal-header">
@@ -2294,14 +2294,14 @@
                 <div class="modal-body">
                     <div class="error-content">
                         <div class="error-icon">⚠️</div>
-                        <p>" + message + "</p>
+                        <p>${message}</p>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button class="btn-primary" onclick="closeCalendarSyncModal()">확인</button>
                 </div>
             </div>
-        ';
+        `;
         document.body.appendChild(modal);
         modal.style.display = 'flex';
     }
@@ -2344,7 +2344,7 @@
         const calendarId = element.dataset.calendarId;
         const calendarName = element.querySelector('.calendar-name').textContent;
 
-        if (!confirm('"' + calendarName + '" 캘린더를 ' + platform + '과 연동하시겠습니까?')) {
+        if (!confirm(`"${calendarName}" 캘린더를 ${platform}과 연동하시겠습니까?`)) {
             return;
         }
 
@@ -2363,7 +2363,7 @@
             const result = await response.json();
 
             if (response.ok) {
-                alert('' + platform + ' 캘린더 연동이 완료되었습니다!');
+                alert(`${platform} 캘린더 연동이 완료되었습니다!`);
                 closeCalendarSyncModal();
 
                 // 연동 상태 즉시 업데이트
@@ -2385,7 +2385,7 @@
 
     // slideOutUp 애니메이션 추가
     const style = document.createElement('style');
-    style.textContent = '
+    style.textContent = `
     @keyframes slideOutUp {
         from {
             opacity: 1;
@@ -3028,7 +3028,7 @@
         cursor: not-allowed;
         transform: none;
     }
-';
+`;
     document.head.appendChild(style);
 
     // 페이지 로드 시 연동된 캘린더 정보 불러오기
@@ -3051,7 +3051,7 @@
 
     // 캘린더 연동 상태 업데이트
     function updateCalendarSyncStatus(platform, syncInfo) {
-        const card = document.querySelector('[data-platform="' + platform + '"]');
+        const card = document.querySelector(`[data-platform="${platform}"]`);
         if (!card) return;
 
         const syncBtn = card.querySelector('.platform-sync-btn');
@@ -3059,16 +3059,16 @@
             // 연동된 캘린더가 있으면 버튼 텍스트 변경
             const syncText = syncBtn.querySelector('.sync-text');
             if (syncText) {
-                syncText.textContent = '연동됨: ' + syncInfo.calendar_name + '';
+                syncText.textContent = `연동됨: ${syncInfo.calendar_name}`;
                 syncBtn.classList.add('synced');
-                syncBtn.title = syncInfo.calendar_name + '과 연동됨 (' + syncInfo.synced_at + ')';
+                syncBtn.title = `${syncInfo.calendar_name}과 연동됨 (${syncInfo.synced_at})`;
             }
         }
     }
 
     // 원클릭 연결해제 함수
     async function oneClickDisconnect(platform) {
-        const card = document.querySelector('[data-platform="' + platform + '"]');
+        const card = document.querySelector(`[data-platform="${platform}"]`);
         if (!card) return;
 
         const button = card.querySelector('.one-click-disconnect-btn');
@@ -3077,7 +3077,7 @@
         const buttonText = button.querySelector('.btn-text');
         const loader = button.querySelector('.btn-loader');
 
-        if (!confirm('' + getKoreanPlatformName(platform) + ' 연결을 해제하시겠습니까?')) {
+        if (!confirm(`${getKoreanPlatformName(platform)} 연결을 해제하시겠습니까?`)) {
             return;
         }
 
@@ -3090,7 +3090,7 @@
             // 연결 해제 API 호출
             await markPlatformDisconnected(platform);
 
-            const response = await fetch('/api/platform/' + platform + '/disconnect', {
+            const response = await fetch(`/api/platform/${platform}/disconnect`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -3102,14 +3102,14 @@
                 updatePlatformStatus(platform, 'disconnected');
 
                 // 성공 메시지
-                showNotification('' + getKoreanPlatformName(platform) + ' 연결이 해제되었습니다.', 'success');
+                showNotification(`${getKoreanPlatformName(platform)} 연결이 해제되었습니다.`, 'success');
             } else {
                 const errorData = await response.json();
                 throw new Error(errorData.error || '연결 해제에 실패했습니다.');
             }
         } catch (error) {
             console.error('원클릭 연결해제 오류:', error);
-            showNotification('연결 해제 중 오류가 발생했습니다: ' + error.message + '', 'error');
+            showNotification(`연결 해제 중 오류가 발생했습니다: ${error.message}`, 'error');
         } finally {
             // 로딩 상태 해제
             buttonText.style.display = 'inline';
@@ -3121,7 +3121,7 @@
     // Platform connection management functions
     async function markPlatformConnected(platform) {
         try {
-            const response = await fetch('/api/platform/' + platform + '/connect', {
+            const response = await fetch(`/api/platform/${platform}/connect`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -3129,16 +3129,16 @@
             });
 
             if (!response.ok) {
-                console.error('Failed to mark ' + platform + ' as connected');
+                console.error(`Failed to mark ${platform} as connected`);
             }
         } catch (error) {
-            console.error('Error marking ' + platform + ' as connected:', error);
+            console.error(`Error marking ${platform} as connected:`, error);
         }
     }
 
     async function markPlatformDisconnected(platform) {
         try {
-            const response = await fetch('/api/platform/' + platform + '/disconnect', {
+            const response = await fetch(`/api/platform/${platform}/disconnect`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -3146,10 +3146,10 @@
             });
 
             if (!response.ok) {
-                console.error('Failed to mark ' + platform + ' as disconnected');
+                console.error(`Failed to mark ${platform} as disconnected`);
             }
         } catch (error) {
-            console.error('Error marking ' + platform + ' as disconnected:', error);
+            console.error(`Error marking ${platform} as disconnected:`, error);
         }
     }
 
