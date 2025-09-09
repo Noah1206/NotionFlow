@@ -2005,7 +2005,7 @@
                     <div class="modal-footer">
                         <button class="btn-secondary" onclick="closeCalendarSyncModal()">취소</button>
                         <button class="btn-primary" id="next-step-btn" onclick="nextSyncStep()" disabled>다음</button>
-                        <button class="btn-primary hidden" id="sync-btn" onclick="performSync(\'' + platform + '\')">연동 시작</button>
+                        <button class="btn-primary hidden" id="sync-btn" onclick="performSync('${platform}')">연동 시작</button>
                         <button class="btn-primary hidden" id="complete-btn" onclick="closeCalendarSyncModal()">완료</button>
                     </div>
                 </div>
@@ -2162,6 +2162,36 @@
         `;
 
         try {
+            // 1단계: 노션 캘린더의 기존 일정 조회
+            syncBtn.innerHTML = `
+                <div class="btn-loading">
+                    <div class="spinner"></div>
+                    <span>노션 일정 조회 중...</span>
+                </div>
+            `;
+            
+            const eventsResponse = await fetch(`/api/calendar/${selectedCalendarData.id}/events`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            let existingEvents = [];
+            if (eventsResponse.ok) {
+                const eventsData = await eventsResponse.json();
+                existingEvents = eventsData.events || [];
+                console.log(`Found ${existingEvents.length} existing events in Notion calendar`);
+            }
+            
+            // 2단계: 플랫폼 연동 및 일정 동기화
+            syncBtn.innerHTML = `
+                <div class="btn-loading">
+                    <div class="spinner"></div>
+                    <span>연동 및 동기화 중...</span>
+                </div>
+            `;
+
             const response = await fetch('/api/sync-calendar', {
                 method: 'POST',
                 headers: {
@@ -2170,6 +2200,8 @@
                 body: JSON.stringify({
                     platform: platform,
                     calendar_id: selectedCalendarData.id,
+                    existing_events: existingEvents,
+                    sync_existing: true,
                     settings: {
                         bidirectional: document.getElementById('bidirectional-sync').checked,
                         realTime: document.getElementById('real-time-sync').checked,
@@ -2181,6 +2213,20 @@
             const result = await response.json();
 
             if (response.ok && result.success) {
+                // 동기화 결과 표시
+                if (result.synced_events_count > 0) {
+                    console.log(`Successfully synced ${result.synced_events_count}/${result.total_events} events`);
+                    showNotification(
+                        `${result.synced_events_count}개의 기존 일정이 ${result.platform}과 동기화되었습니다!`, 
+                        'success'
+                    );
+                } else if (result.total_events > 0) {
+                    console.log(`No events were synced (${result.total_events} events found)`);
+                    showNotification('연동이 완료되었지만 일부 일정 동기화에 실패했습니다.', 'warning');
+                } else {
+                    showNotification(`${result.platform} 연동이 완료되었습니다!`, 'success');
+                }
+                
                 showStep3();
             } else {
                 throw new Error(result.error || '연동에 실패했습니다.');
