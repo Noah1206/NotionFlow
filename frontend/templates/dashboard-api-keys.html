@@ -1739,6 +1739,19 @@
             `;
             }
 
+            // 원클릭 버튼을 연결해제 버튼으로 변경
+            const oneClickBtn = card.querySelector('.one-click-btn-small');
+            if (oneClickBtn) {
+                oneClickBtn.className = 'one-click-disconnect-btn';
+                oneClickBtn.setAttribute('onclick', `oneClickDisconnect('${platform}')`);
+                oneClickBtn.innerHTML = `
+                    <span class="btn-text">연결해제</span>
+                    <div class="btn-loader" style="display: none;">
+                        <div class="loader-spinner"></div>
+                    </div>
+                `;
+            }
+
             // 캘린더 연동 버튼 표시 (연결됨 상태에서만)
             const syncBtn = card.querySelector('.platform-sync-btn');
             if (syncBtn) {
@@ -1759,6 +1772,19 @@
                     <div class="loader-dot"></div>
                 </div>
             `;
+            }
+
+            // 원클릭 버튼을 원래 상태로 되돌리기
+            const oneClickDisconnectBtn = card.querySelector('.one-click-disconnect-btn');
+            if (oneClickDisconnectBtn) {
+                oneClickDisconnectBtn.className = 'one-click-btn-small';
+                oneClickDisconnectBtn.setAttribute('onclick', `oneClickConnect('${platform}')`);
+                oneClickDisconnectBtn.innerHTML = `
+                    <span class="btn-text">원클릭</span>
+                    <div class="btn-loader" style="display: none;">
+                        <div class="loader-spinner"></div>
+                    </div>
+                `;
             }
 
             // 연결되지 않은 상태에서는 캘린더 연동 버튼 숨기기
@@ -2108,6 +2134,36 @@
     .platform-sync-btn.synced .sync-text {
         font-weight: 600;
     }
+    
+    /* 원클릭 연결해제 버튼 스타일 */
+    .one-click-disconnect-btn {
+        background: linear-gradient(45deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+    }
+    
+    .one-click-disconnect-btn:hover {
+        background: linear-gradient(45deg, #c82333 0%, #a71e2a 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
+    }
+    
+    .one-click-disconnect-btn:active {
+        transform: translateY(0);
+    }
+    
+    .one-click-disconnect-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
 `;
     document.head.appendChild(style);
 
@@ -2143,6 +2199,56 @@
                 syncBtn.classList.add('synced');
                 syncBtn.title = `${syncInfo.calendar_name}과 연동됨 (${syncInfo.synced_at})`;
             }
+        }
+    }
+
+    // 원클릭 연결해제 함수
+    async function oneClickDisconnect(platform) {
+        const card = document.querySelector(`[data-platform="${platform}"]`);
+        if (!card) return;
+        
+        const button = card.querySelector('.one-click-disconnect-btn');
+        if (!button) return;
+        
+        const buttonText = button.querySelector('.btn-text');
+        const loader = button.querySelector('.btn-loader');
+        
+        if (!confirm(`${getKoreanPlatformName(platform)} 연결을 해제하시겠습니까?`)) {
+            return;
+        }
+        
+        try {
+            // 로딩 상태 표시
+            buttonText.style.display = 'none';
+            loader.style.display = 'inline-block';
+            button.disabled = true;
+            
+            // 연결 해제 API 호출 (기존 disconnectPlatform과 동일한 API 사용)
+            const response = await fetch(`/api/platform/${platform}/disconnect`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            if (response.ok) {
+                // 플랫폼 상태를 연결되지 않음으로 업데이트
+                updatePlatformStatus(platform, 'disconnected');
+                
+                // 성공 메시지
+                showNotification(`${getKoreanPlatformName(platform)} 연결이 해제되었습니다.`, 'success');
+            } else {
+                const errorData = await response.json();
+                throw new Error(errorData.error || '연결 해제에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('원클릭 연결해제 오류:', error);
+            showNotification(`연결 해제 중 오류가 발생했습니다: ${error.message}`, 'error');
+        } finally {
+            // 로딩 상태 해제
+            buttonText.style.display = 'inline';
+            loader.style.display = 'none';
+            button.disabled = false;
         }
     }
 
