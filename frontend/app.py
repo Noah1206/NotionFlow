@@ -4494,6 +4494,46 @@ def sync_calendar():
         print(f"Error syncing calendar: {e}")
         return jsonify({'error': 'Failed to sync calendar'}), 500
 
+@app.route('/api/synced-calendars', methods=['GET'])
+def get_synced_calendars():
+    """사용자의 연동된 캘린더 정보 조회"""
+    try:
+        # Check if user is logged in
+        if 'user_id' not in session:
+            return jsonify({'error': 'Authentication required'}), 401
+            
+        user_id = session['user_id']
+        
+        # 사용자의 모든 캘린더 연동 정보 조회
+        sync_response = supabase.table('calendar_sync').select('*').eq('user_id', user_id).eq('sync_status', 'active').execute()
+        
+        synced_platforms = {}
+        
+        if sync_response.data:
+            for sync_record in sync_response.data:
+                platform = sync_record['platform']
+                calendar_id = sync_record['calendar_id']
+                
+                # 캘린더 정보 조회
+                calendar_response = supabase.table('calendars').select('*').eq('id', calendar_id).execute()
+                
+                if calendar_response.data:
+                    calendar = calendar_response.data[0]
+                    synced_platforms[platform] = {
+                        'calendar_id': calendar_id,
+                        'calendar_name': calendar['name'],
+                        'calendar_description': calendar.get('description', ''),
+                        'calendar_icon': calendar.get('color', '📅'),
+                        'synced_at': sync_record.get('synced_at', ''),
+                        'sync_status': sync_record.get('sync_status', 'active')
+                    }
+        
+        return jsonify(synced_platforms), 200
+            
+    except Exception as e:
+        print(f"Error fetching synced calendars: {e}")
+        return jsonify({'error': 'Failed to fetch synced calendars'}), 500
+
 # ===== ERROR HANDLERS =====
 
 @app.errorhandler(500)

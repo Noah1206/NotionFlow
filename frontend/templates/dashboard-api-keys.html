@@ -1900,6 +1900,15 @@
             if (response.ok) {
                 alert(`${platform} 캘린더 연동이 완료되었습니다!`);
                 closeCalendarSyncModal();
+                
+                // 연동 상태 즉시 업데이트
+                const syncInfo = {
+                    calendar_name: calendarName,
+                    calendar_id: calendarId,
+                    synced_at: new Date().toLocaleString(),
+                    sync_status: 'active'
+                };
+                updateCalendarSyncStatus(platform, syncInfo);
             } else {
                 throw new Error(result.error || 'Failed to sync calendar');
             }
@@ -2083,7 +2092,64 @@
     .calendar-sync-modal .btn-secondary:hover {
         background: #e0e0e0;
     }
+    
+    /* 연동된 캘린더 버튼 스타일 */
+    .platform-sync-btn.synced {
+        background: linear-gradient(45deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+    
+    .platform-sync-btn.synced:hover {
+        background: linear-gradient(45deg, #218838 0%, #1ea080 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 3px 10px rgba(40, 167, 69, 0.4);
+    }
+    
+    .platform-sync-btn.synced .sync-text {
+        font-weight: 600;
+    }
 `;
     document.head.appendChild(style);
+
+    // 페이지 로드 시 연동된 캘린더 정보 불러오기
+    async function loadSyncedCalendars() {
+        try {
+            const response = await fetch('/api/synced-calendars');
+            const syncedCalendars = await response.json();
+
+            if (response.ok) {
+                // 각 플랫폼의 연동 상태 업데이트
+                Object.keys(syncedCalendars).forEach(platform => {
+                    const syncInfo = syncedCalendars[platform];
+                    updateCalendarSyncStatus(platform, syncInfo);
+                });
+            }
+        } catch (error) {
+            console.error('연동된 캘린더 정보 로드 실패:', error);
+        }
+    }
+
+    // 캘린더 연동 상태 업데이트
+    function updateCalendarSyncStatus(platform, syncInfo) {
+        const card = document.querySelector(`[data-platform="${platform}"]`);
+        if (!card) return;
+
+        const syncBtn = card.querySelector('.platform-sync-btn');
+        if (syncBtn) {
+            // 연동된 캘린더가 있으면 버튼 텍스트 변경
+            const syncText = syncBtn.querySelector('.sync-text');
+            if (syncText) {
+                syncText.textContent = `연동됨: ${syncInfo.calendar_name}`;
+                syncBtn.classList.add('synced');
+                syncBtn.title = `${syncInfo.calendar_name}과 연동됨 (${syncInfo.synced_at})`;
+            }
+        }
+    }
+
+    // 페이지 로드 완료 후 연동 정보 불러오기
+    document.addEventListener('DOMContentLoaded', function() {
+        loadSyncedCalendars();
+    });
+
 </script>
 {% endblock %}
