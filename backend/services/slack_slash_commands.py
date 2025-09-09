@@ -11,8 +11,19 @@ slash_commands_bp = Blueprint('slack_slash', __name__, url_prefix='/slack')
 
 # Supabase setup
 SUPABASE_URL = os.environ.get('SUPABASE_URL')
-SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+SUPABASE_KEY = os.environ.get('SUPABASE_API_KEY') or os.environ.get('SUPABASE_KEY')
+
+# Initialize Supabase client only if credentials are available
+supabase = None
+if SUPABASE_URL and SUPABASE_KEY:
+    try:
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        print("[SUCCESS] Supabase client initialized in slack_slash_commands")
+    except Exception as e:
+        print(f"[WARNING] Failed to initialize Supabase client in slack_slash_commands: {e}")
+        supabase = None
+else:
+    print("[WARNING] Supabase credentials not found in slack_slash_commands, slash commands disabled")
 
 def verify_slack_request(request):
     """Verify that the request came from Slack"""
@@ -24,6 +35,8 @@ def verify_slack_request(request):
 def get_user_by_slack_team_user(team_id, user_id):
     """Get NotionFlow user by Slack team and user ID"""
     try:
+        if not supabase:
+            return None
         result = supabase.table('platform_connections').select('user_id').eq('platform', 'slack').execute()
         
         for connection in result.data:
@@ -40,6 +53,10 @@ def get_user_by_slack_team_user(team_id, user_id):
 @slash_commands_bp.route('/commands/notion', methods=['POST'])
 def handle_notion_command():
     """Handle /notion slash command"""
+    
+    # Check if Supabase is available
+    if not supabase:
+        return jsonify({'text': 'Service temporarily unavailable'}), 503
     
     # Verify request is from Slack
     if not verify_slack_request(request):
@@ -198,6 +215,11 @@ def handle_search_command(parts, user_id, slack_user_id, response_url):
 def handle_status_command(user_id, slack_user_id):
     """Handle status check command"""
     try:
+        if not supabase:
+            return {
+                'text': 'Status: Service temporarily unavailable',
+                'response_type': 'ephemeral'
+            }
         # Check Notion connection
         notion_connection = supabase.table('platform_connections').select('*').eq('user_id', user_id).eq('platform', 'notion').execute()
         slack_connection = supabase.table('platform_connections').select('*').eq('user_id', user_id).eq('platform', 'slack').execute()
@@ -238,6 +260,9 @@ Slack: {slack_status}
 def create_notion_content_async(user_id, content_type, title, channel_id, slack_user_id, response_url):
     """Asynchronously create Notion content and send response"""
     try:
+        if not supabase:
+            send_delayed_response(response_url, 'Service temporarily unavailable')
+            return
         # Get Notion connection
         notion_connection = supabase.table('platform_connections').select('*').eq('user_id', user_id).eq('platform', 'notion').execute()
         
@@ -431,6 +456,10 @@ def send_delayed_response(response_url, message):
 @slash_commands_bp.route('/interactive', methods=['POST'])
 def handle_interactive():
     """Handle interactive components (buttons, modals, etc.)"""
+    
+    # Check if Supabase is available
+    if not supabase:
+        return jsonify({'text': 'Service temporarily unavailable'}), 503
     
     payload = json.loads(request.form.get('payload', '{}'))
     
