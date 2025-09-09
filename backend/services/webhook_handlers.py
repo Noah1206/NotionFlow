@@ -13,8 +13,23 @@ webhooks_bp = Blueprint('webhooks', __name__, url_prefix='/webhooks')
 
 # Supabase setup
 SUPABASE_URL = os.environ.get('SUPABASE_URL')
-SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+SUPABASE_KEY = os.environ.get('SUPABASE_API_KEY') or os.environ.get('SUPABASE_KEY')
+
+# Initialize Supabase client only if credentials are available
+supabase = None
+if SUPABASE_URL and SUPABASE_KEY:
+    try:
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        print("[SUCCESS] Supabase client initialized in webhook_handlers")
+    except Exception as e:
+        print(f"[WARNING] Failed to initialize Supabase client in webhook_handlers: {e}")
+        supabase = None
+else:
+    print("[WARNING] Supabase credentials not found in webhook_handlers, webhook features disabled")
+
+# If Supabase is not available, disable all webhook functionality
+if not supabase:
+    print("[INFO] Webhook handlers disabled due to missing Supabase connection")
 
 # Webhook secrets
 SLACK_SIGNING_SECRET = os.environ.get('SLACK_SIGNING_SECRET')
@@ -59,6 +74,8 @@ def verify_outlook_signature(request):
 def get_user_by_platform_id(platform, platform_user_id, team_id=None):
     """Get NotionFlow user ID by platform user ID"""
     try:
+        if not supabase:
+            return None
         result = supabase.table('platform_connections').select('user_id, raw_data').eq('platform', platform).execute()
         
         for connection in result.data:
@@ -83,6 +100,10 @@ def get_user_by_platform_id(platform, platform_user_id, team_id=None):
 @webhooks_bp.route('/slack/events', methods=['POST'])
 def handle_slack_events():
     """Handle Slack Events API webhooks"""
+    
+    # Check if Supabase is available
+    if not supabase:
+        return jsonify({'error': 'Service temporarily unavailable'}), 503
     
     # Verify signature
     if not verify_slack_signature(request):
@@ -228,6 +249,10 @@ def handle_slack_member_joined(event, team_id):
 def handle_outlook_notifications():
     """Handle Microsoft Graph webhooks for Outlook calendar changes"""
     
+    # Check if Supabase is available
+    if not supabase:
+        return jsonify({'error': 'Service temporarily unavailable'}), 503
+    
     # Verify signature
     if not verify_outlook_signature(request):
         return jsonify({'error': 'Invalid signature'}), 401
@@ -275,6 +300,8 @@ def process_outlook_notification(notification):
 def get_sync_settings(user_id, platform):
     """Get sync settings for user and platform"""
     try:
+        if not supabase:
+            return None
         result = supabase.table('sync_settings').select('settings').eq('user_id', user_id).eq('platform', platform).single().execute()
         return result.data.get('settings', {}) if result.data else None
     except Exception as e:
@@ -284,6 +311,8 @@ def get_sync_settings(user_id, platform):
 def schedule_slack_message_sync(user_id, event, team_id):
     """Schedule Slack message sync job"""
     try:
+        if not supabase:
+            return
         job_data = {
             'user_id': user_id,
             'platform': 'slack',
@@ -309,6 +338,8 @@ def schedule_slack_message_sync(user_id, event, team_id):
 def schedule_slack_message_sync_by_reaction(user_id, channel, ts, reaction, team_id):
     """Schedule Slack message sync triggered by reaction"""
     try:
+        if not supabase:
+            return
         job_data = {
             'user_id': user_id,
             'platform': 'slack',
@@ -333,6 +364,8 @@ def schedule_slack_message_sync_by_reaction(user_id, channel, ts, reaction, team
 def schedule_outlook_event_sync(user_id, resource, change_type):
     """Schedule Outlook event sync job"""
     try:
+        if not supabase:
+            return
         job_data = {
             'user_id': user_id,
             'platform': 'outlook',
@@ -355,6 +388,8 @@ def schedule_outlook_event_sync(user_id, resource, change_type):
 def schedule_outlook_event_deletion(user_id, resource):
     """Schedule Outlook event deletion sync"""
     try:
+        if not supabase:
+            return
         job_data = {
             'user_id': user_id,
             'platform': 'outlook',
@@ -381,6 +416,8 @@ def update_team_channel_cache(team_id):
 def clean_up_deleted_channel_settings(team_id, channel_id):
     """Clean up sync settings for deleted channel"""
     try:
+        if not supabase:
+            return
         # Find users with this channel in their settings
         result = supabase.table('sync_settings').select('*').eq('platform', 'slack').execute()
         
@@ -425,6 +462,8 @@ def extract_user_from_resource(resource, client_state):
 def process_sync_jobs():
     """Process pending sync jobs"""
     try:
+        if not supabase:
+            return
         # Get pending jobs
         result = supabase.table('sync_jobs').select('*').eq('status', 'pending').order('created_at').limit(10).execute()
         
