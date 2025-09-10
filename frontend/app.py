@@ -2692,10 +2692,13 @@ def get_platform_status(platform):
                 'error': 'User not authenticated'
             }), 401
         
-        # Check connection status in session/localStorage as a fallback
-        # Since we don't have database access, check if platform was connected in this session
-        session_key = f'platform_{platform}_connected'
-        connected = session.get(session_key, False)
+        # Google Calendar 전용 연결 상태 확인
+        if platform == 'google':
+            connected = check_google_calendar_connection(user_id)
+        else:
+            # 다른 플랫폼은 기존 세션 기반 확인
+            session_key = f'platform_{platform}_connected'
+            connected = session.get(session_key, False)
         
         platform_status = {
             'connected': connected,
@@ -2825,6 +2828,153 @@ def handle_google_connection(user_id, data):
             'success': False,
             'error': f'Google 연결 실패: {str(e)}'
         }
+
+# ===== GOOGLE OAUTH HANDLERS =====
+
+@app.route('/auth/google')
+def google_oauth_login():
+    """Google OAuth 인증 시작"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'User not authenticated'}), 401
+        
+        from google_auth_oauthlib.flow import Flow
+        import os
+        
+        # OAuth 2.0 클라이언트 설정
+        client_config = {
+            "web": {
+                "client_id": os.environ.get('GOOGLE_CLIENT_ID'),
+                "client_secret": os.environ.get('GOOGLE_CLIENT_SECRET'),
+                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                "token_uri": "https://oauth2.googleapis.com/token",
+                "redirect_uris": [f"{request.host_url}auth/google/callback"]
+            }
+        }
+        
+        flow = Flow.from_client_config(
+            client_config,
+            scopes=['https://www.googleapis.com/auth/calendar']
+        )
+        flow.redirect_uri = f"{request.host_url}auth/google/callback"
+        
+        # 인증 URL 생성
+        authorization_url, state = flow.authorization_url(
+            access_type='offline',
+            include_granted_scopes='true',
+            state=user_id  # user_id를 state로 전달
+        )
+        
+        # state를 세션에 저장 (CSRF 보호)
+        session['oauth_state'] = state
+        
+        return redirect(authorization_url)
+        
+    except Exception as e:
+        print(f"Error starting Google OAuth: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/auth/google/callback')
+def google_oauth_callback():
+    """Google OAuth 콜백 처리"""
+    try:
+        from google_auth_oauthlib.flow import Flow
+        from services.google_calendar_service import google_calendar_service
+        import os
+        
+        # state 파라미터에서 user_id 추출
+        state = request.args.get('state')
+        stored_state = session.get('oauth_state')
+        
+        if not state or state != stored_state:
+            return render_template_string('''
+            <html><body>
+                <script>
+                    alert('OAuth state mismatch. 다시 시도해주세요.');
+                    window.close();
+                </script>
+            </body></html>
+            ''')
+        
+        user_id = state
+        
+        # OAuth 2.0 클라이언트 설정
+        client_config = {
+            "web": {
+                "client_id": os.environ.get('GOOGLE_CLIENT_ID'),
+                "client_secret": os.environ.get('GOOGLE_CLIENT_SECRET'),
+                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                "token_uri": "https://oauth2.googleapis.com/token",
+                "redirect_uris": [f"{request.host_url}auth/google/callback"]
+            }
+        }
+        
+        flow = Flow.from_client_config(
+            client_config,
+            scopes=['https://www.googleapis.com/auth/calendar']
+        )
+        flow.redirect_uri = f"{request.host_url}auth/google/callback"
+        
+        # 인증 코드로 토큰 교환
+        flow.fetch_token(authorization_response=request.url)
+        credentials = flow.credentials
+        
+        # 토큰을 Supabase에 저장
+        token_data = {
+            'user_id': user_id,
+            'platform': 'google',
+            'access_token': credentials.token,
+            'refresh_token': credentials.refresh_token,
+            'expires_at': credentials.expiry.isoformat() if credentials.expiry else None,
+            'token_type': 'Bearer',
+            'scope': ' '.join(credentials.scopes) if credentials.scopes else 'https://www.googleapis.com/auth/calendar'
+        }
+        
+        # 기존 토큰이 있으면 업데이트, 없으면 삽입
+        result = google_calendar_service.supabase.table('oauth_tokens').upsert(
+            token_data,
+            on_conflict='user_id,platform'
+        ).execute()
+        
+        print(f"Google OAuth token saved for user {user_id}")
+        
+        # OAuth state 정리
+        session.pop('oauth_state', None)
+        
+        # 성공 페이지 반환 (팝업 창 닫기)
+        return render_template_string('''
+        <html><body>
+            <script>
+                // 부모 창에 성공 메시지 전달
+                if (window.opener) {
+                    window.opener.postMessage({
+                        type: 'oauth_success',
+                        platform: 'google'
+                    }, window.location.origin);
+                }
+                window.close();
+            </script>
+        </body></html>
+        ''')
+        
+    except Exception as e:
+        print(f"Error in Google OAuth callback: {e}")
+        # 오류 페이지 반환
+        return render_template_string(f'''
+        <html><body>
+            <script>
+                if (window.opener) {{
+                    window.opener.postMessage({{
+                        type: 'oauth_error',
+                        platform: 'google',
+                        error: '{str(e)}'
+                    }}, window.location.origin);
+                }}
+                window.close();
+            </script>
+        </body></html>
+        ''')
 
 def handle_slack_connection(user_id, data):
     """Slack OAuth 연결 처리"""
@@ -4782,11 +4932,13 @@ def mark_platform_connected(platform):
                 'error': 'User not authenticated'
             }), 401
         
-        # Mark platform as connected in session
-        session[f'platform_{platform}_connected'] = True
-        session[f'platform_{platform}_last_sync'] = None
-        session[f'platform_{platform}_sync_count'] = 0
-        session.permanent = True  # Make session persistent
+        # Google Calendar은 OAuth 토큰으로 연결 상태 확인하므로 세션 처리 제외
+        if platform != 'google':
+            # Mark platform as connected in session
+            session[f'platform_{platform}_connected'] = True
+            session[f'platform_{platform}_last_sync'] = None
+            session[f'platform_{platform}_sync_count'] = 0
+            session.permanent = True  # Make session persistent
         
         return jsonify({
             'success': True,
@@ -4812,10 +4964,20 @@ def mark_platform_disconnected(platform):
                 'error': 'User not authenticated'
             }), 401
         
-        # Mark platform as disconnected in session
-        session[f'platform_{platform}_connected'] = False
-        session[f'platform_{platform}_last_sync'] = None
-        session[f'platform_{platform}_sync_count'] = 0
+        # Google Calendar은 OAuth 토큰 삭제로 연결 해제하므로 세션 처리 제외
+        if platform != 'google':
+            # Mark platform as disconnected in session
+            session[f'platform_{platform}_connected'] = False
+            session[f'platform_{platform}_last_sync'] = None
+            session[f'platform_{platform}_sync_count'] = 0
+        else:
+            # Google Calendar 연결 해제 - OAuth 토큰 삭제
+            try:
+                from services.google_calendar_service import google_calendar_service
+                # Supabase에서 토큰 삭제
+                google_calendar_service.supabase.table('oauth_tokens').delete().eq('user_id', user_id).eq('platform', 'google').execute()
+            except Exception as e:
+                print(f"Error disconnecting Google Calendar: {e}")
         
         return jsonify({
             'success': True,
@@ -4845,8 +5007,13 @@ def get_all_platform_status():
         platform_statuses = {}
         
         for platform in platforms:
-            session_key = f'platform_{platform}_connected'
-            connected = session.get(session_key, False)
+            # Google Calendar 전용 연결 상태 확인 로직
+            if platform == 'google':
+                connected = check_google_calendar_connection(user_id)
+            else:
+                # 다른 플랫폼은 기존 세션 기반 확인
+                session_key = f'platform_{platform}_connected'
+                connected = session.get(session_key, False)
             
             platform_statuses[platform] = {
                 'connected': connected,
@@ -4865,6 +5032,16 @@ def get_all_platform_status():
             'success': False,
             'error': str(e)
         }), 500
+
+def check_google_calendar_connection(user_id):
+    """Google Calendar OAuth 토큰 존재 여부로 연결 상태 확인"""
+    try:
+        from services.google_calendar_service import google_calendar_service
+        credentials = google_calendar_service.get_google_credentials(user_id)
+        return credentials is not None
+    except Exception as e:
+        print(f"Error checking Google Calendar connection: {e}")
+        return False
 
 # ===== CACHE CONTROL =====
 # (Cache control functions already defined above with proper decorators)

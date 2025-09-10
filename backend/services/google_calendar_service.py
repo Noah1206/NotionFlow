@@ -10,7 +10,13 @@ from typing import List, Dict, Any, Optional
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-import pytz
+try:
+    import pytz
+except ImportError:
+    # pytz가 없는 경우 datetime의 timezone 사용
+    from datetime import timezone as pytz_tz
+    pytz = None
+
 from supabase import create_client
 from dotenv import load_dotenv
 
@@ -154,9 +160,17 @@ class GoogleCalendarService:
         try:
             # 기본값 설정
             if not time_min:
-                time_min = datetime.now(pytz.UTC) - timedelta(days=30)
+                if pytz:
+                    time_min = datetime.now(pytz.UTC) - timedelta(days=30)
+                else:
+                    from datetime import timezone
+                    time_min = datetime.now(timezone.utc) - timedelta(days=30)
             if not time_max:
-                time_max = datetime.now(pytz.UTC) + timedelta(days=90)
+                if pytz:
+                    time_max = datetime.now(pytz.UTC) + timedelta(days=90)
+                else:
+                    from datetime import timezone
+                    time_max = datetime.now(timezone.utc) + timedelta(days=90)
             
             # Google Calendar에서 일정 조회
             events_result = service.events().list(
