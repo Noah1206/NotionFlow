@@ -1453,8 +1453,7 @@
     async function checkCalendarsAndUpdatePlatforms() {
         try {
             // 서버에서 렌더링된 통계 데이터 사용
-            const connectedCount = {{ (stats.connected_count if stats and stats.connected_count else 0)| tojson
-        }};
+            const connectedCount = {{ (stats.connected_count if stats and stats.connected_count else 0)| tojson }};
     const hasCalendars = connectedCount > 0;
 
     // 모든 플랫폼 카드 선택
@@ -1557,11 +1556,10 @@
         try {
             // 서버에서 렌더링된 데이터 사용 (조용히)
             const stats = {
-                connected_count: {{ (stats.connected_count if stats and stats.connected_count else 0)| tojson
-        }},
-    synced_events: { { (stats.synced_events if stats and stats.synced_events else 0)| tojson } },
-    success_rate: { { (stats.success_rate if stats and stats.success_rate else "0%")| tojson } },
-    avg_sync_time: { { (stats.avg_sync_time if stats and stats.avg_sync_time else "N/A")| tojson } }
+                connected_count: {{ (stats.connected_count if stats and stats.connected_count else 0)| tojson }},
+                synced_events: {{ (stats.synced_events if stats and stats.synced_events else 0)| tojson }},
+                success_rate: {{ (stats.success_rate if stats and stats.success_rate else "0%")| tojson }},
+                avg_sync_time: {{ (stats.avg_sync_time if stats and stats.avg_sync_time else "N/A")| tojson }}
             };
 
     // DOM 업데이트
