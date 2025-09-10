@@ -1589,10 +1589,19 @@
             return;
         }
 
+        // DOM이 완전히 로드될 때까지 대기
+        if (document.readyState === 'loading') {
+            console.warn('DOM is still loading, waiting...');
+            await new Promise(resolve => {
+                document.addEventListener('DOMContentLoaded', resolve);
+            });
+        }
+
         const button = document.querySelector('[data-platform="' + platform + '"] .one-click-btn-small');
 
         if (!button) {
             console.error(`Button not found for platform: ${platform}`);
+            console.error('Available platforms:', document.querySelectorAll('.platform-card').length);
             showNotification(`${getKoreanPlatformName(platform)} 연결 버튼을 찾을 수 없습니다.`, 'error');
             return;
         }
@@ -1691,7 +1700,7 @@
                             cleanup();
 
                             // 버튼 로딩 해제
-                            const button = document.querySelector(`[data-platform="${platform}"] .one-click-btn-small`);
+                            const button = document.querySelector('[data-platform="' + platform + '"] .one-click-btn-small');
                             if (button) {
                                 const loader = button.querySelector('.btn-loader');
                                 const buttonText = button.querySelector('.btn-text');
@@ -1712,7 +1721,7 @@
                             cleanup();
 
                             // 버튼 로딩 해제
-                            const button = document.querySelector(`[data-platform="${platform}"] .one-click-btn-small`);
+                            const button = document.querySelector('[data-platform="' + platform + '"] .one-click-btn-small');
                             if (button) {
                                 const loader = button.querySelector('.btn-loader');
                                 const buttonText = button.querySelector('.btn-text');
@@ -1733,7 +1742,7 @@
                     if (popup.closed) {
                         cleanup();
                         // 버튼 로딩 해제 (팝업 닫힘)
-                        const button = document.querySelector(`[data-platform="${platform}"] .one-click-btn-small`);
+                        const button = document.querySelector('[data-platform="' + platform + '"] .one-click-btn-small');
                         if (button) {
                             const loader = button.querySelector('.btn-loader');
                             const buttonText = button.querySelector('.btn-text');
@@ -1749,7 +1758,7 @@
                     if (timeoutCount >= maxTimeout) {
                         cleanup();
                         // 버튼 로딩 해제 (타임아웃)
-                        const button = document.querySelector(`[data-platform="${platform}"] .one-click-btn-small`);
+                        const button = document.querySelector('[data-platform="' + platform + '"] .one-click-btn-small');
                         if (button) {
                             const loader = button.querySelector('.btn-loader');
                             const buttonText = button.querySelector('.btn-text');
@@ -1783,7 +1792,11 @@
     // 플랫폼 상태 업데이트
     function updatePlatformStatus(platform, status) {
         const card = document.querySelector('[data-platform="' + platform + '"]');
-        if (!card) return;
+        if (!card) {
+            console.error(`Platform card not found for: ${platform}`);
+            console.error('Available platform cards:', document.querySelectorAll('.platform-card').length);
+            return;
+        }
 
         const statusElement = card.querySelector('.platform-status');
         const connectBtn = card.querySelector('.platform-connect-btn');
@@ -3196,7 +3209,7 @@
                     const syncInfo = JSON.parse(storedInfo);
 
                     // 서버에서 이미 정보가 없는 경우에만 localStorage 정보 사용
-                    const card = document.querySelector(`[data-platform="${platform}"]`);
+                    const card = document.querySelector('[data-platform="' + platform + '"]');
                     const syncBtn = card?.querySelector('.platform-sync-btn');
                     const syncText = syncBtn?.querySelector('.sync-text');
 
@@ -3342,8 +3355,21 @@
         }
     }
 
+    // 전역 에러 핸들러
+    window.addEventListener('error', function(event) {
+        console.error('Global error caught:', event.error);
+        if (event.error && event.error.message && event.error.message.includes('Node cannot be found')) {
+            console.error('DOM debugging info:');
+            console.error('Document ready state:', document.readyState);
+            console.error('Platform cards found:', document.querySelectorAll('.platform-card').length);
+            console.error('One-click buttons found:', document.querySelectorAll('.one-click-btn-small').length);
+        }
+    });
+
     // 페이지 로드 완료 후 연동 정보 불러오기
     document.addEventListener('DOMContentLoaded', function () {
+        console.log('DOM loaded, initializing functions...');
+        console.log('Platform cards available:', document.querySelectorAll('.platform-card').length);
         loadSyncedCalendars();
         loadAllPlatformStatus(); // Load platform connection states
     });
