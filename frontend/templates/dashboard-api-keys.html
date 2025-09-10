@@ -3166,12 +3166,22 @@
         try {
             const response = await fetch('/api/synced-calendars');
             const syncedCalendars = await response.json();
+            
+            console.log('Synced calendars API response:', syncedCalendars);
 
-            if (response.ok) {
+            if (response.ok && syncedCalendars && typeof syncedCalendars === 'object') {
                 // 각 플랫폼의 연동 상태 업데이트
                 Object.keys(syncedCalendars).forEach(platform => {
+                    // platform 유효성 검증
+                    if (!platform || typeof platform !== 'string' || platform.trim() === '') {
+                        console.warn('Invalid platform key in syncedCalendars:', platform);
+                        return;
+                    }
+                    
                     const syncInfo = syncedCalendars[platform];
-                    updateCalendarSyncStatus(platform, syncInfo);
+                    if (syncInfo) {
+                        updateCalendarSyncStatus(platform, syncInfo);
+                    }
                 });
             }
 
@@ -3186,8 +3196,16 @@
 
     // 캘린더 연동 상태 업데이트
     function updateCalendarSyncStatus(platform, syncInfo) {
+        if (!platform || typeof platform !== 'string') {
+            console.error('updateCalendarSyncStatus: invalid platform parameter:', platform);
+            return;
+        }
+        
         const card = document.querySelector('[data-platform="' + platform + '"]');
-        if (!card) return;
+        if (!card) {
+            console.warn(`updateCalendarSyncStatus: Platform card not found for: ${platform}`);
+            return;
+        }
 
         const syncBtn = card.querySelector('.platform-sync-btn');
         if (syncBtn) {
@@ -3363,9 +3381,23 @@
             const response = await fetch('/api/platforms/status');
             const data = await response.json();
 
+            console.log('Platform status API response:', data);
+            
             if (data.success && data.platforms) {
+                console.log('Platform status data.platforms:', data.platforms);
                 // Update UI based on stored platform statuses
                 for (const [platform, status] of Object.entries(data.platforms)) {
+                    // platform과 status 유효성 검증
+                    if (!platform || typeof platform !== 'string' || platform.trim() === '') {
+                        console.warn('Invalid platform key found:', platform);
+                        continue;
+                    }
+                    
+                    if (!status || typeof status !== 'object') {
+                        console.warn('Invalid status object for platform:', platform, status);
+                        continue;
+                    }
+
                     if (status.connected) {
                         updatePlatformStatus(platform, 'connected');
                     } else {
