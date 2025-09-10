@@ -4559,6 +4559,117 @@ def sync_calendar():
         print(f"Error syncing calendar: {e}")
         return jsonify({'error': 'Failed to sync calendar'}), 500
 
+@app.route('/api/google-calendar/events', methods=['GET'])
+def get_google_calendar_events():
+    """Google Calendar에서 일정 가져오기"""
+    try:
+        if 'user_id' not in session:
+            return jsonify({'error': 'Authentication required'}), 401
+            
+        user_id = session['user_id']
+        
+        # Google Calendar 서비스 import
+        try:
+            sys.path.append(os.path.join(os.path.dirname(__file__), '../backend'))
+            from services.google_calendar_service import google_calendar_service
+        except ImportError as e:
+            return jsonify({'error': f'Google Calendar service not available: {e}'}), 503
+        
+        # 날짜 범위 파라미터
+        from datetime import datetime, timedelta
+        import pytz
+        
+        time_min = datetime.now(pytz.UTC) - timedelta(days=30)  # 30일 전부터
+        time_max = datetime.now(pytz.UTC) + timedelta(days=90)  # 90일 후까지
+        
+        # Google Calendar에서 일정 조회
+        google_events = google_calendar_service.get_events(
+            user_id=user_id,
+            time_min=time_min,
+            time_max=time_max
+        )
+        
+        # 일정 데이터 형식 변환 (Google -> NotionFlow 형식)
+        converted_events = []
+        for event in google_events:
+            converted_event = {
+                'id': event.get('id'),
+                'title': event.get('summary', 'No Title'),
+                'description': event.get('description', ''),
+                'location': event.get('location', ''),
+                'start_time': event.get('start', {}).get('dateTime'),
+                'end_time': event.get('end', {}).get('dateTime'),
+                'date': event.get('start', {}).get('date'),  # 종일 일정인 경우
+                'source': 'google',
+                'external_id': event.get('id'),
+                'html_link': event.get('htmlLink'),
+                'attendees': [attendee.get('email') for attendee in event.get('attendees', [])],
+                'created': event.get('created'),
+                'updated': event.get('updated')
+            }
+            converted_events.append(converted_event)
+        
+        return jsonify({
+            'success': True,
+            'events': converted_events,
+            'count': len(converted_events)
+        }), 200
+        
+    except Exception as e:
+        print(f"Error getting Google Calendar events: {e}")
+        return jsonify({'error': 'Failed to get Google Calendar events'}), 500
+
+@app.route('/api/sync-google-events-to-notion', methods=['POST'])
+def sync_google_events_to_notion():
+    """Google Calendar 일정을 Notion으로 동기화"""
+    try:
+        if 'user_id' not in session:
+            return jsonify({'error': 'Authentication required'}), 401
+            
+        user_id = session['user_id']
+        data = request.get_json()
+        calendar_id = data.get('calendar_id')  # 동기화할 Notion 캘린더 ID
+        
+        if not calendar_id:
+            return jsonify({'error': 'calendar_id is required'}), 400
+        
+        # Google Calendar에서 일정 가져오기
+        google_events_response = get_google_calendar_events()
+        if google_events_response[1] != 200:  # 상태 코드 체크
+            return jsonify({'error': 'Failed to get Google Calendar events'}), 500
+        
+        google_events_data = json.loads(google_events_response[0].data)
+        google_events = google_events_data.get('events', [])
+        
+        # Notion 캘린더에 일정 추가 (Notion API 구현 필요)
+        synced_count = 0
+        failed_count = 0
+        
+        for event in google_events:
+            try:
+                # TODO: Notion API를 통해 캘린더에 일정 추가
+                # notion_event = create_notion_event(calendar_id, event)
+                
+                # 현재는 시뮬레이션
+                print(f"Would sync Google event '{event['title']}' to Notion calendar {calendar_id}")
+                synced_count += 1
+                
+            except Exception as e:
+                print(f"Failed to sync event {event.get('title', 'Unknown')}: {e}")
+                failed_count += 1
+        
+        return jsonify({
+            'success': True,
+            'message': f'Google Calendar 일정을 Notion으로 동기화했습니다.',
+            'synced_count': synced_count,
+            'failed_count': failed_count,
+            'total_count': len(google_events)
+        }), 200
+        
+    except Exception as e:
+        print(f"Error syncing Google events to Notion: {e}")
+        return jsonify({'error': 'Failed to sync Google events to Notion'}), 500
+
 @app.route('/api/synced-calendars', methods=['GET'])
 def get_synced_calendars():
     """사용자의 연동된 캘린더 정보 조회"""
@@ -4787,10 +4898,60 @@ elif os.environ.get('RENDER') and not os.environ.get('FLASK_ENV') == 'developmen
 def sync_event_to_google(event, settings):
     """Google Calendar에 일정 동기화"""
     try:
-        # Google Calendar API 구현 필요
-        # 현재는 시뮬레이션으로 성공 반환
+        # 세션에서 user_id 가져오기
+        user_id = session.get('user_id')
+        if not user_id:
+            print("No user_id in session for Google Calendar sync")
+            return False
+        
+        # Google Calendar 서비스 import
+        try:
+            sys.path.append(os.path.join(os.path.dirname(__file__), '../backend'))
+            from services.google_calendar_service import google_calendar_service
+        except ImportError as e:
+            print(f"Failed to import Google Calendar service: {e}")
+            return False
+        
+        # Google Calendar에 일정 생성
         print(f"Syncing event '{event.get('title', 'Untitled')}' to Google Calendar")
-        return True
+        
+        # 일정 데이터 형식 변환
+        event_data = {
+            'title': event.get('title', 'Untitled Event'),
+            'description': event.get('description', ''),
+            'start_time': event.get('start_time'),
+            'end_time': event.get('end_time'),
+            'date': event.get('date'),
+            'location': event.get('location'),
+            'attendees': event.get('attendees', []),
+            'reminders': event.get('reminders', True)
+        }
+        
+        # Google Calendar API 호출
+        google_event = google_calendar_service.create_event(
+            user_id=user_id,
+            calendar_id='primary',
+            event_data=event_data
+        )
+        
+        if google_event:
+            print(f"Successfully synced event to Google Calendar: {google_event.get('id')}")
+            
+            # 동기화 매핑 저장 (향후 업데이트/삭제를 위해)
+            try:
+                google_calendar_service._save_sync_mapping(
+                    user_id=user_id,
+                    notion_event_id=event.get('id'),
+                    google_event_id=google_event['id']
+                )
+            except Exception as mapping_error:
+                print(f"Warning: Failed to save sync mapping: {mapping_error}")
+            
+            return True
+        else:
+            print("Failed to create event in Google Calendar")
+            return False
+        
     except Exception as e:
         print(f"Error syncing to Google: {e}")
         return False

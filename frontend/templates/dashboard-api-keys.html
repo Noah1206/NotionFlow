@@ -1846,6 +1846,42 @@
                 syncBtn.style.display = 'inline-flex';
                 syncBtn.onclick = () => openCalendarSyncModal(platform);
             }
+
+            // Google Calendar 전용 동기화 테스트 버튼 추가
+            if (platform === 'google') {
+                const actionsDiv = card.querySelector('.platform-actions');
+                if (actionsDiv && !actionsDiv.querySelector('.google-sync-test-btn')) {
+                    const testBtn = document.createElement('button');
+                    testBtn.className = 'google-sync-test-btn';
+                    testBtn.style.cssText = `
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 8px;
+                        padding: 8px 16px;
+                        font-size: 12px;
+                        font-weight: 500;
+                        border-radius: 20px;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+                        color: white;
+                        border: none;
+                        min-width: 80px;
+                        justify-content: center;
+                        margin-left: 8px;
+                    `;
+                    testBtn.innerHTML = `
+                        <span class="test-text">동기화 테스트</span>
+                        <div class="test-loader" style="display: none;">
+                            <div class="loader-dot"></div>
+                        </div>
+                    `;
+                    testBtn.onclick = () => testBidirectionalSync('google');
+                    testBtn.title = 'Google Calendar 양방향 동기화 테스트';
+                    
+                    actionsDiv.appendChild(testBtn);
+                }
+            }
         } else {
             statusElement.className = 'platform-status disconnected';
             statusElement.innerHTML = '<span class="status-dot"></span>연결되지 않음';
@@ -3408,6 +3444,92 @@
             }
         } catch (error) {
             console.error('Error loading platform statuses:', error);
+        }
+    }
+
+    // Google Calendar 일정 조회 및 동기화 함수들
+    async function getGoogleCalendarEvents() {
+        try {
+            const response = await fetch('/api/google-calendar/events');
+            const data = await response.json();
+            
+            if (data.success) {
+                console.log(`Google Calendar에서 ${data.count}개 일정 조회됨:`, data.events);
+                return data.events;
+            } else {
+                console.error('Google Calendar 일정 조회 실패:', data.error);
+                return [];
+            }
+        } catch (error) {
+            console.error('Google Calendar API 호출 오류:', error);
+            return [];
+        }
+    }
+
+    async function syncGoogleEventsToNotion(calendarId) {
+        try {
+            const response = await fetch('/api/sync-google-events-to-notion', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    calendar_id: calendarId
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showNotification(
+                    `Google Calendar → Notion: ${result.synced_count}개 일정 동기화 완료`, 
+                    'success'
+                );
+                return result;
+            } else {
+                showNotification(`Google Calendar 동기화 실패: ${result.error}`, 'error');
+                return null;
+            }
+        } catch (error) {
+            console.error('Google Calendar → Notion 동기화 오류:', error);
+            showNotification('Google Calendar 동기화 중 오류가 발생했습니다.', 'error');
+            return null;
+        }
+    }
+
+    // 연동된 플랫폼의 양방향 동기화 테스트
+    async function testBidirectionalSync(platform) {
+        if (platform !== 'google') {
+            showNotification('현재 Google Calendar만 양방향 동기화를 지원합니다.', 'info');
+            return;
+        }
+
+        try {
+            // Google Calendar 일정 가져오기
+            const googleEvents = await getGoogleCalendarEvents();
+            
+            if (googleEvents.length > 0) {
+                showNotification(
+                    `Google Calendar에서 ${googleEvents.length}개 일정을 찾았습니다. Notion으로 동기화하시겠습니까?`, 
+                    'info'
+                );
+                
+                // 사용자 확인 후 동기화 (임시로 3초 후 자동 실행)
+                setTimeout(async () => {
+                    // 첫 번째 연동된 캘린더에 동기화 (실제로는 사용자가 선택해야 함)
+                    const firstCalendarId = 'temp_calendar_id'; // 실제 구현에서는 적절한 캘린더 ID 사용
+                    const result = await syncGoogleEventsToNotion(firstCalendarId);
+                    
+                    if (result) {
+                        console.log('양방향 동기화 테스트 완료:', result);
+                    }
+                }, 3000);
+            } else {
+                showNotification('Google Calendar에 동기화할 일정이 없습니다.', 'info');
+            }
+        } catch (error) {
+            console.error('양방향 동기화 테스트 오류:', error);
+            showNotification('양방향 동기화 테스트 중 오류가 발생했습니다.', 'error');
         }
     }
 
