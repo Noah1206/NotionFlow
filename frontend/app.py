@@ -2982,6 +2982,8 @@ def google_oauth_callback():
         # Google Calendar service import
         try:
             from services.google_calendar_service import google_calendar_service
+            print(f"Google Calendar service imported successfully")
+            print(f"Supabase URL: {google_calendar_service.supabase_url[:30]}...")
         except ImportError as e:
             print(f"Failed to import google_calendar_service: {e}")
             raise Exception("Google Calendar service not available")
@@ -3001,14 +3003,35 @@ def google_oauth_callback():
         
         # 기존 토큰이 있으면 업데이트, 없으면 삽입
         try:
+            print(f"Token data to save: {token_data}")
             result = google_calendar_service.supabase.table('oauth_tokens').upsert(
                 token_data,
                 on_conflict='user_id,platform'
             ).execute()
+            print(f"Supabase response: {result}")
             print("Token saved successfully to database")
         except Exception as e:
+            import traceback
+            error_details = traceback.format_exc()
             print(f"Failed to save token to database: {e}")
-            raise Exception(f"Database save failed: {str(e)}")
+            print(f"Full error: {error_details}")
+            print(f"Token data that failed: {token_data}")
+            
+            # 테이블이 없는 경우 세션에 백업 저장
+            if 'relation' in str(e).lower() and 'does not exist' in str(e).lower():
+                print("oauth_tokens 테이블이 없습니다. 세션에 임시 저장합니다.")
+                # 세션에 토큰 저장 (임시)
+                session[f'oauth_token_{user_id}_google'] = {
+                    'access_token': access_token,
+                    'refresh_token': refresh_token,
+                    'expires_at': expires_at.isoformat(),
+                    'scope': token_json.get('scope', '')
+                }
+                print("Token saved to session as fallback")
+            else:
+                error_msg = f"Database error: {str(e)}"
+                print(f"Critical DB error: {error_msg}")
+                raise Exception(error_msg)
         
         print(f"Google OAuth token saved for user {user_id}")
         
@@ -5198,12 +5221,25 @@ def get_all_platform_status():
 def check_google_calendar_connection(user_id):
     """Google Calendar OAuth 토큰 존재 여부로 연결 상태 확인"""
     try:
+        # 먼저 데이터베이스에서 확인
         from services.google_calendar_service import google_calendar_service
         credentials = google_calendar_service.get_google_credentials(user_id)
-        return credentials is not None
+        if credentials is not None:
+            return True
     except Exception as e:
-        print(f"Error checking Google Calendar connection: {e}")
-        return False
+        print(f"Error checking Google Calendar connection from DB: {e}")
+    
+    # 데이터베이스 실패 시 세션에서 확인 (백업)
+    try:
+        session_key = f'oauth_token_{user_id}_google'
+        token_data = session.get(session_key)
+        if token_data and token_data.get('access_token'):
+            print(f"Found Google token in session for user {user_id}")
+            return True
+    except Exception as e:
+        print(f"Error checking Google Calendar connection from session: {e}")
+    
+    return False
 
 # ===== CACHE CONTROL =====
 # (Cache control functions already defined above with proper decorators)
