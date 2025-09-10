@@ -923,7 +923,7 @@
         gap: 15px !important;
         max-width: none !important;
     }
-    
+
     /* 플랫폼 카드 기본 스타일 - 넓이 확장 */
     .platform-card {
         max-width: none !important;
@@ -1557,10 +1557,11 @@
         try {
             // 서버에서 렌더링된 데이터 사용 (조용히)
             const stats = {
-                connected_count: {{ (stats.connected_count if stats and stats.connected_count else 0)| tojson }},
-                synced_events: {{ (stats.synced_events if stats and stats.synced_events else 0)| tojson }},
-                success_rate: {{ (stats.success_rate if stats and stats.success_rate else "0%")| tojson }},
-                avg_sync_time: {{ (stats.avg_sync_time if stats and stats.avg_sync_time else "N/A")| tojson }}
+                connected_count: {{ (stats.connected_count if stats and stats.connected_count else 0)| tojson
+        }},
+    synced_events: { { (stats.synced_events if stats and stats.synced_events else 0)| tojson } },
+    success_rate: { { (stats.success_rate if stats and stats.success_rate else "0%")| tojson } },
+    avg_sync_time: { { (stats.avg_sync_time if stats and stats.avg_sync_time else "N/A")| tojson } }
             };
 
     // DOM 업데이트
@@ -3046,8 +3047,6 @@
     
     .platform-sync-btn.synced:hover {
         background: linear-gradient(45deg, #218838 0%, #1ea080 100%);
-        transform: translateY(-1px);
-        box-shadow: 0 3px 10px rgba(40, 167, 69, 0.4);
     }
     
     .platform-sync-btn.synced .sync-text {
@@ -3064,7 +3063,6 @@
         font-size: 14px;
         font-weight: 500;
         cursor: pointer;
-        transition: all 0.3s ease;
         box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
         min-width: 100px;
         text-align: center;
@@ -3072,12 +3070,9 @@
     
     .one-click-disconnect-btn:hover {
         background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
     }
     
     .one-click-disconnect-btn:active {
-        transform: translateY(0);
         background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
     }
     
