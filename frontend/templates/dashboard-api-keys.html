@@ -1305,6 +1305,11 @@
 
     // 개별 플랫폼 연결 해제 기능
     async function disconnectPlatform(platformName) {
+        if (!platformName) {
+            console.error('disconnectPlatform: platformName parameter is undefined');
+            return;
+        }
+
         const button = document.querySelector('[data-platform="' + platformName + '"]');
         const loader = button.querySelector('.disconnect-loader');
         const buttonText = button.querySelector('.disconnect-text');
@@ -1791,6 +1796,17 @@
 
     // 플랫폼 상태 업데이트
     function updatePlatformStatus(platform, status) {
+        if (!platform) {
+            console.error('updatePlatformStatus: platform parameter is undefined');
+            console.error('Function called from:', new Error().stack);
+            return;
+        }
+
+        if (!status) {
+            console.error(`updatePlatformStatus: status parameter is undefined for platform: ${platform}`);
+            return;
+        }
+
         const card = document.querySelector('[data-platform="' + platform + '"]');
         if (!card) {
             console.error(`Platform card not found for: ${platform}`);
@@ -3237,8 +3253,16 @@
 
     // 원클릭 연결해제 함수
     async function oneClickDisconnect(platform) {
+        if (!platform) {
+            console.error('oneClickDisconnect: platform parameter is undefined');
+            return;
+        }
+
         const card = document.querySelector('[data-platform="' + platform + '"]');
-        if (!card) return;
+        if (!card) {
+            console.error(`oneClickDisconnect: Platform card not found for: ${platform}`);
+            return;
+        }
 
         const button = card.querySelector('.one-click-disconnect-btn');
         if (!button) return;
