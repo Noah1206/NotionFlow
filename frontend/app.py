@@ -2855,7 +2855,12 @@ def google_oauth_login():
         
         flow = Flow.from_client_config(
             client_config,
-            scopes=['https://www.googleapis.com/auth/calendar']
+            scopes=[
+                'https://www.googleapis.com/auth/calendar',
+                'https://www.googleapis.com/auth/userinfo.email',
+                'https://www.googleapis.com/auth/userinfo.profile',
+                'openid'
+            ]
         )
         flow.redirect_uri = f"{request.host_url}auth/google/callback"
         
@@ -2877,15 +2882,17 @@ def google_oauth_login():
 
 @app.route('/auth/google/callback')
 def google_oauth_callback():
-    """Google OAuth 콜백 처리"""
+    """Google OAuth 콜백 처리 - 간단한 직접 토큰 교환"""
     try:
         import os
+        import requests
+        from datetime import datetime, timedelta
         
-        # state 파라미터에서 user_id 추출
+        # 파라미터 추출
         state = request.args.get('state')
         auth_code = request.args.get('code')
         
-        print(f"OAuth callback received - state: {state}, code: {auth_code[:20] if auth_code else None}...")
+        print(f"OAuth callback - state: {state}, code: {auth_code[:20] if auth_code else 'None'}...")
         
         if not state or not auth_code:
             return render_template_string('''
@@ -2905,71 +2912,42 @@ def google_oauth_callback():
             </body></html>
             ''')
         
-        # 세션 state 확인은 선택사항으로 처리 (세션이 없어도 진행)
-        stored_state = session.get('oauth_state')
-        if stored_state and state != stored_state:
-            print(f"OAuth state mismatch: expected {stored_state}, got {state}")
-            # 경고만 하고 계속 진행
-        
         user_id = state
-        
-        # Google OAuth 라이브러리 import
-        try:
-            from google_auth_oauthlib.flow import Flow
-        except ImportError as e:
-            print(f"Failed to import google_auth_oauthlib: {e}")
-            raise Exception("Google OAuth library not available")
-        
-        # Google Calendar service import
-        try:
-            from services.google_calendar_service import google_calendar_service
-        except ImportError as e:
-            print(f"Failed to import google_calendar_service: {e}")
-            raise Exception("Google Calendar service not available")
         
         # 환경변수 확인
         client_id = os.environ.get('GOOGLE_CLIENT_ID')
         client_secret = os.environ.get('GOOGLE_CLIENT_SECRET')
         
-        print(f"Google Client ID: {client_id[:10] if client_id else 'None'}...")
-        print(f"Google Client Secret: {client_secret[:10] if client_secret else 'None'}...")
-        
         if not client_id or not client_secret:
             raise Exception("Google OAuth credentials not configured")
         
-        # OAuth 2.0 클라이언트 설정
-        client_config = {
-            "web": {
-                "client_id": client_id,
-                "client_secret": client_secret,
-                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                "token_uri": "https://oauth2.googleapis.com/token",
-                "redirect_uris": [f"{request.host_url}auth/google/callback"]
-            }
+        print(f"Exchanging auth code for token...")
+        
+        # 직접 Google OAuth API로 토큰 교환
+        token_url = 'https://oauth2.googleapis.com/token'
+        token_data = {
+            'code': auth_code,
+            'client_id': client_id,
+            'client_secret': client_secret,
+            'redirect_uri': f"{request.host_url}auth/google/callback",
+            'grant_type': 'authorization_code'
         }
         
-        print("Creating OAuth flow...")
-        flow = Flow.from_client_config(
-            client_config,
-            scopes=['https://www.googleapis.com/auth/calendar']
-        )
-        flow.redirect_uri = f"{request.host_url}auth/google/callback"
+        # 토큰 교환 API 호출
+        print("Exchanging authorization code for token...")
+        token_response = requests.post(token_url, data=token_data)
         
-        # 인증 코드로 토큰 교환
-        print("Fetching token...")
-        try:
-            flow.fetch_token(authorization_response=request.url)
-            credentials = flow.credentials
-            print("Token received successfully")
-        except Exception as token_error:
-            print(f"Token exchange failed: {token_error}")
-            # OAuth 코드가 만료되었거나 잘못된 경우
-            if "invalid_grant" in str(token_error).lower():
+        if token_response.status_code != 200:
+            error_data = token_response.json()
+            error_msg = error_data.get('error', 'Unknown error')
+            
+            if error_msg == 'invalid_grant':
+                # OAuth 코드가 만료되었거나 이미 사용됨
                 return render_template_string('''
                 <html><body>
                     <h2>OAuth 코드 만료</h2>
                     <p>인증 코드가 만료되었습니다. 새로운 인증을 시작해주세요.</p>
-                    <p><a href="/auth/google" target="_parent">새로 Google Calendar 연결하기</a></p>
+                    <button onclick="window.location.href='/auth/google'">새로 Google Calendar 연결하기</button>
                     <script>
                         if (window.opener) {
                             window.opener.postMessage({
@@ -2978,25 +2956,45 @@ def google_oauth_callback():
                                 error: 'OAuth 코드가 만료되었습니다. 다시 연결해주세요.'
                             }, window.location.origin);
                         }
-                        // 5초 후 자동으로 새 인증 시작
                         setTimeout(() => {
                             window.location.href = '/auth/google';
-                        }, 5000);
+                        }, 3000);
                     </script>
                 </body></html>
                 ''')
             else:
-                raise token_error
+                raise Exception(f"Token exchange failed: {error_msg} - {error_data}")
+        
+        # 토큰 데이터 추출
+        token_json = token_response.json()
+        access_token = token_json.get('access_token')
+        refresh_token = token_json.get('refresh_token')
+        expires_in = token_json.get('expires_in', 3600)
+        
+        if not access_token:
+            raise Exception("No access token received")
+        
+        print(f"Token received successfully")
+        
+        # 만료 시간 계산
+        expires_at = datetime.utcnow() + timedelta(seconds=expires_in)
+        
+        # Google Calendar service import
+        try:
+            from services.google_calendar_service import google_calendar_service
+        except ImportError as e:
+            print(f"Failed to import google_calendar_service: {e}")
+            raise Exception("Google Calendar service not available")
         
         # 토큰을 Supabase에 저장
         token_data = {
             'user_id': user_id,
             'platform': 'google',
-            'access_token': credentials.token,
-            'refresh_token': credentials.refresh_token,
-            'expires_at': credentials.expiry.isoformat() if credentials.expiry else None,
+            'access_token': access_token,
+            'refresh_token': refresh_token,
+            'expires_at': expires_at.isoformat(),
             'token_type': 'Bearer',
-            'scope': ' '.join(credentials.scopes) if credentials.scopes else 'https://www.googleapis.com/auth/calendar'
+            'scope': token_json.get('scope', 'https://www.googleapis.com/auth/calendar')
         }
         
         print(f"Saving token to Supabase for user {user_id}...")
@@ -3095,7 +3093,12 @@ def google_oauth_exchange():
         
         flow = Flow.from_client_config(
             client_config,
-            scopes=['https://www.googleapis.com/auth/calendar']
+            scopes=[
+                'https://www.googleapis.com/auth/calendar',
+                'https://www.googleapis.com/auth/userinfo.email',
+                'https://www.googleapis.com/auth/userinfo.profile',
+                'openid'
+            ]
         )
         flow.redirect_uri = f"{request.host_url}auth/google/callback"
         
@@ -3111,7 +3114,7 @@ def google_oauth_exchange():
             'refresh_token': credentials.refresh_token,
             'expires_at': credentials.expiry.isoformat() if credentials.expiry else None,
             'token_type': 'Bearer',
-            'scope': ' '.join(credentials.scopes) if credentials.scopes else 'https://www.googleapis.com/auth/calendar'
+            'scope': ' '.join(credentials.scopes) if credentials.scopes else 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid'
         }
         
         # 기존 토큰이 있으면 업데이트, 없으면 삽입
