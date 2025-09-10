@@ -2959,10 +2959,22 @@ def google_oauth_callback():
         ''')
         
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
         print(f"Error in Google OAuth callback: {e}")
-        # 오류 페이지 반환
+        print(f"Full traceback: {error_details}")
+        
+        # 더 자세한 오류 정보 반환
         return render_template_string(f'''
         <html><body>
+            <h2>OAuth Error</h2>
+            <p><strong>Error:</strong> {str(e)}</p>
+            <p><strong>State:</strong> {request.args.get('state', 'None')}</p>
+            <p><strong>Code:</strong> {request.args.get('code', 'None')[:20]}...</p>
+            <details>
+                <summary>Full Error Details</summary>
+                <pre>{error_details}</pre>
+            </details>
             <script>
                 if (window.opener) {{
                     window.opener.postMessage({{
@@ -2971,7 +2983,8 @@ def google_oauth_callback():
                         error: '{str(e)}'
                     }}, window.location.origin);
                 }}
-                window.close();
+                // 10초 후 자동으로 창 닫기
+                setTimeout(() => window.close(), 10000);
             </script>
         </body></html>
         ''')
