@@ -1237,7 +1237,7 @@
 
                     // 통계 및 플랫폼 상태 업데이트
                     updateConnectionStats();
-                    updatePlatformStatus();
+                    updateAllPlatformStatuses();
 
                     showNotification(getKoreanPlatformName(platformName) + ' 연결 완료!', 'success');
                 } else {
@@ -1257,7 +1257,7 @@
                     buttonText.textContent = '연결 해제';
 
                     updateConnectionStats();
-                    updatePlatformStatus();
+                    updateAllPlatformStatuses();
 
                     showNotification(getKoreanPlatformName(platformName) + ' 연결 완료!', 'success');
                 } else {
@@ -1343,7 +1343,7 @@
 
             // 통계 및 플랫폼 상태 업데이트
             updateConnectionStats();
-            updatePlatformStatus();
+            updateAllPlatformStatuses();
 
             showNotification(`${getKoreanPlatformName(platformName)} 연결 해제 완료`, 'success');
         } catch (error) {
@@ -1384,7 +1384,7 @@
     }
 
     // 실제 플랫폼 연결 상태 업데이트
-    async function updatePlatformStatus() {
+    async function updateAllPlatformStatuses() {
         try {
             const response = await fetch('/api/dashboard/platforms');
 
@@ -1518,7 +1518,7 @@
         try {
             // 초기 로드 (조용히)
             await checkCalendarsAndUpdatePlatforms();
-            await updatePlatformStatus();
+            await updateAllPlatformStatuses();
             await updateConnectionStats();
             // 통계 업데이트 후 가이드 체크
             checkAndHideGuide();
@@ -1536,7 +1536,7 @@
         setInterval(async () => {
             try {
                 await checkCalendarsAndUpdatePlatforms();
-                await updatePlatformStatus();
+                await updateAllPlatformStatuses();
                 await updateConnectionStats();
             } catch (error) {
                 // 에러 무시 (조용히)
@@ -1548,7 +1548,7 @@
             if (!document.hidden) {
                 try {
                     await checkCalendarsAndUpdatePlatforms();
-                    await updatePlatformStatus();
+                    await updateAllPlatformStatuses();
                     await updateConnectionStats();
                 } catch (error) {
                     // 에러 무시 (조용히)
@@ -1720,7 +1720,7 @@
                             updatePlatformStatus(event.data.platform, 'connected');
                             showNotification(`${getKoreanPlatformName(event.data.platform)} 연결 성공!`, 'success');
                             updateConnectionStats();
-                            updatePlatformStatus();
+                            updateAllPlatformStatuses();
                             resolve(event.data);
                         } else if (event.data.type === 'oauth_error') {
                             cleanup();
