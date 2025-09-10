@@ -916,10 +916,19 @@
     }
 
 
+    /* 플랫폼 섹션 레이아웃 개선 */
+    .platforms-section {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)) !important;
+        gap: 15px !important;
+        max-width: none !important;
+    }
+    
     /* 플랫폼 카드 기본 스타일 - 넓이 확장 */
     .platform-card {
         max-width: none !important;
         width: 100% !important;
+        min-width: 500px !important;
         flex: 1 !important;
     }
 
