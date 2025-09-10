@@ -5,7 +5,7 @@ import json
 import uuid
 import requests
 from datetime import datetime as dt, timedelta, date
-from flask import Flask, render_template, redirect, url_for, request, jsonify, session
+from flask import Flask, render_template, render_template_string, redirect, url_for, request, jsonify, session
 from dotenv import load_dotenv
 
 # Override print to avoid BrokenPipeError
@@ -2957,10 +2957,36 @@ def google_oauth_callback():
         
         # 인증 코드로 토큰 교환
         print("Fetching token...")
-        flow.fetch_token(authorization_response=request.url)
-        credentials = flow.credentials
-        
-        print("Token received successfully")
+        try:
+            flow.fetch_token(authorization_response=request.url)
+            credentials = flow.credentials
+            print("Token received successfully")
+        except Exception as token_error:
+            print(f"Token exchange failed: {token_error}")
+            # OAuth 코드가 만료되었거나 잘못된 경우
+            if "invalid_grant" in str(token_error).lower():
+                return render_template_string('''
+                <html><body>
+                    <h2>OAuth 코드 만료</h2>
+                    <p>인증 코드가 만료되었습니다. 새로운 인증을 시작해주세요.</p>
+                    <p><a href="/auth/google" target="_parent">새로 Google Calendar 연결하기</a></p>
+                    <script>
+                        if (window.opener) {
+                            window.opener.postMessage({
+                                type: 'oauth_error',
+                                platform: 'google',
+                                error: 'OAuth 코드가 만료되었습니다. 다시 연결해주세요.'
+                            }, window.location.origin);
+                        }
+                        // 5초 후 자동으로 새 인증 시작
+                        setTimeout(() => {
+                            window.location.href = '/auth/google';
+                        }, 5000);
+                    </script>
+                </body></html>
+                ''')
+            else:
+                raise token_error
         
         # 토큰을 Supabase에 저장
         token_data = {
