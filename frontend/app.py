@@ -5301,11 +5301,19 @@ def mark_platform_disconnected(platform):
             session[f'platform_{platform}_last_sync'] = None
             session[f'platform_{platform}_sync_count'] = 0
         else:
-            # Google Calendar 연결 해제 - OAuth 토큰 삭제
+            # Google Calendar 연결 해제 - OAuth 토큰 삭제 및 config 비활성화
             try:
                 from services.google_calendar_service import google_calendar_service
                 # Supabase에서 토큰 삭제
                 google_calendar_service.supabase.table('oauth_tokens').delete().eq('user_id', user_id).eq('platform', 'google').execute()
+                
+                # calendar_sync_configs에서 is_enabled를 false로 설정
+                supabase.table('calendar_sync_configs').update({
+                    'is_enabled': False,
+                    'updated_at': datetime.utcnow().isoformat()
+                }).eq('user_id', user_id).eq('platform', 'google').execute()
+                
+                print(f"Google Calendar disconnected successfully for user {user_id}")
             except Exception as e:
                 print(f"Error disconnecting Google Calendar: {e}")
         
