@@ -2841,6 +2841,8 @@ def google_oauth_login():
         
         from google_auth_oauthlib.flow import Flow
         import os
+        import json
+        import base64
         
         # OAuth 2.0 클라이언트 설정
         client_config = {
@@ -2864,15 +2866,27 @@ def google_oauth_login():
         )
         flow.redirect_uri = f"{request.host_url}auth/google/callback"
         
+        # 실제 user_id와 임시 state를 포함한 데이터 생성
+        import uuid
+        random_state = str(uuid.uuid4())
+        state_data = {
+            'state': random_state,
+            'user_id': user_id  # 실제 user_id 저장
+        }
+        
+        # state 데이터를 base64로 인코딩
+        encoded_state = base64.urlsafe_b64encode(json.dumps(state_data).encode()).decode()
+        
         # 인증 URL 생성
-        authorization_url, state = flow.authorization_url(
+        authorization_url, _ = flow.authorization_url(
             access_type='offline',
             include_granted_scopes='true',
-            state=user_id  # user_id를 state로 전달
+            state=encoded_state  # 인코딩된 state 전달
         )
         
-        # state를 세션에 저장 (CSRF 보호)
-        session['oauth_state'] = state
+        # 세션에 원본 state 저장 (CSRF 보호)
+        session['oauth_state'] = encoded_state
+        session['oauth_random_state'] = random_state
         
         return redirect(authorization_url)
         
@@ -2889,12 +2903,12 @@ def google_oauth_callback():
         from datetime import datetime, timedelta
         
         # 파라미터 추출
-        state = request.args.get('state')
+        encoded_state = request.args.get('state')
         auth_code = request.args.get('code')
         
-        print(f"OAuth callback - state: {state}, code: {auth_code[:20] if auth_code else 'None'}...")
+        print(f"OAuth callback - encoded_state: {encoded_state[:20] if encoded_state else 'None'}..., code: {auth_code[:20] if auth_code else 'None'}...")
         
-        if not state or not auth_code:
+        if not encoded_state or not auth_code:
             return render_template_string('''
             <html><body>
                 <h2>OAuth Error</h2>
@@ -2912,7 +2926,28 @@ def google_oauth_callback():
             </body></html>
             ''')
         
-        user_id = state
+        # state 디코딩하여 실제 user_id 추출
+        import json
+        import base64
+        
+        try:
+            decoded_state = base64.urlsafe_b64decode(encoded_state.encode()).decode()
+            state_data = json.loads(decoded_state)
+            user_id = state_data.get('user_id')
+            random_state = state_data.get('state')
+            
+            print(f"Decoded state - user_id: {user_id}, random_state: {random_state}")
+            
+            # CSRF 검증 (선택적)
+            stored_state = session.get('oauth_state')
+            if stored_state and stored_state != encoded_state:
+                print(f"State mismatch warning: stored != received")
+            
+        except Exception as decode_error:
+            print(f"Failed to decode state: {decode_error}")
+            # 폴백: state를 그대로 user_id로 사용 (이전 버전 호환)
+            user_id = encoded_state
+            print(f"Using raw state as user_id (fallback): {user_id}")
         
         # 환경변수 확인
         client_id = os.environ.get('GOOGLE_CLIENT_ID')
