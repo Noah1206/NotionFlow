@@ -140,12 +140,24 @@ def store_oauth_state(user_id, provider, state, code_verifier=None):
             'state': state,
             'code_verifier': code_verifier,
             'created_at': datetime.utcnow().isoformat(),
-            'expires_at': (datetime.utcnow() + timedelta(minutes=10)).isoformat()
+            'expires_at': (datetime.utcnow() + timedelta(minutes=30)).isoformat()
         }
         
         # 세션 저장 방식 사용 (RLS 정책 문제 우회)
         session[f'oauth_state_{state}'] = state_data
-        print(f"OAuth state stored in session for {provider}: {state[:8]}...")
+        session.permanent = True  # Make session persistent
+        
+        # 추가로 database에도 저장 시도 (fallback용)
+        try:
+            supabase.table('oauth_states').upsert(
+                state_data,
+                on_conflict='state'
+            ).execute()
+            print(f"OAuth state stored in both session and database for {provider}: {state[:8]}...")
+        except Exception as db_error:
+            print(f"Database storage failed, using session only: {db_error}")
+        
+        print(f"OAuth state stored for {provider}: {state[:8]}...")
         return True
             
     except Exception as e:
@@ -182,9 +194,9 @@ def verify_oauth_state(state, provider):
         if session_key in session:
             state_data = session[session_key]
             if state_data['provider'] == provider:
-                # Check if not expired (10 minute timeout)
+                # Check if not expired (30 minute timeout)
                 created_at = datetime.fromisoformat(state_data['created_at'])
-                if datetime.utcnow() - created_at < timedelta(minutes=10):
+                if datetime.utcnow() - created_at < timedelta(minutes=30):
                     # Clean up after use
                     del session[session_key]
                     print(f"OAuth state verified from session fallback for {provider}")
@@ -206,7 +218,7 @@ def verify_oauth_state(state, provider):
                 state_data = session[session_key]
                 if state_data['provider'] == provider:
                     created_at = datetime.fromisoformat(state_data['created_at'])
-                    if datetime.utcnow() - created_at < timedelta(minutes=10):
+                    if datetime.utcnow() - created_at < timedelta(minutes=30):
                         del session[session_key]
                         print(f"OAuth state verified from session after database error")
                         return state_data
