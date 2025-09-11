@@ -5232,8 +5232,38 @@ def mark_platform_connected(platform):
                 'error': 'User not authenticated'
             }), 401
         
-        # Google Calendar은 OAuth 토큰으로 연결 상태 확인하므로 세션 처리 제외
-        if platform != 'google':
+        # Google Calendar의 경우 database에 configuration 저장
+        if platform == 'google':
+            try:
+                # Check if config already exists
+                existing_config = supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', platform).execute()
+                
+                config_data = {
+                    'user_id': user_id,
+                    'platform': platform,
+                    'is_enabled': True,
+                    'sync_frequency_minutes': 15,
+                    'consecutive_failures': 0,
+                    'last_sync_at': None,
+                    'created_at': datetime.utcnow().isoformat(),
+                    'updated_at': datetime.utcnow().isoformat()
+                }
+                
+                if existing_config.data:
+                    # Update existing config
+                    supabase.table('calendar_sync_configs').update({
+                        'is_enabled': True,
+                        'updated_at': datetime.utcnow().isoformat()
+                    }).eq('user_id', user_id).eq('platform', platform).execute()
+                else:
+                    # Insert new config
+                    supabase.table('calendar_sync_configs').insert(config_data).execute()
+                    
+            except Exception as db_error:
+                print(f"Error saving Google Calendar config to database: {db_error}")
+                # Continue with success even if database save fails
+        else:
+            # 다른 플랫폼은 세션 기반 저장
             # Mark platform as connected in session
             session[f'platform_{platform}_connected'] = True
             session[f'platform_{platform}_last_sync'] = None
