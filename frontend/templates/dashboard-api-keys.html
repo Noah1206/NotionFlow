@@ -1050,13 +1050,13 @@
         // 캘린더 목록 로딩
         await loadUserCalendars(calendarList);
     }
+    */
 
     // 사용자 캘린더 목록 로드
     async function loadUserCalendars(calendarListContainer) {
         try {
             // API에서 사용자 캘린더 목록 가져오기
-            // API 엔드포인트가 존재하지 않으므로 샘플 데이터 사용
-            throw new Error('Calendar API not available, using sample data');
+            const response = await fetch('/api/google-calendars');
             
             if (response.ok) {
                 const data = await response.json();
