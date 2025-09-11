@@ -408,6 +408,11 @@ body {
     color: var(--success);
 }
 
+.platform-status.logged-in {
+    background: #fff3cd;
+    color: #856404;
+}
+
 .platform-status.disconnected {
     background: var(--bg-tertiary);
     color: var(--text-tertiary);

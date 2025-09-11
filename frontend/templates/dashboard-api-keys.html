@@ -996,12 +996,22 @@
 
     // 개별 플랫폼 연동 기능 - 캘린더 선택 후 연결
     async function connectPlatform(platformName) {
+        // 플랫폼 상태 확인
+        const card = document.querySelector(`[data-platform="${platformName}"]`);
+        const statusElement = card.querySelector('.platform-status');
+        const isLoggedIn = statusElement && statusElement.classList.contains('logged-in');
+        
         // OAuth 지원 플랫폼 체크
         const oauthPlatforms = ['google', 'notion', 'slack', 'outlook'];
 
         if (oauthPlatforms.includes(platformName)) {
-            // OAuth 플랫폼의 경우 원클릭 연동 실행
-            await oneClickConnect(platformName);
+            if (isLoggedIn) {
+                // 이미 로그인된 상태면 캘린더 선택 모달 표시
+                await showCalendarSelectionModal(platformName);
+            } else {
+                // 로그인되지 않은 상태면 원클릭 연동 실행
+                await oneClickConnect(platformName);
+            }
         } else {
             // 수동 설정 플랫폼의 경우 캘린더 선택 모달 표시
             await showCalendarSelectionModal(platformName);
@@ -1793,13 +1803,19 @@
                                 if (loader) loader.style.display = 'none';
                             }
 
-                            // OAuth 로그인 성공 후 자동 연결 대신 캘린더 선택 모달 표시
-                            showNotification(`${getKoreanPlatformName(event.data.platform)} 로그인 성공! 연동할 캘린더를 선택하세요.`, 'success');
+                            // OAuth 로그인 성공 - 로그인만 완료하고 연결하기 버튼 활성화
+                            showNotification(`${getKoreanPlatformName(event.data.platform)} 로그인 성공! 이제 "연결하기" 버튼을 클릭하여 캘린더를 선택하세요.`, 'success');
                             
-                            // 캘린더 선택 모달 표시
-                            setTimeout(async () => {
-                                await showCalendarSelectionModal(event.data.platform);
-                            }, 500);
+                            // 플랫폼 상태를 로그인됨으로 표시 (연결됨과는 다름)
+                            updatePlatformStatus(event.data.platform, 'logged_in');
+                            
+                            // 연결하기 버튼 활성화
+                            const card = document.querySelector(`[data-platform="${event.data.platform}"]`);
+                            const connectBtn = card.querySelector('.platform-connect-btn');
+                            if (connectBtn) {
+                                connectBtn.style.display = 'inline-block';
+                                connectBtn.disabled = false;
+                            }
                             resolve(event.data);
                         } else if (event.data.type === 'oauth_error') {
                             cleanup();
@@ -1980,6 +1996,22 @@
                     
                     actionsDiv.appendChild(testBtn);
                 }
+            }
+        } else if (status === 'logged_in') {
+            statusElement.className = 'platform-status logged-in';
+            statusElement.innerHTML = '<span class="status-dot"></span>로그인됨';
+            
+            // 연결하기 버튼 표시하고 활성화
+            if (connectBtn) {
+                connectBtn.style.display = 'inline-flex';
+                connectBtn.disabled = false;
+            }
+            
+            // 원클릭 버튼은 그대로 유지 (로그아웃 기능으로 변경 가능)
+            const oneClickBtn = card.querySelector('.one-click-btn-small');
+            if (oneClickBtn) {
+                // 로그인된 상태이므로 원클릭 버튼을 비활성화하거나 다른 기능으로 변경 가능
+                // 현재는 그대로 유지
             }
         } else {
             statusElement.className = 'platform-status disconnected';
