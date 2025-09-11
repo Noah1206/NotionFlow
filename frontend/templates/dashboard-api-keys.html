@@ -1032,7 +1032,7 @@
         modal.style.display = 'flex';
 
         // 캘린더 목록 로딩
-        await loadUserCalendars(calendarList);
+        await window.loadUserCalendars(calendarList);
     }
 
     // [REMOVED] Old deprecated openCalendarSyncModal function removed - using new implementation below
@@ -1056,11 +1056,11 @@
         modal.style.display = 'flex';
         
         // 캘린더 목록 로딩
-        await loadUserCalendars(calendarList);
+        await window.loadUserCalendars(calendarList);
     }
 
     // 사용자 캘린더 목록 로드
-    async function loadUserCalendars(calendarListContainer) {
+    window.loadUserCalendars = async function(calendarListContainer) {
         try {
             calendarListContainer.innerHTML = '<div class="loading-spinner">캘린더 목록을 불러오는 중...</div>';
             
@@ -1113,30 +1113,30 @@
             
             // 캘린더 목록 표시
             if (allCalendars.length > 0) {
-                displayCalendarList(allCalendars, calendarListContainer);
+                window.displayCalendarList(allCalendars, calendarListContainer);
             } else {
-                displayNoCalendarsMessage(calendarListContainer);
+                window.displayNoCalendarsMessage(calendarListContainer);
             }
             
         } catch (error) {
             console.error('캘린더 목록 로드 오류:', error);
             // 에러 시 샘플 데이터 표시
-            displaySampleCalendars(calendarListContainer);
+            window.displaySampleCalendars(calendarListContainer);
         }
     }
 
     // 캘린더 목록 표시
-    function displayCalendarList(calendars, container) {
+    window.displayCalendarList = function(calendars, container) {
         container.innerHTML = '';
         
         calendars.forEach(calendar => {
-            const calendarItem = createCalendarItem(calendar);
+            const calendarItem = window.createCalendarItem(calendar);
             container.appendChild(calendarItem);
         });
     }
 
     // 샘플 캘린더 데이터 표시 (API가 없는 경우)
-    function displaySampleCalendars(container) {
+    window.displaySampleCalendars = function(container) {
         const sampleCalendars = [
             {
                 id: 'main-calendar',
@@ -1161,11 +1161,11 @@
             }
         ];
         
-        displayCalendarList(sampleCalendars, container);
+        window.displayCalendarList(sampleCalendars, container);
     }
 
     // 캘린더가 없을 때 메시지 표시
-    function displayNoCalendarsMessage(container) {
+    window.displayNoCalendarsMessage = function(container) {
         container.innerHTML = 
             '<div class="no-calendars-message">' +
                 '<div class="no-calendars-icon">' +
@@ -1182,7 +1182,7 @@
     }
 
     // 캘린더 아이템 생성
-    function createCalendarItem(calendar) {
+    window.createCalendarItem = function(calendar) {
         const item = document.createElement('div');
         item.className = 'calendar-item';
         item.setAttribute('data-calendar-id', calendar.id);
