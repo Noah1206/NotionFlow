@@ -3130,29 +3130,39 @@ def google_oauth_callback():
         print(f"Full traceback: {error_details}")
         
         # 더 자세한 오류 정보 반환
-        return render_template_string(f'''
+        error_msg = str(e).replace("'", "\\'")  # JavaScript에서 안전하게 사용
+        state_param = request.args.get('state', 'None')
+        code_param = request.args.get('code', 'None')
+        code_preview = code_param[:20] + "..." if code_param != 'None' else 'None'
+        
+        return render_template_string('''
         <html><body>
             <h2>OAuth Error</h2>
-            <p><strong>Error:</strong> {str(e)}</p>
-            <p><strong>State:</strong> {request.args.get('state', 'None')}</p>
-            <p><strong>Code:</strong> {request.args.get('code', 'None')[:20]}...</p>
+            <p><strong>Error:</strong> %(error_msg)s</p>
+            <p><strong>State:</strong> %(state_param)s</p>
+            <p><strong>Code:</strong> %(code_preview)s</p>
             <details>
                 <summary>Full Error Details</summary>
-                <pre>{error_details}</pre>
+                <pre>%(error_details)s</pre>
             </details>
             <script>
-                if (window.opener) {{
-                    window.opener.postMessage({{
+                if (window.opener) {
+                    window.opener.postMessage({
                         type: 'oauth_error',
                         platform: 'google',
-                        error: '{str(e)}'
-                    }}, window.location.origin);
-                }}
+                        error: '%(error_msg)s'
+                    }, window.location.origin);
+                }
                 // 10초 후 자동으로 창 닫기
                 setTimeout(() => window.close(), 10000);
             </script>
         </body></html>
-        ''')
+        ''' % {
+            'error_msg': error_msg,
+            'state_param': state_param, 
+            'code_preview': code_preview,
+            'error_details': error_details.replace('<', '&lt;').replace('>', '&gt;')
+        })
 
 @app.route('/api/google-oauth/exchange', methods=['POST'])
 def google_oauth_exchange():
