@@ -794,6 +794,39 @@ def delete_calendar(calendar_id):
             'error': f'Failed to delete calendar: {str(e)}'
         }), 500
 
+@calendar_api_bp.route('/google-calendars', methods=['GET'])
+def get_google_calendars():
+    """구글 캘린더 목록 가져오기"""
+    try:
+        user_id = get_current_user_id()
+        if not user_id:
+            user_id = "e390559f-c328-4786-ac5d-c74b5409451b"  # 임시 사용자 ID
+        
+        # Google Calendar 서비스 import
+        sys.path.append(os.path.join(os.path.dirname(__file__), '../../backend'))
+        from services.google_calendar_service import get_google_calendar_service
+        
+        # Google Calendar 서비스 인스턴스 가져오기
+        google_service = get_google_calendar_service()
+        
+        # 구글 캘린더 목록 가져오기
+        google_calendars = google_service.get_calendar_list(user_id)
+        
+        return jsonify({
+            'success': True,
+            'calendars': google_calendars,
+            'count': len(google_calendars),
+            'message': f'Found {len(google_calendars)} Google Calendars'
+        })
+        
+    except Exception as e:
+        print(f"Error getting Google calendars: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'Failed to get Google calendars: {str(e)}',
+            'calendars': []
+        }), 500
+
 @calendar_api_bp.route('/youtube/info', methods=['POST'])
 def get_youtube_info():
     """YouTube 비디오 정보 조회"""

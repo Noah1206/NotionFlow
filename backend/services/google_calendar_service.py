@@ -152,7 +152,43 @@ class GoogleCalendarService:
             print(f"Error deleting Google Calendar event: {e}")
             return False
     
-    def get_events(self, user_id: str, time_min: datetime = None, time_max: datetime = None) -> List[Dict]:
+    def get_calendar_list(self, user_id: str) -> List[Dict]:
+        """사용자의 Google Calendar 목록 가져오기"""
+        service = self.get_calendar_service(user_id)
+        if not service:
+            return []
+        
+        try:
+            # Google Calendar 목록 조회
+            calendar_list_result = service.calendarList().list().execute()
+            calendars = calendar_list_result.get('items', [])
+            
+            # 캘린더 정보 정리
+            formatted_calendars = []
+            for calendar in calendars:
+                calendar_info = {
+                    'id': calendar.get('id'),
+                    'name': calendar.get('summary', 'Untitled Calendar'),
+                    'description': calendar.get('description', ''),
+                    'color': calendar.get('backgroundColor', '#3B82F6'),
+                    'timezone': calendar.get('timeZone', 'Asia/Seoul'),
+                    'access_role': calendar.get('accessRole', 'reader'),
+                    'is_primary': calendar.get('primary', False),
+                    'is_selected': calendar.get('selected', True)
+                }
+                formatted_calendars.append(calendar_info)
+            
+            print(f"Google Calendar에서 {len(formatted_calendars)}개 캘린더 조회")
+            return formatted_calendars
+            
+        except HttpError as e:
+            print(f"Google Calendar API error: {e}")
+            return []
+        except Exception as e:
+            print(f"Error getting Google Calendar list: {e}")
+            return []
+    
+    def get_events(self, user_id: str, calendar_id: str = 'primary', time_min: datetime = None, time_max: datetime = None) -> List[Dict]:
         """Google Calendar에서 일정 가져오기"""
         service = self.get_calendar_service(user_id)
         if not service:
@@ -175,7 +211,7 @@ class GoogleCalendarService:
             
             # Google Calendar에서 일정 조회
             events_result = service.events().list(
-                calendarId='primary',
+                calendarId=calendar_id,
                 timeMin=time_min.isoformat(),
                 timeMax=time_max.isoformat(),
                 maxResults=100,
@@ -184,7 +220,7 @@ class GoogleCalendarService:
             ).execute()
             
             events = events_result.get('items', [])
-            print(f"Google Calendar에서 {len(events)}개 일정 조회")
+            print(f"Google Calendar({calendar_id})에서 {len(events)}개 일정 조회")
             
             return events
             

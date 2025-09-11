@@ -1052,23 +1052,62 @@
     // 사용자 캘린더 목록 로드
     async function loadUserCalendars(calendarListContainer) {
         try {
-            // API에서 사용자 캘린더 목록 가져오기
-            // API 엔드포인트가 존재하지 않으므로 샘플 데이터 사용
-            throw new Error('Calendar API not available, using sample data');
+            calendarListContainer.innerHTML = '<div class="loading-spinner">캘린더 목록을 불러오는 중...</div>';
             
-            if (response.ok) {
-                const data = await response.json();
-                
-                if (data.success && data.calendars && data.calendars.length > 0) {
-                    displayCalendarList(data.calendars, calendarListContainer);
-                } else {
-                    // 캘린더가 없으면 생성 안내
-                    displayNoCalendarsMessage(calendarListContainer);
+            let allCalendars = [];
+            
+            // 1. Notion 캘린더 가져오기
+            try {
+                const notionResponse = await fetch('/api/user/calendars');
+                if (notionResponse.ok) {
+                    const notionData = await notionResponse.json();
+                    if (notionData.success) {
+                        // Notion 캘린더에 타입 추가
+                        const notionCalendars = notionData.personal_calendars.map(cal => ({
+                            ...cal,
+                            source: 'notion',
+                            type: 'notion'
+                        }));
+                        allCalendars = allCalendars.concat(notionCalendars);
+                    }
                 }
-            } else {
-                // 샘플 캘린더 데이터 표시 (API가 없는 경우)
-                displaySampleCalendars(calendarListContainer);
+            } catch (error) {
+                console.warn('Notion 캘린더 로드 실패:', error);
             }
+            
+            // 2. 구글 캘린더가 연결된 경우에만 구글 캘린더 가져오기
+            if (currentConnectingPlatform === 'google') {
+                try {
+                    const googleResponse = await fetch('/api/google-calendars');
+                    if (googleResponse.ok) {
+                        const googleData = await googleResponse.json();
+                        if (googleData.success && googleData.calendars) {
+                            // 구글 캘린더에 타입 추가
+                            const googleCalendars = googleData.calendars.map(cal => ({
+                                id: cal.id,
+                                name: cal.name,
+                                description: cal.description || `구글 캘린더 (${cal.access_role})`,
+                                color: cal.color,
+                                source: 'google',
+                                type: cal.is_primary ? 'primary' : 'google',
+                                is_primary: cal.is_primary,
+                                access_role: cal.access_role
+                            }));
+                            allCalendars = allCalendars.concat(googleCalendars);
+                        }
+                    }
+                } catch (error) {
+                    console.warn('구글 캘린더 로드 실패:', error);
+                }
+            }
+            
+            // 캘린더 목록 표시
+            if (allCalendars.length > 0) {
+                displayCalendarList(allCalendars, calendarListContainer);
+            } else {
+                displayNoCalendarsMessage(calendarListContainer);
+            }
+            
         } catch (error) {
             console.error('캘린더 목록 로드 오류:', error);
             // 에러 시 샘플 데이터 표시
@@ -1139,24 +1178,38 @@
         item.setAttribute('data-calendar-id', calendar.id);
         item.onclick = () => selectCalendar(calendar.id);
         
+        // 소스별 아이콘 설정
+        const sourceIcon = calendar.source === 'google' ? '📅' : '📝';
+        const sourceText = calendar.source === 'google' ? 'Google' : 'Notion';
+        
         item.innerHTML = 
             '<div class="calendar-radio"></div>' +
             '<div class="calendar-info">' +
-                '<div class="calendar-name">' + (calendar.name || '') + '</div>' +
+                '<div class="calendar-name">' + sourceIcon + ' ' + (calendar.name || '') + '</div>' +
                 '<div class="calendar-description">' + (calendar.description || '') + '</div>' +
+                '<div class="calendar-source">' + sourceText + '</div>' +
             '</div>' +
-            '<div class="calendar-type ' + (calendar.type || 'personal') + '">' + getCalendarTypeText(calendar.type) + '</div>';
+            '<div class="calendar-type ' + (calendar.type || 'personal') + '">' + getCalendarTypeText(calendar.type, calendar.source) + '</div>';
         
         return item;
     }
 
     // 캘린더 타입 텍스트 반환
-    function getCalendarTypeText(type) {
-        switch (type) {
-            case 'primary': return '기본';
-            case 'shared': return '공유';
-            case 'personal': return '개인';
-            default: return '개인';
+    function getCalendarTypeText(type, source) {
+        if (source === 'google') {
+            switch (type) {
+                case 'primary': return '기본';
+                case 'google': return '구글';
+                default: return '구글';
+            }
+        } else {
+            switch (type) {
+                case 'primary': return '기본';
+                case 'shared': return '공유';
+                case 'personal': return '개인';
+                case 'notion': return 'Notion';
+                default: return '개인';
+            }
         }
     }
 
@@ -1188,8 +1241,28 @@
         // 모달 닫기
         closeCalendarSelectionModal();
 
-        // 실제 플랫폼 연결 진행
-        await performPlatformConnection(currentConnectingPlatform, selectedCalendarId);
+        // 선택한 캘린더와 플랫폼 연결
+        try {
+            // 플랫폼을 연결된 상태로 표시
+            markPlatformConnected(currentConnectingPlatform);
+            updatePlatformStatus(currentConnectingPlatform, 'connected');
+            
+            // 선택한 캘린더 정보 저장
+            const selectedCalendarData = document.querySelector(`[data-calendar-id="${selectedCalendarId}"]`);
+            if (selectedCalendarData) {
+                const calendarName = selectedCalendarData.querySelector('.calendar-name').textContent;
+                showNotification(`${getKoreanPlatformName(currentConnectingPlatform)}의 "${calendarName}" 캘린더와 연결되었습니다.`, 'success');
+            } else {
+                showNotification(`${getKoreanPlatformName(currentConnectingPlatform)} 연결 완료!`, 'success');
+            }
+            
+            updateConnectionStats();
+            updateAllPlatformStatuses();
+            
+        } catch (error) {
+            console.error('캘린더 연결 중 오류:', error);
+            showNotification('캘린더 연결 중 오류가 발생했습니다.', 'error');
+        }
     }
 
     // 실제 플랫폼 연결 수행
@@ -1720,13 +1793,13 @@
                                 if (loader) loader.style.display = 'none';
                             }
 
-                            // Mark platform as connected in backend
-                            markPlatformConnected(event.data.platform);
-
-                            updatePlatformStatus(event.data.platform, 'connected');
-                            showNotification(`${getKoreanPlatformName(event.data.platform)} 연결 성공!`, 'success');
-                            updateConnectionStats();
-                            updateAllPlatformStatuses();
+                            // OAuth 로그인 성공 후 자동 연결 대신 캘린더 선택 모달 표시
+                            showNotification(`${getKoreanPlatformName(event.data.platform)} 로그인 성공! 연동할 캘린더를 선택하세요.`, 'success');
+                            
+                            // 캘린더 선택 모달 표시
+                            setTimeout(async () => {
+                                await showCalendarSelectionModal(event.data.platform);
+                            }, 500);
                             resolve(event.data);
                         } else if (event.data.type === 'oauth_error') {
                             cleanup();
