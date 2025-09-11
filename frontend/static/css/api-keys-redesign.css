@@ -434,7 +434,7 @@ body {
 
 .platform-connect-btn,
 .platform-disconnect-btn {
-    display: inline-flex;
+    display: inline-flex !important;
     align-items: center;
     gap: var(--spacing-2);
     padding: var(--spacing-2) var(--spacing-4);
