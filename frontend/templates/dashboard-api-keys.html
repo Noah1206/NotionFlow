@@ -1001,16 +1001,32 @@
         const statusElement = card.querySelector('.platform-status');
         const isLoggedIn = statusElement && statusElement.classList.contains('logged-in');
         
+        // 디버깅용 로그
+        console.log(`connectPlatform(${platformName}):`, {
+            card: !!card,
+            statusElement: !!statusElement,
+            statusClasses: statusElement ? statusElement.className : 'none',
+            isLoggedIn: isLoggedIn
+        });
+        
         // OAuth 지원 플랫폼 체크
         const oauthPlatforms = ['google', 'notion', 'slack', 'outlook'];
 
         if (oauthPlatforms.includes(platformName)) {
             if (isLoggedIn) {
                 // 이미 로그인된 상태면 캘린더 선택 모달 표시
+                console.log(`Platform ${platformName} is logged in, showing calendar selection modal`);
                 await showCalendarSelectionModal(platformName);
             } else {
-                // 로그인되지 않은 상태면 원클릭 연동 실행
-                await oneClickConnect(platformName);
+                // 임시: 구글의 경우 항상 캘린더 선택 모달을 표시 (디버깅용)
+                if (platformName === 'google') {
+                    console.log(`Platform ${platformName} - forcing calendar selection modal for debugging`);
+                    await showCalendarSelectionModal(platformName);
+                } else {
+                    // 로그인되지 않은 상태면 원클릭 연동 실행
+                    console.log(`Platform ${platformName} is not logged in, starting OAuth`);
+                    await oneClickConnect(platformName);
+                }
             }
         } else {
             // 수동 설정 플랫폼의 경우 캘린더 선택 모달 표시
@@ -1020,19 +1036,38 @@
 
     // 캘린더 선택 모달 표시 (일반 연결용)
     async function showCalendarSelectionModal(platformName) {
+        console.log(`showCalendarSelectionModal called for platform: ${platformName}`);
+        
         currentConnectingPlatform = platformName;
         const modal = document.getElementById('calendar-selection-modal');
         const platformDisplay = document.getElementById('platform-name-display');
         const calendarList = document.getElementById('calendar-list');
 
+        console.log('Modal elements:', {
+            modal: !!modal,
+            platformDisplay: !!platformDisplay,
+            calendarList: !!calendarList
+        });
+
+        if (!modal) {
+            console.error('Calendar selection modal not found!');
+            return;
+        }
+
         // 플랫폼 이름 표시
-        platformDisplay.textContent = getKoreanPlatformName(platformName);
+        if (platformDisplay) {
+            platformDisplay.textContent = getKoreanPlatformName(platformName);
+        }
 
         // 모달 표시
+        console.log('Displaying modal...');
         modal.style.display = 'flex';
 
         // 캘린더 목록 로딩
-        await window.loadUserCalendars(calendarList);
+        if (calendarList) {
+            console.log('Loading user calendars...');
+            await window.loadUserCalendars(calendarList);
+        }
     }
 
     // [REMOVED] Old deprecated openCalendarSyncModal function removed - using new implementation below
