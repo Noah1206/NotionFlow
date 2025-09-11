@@ -25,7 +25,8 @@ load_dotenv()
 class GoogleCalendarService:
     def __init__(self):
         self.supabase_url = os.environ.get('SUPABASE_URL')
-        self.supabase_key = os.environ.get('SUPABASE_API_KEY')
+        # SERVICE_ROLE_KEY를 사용해야 RLS를 우회할 수 있음
+        self.supabase_key = os.environ.get('SUPABASE_SERVICE_ROLE_KEY') or os.environ.get('SUPABASE_API_KEY')
         
         if not self.supabase_url or not self.supabase_key:
             raise Exception("Supabase credentials not found")
@@ -284,5 +285,14 @@ class GoogleCalendarService:
         except Exception as e:
             print(f"Error saving sync mapping: {e}")
 
-# 싱글톤 인스턴스
-google_calendar_service = GoogleCalendarService()
+# 싱글톤 인스턴스 - 지연 생성
+_google_calendar_service = None
+
+def get_google_calendar_service():
+    global _google_calendar_service
+    if _google_calendar_service is None:
+        _google_calendar_service = GoogleCalendarService()
+    return _google_calendar_service
+
+# 하위 호환성을 위한 속성
+google_calendar_service = get_google_calendar_service()

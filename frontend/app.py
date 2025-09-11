@@ -2938,6 +2938,23 @@ def google_oauth_callback():
             
             print(f"Decoded state - user_id: {user_id}, random_state: {random_state}")
             
+            # user_id 유효성 확인
+            if not user_id:
+                raise Exception("No user_id found in state")
+            
+            # UUID 형식 확인
+            import re
+            uuid_pattern = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+            if not re.match(uuid_pattern, user_id.lower()):
+                print(f"Warning: user_id {user_id} is not a valid UUID format")
+            
+            # 세션의 user_id와 비교
+            session_user_id = session.get('user_id')
+            print(f"Session user_id: {session_user_id}")
+            print(f"OAuth state user_id: {user_id}")
+            if session_user_id != user_id:
+                print(f"Warning: Session user_id ({session_user_id}) != OAuth user_id ({user_id})")
+            
             # CSRF 검증 (선택적)
             stored_state = session.get('oauth_state')
             if stored_state and stored_state != encoded_state:
@@ -3014,14 +3031,31 @@ def google_oauth_callback():
         # 만료 시간 계산
         expires_at = datetime.utcnow() + timedelta(seconds=expires_in)
         
-        # Google Calendar service import
+        # Google Calendar service import - 새로 초기화
         try:
-            from services.google_calendar_service import google_calendar_service
-            print(f"Google Calendar service imported successfully")
-            print(f"Supabase URL: {google_calendar_service.supabase_url[:30]}...")
-        except ImportError as e:
-            print(f"Failed to import google_calendar_service: {e}")
-            raise Exception("Google Calendar service not available")
+            import os
+            from supabase import create_client
+            
+            # Service Role Key를 직접 사용
+            supabase_url = os.environ.get('SUPABASE_URL')
+            service_role_key = os.environ.get('SUPABASE_SERVICE_ROLE_KEY')
+            
+            print(f"Supabase URL: {supabase_url[:30] if supabase_url else 'None'}...")
+            print(f"Service Role Key exists: {bool(service_role_key)}")
+            
+            if not supabase_url or not service_role_key:
+                # fallback to google_calendar_service
+                from services.google_calendar_service import google_calendar_service
+                print("Using google_calendar_service singleton")
+                supabase_client = google_calendar_service.supabase
+            else:
+                # Service Role Key로 새 클라이언트 생성 (RLS 우회)
+                print("Creating new Supabase client with Service Role Key")
+                supabase_client = create_client(supabase_url, service_role_key)
+                
+        except Exception as e:
+            print(f"Failed to create Supabase client: {e}")
+            raise Exception("Database connection failed")
         
         # 토큰을 Supabase에 저장
         token_data = {
@@ -3039,7 +3073,7 @@ def google_oauth_callback():
         # 기존 토큰이 있으면 업데이트, 없으면 삽입
         try:
             print(f"Token data to save: {token_data}")
-            result = google_calendar_service.supabase.table('oauth_tokens').upsert(
+            result = supabase_client.table('oauth_tokens').upsert(
                 token_data,
                 on_conflict='user_id,platform'
             ).execute()
