@@ -3070,37 +3070,73 @@ def google_oauth_callback():
         
         print(f"Saving token to Supabase for user {user_id}...")
         
-        # 기존 토큰이 있으면 업데이트, 없으면 삽입
+        # 사용자 존재 여부 확인 (외래키 제약 조건 방지)
         try:
-            print(f"Token data to save: {token_data}")
-            result = supabase_client.table('oauth_tokens').upsert(
-                token_data,
-                on_conflict='user_id,platform'
-            ).execute()
-            print(f"Supabase response: {result}")
-            print("Token saved successfully to database")
-        except Exception as e:
-            import traceback
-            error_details = traceback.format_exc()
-            print(f"Failed to save token to database: {e}")
-            print(f"Full error: {error_details}")
-            print(f"Token data that failed: {token_data}")
-            
-            # 테이블이 없는 경우 세션에 백업 저장
-            if 'relation' in str(e).lower() and 'does not exist' in str(e).lower():
-                print("oauth_tokens 테이블이 없습니다. 세션에 임시 저장합니다.")
-                # 세션에 토큰 저장 (임시)
+            # auth.users 테이블에서 사용자 확인
+            user_check = supabase_client.auth.admin.get_user_by_id(user_id)
+            if not user_check or not user_check.user:
+                print(f"User {user_id} not found in auth.users table")
+                # 세션에 토큰 저장 (데이터베이스 저장 대신)
                 session[f'oauth_token_{user_id}_google'] = {
                     'access_token': access_token,
                     'refresh_token': refresh_token,
                     'expires_at': expires_at.isoformat(),
                     'scope': token_json.get('scope', '')
                 }
-                print("Token saved to session as fallback")
+                print("Token saved to session instead of database (user not found)")
             else:
-                error_msg = f"Database error: {str(e)}"
-                print(f"Critical DB error: {error_msg}")
-                raise Exception(error_msg)
+                print(f"User {user_id} exists in auth.users table, proceeding with database save")
+                
+                # 기존 토큰이 있으면 업데이트, 없으면 삽입
+                try:
+                    print(f"Token data to save: {token_data}")
+                    result = supabase_client.table('oauth_tokens').upsert(
+                        token_data,
+                        on_conflict='user_id,platform'
+                    ).execute()
+                    print(f"Supabase response: {result}")
+                    print("Token saved successfully to database")
+                except Exception as e:
+                    import traceback
+                    error_details = traceback.format_exc()
+                    print(f"Failed to save token to database: {e}")
+                    print(f"Full error: {error_details}")
+                    print(f"Token data that failed: {token_data}")
+                    
+                    # 외래키 제약 조건 위반인 경우 세션에 백업 저장
+                    if '23503' in str(e) or 'foreign key constraint' in str(e).lower():
+                        print("Foreign key constraint violation. Saving to session as fallback.")
+                        session[f'oauth_token_{user_id}_google'] = {
+                            'access_token': access_token,
+                            'refresh_token': refresh_token,
+                            'expires_at': expires_at.isoformat(),
+                            'scope': token_json.get('scope', '')
+                        }
+                        print("Token saved to session as fallback")
+                    # 테이블이 없는 경우 세션에 백업 저장
+                    elif 'relation' in str(e).lower() and 'does not exist' in str(e).lower():
+                        print("oauth_tokens 테이블이 없습니다. 세션에 임시 저장합니다.")
+                        session[f'oauth_token_{user_id}_google'] = {
+                            'access_token': access_token,
+                            'refresh_token': refresh_token,
+                            'expires_at': expires_at.isoformat(),
+                            'scope': token_json.get('scope', '')
+                        }
+                        print("Token saved to session as fallback")
+                    else:
+                        error_msg = f"Database error: {str(e)}"
+                        print(f"Critical DB error: {error_msg}")
+                        raise Exception(error_msg)
+        except Exception as user_check_error:
+            print(f"Error checking user existence: {user_check_error}")
+            # 사용자 확인 실패 시 세션에 저장
+            session[f'oauth_token_{user_id}_google'] = {
+                'access_token': access_token,
+                'refresh_token': refresh_token,
+                'expires_at': expires_at.isoformat(),
+                'scope': token_json.get('scope', '')
+            }
+            print("Token saved to session due to user check failure")
         
         print(f"Google OAuth token saved for user {user_id}")
         
