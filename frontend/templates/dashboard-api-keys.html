@@ -1002,6 +1002,48 @@
             opacity: 0.5;
         }
     }
+
+    /* 캘린더 연동 해제 X 버튼 스타일 */
+    .sync-disconnect-btn {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 20px;
+        height: 20px;
+        border: none;
+        background: #dc2626;
+        color: white;
+        border-radius: 50%;
+        font-size: 12px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        z-index: 2;
+    }
+
+    .sync-disconnect-btn:hover {
+        background: #b91c1c;
+        transform: translateY(-50%) scale(1.1);
+    }
+
+    .sync-disconnect-btn:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+    }
+
+    @keyframes spin {
+        from { transform: translateY(-50%) rotate(0deg); }
+        to { transform: translateY(-50%) rotate(360deg); }
+    }
+
+    /* 연동된 버튼의 패딩 조정 */
+    .platform-sync-btn.synced {
+        padding-right: 36px;
+    }
 </style>
 {% endblock %}
 
@@ -3114,12 +3156,103 @@
             // 캘린더 연동 버튼 업데이트
             if (syncBtn) {
                 syncBtn.style.display = 'inline-flex';
+                syncBtn.style.position = 'relative';
                 const syncText = syncBtn.querySelector('.sync-text');
                 if (syncText) {
                     syncText.textContent = `연동됨: ${syncInfo.calendar_name}`;
                     syncBtn.classList.add('synced');
                     syncBtn.title = `${syncInfo.calendar_name}과 연동됨 (${syncInfo.synced_at})`;
                 }
+                
+                // 연동 해제 X 버튼 추가
+                let disconnectBtn = syncBtn.querySelector('.sync-disconnect-btn');
+                if (!disconnectBtn) {
+                    disconnectBtn = document.createElement('button');
+                    disconnectBtn.className = 'sync-disconnect-btn';
+                    disconnectBtn.innerHTML = '×';
+                    disconnectBtn.title = '캘린더 연동 해제';
+                    disconnectBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        disconnectCalendarSync(platform, syncInfo.calendar_id);
+                    };
+                    syncBtn.appendChild(disconnectBtn);
+                }
+            }
+        }
+    }
+
+    // 캘린더 연동 해제 함수
+    async function disconnectCalendarSync(platform, calendarId) {
+        if (!confirm(`${getKoreanPlatformName(platform)} 캘린더 연동을 해제하시겠습니까?`)) {
+            return;
+        }
+
+        const card = document.querySelector(`[data-platform="${platform}"]`);
+        if (!card) return;
+
+        const syncBtn = card.querySelector('.platform-sync-btn');
+        const disconnectBtn = syncBtn?.querySelector('.sync-disconnect-btn');
+
+        try {
+            // 로딩 상태
+            if (disconnectBtn) {
+                disconnectBtn.disabled = true;
+                disconnectBtn.innerHTML = '⟳';
+                disconnectBtn.style.animation = 'spin 1s linear infinite';
+            }
+
+            // 캘린더 연동 해제 API 호출
+            const response = await fetch(`/api/calendars/${calendarId}/disconnect/${platform}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                // 성공 시 UI 업데이트
+                showNotification(`${getKoreanPlatformName(platform)} 캘린더 연동이 해제되었습니다.`, 'success');
+                
+                // OAuth만 연동된 상태로 되돌리기
+                const statusElement = card.querySelector('.platform-status');
+                if (statusElement) {
+                    statusElement.className = 'platform-status oauth-connected';
+                    statusElement.innerHTML = '<span class="status-dot"></span>OAuth 연동 완료';
+                }
+
+                // 연동 버튼 초기화
+                if (syncBtn) {
+                    syncBtn.classList.remove('synced');
+                    const syncText = syncBtn.querySelector('.sync-text');
+                    if (syncText) {
+                        syncText.textContent = '캘린더 연동';
+                    }
+                    // X 버튼 제거
+                    if (disconnectBtn) {
+                        disconnectBtn.remove();
+                    }
+                }
+
+                // 연동 상태 다시 로드
+                setTimeout(() => {
+                    loadSyncedCalendars();
+                }, 1000);
+
+            } else {
+                throw new Error(result.error || '연동 해제에 실패했습니다.');
+            }
+
+        } catch (error) {
+            console.error('캘린더 연동 해제 오류:', error);
+            showNotification(error.message || '연동 해제에 실패했습니다.', 'error');
+
+            // 버튼 복원
+            if (disconnectBtn) {
+                disconnectBtn.disabled = false;
+                disconnectBtn.innerHTML = '×';
+                disconnectBtn.style.animation = '';
             }
         }
     }
