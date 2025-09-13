@@ -5199,18 +5199,65 @@ def sync_google_events_to_notion():
         google_events_data = json.loads(google_events_response[0].data)
         google_events = google_events_data.get('events', [])
         
-        # Notion 캘린더에 일정 추가 (Notion API 구현 필요)
+        # NotionFlow 데이터베이스에 일정 저장
         synced_count = 0
         failed_count = 0
         
+        # Get Supabase client for database operations
+        supabase_client = get_supabase()
+        if not supabase_client:
+            return jsonify({'error': 'Database not available'}), 503
+        
         for event in google_events:
             try:
-                # TODO: Notion API를 통해 캘린더에 일정 추가
-                # notion_event = create_notion_event(calendar_id, event)
+                # Convert Google event to NotionFlow format
+                event_data = {
+                    'user_id': user_id,
+                    'calendar_id': calendar_id,
+                    'title': event.get('title', 'Untitled Event'),
+                    'description': event.get('description', ''),
+                    'location': event.get('location', ''),
+                    'platform': 'google',
+                    'external_event_id': event.get('external_id'),
+                    'html_link': event.get('html_link', ''),
+                    'sync_status': 'synced',
+                    'last_synced_at': datetime.datetime.now().isoformat()
+                }
                 
-                # 현재는 시뮬레이션
-                print(f"Would sync Google event '{event['title']}' to Notion calendar {calendar_id}")
-                synced_count += 1
+                # Handle datetime vs date (all-day events)
+                if event.get('start_time'):  # Timed event
+                    event_data['start_datetime'] = event['start_time']
+                    event_data['end_datetime'] = event['end_time']
+                    event_data['is_all_day'] = False
+                elif event.get('date'):  # All-day event
+                    event_data['start_date'] = event['date']
+                    event_data['end_date'] = event.get('end_date', event['date'])
+                    event_data['is_all_day'] = True
+                
+                # Handle attendees
+                if event.get('attendees'):
+                    event_data['attendees'] = json.dumps(event['attendees'])
+                
+                # Store additional metadata
+                event_data['event_metadata'] = json.dumps({
+                    'google_event_id': event.get('external_id'),
+                    'created': event.get('created'),
+                    'updated': event.get('updated'),
+                    'source': 'google_calendar_import'
+                })
+                
+                # Insert or update event in database
+                result = supabase_client.table('calendar_events').upsert(
+                    event_data,
+                    on_conflict='user_id,platform,external_event_id'
+                ).execute()
+                
+                if result.data:
+                    print(f"Successfully synced Google event '{event.get('title', 'Unknown')}' to NotionFlow calendar {calendar_id}")
+                    synced_count += 1
+                else:
+                    print(f"Failed to sync event {event.get('title', 'Unknown')}: No data returned")
+                    failed_count += 1
                 
             except Exception as e:
                 print(f"Failed to sync event {event.get('title', 'Unknown')}: {e}")
@@ -5218,15 +5265,117 @@ def sync_google_events_to_notion():
         
         return jsonify({
             'success': True,
-            'message': f'Google Calendar 일정을 Notion으로 동기화했습니다.',
+            'message': f'Google Calendar 일정을 NotionFlow로 동기화했습니다.',
             'synced_count': synced_count,
             'failed_count': failed_count,
             'total_count': len(google_events)
         }), 200
         
     except Exception as e:
-        print(f"Error syncing Google events to Notion: {e}")
-        return jsonify({'error': 'Failed to sync Google events to Notion'}), 500
+        print(f"Error syncing Google events to NotionFlow: {e}")
+        return jsonify({'error': 'Failed to sync Google events to NotionFlow'}), 500
+
+@app.route('/api/import-google-events/<calendar_id>', methods=['POST'])
+def import_google_events_to_calendar(calendar_id):
+    """Google Calendar 이벤트를 특정 NotionFlow 캘린더로 자동 가져오기"""
+    try:
+        if 'user_id' not in session:
+            return jsonify({'error': 'Authentication required'}), 401
+            
+        user_id = session['user_id']
+        
+        # Check if calendar exists and belongs to user
+        supabase_client = get_supabase()
+        if not supabase_client:
+            return jsonify({'error': 'Database not available'}), 503
+        
+        calendar_result = supabase_client.table('calendars').select('*').eq('id', calendar_id).eq('user_id', user_id).execute()
+        if not calendar_result.data:
+            return jsonify({'error': 'Calendar not found or access denied'}), 404
+        
+        # Check if user has Google Calendar connected
+        platform_result = supabase_client.table('platform_connections').select('*').eq('user_id', user_id).eq('platform', 'google').execute()
+        if not platform_result.data:
+            return jsonify({'error': 'Google Calendar not connected'}), 400
+        
+        # Get Google Calendar events directly
+        google_events_response = get_google_calendar_events()
+        if google_events_response[1] != 200:
+            return jsonify({'error': 'Failed to fetch Google Calendar events'}), 500
+        
+        google_events_data = json.loads(google_events_response[0].data)
+        google_events = google_events_data.get('events', [])
+        
+        # Import events to NotionFlow database
+        synced_count = 0
+        failed_count = 0
+        
+        for event in google_events:
+            try:
+                # Convert Google event to NotionFlow format
+                event_data = {
+                    'user_id': user_id,
+                    'calendar_id': calendar_id,
+                    'title': event.get('title', 'Untitled Event'),
+                    'description': event.get('description', ''),
+                    'location': event.get('location', ''),
+                    'platform': 'google',
+                    'external_event_id': event.get('external_id'),
+                    'html_link': event.get('html_link', ''),
+                    'sync_status': 'synced',
+                    'last_synced_at': dt.now().isoformat()
+                }
+                
+                # Handle datetime vs date (all-day events)
+                if event.get('start_time'):  # Timed event
+                    event_data['start_datetime'] = event['start_time']
+                    event_data['end_datetime'] = event['end_time']
+                    event_data['is_all_day'] = False
+                elif event.get('date'):  # All-day event
+                    event_data['start_date'] = event['date']
+                    event_data['end_date'] = event.get('end_date', event['date'])
+                    event_data['is_all_day'] = True
+                
+                # Handle attendees
+                if event.get('attendees'):
+                    event_data['attendees'] = json.dumps(event['attendees'])
+                
+                # Store additional metadata
+                event_data['event_metadata'] = json.dumps({
+                    'google_event_id': event.get('external_id'),
+                    'created': event.get('created'),
+                    'updated': event.get('updated'),
+                    'source': 'google_calendar_import'
+                })
+                
+                # Insert or update event in database
+                result = supabase_client.table('calendar_events').upsert(
+                    event_data,
+                    on_conflict='user_id,platform,external_event_id'
+                ).execute()
+                
+                if result.data:
+                    print(f"Successfully imported Google event '{event.get('title', 'Unknown')}' to calendar {calendar_id}")
+                    synced_count += 1
+                else:
+                    print(f"Failed to import event {event.get('title', 'Unknown')}: No data returned")
+                    failed_count += 1
+                
+            except Exception as e:
+                print(f"Failed to import event {event.get('title', 'Unknown')}: {e}")
+                failed_count += 1
+        
+        return jsonify({
+            'success': True,
+            'message': f"Google Calendar 이벤트가 '{calendar_result.data[0]['name']}' 캘린더로 가져와졌습니다.",
+            'imported_count': synced_count,
+            'failed_count': failed_count,
+            'total_count': len(google_events)
+        }), 200
+        
+    except Exception as e:
+        print(f"Error importing Google events: {e}")
+        return jsonify({'error': 'Failed to import Google events'}), 500
 
 @app.route('/api/synced-calendars', methods=['GET'])
 def get_synced_calendars():

@@ -1044,6 +1044,41 @@
     .platform-sync-btn.synced {
         padding-right: 36px;
     }
+
+    /* Google Calendar 이벤트 가져오기 버튼 스타일 */
+    .import-events-btn {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-left: 8px;
+        white-space: nowrap;
+    }
+
+    .import-events-btn:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .import-events-btn:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .import-events-btn:active {
+        transform: translateY(0);
+    }
 </style>
 {% endblock %}
 
@@ -3177,6 +3212,34 @@
                     };
                     syncBtn.appendChild(disconnectBtn);
                 }
+                
+                // Google Calendar인 경우 이벤트 가져오기 버튼 추가
+                if (platform === 'google') {
+                    let importBtn = card.querySelector('.import-events-btn');
+                    if (!importBtn) {
+                        importBtn = document.createElement('button');
+                        importBtn.className = 'import-events-btn';
+                        importBtn.innerHTML = '📥 일정 가져오기';
+                        importBtn.title = 'Google Calendar 일정을 NotionFlow로 가져오기';
+                        importBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            importGoogleEvents(syncInfo.calendar_id);
+                        };
+                        
+                        // 버튼을 캘린더 연동 버튼 옆에 삽입
+                        const platformActions = card.querySelector('.platform-actions');
+                        if (platformActions) {
+                            platformActions.insertBefore(importBtn, syncBtn.nextSibling);
+                        }
+                    }
+                    importBtn.style.display = 'inline-flex';
+                } else {
+                    // Google이 아닌 경우 버튼 숨기기
+                    let importBtn = card.querySelector('.import-events-btn');
+                    if (importBtn) {
+                        importBtn.style.display = 'none';
+                    }
+                }
             }
         }
     }
@@ -3365,6 +3428,43 @@
         }
     }
 
+    // Google Calendar 이벤트 가져오기 함수
+    async function importGoogleEvents(calendarId) {
+        const importBtn = document.querySelector('.import-events-btn');
+        if (!importBtn) return;
+        
+        const originalText = importBtn.innerHTML;
+        
+        try {
+            // 로딩 상태 표시
+            importBtn.innerHTML = '⏳ 가져오는 중...';
+            importBtn.disabled = true;
+            
+            const response = await fetch(`/api/import-google-events/${calendarId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                showNotification(data.message, 'success');
+                console.log(`Google Calendar 이벤트 가져오기 성공: ${data.imported_count}개 가져옴, ${data.failed_count}개 실패`);
+            } else {
+                throw new Error(data.error || 'Google Calendar 이벤트 가져오기에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Google Calendar 이벤트 가져오기 오류:', error);
+            showNotification(error.message, 'error');
+        } finally {
+            // 버튼 상태 복원
+            importBtn.innerHTML = originalText;
+            importBtn.disabled = false;
+        }
+    }
+    
     // 페이지 로드 완료 후 연동 정보 불러오기
     document.addEventListener('DOMContentLoaded', function () {
         loadSyncedCalendars();
