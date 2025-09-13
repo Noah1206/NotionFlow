@@ -981,6 +981,27 @@
         font-size: 14px;
         font-weight: 500;
     }
+
+    /* OAuth 연동 완료 상태 스타일 */
+    .platform-status.oauth-connected {
+        color: #f59e0b;
+        background: #fef3c7;
+        border: 1px solid #fbbf24;
+    }
+
+    .platform-status.oauth-connected .status-dot {
+        background: #f59e0b;
+        animation: pulse-orange 2s infinite;
+    }
+
+    @keyframes pulse-orange {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.5;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -3053,14 +3074,40 @@
         const card = document.querySelector(`[data-platform="${platform}"]`);
         if (!card) return;
 
+        const statusElement = card.querySelector('.platform-status');
+        const connectBtn = card.querySelector('.platform-connect-btn');
         const syncBtn = card.querySelector('.platform-sync-btn');
-        if (syncBtn) {
-            // 연동된 캘린더가 있으면 버튼 텍스트 변경
-            const syncText = syncBtn.querySelector('.sync-text');
-            if (syncText) {
-                syncText.textContent = `연동됨: ${syncInfo.calendar_name}`;
-                syncBtn.classList.add('synced');
-                syncBtn.title = `${syncInfo.calendar_name}과 연동됨 (${syncInfo.synced_at})`;
+        
+        if (syncInfo.sync_status === 'oauth_only') {
+            // OAuth만 연동된 상태
+            if (statusElement) {
+                statusElement.className = 'platform-status oauth-connected';
+                statusElement.innerHTML = '<span class="status-dot"></span>OAuth 연동 완료';
+            }
+            
+            // 연결하기 버튼 숨기고 캘린더 연동 버튼 표시
+            if (connectBtn) connectBtn.style.display = 'none';
+            if (syncBtn) {
+                syncBtn.style.display = 'inline-flex';
+                const syncText = syncBtn.querySelector('.sync-text');
+                if (syncText) {
+                    syncText.textContent = '캘린더 연동';
+                }
+            }
+        } else if (syncInfo.sync_status === 'active' && syncInfo.calendar_id) {
+            // 완전한 캘린더 연동 상태
+            if (statusElement) {
+                statusElement.className = 'platform-status connected';
+                statusElement.innerHTML = '<span class="status-dot"></span>캘린더 연동됨';
+            }
+            
+            if (syncBtn) {
+                const syncText = syncBtn.querySelector('.sync-text');
+                if (syncText) {
+                    syncText.textContent = `연동됨: ${syncInfo.calendar_name}`;
+                    syncBtn.classList.add('synced');
+                    syncBtn.title = `${syncInfo.calendar_name}과 연동됨 (${syncInfo.synced_at})`;
+                }
             }
         }
     }

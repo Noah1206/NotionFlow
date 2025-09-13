@@ -742,9 +742,48 @@ def generic_oauth_callback(platform):
                 print(f"Error creating OAuth session with AuthManager: {session_e}")
                 # 기본 세션은 이미 생성되었으므로 계속 진행
         
-        # Skip platform registration to match regular login behavior
-        # OAuth users can log in without storing platform credentials
-        print(f"Skipping platform registration for OAuth login to match regular login flow")
+        # Store platform connection for calendar integration
+        try:
+            from utils.config import config
+            supabase = config.get_client_for_user(actual_user_id)
+            
+            if supabase:
+                # Store platform credentials for calendar access
+                platform_data = {
+                    'user_id': actual_user_id,
+                    'platform': platform,
+                    'access_token': token_data.get('access_token'),
+                    'refresh_token': token_data.get('refresh_token'),
+                    'token_expires_at': None,  # Will be calculated based on expires_in
+                    'is_connected': True,
+                    'connection_method': 'oauth',
+                    'user_email': get_platform_user_email(platform, user_info),
+                    'user_name': get_platform_user_name(platform, user_info),
+                    'created_at': datetime.now().isoformat(),
+                    'updated_at': datetime.now().isoformat()
+                }
+                
+                # Calculate token expiration if provided
+                if token_data.get('expires_in'):
+                    from datetime import timedelta
+                    expires_at = datetime.now() + timedelta(seconds=int(token_data['expires_in']))
+                    platform_data['token_expires_at'] = expires_at.isoformat()
+                
+                # Check if platform connection already exists
+                existing_result = supabase.table('platform_connections').select('*').eq('user_id', actual_user_id).eq('platform', platform).execute()
+                
+                if existing_result.data:
+                    # Update existing connection
+                    supabase.table('platform_connections').update(platform_data).eq('user_id', actual_user_id).eq('platform', platform).execute()
+                    print(f"Updated existing {platform} platform connection for user {actual_user_id}")
+                else:
+                    # Create new connection
+                    supabase.table('platform_connections').insert(platform_data).execute()
+                    print(f"Created new {platform} platform connection for user {actual_user_id}")
+                    
+        except Exception as platform_store_error:
+            print(f"Failed to store platform connection: {platform_store_error}")
+            # Continue with OAuth flow even if platform storage fails
         
         # Track the connection event
         sync_tracker.track_sync_event(

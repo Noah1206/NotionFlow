@@ -5278,7 +5278,33 @@ def get_synced_calendars():
         except Exception as db_error:
             print(f"Database error fetching synced calendars: {db_error}")
         
-        # 2. 세션에서 연동 정보도 확인 (데이터베이스 실패 시 fallback)
+        # 2. 플랫폼 연결 정보 확인 (OAuth 연동 확인)
+        try:
+            platform_connections = supabase_client.table('platform_connections').select('*').eq('user_id', user_id).eq('is_connected', True).execute()
+            
+            if platform_connections.data:
+                for connection in platform_connections.data:
+                    platform = connection['platform']
+                    
+                    # 이미 실제 캘린더 연동이 있으면 건너뛰기
+                    if platform in synced_platforms:
+                        continue
+                    
+                    # OAuth만 연동되고 캘린더 연동이 없는 경우 표시
+                    synced_platforms[platform] = {
+                        'calendar_id': None,
+                        'calendar_name': 'OAuth 연동 완료',
+                        'calendar_description': '캘린더 연동을 완료하세요',
+                        'calendar_icon': '🔗',
+                        'synced_at': connection.get('created_at', ''),
+                        'sync_status': 'oauth_only',  # 새로운 상태
+                        'source': 'platform_connection',
+                        'needs_calendar_sync': True
+                    }
+        except Exception as platform_error:
+            print(f"Platform connections read error: {platform_error}")
+        
+        # 3. 세션에서 연동 정보도 확인 (데이터베이스 실패 시 fallback)
         try:
             for key in session.keys():
                 if key.startswith('calendar_sync_'):
