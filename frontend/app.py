@@ -644,11 +644,25 @@ def serve_media(filename):
 
 @app.route('/static/uploads/avatars/<filename>')
 def serve_avatar(filename):
-    """Serve avatar files with fallback to default"""
+    """Serve avatar files with intelligent fallback"""
     import os
-    from flask import send_from_directory
+    from flask import send_from_directory, redirect
     
-    # Define avatar directory paths
+    # In production, redirect to Supabase Storage URL if possible
+    if is_production():
+        # Check if we have a Supabase connection
+        calendar_db = CalendarDatabase()
+        if calendar_db and calendar_db.is_available():
+            try:
+                # Try to get the public URL from Supabase
+                public_url = calendar_db.supabase.storage.from_('avatars').get_public_url(filename)
+                if public_url:
+                    print(f"[AVATAR] Redirecting to Supabase URL: {public_url}")
+                    return redirect(public_url)
+            except Exception as e:
+                print(f"[AVATAR] Failed to get Supabase URL: {e}")
+    
+    # Define avatar directory paths for local storage fallback
     avatar_dirs = [
         os.path.join(app.root_path, 'static', 'uploads', 'avatars'),
         os.path.join(app.root_path, '..', 'uploads', 'avatars'),
@@ -665,6 +679,7 @@ def serve_avatar(filename):
     # Fallback to default avatar if file not found
     default_avatar_path = os.path.join(app.root_path, 'static', 'images', 'default-avatar.png')
     if os.path.exists(default_avatar_path):
+        print(f"[AVATAR] Serving default avatar for missing file: {filename}")
         return send_from_directory(os.path.join(app.root_path, 'static', 'images'), 'default-avatar.png')
     
     # If even default avatar doesn't exist, return 404

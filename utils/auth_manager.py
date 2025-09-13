@@ -181,6 +181,28 @@ class AuthManager:
                     except Exception as e:
                         print(f"Error parsing birthdate from bio: {e}")
                 
+                # Fix avatar URL if it's a local path in production
+                if profile.get('avatar_url'):
+                    avatar_url = profile['avatar_url']
+                    # Check if it's a local path that needs fixing
+                    if avatar_url.startswith('/static/uploads/avatars/'):
+                        # Extract filename from local path
+                        filename = avatar_url.split('/')[-1]
+                        # Check if we're in production and should use Supabase URL
+                        import os
+                        if os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('PORT'):
+                            # Generate Supabase Storage public URL
+                            try:
+                                public_url = supabase.storage.from_('avatars').get_public_url(filename)
+                                if public_url:
+                                    profile['avatar_url'] = public_url
+                                    # Optionally update the database with the correct URL
+                                    supabase.table('user_profiles').update({
+                                        'avatar_url': public_url
+                                    }).eq('user_id', user_id).execute()
+                            except Exception as e:
+                                print(f"Failed to fix avatar URL: {e}")
+                
                 return profile
             else:
                 print(f"No user profile found for user_id: {user_id}")
