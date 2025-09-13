@@ -5279,33 +5279,68 @@ def sync_google_events_to_notion():
 def import_google_events_to_calendar(calendar_id):
     """Google Calendar 이벤트를 특정 NotionFlow 캘린더로 자동 가져오기"""
     try:
+        # Enhanced logging
+        print(f"=== Import Google Events Request ===")
+        print(f"Calendar ID: {calendar_id}")
+        print(f"Session keys: {list(session.keys())}")
+        print(f"Session user_id: {session.get('user_id', 'NOT_FOUND')}")
+        
         if 'user_id' not in session:
             return jsonify({'error': 'Authentication required'}), 401
             
         user_id = session['user_id']
+        print(f"Authenticated user_id: {user_id}")
         
         # Check if calendar exists and belongs to user
         supabase_client = get_supabase()
         if not supabase_client:
             return jsonify({'error': 'Database not available'}), 503
         
-        # Check both possible calendar table names
-        calendar_result = None
+        # Check if calendar exists and belongs to user
         try:
+            print(f"Querying calendars table for calendar_id: {calendar_id}, user_id: {user_id}")
             calendar_result = supabase_client.table('calendars').select('*').eq('id', calendar_id).eq('user_id', user_id).execute()
-        except:
-            try:
-                calendar_result = supabase_client.table('user_calendars').select('*').eq('calendar_id', calendar_id).eq('user_id', user_id).execute()
-            except:
-                pass
-        
-        if not calendar_result or not calendar_result.data:
-            return jsonify({'error': 'Calendar not found or access denied'}), 404
+            print(f"Calendar query result: {len(calendar_result.data)} records found")
+            
+            if not calendar_result.data:
+                # Debug info - check if calendar exists for any user
+                print(f"Calendar not found for user. Checking if calendar exists at all...")
+                debug_result = supabase_client.table('calendars').select('*').eq('id', calendar_id).execute()
+                print(f"Calendar existence check: {len(debug_result.data)} records found")
+                
+                if debug_result.data:
+                    actual_user = debug_result.data[0].get('user_id')
+                    print(f"Calendar exists but belongs to different user: {actual_user}")
+                    return jsonify({
+                        'error': 'Calendar not found or access denied', 
+                        'debug': f'Calendar belongs to user: {actual_user}, requested by: {user_id}'
+                    }), 404
+                else:
+                    # Check all calendars for this user
+                    user_calendars = supabase_client.table('calendars').select('id, name').eq('user_id', user_id).execute()
+                    print(f"User has {len(user_calendars.data)} calendars total")
+                    for cal in user_calendars.data:
+                        print(f"  - Calendar: {cal.get('id')} - {cal.get('name')}")
+                    
+                    return jsonify({
+                        'error': 'Calendar ID does not exist in database',
+                        'debug': f'User has {len(user_calendars.data)} calendars, but not this ID'
+                    }), 404
+                
+        except Exception as e:
+            print(f"Error querying calendars table: {str(e)}")
+            return jsonify({'error': f'Database query failed: {str(e)}'}), 500
         
         # Check if user has Google Calendar connected - use correct table name
+        print(f"Checking Google Calendar registration for user: {user_id}")
         platform_result = supabase_client.table('registered_platforms').select('*').eq('user_id', user_id).eq('platform', 'google').execute()
+        print(f"Platform query result: {len(platform_result.data)} records found")
+        
         if not platform_result.data:
-            return jsonify({'error': 'Google Calendar not registered'}), 400
+            # Check if registered_platforms table has any Google entries
+            all_google = supabase_client.table('registered_platforms').select('user_id').eq('platform', 'google').execute()
+            print(f"Total Google registrations in DB: {len(all_google.data)}")
+            return jsonify({'error': 'Google Calendar not registered', 'debug': f'Total Google users: {len(all_google.data)}'}), 400
         
         # Import Google Calendar service properly
         try:
