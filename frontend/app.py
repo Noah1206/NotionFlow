@@ -5323,10 +5323,33 @@ def import_google_events_to_calendar(calendar_id):
                     for cal in user_calendars.data:
                         print(f"  - Calendar: {cal.get('id')} - {cal.get('name')}")
                     
-                    return jsonify({
-                        'error': 'Calendar ID does not exist in database',
-                        'debug': f'User has {len(user_calendars.data)} calendars, but not this ID'
-                    }), 404
+                    # WORKAROUND: If user has exactly one calendar, use that instead
+                    if len(user_calendars.data) == 1:
+                        actual_calendar_id = user_calendars.data[0].get('id')
+                        print(f"WORKAROUND: Using user's only calendar instead: {actual_calendar_id}")
+                        
+                        # Update calendar_id to the correct one and continue
+                        calendar_id = actual_calendar_id
+                        calendar_result = supabase_client.table('calendars').select('*').eq('id', calendar_id).eq('owner_id', user_id).execute()
+                        print(f"Retrying with correct calendar ID: {len(calendar_result.data)} records found")
+                        
+                        if not calendar_result.data:
+                            return jsonify({'error': 'Calendar access failed even with correct ID'}), 500
+                        
+                        # Continue with the rest of the function using the corrected calendar_id
+                    else:
+                        # Add debugging info and return error if multiple calendars
+                        calendar_ids = [cal.get('id') for cal in user_calendars.data]
+                        return jsonify({
+                            'error': 'Calendar ID does not exist in database',
+                            'debug': {
+                                'requested_calendar_id': calendar_id,
+                                'user_calendar_count': len(user_calendars.data),
+                                'user_calendar_ids': calendar_ids,
+                                'user_id': user_id,
+                                'suggestion': 'Please use one of the valid calendar IDs'
+                            }
+                        }), 404
                 
         except Exception as e:
             print(f"Error querying calendars table: {str(e)}")
