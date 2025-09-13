@@ -547,7 +547,22 @@ class PlatformCard {
             const data = await response.json();
             
             if (data.success) {
-                this.showNotification(data.message, 'success');
+                let message = data.message;
+                
+                // Handle auto-import results for Google Calendar
+                if (data.auto_import && platform === 'google') {
+                    if (data.auto_import.success) {
+                        const { imported_count, failed_count } = data.auto_import;
+                        message += ` | 자동으로 ${imported_count}개의 일정을 가져왔습니다`;
+                        if (failed_count > 0) {
+                            message += ` (${failed_count}개 실패)`;
+                        }
+                    } else {
+                        message += ' | 일정 자동 가져오기 실패: ' + data.auto_import.error;
+                    }
+                }
+                
+                this.showNotification(message, 'success');
                 
                 // Call callback if provided
                 if (this.options.onConnect) {
