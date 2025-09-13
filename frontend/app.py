@@ -642,6 +642,34 @@ def serve_media(filename):
     # File not found
     return "Media file not found", 404
 
+@app.route('/static/uploads/avatars/<filename>')
+def serve_avatar(filename):
+    """Serve avatar files with fallback to default"""
+    import os
+    from flask import send_from_directory
+    
+    # Define avatar directory paths
+    avatar_dirs = [
+        os.path.join(app.root_path, 'static', 'uploads', 'avatars'),
+        os.path.join(app.root_path, '..', 'uploads', 'avatars'),
+        '/tmp/avatars'  # Temporary storage for uploaded files
+    ]
+    
+    # Try to find the file in any of the avatar directories
+    for avatar_dir in avatar_dirs:
+        if os.path.exists(avatar_dir):
+            file_path = os.path.join(avatar_dir, filename)
+            if os.path.exists(file_path):
+                return send_from_directory(avatar_dir, filename)
+    
+    # Fallback to default avatar if file not found
+    default_avatar_path = os.path.join(app.root_path, 'static', 'images', 'default-avatar.png')
+    if os.path.exists(default_avatar_path):
+        return send_from_directory(os.path.join(app.root_path, 'static', 'images'), 'default-avatar.png')
+    
+    # If even default avatar doesn't exist, return 404
+    return "Avatar file not found", 404
+
 @app.route('/api/calendar/<calendar_id>/media')
 def get_calendar_media(calendar_id):
     """Get media files for a specific calendar"""
@@ -2220,23 +2248,87 @@ def upload_avatar():
         if file_extension not in allowed_extensions:
             return jsonify({'success': False, 'error': 'Invalid file type. Only PNG, JPG, JPEG, GIF, WebP are allowed'}), 400
         
-        # Save the uploaded file
-        from werkzeug.utils import secure_filename
-        
-        # Create uploads directory if it doesn't exist
-        uploads_dir = os.path.join(app.root_path, 'static', 'uploads', 'avatars')
-        os.makedirs(uploads_dir, exist_ok=True)
-        
         # Generate a unique filename
         file_extension = os.path.splitext(file.filename)[1] if file.filename else '.png'
         filename = f"avatar_{user_id}_{uuid.uuid4().hex[:8]}{file_extension}"
-        filepath = os.path.join(uploads_dir, filename)
         
-        # Save the file
-        file.save(filepath)
+        # Check if we're in production (Railway) or local development
+        is_production = os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('PORT')
+        avatar_url = None
         
-        # Generate public URL
-        avatar_url = f"/static/uploads/avatars/{filename}"
+        if is_production:
+            # Production: Use Supabase Storage
+            try:
+                from utils.calendar_db import calendar_db
+                
+                if calendar_db and calendar_db.is_available():
+                    print(f"[AVATAR] Using Supabase storage for avatar upload in production")
+                    
+                    # Read file content
+                    file.seek(0)  # Reset file pointer
+                    file_content = file.read()
+                    
+                    # Check if avatars bucket exists, create if not
+                    try:
+                        calendar_db.supabase.storage.get_bucket('avatars')
+                        print("[SUCCESS] Avatars bucket exists")
+                    except Exception as bucket_error:
+                        print(f"[WARNING] Avatars bucket doesn't exist, creating: {bucket_error}")
+                        try:
+                            calendar_db.supabase.storage.create_bucket('avatars', {
+                                'public': True,
+                                'file_size_limit': 5 * 1024 * 1024  # 5MB limit
+                            })
+                            print("[SUCCESS] Created avatars bucket")
+                        except Exception as create_error:
+                            print(f"[ERROR] Failed to create avatars bucket: {create_error}")
+                    
+                    # Upload to Supabase Storage
+                    result = calendar_db.supabase.storage.from_('avatars').upload(
+                        path=filename,
+                        file=file_content,
+                        file_options={"content-type": file.content_type}
+                    )
+                    
+                    print(f"[AVATAR] Storage upload result: {result}")
+                    
+                    if result:
+                        # Get public URL
+                        public_url = calendar_db.supabase.storage.from_('avatars').get_public_url(filename)
+                        avatar_url = public_url
+                        print(f"[SUCCESS] Avatar uploaded to Supabase: {avatar_url}")
+                    else:
+                        print("[ERROR] Failed to upload to Supabase Storage")
+                        raise Exception("Supabase upload failed")
+                        
+                else:
+                    print("[ERROR] Supabase not available in production")
+                    raise Exception("Storage service not available")
+                    
+            except Exception as storage_error:
+                print(f"[ERROR] Storage upload error: {storage_error}")
+                # Fall back to local storage even in production
+                pass
+        
+        # Local development or fallback: Use local file storage
+        if not avatar_url:
+            print(f"[AVATAR] Using local storage for avatar upload")
+            # Save the uploaded file locally
+            from werkzeug.utils import secure_filename
+            
+            # Create uploads directory if it doesn't exist
+            uploads_dir = os.path.join(app.root_path, 'static', 'uploads', 'avatars')
+            os.makedirs(uploads_dir, exist_ok=True)
+            
+            filepath = os.path.join(uploads_dir, filename)
+            
+            # Save the file
+            file.seek(0)  # Reset file pointer
+            file.save(filepath)
+            
+            # Generate public URL
+            avatar_url = f"/static/uploads/avatars/{filename}"
+            print(f"[SUCCESS] Avatar saved locally: {avatar_url}")
         
         # Update user profile with new avatar URL
         update_data = {'avatar_url': avatar_url}
@@ -2276,6 +2368,7 @@ def upload_avatar():
             'success': True,
             'avatar_url': avatar_url,
             'method': 'database' if update_success else 'session',
+            'storage': 'supabase' if is_production and '://' in avatar_url else 'local',
             'message': 'Avatar uploaded successfully!'
         })
         

@@ -52,7 +52,8 @@ node_modules/
 # Media files (if stored locally)
 uploads/
 media/
-static/uploads/
+frontend/static/uploads/avatars/*
+!frontend/static/uploads/avatars/.gitkeep
 
 # Git
 .git/
