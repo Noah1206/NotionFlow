@@ -5299,7 +5299,8 @@ def import_google_events_to_calendar(calendar_id):
         # Check if calendar exists and belongs to user
         try:
             print(f"Querying calendars table for calendar_id: {calendar_id}, user_id: {user_id}")
-            calendar_result = supabase_client.table('calendars').select('*').eq('id', calendar_id).eq('user_id', user_id).execute()
+            # Fix: Use owner_id instead of user_id based on database schema
+            calendar_result = supabase_client.table('calendars').select('*').eq('id', calendar_id).eq('owner_id', user_id).execute()
             print(f"Calendar query result: {len(calendar_result.data)} records found")
             
             if not calendar_result.data:
@@ -5309,7 +5310,7 @@ def import_google_events_to_calendar(calendar_id):
                 print(f"Calendar existence check: {len(debug_result.data)} records found")
                 
                 if debug_result.data:
-                    actual_user = debug_result.data[0].get('user_id')
+                    actual_user = debug_result.data[0].get('owner_id')  # Use owner_id
                     print(f"Calendar exists but belongs to different user: {actual_user}")
                     return jsonify({
                         'error': 'Calendar not found or access denied', 
@@ -5317,7 +5318,7 @@ def import_google_events_to_calendar(calendar_id):
                     }), 404
                 else:
                     # Check all calendars for this user
-                    user_calendars = supabase_client.table('calendars').select('id, name').eq('user_id', user_id).execute()
+                    user_calendars = supabase_client.table('calendars').select('id, name').eq('owner_id', user_id).execute()  # Use owner_id
                     print(f"User has {len(user_calendars.data)} calendars total")
                     for cal in user_calendars.data:
                         print(f"  - Calendar: {cal.get('id')} - {cal.get('name')}")
