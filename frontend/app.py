@@ -5289,22 +5289,45 @@ def import_google_events_to_calendar(calendar_id):
         if not supabase_client:
             return jsonify({'error': 'Database not available'}), 503
         
-        calendar_result = supabase_client.table('calendars').select('*').eq('id', calendar_id).eq('user_id', user_id).execute()
-        if not calendar_result.data:
+        # Check both possible calendar table names
+        calendar_result = None
+        try:
+            calendar_result = supabase_client.table('calendars').select('*').eq('id', calendar_id).eq('user_id', user_id).execute()
+        except:
+            try:
+                calendar_result = supabase_client.table('user_calendars').select('*').eq('calendar_id', calendar_id).eq('user_id', user_id).execute()
+            except:
+                pass
+        
+        if not calendar_result or not calendar_result.data:
             return jsonify({'error': 'Calendar not found or access denied'}), 404
         
-        # Check if user has Google Calendar connected
-        platform_result = supabase_client.table('platform_connections').select('*').eq('user_id', user_id).eq('platform', 'google').execute()
+        # Check if user has Google Calendar connected - use correct table name
+        platform_result = supabase_client.table('registered_platforms').select('*').eq('user_id', user_id).eq('platform', 'google').execute()
         if not platform_result.data:
-            return jsonify({'error': 'Google Calendar not connected'}), 400
+            return jsonify({'error': 'Google Calendar not registered'}), 400
         
-        # Get Google Calendar events directly
-        google_events_response = get_google_calendar_events()
-        if google_events_response[1] != 200:
-            return jsonify({'error': 'Failed to fetch Google Calendar events'}), 500
+        # Import Google Calendar service properly
+        try:
+            sys.path.append(os.path.join(os.path.dirname(__file__), '../backend'))
+            from services.google_calendar_service import GoogleCalendarService
+        except ImportError as e:
+            return jsonify({'error': f'Google Calendar service not available: {e}'}), 503
         
-        google_events_data = json.loads(google_events_response[0].data)
-        google_events = google_events_data.get('events', [])
+        # Get Google Calendar events using the service
+        google_service = GoogleCalendarService()
+        try:
+            google_events = google_service.get_events(user_id, calendar_id='primary')
+        except Exception as e:
+            return jsonify({'error': f'Failed to fetch Google Calendar events: {str(e)}'}), 500
+        
+        if not google_events:
+            return jsonify({
+                'success': True,
+                'message': 'No events to import',
+                'imported_count': 0,
+                'failed_count': 0
+            })
         
         # Import events to NotionFlow database
         synced_count = 0
@@ -5312,41 +5335,61 @@ def import_google_events_to_calendar(calendar_id):
         
         for event in google_events:
             try:
-                # Convert Google event to NotionFlow format
+                # Convert Google event to NotionFlow format (use correct Google API field names)
+                start_datetime = event.get('start', {})
+                end_datetime = event.get('end', {})
+                
+                # Handle different date/time formats
+                start_time = start_datetime.get('dateTime') or start_datetime.get('date')
+                end_time = end_datetime.get('dateTime') or end_datetime.get('date')
+                
+                if not start_time:
+                    failed_count += 1
+                    continue
+                
+                # Prepare the event data based on correct Google API field names and database schema
                 event_data = {
                     'user_id': user_id,
                     'calendar_id': calendar_id,
-                    'title': event.get('title', 'Untitled Event'),
+                    'title': event.get('summary', 'Untitled Event'),  # Google uses 'summary' not 'title'
                     'description': event.get('description', ''),
                     'location': event.get('location', ''),
                     'platform': 'google',
-                    'external_event_id': event.get('external_id'),
-                    'html_link': event.get('html_link', ''),
+                    'external_event_id': event.get('id'),  # Google uses 'id' not 'external_id'
+                    'html_link': event.get('htmlLink', ''),  # Google uses 'htmlLink' not 'html_link'
                     'sync_status': 'synced',
-                    'last_synced_at': dt.now().isoformat()
+                    'last_synced_at': dt.now().isoformat(),
+                    'status': event.get('status', 'confirmed')
                 }
                 
-                # Handle datetime vs date (all-day events)
-                if event.get('start_time'):  # Timed event
-                    event_data['start_datetime'] = event['start_time']
-                    event_data['end_datetime'] = event['end_time']
-                    event_data['is_all_day'] = False
-                elif event.get('date'):  # All-day event
-                    event_data['start_date'] = event['date']
-                    event_data['end_date'] = event.get('end_date', event['date'])
-                    event_data['is_all_day'] = True
+                # Handle date/time fields based on whether it's all-day or not
+                if 'date' in start_datetime:
+                    # All-day event
+                    event_data.update({
+                        'start_date': start_time,
+                        'end_date': end_time or start_time,
+                        'is_all_day': True
+                    })
+                else:
+                    # Timed event
+                    event_data.update({
+                        'start_datetime': start_time,
+                        'end_datetime': end_time or start_time,
+                        'is_all_day': False
+                    })
                 
-                # Handle attendees
+                # Handle attendees (if present)
                 if event.get('attendees'):
-                    event_data['attendees'] = json.dumps(event['attendees'])
+                    event_data['attendees'] = event['attendees']  # Store as JSON directly
                 
                 # Store additional metadata
-                event_data['event_metadata'] = json.dumps({
-                    'google_event_id': event.get('external_id'),
+                event_data['event_metadata'] = {
+                    'google_event_id': event.get('id'),
                     'created': event.get('created'),
                     'updated': event.get('updated'),
-                    'source': 'google_calendar_import'
-                })
+                    'source': 'google_calendar_import',
+                    'import_timestamp': dt.now().isoformat()
+                }
                 
                 # Insert or update event in database
                 result = supabase_client.table('calendar_events').upsert(
