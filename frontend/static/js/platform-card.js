@@ -560,6 +560,10 @@ class PlatformCard {
                     } else {
                         message += ' | 일정 자동 가져오기 실패: ' + data.auto_import.error;
                     }
+                } else if (platform === 'google') {
+                    // If no auto_import data, manually trigger import
+                    console.log('Google Calendar connected - manually triggering import...');
+                    this.triggerGoogleImport();
                 }
                 
                 this.showNotification(message, 'success');
@@ -574,6 +578,35 @@ class PlatformCard {
         } catch (error) {
             console.error('Calendar connection failed:', error);
             this.showNotification('캘린더 연결 중 오류가 발생했습니다', 'error');
+        }
+    }
+    
+    // Trigger Google Calendar import
+    async triggerGoogleImport() {
+        try {
+            console.log('Triggering Google Calendar import...');
+            
+            const response = await fetch('/api/google-calendar/auto-import', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                const message = `✅ Google Calendar 이벤트를 자동으로 가져왔습니다! (${data.imported_count}개 성공${data.failed_count > 0 ? `, ${data.failed_count}개 실패` : ''})`;
+                this.showNotification(message, 'success');
+                console.log('Google Calendar import success:', data);
+            } else {
+                console.error('Google Calendar import failed:', data);
+                this.showNotification('Google Calendar 이벤트 가져오기 실패: ' + (data.error || '알 수 없는 오류'), 'warning');
+            }
+        } catch (error) {
+            console.error('Google Calendar import error:', error);
+            // Don't show error notification to avoid disturbing user experience
+            console.log('Google Calendar 자동 가져오기를 건너뜁니다.');
         }
     }
     

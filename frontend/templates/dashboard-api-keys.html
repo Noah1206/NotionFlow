@@ -3392,7 +3392,8 @@
     }
 
     // Google Calendar 자동 이벤트 가져오기 함수 (OAuth 성공 시 호출)
-    async function autoImportGoogleEvents() {
+    // Make this function globally accessible for debugging
+    window.autoImportGoogleEvents = async function() {
         console.log('Auto-importing Google Calendar events after successful OAuth...');
         
         try {

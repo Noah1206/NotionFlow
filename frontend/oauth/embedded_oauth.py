@@ -163,6 +163,174 @@ def google_embedded_callback():
         
         save_result = save_platform_credentials(session_data['user_id'], 'google', credentials)
         
+        # ALSO save OAuth tokens to oauth_tokens table for GoogleCalendarService
+        try:
+            import os
+            SUPABASE_URL = os.getenv('SUPABASE_URL')
+            SUPABASE_API_KEY = os.getenv('SUPABASE_API_KEY')
+            
+            if SUPABASE_URL and SUPABASE_API_KEY:
+                headers = {
+                    "apikey": SUPABASE_API_KEY,
+                    "Authorization": f"Bearer {SUPABASE_API_KEY}",
+                    "Content-Type": "application/json",
+                    "Prefer": "return=representation,resolution=merge-duplicates"
+                }
+                
+                # Calculate expiry time
+                expires_at = None
+                if tokens.get('expires_in'):
+                    expires_at = (datetime.utcnow() + timedelta(seconds=tokens['expires_in'])).isoformat()
+                
+                oauth_token_data = {
+                    "user_id": session_data['user_id'],
+                    "platform": "google",
+                    "access_token": tokens['access_token'],
+                    "refresh_token": tokens.get('refresh_token'),
+                    "token_type": tokens.get('token_type', 'Bearer'),
+                    "expires_at": expires_at,
+                    "scope": "email profile https://www.googleapis.com/auth/calendar",
+                    "created_at": datetime.utcnow().isoformat(),
+                    "updated_at": datetime.utcnow().isoformat()
+                }
+                
+                oauth_resp = requests.post(
+                    f"{SUPABASE_URL}/rest/v1/oauth_tokens",
+                    headers=headers,
+                    json=oauth_token_data
+                )
+                
+                if oauth_resp.ok:
+                    print(f"OAuth tokens saved successfully for user {session_data['user_id']}")
+                    
+                    # Trigger auto-import after successful token save
+                    try:
+                        import threading
+                        import sys
+                        import os
+                        
+                        def auto_import_async():
+                            try:
+                                # Import Google Calendar service
+                                sys.path.append(os.path.join(os.path.dirname(__file__), '../../backend'))
+                                from services.google_calendar_service import GoogleCalendarService
+                                
+                                # Get Supabase client
+                                SUPABASE_URL = os.getenv('SUPABASE_URL')
+                                SUPABASE_API_KEY = os.getenv('SUPABASE_API_KEY')
+                                if not SUPABASE_URL or not SUPABASE_API_KEY:
+                                    print("Database credentials not available for auto-import")
+                                    return
+                                
+                                from supabase import create_client
+                                supabase_client = create_client(SUPABASE_URL, SUPABASE_API_KEY)
+                                
+                                user_id = session_data['user_id']
+                                
+                                # Check/create default calendar
+                                user_calendars = supabase_client.table('calendars').select('*').eq('owner_id', user_id).execute()
+                                
+                                if not user_calendars.data:
+                                    new_calendar = {
+                                        'owner_id': user_id,
+                                        'name': 'My Calendar',
+                                        'description': 'Default calendar for imported events',
+                                        'color': '#4285F4',
+                                        'platform': 'custom',
+                                        'is_shared': False,
+                                        'is_enabled': True,
+                                        'created_at': datetime.utcnow().isoformat(),
+                                        'updated_at': datetime.utcnow().isoformat()
+                                    }
+                                    create_result = supabase_client.table('calendars').insert(new_calendar).execute()
+                                    calendar_data = create_result.data[0] if create_result.data else None
+                                else:
+                                    calendar_data = user_calendars.data[0]
+                                
+                                if not calendar_data:
+                                    print("Failed to get/create calendar for auto-import")
+                                    return
+                                
+                                calendar_id = calendar_data.get('id')
+                                print(f"Starting embedded auto-import for user {user_id}, calendar {calendar_id}")
+                                
+                                # Import Google Calendar events
+                                google_service = GoogleCalendarService()
+                                google_events = google_service.get_events(user_id, calendar_id='primary')
+                                
+                                if not google_events:
+                                    print(f"No Google events found for user {user_id}")
+                                    return
+                                
+                                # Import events to NotionFlow calendar
+                                imported_count = 0
+                                for event in google_events:
+                                    try:
+                                        start_datetime = event.get('start', {})
+                                        end_datetime = event.get('end', {})
+                                        
+                                        start_time = start_datetime.get('dateTime') or start_datetime.get('date')
+                                        end_time = end_datetime.get('dateTime') or end_datetime.get('date')
+                                        
+                                        if not start_time:
+                                            continue
+                                        
+                                        event_data = {
+                                            'user_id': user_id,
+                                            'calendar_id': calendar_id,
+                                            'title': event.get('summary', 'Untitled Event'),
+                                            'description': event.get('description', ''),
+                                            'location': event.get('location', ''),
+                                            'platform': 'google',
+                                            'external_event_id': event.get('id'),
+                                            'html_link': event.get('htmlLink', ''),
+                                            'sync_status': 'synced',
+                                            'last_synced_at': datetime.utcnow().isoformat(),
+                                            'status': event.get('status', 'confirmed')
+                                        }
+                                        
+                                        if 'date' in start_datetime:
+                                            event_data.update({
+                                                'start_date': start_time,
+                                                'end_date': end_time or start_time,
+                                                'is_all_day': True
+                                            })
+                                        else:
+                                            event_data.update({
+                                                'start_datetime': start_time,
+                                                'end_datetime': end_time or start_time,
+                                                'is_all_day': False
+                                            })
+                                        
+                                        # Check if event already exists
+                                        existing = supabase_client.table('calendar_events').select('id').eq('user_id', user_id).eq('external_event_id', event.get('id')).execute()
+                                        
+                                        if not existing.data:
+                                            result = supabase_client.table('calendar_events').insert(event_data).execute()
+                                            if result.data:
+                                                imported_count += 1
+                                        
+                                    except Exception as e:
+                                        print(f"Failed to import single event in embedded flow: {str(e)}")
+                                
+                                print(f"Embedded auto-import completed: {imported_count} events imported for user {user_id}")
+                                
+                            except Exception as e:
+                                print(f"Embedded auto-import thread error: {str(e)}")
+                        
+                        # Run auto-import in background thread
+                        thread = threading.Thread(target=auto_import_async)
+                        thread.daemon = True
+                        thread.start()
+                        
+                    except Exception as e:
+                        print(f"Failed to start embedded auto-import thread: {str(e)}")
+                    
+                else:
+                    print(f"Failed to save OAuth tokens: {oauth_resp.text}")
+        except Exception as e:
+            print(f"Error saving OAuth tokens in embedded flow: {str(e)}")
+        
         return render_oauth_result('success', 'Google Calendar connected successfully!', state, {
             'user_info': user_info,
             'credentials_saved': save_result['success']
