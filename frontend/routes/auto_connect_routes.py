@@ -290,17 +290,17 @@ def detect_notion_auto_connect(user_id: str, data: Dict) -> Dict:
     }
 
 def detect_google_auto_connect(user_id: str, data: Dict) -> Dict:
-    """Smart detection for Google Calendar auto-connect"""
+    """Smart detection for Google Calendar auto-connect - DISABLED to prevent auto-reconnection"""
     return {
-        'auto_connectable': True,  # embedded OAuth 사용
-        'method': 'embedded_oauth',
-        'confidence': 0.9,
+        'auto_connectable': False,  # DISABLED to prevent auto-reconnection loop
+        'method': 'manual_only',
+        'confidence': 0.0,
         'recommendations': [
-            'Google OAuth 자동 인증이 가능합니다',
-            '팝업창에서 인증을 진행합니다',
-            '자동으로 저장됩니다'
+            'Google Calendar auto-reconnection has been disabled',
+            'Please use manual connection only',
+            'Auto-import has been disabled to prevent loops'
         ],
-        'next_steps': ['oauth_popup', 'auto_save', 'enable_sync']
+        'next_steps': ['manual_setup_only']
     }
 
 def detect_apple_auto_connect(user_id: str, data: Dict) -> Dict:
