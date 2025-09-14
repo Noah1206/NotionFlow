@@ -1578,6 +1578,18 @@
 
     // 페이지 로드 시 통계 업데이트
     document.addEventListener('DOMContentLoaded', async function () {
+        // Check if we just came back from Google OAuth
+        const urlParams = new URLSearchParams(window.location.search);
+        const fromOAuth = urlParams.get('from_oauth') || document.referrer.includes('/auth/google/callback');
+        if (fromOAuth) {
+            console.log('Detected Google OAuth completion - setting flag');
+            sessionStorage.setItem('google_oauth_completed', 'true');
+            // Clean up URL
+            if (urlParams.get('from_oauth')) {
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }
+        
         try {
             // 초기 로드 (조용히)
             await checkCalendarsAndUpdatePlatforms();
@@ -3219,6 +3231,12 @@
                 // 성공 시 UI 업데이트
                 showNotification(`${getKoreanPlatformName(platform)} 캘린더 연동이 해제되었습니다.`, 'success');
                 
+                // Clear localStorage to prevent auto-reconnection
+                if (platform === 'google') {
+                    localStorage.removeItem('google_last_connected');
+                    console.log('Cleared Google localStorage to prevent auto-reconnection');
+                }
+                
                 // OAuth만 연동된 상태로 되돌리기
                 const statusElement = card.querySelector('.platform-status');
                 if (statusElement) {
@@ -3361,14 +3379,14 @@
                     if (status.connected) {
                         updatePlatformStatus(platform, 'connected');
                         
-                        // Check if Google was just connected (within last 5 minutes)
+                        // Check if Google was just connected - only set flag if explicitly triggered by OAuth
                         if (platform === 'google' && status.connected) {
-                            const lastConnected = localStorage.getItem('google_last_connected');
-                            const now = new Date().getTime();
-                            
-                            if (!lastConnected || (now - parseInt(lastConnected)) > 300000) { // 5 minutes
+                            // Only auto-import if this was triggered by OAuth callback
+                            const oauthJustCompleted = sessionStorage.getItem('google_oauth_completed');
+                            if (oauthJustCompleted) {
                                 googleJustConnected = true;
-                                localStorage.setItem('google_last_connected', now.toString());
+                                sessionStorage.removeItem('google_oauth_completed'); // Use once
+                                console.log('Google OAuth just completed - will auto-import');
                             }
                         }
                     } else {
