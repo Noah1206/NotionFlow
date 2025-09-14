@@ -65,24 +65,11 @@ def connect_platform_to_calendar(calendar_id):
         
         calendar_data = calendar_result.data[0]
         
-        # Ensure platform connection exists
-        platform_conn_data = {
-            'user_id': user_id,
-            'platform': platform,
-            'is_connected': True,
-            'updated_at': datetime.now().isoformat()
-        }
+        # Simple success response - OAuth tokens are already saved by OAuth flow
+        result = {'success': True}
+        message = f'{platform} connected to {calendar_data["name"]}'
         
-        existing_platform = supabase.table('platform_connections').select('*').eq('user_id', user_id).eq('platform', platform).execute()
-        if not existing_platform.data:
-            platform_conn_data['created_at'] = datetime.now().isoformat()
-            result = supabase.table('platform_connections').insert(platform_conn_data).execute()
-            message = f'{platform} connected to {calendar_data["name"]}'
-        else:
-            result = supabase.table('platform_connections').update(platform_conn_data).eq('user_id', user_id).eq('platform', platform).execute()
-            message = f'{platform} reconnected to {calendar_data["name"]}'
-        
-        if result.data:
+        if result.get('success'):
             # Track event
             sync_tracker.track_sync_event(
                 user_id=user_id,
@@ -134,32 +121,19 @@ def disconnect_platform_from_calendar(calendar_id, platform):
     try:
         supabase = config.get_client_for_user(user_id)
         
-        # Get connection info before deletion - check platform_connections 
-        platform_result = supabase.table('platform_connections').select('*').eq('user_id', user_id).eq('platform', platform).execute()
-        
-        # Also check for OAuth tokens to verify connection exists
-        oauth_result = supabase.table('oauth_tokens').select('*').eq('user_id', user_id).eq('platform', platform).execute()
-        
-        if not platform_result.data and not oauth_result.data:
-            return jsonify({'error': 'Connection not found'}), 404
-        
-        connection_data = platform_result.data[0] if platform_result.data else oauth_result.data[0] if oauth_result.data else {}
-        
-        # Delete from platform_connections table
-        if platform_result.data:
-            supabase.table('platform_connections').delete().eq('user_id', user_id).eq('platform', platform).execute()
-        
-        # Delete OAuth tokens
-        if oauth_result.data:
-            supabase.table('oauth_tokens').delete().eq('user_id', user_id).eq('platform', platform).execute()
-        
-        # Delete any imported calendar events from this platform
+        # Simple approach - just delete OAuth tokens and imported events
         try:
-            supabase.table('calendar_events').delete().eq('user_id', user_id).eq('platform', platform).execute()
-        except:
-            pass  # Ignore if no events to delete
-        
-        result = {'success': True}
+            # Delete OAuth tokens
+            oauth_result = supabase.table('oauth_tokens').delete().eq('user_id', user_id).eq('platform', platform).execute()
+            
+            # Delete any imported calendar events from this platform
+            events_result = supabase.table('calendar_events').delete().eq('user_id', user_id).eq('platform', platform).execute()
+            
+            result = {'success': True}
+            
+        except Exception as e:
+            current_app.logger.error(f"Disconnect error: {str(e)}")
+            return jsonify({'error': 'Failed to disconnect platform'}), 500
         
         # Track event
         sync_tracker.track_sync_event(
