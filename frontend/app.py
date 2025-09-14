@@ -5275,6 +5275,163 @@ def sync_google_events_to_notion():
         print(f"Error syncing Google events to NotionFlow: {e}")
         return jsonify({'error': 'Failed to sync Google events to NotionFlow'}), 500
 
+@app.route('/api/google-calendar/auto-import', methods=['POST'])
+def auto_import_google_events():
+    """Google Calendar 이벤트를 자동으로 가져오기 (OAuth 성공 후)"""
+    try:
+        print(f"=== Auto Import Google Events ===")
+        
+        if 'user_id' not in session:
+            return jsonify({'error': 'Authentication required'}), 401
+            
+        user_id = session['user_id']
+        print(f"Auto-importing for user: {user_id}")
+        
+        # Get Supabase client
+        supabase_client = get_supabase()
+        if not supabase_client:
+            return jsonify({'error': 'Database not available'}), 503
+        
+        # First, ensure user has at least one calendar
+        user_calendars = supabase_client.table('calendars').select('*').eq('owner_id', user_id).execute()
+        
+        if not user_calendars.data:
+            # Create a default calendar for the user
+            print(f"No calendars found. Creating default calendar for user {user_id}")
+            
+            new_calendar = {
+                'owner_id': user_id,
+                'name': 'My Calendar',
+                'description': 'Default calendar for imported events',
+                'color': '#4285F4',  # Google blue
+                'platform': 'custom',
+                'is_shared': False,
+                'is_enabled': True,
+                'created_at': dt.now().isoformat(),
+                'updated_at': dt.now().isoformat()
+            }
+            
+            create_result = supabase_client.table('calendars').insert(new_calendar).execute()
+            
+            if create_result.data:
+                calendar_data = create_result.data[0]
+                print(f"Created default calendar: {calendar_data.get('id')}")
+            else:
+                return jsonify({'error': 'Failed to create default calendar'}), 500
+        else:
+            # Use the first existing calendar
+            calendar_data = user_calendars.data[0]
+            print(f"Using existing calendar: {calendar_data.get('id')} - {calendar_data.get('name')}")
+        
+        calendar_id = calendar_data.get('id')
+        
+        # Check if user has Google Calendar connected
+        platform_result = supabase_client.table('registered_platforms').select('*').eq('user_id', user_id).eq('platform', 'google').execute()
+        
+        if not platform_result.data:
+            return jsonify({
+                'success': False,
+                'error': 'Google Calendar not connected',
+                'message': 'Please connect Google Calendar first'
+            }), 400
+        
+        # Import Google Calendar events
+        print(f"Starting Google Calendar import for calendar {calendar_id}")
+        
+        # Import Google Calendar service
+        try:
+            sys.path.append(os.path.join(os.path.dirname(__file__), '../backend'))
+            from services.google_calendar_service import GoogleCalendarService
+        except ImportError as e:
+            return jsonify({'error': f'Google Calendar service not available: {e}'}), 503
+        
+        # Get Google Calendar events
+        google_service = GoogleCalendarService()
+        try:
+            google_events = google_service.get_events(user_id, calendar_id='primary')
+        except Exception as e:
+            return jsonify({'error': f'Failed to fetch Google Calendar events: {str(e)}'}), 500
+        
+        if not google_events:
+            return jsonify({
+                'success': True,
+                'message': 'No events to import',
+                'imported_count': 0,
+                'failed_count': 0
+            })
+        
+        # Import events to NotionFlow calendar
+        imported_count = 0
+        failed_count = 0
+        
+        for event in google_events:
+            try:
+                # Convert Google event to NotionFlow format
+                start_datetime = event.get('start', {})
+                end_datetime = event.get('end', {})
+                
+                start_time = start_datetime.get('dateTime') or start_datetime.get('date')
+                end_time = end_datetime.get('dateTime') or end_datetime.get('date')
+                
+                if not start_time:
+                    failed_count += 1
+                    continue
+                
+                event_data = {
+                    'user_id': user_id,
+                    'calendar_id': calendar_id,
+                    'title': event.get('summary', 'Untitled Event'),
+                    'description': event.get('description', ''),
+                    'location': event.get('location', ''),
+                    'platform': 'google',
+                    'external_event_id': event.get('id'),
+                    'html_link': event.get('htmlLink', ''),
+                    'sync_status': 'synced',
+                    'last_synced_at': dt.now().isoformat(),
+                    'status': event.get('status', 'confirmed')
+                }
+                
+                # Handle date/time fields
+                if 'date' in start_datetime:
+                    event_data.update({
+                        'start_date': start_time,
+                        'end_date': end_time or start_time,
+                        'is_all_day': True
+                    })
+                else:
+                    event_data.update({
+                        'start_datetime': start_time,
+                        'end_datetime': end_time or start_time,
+                        'is_all_day': False
+                    })
+                
+                # Check if event already exists
+                existing = supabase_client.table('calendar_events').select('id').eq('user_id', user_id).eq('external_event_id', event.get('id')).execute()
+                
+                if not existing.data:
+                    result = supabase_client.table('calendar_events').insert(event_data).execute()
+                    if result.data:
+                        imported_count += 1
+                    else:
+                        failed_count += 1
+                        
+            except Exception as e:
+                print(f"Failed to import event: {str(e)}")
+                failed_count += 1
+        
+        return jsonify({
+            'success': True,
+            'message': f'Successfully imported {imported_count} events',
+            'imported_count': imported_count,
+            'failed_count': failed_count,
+            'calendar_id': calendar_id,
+            'calendar_name': calendar_data.get('name')
+        })
+        
+    except Exception as e:
+        print(f"Auto-import error: {str(e)}")
+        return jsonify({'error': f'Auto-import failed: {str(e)}'}), 500
+
 @app.route('/api/import-google-events/<calendar_id>', methods=['POST'])
 def import_google_events_to_calendar(calendar_id):
     """Google Calendar 이벤트를 특정 NotionFlow 캘린더로 자동 가져오기"""
