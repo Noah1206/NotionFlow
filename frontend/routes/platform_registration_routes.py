@@ -238,8 +238,8 @@ def unregister_platform(platform):
         # Remove from platform connections
         platform_result = supabase.table('platform_connections').delete().eq('user_id', user_id).eq('platform', platform).execute()
         
-        # Also remove any calendar sync settings for this platform
-        calendar_result = supabase.table('calendar_sync').delete().eq('user_id', user_id).eq('platform', platform).execute()
+        # OAuth tokens are already deleted in the disconnect function above
+        # No need for additional calendar sync table cleanup
         
         # Track event
         sync_tracker.track_sync_event(

@@ -66,7 +66,7 @@ def save_platform_credentials(user_id: str, platform: str, credentials: Dict) ->
         encrypted_credentials = encrypt_credentials(credentials)
         
         # Check if configuration exists
-        existing_result = supabase.table('calendar_sync').select('*').eq('user_id', user_id).eq('platform', platform).execute()
+        existing_result = supabase.table('platform_connections').select('*').eq('user_id', user_id).eq('platform', platform).execute()
         
         config_data = {
             'user_id': user_id,
@@ -78,11 +78,11 @@ def save_platform_credentials(user_id: str, platform: str, credentials: Dict) ->
         
         if existing_result.data:
             # Update existing
-            result = supabase.table('calendar_sync').update(config_data).eq('user_id', user_id).eq('platform', platform).execute()
+            result = supabase.table('platform_connections').update(config_data).eq('user_id', user_id).eq('platform', platform).execute()
         else:
             # Create new
             config_data['created_at'] = datetime.now().isoformat()
-            result = supabase.table('calendar_sync').insert(config_data).execute()
+            result = supabase.table('platform_connections').insert(config_data).execute()
         
         if result.data:
             return {'success': True, 'message': 'Credentials saved successfully'}
@@ -225,7 +225,7 @@ def get_auto_connect_status():
             return jsonify({'error': 'Authentication required'}), 401
         
         # Get all configured platforms
-        result = supabase.table('calendar_sync').select('*').eq('user_id', user_id).execute()
+        result = supabase.table('platform_connections').select('*').eq('user_id', user_id).execute()
         
         platforms = {}
         for config in result.data:
