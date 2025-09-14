@@ -118,38 +118,66 @@ def disconnect_platform_from_calendar(calendar_id, platform):
     if not user_id:
         return jsonify({'error': 'Authentication required'}), 401
     
+    print(f"=== Disconnect Debug Info ===")
+    print(f"User ID: {user_id}")
+    print(f"Calendar ID: {calendar_id}")
+    print(f"Platform: {platform}")
+    
     try:
+        print("Getting Supabase client...")
         supabase = config.get_client_for_user(user_id)
+        print(f"Supabase client obtained: {supabase is not None}")
         
-        # Simple approach - just delete OAuth tokens and imported events
+        if not supabase:
+            print("ERROR: Supabase client is None!")
+            return jsonify({'error': 'Database connection failed'}), 500
+        
+        # Step 1: Delete OAuth tokens (this is the most important)
         try:
-            # Delete OAuth tokens
+            print("Step 1: Deleting OAuth tokens...")
             oauth_result = supabase.table('oauth_tokens').delete().eq('user_id', user_id).eq('platform', platform).execute()
+            print(f"OAuth delete result: {oauth_result}")
             
-            # Delete any imported calendar events from this platform
-            events_result = supabase.table('calendar_events').delete().eq('user_id', user_id).eq('platform', platform).execute()
+            # Step 2: Try to delete imported events (optional, ignore errors)
+            print("Step 2: Deleting imported events...")
+            try:
+                events_result = supabase.table('calendar_events').delete().eq('user_id', user_id).eq('platform', platform).execute()
+                print(f"Events delete result: {events_result}")
+            except Exception as events_error:
+                print(f"Events deletion failed (ignoring): {events_error}")
             
+            print("Disconnect completed successfully!")
             result = {'success': True}
             
         except Exception as e:
-            print(f"Disconnect error: {str(e)}")
-            return jsonify({'error': 'Failed to disconnect platform'}), 500
+            print(f"=== CRITICAL ERROR ===")
+            print(f"Error type: {type(e).__name__}")
+            print(f"Error message: {str(e)}")
+            print(f"Error details: {repr(e)}")
+            import traceback
+            print(f"Traceback: {traceback.format_exc()}")
+            return jsonify({'error': f'Disconnect failed: {str(e)}'}), 500
         
-        # Track event
-        sync_tracker.track_sync_event(
-            user_id=user_id,
-            event_type=EventType.CALENDAR_DISCONNECTED,
-            platform=platform,
-            status='success',
-            metadata={
-                'calendar_id': calendar_id,
-                'calendar_name': connection_data['calendar_name']
-            }
-        )
+        # Track event (optional, ignore errors)
+        try:
+            print("Step 3: Tracking disconnect event...")
+            sync_tracker.track_sync_event(
+                user_id=user_id,
+                event_type=EventType.CALENDAR_DISCONNECTED,
+                platform=platform,
+                status='success',
+                metadata={
+                    'calendar_id': calendar_id,
+                }
+            )
+            print("Event tracking completed!")
+        except Exception as track_error:
+            print(f"Event tracking failed (ignoring): {track_error}")
         
+        print("Returning success response...")
         return jsonify({
             'success': True,
-            'message': f'{platform} disconnected from {connection_data["calendar_name"]}'
+            'message': f'{platform} disconnected successfully'
         })
         
     except Exception as e:
