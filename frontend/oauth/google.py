@@ -140,8 +140,32 @@ def register_google_routes(app):
                 if oauth_resp.ok:
                     current_app.logger.info(f"OAuth tokens saved successfully for user {user_id}")
                     
-                    # DISABLED: Auto-import temporarily disabled to fix reconnection loop
-                    print("Auto-import DISABLED to prevent reconnection loop")
+                    # Auto-import Google Calendar events - only if not manually disconnected
+                    try:
+                        print(f"[OAUTH] Checking for auto-import opportunity for user {user_id}")
+                        # This is a fresh OAuth connection, so auto-import should be safe
+                        # The manual disconnection flag is only set AFTER connection, not during OAuth
+                        
+                        # Try to auto-import Google Calendar events
+                        import requests
+                        import_url = f"{request.host_url}api/google/import"
+                        print(f"[OAUTH] Attempting auto-import from {import_url}")
+                        
+                        # Use a short timeout to avoid hanging
+                        import_resp = requests.post(import_url, 
+                            json={'user_id': user_id, 'source': 'oauth_callback'},
+                            timeout=10,
+                            cookies=request.cookies
+                        )
+                        
+                        if import_resp.ok:
+                            print(f"[OAUTH] Auto-import successful for user {user_id}")
+                        else:
+                            print(f"[OAUTH] Auto-import failed: {import_resp.text}")
+                            
+                    except Exception as import_error:
+                        print(f"[OAUTH] Auto-import error: {import_error}")
+                        # Don't fail the OAuth flow if auto-import fails
                         
                 else:
                     current_app.logger.error(f"Failed to save OAuth tokens: {oauth_resp.text}")

@@ -203,8 +203,28 @@ def google_embedded_callback():
                 if oauth_resp.ok:
                     print(f"OAuth tokens saved successfully for user {session_data['user_id']}")
                     
-                    # DISABLED: Auto-import temporarily disabled to fix reconnection loop
-                    print("Embedded auto-import DISABLED to prevent reconnection loop")
+                    # Auto-import Google Calendar events - safe during OAuth flow
+                    try:
+                        print(f"[EMBEDDED-OAUTH] Checking for auto-import opportunity for user {session_data['user_id']}")
+                        
+                        # Try to auto-import Google Calendar events
+                        import_url = f"{request.host_url}api/google/import"
+                        print(f"[EMBEDDED-OAUTH] Attempting auto-import from {import_url}")
+                        
+                        # Use a short timeout to avoid hanging
+                        import_resp = requests.post(import_url, 
+                            json={'user_id': session_data['user_id'], 'source': 'embedded_oauth'},
+                            timeout=10
+                        )
+                        
+                        if import_resp.ok:
+                            print(f"[EMBEDDED-OAUTH] Auto-import successful for user {session_data['user_id']}")
+                        else:
+                            print(f"[EMBEDDED-OAUTH] Auto-import failed: {import_resp.text}")
+                            
+                    except Exception as import_error:
+                        print(f"[EMBEDDED-OAUTH] Auto-import error: {import_error}")
+                        # Don't fail the OAuth flow if auto-import fails
                     
                 else:
                     print(f"Failed to save OAuth tokens: {oauth_resp.text}")

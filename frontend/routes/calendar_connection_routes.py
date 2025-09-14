@@ -84,17 +84,27 @@ def connect_platform_to_calendar(calendar_id):
                 }
             )
             
-            # DISABLED: Auto-import Google Calendar events to prevent reconnection loop
+            # Auto-import Google Calendar events - with loop prevention
             auto_import_result = None
-            # DISABLED: Auto-import temporarily disabled to fix reconnection loop
-            print("Google Calendar auto-import DISABLED to prevent auto-reconnection loop")
-            # if platform == 'google' and connection_data.get('sync_direction') in ['both', 'from_platform']:
-            #     try:
-            #         auto_import_result = auto_import_google_events(user_id, calendar_id)
-            #     except Exception as e:
-            #         # Log the error but don't fail the connection
-            #         print(f"Failed to auto-import Google Calendar events: {str(e)}")
-            #         auto_import_result = {'success': False, 'error': str(e)}
+            
+            # Only auto-import if this is a new connection or explicit user action
+            should_auto_import = (
+                platform == 'google' and 
+                connection_data.get('sync_direction') in ['both', 'from_platform'] and
+                not existing_conn.data  # Only for NEW connections, not existing ones
+            )
+            
+            if should_auto_import:
+                try:
+                    print(f"[CALENDAR-CONNECTION] Auto-importing Google events for new connection - user: {user_id}, calendar: {calendar_id}")
+                    auto_import_result = auto_import_google_events(user_id, calendar_id)
+                    print(f"[CALENDAR-CONNECTION] Auto-import result: {auto_import_result}")
+                except Exception as e:
+                    print(f"[CALENDAR-CONNECTION] Auto-import error: {e}")
+                    auto_import_result = {'error': str(e)}
+            else:
+                reason = "existing connection" if existing_conn.data else "wrong sync direction or platform"
+                print(f"[CALENDAR-CONNECTION] Skipping auto-import - reason: {reason}")
             
             response_data = {
                 'success': True,

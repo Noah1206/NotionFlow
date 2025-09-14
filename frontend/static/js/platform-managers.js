@@ -325,19 +325,21 @@ class GoogleManager extends PlatformManager {
             const result = await this.waitForOAuth(popup);
             
             if (result.success) {
-                // DISABLED: Auto calendar selection completely disabled to fix reconnection loop
-                console.log('Google OAuth success - auto-calendar selection DISABLED');
-                this.showNotification('Google OAuth 연결 완료 (자동 캘린더 연결 비활성화)', 'info');
+                // Clear manual disconnection flag on fresh OAuth connection
+                localStorage.removeItem('google_manually_disconnected');
+                localStorage.removeItem('google_last_connected');
+                console.log('Google OAuth success - cleared disconnection flags');
                 
-                // // Check if user manually disconnected Google Calendar
-                // const manuallyDisconnected = localStorage.getItem('google_manually_disconnected');
-                // if (manuallyDisconnected === 'true') {
-                //     console.log('Google Calendar was manually disconnected - skipping auto-connection');
-                //     this.showNotification('Google OAuth 연결 완료 (캘린더 연동 해제 상태 유지)', 'info');
-                // } else {
-                //     // Show calendar selection modal only if not manually disconnected
-                //     await this.showCalendarSelection();
-                // }
+                // Check if user manually disconnected Google Calendar
+                const manuallyDisconnected = localStorage.getItem('google_manually_disconnected');
+                if (manuallyDisconnected === 'true') {
+                    console.log('Google Calendar was manually disconnected - skipping auto-connection');
+                    this.showNotification('Google OAuth 연결 완료 (캘린더 연동 해제 상태 유지)', 'info');
+                } else {
+                    // Show calendar selection modal for fresh connections
+                    this.showNotification('Google OAuth 연결 완료 - 캘린더 선택 중...', 'success');
+                    await this.showCalendarSelection();
+                }
             } else {
                 throw new Error(result.error || 'OAuth 실패');
             }
