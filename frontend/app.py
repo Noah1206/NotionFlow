@@ -5296,60 +5296,38 @@ def import_google_events_to_calendar(calendar_id):
         if not supabase_client:
             return jsonify({'error': 'Database not available'}), 503
         
-        # Check if calendar exists and belongs to user
+        # IMMEDIATE FIX: Always use user's first available calendar
+        print(f"IMMEDIATE FIX: Getting user's first calendar instead of using frontend ID: {calendar_id}")
+        
         try:
-            print(f"Querying calendars table for calendar_id: {calendar_id}, user_id: {user_id}")
-            # Fix: Use owner_id instead of user_id based on database schema
-            calendar_result = supabase_client.table('calendars').select('*').eq('id', calendar_id).eq('owner_id', user_id).execute()
-            print(f"Calendar query result: {len(calendar_result.data)} records found")
+            # Get user's calendars first  
+            user_calendars = supabase_client.table('calendars').select('*').eq('owner_id', user_id).execute()
+            print(f"User has {len(user_calendars.data)} calendars total")
             
+            if not user_calendars.data:
+                return jsonify({
+                    'error': 'No calendars found for user',
+                    'debug': f'User {user_id} has no calendars in database'
+                }), 404
+            
+            # Use the first calendar automatically
+            calendar_data = user_calendars.data[0]
+            actual_calendar_id = calendar_data.get('id')
+            calendar_name = calendar_data.get('name', 'Unknown Calendar')
+            
+            print(f"✅ USING CALENDAR: {actual_calendar_id} - {calendar_name}")
+            
+            # Override calendar_id with the correct one
+            calendar_id = actual_calendar_id
+            calendar_result = user_calendars  # We already have the data
+            
+            # Since we're using the first available calendar, this should never fail
+            # But keep a safety check just in case
             if not calendar_result.data:
-                # Debug info - check if calendar exists for any user
-                print(f"Calendar not found for user. Checking if calendar exists at all...")
-                debug_result = supabase_client.table('calendars').select('*').eq('id', calendar_id).execute()
-                print(f"Calendar existence check: {len(debug_result.data)} records found")
-                
-                if debug_result.data:
-                    actual_user = debug_result.data[0].get('owner_id')  # Use owner_id
-                    print(f"Calendar exists but belongs to different user: {actual_user}")
-                    return jsonify({
-                        'error': 'Calendar not found or access denied', 
-                        'debug': f'Calendar belongs to user: {actual_user}, requested by: {user_id}'
-                    }), 404
-                else:
-                    # Check all calendars for this user
-                    user_calendars = supabase_client.table('calendars').select('id, name').eq('owner_id', user_id).execute()  # Use owner_id
-                    print(f"User has {len(user_calendars.data)} calendars total")
-                    for cal in user_calendars.data:
-                        print(f"  - Calendar: {cal.get('id')} - {cal.get('name')}")
-                    
-                    # WORKAROUND: If user has exactly one calendar, use that instead
-                    if len(user_calendars.data) == 1:
-                        actual_calendar_id = user_calendars.data[0].get('id')
-                        print(f"WORKAROUND: Using user's only calendar instead: {actual_calendar_id}")
-                        
-                        # Update calendar_id to the correct one and continue
-                        calendar_id = actual_calendar_id
-                        calendar_result = supabase_client.table('calendars').select('*').eq('id', calendar_id).eq('owner_id', user_id).execute()
-                        print(f"Retrying with correct calendar ID: {len(calendar_result.data)} records found")
-                        
-                        if not calendar_result.data:
-                            return jsonify({'error': 'Calendar access failed even with correct ID'}), 500
-                        
-                        # Continue with the rest of the function using the corrected calendar_id
-                    else:
-                        # Add debugging info and return error if multiple calendars
-                        calendar_ids = [cal.get('id') for cal in user_calendars.data]
-                        return jsonify({
-                            'error': 'Calendar ID does not exist in database',
-                            'debug': {
-                                'requested_calendar_id': calendar_id,
-                                'user_calendar_count': len(user_calendars.data),
-                                'user_calendar_ids': calendar_ids,
-                                'user_id': user_id,
-                                'suggestion': 'Please use one of the valid calendar IDs'
-                            }
-                        }), 404
+                return jsonify({
+                    'error': 'Unexpected: No calendar found even after using first available',
+                    'debug': f'This should not happen. User {user_id} calendars query succeeded but data is empty.'
+                }), 500
                 
         except Exception as e:
             print(f"Error querying calendars table: {str(e)}")
