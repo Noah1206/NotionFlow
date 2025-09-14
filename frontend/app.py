@@ -603,6 +603,7 @@ def dashboard():
         return redirect('/login?from=dashboard')
     
     # Check if initial setup is complete
+    import hashlib
     if AuthManager and user_id != hashlib.md5(b'ab40905045@gmail.com').hexdigest():
         # Only check profile for other users, not our bypassed user
         profile = AuthManager.get_user_profile(user_id)
@@ -6032,27 +6033,34 @@ def get_all_platform_status():
         }), 500
 
 def check_google_calendar_connection(user_id):
-    """Google Calendar OAuth 토큰 존재 여부로 연결 상태 확인"""
-    try:
-        # 먼저 데이터베이스에서 확인
-        from services.google_calendar_service import google_calendar_service
-        credentials = google_calendar_service.get_google_credentials(user_id)
-        if credentials is not None:
-            return True
-    except Exception as e:
-        print(f"Error checking Google Calendar connection from DB: {e}")
+    """Google Calendar OAuth 토큰 존재 여부로 연결 상태 확인 - DISABLED to prevent auto-reconnection"""
+    print(f"[DEBUG] check_google_calendar_connection called for user {user_id}")
     
-    # 데이터베이스 실패 시 세션에서 확인 (백업)
-    try:
-        session_key = f'oauth_token_{user_id}_google'
-        token_data = session.get(session_key)
-        if token_data and token_data.get('access_token'):
-            print(f"Found Google token in session for user {user_id}")
-            return True
-    except Exception as e:
-        print(f"Error checking Google Calendar connection from session: {e}")
-    
+    # DISABLED: Always return False to prevent auto-reconnection loop
+    print("Google Calendar connection check DISABLED to prevent auto-reconnection loop")
     return False
+    
+    # ORIGINAL CODE DISABLED TO PREVENT AUTO-RECONNECTION LOOP:
+    # try:
+    #     # 먼저 데이터베이스에서 확인
+    #     from services.google_calendar_service import google_calendar_service
+    #     credentials = google_calendar_service.get_google_credentials(user_id)
+    #     if credentials is not None:
+    #         return True
+    # except Exception as e:
+    #     print(f"Error checking Google Calendar connection from DB: {e}")
+    # 
+    # # 데이터베이스 실패 시 세션에서 확인 (백업)
+    # try:
+    #     session_key = f'oauth_token_{user_id}_google'
+    #     token_data = session.get(session_key)
+    #     if token_data and token_data.get('access_token'):
+    #         print(f"Found Google token in session for user {user_id}")
+    #         return True
+    # except Exception as e:
+    #     print(f"Error checking Google Calendar connection from session: {e}")
+    # 
+    # return False
 
 # ===== CACHE CONTROL =====
 # (Cache control functions already defined above with proper decorators)

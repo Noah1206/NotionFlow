@@ -84,15 +84,17 @@ def connect_platform_to_calendar(calendar_id):
                 }
             )
             
-            # Automatically import Google Calendar events if it's a Google platform
+            # DISABLED: Auto-import Google Calendar events to prevent reconnection loop
             auto_import_result = None
-            if platform == 'google' and connection_data.get('sync_direction') in ['both', 'from_platform']:
-                try:
-                    auto_import_result = auto_import_google_events(user_id, calendar_id)
-                except Exception as e:
-                    # Log the error but don't fail the connection
-                    print(f"Failed to auto-import Google Calendar events: {str(e)}")
-                    auto_import_result = {'success': False, 'error': str(e)}
+            # DISABLED: Auto-import temporarily disabled to fix reconnection loop
+            print("Google Calendar auto-import DISABLED to prevent auto-reconnection loop")
+            # if platform == 'google' and connection_data.get('sync_direction') in ['both', 'from_platform']:
+            #     try:
+            #         auto_import_result = auto_import_google_events(user_id, calendar_id)
+            #     except Exception as e:
+            #         # Log the error but don't fail the connection
+            #         print(f"Failed to auto-import Google Calendar events: {str(e)}")
+            #         auto_import_result = {'success': False, 'error': str(e)}
             
             response_data = {
                 'success': True,
