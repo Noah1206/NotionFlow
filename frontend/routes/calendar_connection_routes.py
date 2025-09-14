@@ -8,7 +8,7 @@ import json
 import sys
 from datetime import datetime
 from typing import Dict, List, Optional
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify, session, current_app
 
 # Add parent directory to path for backend services
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../backend'))
@@ -132,7 +132,7 @@ def disconnect_platform_from_calendar(calendar_id, platform):
             result = {'success': True}
             
         except Exception as e:
-            current_app.logger.error(f"Disconnect error: {str(e)}")
+            print(f"Disconnect error: {str(e)}")
             return jsonify({'error': 'Failed to disconnect platform'}), 500
         
         # Track event
