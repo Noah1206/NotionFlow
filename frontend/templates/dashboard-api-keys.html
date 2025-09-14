@@ -3397,12 +3397,12 @@
                 
                 console.log('Platform statuses loaded:', data.platforms);
                 
-                // Auto-import Google Calendar events if just connected
+                // DISABLED: Auto-import temporarily disabled to fix reconnection loop
                 if (googleJustConnected) {
-                    console.log('Google Calendar just connected - auto-importing events...');
-                    setTimeout(() => {
-                        autoImportGoogleEvents();
-                    }, 2000); // Wait 2 seconds for UI to update
+                    console.log('Google Calendar auto-import DISABLED to prevent reconnection loop');
+                    // setTimeout(() => {
+                    //     autoImportGoogleEvents();
+                    // }, 2000); // Wait 2 seconds for UI to update
                 }
             }
         } catch (error) {
