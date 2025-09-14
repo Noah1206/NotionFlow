@@ -65,16 +65,13 @@ def connect_platform_to_calendar(calendar_id):
         
         calendar_data = calendar_result.data[0]
         
-        # Check if connection already exists
-        existing_conn = supabase.table('calendar_platform_connections').select('*').eq('user_id', user_id).eq('calendar_id', calendar_id).eq('platform', platform).execute()
+        # Check if connection already exists in calendar_sync_configs
+        existing_conn = supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', platform).execute()
         
         connection_data = {
             'user_id': user_id,
-            'calendar_id': calendar_id,
-            'calendar_name': calendar_data['name'],
             'platform': platform,
-            'platform_name': platform_result.data[0]['platform_name'],
-            'is_connected': True,
+            'is_enabled': True,
             'sync_enabled': sync_config.get('sync_enabled', True),
             'sync_direction': sync_config.get('sync_direction', 'both'),  # 'both', 'to_platform', 'from_platform'
             'sync_frequency_minutes': sync_config.get('sync_frequency', 15),
@@ -83,17 +80,19 @@ def connect_platform_to_calendar(calendar_id):
             'next_sync_at': None,
             'health_status': 'healthy',
             'consecutive_failures': 0,
-            'updated_at': datetime.now().isoformat()
+            'updated_at': datetime.now().isoformat(),
+            'calendar_id': calendar_id,
+            'calendar_name': calendar_data['name']
         }
         
         if existing_conn.data:
             # Update existing connection
-            result = supabase.table('calendar_platform_connections').update(connection_data).eq('user_id', user_id).eq('calendar_id', calendar_id).eq('platform', platform).execute()
+            result = supabase.table('calendar_sync_configs').update(connection_data).eq('user_id', user_id).eq('platform', platform).execute()
             message = f'{platform} reconnected to {calendar_data["name"]}'
         else:
             # Create new connection
             connection_data['created_at'] = datetime.now().isoformat()
-            result = supabase.table('calendar_platform_connections').insert(connection_data).execute()
+            result = supabase.table('calendar_sync_configs').insert(connection_data).execute()
             message = f'{platform} connected to {calendar_data["name"]}'
         
         if result.data:
@@ -148,16 +147,27 @@ def disconnect_platform_from_calendar(calendar_id, platform):
     try:
         supabase = config.get_client_for_user(user_id)
         
-        # Get connection info before deletion
-        connection_result = supabase.table('calendar_platform_connections').select('*').eq('user_id', user_id).eq('calendar_id', calendar_id).eq('platform', platform).execute()
+        # Get connection info before deletion - check both registered_platforms and calendar_sync_configs
+        registered_result = supabase.table('registered_platforms').select('*').eq('user_id', user_id).eq('platform', platform).execute()
+        sync_config_result = supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', platform).execute()
         
-        if not connection_result.data:
+        if not registered_result.data and not sync_config_result.data:
             return jsonify({'error': 'Connection not found'}), 404
         
-        connection_data = connection_result.data[0]
+        connection_data = registered_result.data[0] if registered_result.data else sync_config_result.data[0] if sync_config_result.data else {}
         
-        # Delete connection
-        result = supabase.table('calendar_platform_connections').delete().eq('user_id', user_id).eq('calendar_id', calendar_id).eq('platform', platform).execute()
+        # Delete from registered_platforms table
+        if registered_result.data:
+            supabase.table('registered_platforms').delete().eq('user_id', user_id).eq('platform', platform).execute()
+        
+        # Delete from calendar_sync_configs table  
+        if sync_config_result.data:
+            supabase.table('calendar_sync_configs').delete().eq('user_id', user_id).eq('platform', platform).execute()
+        
+        # Delete OAuth tokens as well
+        supabase.table('oauth_tokens').delete().eq('user_id', user_id).eq('platform', platform).execute()
+        
+        result = {'success': True}
         
         # Track event
         sync_tracker.track_sync_event(
@@ -198,7 +208,7 @@ def get_calendar_connections(calendar_id):
         calendar_data = calendar_result.data[0]
         
         # Get connections
-        connections_result = supabase.table('calendar_platform_connections').select('''
+        connections_result = supabase.table('calendar_sync_configs').select('''
             platform, platform_name, is_connected, sync_enabled,
             sync_direction, sync_frequency_minutes, auto_sync_enabled,
             last_sync_at, next_sync_at, health_status, consecutive_failures,
@@ -272,7 +282,7 @@ def update_connection_config(calendar_id, platform):
         supabase = config.get_client_for_user(user_id)
         
         # Validate connection exists
-        connection_result = supabase.table('calendar_platform_connections').select('*').eq('user_id', user_id).eq('calendar_id', calendar_id).eq('platform', platform).execute()
+        connection_result = supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('calendar_id', calendar_id).eq('platform', platform).execute()
         
         if not connection_result.data:
             return jsonify({'error': 'Connection not found'}), 404
@@ -299,7 +309,7 @@ def update_connection_config(calendar_id, platform):
         if 'auto_sync_enabled' in data:
             update_data['auto_sync_enabled'] = bool(data['auto_sync_enabled'])
         
-        result = supabase.table('calendar_platform_connections').update(update_data).eq('user_id', user_id).eq('calendar_id', calendar_id).eq('platform', platform).execute()
+        result = supabase.table('calendar_sync_configs').update(update_data).eq('user_id', user_id).eq('calendar_id', calendar_id).eq('platform', platform).execute()
         
         if result.data:
             return jsonify({
@@ -324,7 +334,7 @@ def get_connections_summary():
         supabase = config.get_client_for_user(user_id)
         
         # Get all connections
-        connections_result = supabase.table('calendar_platform_connections').select('''
+        connections_result = supabase.table('calendar_sync_configs').select('''
             calendar_id, calendar_name, platform, platform_name,
             is_connected, sync_enabled, health_status, last_sync_at
         ''').eq('user_id', user_id).execute()
@@ -404,7 +414,7 @@ def trigger_manual_sync(calendar_id, platform):
         supabase = config.get_client_for_user(user_id)
         
         # Validate connection
-        connection_result = supabase.table('calendar_platform_connections').select('*').eq('user_id', user_id).eq('calendar_id', calendar_id).eq('platform', platform).execute()
+        connection_result = supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('calendar_id', calendar_id).eq('platform', platform).execute()
         
         if not connection_result.data:
             return jsonify({'error': 'Connection not found'}), 404
@@ -416,7 +426,7 @@ def trigger_manual_sync(calendar_id, platform):
         
         # Update sync timestamp
         sync_time = datetime.now().isoformat()
-        supabase.table('calendar_platform_connections').update({
+        supabase.table('calendar_sync_configs').update({
             'last_sync_at': sync_time,
             'next_sync_at': (datetime.now().timestamp() + (connection['sync_frequency_minutes'] * 60)),
             'updated_at': sync_time

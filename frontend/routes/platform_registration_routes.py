@@ -239,7 +239,7 @@ def unregister_platform(platform):
         platform_result = supabase.table('registered_platforms').delete().eq('user_id', user_id).eq('platform', platform).execute()
         
         # Also remove any calendar connections for this platform
-        calendar_result = supabase.table('calendar_platform_connections').delete().eq('user_id', user_id).eq('platform', platform).execute()
+        calendar_result = supabase.table('calendar_sync_configs').delete().eq('user_id', user_id).eq('platform', platform).execute()
         
         # Track event
         sync_tracker.track_sync_event(
