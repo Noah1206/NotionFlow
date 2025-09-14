@@ -5765,6 +5765,10 @@ def get_synced_calendars():
             
         user_id = session['user_id']
         
+        # Check for manual disconnection flags to prevent auto-reconnection
+        google_manually_disconnected = request.headers.get('X-Google-Disconnected')
+        print(f"[SYNC-CALENDARS] Checking manual disconnection - Google manually disconnected: {google_manually_disconnected}")
+        
         # Get Supabase client
         supabase_client = get_supabase()
         if not supabase_client:
@@ -5783,6 +5787,11 @@ def get_synced_calendars():
                 for sync_record in sync_response.data:
                     platform = sync_record['platform']
                     calendar_id = sync_record['calendar_id']
+                    
+                    # Skip Google if manually disconnected to prevent auto-reconnection
+                    if platform == 'google' and google_manually_disconnected == 'true':
+                        print(f"[SYNC-CALENDARS] Skipping Google platform data due to manual disconnection")
+                        continue
                     
                     try:
                         # 캘린더 정보 조회
@@ -5813,6 +5822,11 @@ def get_synced_calendars():
                 for connection in platform_connections.data:
                     platform = connection['platform']
                     
+                    # Skip Google if manually disconnected to prevent auto-reconnection
+                    if platform == 'google' and google_manually_disconnected == 'true':
+                        print(f"[SYNC-CALENDARS] Skipping Google platform connection due to manual disconnection")
+                        continue
+                    
                     # 이미 실제 캘린더 연동이 있으면 건너뛰기
                     if platform in synced_platforms:
                         continue
@@ -5841,6 +5855,11 @@ def get_synced_calendars():
                         platform = parts[4]
                         calendar_id = parts[3]
                         sync_info = session[key]
+                        
+                        # Skip Google if manually disconnected to prevent auto-reconnection
+                        if platform == 'google' and google_manually_disconnected == 'true':
+                            print(f"[SYNC-CALENDARS] Skipping Google session data due to manual disconnection")
+                            continue
                         
                         # 데이터베이스에서 이미 찾은 정보가 없으면 세션 정보 사용
                         if platform not in synced_platforms:

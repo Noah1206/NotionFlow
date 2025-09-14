@@ -3115,7 +3115,20 @@
     // 페이지 로드 시 연동된 캘린더 정보 불러오기
     async function loadSyncedCalendars() {
         try {
-            const response = await fetch('/api/synced-calendars');
+            // Check if Google has been manually disconnected to prevent auto-reconnection
+            const googleManuallyDisconnected = localStorage.getItem('google_manually_disconnected') === 'true';
+            console.log('Loading synced calendars with Google disconnection flag:', googleManuallyDisconnected);
+            
+            const headers = {};
+            if (googleManuallyDisconnected) {
+                headers['X-Google-Disconnected'] = 'true';
+                console.log('Adding X-Google-Disconnected header to prevent auto-reconnection');
+            }
+            
+            const response = await fetch('/api/synced-calendars', {
+                method: 'GET',
+                headers: headers
+            });
             const syncedCalendars = await response.json();
 
             if (response.ok) {
