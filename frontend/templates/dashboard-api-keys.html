@@ -3231,10 +3231,11 @@
                 // 성공 시 UI 업데이트
                 showNotification(`${getKoreanPlatformName(platform)} 캘린더 연동이 해제되었습니다.`, 'success');
                 
-                // Clear localStorage to prevent auto-reconnection
+                // Clear localStorage and set disconnected flag to prevent auto-reconnection
                 if (platform === 'google') {
                     localStorage.removeItem('google_last_connected');
-                    console.log('Cleared Google localStorage to prevent auto-reconnection');
+                    localStorage.setItem('google_manually_disconnected', 'true');
+                    console.log('Set Google disconnected flag to prevent auto-reconnection');
                 }
                 
                 // OAuth만 연동된 상태로 되돌리기

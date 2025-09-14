@@ -561,9 +561,15 @@ class PlatformCard {
                         message += ' | 일정 자동 가져오기 실패: ' + data.auto_import.error;
                     }
                 } else if (platform === 'google') {
-                    // If no auto_import data, manually trigger import
-                    console.log('Google Calendar connected - manually triggering import...');
-                    this.triggerGoogleImport();
+                    // Check if user manually disconnected before triggering import
+                    const manuallyDisconnected = localStorage.getItem('google_manually_disconnected');
+                    if (manuallyDisconnected === 'true') {
+                        console.log('Google Calendar was manually disconnected - skipping auto-import');
+                    } else {
+                        // If no auto_import data, manually trigger import
+                        console.log('Google Calendar connected - manually triggering import...');
+                        this.triggerGoogleImport();
+                    }
                 }
                 
                 this.showNotification(message, 'success');

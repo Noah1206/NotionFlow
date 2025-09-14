@@ -313,6 +313,10 @@ class GoogleManager extends PlatformManager {
     async connect() {
         this.showLoading(this.oneClickBtn);
         
+        // Clear manual disconnect flag when user explicitly clicks connect
+        localStorage.removeItem('google_manually_disconnected');
+        console.log('User clicked connect - cleared manual disconnect flag');
+        
         try {
             // Start OAuth process
             const authUrl = `/auth/google`;
@@ -321,8 +325,15 @@ class GoogleManager extends PlatformManager {
             const result = await this.waitForOAuth(popup);
             
             if (result.success) {
-                // Show calendar selection modal
-                await this.showCalendarSelection();
+                // Check if user manually disconnected Google Calendar
+                const manuallyDisconnected = localStorage.getItem('google_manually_disconnected');
+                if (manuallyDisconnected === 'true') {
+                    console.log('Google Calendar was manually disconnected - skipping auto-connection');
+                    this.showNotification('Google OAuth 연결 완료 (캘린더 연동 해제 상태 유지)', 'info');
+                } else {
+                    // Show calendar selection modal only if not manually disconnected
+                    await this.showCalendarSelection();
+                }
             } else {
                 throw new Error(result.error || 'OAuth 실패');
             }
