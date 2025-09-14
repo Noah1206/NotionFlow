@@ -429,6 +429,61 @@ def login():
     # For GET requests, show the login page
     return render_template('login.html')
 
+@app.route('/api/auth/login', methods=['POST'])
+def api_login():
+    """Handle login API requests"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        email = data.get('email')
+        password = data.get('password')
+        
+        if not email or not password:
+            return jsonify({'error': 'Email and password are required'}), 400
+        
+        # Get Supabase client
+        supabase_client = get_supabase()
+        if not supabase_client:
+            return jsonify({'error': 'Database connection failed'}), 500
+        
+        try:
+            # Try to sign in with Supabase Auth
+            response = supabase_client.auth.sign_in_with_password({
+                "email": email,
+                "password": password
+            })
+            
+            if response.user:
+                # Set session
+                session['user_id'] = response.user.id
+                session['email'] = response.user.email
+                session['user_info'] = {
+                    'email': response.user.email,
+                    'user_id': response.user.id
+                }
+                
+                print(f"[SUCCESS] User logged in: {response.user.email}")
+                return jsonify({
+                    'success': True,
+                    'message': 'Login successful',
+                    'user': {
+                        'id': response.user.id,
+                        'email': response.user.email
+                    }
+                })
+            else:
+                return jsonify({'error': 'Invalid credentials'}), 401
+                
+        except Exception as auth_error:
+            print(f"[ERROR] Supabase auth error: {str(auth_error)}")
+            return jsonify({'error': 'Invalid login credentials'}), 401
+        
+    except Exception as e:
+        print(f"[ERROR] Login API error: {str(e)}")
+        return jsonify({'error': 'Login failed'}), 500
+
 @app.route('/pricing')
 def pricing():
     return render_template('pricing.html')
