@@ -159,6 +159,14 @@ def disconnect_platform_from_calendar(calendar_id, platform):
                 print(f"Events deletion failed (ignoring): {events_error}")
             
             print("Disconnect completed successfully!")
+            
+            # Update session state to reflect disconnection
+            from flask import session
+            session_key = f'platform_{platform}_connected'
+            if session_key in session:
+                session.pop(session_key)
+                print(f"Removed {session_key} from session")
+            
             result = {'success': True}
             
         except Exception as e:

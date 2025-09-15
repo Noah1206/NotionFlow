@@ -231,6 +231,12 @@ def google_embedded_callback():
         except Exception as e:
             print(f"Error saving OAuth tokens in embedded flow: {str(e)}")
         
+        # Mark Google platform as connected in session (if session exists)
+        if 'user_id' in session:
+            session['platform_google_connected'] = True
+            session['platform_google_last_sync'] = datetime.utcnow().isoformat()
+            print(f"[EMBEDDED-OAUTH] Google platform marked as connected in session for user {session_data['user_id']}")
+        
         return render_oauth_result('success', 'Google Calendar connected successfully!', state, {
             'user_info': user_info,
             'credentials_saved': save_result['success']

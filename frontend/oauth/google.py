@@ -180,6 +180,11 @@ def register_google_routes(app):
         }
         session['user_id'] = user_id  # Also set user_id directly for auto-import
         
+        # Mark Google platform as connected in session
+        session['platform_google_connected'] = True
+        session['platform_google_last_sync'] = datetime.utcnow().isoformat()
+        print(f"[OAUTH] Google platform marked as connected in session for user {user_id}")
+        
         # Railway 배포 환경에 맞게 수정
         base_url = os.getenv('BASE_URL', 'http://127.0.0.1:5003')
         return redirect(f'{base_url}/dashboard?from_oauth=google')

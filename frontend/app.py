@@ -6027,7 +6027,12 @@ def get_all_platform_status():
         for platform in platforms:
             # Google Calendar 전용 연결 상태 확인 로직
             if platform == 'google':
-                connected = check_google_calendar_connection(user_id)
+                # Check database tokens AND session state
+                db_connected = check_google_calendar_connection(user_id)
+                session_connected = session.get(f'platform_{platform}_connected', False)
+                # Connected if either database has tokens OR session says connected
+                connected = db_connected or session_connected
+                print(f"[PLATFORM-STATUS] Google connection - DB: {db_connected}, Session: {session_connected}, Final: {connected}")
             else:
                 # 다른 플랫폼은 기존 세션 기반 확인
                 session_key = f'platform_{platform}_connected'
@@ -6052,12 +6057,31 @@ def get_all_platform_status():
         }), 500
 
 def check_google_calendar_connection(user_id):
-    """Google Calendar OAuth 토큰 존재 여부로 연결 상태 확인 - DISABLED to prevent auto-reconnection"""
+    """Google Calendar OAuth 토큰 존재 여부로 연결 상태 확인"""
     print(f"[DEBUG] check_google_calendar_connection called for user {user_id}")
     
-    # DISABLED: Always return False to prevent auto-reconnection loop
-    print("Google Calendar connection check DISABLED to prevent auto-reconnection loop")
-    return False
+    try:
+        # Check if user has OAuth tokens in database
+        supabase_client = get_supabase()
+        if not supabase_client:
+            print("[DEBUG] No Supabase client available")
+            return False
+        
+        # Check oauth_tokens table for Google tokens
+        oauth_result = supabase_client.table('oauth_tokens').select('access_token, refresh_token').eq('user_id', user_id).eq('platform', 'google').execute()
+        
+        if oauth_result.data:
+            token_data = oauth_result.data[0]
+            has_tokens = bool(token_data.get('access_token') and token_data.get('refresh_token'))
+            print(f"[DEBUG] Google OAuth tokens found: {has_tokens}")
+            return has_tokens
+        else:
+            print("[DEBUG] No Google OAuth tokens found")
+            return False
+            
+    except Exception as e:
+        print(f"[DEBUG] Error checking Google connection: {e}")
+        return False
     
     # ORIGINAL CODE DISABLED TO PREVENT AUTO-RECONNECTION LOOP:
     # try:
