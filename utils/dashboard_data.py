@@ -116,16 +116,15 @@ class DashboardDataManager:
             if end_date is None:
                 end_date = start_date + timedelta(days=days_ahead)
             
-            # Build query
+            # Build query - using only existing columns
             query = self.supabase.table('calendar_events').select('''
                 id, title, description, start_datetime, end_datetime,
-                is_all_day, category, priority, status, source_platform,
-                location, attendees, created_at, updated_at, source_calendar_id
+                is_all_day, status, location, attendees, created_at, updated_at, calendar_id
             ''').eq('user_id', user_id).gte('start_datetime', start_date.isoformat()).lte('start_datetime', end_date.isoformat())
             
-            # Filter by calendar IDs if provided (using source_calendar_id instead)
+            # Filter by calendar IDs if provided
             if calendar_ids:
-                query = query.in_('source_calendar_id', calendar_ids)
+                query = query.in_('calendar_id', calendar_ids)
             
             result = query.order('start_datetime').execute()
             
