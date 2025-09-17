@@ -302,14 +302,17 @@ class NotionCalendarSync:
             # 3. 설명 추출
             description = self._extract_description(properties)
             
-            # 4. NotionFlow 이벤트 생성
+            # 4. 날짜/시간 정규화
+            start_date, end_date = self._normalize_datetime(date_info)
+            
+            # 5. NotionFlow 이벤트 생성
             event = {
                 'calendar_id': calendar_id,
                 'user_id': user_id,
                 'title': title,
                 'description': description or '',
-                'start_date': date_info['start'],
-                'end_date': date_info['end'],
+                'start_date': start_date,
+                'end_date': end_date,
                 'all_day': date_info.get('all_day', False),
                 'external_id': f"notion_{page['id']}",
                 'external_platform': 'notion',
@@ -372,6 +375,50 @@ class NotionCalendarSync:
         
         return None
     
+    def _normalize_datetime(self, date_info: Dict) -> tuple:
+        """날짜/시간을 정규화하고 검증"""
+        try:
+            start_str = date_info['start']
+            end_str = date_info['end']
+            
+            # ISO 형식 파싱
+            from datetime import datetime
+            import re
+            
+            # 시간 정보가 있는지 확인
+            has_time = 'T' in start_str
+            
+            if has_time:
+                # 시간 정보가 있는 경우
+                if '+' in start_str or 'Z' in start_str:
+                    # 이미 timezone 정보가 있음
+                    start_dt = datetime.fromisoformat(start_str.replace('Z', '+00:00'))
+                    end_dt = datetime.fromisoformat(end_str.replace('Z', '+00:00'))
+                else:
+                    # timezone 정보가 없으면 UTC로 가정
+                    start_dt = datetime.fromisoformat(start_str + '+00:00')
+                    end_dt = datetime.fromisoformat(end_str + '+00:00')
+            else:
+                # 날짜만 있는 경우 (종일 이벤트)
+                start_dt = datetime.fromisoformat(start_str + 'T00:00:00+00:00')
+                end_dt = datetime.fromisoformat(end_str + 'T23:59:59+00:00')
+            
+            # end_date가 start_date보다 이전이면 같은 날로 설정
+            if end_dt < start_dt:
+                end_dt = start_dt
+                if not has_time:
+                    # 종일 이벤트인 경우 하루 끝으로 설정
+                    end_dt = start_dt.replace(hour=23, minute=59, second=59)
+            
+            # ISO 형식으로 반환
+            return start_dt.isoformat(), end_dt.isoformat()
+            
+        except Exception as e:
+            print(f"❌ Error normalizing datetime: {e}")
+            # 기본값 반환
+            now = datetime.now(timezone.utc)
+            return now.isoformat(), now.isoformat()
+    
     def _extract_description(self, properties: Dict) -> Optional[str]:
         """페이지에서 설명 추출"""
         desc_keys = ['Description', 'Notes', '설명', '메모', 'Details', '상세', 'Content']
@@ -425,6 +472,7 @@ class NotionCalendarSync:
                     pass
             
             print(f"💾 [SAVE] Saving event: {db_event['title']}")
+            print(f"📅 [SAVE] Dates: {db_event['start_datetime']} → {db_event['end_datetime']}")
             print(f"📋 [SAVE] Event data: {db_event}")
             
             # 중복 체크 (user_id, external_id, source_platform로)
