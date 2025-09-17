@@ -782,22 +782,52 @@ def generic_oauth_callback(platform):
                     # Use admin/service role client to bypass RLS policies for OAuth token storage
                     service_supabase = config.supabase_admin if hasattr(config, 'supabase_admin') and config.supabase_admin else supabase
                     
+                    # 🔧 NEW APPROACH: Store tokens in calendar_sync_configs instead
+                    # This table doesn't have foreign key constraints and works for all users
                     try:
-                        # Check if oauth token already exists
-                        existing_oauth = supabase.table('oauth_tokens').select('*').eq('user_id', normalized_user_id).eq('platform', platform).execute()
+                        # Check if config already exists
+                        existing_config = supabase.table('calendar_sync_configs').select('*').eq('user_id', normalized_user_id).eq('platform', platform).execute()
                         
-                        if existing_oauth.data:
-                            # Update existing token
-                            supabase.table('oauth_tokens').update(oauth_token_data).eq('user_id', normalized_user_id).eq('platform', platform).execute()
-                            print(f"✅ Updated existing {platform} OAuth token for user {normalized_user_id}")
+                        # Prepare credentials data
+                        credentials_data = {
+                            'access_token': token_data['access_token'],
+                            'refresh_token': token_data.get('refresh_token'),
+                            'expires_at': oauth_token_data.get('expires_at'),
+                            'token_type': token_data.get('token_type', 'Bearer'),
+                            'scope': token_data.get('scope'),
+                            'stored_at': datetime.now().isoformat()
+                        }
+                        
+                        if existing_config.data:
+                            # Update existing config with new token
+                            update_data = {
+                                'credentials': credentials_data,
+                                'is_enabled': True,
+                                'connection_status': 'active',
+                                'last_sync_at': datetime.now().isoformat(),
+                                'updated_at': datetime.now().isoformat()
+                            }
+                            supabase.table('calendar_sync_configs').update(update_data).eq('user_id', normalized_user_id).eq('platform', platform).execute()
+                            print(f"✅ Updated {platform} token in calendar_sync_configs for user {normalized_user_id}")
                         else:
-                            # Create new token
-                            oauth_token_data['created_at'] = datetime.now().isoformat()
-                            supabase.table('oauth_tokens').insert(oauth_token_data).execute()
-                            print(f"✅ Created new {platform} OAuth token for user {normalized_user_id}")
+                            # Create new config with token
+                            new_config = {
+                                'user_id': normalized_user_id,
+                                'platform': platform,
+                                'credentials': credentials_data,
+                                'is_enabled': True,
+                                'connection_status': 'active',
+                                'sync_frequency_minutes': 15,
+                                'last_sync_at': datetime.now().isoformat(),
+                                'created_at': datetime.now().isoformat(),
+                                'updated_at': datetime.now().isoformat()
+                            }
+                            supabase.table('calendar_sync_configs').insert(new_config).execute()
+                            print(f"✅ Created {platform} token in calendar_sync_configs for user {normalized_user_id}")
+                            
                     except Exception as token_error:
-                        print(f"⚠️ Could not store OAuth token (continuing anyway): {token_error}")
-                        # Store token in session as fallback
+                        print(f"⚠️ Could not store token in calendar_sync_configs: {token_error}")
+                        # Store token in session as final fallback
                         if not session.get('platform_tokens'):
                             session['platform_tokens'] = {}
                         session['platform_tokens'][platform] = {
@@ -806,7 +836,7 @@ def generic_oauth_callback(platform):
                             'expires_at': oauth_token_data.get('expires_at'),
                             'stored_at': datetime.now().isoformat()
                         }
-                        print(f"💾 Stored {platform} token in session as fallback")
+                        print(f"💾 Stored {platform} token in session as final fallback")
                 
                 # 2. Store platform connection status (without tokens)
                 platform_connection_data = {

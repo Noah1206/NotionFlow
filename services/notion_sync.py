@@ -89,15 +89,18 @@ class NotionCalendarSync:
                 print("❌ Supabase client not available")
                 return None
             
-            # 1. oauth_tokens 테이블에서 검색 (OAuth 토큰 저장 전용 테이블)
-            oauth_result = supabase.table('oauth_tokens').select('access_token').eq(
+            # 1. calendar_sync_configs 테이블에서 검색 (새로운 주요 저장소)
+            config_result = supabase.table('calendar_sync_configs').select('credentials').eq(
                 'user_id', user_id
             ).eq('platform', 'notion').execute()
             
-            if oauth_result.data and oauth_result.data[0].get('access_token'):
-                token = oauth_result.data[0].get('access_token')
-                print(f"✅ Found Notion token in oauth_tokens: {token[:20]}...")
-                return token
+            if config_result.data:
+                creds = config_result.data[0].get('credentials', {})
+                if isinstance(creds, dict):
+                    token = creds.get('access_token')
+                    if token:
+                        print(f"✅ Found Notion token in calendar_sync_configs: {token[:20]}...")
+                        return token
             
             # 2. platform_connections 테이블에서 검색 (백업 - access_token 컬럼이 없을 수 있음)
             try:
@@ -111,18 +114,18 @@ class NotionCalendarSync:
             except:
                 pass
             
-            # 3. calendar_sync_configs에서 검색 (백업)
-            config_result = supabase.table('calendar_sync_configs').select('credentials').eq(
-                'user_id', user_id
-            ).eq('platform', 'notion').execute()
-            
-            if config_result.data:
-                creds = config_result.data[0].get('credentials', {})
-                if isinstance(creds, dict):
-                    token = creds.get('access_token') or creds.get('api_key')
-                    if token:
-                        print(f"✅ Found Notion token in calendar_sync_configs: {token[:20]}...")
-                        return token
+            # 3. oauth_tokens 테이블에서 검색 (백업 - 외래키 제약조건 문제 있을 수 있음)
+            try:
+                oauth_result = supabase.table('oauth_tokens').select('access_token').eq(
+                    'user_id', user_id
+                ).eq('platform', 'notion').execute()
+                
+                if oauth_result.data and oauth_result.data[0].get('access_token'):
+                    token = oauth_result.data[0].get('access_token')
+                    print(f"✅ Found Notion token in oauth_tokens (backup): {token[:20]}...")
+                    return token
+            except Exception as oauth_error:
+                print(f"⚠️ Could not check oauth_tokens (expected due to constraints): {oauth_error}")
             
             # 4. Session fallback (if database storage failed)
             try:
