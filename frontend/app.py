@@ -4,7 +4,7 @@ import sys
 import json
 import uuid
 import requests
-from datetime import datetime as dt, timedelta, date
+from datetime import datetime, datetime as dt, timedelta, date, timezone
 from flask import Flask, render_template, render_template_string, redirect, url_for, request, jsonify, session
 from dotenv import load_dotenv
 
@@ -5446,6 +5446,7 @@ def import_events_from_notion(user_id: str, calendar_id: str) -> int:
     """Notion에서 이벤트를 가져와서 NodeFlow calendar_events 테이블에 저장"""
     import json
     import logging
+    from datetime import datetime, timezone
     
     # 로깅 설정
     logging.basicConfig(level=logging.INFO)
