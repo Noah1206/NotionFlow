@@ -73,3 +73,14 @@ frontend/data/calendars/*
 .tmp/
 .cache/
 .env.railway
+
+# Security - Cookie files
+cookies.txt
+**/cookies.txt
+
+# Test files
+test_*.py
+fix_*.py
+*_test.py
+*_old.py
+*_backup.py
