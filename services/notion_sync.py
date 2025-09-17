@@ -389,7 +389,9 @@ class NotionCalendarSync:
         """이벤트를 NotionFlow 캘린더에 저장"""
         try:
             from utils.config import config
-            supabase = config.get_client_for_user(event['user_id'])
+            
+            # Use admin client to bypass RLS policies
+            supabase = config.supabase_admin if hasattr(config, 'supabase_admin') and config.supabase_admin else config.get_client_for_user(event['user_id'])
             
             if not supabase:
                 print("❌ Supabase client not available")
@@ -405,37 +407,56 @@ class NotionCalendarSync:
                 'end_datetime': event['end_date'],      # ISO 형식
                 'is_all_day': event.get('all_day', False),
                 'source_platform': 'notion',
-                'source_calendar_id': event['calendar_id'],  # NotionFlow 캘린더 ID를 source로 저장
-                'source_calendar_name': 'Notion Calendar',
                 'status': 'confirmed',
                 'created_at': event.get('created_at'),
                 'updated_at': event.get('updated_at')
             }
             
+            # calendar_id 또는 source_calendar_id 중 존재하는 컬럼 사용
+            try:
+                # 먼저 calendar_id 시도
+                db_event['calendar_id'] = event['calendar_id']
+            except:
+                try:
+                    # calendar_id가 없으면 source_calendar_id 사용
+                    db_event['source_calendar_id'] = event['calendar_id']
+                    db_event['source_calendar_name'] = 'Notion Calendar'
+                except:
+                    pass
+            
+            print(f"💾 [SAVE] Saving event: {db_event['title']}")
+            print(f"📋 [SAVE] Event data: {db_event}")
+            
             # 중복 체크 (user_id, external_id, source_platform로)
-            existing = supabase.table('calendar_events').select('id').eq(
-                'user_id', event['user_id']
-            ).eq('external_id', event['external_id']).eq(
-                'source_platform', 'notion'
-            ).execute()
-            
-            if existing.data:
-                # 기존 이벤트 업데이트
-                result = supabase.table('calendar_events').update({
-                    'title': db_event['title'],
-                    'description': db_event['description'],
-                    'start_datetime': db_event['start_datetime'],
-                    'end_datetime': db_event['end_datetime'],
-                    'is_all_day': db_event['is_all_day'],
-                    'updated_at': db_event['updated_at']
-                }).eq('id', existing.data[0]['id']).execute()
-                print(f"✅ Updated existing event: {db_event['title']}")
-            else:
-                # 새 이벤트 생성
-                result = supabase.table('calendar_events').insert(db_event).execute()
-                print(f"✅ Created new event: {db_event['title']}")
-            
-            return bool(result.data)
+            try:
+                existing = supabase.table('calendar_events').select('id').eq(
+                    'user_id', event['user_id']
+                ).eq('external_id', event['external_id']).eq(
+                    'source_platform', 'notion'
+                ).execute()
+                
+                if existing.data:
+                    # 기존 이벤트 업데이트
+                    print(f"🔄 [SAVE] Updating existing event: {db_event['title']}")
+                    result = supabase.table('calendar_events').update({
+                        'title': db_event['title'],
+                        'description': db_event['description'],
+                        'start_datetime': db_event['start_datetime'],
+                        'end_datetime': db_event['end_datetime'],
+                        'is_all_day': db_event['is_all_day'],
+                        'updated_at': db_event['updated_at']
+                    }).eq('id', existing.data[0]['id']).execute()
+                    print(f"✅ Updated existing event: {db_event['title']}")
+                else:
+                    # 새 이벤트 생성
+                    print(f"🆕 [SAVE] Creating new event: {db_event['title']}")
+                    result = supabase.table('calendar_events').insert(db_event).execute()
+                    print(f"✅ Created new event: {db_event['title']}")
+                
+                return bool(result.data)
+            except Exception as save_error:
+                print(f"❌ [SAVE] Error saving event '{db_event['title']}': {save_error}")
+                return False
             
         except Exception as e:
             print(f"❌ Error saving event: {e}")

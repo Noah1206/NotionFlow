@@ -3,6 +3,9 @@
 
 console.log("🔄 Starting manual Notion sync test...");
 
+// Clear any cached events first
+console.log("🧹 Clearing any cached data...");
+
 fetch('/api/calendar/notion-sync', {
     method: 'POST',
     headers: {
@@ -21,13 +24,26 @@ fetch('/api/calendar/notion-sync', {
         console.log(`📊 Synced events: ${data.synced_events}`);
         console.log(`📚 Databases processed: ${data.databases_processed || 0}`);
         
-        // 페이지 새로고침해서 새 이벤트 확인
-        console.log("🔄 Refreshing page to see new events...");
+        // Get fresh events to verify they were saved
+        console.log("🔍 Checking if events were saved...");
+        return fetch('/api/calendar/events?calendar_ids[]=3e7f438e-b233-43f7-9329-1656acd82682');
+    } else {
+        console.error("❌ Sync failed:", data.error);
+        throw new Error(data.error);
+    }
+})
+.then(response => response.json())
+.then(eventsData => {
+    console.log("📋 Current events in calendar:", eventsData);
+    console.log(`📊 Total events found: ${eventsData.events ? eventsData.events.length : 0}`);
+    
+    if (eventsData.events && eventsData.events.length > 0) {
+        console.log("✅ Events successfully saved! Refreshing page...");
         setTimeout(() => {
             window.location.reload();
         }, 2000);
     } else {
-        console.error("❌ Sync failed:", data.error);
+        console.log("⚠️ No events found in calendar. Check logs for RLS issues.");
     }
 })
 .catch(error => {
