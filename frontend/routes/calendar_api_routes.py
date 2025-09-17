@@ -54,10 +54,31 @@ def get_calendar_events():
         calendar_ids = request.args.getlist('calendar_ids[]')
         days_ahead = int(request.args.get('days_ahead', 30))
         
+        # Notion 동기화 체크 및 실행 (첫 번째 캘린더에 대해서만)
+        if calendar_ids and len(calendar_ids) > 0:
+            try:
+                import sys
+                import os
+                sys.path.append(os.path.join(os.path.dirname(__file__), '../../backend'))
+                from services.notion_sync_service import notion_sync_service
+                
+                # Notion 토큰 확인
+                token = notion_sync_service.get_user_notion_token(user_id)
+                if token:
+                    print(f"[NOTION AUTO-SYNC] Triggering sync for calendar {calendar_ids[0]}")
+                    # 동기 실행 (빠른 응답을 위해 백그라운드로 하지 않음)
+                    result = notion_sync_service.sync_notion_to_calendar(user_id, calendar_ids[0])
+                    if result['success']:
+                        print(f"[NOTION AUTO-SYNC] ✅ Synced {result['results'].get('synced_events', 0)} events")
+                    else:
+                        print(f"[NOTION AUTO-SYNC] ❌ Sync failed: {result.get('error')}")
+            except Exception as sync_error:
+                print(f"[NOTION AUTO-SYNC] Error during sync: {sync_error}")
+        
         if not dashboard_data:
             return jsonify({'error': 'Dashboard data manager not available'}), 500
         
-        # Get events for selected calendars
+        # Get events for selected calendars (now includes Notion-synced events)
         events = dashboard_data.get_user_calendar_events(
             user_id=user_id,
             days_ahead=days_ahead,

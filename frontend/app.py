@@ -23,6 +23,7 @@ load_dotenv(os.path.join(os.path.dirname(__file__), '../.env'))
 
 # Add current directory to path to import backend services and utils
 sys.path.append(os.path.dirname(__file__))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 
 # ===== 비동기 모듈 로딩 시스템 =====
 import threading
@@ -754,6 +755,44 @@ def calendar_view(calendar_id):
     
     if not user_id:
         return redirect(f'/login?from=calendar/{calendar_id}/view')
+    
+    # Notion 동기화 트리거 (백그라운드)
+    try:
+        # Notion 연결 확인
+        from utils.config import get_supabase_admin
+        supabase = get_supabase_admin()
+        
+        # Notion 토큰 확인
+        notion_config = supabase.table('calendar_sync_configs').select('*').eq(
+            'user_id', user_id
+        ).eq('platform', 'notion').execute()
+        
+        if notion_config.data and notion_config.data[0].get('is_enabled'):
+            # 백그라운드 동기화 실행
+            import threading
+            from backend.services.notion_sync_service import notion_sync_service
+            
+            def sync_notion_background():
+                try:
+                    print(f"[NOTION SYNC] Starting background sync for calendar {calendar_id}")
+                    result = notion_sync_service.sync_notion_to_calendar(user_id, calendar_id)
+                    if result['success']:
+                        print(f"[NOTION SYNC] ✅ Synced {result['results'].get('synced_events', 0)} events")
+                    else:
+                        print(f"[NOTION SYNC] ❌ Sync failed: {result.get('error')}")
+                except Exception as e:
+                    print(f"[NOTION SYNC] Error in background sync: {e}")
+            
+            # 스레드로 백그라운드 동기화 실행
+            sync_thread = threading.Thread(target=sync_notion_background)
+            sync_thread.daemon = True
+            sync_thread.start()
+            print(f"[NOTION SYNC] Background sync initiated for user {user_id}")
+        else:
+            print(f"[NOTION SYNC] Notion not enabled for user {user_id}")
+            
+    except Exception as e:
+        print(f"[NOTION SYNC] Error checking Notion connection: {e}")
     
     # 캘린더 뷰 페이지로 렌더링
     return render_template('calendar_view.html', calendar_id=calendar_id)
@@ -5209,8 +5248,25 @@ def sync_calendar():
             print(f"[WARNING] Sync database operation failed, using session only: {sync_error}")
         
         # 연동 성공 (DB 저장 실패해도 세션에는 저장됨)
-        # 기존 일정 동기화 처리
+        # Notion에서 NodeFlow로 이벤트 가져오기 (Import)
         synced_events_count = 0
+        imported_events_count = 0
+        
+        # 1. 외부 플랫폼에서 이벤트 가져오기 (Import)
+        if platform == 'notion':
+            try:
+                imported_events_count = import_events_from_notion(user_id, calendar_id)
+                print(f"Imported {imported_events_count} events from Notion")
+            except Exception as e:
+                print(f"Error importing events from Notion: {e}")
+        elif platform == 'google':
+            try:
+                imported_events_count = import_events_from_google(user_id, calendar_id)
+                print(f"Imported {imported_events_count} events from Google Calendar")
+            except Exception as e:
+                print(f"Error importing events from Google: {e}")
+        
+        # 2. 기존 NodeFlow 일정을 외부 플랫폼으로 내보내기 (Export)
         if sync_existing and existing_events:
             try:
                 print(f"Starting sync of {len(existing_events)} existing events to {platform}")
@@ -5250,6 +5306,7 @@ def sync_calendar():
             'calendar_name': calendar['name'],
             'platform': platform,
             'synced_events_count': synced_events_count,
+            'imported_events_count': imported_events_count,
             'total_events': len(existing_events) if existing_events else 0,
             'db_saved': sync_saved_to_db
         }), 200
@@ -5257,6 +5314,630 @@ def sync_calendar():
     except Exception as e:
         print(f"Error syncing calendar: {e}")
         return jsonify({'error': 'Failed to sync calendar'}), 500
+
+@app.route('/api/debug/import-logs', methods=['GET'])
+def get_import_logs():
+    """디버그 로그 조회 API"""
+    try:
+        import os
+        import json
+        from pathlib import Path
+        
+        user_id = get_current_user_id()
+        if not user_id:
+            return jsonify({'error': 'Not authenticated'}), 401
+        
+        # logs 디렉토리 확인
+        log_dir = Path('logs')
+        if not log_dir.exists():
+            return jsonify({
+                'logs': [],
+                'message': 'No logs directory found'
+            }), 200
+        
+        # 로그 파일 목록 가져오기 (최신순)
+        log_files = []
+        user_prefix = user_id[:8]  # 사용자 ID 앞 8자리
+        
+        for log_file in log_dir.glob(f'import_*_{user_prefix}_*.json'):
+            try:
+                with open(log_file, 'r', encoding='utf-8') as f:
+                    log_data = json.load(f)
+                
+                # 파일 정보 추가
+                file_stat = log_file.stat()
+                log_data['log_file'] = {
+                    'filename': log_file.name,
+                    'size': file_stat.st_size,
+                    'created': file_stat.st_mtime
+                }
+                
+                log_files.append(log_data)
+                
+            except Exception as e:
+                print(f"Error reading log file {log_file}: {e}")
+                continue
+        
+        # 타임스탬프 기준으로 최신순 정렬
+        log_files.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+        
+        # 최대 20개 파일만 반환
+        log_files = log_files[:20]
+        
+        return jsonify({
+            'logs': log_files,
+            'total_count': len(log_files),
+            'user_id_prefix': user_prefix
+        }), 200
+        
+    except Exception as e:
+        print(f"Error fetching import logs: {e}")
+        return jsonify({'error': 'Failed to fetch logs'}), 500
+
+@app.route('/api/debug/import-logs/<filename>', methods=['GET'])  
+def get_import_log_detail(filename):
+    """특정 로그 파일 상세 조회"""
+    try:
+        import os
+        import json
+        from pathlib import Path
+        
+        user_id = get_current_user_id()
+        if not user_id:
+            return jsonify({'error': 'Not authenticated'}), 401
+        
+        # 보안 검증: 사용자의 로그 파일만 접근 가능
+        user_prefix = user_id[:8]
+        if user_prefix not in filename:
+            return jsonify({'error': 'Access denied'}), 403
+        
+        log_file = Path('logs') / filename
+        if not log_file.exists():
+            return jsonify({'error': 'Log file not found'}), 404
+        
+        with open(log_file, 'r', encoding='utf-8') as f:
+            log_data = json.load(f)
+        
+        return jsonify(log_data), 200
+        
+    except Exception as e:
+        print(f"Error fetching log detail: {e}")
+        return jsonify({'error': 'Failed to fetch log detail'}), 500
+
+@app.route('/debug/logs')
+def debug_logs_page():
+    """디버그 로그 페이지"""
+    user_id = get_current_user_id()
+    if not user_id:
+        return redirect('/login')
+    return render_template('debug-logs.html')
+
+def save_import_log(debug_data):
+    """디버그 데이터를 JSON 파일로 저장"""
+    import os
+    import json
+    from datetime import datetime
+    
+    try:
+        # logs 디렉토리 생성
+        log_dir = 'logs'
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+        
+        # 파일명 생성 (타임스탬프 기반)
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        platform = debug_data.get('platform', 'unknown')
+        user_id = debug_data.get('user_id', 'unknown')[:8]  # 앞 8자리만
+        
+        filename = f"{log_dir}/import_{platform}_{user_id}_{timestamp}.json"
+        
+        # JSON 파일로 저장
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(debug_data, f, indent=2, ensure_ascii=False, default=str)
+        
+        print(f"📄 Import log saved: {filename}")
+        return filename
+        
+    except Exception as e:
+        print(f"Failed to save import log: {e}")
+        return None
+
+def import_events_from_notion(user_id: str, calendar_id: str) -> int:
+    """Notion에서 이벤트를 가져와서 NodeFlow calendar_events 테이블에 저장"""
+    import json
+    import logging
+    
+    # 로깅 설정
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger('NotionImport')
+    
+    # 디버그 데이터를 저장할 리스트
+    debug_data = {
+        'timestamp': datetime.now().isoformat(),
+        'user_id': user_id,
+        'calendar_id': calendar_id,
+        'platform': 'notion',
+        'databases_found': [],
+        'events_imported': [],
+        'api_responses': [],
+        'errors': [],
+        'step_logs': []
+    }
+    
+    try:
+        # 1. Notion API 키 가져오기
+        supabase_client = get_supabase()
+        if not supabase_client:
+            error_msg = "No Supabase client available"
+            logger.error(error_msg)
+            debug_data['errors'].append(error_msg)
+            save_import_log(debug_data)
+            return 0
+            
+        # calendar_sync_configs에서 Notion API 키 조회
+        config_response = supabase_client.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', 'notion').execute()
+        
+        if not config_response.data:
+            error_msg = "No Notion configuration found"
+            logger.error(error_msg)
+            debug_data['errors'].append(error_msg)
+            debug_data['step_logs'].append('❌ Configuration lookup failed')
+            save_import_log(debug_data)
+            return 0
+            
+        notion_config = config_response.data[0]
+        credentials = notion_config.get('credentials', {})
+        api_key = credentials.get('api_key')
+        
+        debug_data['step_logs'].append('✅ Configuration found')
+        debug_data['api_responses'].append({
+            'step': 'config_lookup',
+            'response': notion_config
+        })
+        
+        if not api_key:
+            error_msg = "No Notion API key found in credentials"
+            logger.error(error_msg)
+            debug_data['errors'].append(error_msg)
+            debug_data['step_logs'].append('❌ API key missing')
+            save_import_log(debug_data)
+            return 0
+        
+        logger.info(f"Found Notion API key, importing events...")
+        debug_data['step_logs'].append('✅ API key retrieved')
+        
+        # 2. Notion API로 데이터베이스 조회
+        import requests
+        headers = {
+            'Authorization': f'Bearer {api_key}',
+            'Notion-Version': '2022-06-28',
+            'Content-Type': 'application/json'
+        }
+        
+        # 데이터베이스 검색
+        debug_data['step_logs'].append('🔍 Searching Notion databases...')
+        
+        search_response = requests.post(
+            'https://api.notion.com/v1/search',
+            headers=headers,
+            json={
+                "filter": {
+                    "property": "object",
+                    "value": "database"
+                }
+            }
+        )
+        
+        if search_response.status_code != 200:
+            error_msg = f"Failed to search Notion databases: {search_response.status_code} - {search_response.text}"
+            logger.error(error_msg)
+            debug_data['errors'].append(error_msg)
+            debug_data['step_logs'].append('❌ Database search failed')
+            debug_data['api_responses'].append({
+                'step': 'database_search',
+                'status_code': search_response.status_code,
+                'response_text': search_response.text
+            })
+            save_import_log(debug_data)
+            return 0
+            
+        databases = search_response.json().get('results', [])
+        logger.info(f"Found {len(databases)} Notion databases")
+        debug_data['step_logs'].append(f'✅ Found {len(databases)} databases')
+        debug_data['api_responses'].append({
+            'step': 'database_search',
+            'status_code': search_response.status_code,
+            'databases_count': len(databases),
+            'raw_response': search_response.json()
+        })
+        
+        total_imported = 0
+        
+        # 3. 각 데이터베이스에서 날짜 필드가 있는 것을 찾아서 이벤트 가져오기
+        for database in databases:
+            db_id = database['id']
+            db_title = database.get('title', [{}])[0].get('plain_text', 'Untitled')
+            
+            logger.info(f"Checking database: {db_title}")
+            debug_data['step_logs'].append(f'📋 Analyzing database: {db_title}')
+            
+            # 데이터베이스 정보 저장
+            db_info = {
+                'id': db_id,
+                'title': db_title,
+                'properties': {},
+                'has_date_field': False,
+                'events_found': 0
+            }
+            debug_data['databases_found'].append(db_info)
+            
+            # 데이터베이스 속성 확인
+            debug_data['step_logs'].append(f'🔍 Checking properties of {db_title}')
+            properties = database.get('properties', {})
+            date_property = None
+            title_property = None
+            
+            for prop_name, prop_info in properties.items():
+                db_info['properties'][prop_name] = prop_info.get('type')
+                if prop_info.get('type') == 'date':
+                    date_property = prop_name
+                if prop_info.get('type') == 'title':
+                    title_property = prop_name
+            
+            if not date_property or not title_property:
+                skip_reason = f"Missing required properties - date: {bool(date_property)}, title: {bool(title_property)}"
+                logger.warning(f"  Skipping {db_title}: {skip_reason}")
+                debug_data['step_logs'].append(f"⚠️ Skipped {db_title}: {skip_reason}")
+                continue
+                
+            db_info['has_date_field'] = True
+            logger.info(f"  Found date property: {date_property}, title property: {title_property}")
+            debug_data['step_logs'].append(f"✅ {db_title} has required properties: {date_property} (date), {title_property} (title)")
+            
+            # 4. 데이터베이스에서 페이지 조회
+            debug_data['step_logs'].append(f"🔍 Querying events from {db_title}...")
+            
+            query_response = requests.post(
+                f'https://api.notion.com/v1/databases/{db_id}/query',
+                headers=headers,
+                json={
+                    "filter": {
+                        "property": date_property,
+                        "date": {
+                            "is_not_empty": True
+                        }
+                    }
+                }
+            )
+            
+            debug_data['api_responses'].append({
+                'step': f'query_database_{db_title}',
+                'database_id': db_id,
+                'status_code': query_response.status_code,
+                'query_filter': {
+                    "property": date_property,
+                    "date": {"is_not_empty": True}
+                },
+                'response': query_response.json() if query_response.status_code == 200 else query_response.text
+            })
+            
+            if query_response.status_code != 200:
+                error_msg = f"Failed to query database {db_title}: {query_response.status_code} - {query_response.text}"
+                logger.error(f"  {error_msg}")
+                debug_data['errors'].append(error_msg)
+                debug_data['step_logs'].append(f"❌ Query failed for {db_title}")
+                continue
+                
+            pages = query_response.json().get('results', [])
+            logger.info(f"  Found {len(pages)} pages with dates")
+            debug_data['step_logs'].append(f"📄 Found {len(pages)} events in {db_title}")
+            db_info['events_found'] = len(pages)
+            
+            # 5. 각 페이지를 이벤트로 변환해서 저장
+            for page in pages:
+                try:
+                    page_id = page['id']
+                    properties = page.get('properties', {})
+                    
+                    # 제목 추출
+                    title_prop = properties.get(title_property, {})
+                    title_texts = title_prop.get('title', [])
+                    title = title_texts[0].get('plain_text', 'Untitled') if title_texts else 'Untitled'
+                    
+                    # 날짜 추출
+                    date_prop = properties.get(date_property, {})
+                    date_info = date_prop.get('date', {})
+                    
+                    # 이벤트 정보 로깅
+                    event_data = {
+                        'page_id': page_id,
+                        'title': title,
+                        'date_info': date_info,
+                        'raw_properties': properties
+                    }
+                    
+                    if not date_info:
+                        debug_data['step_logs'].append(f"⚠️ Skipped '{title}': no date info")
+                        continue
+                        
+                    start_date = date_info.get('start')
+                    end_date = date_info.get('end') or start_date
+                    
+                    if not start_date:
+                        debug_data['step_logs'].append(f"⚠️ Skipped '{title}': no start date")
+                        continue
+                    
+                    # 시간 정보 확인
+                    is_all_day = 'T' not in start_date
+                    
+                    if is_all_day:
+                        start_datetime = f"{start_date}T09:00:00Z"
+                        end_datetime = f"{end_date}T10:00:00Z"
+                    else:
+                        start_datetime = start_date
+                        end_datetime = end_date
+                        
+                    event_data.update({
+                        'start_datetime': start_datetime,
+                        'end_datetime': end_datetime,
+                        'is_all_day': is_all_day
+                    })
+                    
+                    debug_data['step_logs'].append(f"📅 Processing event: '{title}' on {start_date}")
+                    logger.info(f"    Processing event: {title} - {start_datetime} to {end_datetime}")
+                    
+                    # 기존 이벤트 확인 (중복 방지)
+                    debug_data['step_logs'].append(f"🔍 Checking for duplicates of '{title}'...")
+                    existing_check = supabase_client.table('calendar_events').select('id').eq('user_id', user_id).eq('title', title).eq('start_datetime', start_datetime).execute()
+                    
+                    if existing_check.data:
+                        logger.info(f"    Skipping duplicate: {title}")
+                        debug_data['step_logs'].append(f"⚠️ Skipped '{title}': already exists")
+                        event_data['duplicate'] = True
+                        continue
+                    
+                    event_data['duplicate'] = False
+                    
+                    # 이벤트 데이터 생성
+                    event_insert_data = {
+                        'user_id': user_id,
+                        'calendar_id': calendar_id,
+                        'title': title,
+                        'description': f'Notion에서 가져온 이벤트 (DB: {db_title})',
+                        'start_datetime': start_datetime,
+                        'end_datetime': end_datetime,
+                        'is_all_day': is_all_day,
+                        'status': 'confirmed',
+                        'created_at': datetime.now().isoformat(),
+                        'updated_at': datetime.now().isoformat()
+                    }
+                    
+                    event_data['insert_data'] = event_insert_data
+                    debug_data['step_logs'].append(f"💾 Saving event '{title}' to database...")
+                    
+                    # 데이터베이스에 저장
+                    result = supabase_client.table('calendar_events').insert(event_insert_data).execute()
+                    
+                    if result.data:
+                        total_imported += 1
+                        logger.info(f"    ✅ Imported: {title} on {start_date}")
+                        debug_data['step_logs'].append(f"✅ Successfully imported '{title}'")
+                        event_data['import_success'] = True
+                        event_data['database_result'] = result.data[0] if result.data else None
+                    else:
+                        error_msg = f"Failed to save event '{title}' to database"
+                        logger.error(f"    ❌ {error_msg}")
+                        debug_data['step_logs'].append(f"❌ Failed to save '{title}'")
+                        debug_data['errors'].append(error_msg)
+                        event_data['import_success'] = False
+                        event_data['database_error'] = str(result)
+                        
+                    debug_data['events_imported'].append(event_data)
+                        
+                except Exception as page_error:
+                    error_msg = f"Error processing page {page.get('id', 'unknown')}: {str(page_error)}"
+                    logger.error(f"    {error_msg}")
+                    debug_data['errors'].append(error_msg)
+                    debug_data['step_logs'].append(f"❌ Error processing event: {str(page_error)}")
+                    continue
+        
+        # 최종 결과 로깅
+        logger.info(f"Total imported events: {total_imported}")
+        debug_data['step_logs'].append(f"🎉 Import completed: {total_imported} events imported")
+        debug_data['success'] = total_imported > 0
+        debug_data['total_imported'] = total_imported
+        
+        # 로그 저장
+        save_import_log(debug_data)
+        
+        return total_imported
+        
+    except Exception as e:
+        error_msg = f"Critical error importing from Notion: {str(e)}"
+        logger.error(error_msg)
+        debug_data['errors'].append(error_msg)
+        debug_data['step_logs'].append(f"💥 Critical error: {str(e)}")
+        debug_data['success'] = False
+        
+        # 오류 로그도 저장
+        save_import_log(debug_data)
+        return 0
+
+def import_events_from_google(user_id: str, calendar_id: str) -> int:
+    """Google Calendar에서 이벤트를 가져와서 NodeFlow calendar_events 테이블에 저장"""
+    import json
+    import logging
+    
+    # 로깅 설정
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger('GoogleImport')
+    
+    # 디버그 데이터를 저장할 객체
+    debug_data = {
+        'timestamp': datetime.now().isoformat(),
+        'user_id': user_id,
+        'calendar_id': calendar_id,
+        'platform': 'google',
+        'calendars_found': [],
+        'events_imported': [],
+        'api_responses': [],
+        'errors': [],
+        'step_logs': []
+    }
+    
+    try:
+        # 1. Google OAuth 토큰 가져오기
+        debug_data['step_logs'].append('🔐 Getting Google OAuth token...')
+        supabase_client = get_supabase()
+        if not supabase_client:
+            error_msg = "No Supabase client available"
+            logger.error(error_msg)
+            debug_data['errors'].append(error_msg)
+            debug_data['step_logs'].append('❌ Supabase client unavailable')
+            save_import_log(debug_data)
+            return 0
+            
+        # oauth_tokens 테이블에서 Google 토큰 조회
+        token_response = supabase_client.table('oauth_tokens').select('*').eq('user_id', user_id).eq('platform', 'google').execute()
+        
+        if not token_response.data:
+            error_msg = "No Google OAuth token found"
+            logger.error(error_msg)
+            debug_data['errors'].append(error_msg)
+            debug_data['step_logs'].append('❌ OAuth token not found')
+            save_import_log(debug_data)
+            return 0
+            
+        debug_data['step_logs'].append('✅ OAuth token retrieved')
+        debug_data['api_responses'].append({
+            'step': 'token_lookup',
+            'response': token_response.data[0]
+        })
+            
+        google_token = token_response.data[0]
+        access_token = google_token.get('access_token')
+        refresh_token = google_token.get('refresh_token')
+        
+        if not access_token:
+            print("No Google access token found")
+            return 0
+        
+        print(f"Found Google OAuth token, importing events...")
+        
+        # 2. Google Calendar API로 이벤트 조회
+        import requests
+        from datetime import datetime, timedelta
+        
+        headers = {
+            'Authorization': f'Bearer {access_token}',
+            'Accept': 'application/json'
+        }
+        
+        # 시간 범위 설정 (과거 30일부터 미래 90일까지)
+        time_min = (datetime.now() - timedelta(days=30)).isoformat() + 'Z'
+        time_max = (datetime.now() + timedelta(days=90)).isoformat() + 'Z'
+        
+        # Google Calendar API로 이벤트 조회
+        events_url = f'https://www.googleapis.com/calendar/v3/calendars/primary/events'
+        params = {
+            'timeMin': time_min,
+            'timeMax': time_max,
+            'maxResults': 100,
+            'singleEvents': True,
+            'orderBy': 'startTime'
+        }
+        
+        events_response = requests.get(events_url, headers=headers, params=params)
+        
+        if events_response.status_code == 401:
+            print("Google token expired, need to refresh")
+            # TODO: Implement token refresh logic
+            return 0
+        
+        if events_response.status_code != 200:
+            print(f"Failed to get Google Calendar events: {events_response.status_code}")
+            print(f"Response: {events_response.text}")
+            return 0
+            
+        events_data = events_response.json()
+        events = events_data.get('items', [])
+        print(f"Found {len(events)} Google Calendar events")
+        
+        total_imported = 0
+        
+        # 3. 각 이벤트를 NodeFlow에 저장
+        for event in events:
+            try:
+                event_id = event.get('id')
+                summary = event.get('summary', 'Untitled Event')
+                description = event.get('description', '')
+                location = event.get('location', '')
+                
+                # 시작/종료 시간 처리
+                start = event.get('start', {})
+                end = event.get('end', {})
+                
+                # 종일 이벤트 vs 시간 지정 이벤트
+                if 'dateTime' in start:
+                    start_datetime = start['dateTime']
+                    end_datetime = end.get('dateTime', start_datetime)
+                    is_all_day = False
+                elif 'date' in start:
+                    # 종일 이벤트
+                    start_date = start['date']
+                    end_date = end.get('date', start_date)
+                    start_datetime = f"{start_date}T00:00:00Z"
+                    end_datetime = f"{end_date}T23:59:59Z"
+                    is_all_day = True
+                else:
+                    continue
+                
+                # 기존 이벤트 확인 (중복 방지)
+                existing_check = supabase_client.table('calendar_events').select('id').eq('user_id', user_id).eq('title', summary).eq('start_datetime', start_datetime).execute()
+                
+                if existing_check.data:
+                    print(f"  Skipping duplicate: {summary}")
+                    continue
+                
+                # 참석자 정보
+                attendees = event.get('attendees', [])
+                attendee_emails = [a.get('email') for a in attendees if a.get('email')]
+                
+                # 이벤트 데이터 생성
+                event_data = {
+                    'user_id': user_id,
+                    'calendar_id': calendar_id,
+                    'title': summary,
+                    'description': description,
+                    'location': location,
+                    'start_datetime': start_datetime,
+                    'end_datetime': end_datetime,
+                    'is_all_day': is_all_day,
+                    'status': event.get('status', 'confirmed'),
+                    'attendees': attendee_emails,
+                    'created_at': datetime.now().isoformat(),
+                    'updated_at': datetime.now().isoformat()
+                }
+                
+                # 데이터베이스에 저장
+                result = supabase_client.table('calendar_events').insert(event_data).execute()
+                
+                if result.data:
+                    total_imported += 1
+                    print(f"  ✅ Imported: {summary} on {start_datetime[:10]}")
+                else:
+                    print(f"  ❌ Failed to save: {summary}")
+                    
+            except Exception as event_error:
+                print(f"  Error processing event: {event_error}")
+                continue
+        
+        print(f"Total imported events from Google: {total_imported}")
+        return total_imported
+        
+    except Exception as e:
+        print(f"Error importing events from Google: {e}")
+        return 0
 
 @app.route('/api/google-calendar/events', methods=['GET'])
 def get_google_calendar_events():
@@ -6109,6 +6790,16 @@ def check_google_calendar_connection(user_id):
 # (Cache control functions already defined above with proper decorators)
 
 if __name__ == '__main__':
+    # Register Notion sync routes
+    try:
+        from routes.notion_sync_routes import notion_sync_bp
+        app.register_blueprint(notion_sync_bp)
+        print("[SUCCESS] Notion sync routes registered")
+    except ImportError as e:
+        print(f"[WARNING] Notion sync routes not available: {e}")
+    except Exception as e:
+        print(f"[ERROR] Failed to register Notion sync routes: {e}")
+    
     # Start sync scheduler (if available)
     try:
         from utils.sync_scheduler import start_sync_scheduler
