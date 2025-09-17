@@ -1802,7 +1802,7 @@ def delete_calendar(calendar_id):
                 
                 # Also delete associated events
                 print(f"[DELETE] Deleting associated events...")
-                events_result = dashboard_data.admin_client.table('calendar_events').delete().eq('user_id', user_id).eq('calendar_id', calendar_id).execute()
+                events_result = dashboard_data.admin_client.table('calendar_events').delete().eq('user_id', user_id).eq('source_calendar_id', calendar_id).execute()
                 print(f"[DELETE] Events delete result: {events_result}")
                 
                 print("[SUCCESS] Calendar deletion completed successfully")

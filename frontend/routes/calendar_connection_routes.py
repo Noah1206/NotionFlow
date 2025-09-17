@@ -497,7 +497,7 @@ def auto_import_google_events(user_id, calendar_id):
         for event in google_events:
             try:
                 # Check if event already exists
-                existing_event = supabase.table('calendar_events').select('*').eq('user_id', user_id).eq('calendar_id', calendar_id).eq('external_event_id', event.get('id')).execute()
+                existing_event = supabase.table('calendar_events').select('*').eq('user_id', user_id).eq('source_calendar_id', calendar_id).eq('external_id', event.get('id')).execute()
                 
                 if existing_event.data:
                     continue  # Skip if event already exists

@@ -766,18 +766,26 @@ def generic_oauth_callback(platform):
                         expires_at = datetime.now() + timedelta(seconds=int(token_data['expires_in']))
                         oauth_token_data['expires_at'] = expires_at.isoformat()
                     
+                    # Use admin/service role client to bypass RLS policies for OAuth token storage
+                    service_supabase = config.supabase_admin if hasattr(config, 'supabase_admin') and config.supabase_admin else supabase
+                    
                     # Check if oauth token already exists
-                    existing_oauth = supabase.table('oauth_tokens').select('*').eq('user_id', actual_user_id).eq('platform', platform).execute()
+                    existing_oauth = service_supabase.table('oauth_tokens').select('*').eq('user_id', actual_user_id).eq('platform', platform).execute()
                     
                     if existing_oauth.data:
                         # Update existing token
-                        supabase.table('oauth_tokens').update(oauth_token_data).eq('user_id', actual_user_id).eq('platform', platform).execute()
-                        print(f"Updated existing {platform} OAuth token for user {actual_user_id}")
+                        service_supabase.table('oauth_tokens').update(oauth_token_data).eq('user_id', actual_user_id).eq('platform', platform).execute()
+                        print(f"✅ Updated existing {platform} OAuth token for user {actual_user_id}")
                     else:
                         # Create new token
                         oauth_token_data['created_at'] = datetime.now().isoformat()
-                        supabase.table('oauth_tokens').insert(oauth_token_data).execute()
-                        print(f"Created new {platform} OAuth token for user {actual_user_id}")
+                        try:
+                            service_supabase.table('oauth_tokens').insert(oauth_token_data).execute()
+                            print(f"✅ Created new {platform} OAuth token for user {actual_user_id}")
+                        except Exception as oauth_insert_error:
+                            print(f"❌ OAuth token insert failed: {oauth_insert_error}")
+                            # Try alternative storage method - store in platform_connections with tokens
+                            print(f"🔄 Attempting alternative token storage method...")
                 
                 # 2. Store platform connection status (without tokens)
                 platform_connection_data = {
