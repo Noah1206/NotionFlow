@@ -124,11 +124,30 @@ class NotionCalendarSync:
                         print(f"✅ Found Notion token in calendar_sync_configs: {token[:20]}...")
                         return token
             
-            print("❌ No Notion token found in any table")
+            # 4. Session fallback (if database storage failed)
+            try:
+                from flask import session
+                if session and session.get('platform_tokens', {}).get('notion', {}).get('access_token'):
+                    token = session['platform_tokens']['notion']['access_token']
+                    print(f"💾 Using session token for user {user_id}: {token[:20]}...")
+                    return token
+            except Exception as session_error:
+                print(f"⚠️ Could not check session tokens: {session_error}")
+            
+            print("❌ No Notion token found in any table or session")
             return None
             
         except Exception as e:
             print(f"❌ Error getting Notion token: {e}")
+            # Try session as final fallback
+            try:
+                from flask import session
+                if session and session.get('platform_tokens', {}).get('notion', {}).get('access_token'):
+                    token = session['platform_tokens']['notion']['access_token']
+                    print(f"💾 Using session token fallback for user {user_id}: {token[:20]}...")
+                    return token
+            except:
+                pass
             import traceback
             traceback.print_exc()
             return None

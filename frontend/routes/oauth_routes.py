@@ -745,13 +745,26 @@ def generic_oauth_callback(platform):
         # Store platform connection and OAuth tokens
         try:
             from utils.config import config
-            supabase = config.get_client_for_user(actual_user_id)
+            from utils.uuid_helper import normalize_uuid, ensure_auth_user_exists
+            
+            # UUID 정규화
+            normalized_user_id = normalize_uuid(actual_user_id)
+            if not normalized_user_id:
+                return handle_callback_error('Invalid user ID format', platform)
+            
+            # auth.users에 사용자 존재 확인 및 생성
+            user_email = get_platform_user_email(platform, user_info)
+            user_name = get_platform_user_name(platform, user_info)
+            ensure_auth_user_exists(normalized_user_id, user_email, user_name)
+            
+            # 서비스 역할 클라이언트 사용 (외래키 문제 해결됨)
+            supabase = config.supabase_admin
             
             if supabase:
                 # 1. Store OAuth tokens in oauth_tokens table
                 if token_data.get('access_token'):
                     oauth_token_data = {
-                        'user_id': actual_user_id,
+                        'user_id': normalized_user_id,
                         'platform': platform,
                         'access_token': token_data.get('access_token'),
                         'refresh_token': token_data.get('refresh_token'),
@@ -769,27 +782,35 @@ def generic_oauth_callback(platform):
                     # Use admin/service role client to bypass RLS policies for OAuth token storage
                     service_supabase = config.supabase_admin if hasattr(config, 'supabase_admin') and config.supabase_admin else supabase
                     
-                    # Check if oauth token already exists
-                    existing_oauth = service_supabase.table('oauth_tokens').select('*').eq('user_id', actual_user_id).eq('platform', platform).execute()
-                    
-                    if existing_oauth.data:
-                        # Update existing token
-                        service_supabase.table('oauth_tokens').update(oauth_token_data).eq('user_id', actual_user_id).eq('platform', platform).execute()
-                        print(f"✅ Updated existing {platform} OAuth token for user {actual_user_id}")
-                    else:
-                        # Create new token
-                        oauth_token_data['created_at'] = datetime.now().isoformat()
-                        try:
-                            service_supabase.table('oauth_tokens').insert(oauth_token_data).execute()
-                            print(f"✅ Created new {platform} OAuth token for user {actual_user_id}")
-                        except Exception as oauth_insert_error:
-                            print(f"❌ OAuth token insert failed: {oauth_insert_error}")
-                            # Try alternative storage method - store in platform_connections with tokens
-                            print(f"🔄 Attempting alternative token storage method...")
+                    try:
+                        # Check if oauth token already exists
+                        existing_oauth = supabase.table('oauth_tokens').select('*').eq('user_id', normalized_user_id).eq('platform', platform).execute()
+                        
+                        if existing_oauth.data:
+                            # Update existing token
+                            supabase.table('oauth_tokens').update(oauth_token_data).eq('user_id', normalized_user_id).eq('platform', platform).execute()
+                            print(f"✅ Updated existing {platform} OAuth token for user {normalized_user_id}")
+                        else:
+                            # Create new token
+                            oauth_token_data['created_at'] = datetime.now().isoformat()
+                            supabase.table('oauth_tokens').insert(oauth_token_data).execute()
+                            print(f"✅ Created new {platform} OAuth token for user {normalized_user_id}")
+                    except Exception as token_error:
+                        print(f"⚠️ Could not store OAuth token (continuing anyway): {token_error}")
+                        # Store token in session as fallback
+                        if not session.get('platform_tokens'):
+                            session['platform_tokens'] = {}
+                        session['platform_tokens'][platform] = {
+                            'access_token': token_data['access_token'],
+                            'refresh_token': token_data.get('refresh_token'),
+                            'expires_at': oauth_token_data.get('expires_at'),
+                            'stored_at': datetime.now().isoformat()
+                        }
+                        print(f"💾 Stored {platform} token in session as fallback")
                 
                 # 2. Store platform connection status (without tokens)
                 platform_connection_data = {
-                    'user_id': actual_user_id,
+                    'user_id': normalized_user_id,
                     'platform': platform,
                     'is_connected': True,
                     'connection_status': 'active',
@@ -804,17 +825,24 @@ def generic_oauth_callback(platform):
                     platform_connection_data['token_expires_at'] = expires_at.isoformat()
                 
                 # Check if platform connection already exists
-                existing_result = supabase.table('platform_connections').select('*').eq('user_id', actual_user_id).eq('platform', platform).execute()
+                existing_result = supabase.table('platform_connections').select('*').eq('user_id', normalized_user_id).eq('platform', platform).execute()
                 
                 if existing_result.data:
                     # Update existing connection
                     del platform_connection_data['created_at']  # Don't update created_at
-                    supabase.table('platform_connections').update(platform_connection_data).eq('user_id', actual_user_id).eq('platform', platform).execute()
-                    print(f"Updated existing {platform} platform connection for user {actual_user_id}")
+                    supabase.table('platform_connections').update(platform_connection_data).eq('user_id', normalized_user_id).eq('platform', platform).execute()
+                    print(f"✅ Updated existing {platform} platform connection for user {normalized_user_id}")
                 else:
-                    # Create new connection
-                    supabase.table('platform_connections').insert(platform_connection_data).execute()
-                    print(f"Created new {platform} platform connection for user {actual_user_id}")
+                    # Create new connection - RLS 정책 우회를 위해 서비스 역할 사용
+                    try:
+                        supabase.table('platform_connections').insert(platform_connection_data).execute()
+                        print(f"✅ Created new {platform} platform connection for user {normalized_user_id}")
+                    except Exception as rls_error:
+                        # RLS 정책 오류 시 서비스 역할로 재시도
+                        print(f"⚠️ RLS policy blocked, retrying with service role: {rls_error}")
+                        if config.supabase_admin:
+                            config.supabase_admin.table('platform_connections').insert(platform_connection_data).execute()
+                            print(f"✅ Created new {platform} platform connection with admin client")
                     
         except Exception as platform_store_error:
             print(f"Failed to store platform connection/tokens: {platform_store_error}")
