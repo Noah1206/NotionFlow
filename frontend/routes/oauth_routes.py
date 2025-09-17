@@ -799,24 +799,22 @@ def generic_oauth_callback(platform):
                         }
                         
                         if existing_config.data:
-                            # Update existing config with new token
+                            # Update existing config with new token (only use existing columns)
                             update_data = {
                                 'credentials': credentials_data,
                                 'is_enabled': True,
-                                'connection_status': 'active',
                                 'last_sync_at': datetime.now().isoformat(),
                                 'updated_at': datetime.now().isoformat()
                             }
                             supabase.table('calendar_sync_configs').update(update_data).eq('user_id', normalized_user_id).eq('platform', platform).execute()
                             print(f"✅ Updated {platform} token in calendar_sync_configs for user {normalized_user_id}")
                         else:
-                            # Create new config with token
+                            # Create new config with token (only use existing columns)
                             new_config = {
                                 'user_id': normalized_user_id,
                                 'platform': platform,
                                 'credentials': credentials_data,
                                 'is_enabled': True,
-                                'connection_status': 'active',
                                 'sync_frequency_minutes': 15,
                                 'last_sync_at': datetime.now().isoformat(),
                                 'created_at': datetime.now().isoformat(),

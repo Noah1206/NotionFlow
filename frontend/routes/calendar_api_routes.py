@@ -84,14 +84,19 @@ def get_calendar_events():
         
         # 🔄 Notion 자동 동기화 (첫 번째 캘린더에 대해서만)
         print(f"🔍 [NOTION SYNC] Checking sync: calendar_ids={calendar_ids}, user_id={user_id}")
-        if calendar_ids and len(calendar_ids) > 0:
+        
+        # 항상 동기화 시도 (캘린더 ID가 없어도)
+        calendar_to_sync = calendar_ids[0] if calendar_ids and len(calendar_ids) > 0 else "3e7f438e-b233-43f7-9329-1656acd82682"
+        print(f"🔄 [NOTION SYNC] Will sync to calendar: {calendar_to_sync}")
+        
+        if True:  # Always try sync
             try:
                 import sys
                 sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
                 from services.notion_sync import notion_sync
                 
-                print(f"🔄 [NOTION SYNC] Starting auto-sync for calendar {calendar_ids[0]}")
-                result = notion_sync.sync_to_calendar(user_id, calendar_ids[0])
+                print(f"🔄 [NOTION SYNC] Starting auto-sync for calendar {calendar_to_sync}")
+                result = notion_sync.sync_to_calendar(user_id, calendar_to_sync)
                 print(f"📋 [NOTION SYNC] Sync result: {result}")
                 
                 if result['success']:
