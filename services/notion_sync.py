@@ -27,6 +27,8 @@ class NotionAPI:
         try:
             import requests
             
+            print(f"🔍 [NOTION API] Searching databases with token: {self.token[:20]}...")
+            
             response = requests.post(
                 f"{self.base_url}/search",
                 headers=self.headers,
@@ -39,10 +41,15 @@ class NotionAPI:
                 timeout=10
             )
             
+            print(f"📡 [NOTION API] Response status: {response.status_code}")
+            
             if response.status_code == 200:
-                return response.json().get('results', [])
+                results = response.json().get('results', [])
+                print(f"✅ [NOTION API] Found {len(results)} databases")
+                return results
             else:
-                print(f"❌ Database search failed: {response.status_code}")
+                print(f"❌ [NOTION API] Database search failed: {response.status_code}")
+                print(f"❌ [NOTION API] Error response: {response.text}")
                 return []
                 
         except Exception as e:
@@ -90,17 +97,23 @@ class NotionCalendarSync:
                 return None
             
             # 1. calendar_sync_configs 테이블에서 검색 (새로운 주요 저장소)
+            print(f"🔍 [TOKEN] Checking calendar_sync_configs for user {user_id}")
             config_result = supabase.table('calendar_sync_configs').select('credentials').eq(
                 'user_id', user_id
             ).eq('platform', 'notion').execute()
             
             if config_result.data:
+                print(f"📋 [TOKEN] Found config data: {config_result.data}")
                 creds = config_result.data[0].get('credentials', {})
                 if isinstance(creds, dict):
                     token = creds.get('access_token')
                     if token:
-                        print(f"✅ Found Notion token in calendar_sync_configs: {token[:20]}...")
+                        print(f"✅ [TOKEN] Found Notion token in calendar_sync_configs: {token[:20]}...")
                         return token
+                    else:
+                        print(f"⚠️ [TOKEN] No access_token in credentials: {creds.keys()}")
+            else:
+                print(f"⚠️ [TOKEN] No calendar_sync_configs found for Notion")
             
             # 2. platform_connections 테이블에서 검색 (백업 - access_token 컬럼이 없을 수 있음)
             try:
@@ -182,11 +195,14 @@ class NotionCalendarSync:
     def sync_to_calendar(self, user_id: str, calendar_id: str) -> Dict[str, Any]:
         """Notion 데이터를 NotionFlow 캘린더로 동기화"""
         try:
-            print(f"🔄 Starting Notion sync for user {user_id}, calendar {calendar_id}")
+            print(f"🔄 [NOTION] Starting Notion sync for user {user_id}, calendar {calendar_id}")
             
             # 1. Notion 토큰 확인
             token = self.get_user_notion_token(user_id)
+            print(f"🔍 [NOTION] Token check result: {'Found' if token else 'Not found'}")
+            
             if not token:
+                print(f"❌ [NOTION] No token found for user {user_id}")
                 return {
                     'success': False,
                     'error': 'No Notion token found',
@@ -194,11 +210,16 @@ class NotionCalendarSync:
                 }
             
             # 2. Notion API 초기화
+            print(f"🔧 [NOTION] Initializing Notion API with token: {token[:20]}...")
             notion_api = NotionAPI(token)
             
             # 3. 캘린더 데이터베이스 찾기
+            print(f"🔍 [NOTION] Searching for calendar databases...")
             calendar_dbs = self.find_calendar_databases(notion_api)
+            print(f"📚 [NOTION] Found {len(calendar_dbs)} calendar databases")
+            
             if not calendar_dbs:
+                print(f"⚠️ [NOTION] No calendar databases found in Notion workspace")
                 return {
                     'success': True,
                     'message': 'No calendar databases found in Notion',

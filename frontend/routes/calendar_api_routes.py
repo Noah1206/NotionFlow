@@ -41,6 +41,34 @@ def test_endpoint():
         'timestamp': datetime.now().isoformat()
     })
 
+@calendar_api_bp.route('/calendar/notion-sync', methods=['POST'])
+def manual_notion_sync():
+    """Manual Notion sync endpoint for testing"""
+    try:
+        user_id = get_current_user_id()
+        if not user_id:
+            user_id = "87875eda6797f839f8c70aa90efb1352"  # Use your actual user ID
+        
+        data = request.get_json() or {}
+        calendar_id = data.get('calendar_id', '3e7f438e-b233-43f7-9329-1656acd82682')  # Your calendar ID
+        
+        import sys
+        sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
+        from services.notion_sync import notion_sync
+        
+        print(f"🔄 [MANUAL SYNC] Starting manual Notion sync for user {user_id}, calendar {calendar_id}")
+        result = notion_sync.sync_to_calendar(user_id, calendar_id)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 @calendar_api_bp.route('/calendar/events', methods=['GET'])
 def get_calendar_events():
     """Get calendar events for selected calendars"""
@@ -55,22 +83,26 @@ def get_calendar_events():
         days_ahead = int(request.args.get('days_ahead', 30))
         
         # 🔄 Notion 자동 동기화 (첫 번째 캘린더에 대해서만)
+        print(f"🔍 [NOTION SYNC] Checking sync: calendar_ids={calendar_ids}, user_id={user_id}")
         if calendar_ids and len(calendar_ids) > 0:
             try:
                 import sys
                 sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
                 from services.notion_sync import notion_sync
                 
-                print(f"🔄 [NOTION SYNC] Auto-sync triggered for calendar {calendar_ids[0]}")
+                print(f"🔄 [NOTION SYNC] Starting auto-sync for calendar {calendar_ids[0]}")
                 result = notion_sync.sync_to_calendar(user_id, calendar_ids[0])
+                print(f"📋 [NOTION SYNC] Sync result: {result}")
                 
                 if result['success']:
-                    print(f"✅ [NOTION SYNC] Synced {result['synced_events']} events")
+                    print(f"✅ [NOTION SYNC] Successfully synced {result['synced_events']} events from {result.get('databases_processed', 0)} databases")
                 else:
-                    print(f"❌ [NOTION SYNC] {result.get('error', 'Unknown error')}")
+                    print(f"❌ [NOTION SYNC] Failed: {result.get('error', 'Unknown error')}")
                     
             except Exception as e:
-                print(f"⚠️ [NOTION SYNC] Auto-sync error (non-critical): {e}")
+                print(f"⚠️ [NOTION SYNC] Auto-sync error: {e}")
+                import traceback
+                traceback.print_exc()
         
         if not dashboard_data:
             return jsonify({'error': 'Dashboard data manager not available'}), 500
