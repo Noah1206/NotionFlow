@@ -1,0 +1,405 @@
+"""
+새로운 Notion 캘린더 동기화 서비스
+간단하고 깔끔한 구조로 재작성
+"""
+
+import os
+import json
+import logging
+from datetime import datetime, timezone
+from typing import Dict, List, Optional, Any
+
+# Notion API 클래스
+class NotionAPI:
+    """Notion API 호출을 담당하는 간단한 클래스"""
+    
+    def __init__(self, token: str):
+        self.token = token
+        self.base_url = "https://api.notion.com/v1"
+        self.headers = {
+            'Authorization': f'Bearer {token}',
+            'Notion-Version': '2022-06-28',
+            'Content-Type': 'application/json'
+        }
+    
+    def search_databases(self) -> List[Dict]:
+        """모든 데이터베이스 검색"""
+        try:
+            import requests
+            
+            response = requests.post(
+                f"{self.base_url}/search",
+                headers=self.headers,
+                json={
+                    "filter": {
+                        "property": "object",
+                        "value": "database"
+                    }
+                },
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                return response.json().get('results', [])
+            else:
+                print(f"❌ Database search failed: {response.status_code}")
+                return []
+                
+        except Exception as e:
+            print(f"❌ Error searching databases: {e}")
+            return []
+    
+    def query_database(self, database_id: str) -> List[Dict]:
+        """데이터베이스의 페이지들 조회"""
+        try:
+            import requests
+            
+            response = requests.post(
+                f"{self.base_url}/databases/{database_id}/query",
+                headers=self.headers,
+                json={},
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                return response.json().get('results', [])
+            else:
+                print(f"❌ Database query failed: {response.status_code}")
+                return []
+                
+        except Exception as e:
+            print(f"❌ Error querying database: {e}")
+            return []
+
+
+# Notion 캘린더 동기화 클래스
+class NotionCalendarSync:
+    """Notion과 NotionFlow 캘린더 동기화"""
+    
+    def __init__(self):
+        self.logger = logging.getLogger('NotionSync')
+    
+    def get_user_notion_token(self, user_id: str) -> Optional[str]:
+        """사용자의 Notion 토큰 가져오기"""
+        try:
+            from utils.config import config
+            supabase = config.get_client_for_user(user_id)
+            
+            if not supabase:
+                print("❌ Supabase client not available")
+                return None
+            
+            # 1. oauth_tokens 테이블에서 검색 (OAuth 토큰 저장 전용 테이블)
+            oauth_result = supabase.table('oauth_tokens').select('access_token').eq(
+                'user_id', user_id
+            ).eq('platform', 'notion').execute()
+            
+            if oauth_result.data and oauth_result.data[0].get('access_token'):
+                token = oauth_result.data[0].get('access_token')
+                print(f"✅ Found Notion token in oauth_tokens: {token[:20]}...")
+                return token
+            
+            # 2. platform_connections 테이블에서 검색 (백업 - access_token 컬럼이 없을 수 있음)
+            try:
+                result = supabase.table('platform_connections').select('*').eq(
+                    'user_id', user_id
+                ).eq('platform', 'notion').eq('is_connected', True).execute()
+                
+                if result.data:
+                    print(f"✅ Found Notion connection in platform_connections but no token field")
+                    # platform_connections에는 토큰이 없으므로 oauth_tokens에서 다시 확인
+            except:
+                pass
+            
+            # 3. calendar_sync_configs에서 검색 (백업)
+            config_result = supabase.table('calendar_sync_configs').select('credentials').eq(
+                'user_id', user_id
+            ).eq('platform', 'notion').execute()
+            
+            if config_result.data:
+                creds = config_result.data[0].get('credentials', {})
+                if isinstance(creds, dict):
+                    token = creds.get('access_token') or creds.get('api_key')
+                    if token:
+                        print(f"✅ Found Notion token in calendar_sync_configs: {token[:20]}...")
+                        return token
+            
+            print("❌ No Notion token found in any table")
+            return None
+            
+        except Exception as e:
+            print(f"❌ Error getting Notion token: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+    
+    def find_calendar_databases(self, notion_api: NotionAPI) -> List[Dict]:
+        """캘린더/일정 관련 데이터베이스 찾기"""
+        databases = notion_api.search_databases()
+        calendar_dbs = []
+        
+        for db in databases:
+            # 데이터베이스 제목 추출
+            title = self._get_db_title(db)
+            
+            # 캘린더 관련 키워드 체크
+            calendar_keywords = ['calendar', 'schedule', 'event', 'task', 'todo', 
+                               '일정', '캘린더', '스케줄', '할일', '업무']
+            
+            if any(keyword in title.lower() for keyword in calendar_keywords):
+                calendar_dbs.append(db)
+                print(f"📅 Found calendar database: {title}")
+            
+            # 날짜 속성이 있는지 체크
+            elif self._has_date_property(db):
+                calendar_dbs.append(db)
+                print(f"📅 Found database with date property: {title}")
+        
+        return calendar_dbs
+    
+    def sync_to_calendar(self, user_id: str, calendar_id: str) -> Dict[str, Any]:
+        """Notion 데이터를 NotionFlow 캘린더로 동기화"""
+        try:
+            print(f"🔄 Starting Notion sync for user {user_id}, calendar {calendar_id}")
+            
+            # 1. Notion 토큰 확인
+            token = self.get_user_notion_token(user_id)
+            if not token:
+                return {
+                    'success': False,
+                    'error': 'No Notion token found',
+                    'synced_events': 0
+                }
+            
+            # 2. Notion API 초기화
+            notion_api = NotionAPI(token)
+            
+            # 3. 캘린더 데이터베이스 찾기
+            calendar_dbs = self.find_calendar_databases(notion_api)
+            if not calendar_dbs:
+                return {
+                    'success': True,
+                    'message': 'No calendar databases found in Notion',
+                    'synced_events': 0
+                }
+            
+            # 4. 각 데이터베이스에서 이벤트 추출 및 동기화
+            total_synced = 0
+            for db in calendar_dbs:
+                db_id = db['id']
+                db_title = self._get_db_title(db)
+                
+                print(f"📋 Processing database: {db_title}")
+                
+                # 페이지들 조회
+                pages = notion_api.query_database(db_id)
+                
+                for page in pages:
+                    # Notion 페이지를 캘린더 이벤트로 변환
+                    event = self._convert_page_to_event(page, calendar_id, user_id)
+                    
+                    if event:
+                        # NotionFlow 캘린더에 저장
+                        if self._save_event_to_calendar(event):
+                            total_synced += 1
+                            print(f"✅ Synced: {event['title']}")
+                        else:
+                            print(f"❌ Failed to save: {event['title']}")
+            
+            return {
+                'success': True,
+                'synced_events': total_synced,
+                'databases_processed': len(calendar_dbs)
+            }
+            
+        except Exception as e:
+            print(f"❌ Sync failed: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'synced_events': 0
+            }
+    
+    def _get_db_title(self, database: Dict) -> str:
+        """데이터베이스 제목 추출"""
+        try:
+            title_obj = database.get('title', [])
+            if title_obj and len(title_obj) > 0:
+                return title_obj[0].get('plain_text', 'Untitled')
+            return 'Untitled'
+        except:
+            return 'Untitled'
+    
+    def _has_date_property(self, database: Dict) -> bool:
+        """데이터베이스에 날짜 속성이 있는지 확인"""
+        try:
+            properties = database.get('properties', {})
+            for prop_name, prop_data in properties.items():
+                if prop_data.get('type') == 'date':
+                    return True
+            return False
+        except:
+            return False
+    
+    def _convert_page_to_event(self, page: Dict, calendar_id: str, user_id: str) -> Optional[Dict]:
+        """Notion 페이지를 NotionFlow 이벤트로 변환"""
+        try:
+            properties = page.get('properties', {})
+            
+            # 1. 제목 추출
+            title = self._extract_title(properties)
+            if not title:
+                return None
+            
+            # 2. 날짜 추출
+            date_info = self._extract_date(properties)
+            if not date_info:
+                return None
+            
+            # 3. 설명 추출
+            description = self._extract_description(properties)
+            
+            # 4. NotionFlow 이벤트 생성
+            event = {
+                'calendar_id': calendar_id,
+                'user_id': user_id,
+                'title': title,
+                'description': description or '',
+                'start_date': date_info['start'],
+                'end_date': date_info['end'],
+                'all_day': date_info.get('all_day', False),
+                'external_id': f"notion_{page['id']}",
+                'external_platform': 'notion',
+                'created_at': datetime.now(timezone.utc).isoformat(),
+                'updated_at': datetime.now(timezone.utc).isoformat(),
+                'metadata': {
+                    'notion_page_id': page['id'],
+                    'notion_url': page.get('url', ''),
+                    'last_edited': page.get('last_edited_time', '')
+                }
+            }
+            
+            return event
+            
+        except Exception as e:
+            print(f"❌ Error converting page: {e}")
+            return None
+    
+    def _extract_title(self, properties: Dict) -> Optional[str]:
+        """페이지에서 제목 추출"""
+        # 일반적인 제목 속성명들
+        title_keys = ['Name', 'Title', '제목', 'Task', '작업', 'Event', '이벤트', '할일']
+        
+        for key in title_keys:
+            if key in properties:
+                prop = properties[key]
+                if prop.get('type') == 'title' and prop.get('title'):
+                    return prop['title'][0].get('plain_text', '')
+                elif prop.get('type') == 'rich_text' and prop.get('rich_text'):
+                    return prop['rich_text'][0].get('plain_text', '')
+        
+        # 첫 번째 title 타입 속성 사용
+        for prop_name, prop_data in properties.items():
+            if prop_data.get('type') == 'title' and prop_data.get('title'):
+                return prop_data['title'][0].get('plain_text', '')
+        
+        return None
+    
+    def _extract_date(self, properties: Dict) -> Optional[Dict]:
+        """페이지에서 날짜 정보 추출"""
+        # 일반적인 날짜 속성명들
+        date_keys = ['Date', 'Due', 'When', '날짜', '일정', 'Start', 'End', '시작', '종료', 'Deadline']
+        
+        for key in date_keys:
+            if key in properties and properties[key].get('type') == 'date':
+                date_prop = properties[key].get('date')
+                if date_prop:
+                    start = date_prop.get('start')
+                    end = date_prop.get('end') or start
+                    
+                    if start:
+                        # 시간 정보가 없으면 종일 이벤트
+                        all_day = 'T' not in start
+                        
+                        return {
+                            'start': start,
+                            'end': end,
+                            'all_day': all_day
+                        }
+        
+        return None
+    
+    def _extract_description(self, properties: Dict) -> Optional[str]:
+        """페이지에서 설명 추출"""
+        desc_keys = ['Description', 'Notes', '설명', '메모', 'Details', '상세', 'Content']
+        
+        for key in desc_keys:
+            if key in properties:
+                prop = properties[key]
+                if prop.get('type') == 'rich_text' and prop.get('rich_text'):
+                    texts = [t.get('plain_text', '') for t in prop['rich_text']]
+                    return ' '.join(texts)
+        
+        return None
+    
+    def _save_event_to_calendar(self, event: Dict) -> bool:
+        """이벤트를 NotionFlow 캘린더에 저장"""
+        try:
+            from utils.config import config
+            supabase = config.get_client_for_user(event['user_id'])
+            
+            if not supabase:
+                print("❌ Supabase client not available")
+                return False
+            
+            # 데이터베이스 스키마에 맞게 이벤트 데이터 변환
+            db_event = {
+                'user_id': event['user_id'],
+                'external_id': event['external_id'],
+                'title': event['title'],
+                'description': event.get('description', ''),
+                'start_datetime': event['start_date'],  # ISO 형식
+                'end_datetime': event['end_date'],      # ISO 형식
+                'is_all_day': event.get('all_day', False),
+                'source_platform': 'notion',
+                'source_calendar_id': event['calendar_id'],  # NotionFlow 캘린더 ID를 source로 저장
+                'source_calendar_name': 'Notion Calendar',
+                'status': 'confirmed',
+                'created_at': event.get('created_at'),
+                'updated_at': event.get('updated_at')
+            }
+            
+            # 중복 체크 (user_id, external_id, source_platform로)
+            existing = supabase.table('calendar_events').select('id').eq(
+                'user_id', event['user_id']
+            ).eq('external_id', event['external_id']).eq(
+                'source_platform', 'notion'
+            ).execute()
+            
+            if existing.data:
+                # 기존 이벤트 업데이트
+                result = supabase.table('calendar_events').update({
+                    'title': db_event['title'],
+                    'description': db_event['description'],
+                    'start_datetime': db_event['start_datetime'],
+                    'end_datetime': db_event['end_datetime'],
+                    'is_all_day': db_event['is_all_day'],
+                    'updated_at': db_event['updated_at']
+                }).eq('id', existing.data[0]['id']).execute()
+                print(f"✅ Updated existing event: {db_event['title']}")
+            else:
+                # 새 이벤트 생성
+                result = supabase.table('calendar_events').insert(db_event).execute()
+                print(f"✅ Created new event: {db_event['title']}")
+            
+            return bool(result.data)
+            
+        except Exception as e:
+            print(f"❌ Error saving event: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+
+
+# 싱글톤 인스턴스
+notion_sync = NotionCalendarSync()

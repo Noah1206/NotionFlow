@@ -756,43 +756,31 @@ def calendar_view(calendar_id):
     if not user_id:
         return redirect(f'/login?from=calendar/{calendar_id}/view')
     
-    # Notion 동기화 트리거 (백그라운드)
+    # 🔄 Notion 백그라운드 동기화
     try:
-        # Notion 연결 확인
-        from utils.config import get_supabase_admin
-        supabase = get_supabase_admin()
+        import threading
+        import sys
+        sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
+        from services.notion_sync import notion_sync
         
-        # Notion 토큰 확인
-        notion_config = supabase.table('calendar_sync_configs').select('*').eq(
-            'user_id', user_id
-        ).eq('platform', 'notion').execute()
+        def background_sync():
+            try:
+                print(f"🔄 [NOTION SYNC] Background sync started for calendar {calendar_id}")
+                result = notion_sync.sync_to_calendar(user_id, calendar_id)
+                if result['success']:
+                    print(f"✅ [NOTION SYNC] Background sync completed: {result['synced_events']} events")
+                else:
+                    print(f"❌ [NOTION SYNC] Background sync failed: {result.get('error')}")
+            except Exception as e:
+                print(f"⚠️ [NOTION SYNC] Background sync error: {e}")
         
-        if notion_config.data and notion_config.data[0].get('is_enabled'):
-            # 백그라운드 동기화 실행
-            import threading
-            from backend.services.notion_sync_service import notion_sync_service
-            
-            def sync_notion_background():
-                try:
-                    print(f"[NOTION SYNC] Starting background sync for calendar {calendar_id}")
-                    result = notion_sync_service.sync_notion_to_calendar(user_id, calendar_id)
-                    if result['success']:
-                        print(f"[NOTION SYNC] ✅ Synced {result['results'].get('synced_events', 0)} events")
-                    else:
-                        print(f"[NOTION SYNC] ❌ Sync failed: {result.get('error')}")
-                except Exception as e:
-                    print(f"[NOTION SYNC] Error in background sync: {e}")
-            
-            # 스레드로 백그라운드 동기화 실행
-            sync_thread = threading.Thread(target=sync_notion_background)
-            sync_thread.daemon = True
-            sync_thread.start()
-            print(f"[NOTION SYNC] Background sync initiated for user {user_id}")
-        else:
-            print(f"[NOTION SYNC] Notion not enabled for user {user_id}")
-            
+        # 백그라운드 스레드로 실행
+        sync_thread = threading.Thread(target=background_sync)
+        sync_thread.daemon = True
+        sync_thread.start()
+        
     except Exception as e:
-        print(f"[NOTION SYNC] Error checking Notion connection: {e}")
+        print(f"⚠️ [NOTION SYNC] Failed to start background sync: {e}")
     
     # 캘린더 뷰 페이지로 렌더링
     return render_template('calendar_view.html', calendar_id=calendar_id)
@@ -6791,16 +6779,6 @@ def check_google_calendar_connection(user_id):
 # (Cache control functions already defined above with proper decorators)
 
 if __name__ == '__main__':
-    # Register Notion sync routes
-    try:
-        from routes.notion_sync_routes import notion_sync_bp
-        app.register_blueprint(notion_sync_bp)
-        print("[SUCCESS] Notion sync routes registered")
-    except ImportError as e:
-        print(f"[WARNING] Notion sync routes not available: {e}")
-    except Exception as e:
-        print(f"[ERROR] Failed to register Notion sync routes: {e}")
-    
     # Start sync scheduler (if available)
     try:
         from utils.sync_scheduler import start_sync_scheduler
