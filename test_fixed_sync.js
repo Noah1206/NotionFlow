@@ -1,7 +1,7 @@
-// 수정된 datetime 처리를 테스트하는 코드
+// 개선된 datetime 검증을 테스트하는 코드
 // F12 -> Console에서 실행
 
-console.log("🔄 Testing fixed datetime handling...");
+console.log("🔄 Testing improved datetime validation...");
 
 // 기존 이벤트 삭제 (옵션)
 console.log("🧹 Clearing previous events...");

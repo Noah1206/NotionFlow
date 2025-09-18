@@ -381,12 +381,15 @@ class NotionCalendarSync:
             start_str = date_info['start']
             end_str = date_info['end']
             
+            print(f"🔧 [NORMALIZE] Input dates: start={start_str}, end={end_str}")
+            
             # ISO 형식 파싱
-            from datetime import datetime
+            from datetime import datetime, timedelta
             import re
             
             # 시간 정보가 있는지 확인
             has_time = 'T' in start_str
+            print(f"🔧 [NORMALIZE] Has time: {has_time}")
             
             if has_time:
                 # 시간 정보가 있는 경우
@@ -403,21 +406,44 @@ class NotionCalendarSync:
                 start_dt = datetime.fromisoformat(start_str + 'T00:00:00+00:00')
                 end_dt = datetime.fromisoformat(end_str + 'T23:59:59+00:00')
             
-            # end_date가 start_date보다 이전이면 같은 날로 설정
-            if end_dt < start_dt:
-                end_dt = start_dt
+            print(f"🔧 [NORMALIZE] Parsed dates: start={start_dt}, end={end_dt}")
+            
+            # end_date가 start_date보다 이전이거나 같으면 수정
+            if end_dt <= start_dt:
+                print(f"⚠️ [NORMALIZE] End date is not after start date, fixing...")
                 if not has_time:
-                    # 종일 이벤트인 경우 하루 끝으로 설정
-                    end_dt = start_dt.replace(hour=23, minute=59, second=59)
+                    # 종일 이벤트인 경우: 시작은 00:00, 끝은 23:59
+                    start_dt = start_dt.replace(hour=0, minute=0, second=0, microsecond=0)
+                    end_dt = start_dt.replace(hour=23, minute=59, second=59, microsecond=999999)
+                    print(f"📅 [NORMALIZE] All-day event fixed: {start_dt} → {end_dt}")
+                else:
+                    # 시간 이벤트인 경우: 최소 1시간 duration
+                    end_dt = start_dt + timedelta(hours=1)
+                    print(f"⏰ [NORMALIZE] Timed event fixed: {start_dt} → {end_dt}")
+            
+            # 최종 검증: end가 여전히 start와 같거나 이전이면 강제로 1분 추가
+            if end_dt <= start_dt:
+                print(f"🚨 [NORMALIZE] Final check failed, adding 1 minute")
+                end_dt = start_dt + timedelta(minutes=1)
             
             # ISO 형식으로 반환
-            return start_dt.isoformat(), end_dt.isoformat()
+            result_start = start_dt.isoformat()
+            result_end = end_dt.isoformat()
+            
+            print(f"✅ [NORMALIZE] Final result: {result_start} → {result_end}")
+            return result_start, result_end
             
         except Exception as e:
             print(f"❌ Error normalizing datetime: {e}")
-            # 기본값 반환
+            print(f"📊 Error details: start={date_info.get('start')}, end={date_info.get('end')}")
+            
+            # 안전한 기본값 반환 (1시간 duration)
             now = datetime.now(timezone.utc)
-            return now.isoformat(), now.isoformat()
+            start_default = now.isoformat()
+            end_default = (now + timedelta(hours=1)).isoformat()
+            
+            print(f"🔄 [NORMALIZE] Using safe defaults: {start_default} → {end_default}")
+            return start_default, end_default
     
     def _extract_description(self, properties: Dict) -> Optional[str]:
         """페이지에서 설명 추출"""
@@ -470,6 +496,21 @@ class NotionCalendarSync:
                     db_event['source_calendar_name'] = 'Notion Calendar'
                 except:
                     pass
+            
+            # 최종 datetime 검증 및 수정
+            from datetime import datetime, timedelta
+            try:
+                start_dt = datetime.fromisoformat(db_event['start_datetime'].replace('Z', '+00:00'))
+                end_dt = datetime.fromisoformat(db_event['end_datetime'].replace('Z', '+00:00'))
+                
+                if end_dt <= start_dt:
+                    print(f"🚨 [SAVE] Final validation failed: end_datetime ({end_dt}) <= start_datetime ({start_dt})")
+                    end_dt = start_dt + timedelta(minutes=1)
+                    db_event['end_datetime'] = end_dt.isoformat()
+                    print(f"🔧 [SAVE] Fixed: new end_datetime = {db_event['end_datetime']}")
+                    
+            except Exception as e:
+                print(f"⚠️ [SAVE] Datetime validation error: {e}")
             
             print(f"💾 [SAVE] Saving event: {db_event['title']}")
             print(f"📅 [SAVE] Dates: {db_event['start_datetime']} → {db_event['end_datetime']}")
