@@ -313,6 +313,20 @@ def create_or_find_user_from_oauth(platform, user_info, token_data):
                 except Exception as profile_check_e:
                     print(f"Warning: Could not check/create profile for existing user: {profile_check_e}")
                 
+                # Also ensure user exists in users table for foreign key constraints
+                try:
+                    user_check = supabase.table('users').select('id').eq('id', user_id).execute()
+                    if not user_check.data:
+                        user_table_data = {
+                            'id': user_id,
+                            'email': email,
+                            'created_at': datetime.utcnow().isoformat()
+                        }
+                        supabase.table('users').insert(user_table_data).execute()
+                        print(f"Created user in users table for existing auth user: {user_id}")
+                except Exception as users_e:
+                    print(f"Could not ensure user in users table: {users_e}")
+                
                 return user_id
         except Exception as auth_e:
             print(f"Error checking auth user: {auth_e}")
@@ -360,6 +374,18 @@ def create_or_find_user_from_oauth(platform, user_info, token_data):
                     
                     profile_result = supabase.table('user_profiles').insert(profile_data).execute()
                     print(f"Created user profile for OAuth user: {user_id}")
+                    
+                    # Also ensure user exists in users table for foreign key constraints
+                    try:
+                        user_table_data = {
+                            'id': user_id,
+                            'email': email,
+                            'created_at': datetime.utcnow().isoformat()
+                        }
+                        supabase.table('users').insert(user_table_data).execute()
+                        print(f"Created user in users table: {user_id}")
+                    except Exception as users_e:
+                        print(f"Could not create user in users table: {users_e}")
                     
                 except Exception as profile_e:
                     print(f"Warning: Could not create user profile for OAuth user: {profile_e}")
@@ -1010,14 +1036,95 @@ def handle_callback_success(platform, user_info):
             'connected_at': datetime.utcnow().isoformat()
         }
     
+    # Notion 연결 시 즉시 동기화 실행
+    sync_result = None
+    if platform == 'notion':
+        try:
+            print(f"🚀 [OAUTH] Notion connected! Starting immediate sync...")
+            session['notion_connected'] = True
+            
+            # Get user ID 
+            user_id = session.get('user_id')
+            if not user_id and user_info:
+                # Try to find user by email
+                try:
+                    email = user_info.get('email')
+                    if email:
+                        existing_user = supabase.auth.get_user_by_email(email)
+                        if existing_user and existing_user.user:
+                            user_id = existing_user.user.id
+                            session['user_id'] = user_id
+                except:
+                    pass
+            
+            if user_id:
+                # Get or create calendar for this user
+                calendar_id = None
+                try:
+                    from utils.dashboard_data import DashboardDataManager
+                    dashboard_data = DashboardDataManager()
+                    calendars = dashboard_data.get_user_calendars(user_id)
+                    personal_calendars = calendars.get('personal_calendars', [])
+                    if personal_calendars:
+                        calendar_id = personal_calendars[0]['id']
+                    else:
+                        # Create a new calendar for the user
+                        import uuid
+                        calendar_id = str(uuid.uuid4())
+                        print(f"📅 [OAUTH] Created new calendar: {calendar_id}")
+                except Exception as cal_e:
+                    print(f"⚠️ [OAUTH] Calendar setup error: {cal_e}")
+                    calendar_id = str(uuid.uuid4())
+                
+                # Store user email for user creation
+                if user_info.get('email'):
+                    session['user_email'] = user_info.get('email')
+                
+                # Import and run sync
+                import sys
+                import os
+                sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
+                from services.notion_sync import NotionCalendarSync
+                
+                notion_sync = NotionCalendarSync()
+                sync_result = notion_sync.sync_to_calendar(user_id, calendar_id)
+                
+                print(f"📋 [OAUTH] Immediate sync result: {sync_result}")
+                
+                if sync_result and sync_result.get('success'):
+                    print(f"✅ [OAUTH] Successfully synced {sync_result.get('synced_events', 0)} events!")
+                    session['sync_result'] = sync_result
+                else:
+                    print(f"❌ [OAUTH] Sync failed: {sync_result.get('error') if sync_result else 'Unknown error'}")
+                    
+        except Exception as sync_e:
+            print(f"⚠️ [OAUTH] Auto-sync error: {sync_e}")
+            import traceback
+            traceback.print_exc()
+    
+    # 동기화 결과에 따라 메시지 설정
+    sync_message = ""
+    redirect_to_calendar = False
+    
+    if platform == 'notion' and sync_result:
+        if sync_result.get('success'):
+            events_count = sync_result.get('synced_events', 0)
+            if events_count > 0:
+                sync_message = f"<p>🎉 {events_count}개의 이벤트가 캘린더에 동기화되었습니다!</p>"
+                redirect_to_calendar = True
+            else:
+                sync_message = "<p>📅 Notion이 연결되었습니다. 날짜 속성이 있는 데이터베이스를 추가하면 자동으로 동기화됩니다.</p>"
+        else:
+            sync_message = "<p>⚠️ 연결은 완료되었지만 동기화 중 문제가 발생했습니다. 나중에 다시 시도해주세요.</p>"
+    
     # 팝업 창에서 부모 창에 성공 메시지를 보내고 닫기
-    popup_close_html = """
+    popup_close_html = f"""
     <!DOCTYPE html>
     <html>
     <head>
         <title>OAuth Success</title>
         <style>
-            body { 
+            body {{ 
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 display: flex; 
                 justify-content: center; 
@@ -1026,52 +1133,63 @@ def handle_callback_success(platform, user_info):
                 margin: 0; 
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 color: white;
-            }
-            .success-message {
+            }}
+            .success-message {{
                 text-align: center;
                 padding: 40px;
                 border-radius: 12px;
                 background: rgba(255, 255, 255, 0.1);
                 backdrop-filter: blur(10px);
-            }
-            .checkmark {
+                max-width: 400px;
+            }}
+            .checkmark {{
                 font-size: 48px;
                 margin-bottom: 16px;
                 animation: bounce 0.5s ease;
-            }
-            @keyframes bounce {
-                0%, 20%, 60%, 100% { transform: translateY(0); }
-                40% { transform: translateY(-10px); }
-                80% { transform: translateY(-5px); }
-            }
+            }}
+            @keyframes bounce {{
+                0%, 20%, 60%, 100% {{ transform: translateY(0); }}
+                40% {{ transform: translateY(-10px); }}
+                80% {{ transform: translateY(-5px); }}
+            }}
+            .sync-info {{
+                margin: 16px 0;
+                padding: 12px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                font-size: 14px;
+            }}
         </style>
     </head>
     <body>
         <div class="success-message">
             <div class="checkmark">✅</div>
-            <h2>{{ platform.title() }} 연결 완료!</h2>
-            <p>창이 자동으로 닫힙니다...</p>
+            <h2>{platform.title()} 연결 완료!</h2>
+            {sync_message}
+            <p>{'캘린더로 이동합니다...' if redirect_to_calendar else '창이 자동으로 닫힙니다...'}</p>
         </div>
         <script>
             // 부모 창에 성공 메시지 전송
-            if (window.opener) {
-                window.opener.postMessage({
+            if (window.opener) {{
+                window.opener.postMessage({{
                     type: 'oauth_success',
-                    platform: '{{ platform }}',
-                    message: '{{ platform.title() }} 계정이 성공적으로 연결되었습니다!'
-                }, window.location.origin);
-            }
+                    platform: '{platform}',
+                    message: '{platform.title()} 계정이 성공적으로 연결되었습니다!',
+                    redirect_to_calendar: {str(redirect_to_calendar).lower()},
+                    sync_result: {sync_result if sync_result else 'null'}
+                }}, window.location.origin);
+            }}
             
             // 2초 후 창 닫기
-            setTimeout(() => {
+            setTimeout(() => {{
                 window.close();
-            }, 2000);
+            }}, {'3000' if redirect_to_calendar else '2000'});
         </script>
     </body>
     </html>
     """
     
-    return render_template_string(popup_close_html, platform=platform)
+    return popup_close_html
 
 def handle_callback_error(error_message, platform=None):
     """Handle OAuth callback error"""

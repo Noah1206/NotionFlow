@@ -462,6 +462,7 @@ class NotionCalendarSync:
         """이벤트를 NotionFlow 캘린더에 저장"""
         try:
             from utils.config import config
+            from flask import session
             
             # Use admin client to bypass RLS policies
             supabase = config.supabase_admin if hasattr(config, 'supabase_admin') and config.supabase_admin else config.get_client_for_user(event['user_id'])
@@ -469,6 +470,29 @@ class NotionCalendarSync:
             if not supabase:
                 print("❌ Supabase client not available")
                 return False
+            
+            # Ensure user exists in users table
+            user_id = event['user_id']
+            try:
+                # First check if user exists in users table
+                user_check = supabase.table('users').select('id').eq('id', user_id).execute()
+                
+                if not user_check.data:
+                    print(f"📝 [SAVE] Creating user record for {user_id}")
+                    # Get user email from session or use a default
+                    user_email = session.get('user_email', f'{user_id[:8]}@notionflow.app')
+                    
+                    # Create user in users table
+                    user_data = {
+                        'id': user_id,
+                        'email': user_email,
+                        'created_at': datetime.now(timezone.utc).isoformat()
+                    }
+                    supabase.table('users').insert(user_data).execute()
+                    print(f"✅ [SAVE] Created user record: {user_id}")
+            except Exception as user_e:
+                print(f"⚠️ [SAVE] Could not ensure user exists: {user_e}")
+                # Continue anyway - maybe the foreign key constraint is disabled
             
             # 데이터베이스 스키마에 맞게 이벤트 데이터 변환
             db_event = {
