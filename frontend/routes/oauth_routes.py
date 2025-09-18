@@ -317,13 +317,25 @@ def create_or_find_user_from_oauth(platform, user_info, token_data):
                 try:
                     user_check = supabase.table('users').select('id').eq('id', user_id).execute()
                     if not user_check.data:
-                        user_table_data = {
-                            'id': user_id,
-                            'email': email,
-                            'created_at': datetime.utcnow().isoformat()
-                        }
-                        supabase.table('users').insert(user_table_data).execute()
-                        print(f"Created user in users table for existing auth user: {user_id}")
+                        # Also try without hyphens
+                        user_id_no_hyphens = user_id.replace('-', '')
+                        user_check = supabase.table('users').select('id').eq('id', user_id_no_hyphens).execute()
+                        
+                        if not user_check.data:
+                            user_table_data = {
+                                'id': user_id,
+                                'email': email,
+                                'created_at': datetime.utcnow().isoformat()
+                            }
+                            try:
+                                supabase.table('users').insert(user_table_data).execute()
+                                print(f"Created user in users table for existing auth user: {user_id}")
+                            except Exception as e1:
+                                print(f"Failed to create existing user with hyphens, trying without: {e1}")
+                                # Try without hyphens
+                                user_table_data['id'] = user_id_no_hyphens
+                                supabase.table('users').insert(user_table_data).execute()
+                                print(f"Created user in users table for existing auth user (no hyphens): {user_id_no_hyphens}")
                 except Exception as users_e:
                     print(f"Could not ensure user in users table: {users_e}")
                 
@@ -382,8 +394,16 @@ def create_or_find_user_from_oauth(platform, user_info, token_data):
                             'email': email,
                             'created_at': datetime.utcnow().isoformat()
                         }
-                        supabase.table('users').insert(user_table_data).execute()
-                        print(f"Created user in users table: {user_id}")
+                        try:
+                            supabase.table('users').insert(user_table_data).execute()
+                            print(f"Created user in users table: {user_id}")
+                        except Exception as e1:
+                            print(f"Failed to create user with hyphens, trying without: {e1}")
+                            # Try without hyphens
+                            user_id_no_hyphens = user_id.replace('-', '')
+                            user_table_data['id'] = user_id_no_hyphens
+                            supabase.table('users').insert(user_table_data).execute()
+                            print(f"Created user in users table (no hyphens): {user_id_no_hyphens}")
                     except Exception as users_e:
                         print(f"Could not create user in users table: {users_e}")
                     

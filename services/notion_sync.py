@@ -474,22 +474,42 @@ class NotionCalendarSync:
             # Ensure user exists in users table
             user_id = event['user_id']
             try:
-                # First check if user exists in users table
+                # First check if user exists in users table (try both with and without hyphens)
                 user_check = supabase.table('users').select('id').eq('id', user_id).execute()
+                
+                # Also try the version without hyphens 
+                user_id_no_hyphens = user_id.replace('-', '')
+                if not user_check.data:
+                    user_check = supabase.table('users').select('id').eq('id', user_id_no_hyphens).execute()
                 
                 if not user_check.data:
                     print(f"📝 [SAVE] Creating user record for {user_id}")
                     # Get user email from session or use a default
                     user_email = session.get('user_email', f'{user_id[:8]}@notionflow.app')
                     
-                    # Create user in users table
+                    # Try to create with original user_id first
+                    from datetime import datetime, timezone
                     user_data = {
                         'id': user_id,
                         'email': user_email,
                         'created_at': datetime.now(timezone.utc).isoformat()
                     }
-                    supabase.table('users').insert(user_data).execute()
-                    print(f"✅ [SAVE] Created user record: {user_id}")
+                    try:
+                        supabase.table('users').insert(user_data).execute()
+                        print(f"✅ [SAVE] Created user record: {user_id}")
+                    except Exception as e1:
+                        print(f"⚠️ [SAVE] Failed to create with hyphens, trying without: {e1}")
+                        # Try without hyphens
+                        user_data['id'] = user_id_no_hyphens
+                        try:
+                            supabase.table('users').insert(user_data).execute()
+                            print(f"✅ [SAVE] Created user record (no hyphens): {user_id_no_hyphens}")
+                            # Update event user_id to match
+                            event['user_id'] = user_id_no_hyphens
+                        except Exception as e2:
+                            print(f"⚠️ [SAVE] Failed both formats: {e2}")
+                else:
+                    print(f"✅ [SAVE] User already exists: {user_id}")
             except Exception as user_e:
                 print(f"⚠️ [SAVE] Could not ensure user exists: {user_e}")
                 # Continue anyway - maybe the foreign key constraint is disabled
