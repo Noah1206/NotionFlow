@@ -2347,8 +2347,8 @@ def profile():
                 calendars_result = dashboard_data.supabase.table('calendar_events').select('id').eq('user_id', user_id).execute()
                 calendar_count = len(calendars_result.data) if calendars_result.data else 0
                 
-                # Get connector count (platform connections)
-                connectors_result = dashboard_data.supabase.table('platform_connections').select('id').eq('user_id', user_id).execute()
+                # Get connector count (OAuth tokens)
+                connectors_result = dashboard_data.supabase.table('oauth_tokens').select('id').eq('user_id', user_id).execute()
                 connector_count = len(connectors_result.data) if connectors_result.data else 0
                 
                 # Add to profile context
@@ -6484,36 +6484,36 @@ def get_synced_calendars():
         except Exception as db_error:
             print(f"Database error fetching synced calendars: {db_error}")
         
-        # 2. 플랫폼 연결 정보 확인 (OAuth 연동 확인)
+        # 2. OAuth 토큰 확인 (실제 OAuth 연동 여부 확인)
         try:
-            platform_connections = supabase_client.table('platform_connections').select('*').eq('user_id', user_id).eq('is_connected', True).execute()
+            oauth_tokens = supabase_client.table('oauth_tokens').select('*').eq('user_id', user_id).execute()
             
-            if platform_connections.data:
-                for connection in platform_connections.data:
-                    platform = connection['platform']
+            if oauth_tokens.data:
+                for token in oauth_tokens.data:
+                    platform = token['platform']
                     
                     # Skip Google if manually disconnected to prevent auto-reconnection
                     if platform == 'google' and google_manually_disconnected == 'true':
-                        print(f"[SYNC-CALENDARS] Skipping Google platform connection due to manual disconnection")
+                        print(f"[SYNC-CALENDARS] Skipping Google platform due to manual disconnection")
                         continue
                     
                     # 이미 실제 캘린더 연동이 있으면 건너뛰기
                     if platform in synced_platforms:
                         continue
                     
-                    # OAuth만 연동되고 캘린더 연동이 없는 경우 표시
+                    # OAuth 토큰이 있지만 캘린더 연동이 없는 경우 표시
                     synced_platforms[platform] = {
                         'calendar_id': None,
                         'calendar_name': 'OAuth 연동 완료',
                         'calendar_description': '캘린더 연동을 완료하세요',
                         'calendar_icon': '🔗',
-                        'synced_at': connection.get('created_at', ''),
+                        'synced_at': token.get('created_at', ''),
                         'sync_status': 'oauth_only',  # 새로운 상태
-                        'source': 'platform_connection',
+                        'source': 'oauth_token',
                         'needs_calendar_sync': True
                     }
-        except Exception as platform_error:
-            print(f"Platform connections read error: {platform_error}")
+        except Exception as oauth_error:
+            print(f"OAuth tokens read error: {oauth_error}")
         
         # 3. 세션에서 연동 정보도 확인 (데이터베이스 실패 시 fallback)
         try:
