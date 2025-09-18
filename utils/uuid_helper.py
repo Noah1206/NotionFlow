@@ -31,9 +31,10 @@ def normalize_uuid(uuid_string):
     return None
 
 def ensure_auth_user_exists(user_id, email, name=None):
-    """auth.users 테이블에 사용자가 존재하는지 확인하고 없으면 생성"""
+    """사용자 존재 확인 및 생성 (users와 user_profiles 테이블)"""
     try:
         from utils.config import config
+        from datetime import datetime, timezone
         
         # 서비스 역할 클라이언트 사용
         supabase = config.supabase_admin
@@ -46,27 +47,80 @@ def ensure_auth_user_exists(user_id, email, name=None):
             print(f"❌ Invalid UUID format: {user_id}")
             return False
         
-        # auth.users에서 사용자 확인
-        existing = supabase.table('auth.users').select('id').eq('id', normalized_id).execute()
+        # 1. users 테이블에서 사용자 확인 및 생성
+        try:
+            existing_user = supabase.table('users').select('id').eq('id', normalized_id).execute()
+            
+            if not existing_user.data:
+                # users 테이블에 사용자 생성
+                user_data = {
+                    'id': normalized_id,
+                    'email': email,
+                    'name': name or 'User',
+                    'created_at': datetime.now(timezone.utc).isoformat()
+                }
+                
+                user_result = supabase.table('users').insert(user_data).execute()
+                if user_result.data:
+                    print(f"✅ Created users entry for {email}")
+                else:
+                    print(f"❌ Failed to create users entry")
+                    return False
+            else:
+                print(f"✅ User already exists in users table: {normalized_id}")
+        except Exception as user_e:
+            print(f"❌ Error with users table: {user_e}")
+            return False
         
-        if not existing.data:
-            # auth.users에 사용자 생성
-            user_data = {
-                'id': normalized_id,
-                'email': email,
-                'created_at': 'NOW()',
-                'updated_at': 'NOW()',
-                'email_confirmed_at': 'NOW()'
-            }
+        # 2. user_profiles 테이블에서 프로필 확인 및 생성
+        try:
+            existing_profile = supabase.table('user_profiles').select('user_id').eq('user_id', normalized_id).execute()
             
-            if name:
-                user_data['raw_user_meta_data'] = {'name': name}
-            
-            supabase.table('auth.users').insert(user_data).execute()
-            print(f"✅ Created auth.users entry for {email}")
+            if not existing_profile.data:
+                # 고유한 username 생성 (timestamp + uuid prefix 조합)
+                timestamp_suffix = str(int(datetime.now().timestamp()))[-6:]  # 마지막 6자리
+                username = f"{normalized_id[:8]}{timestamp_suffix}"
+                
+                # username 중복 확인 및 재시도
+                max_attempts = 5
+                for attempt in range(max_attempts):
+                    try:
+                        profile_data = {
+                            'user_id': normalized_id,
+                            'username': username,
+                            'email': email,
+                            'created_at': datetime.now(timezone.utc).isoformat()
+                        }
+                        
+                        if name:
+                            profile_data['display_name'] = name
+                        
+                        profile_result = supabase.table('user_profiles').insert(profile_data).execute()
+                        if profile_result.data:
+                            print(f"✅ Created user_profiles entry: {username}")
+                            break
+                        else:
+                            print(f"❌ Failed to create user_profiles entry")
+                            return False
+                            
+                    except Exception as profile_insert_e:
+                        if 'duplicate key' in str(profile_insert_e).lower() and attempt < max_attempts - 1:
+                            # username 중복이면 새로운 username 생성
+                            username = f"{normalized_id[:8]}{timestamp_suffix}{attempt + 1}"
+                            print(f"⚠️ Username conflict, retrying with: {username}")
+                            continue
+                        else:
+                            print(f"❌ Profile creation failed: {profile_insert_e}")
+                            return False
+            else:
+                print(f"✅ User profile already exists: {normalized_id}")
+                
+        except Exception as profile_e:
+            print(f"⚠️ Error with user_profiles table (continuing): {profile_e}")
+            # 프로필 생성 실패는 치명적이지 않음
         
         return True
         
     except Exception as e:
-        print(f"❌ Error ensuring auth user exists: {e}")
+        print(f"❌ Error ensuring user exists: {e}")
         return False

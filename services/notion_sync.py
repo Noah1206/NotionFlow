@@ -458,6 +458,38 @@ class NotionCalendarSync:
         
         return None
     
+    def _normalize_uuid(self, uuid_str: str) -> str:
+        """UUID를 표준 형식으로 정규화 (하이픈 있는 형식)"""
+        if not uuid_str:
+            return uuid_str
+            
+        # 이메일이 UUID로 잘못 인식된 경우 처리
+        if '@' in uuid_str:
+            print(f"⚠️ [UUID] Email detected instead of UUID: {uuid_str}")
+            # 이메일에서 UUID 생성 (일관성을 위해)
+            import hashlib
+            email_hash = hashlib.md5(uuid_str.encode()).hexdigest()
+            # MD5 해시를 UUID 형식으로 변환
+            uuid_str = f"{email_hash[:8]}-{email_hash[8:12]}-{email_hash[12:16]}-{email_hash[16:20]}-{email_hash[20:32]}"
+            print(f"🔄 [UUID] Generated UUID from email: {uuid_str}")
+            return uuid_str
+            
+        # 하이픈 제거 후 재포맷
+        clean_uuid = uuid_str.replace('-', '')
+        
+        # 32자리 hex 문자열이 아니면 에러
+        if len(clean_uuid) != 32:
+            print(f"⚠️ [UUID] Invalid UUID length: {len(clean_uuid)} (expected 32)")
+            return uuid_str
+            
+        # 표준 UUID 형식으로 포맷 (8-4-4-4-12)
+        formatted_uuid = f"{clean_uuid[:8]}-{clean_uuid[8:12]}-{clean_uuid[12:16]}-{clean_uuid[16:20]}-{clean_uuid[20:32]}"
+        
+        if formatted_uuid != uuid_str:
+            print(f"🔧 [UUID] Normalized: {uuid_str} → {formatted_uuid}")
+            
+        return formatted_uuid
+
     def _save_event_to_calendar(self, event: Dict) -> bool:
         """이벤트를 NotionFlow 캘린더에 저장"""
         try:
@@ -471,48 +503,36 @@ class NotionCalendarSync:
                 print("❌ Supabase client not available")
                 return False
             
-            # Ensure user exists in users table
-            user_id = event['user_id']
+            # UUID 정규화
+            user_id = self._normalize_uuid(event['user_id'])
+            event['user_id'] = user_id  # 정규화된 UUID로 업데이트
             try:
-                # First check if user exists in users table (try both with and without hyphens)
+                # Check if user exists in users table
                 user_check = supabase.table('users').select('id').eq('id', user_id).execute()
-                
-                # Also try the version without hyphens 
-                user_id_no_hyphens = user_id.replace('-', '')
-                if not user_check.data:
-                    user_check = supabase.table('users').select('id').eq('id', user_id_no_hyphens).execute()
                 
                 if not user_check.data:
                     print(f"📝 [SAVE] Creating user record for {user_id}")
-                    # Get user email from session or use a default
-                    user_email = session.get('user_email', f'{user_id[:8]}@notionflow.app')
+                    # Get user email from session or platform tokens
+                    user_email = session.get('user_email')
+                    if not user_email:
+                        # Try to get from platform tokens in session
+                        platform_tokens = session.get('platform_tokens', {})
+                        notion_info = platform_tokens.get('notion', {})
+                        user_email = notion_info.get('user_email') or f'{user_id[:8]}@notionflow.app'
                     
-                    # Try to create with original user_id first
-                    from datetime import datetime, timezone
-                    user_data = {
-                        'id': user_id,
-                        'email': user_email,
-                        'created_at': datetime.now(timezone.utc).isoformat()
-                    }
-                    try:
-                        supabase.table('users').insert(user_data).execute()
-                        print(f"✅ [SAVE] Created user record: {user_id}")
-                    except Exception as e1:
-                        print(f"⚠️ [SAVE] Failed to create with hyphens, trying without: {e1}")
-                        # Try without hyphens
-                        user_data['id'] = user_id_no_hyphens
-                        try:
-                            supabase.table('users').insert(user_data).execute()
-                            print(f"✅ [SAVE] Created user record (no hyphens): {user_id_no_hyphens}")
-                            # Update event user_id to match
-                            event['user_id'] = user_id_no_hyphens
-                        except Exception as e2:
-                            print(f"⚠️ [SAVE] Failed both formats: {e2}")
+                    # Create user using proper helper function
+                    from utils.uuid_helper import ensure_auth_user_exists
+                    if ensure_auth_user_exists(user_id, user_email, 'Notion User'):
+                        print(f"✅ [SAVE] Created/verified user record: {user_id}")
+                    else:
+                        print(f"❌ [SAVE] Failed to create user record")
+                        return False
                 else:
                     print(f"✅ [SAVE] User already exists: {user_id}")
+                    
             except Exception as user_e:
-                print(f"⚠️ [SAVE] Could not ensure user exists: {user_e}")
-                # Continue anyway - maybe the foreign key constraint is disabled
+                print(f"❌ [SAVE] Critical error ensuring user exists: {user_e}")
+                return False
             
             # 데이터베이스 스키마에 맞게 이벤트 데이터 변환
             db_event = {

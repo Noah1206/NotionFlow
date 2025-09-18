@@ -30,7 +30,14 @@ except ImportError:
     def require_auth():
         return None
     def get_current_user_id():
-        return session.get('user_id')
+        user_id = session.get('user_id')
+        if user_id and '@' not in user_id:  # UUID인 경우에만 정규화
+            try:
+                from utils.uuid_helper import normalize_uuid
+                return normalize_uuid(user_id)
+            except:
+                pass
+        return user_id
 
 # 임시 테스트 엔드포인트
 @calendar_api_bp.route('/test', methods=['GET'])
