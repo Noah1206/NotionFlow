@@ -144,28 +144,49 @@ def disconnect_platform_from_calendar(calendar_id, platform):
             print("ERROR: Supabase client is None!")
             return jsonify({'error': 'Database connection failed'}), 500
         
-        # Step 1: Delete OAuth tokens (this is the most important)
+        # Step 1: Delete registered platform (완전한 OAuth 연결 해제)
         try:
-            print("Step 1: Deleting OAuth tokens...")
+            print("Step 1: Deleting registered platform...")
+            platform_result = supabase.table('registered_platforms').delete().eq('user_id', user_id).eq('platform', platform).execute()
+            print(f"Platform delete result: {platform_result}")
+            
+            # Step 2: Delete OAuth tokens
+            print("Step 2: Deleting OAuth tokens...")
             oauth_result = supabase.table('oauth_tokens').delete().eq('user_id', user_id).eq('platform', platform).execute()
             print(f"OAuth delete result: {oauth_result}")
             
-            # Step 2: Try to delete imported events (optional, ignore errors)
-            print("Step 2: Deleting imported events...")
+            # Step 3: Delete platform connections
+            print("Step 3: Deleting platform connections...")
+            try:
+                connection_result = supabase.table('platform_connections').delete().eq('user_id', user_id).eq('platform', platform).execute()
+                print(f"Connection delete result: {connection_result}")
+            except Exception as conn_error:
+                print(f"Connection deletion failed (ignoring): {conn_error}")
+            
+            # Step 4: Try to delete imported events (optional, ignore errors)
+            print("Step 4: Deleting imported events...")
             try:
                 events_result = supabase.table('calendar_events').delete().eq('user_id', user_id).eq('platform', platform).execute()
                 print(f"Events delete result: {events_result}")
             except Exception as events_error:
                 print(f"Events deletion failed (ignoring): {events_error}")
             
-            print("Disconnect completed successfully!")
+            print("Complete OAuth disconnection completed successfully!")
             
-            # Update session state to reflect disconnection
+            # Clear all session data related to this platform
             from flask import session
-            session_key = f'platform_{platform}_connected'
-            if session_key in session:
-                session.pop(session_key)
-                print(f"Removed {session_key} from session")
+            session_keys_to_remove = [
+                f'platform_{platform}_connected',
+                f'{platform}_access_token',
+                f'{platform}_refresh_token',
+                f'{platform}_user_info',
+                f'{platform}_oauth_state'
+            ]
+            
+            for session_key in session_keys_to_remove:
+                if session_key in session:
+                    session.pop(session_key)
+                    print(f"Removed {session_key} from session")
             
             result = {'success': True}
             
@@ -197,7 +218,8 @@ def disconnect_platform_from_calendar(calendar_id, platform):
         print("Returning success response...")
         return jsonify({
             'success': True,
-            'message': f'{platform} disconnected successfully'
+            'message': f'{platform} OAuth 연결이 완전히 해제되었습니다. 다시 연결하려면 원클릭 연결을 해주세요.',
+            'requires_reauth': True  # 프론트엔드에서 재인증 필요함을 알림
         })
         
     except Exception as e:
