@@ -123,11 +123,11 @@ class DashboardDataManager:
             
             print(f"📅 [EVENTS] Date range: {start_date.isoformat()} to {end_date.isoformat()}")
             
-            # Build query - using only existing columns
+            # Build query - using only existing columns (컬럼명 수정: start_datetime → start_date, end_datetime → end_date)
             query = self.supabase.table('calendar_events').select('''
-                id, title, description, start_datetime, end_datetime,
+                id, title, description, start_date, end_date,
                 is_all_day, status, location, attendees, created_at, updated_at, calendar_id, source_platform
-            ''').eq('user_id', normalized_user_id).gte('start_datetime', start_date.isoformat()).lte('start_datetime', end_date.isoformat())
+            ''').eq('user_id', normalized_user_id).gte('start_date', start_date.isoformat()).lte('start_date', end_date.isoformat())
             
             # Filter by calendar IDs if provided
             if calendar_ids:
@@ -137,7 +137,7 @@ class DashboardDataManager:
             else:
                 print(f"📅 [EVENTS] No calendar ID filter - showing all events")
             
-            result = query.order('start_datetime').execute()
+            result = query.order('start_date').execute()
             
             events_found = len(result.data) if result.data else 0
             print(f"📊 [EVENTS] Found {events_found} events for user {normalized_user_id}")
@@ -146,7 +146,7 @@ class DashboardDataManager:
                 notion_events = [e for e in result.data if e.get('source_platform') == 'notion']
                 print(f"🎯 [EVENTS] Notion events found: {len(notion_events)}")
                 for event in notion_events[:3]:  # 처음 3개만 로깅
-                    print(f"  📝 {event.get('title')} - {event.get('start_datetime')}")
+                    print(f"  📝 {event.get('title')} - {event.get('start_date')}")
             
             return result.data if result.data else []
             
@@ -336,7 +336,7 @@ class DashboardDataManager:
         """Get dashboard summary statistics"""
         try:
             # Get counts from various tables
-            events_today = self.supabase.table('calendar_events').select('id', count='exact').eq('user_id', user_id).gte('start_datetime', datetime.now().date().isoformat()).lt('start_datetime', (datetime.now().date() + timedelta(days=1)).isoformat()).execute()
+            events_today = self.supabase.table('calendar_events').select('id', count='exact').eq('user_id', user_id).gte('start_date', datetime.now().date().isoformat()).lt('start_date', (datetime.now().date() + timedelta(days=1)).isoformat()).execute()
             
             total_events = self.supabase.table('calendar_events').select('id', count='exact').eq('user_id', user_id).execute()
             

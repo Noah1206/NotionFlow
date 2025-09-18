@@ -646,8 +646,8 @@ class NotionCalendarSync:
                 'external_id': event['external_id'],
                 'title': event['title'],
                 'description': event.get('description', ''),
-                'start_datetime': event['start_date'],  # ISO 형식
-                'end_datetime': event['end_date'],      # ISO 형식
+                'start_date': event['start_date'],  # ISO 형식 (컬럼명 수정: start_datetime → start_date)
+                'end_date': event['end_date'],      # ISO 형식 (컬럼명 수정: end_datetime → end_date)
                 'is_all_day': event.get('all_day', False),
                 'source_platform': 'notion',
                 'status': 'confirmed',
@@ -672,20 +672,20 @@ class NotionCalendarSync:
             # 최종 datetime 검증 및 수정
             from datetime import datetime, timedelta
             try:
-                start_dt = datetime.fromisoformat(db_event['start_datetime'].replace('Z', '+00:00'))
-                end_dt = datetime.fromisoformat(db_event['end_datetime'].replace('Z', '+00:00'))
+                start_dt = datetime.fromisoformat(db_event['start_date'].replace('Z', '+00:00'))
+                end_dt = datetime.fromisoformat(db_event['end_date'].replace('Z', '+00:00'))
                 
                 if end_dt <= start_dt:
-                    print(f"🚨 [SAVE] Final validation failed: end_datetime ({end_dt}) <= start_datetime ({start_dt})")
+                    print(f"🚨 [SAVE] Final validation failed: end_date ({end_dt}) <= start_date ({start_dt})")
                     end_dt = start_dt + timedelta(minutes=1)
-                    db_event['end_datetime'] = end_dt.isoformat()
-                    print(f"🔧 [SAVE] Fixed: new end_datetime = {db_event['end_datetime']}")
+                    db_event['end_date'] = end_dt.isoformat()
+                    print(f"🔧 [SAVE] Fixed: new end_date = {db_event['end_date']}")
                     
             except Exception as e:
                 print(f"⚠️ [SAVE] Datetime validation error: {e}")
             
             print(f"💾 [SAVE] Saving event: {db_event['title']}")
-            print(f"📅 [SAVE] Dates: {db_event['start_datetime']} → {db_event['end_datetime']}")
+            print(f"📅 [SAVE] Dates: {db_event['start_date']} → {db_event['end_date']}")
             print(f"📋 [SAVE] Event data: {db_event}")
             
             # 중복 체크 (실제 스키마의 unique constraint에 맞춤: user_id, external_id, source_platform)
@@ -702,10 +702,10 @@ class NotionCalendarSync:
                     result = supabase.table('calendar_events').update({
                         'title': db_event['title'],
                         'description': db_event['description'],
-                        'start_datetime': db_event['start_datetime'],
-                        'end_datetime': db_event['end_datetime'],
+                        'start_date': db_event['start_date'],
+                        'end_date': db_event['end_date'],
                         'is_all_day': db_event['is_all_day'],
-                        'updated_at': db_event['updated_at']
+                        'updated_at': datetime.now().isoformat()  # 동적으로 현재 시간 설정
                     }).eq('id', existing.data[0]['id']).execute()
                     print(f"✅ Updated existing event: {db_event['title']}")
                 else:
