@@ -3251,11 +3251,11 @@
                     console.log('Set Google disconnected flag to prevent auto-reconnection');
                 }
                 
-                // OAuth만 연동된 상태로 되돌리기
+                // 완전히 연결 해제된 상태로 변경 (OAuth도 해제됨)
                 const statusElement = card.querySelector('.platform-status');
                 if (statusElement) {
-                    statusElement.className = 'platform-status oauth-connected';
-                    statusElement.innerHTML = '<span class="status-dot"></span>OAuth 연동 완료';
+                    statusElement.className = 'platform-status disconnected';
+                    statusElement.innerHTML = '<span class="status-dot"></span>연결되지 않음';
                 }
 
                 // 연동 버튼 초기화
@@ -3269,6 +3269,19 @@
                     if (disconnectBtn) {
                         disconnectBtn.remove();
                     }
+                }
+
+                // 원클릭 버튼을 원래 연결 버튼으로 되돌리기
+                const oneClickDisconnectBtn = card.querySelector('.one-click-disconnect-btn');
+                if (oneClickDisconnectBtn) {
+                    oneClickDisconnectBtn.className = 'one-click-btn-small';
+                    oneClickDisconnectBtn.setAttribute('onclick', `oneClickConnect('${platform}')`);
+                    oneClickDisconnectBtn.innerHTML = `
+                        <span class="btn-text">원클릭 연결</span>
+                        <div class="btn-loader" style="display: none;">
+                            <div class="loader-dot"></div>
+                        </div>
+                    `;
                 }
 
                 // 연동 상태 다시 로드
