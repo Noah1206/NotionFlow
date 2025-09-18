@@ -612,7 +612,7 @@ class NotionCalendarSync:
                 print(f"❌ [SAVE] Critical error ensuring user exists: {user_e}")
                 return False
             
-            # 데이터베이스 스키마에 맞게 이벤트 데이터 변환
+            # 실제 데이터베이스 스키마에 맞게 이벤트 데이터 변환
             db_event = {
                 'user_id': event['user_id'],
                 'external_id': event['external_id'],
@@ -623,21 +623,23 @@ class NotionCalendarSync:
                 'is_all_day': event.get('all_day', False),
                 'source_platform': 'notion',
                 'status': 'confirmed',
-                'created_at': event.get('created_at'),
-                'updated_at': event.get('updated_at')
+                'priority': 0,  # 기본 우선순위
+                'sync_status': 'synced',  # 동기화 완료 상태
+                'category': 'notion',  # 카테고리
+                # created_at, updated_at은 트리거로 자동 설정
             }
             
-            # calendar_id 또는 source_calendar_id 중 존재하는 컬럼 사용
-            try:
-                # 먼저 calendar_id 시도
+            # calendar_id 설정 (항상 설정되어야 함)
+            if 'calendar_id' in event and event['calendar_id']:
                 db_event['calendar_id'] = event['calendar_id']
-            except:
-                try:
-                    # calendar_id가 없으면 source_calendar_id 사용
+                print(f"📋 [SAVE] Using calendar_id: {event['calendar_id']}")
+            else:
+                # calendar_id가 없으면 에러 로그 및 기본값 사용
+                print(f"⚠️ [SAVE] Missing calendar_id in event: {event}")
+                # source_calendar_id도 설정하여 백업
+                if 'calendar_id' in event:
                     db_event['source_calendar_id'] = event['calendar_id']
                     db_event['source_calendar_name'] = 'Notion Calendar'
-                except:
-                    pass
             
             # 최종 datetime 검증 및 수정
             from datetime import datetime, timedelta
@@ -658,7 +660,7 @@ class NotionCalendarSync:
             print(f"📅 [SAVE] Dates: {db_event['start_datetime']} → {db_event['end_datetime']}")
             print(f"📋 [SAVE] Event data: {db_event}")
             
-            # 중복 체크 (user_id, external_id, source_platform로)
+            # 중복 체크 (실제 스키마의 unique constraint에 맞춤: user_id, external_id, source_platform)
             try:
                 existing = supabase.table('calendar_events').select('id').eq(
                     'user_id', event['user_id']
@@ -785,10 +787,10 @@ class NotionCalendarSync:
             
             notion_page_id = notion_page.get('id', '')
             
-            # 이미 동기화된 이벤트인지 확인
+            # 이미 동기화된 이벤트인지 확인 (실제 스키마 필드명 사용)
             existing = supabase.table('calendar_events').select('id').eq(
                 'user_id', user_id
-            ).eq('calendar_id', calendar_id).eq('external_event_id', notion_page_id).execute()
+            ).eq('external_id', notion_page_id).eq('source_platform', 'notion').execute()
             
             return len(existing.data) > 0
             

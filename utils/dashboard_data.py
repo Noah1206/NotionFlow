@@ -119,12 +119,13 @@ class DashboardDataManager:
             # Build query - using only existing columns
             query = self.supabase.table('calendar_events').select('''
                 id, title, description, start_datetime, end_datetime,
-                is_all_day, status, location, attendees, created_at, updated_at, calendar_id
+                is_all_day, status, location, attendees, created_at, updated_at, calendar_id, source_platform
             ''').eq('user_id', user_id).gte('start_datetime', start_date.isoformat()).lte('start_datetime', end_date.isoformat())
             
             # Filter by calendar IDs if provided
             if calendar_ids:
-                query = query.in_('calendar_id', calendar_ids)
+                # Include events that match calendar_id OR are from Notion (which may not have calendar_id set)
+                query = query.or_(f'calendar_id.in.({",".join(calendar_ids)}),source_platform.eq.notion')
             
             result = query.order('start_datetime').execute()
             
