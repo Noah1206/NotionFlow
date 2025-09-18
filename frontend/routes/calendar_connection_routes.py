@@ -51,11 +51,11 @@ def connect_platform_to_calendar(calendar_id):
         
         supabase = config.get_client_for_user(user_id)
         
-        # Check if platform is registered
-        platform_result = supabase.table('registered_platforms').select('*').eq('user_id', user_id).eq('platform', platform).execute()
+        # Check if platform has OAuth tokens (대신 oauth_tokens 테이블 확인)
+        oauth_result = supabase.table('oauth_tokens').select('*').eq('user_id', user_id).eq('platform', platform).execute()
         
-        if not platform_result.data:
-            return jsonify({'error': 'Platform not registered. Please register the platform first.'}), 400
+        if not oauth_result.data:
+            return jsonify({'error': 'Platform not authenticated. Please complete OAuth authentication first.'}), 400
         
         # Check if calendar exists
         calendar_result = supabase.table('user_calendars').select('*').eq('user_id', user_id).eq('calendar_id', calendar_id).execute()
@@ -144,34 +144,29 @@ def disconnect_platform_from_calendar(calendar_id, platform):
             print("ERROR: Supabase client is None!")
             return jsonify({'error': 'Database connection failed'}), 500
         
-        # Step 1: Delete registered platform (완전한 OAuth 연결 해제)
+        # Step 1: Delete OAuth tokens (가장 중요한 단계)
         try:
-            print("Step 1: Deleting registered platform...")
-            platform_result = supabase.table('registered_platforms').delete().eq('user_id', user_id).eq('platform', platform).execute()
-            print(f"Platform delete result: {platform_result}")
-            
-            # Step 2: Delete OAuth tokens
-            print("Step 2: Deleting OAuth tokens...")
+            print("Step 1: Deleting OAuth tokens...")
             oauth_result = supabase.table('oauth_tokens').delete().eq('user_id', user_id).eq('platform', platform).execute()
             print(f"OAuth delete result: {oauth_result}")
             
-            # Step 3: Delete platform connections
-            print("Step 3: Deleting platform connections...")
+            # Step 2: Delete platform connections (존재하는 경우)
+            print("Step 2: Deleting platform connections...")
             try:
                 connection_result = supabase.table('platform_connections').delete().eq('user_id', user_id).eq('platform', platform).execute()
                 print(f"Connection delete result: {connection_result}")
             except Exception as conn_error:
                 print(f"Connection deletion failed (ignoring): {conn_error}")
             
-            # Step 4: Try to delete imported events (optional, ignore errors)
-            print("Step 4: Deleting imported events...")
+            # Step 3: Try to delete imported events (optional, ignore errors)
+            print("Step 3: Deleting imported events...")
             try:
                 events_result = supabase.table('calendar_events').delete().eq('user_id', user_id).eq('platform', platform).execute()
                 print(f"Events delete result: {events_result}")
             except Exception as events_error:
                 print(f"Events deletion failed (ignoring): {events_error}")
             
-            print("Complete OAuth disconnection completed successfully!")
+            print("OAuth disconnection completed successfully!")
             
             # Clear all session data related to this platform
             from flask import session
@@ -265,12 +260,15 @@ def get_calendar_connections(calendar_id):
                 'updated_at': conn['updated_at']
             }
         
-        # Add registered platforms not yet connected to this calendar
+        # Add available platforms that have OAuth tokens but no connections
         available_platforms = {}
-        for platform_id, platform_name in registered_platforms.items():
+        oauth_platforms_result = supabase.table('oauth_tokens').select('platform').eq('user_id', user_id).execute()
+        
+        for oauth_platform in oauth_platforms_result.data:
+            platform_id = oauth_platform['platform']
             if platform_id not in connections:
                 available_platforms[platform_id] = {
-                    'platform_name': platform_name,
+                    'platform_name': platform_id.title(),
                     'is_connected': False,
                     'can_connect': True
                 }
@@ -365,8 +363,8 @@ def get_connections_summary():
             is_connected, sync_enabled, health_status, last_sync_at
         ''').eq('user_id', user_id).execute()
         
-        # Get registered platforms count
-        platforms_result = supabase.table('registered_platforms').select('platform').eq('user_id', user_id).eq('is_registered', True).execute()
+        # Get OAuth platforms count
+        platforms_result = supabase.table('oauth_tokens').select('platform').eq('user_id', user_id).execute()
         
         # Get calendars count
         calendars_result = supabase.table('user_calendars').select('calendar_id').eq('user_id', user_id).execute()
@@ -416,7 +414,7 @@ def get_connections_summary():
             'success': True,
             'summary': {
                 'total_calendars': len(calendars_result.data),
-                'registered_platforms': len(platforms_result.data),
+                'oauth_platforms': len(platforms_result.data),
                 'total_connections': total_connections,
                 'active_connections': active_connections,
                 'healthy_connections': healthy_connections,
@@ -494,11 +492,11 @@ def auto_import_google_events(user_id, calendar_id):
     try:
         supabase = config.get_client_for_user(user_id)
         
-        # Check if Google platform is registered and has valid credentials
-        platform_result = supabase.table('registered_platforms').select('*').eq('user_id', user_id).eq('platform', 'google').execute()
+        # Check if Google platform has OAuth tokens
+        oauth_result = supabase.table('oauth_tokens').select('*').eq('user_id', user_id).eq('platform', 'google').execute()
         
-        if not platform_result.data:
-            return {'success': False, 'error': 'Google Calendar not registered'}
+        if not oauth_result.data:
+            return {'success': False, 'error': 'Google Calendar not authenticated'}
         
         # Initialize Google Calendar service
         google_service = GoogleCalendarService()
