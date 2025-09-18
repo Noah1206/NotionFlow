@@ -65,27 +65,12 @@ class NotionAPI:
             # 최근 3개월 데이터만 가져오기 (성능 최적화)
             three_months_ago = (datetime.now() - timedelta(days=90)).isoformat()
             
+            # 간단한 쿼리로 시작 (속성 필터 제거)
             query_payload = {
                 "page_size": page_size,
-                "filter": {
-                    "or": [
-                        {
-                            "property": "Created time",
-                            "created_time": {
-                                "after": three_months_ago
-                            }
-                        },
-                        {
-                            "property": "Last edited time", 
-                            "last_edited_time": {
-                                "after": three_months_ago
-                            }
-                        }
-                    ]
-                },
                 "sorts": [
                     {
-                        "property": "Last edited time",
+                        "timestamp": "last_edited_time",
                         "direction": "descending"
                     }
                 ]

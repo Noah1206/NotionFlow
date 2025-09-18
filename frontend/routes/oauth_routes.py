@@ -1200,10 +1200,14 @@ def handle_callback_success(platform, user_info):
                 }}, window.location.origin);
             }}
             
-            // 2초 후 창 닫기
+            // 창 자동 닫기
             setTimeout(() => {{
                 window.close();
-            }}, {'3000' if redirect_to_calendar else '2000'});
+                // window.close()가 실패할 경우를 대비한 대체 방법
+                if (!window.closed) {{
+                    document.body.innerHTML = '<div style="text-align:center; margin-top: 100px;"><h2>연결이 완료되었습니다!</h2><p>이 창을 닫아주세요.</p><button onclick="window.close()" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">창 닫기</button></div>';
+                }}
+            }}, 1500);
         </script>
     </body>
     </html>
