@@ -1196,7 +1196,7 @@ def handle_callback_success(platform, user_info):
                     platform: '{platform}',
                     message: '{platform.title()} 계정이 성공적으로 연결되었습니다!',
                     redirect_to_calendar: {str(redirect_to_calendar).lower()},
-                    sync_result: {sync_result if sync_result else 'null'}
+                    sync_result: {json.dumps(sync_result) if sync_result else 'null'}
                 }}, window.location.origin);
             }}
             
