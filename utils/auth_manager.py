@@ -84,7 +84,7 @@ class AuthManager:
     
     @staticmethod
     def get_current_user_id() -> Optional[str]:
-        """Get current authenticated user ID from various sources"""
+        """Get current authenticated user ID from various sources with UUID normalization"""
         # Mock mode fallback
         if MOCK_MODE:
             return 'mock_user_123'  # Always return a mock user in mock mode
@@ -97,27 +97,34 @@ class AuthManager:
             token = auth_header.split(' ')[1]
             user_id = AuthManager._validate_jwt_token(token)
             if user_id:
-                return user_id
+                return AuthManager._normalize_uuid(user_id)
         
         # 2. Check Flask session
         user_info = session.get('user_info')
         if user_info:
             # Try different session formats for compatibility
             if isinstance(user_info, dict):
-                return user_info.get('id') or user_info.get('email') or user_info.get('user_id')
-            return str(user_info)
+                user_id = user_info.get('id') or user_info.get('user_id')
+                if user_id:
+                    return AuthManager._normalize_uuid(user_id)
+                # If no UUID found, convert email to UUID
+                email = user_info.get('email')
+                if email:
+                    return AuthManager._email_to_uuid(email)
+            return AuthManager._normalize_uuid(str(user_info))
         
         # 3. Check g.current_user (set by decorators)
         if hasattr(g, 'current_user') and g.current_user:
             if hasattr(g.current_user, 'id'):
-                return g.current_user.id
-            return str(g.current_user)
+                return AuthManager._normalize_uuid(g.current_user.id)
+            return AuthManager._normalize_uuid(str(g.current_user))
         
         # 4. Development fallback - check if we're in dev mode
         if os.environ.get('FLASK_ENV') == 'development':
             # Look for any session data that indicates a user
             if session.get('authenticated') or session.get('user_id'):
-                return session.get('user_id', 'dev_user')
+                user_id = session.get('user_id', 'dev_user')
+                return AuthManager._normalize_uuid(user_id)
         
         return None
     
@@ -131,6 +138,34 @@ class AuthManager:
             return decoded.get('sub')  # Supabase user ID
         except:
             return None
+    
+    @staticmethod
+    def _normalize_uuid(uuid_str: str) -> str:
+        """UUID를 표준 형식으로 정규화 (하이픈 있는 형식)"""
+        if not uuid_str:
+            return None
+            
+        # 이메일인 경우 UUID로 변환
+        if '@' in uuid_str:
+            return AuthManager._email_to_uuid(uuid_str)
+        
+        # 하이픈 제거 후 길이 체크
+        clean_uuid = uuid_str.replace('-', '').lower()
+        
+        # 32자리 16진수인지 확인
+        if len(clean_uuid) == 32 and all(c in '0123456789abcdef' for c in clean_uuid):
+            # 표준 UUID 형식으로 포맷
+            return f"{clean_uuid[:8]}-{clean_uuid[8:12]}-{clean_uuid[12:16]}-{clean_uuid[16:20]}-{clean_uuid[20:32]}"
+        
+        # UUID가 아닌 경우 원본 반환
+        return uuid_str
+    
+    @staticmethod 
+    def _email_to_uuid(email: str) -> str:
+        """이메일을 UUID 형식으로 변환"""
+        # 이메일을 해시화하여 UUID 형식으로 변환
+        email_hash = hashlib.md5(email.encode()).hexdigest()
+        return f"{email_hash[:8]}-{email_hash[8:12]}-{email_hash[12:16]}-{email_hash[16:20]}-{email_hash[20:32]}"
     
     @staticmethod
     def require_auth(f):
@@ -848,7 +883,7 @@ class SessionManager:
 
 # Convenience functions for backward compatibility
 def get_current_user_id() -> Optional[str]:
-    """Get current user ID - convenience function"""
+    """Get current user ID - convenience function with UUID normalization"""
     return AuthManager.get_current_user_id()
 
 def require_auth(f):
