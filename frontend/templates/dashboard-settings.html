@@ -124,7 +124,7 @@
                         연결됨
                     </span>
                 </div>
-                <button class="btn-secondary-small">관리</button>
+                <button class="btn-warning-small" onclick="disconnectPlatform('notion')">연결해제</button>
             </div>
 
             <div class="platform-card connected">
@@ -141,7 +141,7 @@
                         연결됨
                     </span>
                 </div>
-                <button class="btn-secondary-small">관리</button>
+                <button class="btn-warning-small" onclick="disconnectPlatform('google')">연결해제</button>
             </div>
 
             <div class="platform-card disconnected">
@@ -158,7 +158,7 @@
                         연결 끊김
                     </span>
                 </div>
-                <button class="btn-warning-small">재연결</button>
+                <button class="btn-secondary-small" onclick="connectPlatform('apple')">연결</button>
             </div>
 
             <div class="platform-card connected">
@@ -175,7 +175,7 @@
                         연결됨
                     </span>
                 </div>
-                <button class="btn-secondary-small">관리</button>
+                <button class="btn-warning-small" onclick="disconnectPlatform('outlook')">연결해제</button>
             </div>
 
             <div class="platform-card disconnected">
@@ -192,7 +192,7 @@
                         연결 끊김
                     </span>
                 </div>
-                <button class="btn-warning-small">재연결</button>
+                <button class="btn-secondary-small" onclick="connectPlatform('slack')">연결</button>
             </div>
 
             <div class="platform-card add-new">
@@ -467,23 +467,99 @@
                 const statusElement = platformCard.querySelector('.platform-status');
                 const button = platformCard.querySelector('button');
                 
+                // 기존의 특별한 버튼들 제거 (초록색 버튼, X 버튼 등)
+                const existingSpecialButtons = platformCard.querySelectorAll(
+                    '.btn-success, .connection-status-btn, .sync-status-btn, [class*="connected-btn"], ' +
+                    '.btn-success-small, [onclick*="disconnectSpecial"], [class*="green"], ' +
+                    'button:contains("연동됨"), button:contains("×"), button[class*="close"]'
+                );
+                existingSpecialButtons.forEach(btn => btn.remove());
+                
+                // X 버튼이나 특별한 형태의 연동 상태 버튼들도 제거
+                const specialStatusButtons = platformCard.querySelectorAll('button');
+                specialStatusButtons.forEach(btn => {
+                    if (btn.textContent && (
+                        btn.textContent.includes('연동됨') || 
+                        btn.textContent.includes('×') ||
+                        btn.textContent.includes('내 세 캘린더') ||
+                        btn.classList.contains('btn-success')
+                    )) {
+                        btn.remove();
+                    }
+                });
+                
+                // 버튼이 제거되었다면 새로 생성
+                let actionButton = platformCard.querySelector('button');
+                if (!actionButton) {
+                    actionButton = document.createElement('button');
+                    platformCard.appendChild(actionButton);
+                }
+                
                 if (platform.configured && platform.enabled) {
-                    // 연결된 상태
+                    // 연결된 상태 - 일관된 "연결해제" 버튼
                     platformCard.className = 'platform-card connected';
                     statusElement.innerHTML = '<i class="fas fa-circle"></i> 연결됨';
-                    if (button) button.textContent = '관리';
+                    statusElement.classList.remove('disconnected');
+                    actionButton.textContent = '연결해제';
+                    actionButton.className = 'btn-warning-small';
+                    actionButton.onclick = () => disconnectPlatform(platformName);
                 } else {
                     // 연결되지 않은 상태
                     platformCard.className = 'platform-card disconnected';
                     statusElement.innerHTML = '<i class="fas fa-circle"></i> 연결 끊김';
                     statusElement.classList.add('disconnected');
-                    if (button) {
-                        button.textContent = '재연결';
-                        button.className = 'btn-warning-small';
-                    }
+                    actionButton.textContent = '연결';
+                    actionButton.className = 'btn-secondary-small';
+                    actionButton.onclick = () => connectPlatform(platformName);
                 }
             }
         });
+    }
+    
+    // 플랫폼 연결 함수
+    function connectPlatform(platformName) {
+        // OAuth 플랫폼의 경우 팝업으로 연결
+        const oauthPlatforms = ['notion', 'google', 'outlook', 'slack'];
+        if (oauthPlatforms.includes(platformName)) {
+            const popup = window.open(
+                `/oauth/${platformName}/authorize`,
+                `oauth_${platformName}`,
+                'width=500,height=700,left=' + ((screen.width - 500) / 2) + ',top=' + ((screen.height - 700) / 2) + ',scrollbars=yes,resizable=yes'
+            );
+            
+            if (!popup) {
+                showNotification('팝업이 차단되었습니다. 팝업을 허용해주세요.', 'error');
+            }
+        } else {
+            showNotification(`${platformName} 연결 기능이 곧 제공됩니다.`, 'info');
+        }
+    }
+    
+    // 플랫폼 연결해제 함수  
+    function disconnectPlatform(platformName) {
+        if (confirm(`${platformName} 연결을 해제하시겠습니까?`)) {
+            // 연결해제 API 호출
+            fetch(`/api/oauth/${platformName}/disconnect`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(`${platformName} 연결이 해제되었습니다.`, 'success');
+                    // 페이지 새로고침으로 상태 업데이트
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showNotification(`연결해제 실패: ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Disconnect error:', error);
+                showNotification('연결해제 중 오류가 발생했습니다.', 'error');
+            });
+        }
     }
 
     // 활동 로그 업데이트
