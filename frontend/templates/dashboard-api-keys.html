@@ -3254,11 +3254,6 @@
                 // 플랫폼 상태를 완전히 초기 상태로 되돌리기
                 updatePlatformStatus(platform, 'disconnected');
 
-                // 연동 상태 다시 로드
-                setTimeout(() => {
-                    loadSyncedCalendars();
-                }, 1000);
-
             } else {
                 throw new Error(result.error || '연동 해제에 실패했습니다.');
             }
