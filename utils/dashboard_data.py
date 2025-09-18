@@ -108,7 +108,7 @@ class DashboardDataManager:
             print(f"Error getting user API keys: {e}")
             return {}
     
-    def get_user_calendar_events(self, user_id: str, days_ahead: int = 30, start_date: datetime = None, end_date: datetime = None, calendar_ids: List[str] = None) -> List[Dict]:
+    def get_user_calendar_events(self, user_id: str, days_ahead: int = 30, start_datetime: datetime = None, end_datetime: datetime = None, calendar_ids: List[str] = None) -> List[Dict]:
         """Get user's calendar events, optionally filtered by calendar IDs"""
         try:
             # UUID 정규화 (Notion 동기화에서 사용한 것과 동일한 형식)
@@ -116,18 +116,18 @@ class DashboardDataManager:
             normalized_user_id = normalize_uuid(user_id)
             print(f"🔍 [EVENTS] Searching calendar events for user {user_id} (normalized: {normalized_user_id})")
             
-            if start_date is None:
-                start_date = datetime.now()
-            if end_date is None:
-                end_date = start_date + timedelta(days=days_ahead)
+            if start_datetime is None:
+                start_datetime = datetime.now()
+            if end_datetime is None:
+                end_datetime = start_datetime + timedelta(days=days_ahead)
             
-            print(f"📅 [EVENTS] Date range: {start_date.isoformat()} to {end_date.isoformat()}")
+            print(f"📅 [EVENTS] Date range: {start_datetime.isoformat()} to {end_datetime.isoformat()}")
             
-            # Build query - using only existing columns (컬럼명 수정: start_datetime → start_date, end_datetime → end_date)
+            # Build query - using actual column names from the database
             query = self.supabase.table('calendar_events').select('''
-                id, title, description, start_date, end_date,
+                id, title, description, start_datetime, end_datetime,
                 is_all_day, status, location, attendees, created_at, updated_at, calendar_id, source_platform
-            ''').eq('user_id', normalized_user_id).gte('start_date', start_date.isoformat()).lte('start_date', end_date.isoformat())
+            ''').eq('user_id', normalized_user_id).gte('start_datetime', start_datetime.isoformat()).lte('start_datetime', end_datetime.isoformat())
             
             # Filter by calendar IDs if provided
             if calendar_ids:
@@ -137,7 +137,7 @@ class DashboardDataManager:
             else:
                 print(f"📅 [EVENTS] No calendar ID filter - showing all events")
             
-            result = query.order('start_date').execute()
+            result = query.order('start_datetime').execute()
             
             events_found = len(result.data) if result.data else 0
             print(f"📊 [EVENTS] Found {events_found} events for user {normalized_user_id}")
@@ -146,7 +146,7 @@ class DashboardDataManager:
                 notion_events = [e for e in result.data if e.get('source_platform') == 'notion']
                 print(f"🎯 [EVENTS] Notion events found: {len(notion_events)}")
                 for event in notion_events[:3]:  # 처음 3개만 로깅
-                    print(f"  📝 {event.get('title')} - {event.get('start_date')}")
+                    print(f"  📝 {event.get('title')} - {event.get('start_datetime')}")
             
             return result.data if result.data else []
             
@@ -336,7 +336,7 @@ class DashboardDataManager:
         """Get dashboard summary statistics"""
         try:
             # Get counts from various tables
-            events_today = self.supabase.table('calendar_events').select('id', count='exact').eq('user_id', user_id).gte('start_date', datetime.now().date().isoformat()).lt('start_date', (datetime.now().date() + timedelta(days=1)).isoformat()).execute()
+            events_today = self.supabase.table('calendar_events').select('id', count='exact').eq('user_id', user_id).gte('start_datetime', datetime.now().date().isoformat()).lt('start_datetime', (datetime.now().date() + timedelta(days=1)).isoformat()).execute()
             
             total_events = self.supabase.table('calendar_events').select('id', count='exact').eq('user_id', user_id).execute()
             

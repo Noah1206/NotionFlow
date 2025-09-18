@@ -1717,8 +1717,8 @@ function createDemoAgendaData() {
 }
 
 function renderModernEventCard(event) {
-    const startTime = formatEventTime(event.start_date);
-    const endTime = formatEventTime(event.end_date);
+    const startTime = formatEventTime(event.start_datetime || event.start_date);
+    const endTime = formatEventTime(event.end_datetime || event.end_date);
     const timeRange = `${startTime} - ${endTime}`;
     
     // Determine card classes
@@ -1775,8 +1775,8 @@ function renderModernEventCard(event) {
 }
 
 function renderEventTableRow(event) {
-    const startTime = formatEventTime(event.start_date);
-    const endTime = formatEventTime(event.end_date);
+    const startTime = formatEventTime(event.start_datetime || event.start_date);
+    const endTime = formatEventTime(event.end_datetime || event.end_date);
     const timeRange = `${startTime} - ${endTime}`;
     
     // Status badge
@@ -1833,8 +1833,9 @@ function formatEventTime(dateTime) {
 }
 
 function isEventToday(event) {
-    if (!event.start_date) return false;
-    const eventDate = event.start_date instanceof Date ? event.start_date : new Date(event.start_date);
+    const startDate = event.start_datetime || event.start_date;
+    if (!startDate) return false;
+    const eventDate = startDate instanceof Date ? startDate : new Date(startDate);
     const today = new Date();
     
     return eventDate.getDate() === today.getDate() &&
@@ -1843,8 +1844,9 @@ function isEventToday(event) {
 }
 
 function isEventOverdue(event) {
-    if (!event.start_date || event.status === 'completed') return false;
-    const eventDate = event.start_date instanceof Date ? event.start_date : new Date(event.start_date);
+    const startDate = event.start_datetime || event.start_date;
+    if (!startDate || event.status === 'completed') return false;
+    const eventDate = startDate instanceof Date ? startDate : new Date(startDate);
     return eventDate < new Date() && event.status !== 'completed';
 }
 
@@ -1940,7 +1942,7 @@ function classifyEvents(events) {
     const routineEvents = [];
     
     for (const event of events) {
-        const eventDate = event.date || event.start_date;
+        const eventDate = event.date || event.start_datetime || event.start_date;
         if (!eventDate) continue;
         
         const date = eventDate instanceof Date ? eventDate : new Date(eventDate);
@@ -1960,14 +1962,14 @@ function classifyEvents(events) {
     
     // Sort events
     upcomingEvents.sort((a, b) => {
-        const dateA = a.date || a.start_date;
-        const dateB = b.date || b.start_date;
+        const dateA = a.date || a.start_datetime || a.start_date;
+        const dateB = b.date || b.start_datetime || b.start_date;
         return new Date(dateA) - new Date(dateB);
     });
     
     pastEvents.sort((a, b) => {
-        const dateA = a.date || a.start_date;
-        const dateB = b.date || b.start_date;
+        const dateA = a.date || a.start_datetime || a.start_date;
+        const dateB = b.date || b.start_datetime || b.start_date;
         return new Date(dateB) - new Date(dateA); // Recent past events first
     });
     
@@ -2090,7 +2092,7 @@ function groupEventsByDate(events) {
     const grouped = {};
     
     for (const event of events) {
-        const date = event.date || event.start_date;
+        const date = event.date || event.start_datetime || event.start_date;
         if (!date) continue;
         
         const dateStr = date instanceof Date ? date.toDateString() : new Date(date).toDateString();

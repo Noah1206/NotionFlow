@@ -90,8 +90,8 @@ def get_calendar_events():
         if start_date and end_date:
             # Custom date range
             events = dashboard_data.get_user_calendar_events(user_id, 
-                start_date=datetime.fromisoformat(start_date.replace('Z', '+00:00')),
-                end_date=datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+                start_datetime=datetime.fromisoformat(start_date.replace('Z', '+00:00')),
+                end_datetime=datetime.fromisoformat(end_date.replace('Z', '+00:00'))
             )
         else:
             # Default: next 30 days
