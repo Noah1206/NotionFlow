@@ -1,1 +1,1 @@
-web: gunicorn frontend.app:app --bind 0.0.0.0:$PORT --timeout 120 --workers 1 --threads 2 --log-level info
+web: gunicorn frontend.app:app --bind 0.0.0.0:$PORT --timeout 300 --workers 1 --threads 4 --worker-class sync --log-level info --access-logfile - --error-logfile -

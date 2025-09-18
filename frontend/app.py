@@ -6801,6 +6801,17 @@ elif os.environ.get('RENDER') and not os.environ.get('FLASK_ENV') == 'developmen
         print(f"[WARNING] Sync scheduler not available in production: {e}")
     except Exception as e:
         print(f"[ERROR] Failed to start production sync scheduler: {e}")
+elif os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('FLASK_ENV') == 'production':
+    # Railway deployment startup
+    print("[INFO] Starting in Railway production mode")
+    try:
+        from utils.sync_scheduler import start_sync_scheduler
+        start_sync_scheduler()
+        print("[SUCCESS] Railway sync scheduler started")
+    except ImportError as e:
+        print(f"[WARNING] Sync scheduler not available on Railway: {e}")
+    except Exception as e:
+        print(f"[ERROR] Failed to start Railway sync scheduler: {e}")
 # No else block - allow clean imports without starting sync scheduler
 
 # 플랫폼별 일정 동기화 헬퍼 함수들
