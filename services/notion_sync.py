@@ -121,6 +121,10 @@ class NotionCalendarSync:
             normalized_user_id = normalize_uuid(user_id)
             print(f"🔍 [TOKEN] Searching for user {user_id} (normalized: {normalized_user_id})")
             
+            # 두 가지 형식 모두 준비
+            original_user_id = user_id.replace('-', '') if '-' in user_id else f"{user_id[:8]}-{user_id[8:12]}-{user_id[12:16]}-{user_id[16:20]}-{user_id[20:]}" if len(user_id) == 32 else user_id
+            print(f"🔍 [TOKEN] Will also try alternative format: {original_user_id}")
+            
             supabase = config.get_client_for_user(user_id)
             
             if not supabase:
@@ -148,8 +152,7 @@ class NotionCalendarSync:
             else:
                 print(f"⚠️ [TOKEN] No calendar_sync_configs found for Notion user {normalized_user_id}")
                 
-                # 추가: 다른 UUID 형식으로도 시도해보기
-                original_user_id = user_id.replace('-', '') if '-' in user_id else f"{user_id[:8]}-{user_id[8:12]}-{user_id[12:16]}-{user_id[16:20]}-{user_id[20:]}" if len(user_id) == 32 else user_id
+                # 추가: 다른 UUID 형식으로도 시도해보기 (앞에서 준비한 alternative format 사용)
                 if original_user_id != normalized_user_id:
                     print(f"🔍 [TOKEN] Trying alternative UUID format: {original_user_id}")
                     alt_result = supabase.table('calendar_sync_configs').select('*').eq(

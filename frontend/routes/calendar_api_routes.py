@@ -114,6 +114,62 @@ def manual_notion_sync():
             'error': str(e)
         }), 500
 
+@calendar_api_bp.route('/debug/user-data', methods=['GET'])
+def debug_user_data():
+    """Debug endpoint to check user's tokens and events"""
+    try:
+        user_id = get_current_user_id()
+        if not user_id:
+            return jsonify({'error': 'Not authenticated'}), 401
+        
+        from utils.config import config
+        from utils.uuid_helper import normalize_uuid
+        
+        normalized_user_id = normalize_uuid(user_id)
+        debug_info = {
+            'original_user_id': user_id,
+            'normalized_user_id': normalized_user_id,
+            'config_available': config.supabase_client is not None
+        }
+        
+        if config.supabase_client:
+            # Check calendar_sync_configs
+            try:
+                configs = config.supabase_client.table('calendar_sync_configs').select('*').eq('user_id', normalized_user_id).execute()
+                debug_info['calendar_sync_configs'] = {
+                    'count': len(configs.data) if configs.data else 0,
+                    'platforms': [c.get('platform') for c in configs.data] if configs.data else [],
+                    'notion_config': None
+                }
+                
+                # Check for Notion specifically
+                for config_item in configs.data or []:
+                    if config_item.get('platform') == 'notion':
+                        debug_info['calendar_sync_configs']['notion_config'] = {
+                            'has_credentials': config_item.get('credentials') is not None,
+                            'credentials_type': type(config_item.get('credentials')).__name__,
+                            'has_access_token': isinstance(config_item.get('credentials'), dict) and bool(config_item.get('credentials', {}).get('access_token'))
+                        }
+                        break
+            except Exception as e:
+                debug_info['calendar_sync_configs_error'] = str(e)
+            
+            # Check calendar_events
+            try:
+                events = config.supabase_client.table('calendar_events').select('id, title, source_platform').eq('user_id', normalized_user_id).execute()
+                debug_info['calendar_events'] = {
+                    'total_count': len(events.data) if events.data else 0,
+                    'notion_events': len([e for e in events.data if e.get('source_platform') == 'notion']) if events.data else 0,
+                    'sample_events': events.data[:3] if events.data else []
+                }
+            except Exception as e:
+                debug_info['calendar_events_error'] = str(e)
+                
+        return jsonify(debug_info)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @calendar_api_bp.route('/calendar/events', methods=['GET'])
 def get_calendar_events():
     """Get calendar events for selected calendars"""
@@ -140,9 +196,9 @@ def get_calendar_events():
         if not notion_sync_enabled:
             try:
                 from utils.config import config
-                if config.supabase:
+                if config.supabase_client:
                     # Check if user has Notion token in calendar_sync_configs
-                    configs = config.supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', 'notion').execute()
+                    configs = config.supabase_client.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', 'notion').execute()
                     if configs.data:
                         creds = configs.data[0].get('credentials', {})
                         if isinstance(creds, dict) and creds.get('access_token'):
@@ -208,7 +264,13 @@ def get_calendar_events():
         return jsonify({
             'success': True,
             'events': events,
-            'count': len(events)
+            'count': len(events),
+            'debug_info': {
+                'user_id': user_id,
+                'normalized_user_id': user_id,
+                'notion_sync_enabled': notion_sync_enabled,
+                'calendar_ids': calendar_ids
+            }
         })
         
     except Exception as e:

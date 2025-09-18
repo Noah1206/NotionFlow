@@ -264,9 +264,13 @@ def get_user_keys(user_id):
             print("❌ No current user found, authentication required")
             return jsonify({'error': 'Authentication required'}), 401
         
-        # Users can only access their own data
-        if current_user != user_id:
-            print(f"❌ User mismatch: {current_user} != {user_id}")
+        # Users can only access their own data - normalize both UUIDs for comparison
+        from utils.uuid_helper import normalize_uuid
+        normalized_current = normalize_uuid(current_user)
+        normalized_requested = normalize_uuid(user_id)
+        
+        if normalized_current != normalized_requested:
+            print(f"❌ User mismatch: {current_user} (normalized: {normalized_current}) != {user_id} (normalized: {normalized_requested})")
             return jsonify({'error': 'Access denied'}), 403
         
         print("🔍 Attempting to get database client...")
