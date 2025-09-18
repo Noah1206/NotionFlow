@@ -115,6 +115,12 @@ class NotionCalendarSync:
         """사용자의 Notion 토큰 가져오기"""
         try:
             from utils.config import config
+            from utils.uuid_helper import normalize_uuid
+            
+            # UUID 정규화 (OAuth 콜백에서 사용한 것과 동일한 형식)
+            normalized_user_id = normalize_uuid(user_id)
+            print(f"🔍 [TOKEN] Searching for user {user_id} (normalized: {normalized_user_id})")
+            
             supabase = config.get_client_for_user(user_id)
             
             if not supabase:
@@ -122,9 +128,9 @@ class NotionCalendarSync:
                 return None
             
             # 1. calendar_sync_configs 테이블에서 검색 (새로운 주요 저장소)
-            print(f"🔍 [TOKEN] Checking calendar_sync_configs for user {user_id}")
-            config_result = supabase.table('calendar_sync_configs').select('credentials').eq(
-                'user_id', user_id
+            print(f"🔍 [TOKEN] Checking calendar_sync_configs for user {normalized_user_id}")
+            config_result = supabase.table('calendar_sync_configs').select('*').eq(
+                'user_id', normalized_user_id
             ).eq('platform', 'notion').execute()
             
             if config_result.data:
@@ -137,8 +143,27 @@ class NotionCalendarSync:
                         return token
                     else:
                         print(f"⚠️ [TOKEN] No access_token in credentials: {creds.keys()}")
+                else:
+                    print(f"⚠️ [TOKEN] Credentials not in dict format: {type(creds)}")
             else:
-                print(f"⚠️ [TOKEN] No calendar_sync_configs found for Notion")
+                print(f"⚠️ [TOKEN] No calendar_sync_configs found for Notion user {normalized_user_id}")
+                
+                # 추가: 다른 UUID 형식으로도 시도해보기
+                original_user_id = user_id.replace('-', '') if '-' in user_id else f"{user_id[:8]}-{user_id[8:12]}-{user_id[12:16]}-{user_id[16:20]}-{user_id[20:]}" if len(user_id) == 32 else user_id
+                if original_user_id != normalized_user_id:
+                    print(f"🔍 [TOKEN] Trying alternative UUID format: {original_user_id}")
+                    alt_result = supabase.table('calendar_sync_configs').select('*').eq(
+                        'user_id', original_user_id
+                    ).eq('platform', 'notion').execute()
+                    
+                    if alt_result.data:
+                        print(f"📋 [TOKEN] Found with alternative UUID: {alt_result.data}")
+                        creds = alt_result.data[0].get('credentials', {})
+                        if isinstance(creds, dict):
+                            token = creds.get('access_token')
+                            if token:
+                                print(f"✅ [TOKEN] Found Notion token with alt UUID: {token[:20]}...")
+                                return token
             
             # 2. platform_connections 테이블에서 검색 (백업 - access_token 컬럼이 없을 수 있음)
             try:

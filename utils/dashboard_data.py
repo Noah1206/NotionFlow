@@ -111,23 +111,42 @@ class DashboardDataManager:
     def get_user_calendar_events(self, user_id: str, days_ahead: int = 30, start_date: datetime = None, end_date: datetime = None, calendar_ids: List[str] = None) -> List[Dict]:
         """Get user's calendar events, optionally filtered by calendar IDs"""
         try:
+            # UUID 정규화 (Notion 동기화에서 사용한 것과 동일한 형식)
+            from utils.uuid_helper import normalize_uuid
+            normalized_user_id = normalize_uuid(user_id)
+            print(f"🔍 [EVENTS] Searching calendar events for user {user_id} (normalized: {normalized_user_id})")
+            
             if start_date is None:
                 start_date = datetime.now()
             if end_date is None:
                 end_date = start_date + timedelta(days=days_ahead)
             
+            print(f"📅 [EVENTS] Date range: {start_date.isoformat()} to {end_date.isoformat()}")
+            
             # Build query - using only existing columns
             query = self.supabase.table('calendar_events').select('''
                 id, title, description, start_datetime, end_datetime,
                 is_all_day, status, location, attendees, created_at, updated_at, calendar_id, source_platform
-            ''').eq('user_id', user_id).gte('start_datetime', start_date.isoformat()).lte('start_datetime', end_date.isoformat())
+            ''').eq('user_id', normalized_user_id).gte('start_datetime', start_date.isoformat()).lte('start_datetime', end_date.isoformat())
             
             # Filter by calendar IDs if provided
             if calendar_ids:
                 # Include events that match calendar_id OR are from Notion (which may not have calendar_id set)
                 query = query.or_(f'calendar_id.in.({",".join(calendar_ids)}),source_platform.eq.notion')
+                print(f"📅 [EVENTS] Filtering by calendar IDs: {calendar_ids}")
+            else:
+                print(f"📅 [EVENTS] No calendar ID filter - showing all events")
             
             result = query.order('start_datetime').execute()
+            
+            events_found = len(result.data) if result.data else 0
+            print(f"📊 [EVENTS] Found {events_found} events for user {normalized_user_id}")
+            
+            if result.data:
+                notion_events = [e for e in result.data if e.get('source_platform') == 'notion']
+                print(f"🎯 [EVENTS] Notion events found: {len(notion_events)}")
+                for event in notion_events[:3]:  # 처음 3개만 로깅
+                    print(f"  📝 {event.get('title')} - {event.get('start_datetime')}")
             
             return result.data if result.data else []
             

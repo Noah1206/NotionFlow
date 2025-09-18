@@ -120,8 +120,13 @@ def get_calendar_events():
     try:
         user_id = get_current_user_id()
         if not user_id:
-            # Use the actual owner ID from the existing calendar
-            user_id = "e390559f-c328-4786-ac5d-c74b5409451b"
+            print("❌ [EVENTS] No user_id found in session")
+            return jsonify({'error': 'User not authenticated', 'events': [], 'count': 0}), 401
+        
+        # UUID 정규화 - OAuth와 일치하는 형식 사용
+        from utils.uuid_helper import normalize_uuid
+        user_id = normalize_uuid(user_id)
+        print(f"🔍 [EVENTS] Current user_id: {user_id}")
         
         # Get calendar IDs from query params
         calendar_ids = request.args.getlist('calendar_ids[]')
@@ -138,11 +143,18 @@ def get_calendar_events():
                 if config.supabase:
                     # Check if user has Notion token in calendar_sync_configs
                     configs = config.supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', 'notion').execute()
-                    if configs.data and configs.data[0].get('access_token'):
-                        notion_sync_enabled = True
-                        session['notion_connected'] = True
-                        print(f"🔗 [NOTION SYNC] Notion connection detected for user {user_id}")
-            except:
+                    if configs.data:
+                        creds = configs.data[0].get('credentials', {})
+                        if isinstance(creds, dict) and creds.get('access_token'):
+                            notion_sync_enabled = True
+                            session['notion_connected'] = True
+                            print(f"🔗 [NOTION SYNC] Notion connection detected for user {user_id}")
+                        else:
+                            print(f"⚠️ [NOTION SYNC] Found config but no valid token: {creds}")
+                    else:
+                        print(f"⚠️ [NOTION SYNC] No calendar_sync_configs found for user {user_id}")
+            except Exception as e:
+                print(f"❌ [NOTION SYNC] Error checking connection: {e}")
                 pass
         
         if notion_sync_enabled and calendar_ids and len(calendar_ids) > 0:
