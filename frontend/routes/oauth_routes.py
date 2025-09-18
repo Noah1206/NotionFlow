@@ -870,7 +870,11 @@ def generic_oauth_callback(platform):
                             print(f"✅ Created {platform} token in calendar_sync_configs for user {normalized_user_id}")
                             
                     except Exception as token_error:
-                        print(f"⚠️ Could not store token in calendar_sync_configs: {token_error}")
+                        print(f"❌ [OAUTH] Failed to store token in calendar_sync_configs: {token_error}")
+                        print(f"❌ [OAUTH] User ID: {normalized_user_id}, Platform: {platform}")
+                        print(f"❌ [OAUTH] Credentials data: {credentials_data}")
+                        import traceback
+                        traceback.print_exc()
                         # Store token in session as final fallback
                         if not session.get('platform_tokens'):
                             session['platform_tokens'] = {}
