@@ -56,27 +56,67 @@ class NotionAPI:
             print(f"❌ Error searching databases: {e}")
             return []
     
-    def query_database(self, database_id: str) -> List[Dict]:
-        """데이터베이스의 페이지들 조회"""
+    def query_database(self, database_id: str, page_size: int = 50, start_cursor: str = None) -> Dict:
+        """데이터베이스의 페이지들 조회 (페이지네이션 지원)"""
         try:
             import requests
+            from datetime import datetime, timedelta
+            
+            # 최근 3개월 데이터만 가져오기 (성능 최적화)
+            three_months_ago = (datetime.now() - timedelta(days=90)).isoformat()
+            
+            query_payload = {
+                "page_size": page_size,
+                "filter": {
+                    "or": [
+                        {
+                            "property": "Created time",
+                            "created_time": {
+                                "after": three_months_ago
+                            }
+                        },
+                        {
+                            "property": "Last edited time", 
+                            "last_edited_time": {
+                                "after": three_months_ago
+                            }
+                        }
+                    ]
+                },
+                "sorts": [
+                    {
+                        "property": "Last edited time",
+                        "direction": "descending"
+                    }
+                ]
+            }
+            
+            if start_cursor:
+                query_payload["start_cursor"] = start_cursor
             
             response = requests.post(
                 f"{self.base_url}/databases/{database_id}/query",
                 headers=self.headers,
-                json={},
-                timeout=10
+                json=query_payload,
+                timeout=30  # 타임아웃 증가
             )
             
             if response.status_code == 200:
-                return response.json().get('results', [])
+                result = response.json()
+                return {
+                    'results': result.get('results', []),
+                    'has_more': result.get('has_more', False),
+                    'next_cursor': result.get('next_cursor'),
+                    'total_count': len(result.get('results', []))
+                }
             else:
                 print(f"❌ Database query failed: {response.status_code}")
-                return []
+                print(f"Response: {response.text}")
+                return {'results': [], 'has_more': False, 'next_cursor': None, 'total_count': 0}
                 
         except Exception as e:
             print(f"❌ Error querying database: {e}")
-            return []
+            return {'results': [], 'has_more': False, 'next_cursor': None, 'total_count': 0}
 
 
 # Notion 캘린더 동기화 클래스
@@ -228,32 +268,85 @@ class NotionCalendarSync:
             
             # 4. 각 데이터베이스에서 이벤트 추출 및 동기화
             total_synced = 0
+            max_initial_load = 100  # 초기 로드 시 최대 이벤트 수 제한
+            
             for db in calendar_dbs:
                 db_id = db['id']
                 db_title = self._get_db_title(db)
                 
                 print(f"📋 Processing database: {db_title}")
                 
-                # 페이지들 조회
-                pages = notion_api.query_database(db_id)
+                # 페이지네이션으로 페이지들 조회
+                start_cursor = None
+                db_synced = 0
                 
-                for page in pages:
-                    # Notion 페이지를 캘린더 이벤트로 변환
-                    event = self._convert_page_to_event(page, calendar_id, user_id)
+                while True:
+                    # 한 번에 25개씩 처리 (API 부하 감소)
+                    result = notion_api.query_database(db_id, page_size=25, start_cursor=start_cursor)
+                    pages = result.get('results', [])
                     
-                    if event:
-                        # NotionFlow 캘린더에 저장
+                    if not pages:
+                        break
+                    
+                    print(f"📄 Processing {len(pages)} pages from {db_title}")
+                    
+                    # 배치로 이벤트 처리
+                    events_batch = []
+                    for page in pages:
+                        # Notion 페이지를 캘린더 이벤트로 변환
+                        event = self._convert_page_to_event(page, calendar_id, user_id)
+                        if event:
+                            events_batch.append(event)
+                    
+                    # 배치 저장
+                    for event in events_batch:
                         if self._save_event_to_calendar(event):
                             total_synced += 1
+                            db_synced += 1
                             print(f"✅ Synced: {event['title']}")
                         else:
                             print(f"❌ Failed to save: {event['title']}")
+                    
+                    # 초기 로드 제한 확인
+                    if total_synced >= max_initial_load:
+                        print(f"⚡ Initial load limit reached ({max_initial_load} events). Remaining data will be synced in background.")
+                        break
+                    
+                    # 다음 페이지가 있는지 확인
+                    if not result.get('has_more', False):
+                        break
+                    
+                    start_cursor = result.get('next_cursor')
+                    
+                    # CPU 부하 방지를 위한 짧은 대기
+                    import time
+                    time.sleep(0.1)
+                
+                print(f"📊 Database {db_title}: {db_synced} events synced")
+                
+                # 초기 로드 제한에 도달했으면 중단
+                if total_synced >= max_initial_load:
+                    break
             
-            return {
+            result = {
                 'success': True,
                 'synced_events': total_synced,
-                'databases_processed': len(calendar_dbs)
+                'databases_processed': len(calendar_dbs),
+                'limited_initial_load': total_synced >= max_initial_load,
+                'message': f"Successfully synced {total_synced} events" + 
+                          (f" (limited to {max_initial_load} for initial load)" if total_synced >= max_initial_load else "")
             }
+            
+            # 초기 로드 제한에 도달한 경우 백그라운드에서 나머지 동기화 예약
+            if total_synced >= max_initial_load:
+                try:
+                    self._schedule_background_sync(user_id, calendar_id, access_token)
+                    result['background_sync_scheduled'] = True
+                except Exception as bg_error:
+                    print(f"⚠️ Failed to schedule background sync: {bg_error}")
+                    result['background_sync_scheduled'] = False
+            
+            return result
             
         except Exception as e:
             print(f"❌ Sync failed: {e}")
@@ -615,6 +708,107 @@ class NotionCalendarSync:
             print(f"❌ Error saving event: {e}")
             import traceback
             traceback.print_exc()
+            return False
+
+    def _schedule_background_sync(self, user_id: str, calendar_id: str, access_token: str):
+        """백그라운드에서 나머지 데이터 동기화 예약"""
+        try:
+            import threading
+            import time
+            
+            def background_sync():
+                # 5초 후 백그라운드에서 나머지 동기화 시작
+                time.sleep(5)
+                print(f"🔄 Starting background sync for user {user_id}")
+                
+                try:
+                    # 전체 동기화 실행 (제한 없이)
+                    self._full_background_sync(user_id, calendar_id, access_token)
+                except Exception as bg_error:
+                    print(f"❌ Background sync failed: {bg_error}")
+            
+            # 백그라운드 스레드로 실행
+            bg_thread = threading.Thread(target=background_sync, daemon=True)
+            bg_thread.start()
+            
+            print(f"📅 Background sync scheduled for user {user_id}")
+            
+        except Exception as e:
+            print(f"❌ Failed to schedule background sync: {e}")
+
+    def _full_background_sync(self, user_id: str, calendar_id: str, access_token: str):
+        """백그라운드에서 전체 데이터 동기화 (제한 없이)"""
+        try:
+            print(f"🔄 Starting full background sync for user {user_id}")
+            
+            # Notion API 초기화
+            notion_api = NotionAPI(access_token)
+            
+            # 모든 캘린더 데이터베이스 조회
+            calendar_dbs = notion_api.search_calendar_databases()
+            
+            if not calendar_dbs:
+                print("📭 No calendar databases found in background sync")
+                return
+            
+            total_synced = 0
+            
+            for db in calendar_dbs:
+                db_id = db['id']
+                db_title = self._get_db_title(db)
+                
+                print(f"📋 Background processing database: {db_title}")
+                
+                # 이미 동기화된 이벤트 확인 (중복 방지)
+                start_cursor = None
+                
+                while True:
+                    result = notion_api.query_database(db_id, page_size=50, start_cursor=start_cursor)
+                    pages = result.get('results', [])
+                    
+                    if not pages:
+                        break
+                    
+                    for page in pages:
+                        # 중복 확인
+                        if not self._is_event_already_synced(page, calendar_id, user_id):
+                            event = self._convert_page_to_event(page, calendar_id, user_id)
+                            
+                            if event and self._save_event_to_calendar(event):
+                                total_synced += 1
+                                if total_synced % 10 == 0:  # 10개마다 로그
+                                    print(f"🔄 Background synced {total_synced} additional events...")
+                    
+                    if not result.get('has_more', False):
+                        break
+                    
+                    start_cursor = result.get('next_cursor')
+                    
+                    # 백그라운드 처리 시 더 긴 대기 (서버 부하 방지)
+                    time.sleep(0.5)
+            
+            print(f"✅ Background sync completed: {total_synced} additional events synced")
+            
+        except Exception as e:
+            print(f"❌ Full background sync failed: {e}")
+
+    def _is_event_already_synced(self, notion_page: Dict, calendar_id: str, user_id: str) -> bool:
+        """이벤트가 이미 동기화되었는지 확인"""
+        try:
+            from utils.config import config
+            supabase = config.get_client_for_user(user_id)
+            
+            notion_page_id = notion_page.get('id', '')
+            
+            # 이미 동기화된 이벤트인지 확인
+            existing = supabase.table('calendar_events').select('id').eq(
+                'user_id', user_id
+            ).eq('calendar_id', calendar_id).eq('external_event_id', notion_page_id).execute()
+            
+            return len(existing.data) > 0
+            
+        except Exception as e:
+            print(f"❌ Error checking if event already synced: {e}")
             return False
 
 
