@@ -283,7 +283,7 @@ def get_user_keys(user_id):
         print("🔍 Querying calendar_sync_configs table...")
         try:
             result = supabase.table('calendar_sync_configs').select('''
-                platform, credential_type, is_enabled, last_sync_at, 
+                platform, credentials, is_enabled, last_sync_at, 
                 consecutive_failures, sync_frequency_minutes, created_at, health_status
             ''').eq('user_id', user_id).execute()
             print(f"🔍 Query successful, got {len(result.data) if result.data else 0} records")
@@ -302,11 +302,15 @@ def get_user_keys(user_id):
             platform = config['platform']
             platform_info = PLATFORM_CONFIGS.get(platform, {})
             
+            # Determine credential type based on platform and presence of credentials
+            has_credentials = config.get('credentials') is not None
+            credential_type = 'oauth' if has_credentials else None
+            
             platforms[platform] = {
                 'name': platform_info.get('name', platform.title()),
                 'enabled': config['is_enabled'],
-                'credential_type': config['credential_type'],
-                'configured': True,
+                'credential_type': credential_type,
+                'configured': has_credentials,
                 'last_sync': config['last_sync_at'],
                 'sync_frequency': config['sync_frequency_minutes'],
                 'health_status': config.get('health_status', 'healthy') if config['consecutive_failures'] == 0 else 'error',
