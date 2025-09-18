@@ -5008,9 +5008,26 @@ def get_calendar_events(calendar_id):
         if start_date:
             print(f"[CALENDAR] Date range: {start_date} to {end_date}")
         
-        # Get events from in-memory storage
-        events_key = f"{user_id}_{calendar_id}"
-        events = calendar_events.get(events_key, [])
+        # Get Supabase client
+        supabase_client = config.get_client_for_user(user_id)
+        if not supabase_client:
+            print(f"[ERROR] Could not get Supabase client for user {user_id}")
+            return jsonify({'error': 'Database connection failed'}), 500
+        
+        # Build query to get events from database
+        query = supabase_client.table('calendar_events').select('''
+            id, title, description, start_datetime, end_datetime,
+            is_all_day, status, location, attendees, created_at, updated_at, 
+            calendar_id, source_platform, category, priority
+        ''').eq('calendar_id', calendar_id)
+        
+        # Add date range filtering if provided
+        if start_date and end_date:
+            query = query.gte('start_datetime', start_date).lte('start_datetime', end_date)
+        
+        # Execute query
+        result = query.order('start_datetime').execute()
+        events = result.data if result.data else []
         
         print(f"[SUCCESS] Found {len(events)} events for calendar {calendar_id}")
         return jsonify(events)
@@ -5036,31 +5053,60 @@ def create_calendar_event(calendar_id):
         # Generate event ID
         event_id = str(uuid.uuid4())
         
-        # Create event object
-        event = {
+        # Get Supabase client
+        supabase_client = config.get_client_for_user(user_id)
+        if not supabase_client:
+            print(f"[ERROR] Could not get Supabase client for user {user_id}")
+            return jsonify({'error': 'Database connection failed'}), 500
+        
+        # Prepare event data for database
+        from datetime import datetime
+        now = datetime.now()
+        
+        # Handle datetime fields
+        start_datetime = data.get('start_datetime')
+        end_datetime = data.get('end_datetime')
+        
+        # If no datetime provided, create from date/time fields
+        if not start_datetime and data.get('date'):
+            date_str = data.get('date')
+            time_str = data.get('startTime') or data.get('start_time', '09:00')
+            start_datetime = f"{date_str}T{time_str}:00"
+        
+        if not end_datetime and data.get('endDate'):
+            end_date_str = data.get('endDate')
+            end_time_str = data.get('endTime') or data.get('end_time', '10:00')
+            end_datetime = f"{end_date_str}T{end_time_str}:00"
+        elif not end_datetime and start_datetime:
+            # Default to 1 hour after start
+            start_dt = datetime.fromisoformat(start_datetime.replace('Z', ''))
+            end_dt = start_dt.replace(hour=start_dt.hour + 1)
+            end_datetime = end_dt.isoformat()
+        
+        event_data = {
             'id': event_id,
+            'user_id': user_id,
             'calendar_id': calendar_id,
             'title': data.get('title', 'Untitled Event'),
             'description': data.get('description', ''),
-            'date': data.get('date'),
-            'endDate': data.get('endDate'),  # For multi-day events
-            'startTime': data.get('startTime') or data.get('start_time'),
-            'endTime': data.get('endTime') or data.get('end_time'),
-            'isAllDay': data.get('isAllDay', False),
-            'isMultiDay': data.get('isMultiDay', False),
-            'color': data.get('color', '#3b82f6'),
-            'created_at': dt.now().isoformat(),
-            'user_id': user_id
+            'start_datetime': start_datetime,
+            'end_datetime': end_datetime,
+            'is_all_day': data.get('isAllDay', False),
+            'source_platform': 'manual',
+            'status': 'confirmed',
+            'priority': 0,
+            'category': 'manual'
         }
         
-        # Save to in-memory storage
-        events_key = f"{user_id}_{calendar_id}"
-        if events_key not in calendar_events:
-            calendar_events[events_key] = []
-        calendar_events[events_key].append(event)
+        # Save to database
+        result = supabase_client.table('calendar_events').insert(event_data).execute()
         
-        print(f"[SUCCESS] Event created and stored: {event_id}")
-        return jsonify(event), 201
+        if result.data:
+            print(f"[SUCCESS] Event created in database: {event_id}")
+            return jsonify(result.data[0]), 201
+        else:
+            print(f"[ERROR] Failed to create event in database")
+            return jsonify({'error': 'Failed to create event'}), 500
         
     except Exception as e:
         print(f"[ERROR] Error creating calendar event: {e}")
