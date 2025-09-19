@@ -43,7 +43,7 @@ def ensure_auth_user_exists(user_id, email, name=None):
         
         normalized_id = normalize_uuid(user_id)
         if not normalized_id:
-            print(f"❌ Invalid UUID format: {user_id}")
+            # print(f"❌ Invalid UUID format: {user_id}")
             return False
         
         # 1. users 테이블에서 사용자 확인 및 생성
@@ -61,14 +61,14 @@ def ensure_auth_user_exists(user_id, email, name=None):
                 
                 user_result = supabase.table('users').insert(user_data).execute()
                 if user_result.data:
-                    print(f"✅ Created users entry for {email}")
+                    # print(f"✅ Created users entry for {email}")
                 else:
-                    print(f"❌ Failed to create users entry")
+                    # print(f"❌ Failed to create users entry")
                     return False
             else:
                 print(f"✅ User already exists in users table: {normalized_id}")
         except Exception as user_e:
-            print(f"❌ Error with users table: {user_e}")
+            # print(f"❌ Error with users table: {user_e}")
             return False
         
         # 2. user_profiles 테이블에서 프로필 확인 및 생성
@@ -96,10 +96,10 @@ def ensure_auth_user_exists(user_id, email, name=None):
                         
                         profile_result = supabase.table('user_profiles').insert(profile_data).execute()
                         if profile_result.data:
-                            print(f"✅ Created user_profiles entry: {username}")
+                            # print(f"✅ Created user_profiles entry: {username}")
                             break
                         else:
-                            print(f"❌ Failed to create user_profiles entry")
+                            # print(f"❌ Failed to create user_profiles entry")
                             return False
                             
                     except Exception as profile_insert_e:
@@ -109,7 +109,7 @@ def ensure_auth_user_exists(user_id, email, name=None):
                             print(f"⚠️ Username conflict, retrying with: {username}")
                             continue
                         else:
-                            print(f"❌ Profile creation failed: {profile_insert_e}")
+                            # print(f"❌ Profile creation failed: {profile_insert_e}")
                             return False
             else:
                 print(f"✅ User profile already exists: {normalized_id}")

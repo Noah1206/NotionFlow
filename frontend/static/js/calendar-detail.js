@@ -2254,14 +2254,12 @@ async function loadEvents() {
     try {
         // Get calendar ID from the page
         const calendarId = window.location.pathname.split('/').pop();
-        console.log('Loading events for calendar:', calendarId);
         
         // Fetch events from API
         const response = await fetch(`/api/calendars/${calendarId}/events`);
         
         if (response.ok) {
             const events = await response.json();
-            console.log('Loaded events from API:', events);
             
             // Transform API events to calendar format
             calendarEvents = events.map(event => ({
@@ -2280,12 +2278,6 @@ async function loadEvents() {
             
             // If no events, keep empty (don't show demo events)
             if (calendarEvents.length === 0) {
-                console.log('❌ No events found in API response');
-                console.log('🔍 Debugging info:');
-                console.log('   - Calendar ID:', calendarId);
-                console.log('   - API Response:', events);
-                console.log('   - API Response Length:', events ? events.length : 'null');
-                console.log('💡 Check console for API debugging info');
                 // Keep calendarEvents empty to show an empty calendar
                 calendarEvents = [];
             }

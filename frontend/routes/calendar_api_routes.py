@@ -182,13 +182,13 @@ def get_single_calendar_events(calendar_id):
         # UUID 정규화 - 통일된 형식 사용 (하이픈 없음)
         from utils.uuid_helper import normalize_uuid
         user_id = normalize_uuid(user_id)
-        print(f"🔍 [SINGLE EVENTS] Current user_id: {user_id}, calendar_id: {calendar_id}")
+        # print(f"🔍 [SINGLE EVENTS] Current user_id: {user_id}, calendar_id: {calendar_id}")
         
         # Get optional query parameters
         days_ahead = int(request.args.get('days_ahead', 30))
         
         # 🔄 Notion 자동 동기화 (연결된 사용자만)
-        print(f"🔍 [NOTION SYNC] Checking sync for single calendar: {calendar_id}, user_id={user_id}")
+        # print(f"🔍 [NOTION SYNC] Checking sync for single calendar: {calendar_id}, user_id={user_id}")
         
         # Check if user has Notion connected
         notion_sync_enabled = session.get('notion_connected', False)
@@ -209,7 +209,7 @@ def get_single_calendar_events(calendar_id):
                     else:
                         print(f"⚠️ [NOTION SYNC] No calendar_sync_configs found for user {user_id}")
             except Exception as e:
-                print(f"❌ [NOTION SYNC] Error checking connection: {e}")
+                # print(f"❌ [NOTION SYNC] Error checking connection: {e}")
                 pass
         
         if notion_sync_enabled and calendar_id:
@@ -238,9 +238,9 @@ def get_single_calendar_events(calendar_id):
                 print(f"📋 [NOTION SYNC] Sync result: {result}")
                 
                 if result['success']:
-                    print(f"✅ [NOTION SYNC] Successfully synced {result.get('synced_events', 0)} events from {result.get('databases_processed', 0)} databases")
+                    # print(f"✅ [NOTION SYNC] Successfully synced {result.get('synced_events', 0)} events from {result.get('databases_processed', 0)} databases")
                 else:
-                    print(f"❌ [NOTION SYNC] Failed: {result.get('error', 'Unknown error')}")
+                    # print(f"❌ [NOTION SYNC] Failed: {result.get('error', 'Unknown error')}")
                     
             except Exception as e:
                 print(f"⚠️ [NOTION SYNC] Auto-sync error: {e}")
@@ -288,14 +288,14 @@ def get_calendar_events():
         # UUID 정규화 - 통일된 형식 사용 (하이픈 없음)
         from utils.uuid_helper import normalize_uuid
         user_id = normalize_uuid(user_id)
-        print(f"🔍 [EVENTS] Current user_id: {user_id}")
+        # print(f"🔍 [EVENTS] Current user_id: {user_id}")
         
         # Get calendar IDs from query params
         calendar_ids = request.args.getlist('calendar_ids[]')
         days_ahead = int(request.args.get('days_ahead', 30))
         
         # 🔄 Notion 자동 동기화 (연결된 사용자만)
-        print(f"🔍 [NOTION SYNC] Checking sync: calendar_ids={calendar_ids}, user_id={user_id}")
+        # print(f"🔍 [NOTION SYNC] Checking sync: calendar_ids={calendar_ids}, user_id={user_id}")
         
         # Check if user has Notion connected
         notion_sync_enabled = session.get('notion_connected', False)
@@ -316,7 +316,7 @@ def get_calendar_events():
                     else:
                         print(f"⚠️ [NOTION SYNC] No calendar_sync_configs found for user {user_id}")
             except Exception as e:
-                print(f"❌ [NOTION SYNC] Error checking connection: {e}")
+                # print(f"❌ [NOTION SYNC] Error checking connection: {e}")
                 pass
         
         if notion_sync_enabled and calendar_ids and len(calendar_ids) > 0:
@@ -346,9 +346,9 @@ def get_calendar_events():
                 print(f"📋 [NOTION SYNC] Sync result: {result}")
                 
                 if result['success']:
-                    print(f"✅ [NOTION SYNC] Successfully synced {result.get('synced_events', 0)} events from {result.get('databases_processed', 0)} databases")
+                    # print(f"✅ [NOTION SYNC] Successfully synced {result.get('synced_events', 0)} events from {result.get('databases_processed', 0)} databases")
                 else:
-                    print(f"❌ [NOTION SYNC] Failed: {result.get('error', 'Unknown error')}")
+                    # print(f"❌ [NOTION SYNC] Failed: {result.get('error', 'Unknown error')}")
                     
             except Exception as e:
                 print(f"⚠️ [NOTION SYNC] Auto-sync error: {e}")
@@ -908,30 +908,30 @@ def get_calendar(calendar_id):
     
     try:
         # dashboard_data는 이미 파일 상단에서 DashboardDataManager() 인스턴스로 생성됨
-        print(f"🔍 [CALENDAR API] Using dashboard_data.admin_client for query")
+        # print(f"🔍 [CALENDAR API] Using dashboard_data.admin_client for query")
         
         if not dashboard_data or not dashboard_data.admin_client:
-            print(f"❌ [CALENDAR API] Dashboard data or admin_client not available")
+            # print(f"❌ [CALENDAR API] Dashboard data or admin_client not available")
             return jsonify({
                 'success': False,
                 'error': 'Database not available'
             }), 500
         
         # dashboard_data.admin_client 사용 (성공적으로 작동하는 방법)
-        print(f"🔍 [CALENDAR API] Querying calendar with id: {calendar_id} using admin_client")
+        # print(f"🔍 [CALENDAR API] Querying calendar with id: {calendar_id} using admin_client")
         result = dashboard_data.admin_client.table('calendars').select('*').eq('id', calendar_id).execute()
-        print(f"🔍 [CALENDAR API] Query result: {result.data}")
+        # print(f"🔍 [CALENDAR API] Query result: {result.data}")
         
         if result.data and len(result.data) > 0:
             calendar = result.data[0]
-            print(f"✅ [CALENDAR API] Calendar found: {calendar.get('name', 'Unknown')}")
+            # print(f"✅ [CALENDAR API] Calendar found: {calendar.get('name', 'Unknown')}")
             
             return jsonify({
                 'success': True,
                 'calendar': calendar
             })
         else:
-            print(f"❌ [CALENDAR API] Calendar not found for ID: {calendar_id}")
+            # print(f"❌ [CALENDAR API] Calendar not found for ID: {calendar_id}")
             return jsonify({
                 'success': False,
                 'error': 'Calendar not found'
@@ -1069,7 +1069,7 @@ def delete_calendar(calendar_id):
         try:
             print(f"🗑️ Deleting events for calendar: {calendar_id}")
             events_delete = supabase.table('events').delete().eq('calendar_id', calendar_id).execute()
-            print(f"✅ Deleted {len(events_delete.data) if events_delete.data else 0} events")
+            # print(f"✅ Deleted {len(events_delete.data) if events_delete.data else 0} events")
         except Exception as e:
             print(f"⚠️ Warning: Failed to delete events: {e}")
             # Continue even if event deletion fails
@@ -1078,7 +1078,7 @@ def delete_calendar(calendar_id):
         calendar_result = supabase.table('calendars').select('*').eq('id', calendar_id).execute()
         
         if not calendar_result.data:
-            print(f"❌ Calendar not found: {calendar_id}")
+            # print(f"❌ Calendar not found: {calendar_id}")
             # 이미 삭제된 경우도 성공으로 처리
             return jsonify({
                 'success': True,
@@ -1095,7 +1095,7 @@ def delete_calendar(calendar_id):
                 file_path = os.path.join(upload_folder, calendar['media_file_path'])
                 if os.path.exists(file_path):
                     os.remove(file_path)
-                    print(f"✅ Deleted media file: {file_path}")
+                    # print(f"✅ Deleted media file: {file_path}")
             except Exception as e:
                 print(f"⚠️ Warning: Failed to delete media file: {e}")
                 # Continue even if file deletion fails
@@ -1104,7 +1104,7 @@ def delete_calendar(calendar_id):
         delete_result = supabase.table('calendars').delete().eq('id', calendar_id).execute()
         
         if delete_result.data:
-            print(f"✅ Successfully deleted calendar: {calendar_id}")
+            # print(f"✅ Successfully deleted calendar: {calendar_id}")
         else:
             print(f"⚠️ No data returned from delete, but operation may have succeeded")
         
@@ -1225,13 +1225,13 @@ def get_single_calendar_events(calendar_id):
         from utils.uuid_helper import normalize_uuid
         user_id = normalize_uuid(user_id)
         
-        print(f"🔍 [SINGLE CALENDAR] Loading events for calendar: {calendar_id}, user: {user_id}")
+        # print(f"🔍 [SINGLE CALENDAR] Loading events for calendar: {calendar_id}, user: {user_id}")
         
         # Get events for this specific calendar using existing logic
         days_ahead = int(request.args.get('days_ahead', 30))
         
         # 🔄 Notion 자동 동기화 (연결된 사용자만)
-        print(f"🔍 [NOTION SYNC] Checking sync for calendar: {calendar_id}")
+        # print(f"🔍 [NOTION SYNC] Checking sync for calendar: {calendar_id}")
         
         # Check if user has Notion connected
         notion_sync_enabled = session.get('notion_connected', False)
@@ -1252,7 +1252,7 @@ def get_single_calendar_events(calendar_id):
                     else:
                         print(f"⚠️ [NOTION SYNC] No calendar_sync_configs found for user {user_id}")
             except Exception as e:
-                print(f"❌ [NOTION SYNC] Error checking connection: {e}")
+                # print(f"❌ [NOTION SYNC] Error checking connection: {e}")
                 pass
         
         if notion_sync_enabled:
@@ -1281,9 +1281,9 @@ def get_single_calendar_events(calendar_id):
                 print(f"📋 [NOTION SYNC] Sync result: {result}")
                 
                 if result['success']:
-                    print(f"✅ [NOTION SYNC] Successfully synced {result.get('synced_events', 0)} events from {result.get('databases_processed', 0)} databases")
+                    # print(f"✅ [NOTION SYNC] Successfully synced {result.get('synced_events', 0)} events from {result.get('databases_processed', 0)} databases")
                 else:
-                    print(f"❌ [NOTION SYNC] Failed: {result.get('error', 'Unknown error')}")
+                    # print(f"❌ [NOTION SYNC] Failed: {result.get('error', 'Unknown error')}")
                     
             except Exception as e:
                 print(f"⚠️ [NOTION SYNC] Auto-sync error: {e}")

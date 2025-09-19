@@ -8,7 +8,7 @@ class GoogleCalendarGrid {
         this.events = [];
         
         // 🔍 DEBUGGING: 컨테이너 크기 확인
-        console.log('🏗️ GoogleCalendarGrid constructor:', {
+        // console.log('🏗️ GoogleCalendarGrid constructor:', {
             currentDate: this.currentDate,
             weekStart: this.weekStart,
             dayOfWeek: this.currentDate.getDay(),
@@ -81,7 +81,7 @@ class GoogleCalendarGrid {
             this.updateCurrentTimeIndicator();
         }, 30 * 60 * 1000); // 30분 = 30 * 60 * 1000 밀리초
         
-        console.log('🎯 Google Calendar Grid initialized');
+        // console.log('🎯 Google Calendar Grid initialized');
     }
     
     getWeekStart(date) {
@@ -93,7 +93,7 @@ class GoogleCalendarGrid {
         const weekStart = new Date(d.getTime() - (daysToSunday * 24 * 60 * 60 * 1000));
         weekStart.setHours(0, 0, 0, 0); // Set to beginning of day
         
-        console.log('🗓️ Week start calculated:', weekStart, 'from date:', date, 'day:', day, 'daysToSunday:', daysToSunday);
+        // console.log('🗓️ Week start calculated:', weekStart, 'from date:', date, 'day:', day, 'daysToSunday:', daysToSunday);
         return weekStart;
     }
 
@@ -105,7 +105,7 @@ class GoogleCalendarGrid {
         // Recalculate week start
         this.weekStart = this.getWeekStart(this.currentDate);
         
-        console.log('🗓️ Week navigation:', direction > 0 ? 'Next week' : 'Previous week', 
+        // console.log('🗓️ Week navigation:', direction > 0 ? 'Next week' : 'Previous week', 
                    'New date:', this.currentDate, 'New week start:', this.weekStart);
         
         // Re-render the calendar
@@ -136,7 +136,7 @@ class GoogleCalendarGrid {
         const timeColumnWidth = 80; // 시간 컬럼 너비 최적화
         const availableWidth = containerWidth - timeColumnWidth; // 여백 완전 제거
         const dayColumnWidth = Math.max(250, Math.floor(availableWidth / 7)); // 최소 250px 보장, 7개 요일로 나누기 
-        console.log('🎯 Dynamic sizing:', {
+        // console.log('🎯 Dynamic sizing:', {
             containerWidth,
             availableWidth,
             dayColumnWidth,
@@ -174,7 +174,7 @@ class GoogleCalendarGrid {
             header.style.background = 'white';
             header.style.minHeight = '60px';
             header.style.height = '60px';
-            console.log('🔧 Header visibility ensured:', header.getBoundingClientRect());
+            // console.log('🔧 Header visibility ensured:', header.getBoundingClientRect());
         } else {
             console.warn('⚠️ Header not found for visibility check');
         }
@@ -325,7 +325,7 @@ class GoogleCalendarGrid {
         const cell = e.target.closest('.time-cell');
         if (!cell || this.isSelecting) return;
         
-        console.log('🖱️ Cell clicked:', cell, {
+        // console.log('🖱️ Cell clicked:', cell, {
             day: cell.dataset.day,
             hour: cell.dataset.hour,
             rect: cell.getBoundingClientRect()
@@ -456,15 +456,15 @@ class GoogleCalendarGrid {
     }
     
     createEvent(startDay, startHour, endDay, endHour, clickedCell = null) {
-        console.log('🎯 createEvent called:', {startDay, startHour, endDay, endHour});
+        // console.log('🎯 createEvent called:', {startDay, startHour, endDay, endHour});
         
         // Ensure weekStart is properly initialized
         if (!this.weekStart || !(this.weekStart instanceof Date)) {
             this.weekStart = this.getWeekStart(new Date());
-            console.log('⚠️ weekStart was undefined, recalculated:', this.weekStart);
+            // console.log('⚠️ weekStart was undefined, recalculated:', this.weekStart);
         }
         
-        console.log('🗓️ Current weekStart:', this.weekStart);
+        // console.log('🗓️ Current weekStart:', this.weekStart);
         
         // Calculate dates using milliseconds to avoid timezone issues
         const millisecondsPerDay = 24 * 60 * 60 * 1000;
@@ -474,24 +474,24 @@ class GoogleCalendarGrid {
         const endDate = new Date(this.weekStart.getTime() + (endDay * millisecondsPerDay));
         endDate.setHours(endHour + 1, 0, 0, 0); // +1 for end time to include the full hour
         
-        console.log('📅 Created dates - Start:', startDate, 'End:', endDate);
-        console.log('📍 Expected day column:', startDay, 'Actual date:', startDate.toDateString());
-        console.log('📍 Day of week - Start:', startDate.getDay(), 'Expected:', startDay);
+        // console.log('📅 Created dates - Start:', startDate, 'End:', endDate);
+        // console.log('📍 Expected day column:', startDay, 'Actual date:', startDate.toDateString());
+        // console.log('📍 Day of week - Start:', startDate.getDay(), 'Expected:', startDay);
         
         // Check if this is a multi-day event
         const isMultiDay = startDay !== endDay;
         
         if (isMultiDay) {
             // Multi-day event: create time-based events for each day
-            console.log('🗓️ Multi-day event detected, creating time-based events');
+            // console.log('🗓️ Multi-day event detected, creating time-based events');
             
             const startDateStr = this.formatDateForInput(startDate);
             const endDateStr = this.formatDateForInput(endDate);
             const startTimeStr = startDate.toTimeString().slice(0, 5); // HH:MM format
             const endTimeStr = endDate.toTimeString().slice(0, 5); // HH:MM format
             
-            console.log('📅 Multi-day range - Start Date:', startDateStr, 'End Date:', endDateStr);
-            console.log('🕐 Time range - Start:', startTimeStr, 'End:', endTimeStr);
+            // console.log('📅 Multi-day range - Start Date:', startDateStr, 'End Date:', endDateStr);
+            // console.log('🕐 Time range - Start:', startTimeStr, 'End:', endTimeStr);
             
             // Use special handling for multi-day events with time
             if (typeof showOverlayEventFormMultiDay !== 'undefined') {
@@ -505,13 +505,13 @@ class GoogleCalendarGrid {
             }
         } else {
             // Single-day event: use existing time-based logic
-            console.log('📅 Single-day event, using time-based handling');
+            // console.log('📅 Single-day event, using time-based handling');
             
             const dateStr = this.formatDateForInput(startDate);
             const startTimeStr = startDate.toTimeString().slice(0, 5); // HH:MM format
             const endTimeStr = endDate.toTimeString().slice(0, 5); // HH:MM format
             
-            console.log('🕐 Single-day drag times - Start:', startTimeStr, 'End:', endTimeStr);
+            // console.log('🕐 Single-day drag times - Start:', startTimeStr, 'End:', endTimeStr);
             
             // Use the existing overlay form with clicked cell information
             if (typeof showOverlayEventForm !== 'undefined') {
@@ -521,7 +521,7 @@ class GoogleCalendarGrid {
                     // Try to find the cell by day and hour if not provided
                     cellElement = document.querySelector(`.time-cell[data-day="${startDay}"][data-hour="${startHour}"]`);
                 }
-                console.log('🎯 Passing clicked cell to overlay form with both times:', { startTimeStr, endTimeStr });
+                // console.log('🎯 Passing clicked cell to overlay form with both times:', { startTimeStr, endTimeStr });
                 showOverlayEventForm(dateStr, startTimeStr, cellElement, endTimeStr);
             }
         }
@@ -648,9 +648,9 @@ class GoogleCalendarGrid {
             
             // Remove from DOM immediately - search in entire document
             const eventElements = document.querySelectorAll(`[data-event-id="${eventData.id}"]`);
-            console.log(`🗑️ Removing ${eventElements.length} event elements with id:`, eventData.id);
+            // console.log(`🗑️ Removing ${eventElements.length} event elements with id:`, eventData.id);
             eventElements.forEach(element => {
-                console.log('Removing element:', element);
+                // console.log('Removing element:', element);
                 element.remove();
             });
             
@@ -715,7 +715,7 @@ class GoogleCalendarGrid {
             });
             
             if (response.ok) {
-                console.log('Event saved to backend successfully');
+                // console.log('Event saved to backend successfully');
             }
         } catch (error) {
             console.error('Failed to save event to backend:', error);
@@ -733,7 +733,7 @@ class GoogleCalendarGrid {
         try {
             const storageKey = 'calendar_events_backup';
             localStorage.setItem(storageKey, JSON.stringify(this.events));
-            console.log('💾 Events saved to localStorage');
+            // console.log('💾 Events saved to localStorage');
             
             // Update event list when saving
             this.updateEventList();
@@ -1170,20 +1170,20 @@ class GoogleCalendarGrid {
         this.updateMainContentDimensions();
         
         // Position popup relative to clicked cell
-        console.log('🎯 Positioning popup, clickedCell:', clickedCell);
+        // console.log('🎯 Positioning popup, clickedCell:', clickedCell);
         
         let cellToUse = clickedCell;
         
         // If no clickedCell provided, try to find the cell by day and hour
         if (!cellToUse) {
-            console.log('⚠️ No clickedCell provided, searching for cell by day/hour:', day, hour);
+            // console.log('⚠️ No clickedCell provided, searching for cell by day/hour:', day, hour);
             cellToUse = document.querySelector(`.time-cell[data-day="${day}"][data-hour="${hour}"]`);
-            console.log('🔍 Found cell by search:', cellToUse);
+            // console.log('🔍 Found cell by search:', cellToUse);
         }
         
         if (cellToUse) {
             const cellRect = cellToUse.getBoundingClientRect();
-            console.log('📍 Cell rect:', cellRect);
+            // console.log('📍 Cell rect:', cellRect);
             
             // Calculate position
             let left = cellRect.right + 10;
@@ -1202,7 +1202,7 @@ class GoogleCalendarGrid {
                 top = window.innerHeight - popupHeight - 20; // Position above
             }
             
-            console.log('📍 Final position:', {left, top});
+            // console.log('📍 Final position:', {left, top});
             
             // Always use fixed positioning with consistent size
             popup.style.cssText = `
@@ -1215,7 +1215,7 @@ class GoogleCalendarGrid {
                 transform: none !important;
             `;
         } else {
-            console.log('❌ No valid cell found, using center positioning');
+            // console.log('❌ No valid cell found, using center positioning');
             // Fallback to center positioning with fixed size
             popup.style.cssText = `
                 position: fixed;
@@ -1404,7 +1404,7 @@ class GoogleCalendarGrid {
             return;
         }
 
-        console.log('🎯 Selecting event in sidebar:', eventData);
+        // console.log('🎯 Selecting event in sidebar:', eventData);
 
         // Show the selected event in the sidebar events section
         const dayEventsContainer = document.getElementById('day-events');
@@ -1536,7 +1536,7 @@ class GoogleCalendarGrid {
                     showNotification(`일정 "${eventData.title}"이 생성되었습니다`, 'success');
                 }
                 
-                console.log('📅 Event created and saved:', fullEventData);
+                // console.log('📅 Event created and saved:', fullEventData);
             } else {
                 throw new Error('Failed to save event');
             }
@@ -1570,7 +1570,7 @@ class GoogleCalendarGrid {
             
             // Force re-render after a short delay
             setTimeout(() => {
-                console.log('🔄 Force re-rendering event...');
+                // console.log('🔄 Force re-rendering event...');
                 this.renderEvent(localEventData);
             }, 100);
         }
@@ -1580,7 +1580,7 @@ class GoogleCalendarGrid {
     }
     
     renderEvent(eventData) {
-        console.log('🎯 renderEvent called with data:', eventData);
+        // console.log('🎯 renderEvent called with data:', eventData);
         
         // Check for null/undefined event data
         if (!eventData || !eventData.id) {
@@ -1598,7 +1598,7 @@ class GoogleCalendarGrid {
         // Ensure weekStart is properly initialized
         if (!this.weekStart || !(this.weekStart instanceof Date)) {
             this.weekStart = this.getWeekStart(new Date());
-            console.log('⚠️ weekStart was undefined in renderEvent, recalculated:', this.weekStart);
+            // console.log('⚠️ weekStart was undefined in renderEvent, recalculated:', this.weekStart);
         }
         
         // Parse date more carefully to avoid timezone issues
@@ -1614,34 +1614,34 @@ class GoogleCalendarGrid {
         const timeDiff = eventDate.getTime() - weekStart.getTime();
         const dayIndex = Math.round(timeDiff / (24 * 60 * 60 * 1000));
         
-        console.log('📅 Event date string:', eventDateStr);
-        console.log('📅 Event date (parsed):', eventDate);
-        console.log('📅 Week start (noon):', weekStart);
-        console.log('📅 Time difference (ms):', timeDiff);
-        console.log('📅 Day index:', dayIndex);
+        // console.log('📅 Event date string:', eventDateStr);
+        // console.log('📅 Event date (parsed):', eventDate);
+        // console.log('📅 Week start (noon):', weekStart);
+        // console.log('📅 Time difference (ms):', timeDiff);
+        // console.log('📅 Day index:', dayIndex);
         
         if (dayIndex < -1 || dayIndex > 7) { // Allow more flexible range
-            console.log('❌ Event too far from current week, skipping render. DayIndex:', dayIndex);
+            // console.log('❌ Event too far from current week, skipping render. DayIndex:', dayIndex);
             return; // Not in current week
         }
         
         // Adjust dayIndex if it's negative (previous week) or > 6 (next week)
         if (dayIndex < 0) {
-            console.log('⚠️ Event from previous week, adjusting...');
+            // console.log('⚠️ Event from previous week, adjusting...');
         } else if (dayIndex > 6) {
-            console.log('⚠️ Event from next week, adjusting...');
+            // console.log('⚠️ Event from next week, adjusting...');
         }
         
         // Check if this is a multi-day event - skip individual rendering
         if (eventData.isMultiDay) {
-            console.log('🔄 Skipping individual render for multi-day event:', eventData.title);
-            console.log('   Multi-day events should be rendered via renderMultiDayEvent');
+            // console.log('🔄 Skipping individual render for multi-day event:', eventData.title);
+            // console.log('   Multi-day events should be rendered via renderMultiDayEvent');
             return;
         }
         
         // Check if this is an all-day event
         if (eventData.isAllDay) {
-            console.log('📅 Rendering all-day event:', eventData.title);
+            // console.log('📅 Rendering all-day event:', eventData.title);
             // For all-day events, render them in a special all-day section or as full-day blocks
             this.renderAllDayEvent(eventData, dayIndex);
             return;
@@ -1663,13 +1663,13 @@ class GoogleCalendarGrid {
         
         // Ensure dayIndex is within valid range (0-6 for day columns)
         const validDayIndex = Math.max(0, Math.min(6, dayIndex));
-        console.log('🔍 Original dayIndex:', dayIndex, 'Adjusted to:', validDayIndex);
+        // console.log('🔍 Original dayIndex:', dayIndex, 'Adjusted to:', validDayIndex);
         
         const dayColumn = this.container.querySelector(`.day-column[data-day="${validDayIndex}"]`);
-        console.log('🔍 Looking for day column with dayIndex:', validDayIndex, 'Found:', dayColumn);
+        // console.log('🔍 Looking for day column with dayIndex:', validDayIndex, 'Found:', dayColumn);
         
         if (!dayColumn) {
-            console.log('❌ Day column not found! Available columns:', 
+            // console.log('❌ Day column not found! Available columns:', 
                 this.container.querySelectorAll('.day-column'));
             return;
         }
@@ -1709,7 +1709,7 @@ class GoogleCalendarGrid {
             </div>
         `;
         
-        console.log('🎨 Event color:', eventData.color, 'Background:', eventElement.style.backgroundColor);
+        // console.log('🎨 Event color:', eventData.color, 'Background:', eventElement.style.backgroundColor);
         
         // Position the event
         const top = (startPosition - this.startHour) * this.timeSlotHeight;
@@ -1747,17 +1747,17 @@ class GoogleCalendarGrid {
         });
         
         dayColumn.appendChild(eventElement);
-        console.log('✅ Event element added to DOM:', eventElement, 'Parent:', dayColumn);
-        console.log('📍 Event position - top:', eventElement.style.top, 'height:', eventElement.style.height);
+        // console.log('✅ Event element added to DOM:', eventElement, 'Parent:', dayColumn);
+        // console.log('📍 Event position - top:', eventElement.style.top, 'height:', eventElement.style.height);
     }
     
     renderAllDayEvent(eventData, dayIndex) {
-        console.log('🎯 renderAllDayEvent called with data:', eventData, 'dayIndex:', dayIndex);
+        // console.log('🎯 renderAllDayEvent called with data:', eventData, 'dayIndex:', dayIndex);
         
         // Check if this is a multi-day event - skip all-day rendering
         if (eventData.isMultiDay) {
-            console.log('🔄 Skipping all-day render for multi-day event:', eventData.title);
-            console.log('   Multi-day events should be rendered via renderMultiDayEvent only');
+            // console.log('🔄 Skipping all-day render for multi-day event:', eventData.title);
+            // console.log('   Multi-day events should be rendered via renderMultiDayEvent only');
             return;
         }
         
@@ -1767,7 +1767,7 @@ class GoogleCalendarGrid {
         const dayColumn = this.container.querySelector(`.day-column[data-day="${validDayIndex}"]`);
         
         if (!dayColumn) {
-            console.log('❌ Day column not found for all-day event! DayIndex:', validDayIndex);
+            // console.log('❌ Day column not found for all-day event! DayIndex:', validDayIndex);
             return;
         }
         
@@ -1855,11 +1855,11 @@ class GoogleCalendarGrid {
         });
         
         allDayContainer.appendChild(eventElement);
-        console.log('✅ All-day event element added to DOM:', eventElement);
+        // console.log('✅ All-day event element added to DOM:', eventElement);
     }
     
     renderMultiDayEvent(eventData) {
-        console.log('🎯 renderMultiDayEvent called with data:', eventData);
+        // console.log('🎯 renderMultiDayEvent called with data:', eventData);
         
         // Check for null/undefined event data
         if (!eventData || !eventData.id) {
@@ -1876,7 +1876,7 @@ class GoogleCalendarGrid {
         // Ensure weekStart is properly initialized
         if (!this.weekStart || !(this.weekStart instanceof Date)) {
             this.weekStart = this.getWeekStart(new Date());
-            console.log('⚠️ weekStart was undefined in renderMultiDayEvent, recalculated:', this.weekStart);
+            // console.log('⚠️ weekStart was undefined in renderMultiDayEvent, recalculated:', this.weekStart);
         }
         
         // Parse start and end dates
@@ -1888,7 +1888,7 @@ class GoogleCalendarGrid {
         if (eventData.startTime && eventData.endTime) {
             [startHour, startMin] = eventData.startTime.split(':').map(Number);
             [endHour, endMin] = eventData.endTime.split(':').map(Number);
-            console.log('🕐 Time range:', eventData.startTime, 'to', eventData.endTime);
+            // console.log('🕐 Time range:', eventData.startTime, 'to', eventData.endTime);
         } else {
             console.warn('⚠️ Multi-day event missing time info:', eventData);
             console.warn('   This event should have been created with time information');
@@ -1908,14 +1908,14 @@ class GoogleCalendarGrid {
         const startDayIndex = Math.round(startTimeDiff / (24 * 60 * 60 * 1000));
         const endDayIndex = Math.round(endTimeDiff / (24 * 60 * 60 * 1000));
         
-        console.log('📅 Multi-day event - Start:', startDate, 'End:', endDate);
-        console.log('📅 Day indices - Start:', startDayIndex, 'End:', endDayIndex);
+        // console.log('📅 Multi-day event - Start:', startDate, 'End:', endDate);
+        // console.log('📅 Day indices - Start:', startDayIndex, 'End:', endDayIndex);
         
         const startPosition = startHour + startMin / 60;
         const endPosition = endHour + endMin / 60;
         const duration = endPosition - startPosition;
         
-        console.log('🎯 Multi-day position calculation:', {
+        // console.log('🎯 Multi-day position calculation:', {
             startHour, startMin, endHour, endMin,
             startPosition, endPosition, duration,
             timeSlotHeight: this.timeSlotHeight,
@@ -1932,7 +1932,7 @@ class GoogleCalendarGrid {
         const firstDayColumn = this.container.querySelector(`.day-column[data-day="${firstDayIndex}"]`);
         
         if (!firstDayColumn) {
-            console.log('❌ First day column not found for dayIndex:', firstDayIndex);
+            // console.log('❌ First day column not found for dayIndex:', firstDayIndex);
             return;
         }
         
@@ -1947,7 +1947,7 @@ class GoogleCalendarGrid {
                 const firstColRect = firstDayColumn.getBoundingClientRect();
                 const lastColRect = lastDayColumn.getBoundingClientRect();
                 totalWidth = (lastColRect.right - firstColRect.left) - 4; // Actual span minus margins
-                console.log('📏 Spanning calculation:', {
+                // console.log('📏 Spanning calculation:', {
                     spanDays,
                     firstCol: firstColRect.left,
                     lastCol: lastColRect.right,
@@ -1956,7 +1956,7 @@ class GoogleCalendarGrid {
             } else {
                 // Fallback calculation
                 totalWidth = firstDayColumn.offsetWidth * spanDays - 4;
-                console.log('⚠️ Using fallback width calculation');
+                // console.log('⚠️ Using fallback width calculation');
             }
         }
         
@@ -2041,7 +2041,7 @@ class GoogleCalendarGrid {
         // Add to the first day column
         firstDayColumn.appendChild(eventElement);
         
-        console.log(`✅ Multi-day spanning event "${eventData.title}" rendered across ${spanDays} days (${firstDayIndex} to ${lastDayIndex})`);
+        // console.log(`✅ Multi-day spanning event "${eventData.title}" rendered across ${spanDays} days (${firstDayIndex} to ${lastDayIndex})`);
         
         // Remove the duplicate rendering - the spanning event already covers all days
         return;
@@ -2052,7 +2052,7 @@ class GoogleCalendarGrid {
             const dayColumn = this.container.querySelector(`.day-column[data-day="${dayIndex}"]`);
             
             if (!dayColumn) {
-                console.log('❌ Day column not found for dayIndex:', dayIndex);
+                // console.log('❌ Day column not found for dayIndex:', dayIndex);
                 continue;
             }
             
@@ -2123,7 +2123,7 @@ class GoogleCalendarGrid {
             
             dayColumn.appendChild(eventElement);
             
-            console.log(`✅ Multi-day event "${eventData.title}" rendered on day ${dayIndex}`);
+            // console.log(`✅ Multi-day event "${eventData.title}" rendered on day ${dayIndex}`);
         }
         */
     }
@@ -2172,7 +2172,7 @@ class GoogleCalendarGrid {
             newDayColumn.appendChild(eventElement);
         }
         
-        console.log('📅 Event time updated:', eventData);
+        // console.log('📅 Event time updated:', eventData);
         
         // Show notification
         if (window.showNotification) {
@@ -2326,7 +2326,7 @@ class GoogleCalendarGrid {
             
             if (response.ok) {
                 const savedEvent = await response.json();
-                console.log('✅ Event saved to server:', savedEvent);
+                // console.log('✅ Event saved to server:', savedEvent);
                 
                 // Add to local events
                 this.events.push(eventData);
@@ -2515,7 +2515,7 @@ class GoogleCalendarGrid {
             });
             
             if (response.ok) {
-                console.log('✅ Event updated on server');
+                // console.log('✅ Event updated on server');
             } else {
                 console.warn('⚠️ Server update failed, updating locally only');
             }
@@ -2607,11 +2607,11 @@ class GoogleCalendarGrid {
         document.documentElement.style.setProperty('--sidebar-width', `${sidebarWidth}px`);
         document.documentElement.style.setProperty('--main-content-width', `${mainContentWidth}px`);
         
-        console.log('📏 Updated dimensions - Sidebar:', sidebarWidth, 'Main content:', mainContentWidth);
+        // console.log('📏 Updated dimensions - Sidebar:', sidebarWidth, 'Main content:', mainContentWidth);
     }
 
     async loadExistingEvents() {
-        console.log('📥 Loading existing events...');
+        // console.log('📥 Loading existing events...');
         
         // Always load from localStorage first for immediate functionality
         this.loadBackupEvents();
@@ -2620,18 +2620,18 @@ class GoogleCalendarGrid {
         try {
             const calendarElement = document.querySelector('.calendar-workspace');
             if (!calendarElement?.dataset.calendarId) {
-                console.log('⚠️ No calendar workspace or ID found, using localStorage only');
+                // console.log('⚠️ No calendar workspace or ID found, using localStorage only');
                 return;
             }
             
             const calendarId = calendarElement.dataset.calendarId;
-            console.log('🔍 Fetching events for calendar:', calendarId);
+            // console.log('🔍 Fetching events for calendar:', calendarId);
             
             const response = await fetch(`/api/calendars/${calendarId}/events`);
             
             if (response.ok) {
                 const events = await response.json();
-                console.log('📅 Loaded events from backend:', events);
+                // console.log('📅 Loaded events from backend:', events);
                 
                 // Clear existing events
                 this.events = [];
@@ -2642,19 +2642,19 @@ class GoogleCalendarGrid {
                         this.events.push(frontendEvent);
                         this.renderEvent(frontendEvent);
                     });
-                    console.log(`✅ Successfully loaded ${events.length} events from backend`);
+                    // console.log(`✅ Successfully loaded ${events.length} events from backend`);
                 } else {
                     // No backend events, try localStorage
-                    console.log('📝 No backend events, loading from localStorage...');
+                    // console.log('📝 No backend events, loading from localStorage...');
                     this.loadBackupEvents();
                 }
             } else {
-                console.log(`📝 Backend API returned ${response.status} - using localStorage`);
+                // console.log(`📝 Backend API returned ${response.status} - using localStorage`);
                 this.loadBackupEvents();
             }
             
         } catch (error) {
-            console.log('📝 Backend connection failed - using localStorage:', error.message);
+            // console.log('📝 Backend connection failed - using localStorage:', error.message);
             this.loadBackupEvents();
         }
         
@@ -2663,19 +2663,19 @@ class GoogleCalendarGrid {
         try {
             const calendarElement = document.querySelector('.calendar-workspace');
             if (!calendarElement?.dataset.calendarId) {
-                console.log('⚠️ No calendar workspace or ID found, using localStorage only');
+                // console.log('⚠️ No calendar workspace or ID found, using localStorage only');
                 this.loadBackupEvents();
                 return;
             }
             
             const calendarId = calendarElement.dataset.calendarId;
-            console.log('🔍 Fetching events for calendar:', calendarId);
+            // console.log('🔍 Fetching events for calendar:', calendarId);
             
             const response = await fetch(`/api/calendars/${calendarId}/events`);
             
             if (response.ok) {
                 const events = await response.json();
-                console.log('📅 Loaded events from backend:', events);
+                // console.log('📅 Loaded events from backend:', events);
                 
                 // Clear existing events and render loaded ones
                 this.events = [];
@@ -2686,7 +2686,7 @@ class GoogleCalendarGrid {
                         this.events.push(frontendEvent);
                         this.renderEvent(frontendEvent);
                     });
-                    console.log(`✅ Successfully loaded ${events.length} events from backend`);
+                    // console.log(`✅ Successfully loaded ${events.length} events from backend`);
                     // Update the event list
                     this.updateEventList();
                 } else {
@@ -2694,19 +2694,19 @@ class GoogleCalendarGrid {
                     this.loadBackupEvents();
                 }
             } else {
-                console.log(`📝 Backend API not available (${response.status}) - using localStorage`);
+                // console.log(`📝 Backend API not available (${response.status}) - using localStorage`);
                 this.loadBackupEvents();
             }
             
         } catch (error) {
-            console.log('📝 Backend connection failed - using localStorage:', error.message);
+            // console.log('📝 Backend connection failed - using localStorage:', error.message);
             this.loadBackupEvents();
         }
         */
     }
     
     loadBackupEvents() {
-        console.log('📱 Loading events from localStorage backup...');
+        // console.log('📱 Loading events from localStorage backup...');
         const backupEvents = this.loadFromLocalStorage();
         
         if (backupEvents.length > 0) {
@@ -2717,17 +2717,17 @@ class GoogleCalendarGrid {
                 this.events.push(event);
                 this.renderEvent(event);
             });
-            console.log(`✅ Loaded ${backupEvents.length} events from localStorage backup`);
+            // console.log(`✅ Loaded ${backupEvents.length} events from localStorage backup`);
             // Update the event list
             this.updateEventList();
         } else {
-            console.log('📝 No backup events found in localStorage');
+            // console.log('📝 No backup events found in localStorage');
         }
     }
     
     convertBackendEventToFrontend(backendEvent) {
         // Debug: Log the backend event structure
-        console.log('🔍 Converting backend event:', backendEvent);
+        // console.log('🔍 Converting backend event:', backendEvent);
         
         // Convert backend event format to match frontend expectations
         let date = backendEvent.date;
@@ -2769,7 +2769,7 @@ class GoogleCalendarGrid {
             color: backendEvent.color || '#3b82f6'
         };
         
-        console.log('✅ Converted to frontend event:', convertedEvent);
+        // console.log('✅ Converted to frontend event:', convertedEvent);
         return convertedEvent;
     }
     
@@ -2779,7 +2779,7 @@ class GoogleCalendarGrid {
             const existing = JSON.parse(localStorage.getItem(storageKey) || '[]');
             existing.push(eventData);
             localStorage.setItem(storageKey, JSON.stringify(existing));
-            console.log('💾 Event saved to localStorage backup');
+            // console.log('💾 Event saved to localStorage backup');
         } catch (error) {
             console.error('❌ Failed to save to localStorage:', error);
         }
@@ -2791,7 +2791,7 @@ class GoogleCalendarGrid {
             const events = JSON.parse(localStorage.getItem(storageKey) || '[]');
             // Filter out null/invalid events when loading
             const validEvents = events.filter(event => event && event.id && event.date);
-            console.log('📱 Loaded from localStorage backup:', validEvents.length, 'valid events out of', events.length, 'total');
+            // console.log('📱 Loaded from localStorage backup:', validEvents.length, 'valid events out of', events.length, 'total');
             return validEvents;
         } catch (error) {
             console.error('❌ Failed to load from localStorage:', error);
@@ -2862,7 +2862,7 @@ class GoogleCalendarGrid {
         // Reset popup active flag
         window.eventCreationPopupActive = false;
         
-        console.log('🚪 Event popup closed');
+        // console.log('🚪 Event popup closed');
     }
 
     selectEventColor(color) {
@@ -2903,19 +2903,19 @@ class GoogleCalendarGrid {
 
     // Event Search and List Methods
     searchEvents(query) {
-        console.log('🔍 Searching events for:', query);
+        // console.log('🔍 Searching events for:', query);
         const results = this.events.filter(event => 
             event.title.toLowerCase().includes(query.toLowerCase()) ||
             (event.description && event.description.toLowerCase().includes(query.toLowerCase()))
         );
         
-        console.log('🔍 Search results:', results);
+        // console.log('🔍 Search results:', results);
         this.displaySearchResults(results, query);
         return results;
     }
     
     displaySearchResults(results, query) {
-        console.log('📊 Displaying search results:', results.length);
+        // console.log('📊 Displaying search results:', results.length);
         
         // Clear previous highlighting
         this.clearEventHighlighting();
@@ -2980,7 +2980,7 @@ class GoogleCalendarGrid {
     }
     
     initializeEventList() {
-        console.log('📋 Initializing event list');
+        // console.log('📋 Initializing event list');
         this.updateEventList();
     }
     
@@ -2992,7 +2992,7 @@ class GoogleCalendarGrid {
         }
         
         const events = eventsToShow || this.events;
-        console.log('📋 Updating event list with', events.length, 'events');
+        // console.log('📋 Updating event list with', events.length, 'events');
         
         // Clear existing list
         eventList.innerHTML = '';
@@ -3386,7 +3386,7 @@ function saveOverlayEvent(event) {
         showNotification(eventId ? '일정이 수정되었습니다' : '일정이 생성되었습니다', 'success');
     }
     
-    console.log('📅 Event saved:', eventData);
+    // console.log('📅 Event saved:', eventData);
 }
 
 // Override the original click handlers to use overlay form

@@ -114,14 +114,14 @@ class DashboardDataManager:
             # UUID 정규화 (통일된 형식 - 하이픈 없음)
             from utils.uuid_helper import normalize_uuid
             normalized_user_id = normalize_uuid(user_id)
-            print(f"🔍 [EVENTS] Searching calendar events for user {user_id} (normalized: {normalized_user_id})")
+            # print(f"🔍 [EVENTS] Searching calendar events for user {user_id} (normalized: {normalized_user_id})")
             
             if start_datetime is None:
                 start_datetime = datetime.now()
             if end_datetime is None:
                 end_datetime = start_datetime + timedelta(days=days_ahead)
             
-            print(f"📅 [EVENTS] Date range: {start_datetime.isoformat()} to {end_datetime.isoformat()}")
+            # print(f"📅 [EVENTS] Date range: {start_datetime.isoformat()} to {end_datetime.isoformat()}")
             
             # Build query - using actual column names from the database
             query = self.supabase.table('calendar_events').select('''
@@ -134,9 +134,9 @@ class DashboardDataManager:
                 # Include events that exactly match the specified calendar_id(s)
                 # This applies to ALL events including Notion events - they must have matching calendar_id
                 query = query.in_('calendar_id', calendar_ids)
-                print(f"📅 [EVENTS] Filtering by calendar IDs: {calendar_ids}")
+                # print(f"📅 [EVENTS] Filtering by calendar IDs: {calendar_ids}")
             else:
-                print(f"📅 [EVENTS] No calendar ID filter - showing all events")
+                # print(f"📅 [EVENTS] No calendar ID filter - showing all events")
             
             result = query.order('start_datetime').execute()
             
@@ -368,23 +368,17 @@ class DashboardDataManager:
     def get_api_keys_summary(self, user_id: str) -> Dict[str, Any]:
         """Get API keys summary for API Keys page"""
         try:
-            # Get user's API keys
+            # Get user's API keys (returns dict with platform_id as key)
             api_keys = self.get_user_api_keys(user_id)
             
             # Count by platform
             platforms = {}
-            for key in api_keys:
-                platform = key.get('platform', 'unknown')
-                if platform not in platforms:
-                    platforms[platform] = {
-                        'count': 0,
-                        'status': 'disconnected',
-                        'last_used': None
-                    }
-                platforms[platform]['count'] += 1
-                if key.get('is_active'):
-                    platforms[platform]['status'] = 'connected'
-                    platforms[platform]['last_used'] = key.get('last_used_at')
+            for platform_id, platform_data in api_keys.items():
+                platforms[platform_id] = {
+                    'count': 1,
+                    'status': 'connected' if platform_data.get('configured') and platform_data.get('enabled') else 'disconnected',
+                    'last_used': platform_data.get('last_sync')
+                }
             
             return {
                 'total_keys': len(api_keys),
