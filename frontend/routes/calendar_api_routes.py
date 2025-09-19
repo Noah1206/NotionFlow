@@ -170,6 +170,112 @@ def debug_user_data():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@calendar_api_bp.route('/calendars/<calendar_id>/events', methods=['GET'])
+def get_single_calendar_events(calendar_id):
+    """Get events for a specific calendar - RESTful endpoint"""
+    try:
+        user_id = get_current_user_id()
+        if not user_id:
+            print("❌ [SINGLE EVENTS] No user_id found in session")
+            return jsonify({'error': 'User not authenticated', 'events': [], 'count': 0}), 401
+        
+        # UUID 정규화 - 통일된 형식 사용 (하이픈 없음)
+        from utils.uuid_helper import normalize_uuid
+        user_id = normalize_uuid(user_id)
+        print(f"🔍 [SINGLE EVENTS] Current user_id: {user_id}, calendar_id: {calendar_id}")
+        
+        # Get optional query parameters
+        days_ahead = int(request.args.get('days_ahead', 30))
+        
+        # 🔄 Notion 자동 동기화 (연결된 사용자만)
+        print(f"🔍 [NOTION SYNC] Checking sync for single calendar: {calendar_id}, user_id={user_id}")
+        
+        # Check if user has Notion connected
+        notion_sync_enabled = session.get('notion_connected', False)
+        if not notion_sync_enabled:
+            try:
+                from utils.config import config
+                if config.supabase_client:
+                    # Check if user has Notion token in calendar_sync_configs
+                    configs = config.supabase_client.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', 'notion').execute()
+                    if configs.data:
+                        creds = configs.data[0].get('credentials', {})
+                        if isinstance(creds, dict) and creds.get('access_token'):
+                            notion_sync_enabled = True
+                            session['notion_connected'] = True
+                            print(f"🔗 [NOTION SYNC] Notion connection detected for user {user_id}")
+                        else:
+                            print(f"⚠️ [NOTION SYNC] Found config but no valid token: {creds}")
+                    else:
+                        print(f"⚠️ [NOTION SYNC] No calendar_sync_configs found for user {user_id}")
+            except Exception as e:
+                print(f"❌ [NOTION SYNC] Error checking connection: {e}")
+                pass
+        
+        if notion_sync_enabled and calendar_id:
+            print(f"🔄 [NOTION SYNC] Will sync to calendar: {calendar_id}")
+            
+            try:
+                import sys
+                sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
+                from services.notion_sync import NotionCalendarSync
+                
+                notion_sync = NotionCalendarSync()
+                
+                # Store user email in session for user creation if needed
+                if 'user_email' not in session:
+                    try:
+                        from utils.config import config
+                        if config.supabase:
+                            user = config.supabase.auth.get_user()
+                            if user and user.user:
+                                session['user_email'] = user.user.email
+                    except:
+                        pass
+                
+                print(f"🔄 [NOTION SYNC] Starting auto-sync for calendar {calendar_id}")
+                result = notion_sync.sync_to_calendar(user_id, calendar_id)
+                print(f"📋 [NOTION SYNC] Sync result: {result}")
+                
+                if result['success']:
+                    print(f"✅ [NOTION SYNC] Successfully synced {result.get('synced_events', 0)} events from {result.get('databases_processed', 0)} databases")
+                else:
+                    print(f"❌ [NOTION SYNC] Failed: {result.get('error', 'Unknown error')}")
+                    
+            except Exception as e:
+                print(f"⚠️ [NOTION SYNC] Auto-sync error: {e}")
+                import traceback
+                traceback.print_exc()
+        else:
+            print(f"⏭️ [NOTION SYNC] Skipping auto-sync: notion_enabled={notion_sync_enabled}, calendar_id={bool(calendar_id)}")
+        
+        if not dashboard_data:
+            return jsonify({'error': 'Dashboard data manager not available'}), 500
+        
+        # Get events for the specific calendar
+        events = dashboard_data.get_user_calendar_events(
+            user_id=user_id,
+            days_ahead=days_ahead,
+            calendar_ids=[calendar_id]  # Pass as list with single calendar
+        )
+        
+        return jsonify({
+            'success': True,
+            'events': events,
+            'count': len(events),
+            'debug_info': {
+                'user_id': user_id,
+                'normalized_user_id': user_id,
+                'notion_sync_enabled': notion_sync_enabled,
+                'calendar_id': calendar_id
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'error': f'Failed to get events for calendar {calendar_id}: {str(e)}'
+        }), 500
+
 @calendar_api_bp.route('/calendar/events', methods=['GET'])
 def get_calendar_events():
     """Get calendar events for selected calendars"""
@@ -179,7 +285,7 @@ def get_calendar_events():
             print("❌ [EVENTS] No user_id found in session")
             return jsonify({'error': 'User not authenticated', 'events': [], 'count': 0}), 401
         
-        # UUID 정규화 - OAuth와 일치하는 형식 사용
+        # UUID 정규화 - 통일된 형식 사용 (하이픈 없음)
         from utils.uuid_helper import normalize_uuid
         user_id = normalize_uuid(user_id)
         print(f"🔍 [EVENTS] Current user_id: {user_id}")
@@ -284,18 +390,28 @@ def get_user_calendars():
     try:
         user_id = get_current_user_id()
         if not user_id:
-            # Use the actual owner ID from the existing calendar
-            user_id = "e390559f-c328-4786-ac5d-c74b5409451b"
+            return jsonify({
+                'error': 'User not authenticated',
+                'success': False,
+                'personal_calendars': [],
+                'shared_calendars': [],
+                'summary': {}
+            }), 401
         
-        print(f"🔍 API: user_id = {user_id}")
+        # UUID 정규화 - 통일된 형식 사용 (하이픈 없음)
+        from utils.uuid_helper import normalize_uuid
+        normalized_user_id = normalize_uuid(user_id)
+        
+        print(f"🔍 API: original user_id = {user_id}")
+        print(f"🔍 API: normalized user_id = {normalized_user_id}")
         print(f"🔍 API: dashboard_data available = {dashboard_data is not None}")
         
         if not dashboard_data:
             return jsonify({'error': 'Dashboard data manager not available'}), 500
         
-        # Get user calendars
-        print(f"🔍 API: Calling dashboard_data.get_user_calendars({user_id})")
-        calendars_data = dashboard_data.get_user_calendars(user_id)
+        # Get user calendars with normalized ID
+        print(f"🔍 API: Calling dashboard_data.get_user_calendars({normalized_user_id})")
+        calendars_data = dashboard_data.get_user_calendars(normalized_user_id)
         print(f"🔍 API: calendars_data = {calendars_data}")
         
         return jsonify({
@@ -353,7 +469,14 @@ def simple_create_calendar():
 
 def get_current_user_id():
     """Get current authenticated user ID from session"""
-    return session.get('user_id')
+    user_id = session.get('user_id')
+    if user_id and '@' not in user_id:  # UUID인 경우에만 정규화
+        try:
+            from utils.uuid_helper import normalize_uuid
+            return normalize_uuid(user_id)
+        except:
+            pass
+    return user_id
 
 def require_auth():
     """Decorator to require authentication"""
@@ -504,10 +627,14 @@ def create_calendar():
             if not media_filename:
                 media_filename = media_file.filename
         
+        # CRITICAL: Normalize user_id before storing as owner_id
+        from utils.uuid_helper import normalize_uuid
+        normalized_user_id = normalize_uuid(user_id)
+        
         # 캘린더 데이터 생성 (실제 calendars 테이블 구조에 맞춤)
         calendar_data = {
             'id': str(uuid.uuid4()),
-            'owner_id': user_id,
+            'owner_id': normalized_user_id,
             'name': name,
             'type': platform,
             'color': color,
