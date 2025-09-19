@@ -157,7 +157,12 @@ class DashboardDataManager:
     def get_user_calendars(self, user_id: str) -> Dict[str, Any]:
         """Get user's calendar list from new calendars table"""
         try:
-            print(f"🔍 get_user_calendars called for user_id: {user_id}")
+            # CRITICAL: Normalize user_id first to ensure consistency
+            from utils.uuid_helper import normalize_uuid
+            normalized_user_id = normalize_uuid(user_id)
+            original_user_id = user_id
+            
+            print(f"🔍 get_user_calendars called for user_id: {original_user_id} (normalized: {normalized_user_id})")
             print(f"🔍 admin_client available: {self.admin_client is not None}")
             
             # First, let's see what calendars exist in the database
@@ -170,10 +175,11 @@ class DashboardDataManager:
             print(f"🔍 Total calendars in DB: {len(all_calendars_result.data) if all_calendars_result.data else 0}")
             
             # Get calendars from new calendars table using admin client
+            # Query with BOTH formats for maximum compatibility
             result = self.admin_client.table('calendars').select('''
                 id, name, color, type, description, is_active, 
                 public_access, allow_editing, created_at, updated_at
-            ''').eq('owner_id', user_id).execute()
+            ''').or_(f'owner_id.eq.{original_user_id},owner_id.eq.{normalized_user_id}').execute()
             
             print(f"🔍 Supabase query result for user {user_id}: {result}")
             print(f"🔍 Result data: {result.data}")
