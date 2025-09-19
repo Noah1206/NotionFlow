@@ -1104,25 +1104,13 @@ def handle_callback_success(platform, user_info):
                 if user_info.get('email'):
                     session['user_email'] = user_info.get('email')
                 
-                # Import and run sync
-                import sys
-                import os
-                sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
-                from services.notion_sync import NotionCalendarSync
-                
-                notion_sync = NotionCalendarSync()
-                sync_result = notion_sync.sync_to_calendar(user_id, calendar_id)
-                
-                print(f"📋 [OAUTH] Immediate sync result: {sync_result}")
-                
-                if sync_result and sync_result.get('success'):
-                    print(f"✅ [OAUTH] Successfully synced {sync_result.get('synced_events', 0)} events!")
-                    session['sync_result'] = sync_result
-                else:
-                    print(f"❌ [OAUTH] Sync failed: {sync_result.get('error') if sync_result else 'Unknown error'}")
+                # OAuth 완료 후 자동 동기화하지 않음
+                # 대신 사용자가 수동으로 캘린더 연동 버튼을 눌러야 함
+                print(f"✅ [OAUTH] Notion OAuth completed. User can now manually connect calendar.")
+                session['notion_oauth_completed'] = True
                     
         except Exception as sync_e:
-            print(f"⚠️ [OAUTH] Auto-sync error: {sync_e}")
+            print(f"⚠️ [OAUTH] OAuth completion error: {sync_e}")
             import traceback
             traceback.print_exc()
     

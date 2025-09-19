@@ -2220,9 +2220,11 @@ def dashboard_api_keys():
             
             # Count total events across all calendars
             for calendar in (calendars or []):
-                events = get_calendar_events(calendar.get('id', ''))
-                if events:
-                    total_events += len(events)
+                calendar_id = calendar.get('id', '')
+                if calendar_id:
+                    events = dashboard_data.get_user_calendar_events(user_id, calendar_ids=[calendar_id])
+                    if events:
+                        total_events += len(events)
         
         # Load saved events from localStorage backup
         storage_key = f'calendar_events_backup_{user_id}'
@@ -3708,6 +3710,7 @@ blueprints_to_register = [
     ('routes.platform_registration_routes', 'platform_reg_bp', '[LINK] Platform Registration'),
     ('routes.calendar_connection_routes', 'calendar_conn_bp', '[CALENDAR] Calendar Connections'),
     ('routes.calendar_api_routes', 'calendar_api_bp', '[CALENDAR] Calendar API'),
+    ('routes.platform_connect_routes', 'platform_connect_bp', '[PLATFORM] Platform Calendar Connect'),
     ('routes.health_check_routes', 'health_bp', '[SEARCH] Platform Health Check'),
     ('routes.friends_routes', 'friends_bp', '[FRIENDS] Friends System')
 ]

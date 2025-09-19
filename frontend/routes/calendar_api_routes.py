@@ -1213,9 +1213,10 @@ def get_youtube_info():
             'error': 'Failed to get YouTube video information'
         }), 500
 
-@calendar_api_bp.route('/calendars/<calendar_id>/events', methods=['GET'])
-def get_single_calendar_events(calendar_id):
-    """Get events for a specific calendar (RESTful endpoint)"""
+# DUPLICATE REMOVED - get_single_calendar_events already exists above
+
+@calendar_api_bp.route('/calendar/<calendar_id>/events/<event_id>', methods=['DELETE'])
+def delete_calendar_event(calendar_id, event_id):
     try:
         user_id = get_current_user_id()
         if not user_id:

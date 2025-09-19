@@ -983,13 +983,15 @@
     }
 
     /* OAuth 연동 완료 상태 스타일 */
-    .platform-status.oauth-connected {
+    .platform-status.oauth-connected,
+    .platform-status.partial {
         color: #f59e0b;
         background: #fef3c7;
         border: 1px solid #fbbf24;
     }
 
-    .platform-status.oauth-connected .status-dot {
+    .platform-status.oauth-connected .status-dot,
+    .platform-status.partial .status-dot {
         background: #f59e0b;
         animation: pulse-orange 2s infinite;
     }
@@ -1465,8 +1467,10 @@
                             const statusElement = platformCard.querySelector('.platform-status');
                             const connectBtn = platformCard.querySelector('.platform-connect-btn');
 
+                            const syncBtn = platformCard.querySelector('.platform-sync-btn');
+                            
                             if (statusElement && platform.configured && platform.enabled) {
-                                // 연결된 상태
+                                // 완전 연결된 상태 (OAuth + 캘린더 연결)
                                 statusElement.className = 'platform-status connected';
                                 statusElement.innerHTML = '<span class="status-dot"></span>연결됨';
 
@@ -1479,6 +1483,25 @@
                                             <div class="loader-dot"></div>
                                         </div>
                                     `;
+                                }
+                                
+                                // 캘린더 연동 버튼 숨기기 (이미 연결됨)
+                                if (syncBtn) {
+                                    syncBtn.style.display = 'none';
+                                }
+                            } else if (statusElement && platform.configured && !platform.calendar_connected) {
+                                // OAuth만 완료된 상태 (캘린더 미연결)
+                                statusElement.className = 'platform-status partial';
+                                statusElement.innerHTML = '<span class="status-dot"></span>인증 완료';
+
+                                // 연결 버튼 숨기기
+                                if (connectBtn) {
+                                    connectBtn.style.display = 'none';
+                                }
+                                
+                                // 캘린더 연동 버튼 표시
+                                if (syncBtn) {
+                                    syncBtn.style.display = 'inline-flex';
                                 }
                             } else {
                                 // 연결되지 않은 상태
@@ -1494,6 +1517,11 @@
                                             <div class="loader-dot"></div>
                                         </div>
                                     `;
+                                }
+                                
+                                // 캘린더 연동 버튼 숨기기
+                                if (syncBtn) {
+                                    syncBtn.style.display = 'none';
                                 }
                             }
                         }
@@ -1759,11 +1787,11 @@
                         if (event.data.type === 'oauth_success') {
                             cleanup();
 
-                            // Mark platform as connected in backend
+                            // Mark platform OAuth completed but calendar not connected yet
                             markPlatformConnected(event.data.platform);
 
-                            updatePlatformStatus(event.data.platform, 'connected');
-                            showNotification(`${getKoreanPlatformName(event.data.platform)} 연결 성공!`, 'success');
+                            updatePlatformStatus(event.data.platform, 'oauth_only');
+                            showNotification(`${getKoreanPlatformName(event.data.platform)} OAuth 연결 완료! 이제 캘린더를 연동해주세요.`, 'success');
                             updateConnectionStats();
                             updatePlatformStatus();
                             resolve(event.data);
@@ -1818,6 +1846,7 @@
         const statusElement = card.querySelector('.platform-status');
         const connectBtn = card.querySelector('.platform-connect-btn');
         const disconnectBtn = card.querySelector('.platform-disconnect-btn');
+        const syncBtn = card.querySelector('.platform-sync-btn');
 
         if (status === 'connected') {
             statusElement.className = 'platform-status connected';
@@ -1841,8 +1870,33 @@
                 `;
             }
 
-            // 캘린더 연동 버튼 표시 (연결됨 상태에서만)
-            const syncBtn = card.querySelector('.platform-sync-btn');
+            // 캘린더 연동 버튼 숨기기 (이미 연결됨)
+            if (syncBtn) {
+                syncBtn.style.display = 'none';
+            }
+        } else if (status === 'oauth_only') {
+            statusElement.className = 'platform-status partial';
+            statusElement.innerHTML = '<span class="status-dot"></span>인증 완료';
+
+            // 기존 연결 버튼 숨기기
+            if (connectBtn) {
+                connectBtn.style.display = 'none';
+            }
+
+            // 원클릭 버튼을 연결해제 버튼으로 변경
+            const oneClickBtn = card.querySelector('.one-click-btn-small');
+            if (oneClickBtn) {
+                oneClickBtn.className = 'one-click-disconnect-btn';
+                oneClickBtn.setAttribute('onclick', `oneClickDisconnect('${platform}')`);
+                oneClickBtn.innerHTML = `
+                    <span class="btn-text">연결해제</span>
+                    <div class="btn-loader" style="display: none;">
+                        <div class="loader-spinner"></div>
+                    </div>
+                `;
+            }
+
+            // 캘린더 연동 버튼 표시 (OAuth 완료, 캘린더 연동 대기)
             if (syncBtn) {
                 syncBtn.style.display = 'inline-flex';
                 syncBtn.onclick = () => openCalendarSyncModal(platform);
@@ -1894,6 +1948,383 @@
                 expandBtn.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
             }
         }
+    }
+
+    // 캘린더 연동 모달 열기
+    async function openCalendarSyncModal(platform) {
+        console.log(`Opening calendar sync modal for ${platform}`);
+        
+        try {
+            // 사용자의 캘린더 목록 가져오기
+            const response = await fetch('/api/calendar/calendars');
+            const data = await response.json();
+            
+            if (!data.success) {
+                showNotification('캘린더 목록을 가져올 수 없습니다: ' + data.error, 'error');
+                return;
+            }
+            
+            const calendars = data.calendars?.personal_calendars || [];
+            
+            if (calendars.length === 0) {
+                showNotification('연동할 캘린더가 없습니다. 먼저 캘린더를 생성해주세요.', 'warning');
+                return;
+            }
+            
+            // 기존 모달 제거
+            const existingModal = document.getElementById('calendar-sync-modal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            // 플랫폼별 표시 이름
+            const platformNames = {
+                'notion': 'Notion',
+                'google': 'Google Calendar',
+                'apple': 'Apple Calendar',
+                'outlook': 'Microsoft Outlook'
+            };
+            
+            const platformDisplayName = platformNames[platform] || platform;
+            
+            // 모달 생성
+            const modal = document.createElement('div');
+            modal.id = 'calendar-sync-modal';
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-container calendar-sync-modal">
+                    <div class="modal-header">
+                        <h3>${platformDisplayName} 캘린더 연동</h3>
+                        <button class="modal-close" onclick="closeCalendarSyncModal()">×</button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <div class="sync-steps">
+                            <div class="step active" data-step="1">
+                                <span class="step-number">1</span>
+                                <span class="step-label">캘린더 선택</span>
+                            </div>
+                            <div class="step" data-step="2">
+                                <span class="step-number">2</span>
+                                <span class="step-label">연동 설정</span>
+                            </div>
+                            <div class="step" data-step="3">
+                                <span class="step-number">3</span>
+                                <span class="step-label">완료</span>
+                            </div>
+                        </div>
+                        
+                        <div class="step-content" id="step1">
+                            <div class="step-description">
+                                <h4>연동할 캘린더를 선택하세요</h4>
+                                <p>NotionFlow에서 생성한 캘린더 중 ${platformDisplayName}와 연동할 캘린더를 선택해주세요.</p>
+                            </div>
+                            
+                            <div class="calendar-grid" id="calendar-grid">
+                                ${calendars.map(calendar => `
+                                    <div class="calendar-card" data-calendar-id="${calendar.id}" onclick="selectCalendar('${calendar.id}', '${calendar.name}')">
+                                        <div class="calendar-color" style="background-color: ${calendar.color}"></div>
+                                        <div class="calendar-info">
+                                            <h5 class="calendar-name">${calendar.name}</h5>
+                                            <p class="calendar-details">${calendar.event_count || 0}개 일정</p>
+                                        </div>
+                                        <div class="calendar-select-indicator">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polyline points="20,6 9,17 4,12"></polyline>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        
+                        <div class="step-content hidden" id="step2">
+                            <div class="step-description">
+                                <h4>연동 설정</h4>
+                                <p>선택한 캘린더의 연동 방식을 설정해주세요.</p>
+                            </div>
+                            
+                            <div class="sync-settings">
+                                <div class="setting-group">
+                                    <label class="setting-label">
+                                        <input type="checkbox" id="import-existing" checked>
+                                        <span class="checkmark"></span>
+                                        기존 일정 가져오기
+                                    </label>
+                                    <p class="setting-description">${platformDisplayName}의 기존 일정을 선택한 캘린더로 가져옵니다.</p>
+                                </div>
+                                
+                                <div class="setting-group">
+                                    <label class="setting-label">
+                                        <input type="checkbox" id="real-time-sync" checked>
+                                        <span class="checkmark"></span>
+                                        실시간 동기화
+                                    </label>
+                                    <p class="setting-description">새로운 일정이 추가될 때 자동으로 동기화합니다.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="selected-calendar-preview">
+                                <h5>선택된 캘린더</h5>
+                                <div class="preview-card" id="selected-calendar-preview">
+                                    <!-- 선택된 캘린더 정보가 여기에 표시됩니다 -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="step-content hidden" id="step3">
+                            <div class="completion-content">
+                                <div class="success-icon">
+                                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2">
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                        <polyline points="22,4 12,14.01 9,11.01"></polyline>
+                                    </svg>
+                                </div>
+                                <h4>연동이 완료되었습니다!</h4>
+                                <p>이제 ${platformDisplayName}와 NotionFlow 캘린더가 동기화됩니다.</p>
+                                
+                                <div class="completion-details">
+                                    <div class="detail-item">
+                                        <span class="detail-label">연동된 캘린더:</span>
+                                        <span class="detail-value" id="synced-calendar-name"></span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">연동 플랫폼:</span>
+                                        <span class="detail-value">${platformDisplayName}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">연동 시간:</span>
+                                        <span class="detail-value">${new Date().toLocaleString()}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button class="btn-secondary" onclick="closeCalendarSyncModal()">취소</button>
+                        <button class="btn-primary" id="next-step-btn" onclick="nextSyncStep()" disabled>다음</button>
+                        <button class="btn-primary hidden" id="sync-btn" onclick="performSync('${platform}')">연동 시작</button>
+                        <button class="btn-primary hidden" id="complete-btn" onclick="closeCalendarSyncModal()">완료</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            modal.style.display = 'flex';
+            
+        } catch (error) {
+            console.error('Error opening calendar sync modal:', error);
+            showNotification('캘린더 연동 모달을 열 수 없습니다.', 'error');
+        }
+    }
+
+    // 캘린더 선택
+    window.selectedCalendarId = null;
+    window.selectedCalendarName = null;
+
+    function selectCalendar(calendarId, calendarName) {
+        // 이전 선택 해제
+        document.querySelectorAll('.calendar-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        
+        // 새 선택 적용
+        const selectedCard = document.querySelector(`[data-calendar-id="${calendarId}"]`);
+        if (selectedCard) {
+            selectedCard.classList.add('selected');
+        }
+        
+        window.selectedCalendarId = calendarId;
+        window.selectedCalendarName = calendarName;
+        
+        // 다음 버튼 활성화
+        const nextBtn = document.getElementById('next-step-btn');
+        if (nextBtn) {
+            nextBtn.disabled = false;
+        }
+    }
+
+    // 다음 단계로 이동
+    function nextSyncStep() {
+        const currentStep = document.querySelector('.step.active');
+        const currentStepNumber = parseInt(currentStep.dataset.step);
+        
+        if (currentStepNumber === 1) {
+            // 1단계 → 2단계
+            currentStep.classList.remove('active');
+            document.querySelector('[data-step="2"]').classList.add('active');
+            
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step2').classList.remove('hidden');
+            
+            // 선택된 캘린더 미리보기 업데이트
+            const preview = document.getElementById('selected-calendar-preview');
+            if (preview && window.selectedCalendarName) {
+                preview.innerHTML = `
+                    <div class="calendar-preview">
+                        <h6>${window.selectedCalendarName}</h6>
+                        <p>선택된 캘린더입니다.</p>
+                    </div>
+                `;
+            }
+            
+            // 버튼 상태 변경
+            document.getElementById('next-step-btn').classList.add('hidden');
+            document.getElementById('sync-btn').classList.remove('hidden');
+            
+        } else if (currentStepNumber === 2) {
+            // 2단계 → 3단계는 performSync에서 처리
+        }
+    }
+
+    // 연동 수행
+    async function performSync(platform) {
+        if (!window.selectedCalendarId) {
+            showNotification('캘린더를 선택해주세요.', 'error');
+            return;
+        }
+        
+        const syncBtn = document.getElementById('sync-btn');
+        const originalText = syncBtn.textContent;
+        
+        try {
+            syncBtn.disabled = true;
+            syncBtn.innerHTML = '<div class="loader-spinner"></div> 연동 중...';
+            
+            // 연동 API 호출
+            const response = await fetch('/api/calendar/connect-platform', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    platform: platform,
+                    calendar_id: window.selectedCalendarId,
+                    import_existing: document.getElementById('import-existing')?.checked || false,
+                    real_time_sync: document.getElementById('real-time-sync')?.checked || true
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // 3단계로 이동
+                document.querySelector('.step.active').classList.remove('active');
+                document.querySelector('[data-step="3"]').classList.add('active');
+                
+                document.getElementById('step2').classList.add('hidden');
+                document.getElementById('step3').classList.remove('hidden');
+                
+                // 완료 정보 업데이트
+                document.getElementById('synced-calendar-name').textContent = window.selectedCalendarName;
+                
+                // 버튼 상태 변경
+                document.getElementById('sync-btn').classList.add('hidden');
+                document.getElementById('complete-btn').classList.remove('hidden');
+                
+                // 플랫폼 상태 업데이트
+                updatePlatformSyncStatus(platform, window.selectedCalendarName);
+                
+                showNotification(`${platform} 연동이 완료되었습니다!`, 'success');
+            } else {
+                throw new Error(result.error || '연동 실패');
+            }
+            
+        } catch (error) {
+            console.error('Sync error:', error);
+            showNotification(`연동 실패: ${error.message}`, 'error');
+            
+            syncBtn.disabled = false;
+            syncBtn.textContent = originalText;
+        }
+    }
+
+    // 연동 상태 업데이트
+    function updatePlatformSyncStatus(platform, calendarName) {
+        const card = document.querySelector(`[data-platform="${platform}"]`);
+        if (!card) return;
+        
+        const syncBtn = card.querySelector('.platform-sync-btn');
+        if (syncBtn) {
+            const syncText = syncBtn.querySelector('.sync-text');
+            if (syncText) {
+                syncText.textContent = `연동됨: ${calendarName}`;
+                syncBtn.classList.add('synced');
+                syncBtn.title = `${calendarName}과 연동됨`;
+            }
+            
+            // 연동 해제 X 버튼 추가
+            let disconnectBtn = syncBtn.querySelector('.sync-disconnect-btn');
+            if (!disconnectBtn) {
+                disconnectBtn = document.createElement('button');
+                disconnectBtn.className = 'sync-disconnect-btn';
+                disconnectBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    disconnectPlatformSync(platform);
+                };
+                disconnectBtn.innerHTML = '×';
+                syncBtn.appendChild(disconnectBtn);
+            }
+        }
+    }
+
+    // 연동 해제
+    async function disconnectPlatformSync(platform) {
+        if (!confirm(`${platform} 캘린더 연동을 해제하시겠습니까?`)) {
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/calendar/disconnect-platform', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ platform: platform })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // UI 상태 되돌리기
+                const card = document.querySelector(`[data-platform="${platform}"]`);
+                const syncBtn = card?.querySelector('.platform-sync-btn');
+                if (syncBtn) {
+                    const syncText = syncBtn.querySelector('.sync-text');
+                    if (syncText) {
+                        syncText.textContent = '캘린더 연동';
+                    }
+                    syncBtn.classList.remove('synced');
+                    syncBtn.title = '';
+                    
+                    const disconnectBtn = syncBtn.querySelector('.sync-disconnect-btn');
+                    if (disconnectBtn) {
+                        disconnectBtn.remove();
+                    }
+                }
+                
+                showNotification(`${platform} 연동이 해제되었습니다.`, 'success');
+            } else {
+                throw new Error(result.error || '연동 해제 실패');
+            }
+            
+        } catch (error) {
+            console.error('Disconnect error:', error);
+            showNotification(`연동 해제 실패: ${error.message}`, 'error');
+        }
+    }
+
+    // 모달 닫기
+    function closeCalendarSyncModal() {
+        const modal = document.getElementById('calendar-sync-modal');
+        if (modal) {
+            modal.remove();
+        }
+        
+        // 전역 변수 초기화
+        window.selectedCalendarId = null;
+        window.selectedCalendarName = null;
     }
 
     // 캘린더 안내 관련 함수들

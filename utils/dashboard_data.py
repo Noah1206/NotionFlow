@@ -53,7 +53,7 @@ class DashboardDataManager:
             print(f"Error getting user profile: {e}")
             return None
     
-    def get_user_api_keys(self, user_id: str) -> List[Dict]:
+    def get_user_api_keys(self, user_id: str) -> Dict[str, Dict]:
         """Get user's platform configurations"""
         try:
             result = self.supabase.table('calendar_sync_configs').select('''
@@ -75,14 +75,29 @@ class DashboardDataManager:
                 platform = config['platform']
                 platform_info = platform_configs.get(platform, {})
                 
+                # Check if actually configured with valid credentials
+                has_valid_credentials = self._has_valid_credentials(user_id, platform, config)
+                
+                # Check if calendar is connected for platforms that support it
+                calendar_connected = bool(config.get('calendar_id'))
+                
+                # Determine status based on credentials and calendar connection
+                if has_valid_credentials and calendar_connected:
+                    status = 'connected'  # OAuth + 캘린더 연결 완료
+                elif has_valid_credentials and not calendar_connected:
+                    status = 'oauth_only'  # OAuth만 완료, 캘린더 미연결
+                else:
+                    status = 'not_configured'  # OAuth 미완료
+                
                 platforms[platform] = {
                     'name': platform_info.get('name', platform.title()),
-                    'enabled': config['is_enabled'],
+                    'enabled': config['is_enabled'] and has_valid_credentials and calendar_connected,
                     'credential_type': platform_info.get('credential_type', 'api_key'),
-                    'configured': True,
+                    'configured': has_valid_credentials,
+                    'calendar_connected': calendar_connected,
                     'last_sync': config['last_sync_at'],
                     'sync_frequency': config.get('sync_frequency_minutes', 15),
-                    'health_status': 'healthy' if config['consecutive_failures'] == 0 else 'error',
+                    'health_status': status,
                     'failures': config['consecutive_failures'],
                     'created_at': config['created_at']
                 }
@@ -107,6 +122,35 @@ class DashboardDataManager:
         except Exception as e:
             print(f"Error getting user API keys: {e}")
             return {}
+    
+    def _has_valid_credentials(self, user_id: str, platform: str, config: dict) -> bool:
+        """Check if platform has valid credentials stored"""
+        try:
+            # Check if credentials field exists and has content
+            credentials = config.get('credentials')
+            if not credentials:
+                return False
+                
+            # For Notion, check if access_token exists and is not empty
+            if platform == 'notion':
+                if isinstance(credentials, dict):
+                    access_token = credentials.get('access_token')
+                    return bool(access_token and access_token.strip() and access_token != '')
+                return False
+                
+            # For Google, check if we have refresh_token or access_token
+            elif platform == 'google':
+                if isinstance(credentials, dict):
+                    return bool(credentials.get('refresh_token') or credentials.get('access_token'))
+                return False
+                
+            # For other platforms, check if credentials exist
+            else:
+                return bool(credentials)
+                
+        except Exception as e:
+            print(f"Error validating credentials for {platform}: {e}")
+            return False
     
     def get_user_calendar_events(self, user_id: str, days_ahead: int = 30, start_datetime: datetime = None, end_datetime: datetime = None, calendar_ids: List[str] = None) -> List[Dict]:
         """Get user's calendar events, optionally filtered by calendar IDs"""
