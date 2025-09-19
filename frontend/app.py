@@ -5015,13 +5015,21 @@ def get_calendar_events(calendar_id):
             return jsonify({'error': 'Database connection failed'}), 500
         
         # Build query to get events from database
-        # Include events for this specific calendar OR events without calendar_id (legacy data)
-        # Also include Notion events that might be associated with this user
+        # Handle both UUID formats (with and without hyphens)
+        from utils.uuid_helper import normalize_uuid
+        normalized_user_id = normalize_uuid(user_id)
+        
+        # Include events for this user (checking both UUID formats)
+        # Also filter by calendar_id if it's a specific calendar view
         query = supabase_client.table('calendar_events').select('''
             id, title, description, start_datetime, end_datetime,
             is_all_day, status, location, attendees, created_at, updated_at, 
             calendar_id, source_platform, category, priority
-        ''').eq('user_id', user_id).or_(f'calendar_id.eq.{calendar_id},calendar_id.is.null,source_platform.eq.notion')
+        ''').or_(f'user_id.eq.{user_id},user_id.eq.{normalized_user_id}')
+        
+        # Optional: filter by specific calendar_id
+        # For now, showing all events for the user since Notion events might not have matching calendar_id
+        # query = query.or_(f'calendar_id.eq.{calendar_id},source_platform.eq.notion')
         
         # Add date range filtering if provided
         if start_date and end_date:
