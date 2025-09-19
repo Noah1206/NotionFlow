@@ -5019,27 +5019,42 @@ def get_calendar_events(calendar_id):
         from utils.uuid_helper import normalize_uuid
         normalized_user_id = normalize_uuid(user_id)
         
+        print(f"[DEBUG] Original user_id: {user_id}")
+        print(f"[DEBUG] Normalized user_id: {normalized_user_id}")
+        print(f"[DEBUG] Calendar ID: {calendar_id}")
+        
+        # First, check total events in table for debugging
+        total_events = supabase_client.table('calendar_events').select('count').execute()
+        print(f"[DEBUG] Total events in calendar_events table: {len(total_events.data) if total_events.data else 0}")
+        
+        # Check events for this user (both UUID formats)
+        user_events = supabase_client.table('calendar_events').select('*').or_(f'user_id.eq.{user_id},user_id.eq.{normalized_user_id}').execute()
+        print(f"[DEBUG] Events found for user: {len(user_events.data) if user_events.data else 0}")
+        
+        if user_events.data:
+            print(f"[DEBUG] Sample user event: {user_events.data[0]}")
+        
         # Include events for this user (checking both UUID formats)
-        # Also filter by calendar_id if it's a specific calendar view
+        # Show all events for the user regardless of calendar_id for now
         query = supabase_client.table('calendar_events').select('''
             id, title, description, start_datetime, end_datetime,
             is_all_day, status, location, attendees, created_at, updated_at, 
             calendar_id, source_platform, category, priority
         ''').or_(f'user_id.eq.{user_id},user_id.eq.{normalized_user_id}')
         
-        # Optional: filter by specific calendar_id
-        # For now, showing all events for the user since Notion events might not have matching calendar_id
-        # query = query.or_(f'calendar_id.eq.{calendar_id},source_platform.eq.notion')
-        
         # Add date range filtering if provided
         if start_date and end_date:
             query = query.gte('start_datetime', start_date).lte('start_datetime', end_date)
+            print(f"[DEBUG] Applied date filter: {start_date} to {end_date}")
         
         # Execute query
         result = query.order('start_datetime').execute()
         events = result.data if result.data else []
         
         print(f"[SUCCESS] Found {len(events)} events for calendar {calendar_id}")
+        if events:
+            print(f"[DEBUG] First event: {events[0]}")
+        
         return jsonify(events)
         
     except Exception as e:

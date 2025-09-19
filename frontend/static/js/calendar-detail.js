@@ -2280,7 +2280,12 @@ async function loadEvents() {
             
             // If no events, keep empty (don't show demo events)
             if (calendarEvents.length === 0) {
-                console.log('No events found in database');
+                console.log('❌ No events found in API response');
+                console.log('🔍 Debugging info:');
+                console.log('   - Calendar ID:', calendarId);
+                console.log('   - API Response:', events);
+                console.log('   - API Response Length:', events ? events.length : 'null');
+                console.log('💡 Check console for API debugging info');
                 // Keep calendarEvents empty to show an empty calendar
                 calendarEvents = [];
             }
@@ -3160,6 +3165,10 @@ async function checkCalendarExists(retryCount = 0) {
             }
             return false;
         }
+        
+        // 캘린더 이름 업데이트 방지 - HTML에서 설정된 이름 유지
+        // 캘린더 목록 API의 이름으로 덮어쓰지 않음
+        console.log('✅ 캘린더 존재 확인됨, 기존 이름 유지');
         
         return true;
     } catch (error) {
