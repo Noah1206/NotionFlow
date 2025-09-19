@@ -2278,51 +2278,11 @@ async function loadEvents() {
                 attendees: event.attendees
             }));
             
-            // If no events, show demo events
+            // If no events, keep empty (don't show demo events)
             if (calendarEvents.length === 0) {
-                console.log('No events found, loading demo events');
-                calendarEvents = [
-                    {
-                        id: 1,
-                        title: '팀 미팅',
-                        date: new Date(2025, 2, 21), // March 21, 2025
-                        time: '14:00',
-                        color: '#dbeafe',
-                        description: '주간 팀 미팅 및 업무 공유'
-                    },
-                    {
-                        id: 2,
-                        title: '프로젝트 발표',
-                        date: new Date(2025, 2, 25), // March 25, 2025
-                        time: '10:00',
-                        color: '#dcfce7',
-                        description: '분기별 프로젝트 성과 발표'
-                    },
-                    {
-                        id: 3,
-                        title: '점심 약속',
-                        date: new Date(2025, 2, 23), // March 23, 2025
-                        time: '12:30',
-                        color: '#fef3c7',
-                        description: '친구와 함께하는 점심 식사'
-                    },
-                    {
-                        id: 4,
-                        title: '헬스장',
-                        date: new Date(2025, 2, 24), // March 24, 2025
-                        time: '19:00',
-                        color: '#ddd6fe',
-                        description: '저녁 운동 및 체력 단련'
-                    },
-                    {
-                        id: 5,
-                        title: '의사 진료',
-                        date: new Date(2025, 2, 27), // March 27, 2025
-                        time: '14:00',
-                        color: '#fce7f3',
-                        description: '정기 건강 검진'
-                    }
-                ];
+                console.log('No events found in database');
+                // Keep calendarEvents empty to show an empty calendar
+                calendarEvents = [];
             }
             
             // Render the calendar with loaded events
@@ -2348,48 +2308,9 @@ async function loadEvents() {
 }
 
 function loadDemoEvents() {
-    calendarEvents = [
-        {
-            id: 1,
-            title: '팀 미팅',
-            date: new Date(2025, 2, 21), // March 21, 2025
-            time: '14:00',
-            color: '#dbeafe',
-            description: '주간 팀 미팅 및 업무 공유'
-        },
-        {
-            id: 2,
-            title: '프로젝트 발표',
-            date: new Date(2025, 2, 25), // March 25, 2025
-            time: '10:00',
-            color: '#dcfce7',
-            description: '분기별 프로젝트 성과 발표'
-        },
-        {
-            id: 3,
-            title: '점심 약속',
-            date: new Date(2025, 2, 23), // March 23, 2025
-            time: '12:30',
-            color: '#fef3c7',
-            description: '친구와 함께하는 점심 식사'
-        },
-        {
-            id: 4,
-            title: '헬스장',
-            date: new Date(2025, 2, 24), // March 24, 2025
-            time: '19:00',
-            color: '#ddd6fe',
-            description: '저녁 운동 및 체력 단련'
-        },
-        {
-            id: 5,
-            title: '의사 진료',
-            date: new Date(2025, 2, 27), // March 27, 2025
-            time: '14:00',
-            color: '#fce7f3',
-            description: '정기 건강 검진'
-        }
-    ];
+    // Demo events disabled - show empty calendar instead
+    calendarEvents = [];
+    console.log('Demo events disabled - showing empty calendar');
 }
 
 function getEventsForDate(date) {
