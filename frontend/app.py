@@ -5024,8 +5024,14 @@ def get_calendar_events(calendar_id):
         print(f"[DEBUG] Calendar ID: {calendar_id}")
         
         # First, check total events in table for debugging
-        total_events = supabase_client.table('calendar_events').select('count').execute()
+        total_events = supabase_client.table('calendar_events').select('*').execute()
         print(f"[DEBUG] Total events in calendar_events table: {len(total_events.data) if total_events.data else 0}")
+        
+        # Check what user_ids exist in the database
+        if total_events.data:
+            unique_user_ids = set(event.get('user_id') for event in total_events.data if event.get('user_id'))
+            print(f"[DEBUG] User IDs found in database: {list(unique_user_ids)}")
+            print(f"[DEBUG] Sample event from DB: {total_events.data[0]}")
         
         # Check events for this user (both UUID formats)
         user_events = supabase_client.table('calendar_events').select('*').or_(f'user_id.eq.{user_id},user_id.eq.{normalized_user_id}').execute()
@@ -5033,6 +5039,8 @@ def get_calendar_events(calendar_id):
         
         if user_events.data:
             print(f"[DEBUG] Sample user event: {user_events.data[0]}")
+        else:
+            print(f"[DEBUG] No events found for user_id: {user_id} or {normalized_user_id}")
         
         # Include events for this user (checking both UUID formats)
         # Show all events for the user regardless of calendar_id for now
