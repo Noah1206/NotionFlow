@@ -117,13 +117,12 @@ class NotionCalendarSync:
             from utils.config import config
             from utils.uuid_helper import normalize_uuid
             
-            # UUID 정규화 (OAuth 콜백에서 사용한 것과 동일한 형식)
+            # UUID 정규화 (통일된 형식 - 하이픈 없음)
             normalized_user_id = normalize_uuid(user_id)
             print(f"🔍 [TOKEN] Searching for user {user_id} (normalized: {normalized_user_id})")
             
-            # 두 가지 형식 모두 준비
-            original_user_id = user_id.replace('-', '') if '-' in user_id else f"{user_id[:8]}-{user_id[8:12]}-{user_id[12:16]}-{user_id[16:20]}-{user_id[20:]}" if len(user_id) == 32 else user_id
-            print(f"🔍 [TOKEN] Will also try alternative format: {original_user_id}")
+            # 통일된 형식 사용 - 더 이상 여러 형식을 시도하지 않음
+            print(f"🔍 [TOKEN] Using unified format: {normalized_user_id}")
             
             supabase = config.get_client_for_user(user_id)
             
@@ -151,22 +150,6 @@ class NotionCalendarSync:
                     print(f"⚠️ [TOKEN] Credentials not in dict format: {type(creds)}")
             else:
                 print(f"⚠️ [TOKEN] No calendar_sync_configs found for Notion user {normalized_user_id}")
-                
-                # 추가: 다른 UUID 형식으로도 시도해보기 (앞에서 준비한 alternative format 사용)
-                if original_user_id != normalized_user_id:
-                    print(f"🔍 [TOKEN] Trying alternative UUID format: {original_user_id}")
-                    alt_result = supabase.table('calendar_sync_configs').select('*').eq(
-                        'user_id', original_user_id
-                    ).eq('platform', 'notion').execute()
-                    
-                    if alt_result.data:
-                        print(f"📋 [TOKEN] Found with alternative UUID: {alt_result.data}")
-                        creds = alt_result.data[0].get('credentials', {})
-                        if isinstance(creds, dict):
-                            token = creds.get('access_token')
-                            if token:
-                                print(f"✅ [TOKEN] Found Notion token with alt UUID: {token[:20]}...")
-                                return token
             
             # 2. platform_connections 테이블에서 검색 (백업 - access_token 컬럼이 없을 수 있음)
             try:
@@ -565,7 +548,7 @@ class NotionCalendarSync:
         return None
     
     def _normalize_uuid(self, uuid_str: str) -> str:
-        """UUID를 표준 형식으로 정규화 (하이픈 있는 형식)"""
+        """UUID를 DB 저장 형식으로 정규화 (하이픈 없는 형식)"""
         if not uuid_str:
             return uuid_str
             
@@ -575,8 +558,8 @@ class NotionCalendarSync:
             # 이메일에서 UUID 생성 (일관성을 위해)
             import hashlib
             email_hash = hashlib.md5(uuid_str.encode()).hexdigest()
-            # MD5 해시를 UUID 형식으로 변환
-            uuid_str = f"{email_hash[:8]}-{email_hash[8:12]}-{email_hash[12:16]}-{email_hash[16:20]}-{email_hash[20:32]}"
+            # DB 저장 형식으로 변환 (하이픈 없음)
+            uuid_str = email_hash
             print(f"🔄 [UUID] Generated UUID from email: {uuid_str}")
             return uuid_str
             
@@ -588,10 +571,10 @@ class NotionCalendarSync:
             print(f"⚠️ [UUID] Invalid UUID length: {len(clean_uuid)} (expected 32)")
             return uuid_str
             
-        # 표준 UUID 형식으로 포맷 (8-4-4-4-12)
-        formatted_uuid = f"{clean_uuid[:8]}-{clean_uuid[8:12]}-{clean_uuid[12:16]}-{clean_uuid[16:20]}-{clean_uuid[20:32]}"
+        # DB 저장 형식으로 포맷 (하이픈 없음)
+        formatted_uuid = clean_uuid.lower()
         
-        if formatted_uuid != uuid_str:
+        if formatted_uuid != uuid_str.replace('-', '').lower():
             print(f"🔧 [UUID] Normalized: {uuid_str} → {formatted_uuid}")
             
         return formatted_uuid

@@ -454,7 +454,7 @@ async function loadTimeGridEvents() {
     const calendarId = document.querySelector('.calendar-workspace').dataset.calendarId;
     
     try {
-        const response = await fetch(`/api/calendar/events?start=${currentWeekStart.toISOString()}`);
+        const response = await fetch(`/api/calendars/${calendarId}/events?start=${currentWeekStart.toISOString()}`);
         if (response.ok) {
             const data = await response.json();
             renderEvents(data.events || []);
@@ -1802,7 +1802,7 @@ window.saveSidebarEvent = async function(event) {
         
         console.log('📤 Sending event data:', eventData);
         
-        const response = await fetch(`/api/calendar/events`, {
+        const response = await fetch(`/api/calendars/${calendarId}/events`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1856,7 +1856,7 @@ window.saveOverlayEvent = async function(event) {
         
         console.log('📤 Sending overlay event data:', eventData);
         
-        const response = await fetch(`/api/calendar/events`, {
+        const response = await fetch(`/api/calendars/${calendarId}/events`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

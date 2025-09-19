@@ -632,26 +632,27 @@ def calendar_list():
     """Calendar List Management Page - Original Design"""
     global dashboard_data_available
     
-    # Get current user ID from session
-    user_id = session.get('user_id')
+    # Get current user ID from authentication system
+    from utils.auth_manager import get_current_user_id
+    user_id = get_current_user_id()
     
-    # TEMPORARY FIX: Allow access for known user even without proper session
     if not user_id:
-        # Create a temporary session for known user
-        import hashlib
-        temp_user_id = hashlib.md5(b'ab40905045@gmail.com').hexdigest()
-        session['user_id'] = temp_user_id
-        session['email'] = 'ab40905045@gmail.com'
-        session['user_info'] = {
-            'email': 'ab40905045@gmail.com',
-            'user_id': temp_user_id,
-            'name': 'ab40905045'
-        }
-        user_id = temp_user_id
-        print(f"[FIX] Created temporary session for calendar-list: {user_id}")
+        # Try session fallback
+        user_id = session.get('user_id')
     
     if not user_id:
         return redirect('/login?from=calendar-list')
+        
+    # Normalize UUID format to ensure consistency with database
+    from utils.uuid_helper import normalize_uuid
+    original_user_id = user_id
+    user_id = normalize_uuid(user_id)
+    
+    print(f"[CALENDAR LIST] original user_id: {original_user_id}")
+    print(f"[CALENDAR LIST] normalized user_id: {user_id}")
+    
+    # Update session with normalized ID
+    session['user_id'] = user_id
     
     # Get common dashboard context including profile
     calendar_context = get_dashboard_context(user_id, 'calendar-list')

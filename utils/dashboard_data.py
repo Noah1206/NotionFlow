@@ -111,7 +111,7 @@ class DashboardDataManager:
     def get_user_calendar_events(self, user_id: str, days_ahead: int = 30, start_datetime: datetime = None, end_datetime: datetime = None, calendar_ids: List[str] = None) -> List[Dict]:
         """Get user's calendar events, optionally filtered by calendar IDs"""
         try:
-            # UUID 정규화 (Notion 동기화에서 사용한 것과 동일한 형식)
+            # UUID 정규화 (통일된 형식 - 하이픈 없음)
             from utils.uuid_helper import normalize_uuid
             normalized_user_id = normalize_uuid(user_id)
             print(f"🔍 [EVENTS] Searching calendar events for user {user_id} (normalized: {normalized_user_id})")
@@ -131,8 +131,9 @@ class DashboardDataManager:
             
             # Filter by calendar IDs if provided
             if calendar_ids:
-                # Include events that match calendar_id OR are from Notion (which may not have calendar_id set)
-                query = query.or_(f'calendar_id.in.({",".join(calendar_ids)}),source_platform.eq.notion')
+                # Include events that exactly match the specified calendar_id(s)
+                # This applies to ALL events including Notion events - they must have matching calendar_id
+                query = query.in_('calendar_id', calendar_ids)
                 print(f"📅 [EVENTS] Filtering by calendar IDs: {calendar_ids}")
             else:
                 print(f"📅 [EVENTS] No calendar ID filter - showing all events")
@@ -159,7 +160,7 @@ class DashboardDataManager:
         try:
             # CRITICAL: Normalize user_id first to ensure consistency
             from utils.uuid_helper import normalize_uuid
-            normalized_user_id = normalize_uuid(user_id)
+            normalized_user_id = normalize_uuid(user_id)  # Unified format (no hyphens)
             original_user_id = user_id
             
             print(f"🔍 get_user_calendars called for user_id: {original_user_id} (normalized: {normalized_user_id})")

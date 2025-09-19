@@ -141,7 +141,7 @@ class AuthManager:
     
     @staticmethod
     def _normalize_uuid(uuid_str: str) -> str:
-        """UUID를 표준 형식으로 정규화 (하이픈 있는 형식)"""
+        """UUID를 DB 저장 형식으로 정규화 (하이픈 없는 형식) - 통일된 형식 사용"""
         if not uuid_str:
             return None
             
@@ -154,18 +154,18 @@ class AuthManager:
         
         # 32자리 16진수인지 확인
         if len(clean_uuid) == 32 and all(c in '0123456789abcdef' for c in clean_uuid):
-            # 표준 UUID 형식으로 포맷
-            return f"{clean_uuid[:8]}-{clean_uuid[8:12]}-{clean_uuid[12:16]}-{clean_uuid[16:20]}-{clean_uuid[20:32]}"
+            # DB 저장 형식으로 반환 (하이픈 없음)
+            return clean_uuid
         
         # UUID가 아닌 경우 원본 반환
         return uuid_str
     
     @staticmethod 
     def _email_to_uuid(email: str) -> str:
-        """이메일을 UUID 형식으로 변환"""
-        # 이메일을 해시화하여 UUID 형식으로 변환
+        """이메일을 DB 저장 형식(하이픈 없음)으로 변환"""
+        # 이메일을 해시화하여 하이픈 없는 형식으로 변환
         email_hash = hashlib.md5(email.encode()).hexdigest()
-        return f"{email_hash[:8]}-{email_hash[8:12]}-{email_hash[12:16]}-{email_hash[16:20]}-{email_hash[20:32]}"
+        return email_hash
     
     @staticmethod
     def require_auth(f):

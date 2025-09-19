@@ -7,28 +7,27 @@ import uuid
 import re
 
 def normalize_uuid(uuid_string):
-    """UUID 문자열을 표준 형식(하이픈 포함)으로 정규화"""
+    """UUID 문자열을 DB 저장 형식(하이픈 없음)으로 정규화 - 모든 곳에서 통일된 형식 사용"""
     if not uuid_string:
         return None
     
-    # 이미 올바른 UUID 형식인지 확인
-    try:
-        return str(uuid.UUID(uuid_string))
-    except ValueError:
-        pass
-    
-    # 하이픈 제거하고 다시 시도
+    # 하이픈 제거하고 정리
     clean_uuid = re.sub(r'[^a-fA-F0-9]', '', uuid_string)
     
     if len(clean_uuid) == 32:
-        # 32자리 hex 문자열을 UUID 형식으로 변환
+        # 유효한 UUID 형식인지 검증
         try:
             formatted = f"{clean_uuid[:8]}-{clean_uuid[8:12]}-{clean_uuid[12:16]}-{clean_uuid[16:20]}-{clean_uuid[20:]}"
-            return str(uuid.UUID(formatted))
+            uuid.UUID(formatted)  # 검증만 하고
+            return clean_uuid.lower()  # 하이픈 없는 형식 반환
         except ValueError:
             pass
     
     return None
+
+def normalize_uuid_for_db(uuid_string):
+    """UUID 문자열을 DB 저장 형식(하이픈 없음)으로 정규화 - normalize_uuid와 동일"""
+    return normalize_uuid(uuid_string)
 
 def ensure_auth_user_exists(user_id, email, name=None):
     """사용자 존재 확인 및 생성 (users와 user_profiles 테이블)"""
