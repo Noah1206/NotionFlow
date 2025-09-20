@@ -3713,6 +3713,7 @@ blueprints_to_register = [
     ('routes.platform_connect_routes', 'platform_connect_bp', '[PLATFORM] Platform Calendar Connect'),
     ('routes.health_check_routes', 'health_bp', '[SEARCH] Platform Health Check'),
     ('routes.notion_calendar_connect', 'notion_calendar_bp', '[NOTION] Notion Calendar Connect'),
+    ('routes.session_cleanup', 'session_cleanup_bp', '[DEBUG] Session Cleanup'),
     ('routes.friends_routes', 'friends_bp', '[FRIENDS] Friends System')
 ]
 
