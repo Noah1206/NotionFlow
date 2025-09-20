@@ -2875,7 +2875,22 @@
             const result = await response.json();
 
             if (response.ok) {
-                alert(`${platform} 캘린더 연동이 완료되었습니다!`);
+                // Create detailed success message with event count
+                let successMessage = `${platform} 캘린더 연동이 완료되었습니다!`;
+                
+                if (result.imported_events_count !== undefined) {
+                    if (result.imported_events_count > 0) {
+                        successMessage += `\n\n📅 ${result.imported_events_count}개의 이벤트가 성공적으로 가져왔습니다.`;
+                    } else {
+                        successMessage += `\n\n📅 가져온 이벤트가 없습니다. Notion에서 날짜 속성이 있는 데이터베이스를 추가하면 자동으로 동기화됩니다.`;
+                    }
+                }
+                
+                if (result.synced_events_count !== undefined && result.synced_events_count > 0) {
+                    successMessage += `\n🔄 ${result.synced_events_count}개의 기존 이벤트가 ${platform}에 동기화되었습니다.`;
+                }
+                
+                alert(successMessage);
                 closeCalendarSyncModal();
 
                 // 연동 상태 즉시 업데이트
@@ -2883,7 +2898,9 @@
                     calendar_name: calendarName,
                     calendar_id: calendarId,
                     synced_at: new Date().toLocaleString(),
-                    sync_status: 'active'
+                    sync_status: 'active',
+                    imported_events: result.imported_events_count || 0,
+                    synced_events: result.synced_events_count || 0
                 };
                 updateCalendarSyncStatus(platform, syncInfo);
             } else {

@@ -1091,22 +1091,92 @@ def handle_callback_success(platform, user_info):
                     personal_calendars = calendars.get('personal_calendars', [])
                     if personal_calendars:
                         calendar_id = personal_calendars[0]['id']
+                        print(f"📅 [OAUTH] Using existing calendar: {calendar_id}")
                     else:
                         # Create a new calendar for the user
                         import uuid
                         calendar_id = str(uuid.uuid4())
                         print(f"📅 [OAUTH] Created new calendar: {calendar_id}")
+                        
+                        # Create the calendar in the database
+                        try:
+                            calendar_data = {
+                                'id': calendar_id,
+                                'user_id': user_id,
+                                'name': 'My Calendar',
+                                'description': 'Default calendar for Notion sync',
+                                'color': '#3B82F6',
+                                'platform': 'notionflow',
+                                'created_at': datetime.now().isoformat(),
+                                'updated_at': datetime.now().isoformat()
+                            }
+                            supabase.table('calendars').insert(calendar_data).execute()
+                            print(f"✅ [OAUTH] Created calendar in database: {calendar_id}")
+                        except Exception as db_e:
+                            print(f"⚠️ [OAUTH] Failed to create calendar in database: {db_e}")
+                            
                 except Exception as cal_e:
                     print(f"⚠️ [OAUTH] Calendar setup error: {cal_e}")
+                    import uuid
                     calendar_id = str(uuid.uuid4())
+                
+                # Now create proper calendar association
+                if calendar_id:
+                    try:
+                        print(f"🔗 [OAUTH] Creating calendar_sync entry for calendar_id: {calendar_id}")
+                        
+                        # Create a calendar_sync entry for proper tracking (this is the main table)
+                        sync_data = {
+                            'user_id': user_id,
+                            'platform': 'notion',
+                            'calendar_id': calendar_id,
+                            'sync_status': 'active',
+                            'synced_at': datetime.now().isoformat(),
+                            'created_at': datetime.now().isoformat(),
+                            'updated_at': datetime.now().isoformat()
+                        }
+                        
+                        # Check if sync entry already exists
+                        existing_sync = supabase.table('calendar_sync').select('*').eq('user_id', user_id).eq('calendar_id', calendar_id).eq('platform', 'notion').execute()
+                        if not existing_sync.data:
+                            supabase.table('calendar_sync').insert(sync_data).execute()
+                            print(f"✅ [OAUTH] Created calendar_sync entry for Notion->Calendar: {calendar_id}")
+                        else:
+                            # Update existing sync entry
+                            supabase.table('calendar_sync').update({
+                                'sync_status': 'active',
+                                'synced_at': datetime.now().isoformat(),
+                                'updated_at': datetime.now().isoformat()
+                            }).eq('id', existing_sync.data[0]['id']).execute()
+                            print(f"✅ [OAUTH] Updated existing calendar_sync entry")
+                        
+                        # Try to update calendar_sync_configs with calendar_id (if column exists)
+                        try:
+                            update_data = {
+                                'calendar_id': calendar_id,
+                                'updated_at': datetime.now().isoformat()
+                            }
+                            supabase.table('calendar_sync_configs').update(update_data).eq('user_id', user_id).eq('platform', 'notion').execute()
+                            print(f"✅ [OAUTH] Updated calendar_sync_configs with calendar_id")
+                        except Exception as config_update_e:
+                            print(f"ℹ️ [OAUTH] calendar_sync_configs update failed (column may not exist): {config_update_e}")
+                            # This is okay - calendar_sync table is the main source of truth
+                            
+                    except Exception as link_e:
+                        print(f"⚠️ [OAUTH] Failed to create calendar association: {link_e}")
+                        import traceback
+                        traceback.print_exc()
                 
                 # Store user email for user creation
                 if user_info.get('email'):
                     session['user_email'] = user_info.get('email')
                 
+                # Store calendar_id in session for immediate use
+                session['notion_calendar_id'] = calendar_id
+                
                 # OAuth 완료 후 자동 동기화하지 않음
                 # 대신 사용자가 수동으로 캘린더 연동 버튼을 눌러야 함
-                print(f"✅ [OAUTH] Notion OAuth completed. User can now manually connect calendar.")
+                print(f"✅ [OAUTH] Notion OAuth completed. Calendar {calendar_id} ready for sync.")
                 session['notion_oauth_completed'] = True
                     
         except Exception as sync_e:
