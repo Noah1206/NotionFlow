@@ -18,7 +18,9 @@ except ImportError as e:
     friends_db = None
 
 try:
-    from auth_manager import verify_token
+    from utils.auth_manager import AuthManager
+    def verify_token(token):
+        return AuthManager.verify_token(token)
     print("✅ Auth manager imported successfully")
 except ImportError:
     print("⚠️ Auth manager not found, using simple auth fallback")

@@ -45,6 +45,6 @@ exec gunicorn frontend.app:app \
     --workers 1 \
     --threads 2 \
     --worker-class sync \
-    --log-level debug \
+    --log-level info \
     --access-logfile - \
     --error-logfile -
