@@ -2212,19 +2212,28 @@ def dashboard_api_keys():
     success_rate = "100%"
     sync_speed = "즉시"
     
+    # Initialize dashboard_data safely
+    dashboard_data = None
     try:
+        from utils.dashboard_data import dashboard_data
+    except ImportError:
+        print("Warning: dashboard_data module not available")
+    
+    try:
+        
         # Get user's calendars count
         if calendar_db.is_available():
             calendars = calendar_db.get_user_calendars(user_id)
             connected_platforms = len(calendars) if calendars else 0
             
             # Count total events across all calendars
-            for calendar in (calendars or []):
-                calendar_id = calendar.get('id', '')
-                if calendar_id:
-                    events = dashboard_data.get_user_calendar_events(user_id, calendar_ids=[calendar_id])
-                    if events:
-                        total_events += len(events)
+            if dashboard_data:
+                for calendar in (calendars or []):
+                    calendar_id = calendar.get('id', '')
+                    if calendar_id:
+                        events = dashboard_data.get_user_calendar_events(user_id, calendar_ids=[calendar_id])
+                        if events:
+                            total_events += len(events)
         
         # Load saved events from localStorage backup
         storage_key = f'calendar_events_backup_{user_id}'
@@ -2252,17 +2261,28 @@ def dashboard_api_keys():
         }
     })
     
-    try:
-        from utils.dashboard_data import dashboard_data
-        platforms = dashboard_data.get_user_api_keys(user_id)
-        summary = dashboard_data.get_api_keys_summary(user_id)
-        
+    if dashboard_data:
+        try:
+            platforms = dashboard_data.get_user_api_keys(user_id)
+            summary = dashboard_data.get_api_keys_summary(user_id)
+            
+            dashboard_context.update({
+                'platforms': platforms,
+                'summary': summary
+            })
+        except Exception as e:
+            print(f"Error loading API keys data: {e}")
+            # If dashboard_data methods fail, use empty data
+            dashboard_context.update({
+                'platforms': {},
+                'summary': {}
+            })
+    else:
+        # dashboard_data is not available
         dashboard_context.update({
-            'platforms': platforms,
-            'summary': summary
+            'platforms': {},
+            'summary': {}
         })
-    except Exception as e:
-        print(f"Error loading API keys data: {e}")
     
     return render_template('dashboard-api-keys.html', **dashboard_context)
 
