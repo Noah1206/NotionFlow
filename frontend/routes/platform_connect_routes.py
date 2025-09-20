@@ -4,8 +4,14 @@
 
 from flask import Blueprint, request, jsonify
 from datetime import datetime
-from utils.auth import require_auth, get_current_user_id
+from utils.auth_manager import AuthManager
 from utils.config import config
+
+def require_auth():
+    return AuthManager.require_auth()
+
+def get_current_user_id():
+    return AuthManager.get_current_user_id()
 
 platform_connect_bp = Blueprint('platform_connect', __name__)
 
