@@ -415,9 +415,21 @@ class DashboardDataManager:
             # Get user's API keys (returns dict with platform_id as key)
             api_keys = self.get_user_api_keys(user_id)
             
+            # Debug: Check what we got
+            print(f"🔍 API keys type: {type(api_keys)}, content: {api_keys}")
+            
+            # Ensure api_keys is a dictionary
+            if not isinstance(api_keys, dict):
+                print(f"⚠️ Expected dict, got {type(api_keys)}: {api_keys}")
+                api_keys = {}
+            
             # Count by platform
             platforms = {}
             for platform_id, platform_data in api_keys.items():
+                if not isinstance(platform_data, dict):
+                    print(f"⚠️ Platform data for {platform_id} is not dict: {type(platform_data)}")
+                    continue
+                    
                 platforms[platform_id] = {
                     'count': 1,
                     'status': 'connected' if platform_data.get('configured') and platform_data.get('enabled') else 'disconnected',
@@ -433,6 +445,8 @@ class DashboardDataManager:
             
         except Exception as e:
             print(f"Error getting API keys summary: {e}")
+            import traceback
+            traceback.print_exc()
             return {
                 'total_keys': 0,
                 'connected_platforms': 0,
