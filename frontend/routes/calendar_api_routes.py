@@ -1112,6 +1112,7 @@ def delete_calendar(calendar_id):
         
         if delete_result.data:
             # print(f"✅ Successfully deleted calendar: {calendar_id}")
+            pass
         else:
             print(f"⚠️ No data returned from delete, but operation may have succeeded")
         

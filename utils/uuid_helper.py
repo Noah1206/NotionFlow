@@ -62,6 +62,7 @@ def ensure_auth_user_exists(user_id, email, name=None):
                 user_result = supabase.table('users').insert(user_data).execute()
                 if user_result.data:
                     # print(f"✅ Created users entry for {email}")
+                    pass
                 else:
                     # print(f"❌ Failed to create users entry")
                     return False
