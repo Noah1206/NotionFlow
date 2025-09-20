@@ -181,6 +181,7 @@ class DashboardDataManager:
                 # print(f"📅 [EVENTS] Filtering by calendar IDs: {calendar_ids}")
             else:
                 # print(f"📅 [EVENTS] No calendar ID filter - showing all events")
+                pass
             
             result = query.order('start_datetime').execute()
             
