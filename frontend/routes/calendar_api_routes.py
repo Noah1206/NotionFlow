@@ -241,8 +241,10 @@ def get_single_calendar_events(calendar_id):
                 
                 if result['success']:
                     # print(f"✅ [NOTION SYNC] Successfully synced {result.get('synced_events', 0)} events from {result.get('databases_processed', 0)} databases")
+                    pass
                 else:
                     # print(f"❌ [NOTION SYNC] Failed: {result.get('error', 'Unknown error')}")
+                    pass
                     
             except Exception as e:
                 print(f"⚠️ [NOTION SYNC] Auto-sync error: {e}")
@@ -350,8 +352,10 @@ def get_calendar_events():
                 
                 if result['success']:
                     # print(f"✅ [NOTION SYNC] Successfully synced {result.get('synced_events', 0)} events from {result.get('databases_processed', 0)} databases")
+                    pass
                 else:
                     # print(f"❌ [NOTION SYNC] Failed: {result.get('error', 'Unknown error')}")
+                    pass
                     
             except Exception as e:
                 print(f"⚠️ [NOTION SYNC] Auto-sync error: {e}")
@@ -1287,8 +1291,10 @@ def delete_calendar_event(calendar_id, event_id):
                 
                 if result['success']:
                     # print(f"✅ [NOTION SYNC] Successfully synced {result.get('synced_events', 0)} events from {result.get('databases_processed', 0)} databases")
+                    pass
                 else:
                     # print(f"❌ [NOTION SYNC] Failed: {result.get('error', 'Unknown error')}")
+                    pass
                     
             except Exception as e:
                 print(f"⚠️ [NOTION SYNC] Auto-sync error: {e}")
