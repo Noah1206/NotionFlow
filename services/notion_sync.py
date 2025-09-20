@@ -228,9 +228,52 @@ class NotionCalendarSync:
         
         return calendar_dbs
     
-    def sync_to_calendar(self, user_id: str, calendar_id: str) -> Dict[str, Any]:
+    def get_user_calendar_id(self, user_id: str) -> Optional[str]:
+        """Get the correct calendar_id for a user from the calendar_sync table"""
+        try:
+            from utils.config import config
+            supabase = config.get_client_for_user(user_id)
+            
+            if not supabase:
+                print(f"❌ [CALENDAR_ID] No Supabase client for user {user_id}")
+                return None
+            
+            # Look up calendar_id from calendar_sync table
+            sync_result = supabase.table('calendar_sync').select('calendar_id').eq('user_id', user_id).eq('platform', 'notion').eq('sync_status', 'active').execute()
+            
+            if sync_result.data:
+                calendar_id = sync_result.data[0]['calendar_id']
+                print(f"✅ [CALENDAR_ID] Found calendar_id for user {user_id}: {calendar_id}")
+                return calendar_id
+            else:
+                print(f"⚠️ [CALENDAR_ID] No active calendar_sync found for user {user_id}")
+                
+                # Try to get user's first calendar as fallback
+                calendars_result = supabase.table('calendars').select('id').eq('user_id', user_id).execute()
+                if calendars_result.data:
+                    calendar_id = calendars_result.data[0]['id']
+                    print(f"ℹ️ [CALENDAR_ID] Using fallback calendar_id: {calendar_id}")
+                    return calendar_id
+                
+                return None
+                
+        except Exception as e:
+            print(f"❌ [CALENDAR_ID] Error getting calendar_id for user {user_id}: {e}")
+            return None
+
+    def sync_to_calendar(self, user_id: str, calendar_id: str = None) -> Dict[str, Any]:
         """Notion 데이터를 NotionFlow 캘린더로 동기화"""
         try:
+            # If no calendar_id provided, get it from database
+            if not calendar_id:
+                calendar_id = self.get_user_calendar_id(user_id)
+                if not calendar_id:
+                    return {
+                        'success': False,
+                        'error': 'No calendar found for user. Please connect a calendar first.',
+                        'synced_events': 0
+                    }
+            
             print(f"🔄 [NOTION] Starting Notion sync for user {user_id}, calendar {calendar_id}")
             
             # 1. Notion 토큰 확인

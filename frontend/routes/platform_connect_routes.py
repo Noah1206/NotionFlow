@@ -170,7 +170,8 @@ def await_import_existing_events(platform: str, user_id: str, calendar_id: str) 
         if platform == 'notion':
             from services.notion_sync import NotionCalendarSync
             notion_sync = NotionCalendarSync()
-            result = notion_sync.sync_to_calendar(user_id, calendar_id)
+            # Let the sync service determine the correct calendar_id from database
+            result = notion_sync.sync_to_calendar(user_id)
             return result.get('synced_events', 0)
         elif platform == 'google':
             # Google Calendar 동기화 로직 (향후 구현)

@@ -101,8 +101,9 @@ def manual_notion_sync():
         
         notion_sync = NotionCalendarSync()
         
-        print(f"🔄 [MANUAL SYNC] Starting manual Notion sync for user {user_id}, calendar {calendar_id}")
-        result = notion_sync.sync_to_calendar(user_id, calendar_id)
+        print(f"🔄 [MANUAL SYNC] Starting manual Notion sync for user {user_id}")
+        # Let the sync service determine the correct calendar_id from database
+        result = notion_sync.sync_to_calendar(user_id)
         
         return jsonify(result)
         
@@ -233,8 +234,9 @@ def get_single_calendar_events(calendar_id):
                     except:
                         pass
                 
-                print(f"🔄 [NOTION SYNC] Starting auto-sync for calendar {calendar_id}")
-                result = notion_sync.sync_to_calendar(user_id, calendar_id)
+                print(f"🔄 [NOTION SYNC] Starting auto-sync for user {user_id}")
+                # Let the sync service determine the correct calendar_id from database
+                result = notion_sync.sync_to_calendar(user_id)
                 print(f"📋 [NOTION SYNC] Sync result: {result}")
                 
                 if result['success']:
@@ -341,8 +343,9 @@ def get_calendar_events():
                     except:
                         pass
                 
-                print(f"🔄 [NOTION SYNC] Starting auto-sync for calendar {calendar_to_sync}")
-                result = notion_sync.sync_to_calendar(user_id, calendar_to_sync)
+                print(f"🔄 [NOTION SYNC] Starting auto-sync for user {user_id}")
+                # Let the sync service determine the correct calendar_id from database
+                result = notion_sync.sync_to_calendar(user_id)
                 print(f"📋 [NOTION SYNC] Sync result: {result}")
                 
                 if result['success']:
@@ -1277,8 +1280,9 @@ def delete_calendar_event(calendar_id, event_id):
                     except:
                         pass
                 
-                print(f"🔄 [NOTION SYNC] Starting auto-sync for calendar {calendar_id}")
-                result = notion_sync.sync_to_calendar(user_id, calendar_id)
+                print(f"🔄 [NOTION SYNC] Starting auto-sync for user {user_id}")
+                # Let the sync service determine the correct calendar_id from database
+                result = notion_sync.sync_to_calendar(user_id)
                 print(f"📋 [NOTION SYNC] Sync result: {result}")
                 
                 if result['success']:

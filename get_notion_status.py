@@ -84,17 +84,32 @@ def check_notion_status(user_id: str):
         else:
             print("❌ Invalid credentials format")
             
-        # 4. 연결된 캘린더 확인
+        # 4. 연결된 캘린더 확인 (calendar_sync 테이블에서)
+        print("\n🔍 Checking calendar associations...")
+        
+        calendar_sync_result = supabase.table('calendar_sync').select('*').eq('user_id', user_id).eq('platform', 'notion').execute()
+        
+        if calendar_sync_result.data:
+            for sync_entry in calendar_sync_result.data:
+                calendar_id = sync_entry['calendar_id']
+                print(f"📅 Found calendar_sync entry: {calendar_id[:8]}... (status: {sync_entry.get('sync_status', 'unknown')})")
+                
+                # Check if calendar exists in calendars table
+                calendar_result = supabase.table('calendars').select('*').eq('id', calendar_id).execute()
+                if calendar_result.data:
+                    calendar = calendar_result.data[0]
+                    print(f"✅ Calendar exists: {calendar['name']} (ID: {calendar_id[:8]}...)")
+                else:
+                    print(f"⚠️ Calendar ID {calendar_id[:8]}... not found in calendars table")
+        else:
+            print("⚠️ No calendar_sync entries found for Notion")
+            
+        # 5. 캘린더 관련 legacy 확인 (calendar_sync_configs에서 calendar_id)
         calendar_id = notion_config.get('calendar_id')
         if calendar_id:
-            calendar_result = supabase.table('calendars').select('*').eq('id', calendar_id).execute()
-            if calendar_result.data:
-                calendar = calendar_result.data[0]
-                print(f"📅 Connected calendar: {calendar['name']} (ID: {calendar_id[:8]}...)")
-            else:
-                print(f"⚠️ Calendar ID {calendar_id[:8]}... not found in calendars table")
+            print(f"📅 Legacy calendar_id in config: {calendar_id[:8]}...")
         else:
-            print("⚠️ No calendar_id in Notion config")
+            print("ℹ️ No calendar_id in Notion config (this is normal for new structure)")
             
     except Exception as e:
         print(f"❌ Error checking Notion status: {e}")
