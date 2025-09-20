@@ -5256,7 +5256,7 @@ def sync_calendar():
         
         try:
             # 먼저 Supabase calendars 테이블에서 확인
-            calendar_response = supabase_client.table('calendars').select('*').eq('id', calendar_id).eq('user_id', user_id).execute()
+            calendar_response = supabase_client.table('calendars').select('*').eq('id', calendar_id).eq('owner_id', user_id).execute()
             if calendar_response.data:
                 calendar = calendar_response.data[0]
         except Exception as e:
