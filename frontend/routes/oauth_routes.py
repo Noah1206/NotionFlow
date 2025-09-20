@@ -924,9 +924,10 @@ def generic_oauth_callback(platform):
                                 'updated_at': datetime.now().isoformat()
                             }
                             
-                            # Add calendar_id if we found one (for Notion)
-                            if calendar_id:
-                                new_config['calendar_id'] = calendar_id
+                            # Don't automatically set calendar_id for Notion
+                            # User should choose which calendar to sync to
+                            # if calendar_id:
+                            #     new_config['calendar_id'] = calendar_id
                                 
                             supabase.table('calendar_sync_configs').insert(new_config).execute()
                             print(f"✅ Created {platform} token in calendar_sync_configs for user {normalized_user_id}")
@@ -1238,8 +1239,9 @@ def handle_callback_success(platform, user_info):
                 
                 # OAuth 완료 후 자동 동기화하지 않음
                 # 대신 사용자가 수동으로 캘린더 연동 버튼을 눌러야 함
-                print(f"✅ [OAUTH] Notion OAuth completed. Calendar {calendar_id} ready for sync.")
+                print(f"✅ [OAUTH] Notion OAuth completed. User should select calendar for sync.")
                 session['notion_oauth_completed'] = True
+                session['notion_needs_calendar_selection'] = True
                     
         except Exception as sync_e:
             print(f"⚠️ [OAUTH] OAuth completion error: {sync_e}")

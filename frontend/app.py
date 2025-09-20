@@ -3712,6 +3712,7 @@ blueprints_to_register = [
     ('routes.calendar_api_routes', 'calendar_api_bp', '[CALENDAR] Calendar API'),
     ('routes.platform_connect_routes', 'platform_connect_bp', '[PLATFORM] Platform Calendar Connect'),
     ('routes.health_check_routes', 'health_bp', '[SEARCH] Platform Health Check'),
+    ('routes.notion_calendar_connect', 'notion_calendar_bp', '[NOTION] Notion Calendar Connect'),
     ('routes.friends_routes', 'friends_bp', '[FRIENDS] Friends System')
 ]
 
