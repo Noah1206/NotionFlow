@@ -1326,9 +1326,9 @@ def delete_calendar_event(calendar_id, event_id):
             'error': f'Failed to get events: {str(e)}'
         }), 500
 
-@calendar_api_bp.route('/calendar/<calendar_id>/events/<event_id>', methods=['DELETE'])
-def delete_calendar_event(calendar_id, event_id):
-    """Delete a calendar event"""
+@calendar_api_bp.route('/calendar/<calendar_id>/events/<event_id>/simple', methods=['DELETE'])
+def delete_calendar_event_simple(calendar_id, event_id):
+    """Delete a calendar event (simple version)"""
     try:
         user_id = get_current_user_id()
         if not user_id:
