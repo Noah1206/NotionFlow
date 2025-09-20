@@ -133,6 +133,34 @@ def generate_apple_client_secret():
 def store_oauth_state(user_id, provider, state, code_verifier=None):
     """Store OAuth state in database or session for security"""
     try:
+        # Clean up old OAuth states from session (keep only last 5)
+        oauth_states_to_remove = []
+        for key in session.keys():
+            if key.startswith('oauth_state_'):
+                try:
+                    state_info = session.get(key, {})
+                    if isinstance(state_info, dict):
+                        expires_at = state_info.get('expires_at')
+                        if expires_at:
+                            # Remove expired states
+                            if datetime.fromisoformat(expires_at) < datetime.utcnow():
+                                oauth_states_to_remove.append(key)
+                except:
+                    # Remove invalid states
+                    oauth_states_to_remove.append(key)
+        
+        # Remove expired states
+        for key in oauth_states_to_remove:
+            session.pop(key, None)
+        
+        # Keep only the 5 most recent OAuth states
+        oauth_keys = [k for k in session.keys() if k.startswith('oauth_state_')]
+        if len(oauth_keys) > 5:
+            # Sort by creation time and keep only the most recent 5
+            sorted_keys = sorted(oauth_keys, key=lambda k: session.get(k, {}).get('created_at', ''), reverse=True)
+            for key in sorted_keys[5:]:
+                session.pop(key, None)
+        
         # OAuth state 데이터 준비
         state_data = {
             'user_id': user_id or 'anonymous',
