@@ -5581,7 +5581,8 @@ def import_events_from_notion(user_id: str, calendar_id: str) -> int:
             
         notion_config = config_response.data[0]
         credentials = notion_config.get('credentials', {})
-        api_key = credentials.get('api_key')
+        # OAuth 연동 후에는 access_token을 사용 (기존 api_key 호환성 유지)
+        api_key = credentials.get('access_token') or credentials.get('api_key')
         
         debug_data['step_logs'].append('✅ Configuration found')
         debug_data['api_responses'].append({
@@ -5590,10 +5591,10 @@ def import_events_from_notion(user_id: str, calendar_id: str) -> int:
         })
         
         if not api_key:
-            error_msg = "No Notion API key found in credentials"
+            error_msg = "No Notion API key or access token found in credentials"
             logger.error(error_msg)
             debug_data['errors'].append(error_msg)
-            debug_data['step_logs'].append('❌ API key missing')
+            debug_data['step_logs'].append('❌ API key/access token missing')
             save_import_log(debug_data)
             return 0
         
