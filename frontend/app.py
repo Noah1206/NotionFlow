@@ -5568,21 +5568,40 @@ def import_events_from_notion(user_id: str, calendar_id: str) -> int:
             save_import_log(debug_data)
             return 0
             
-        # calendar_sync_configs에서 Notion API 키 조회
+        # 1차: calendar_sync_configs에서 Notion API 키 조회
         config_response = supabase_client.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', 'notion').execute()
         
-        if not config_response.data:
-            error_msg = "No Notion configuration found"
+        api_key = None
+        if config_response.data:
+            notion_config = config_response.data[0]
+            credentials = notion_config.get('credentials', {})
+            # OAuth 연동 후에는 access_token을 사용 (기존 api_key 호환성 유지)
+            api_key = credentials.get('access_token') or credentials.get('api_key')
+            debug_data['step_logs'].append('✅ Found configuration in calendar_sync_configs')
+        
+        # 2차: oauth_tokens 테이블에서 토큰 조회 (calendar_sync_configs에 없는 경우)
+        if not api_key:
+            debug_data['step_logs'].append('⚠️ No config in calendar_sync_configs, checking oauth_tokens...')
+            oauth_response = supabase_client.table('oauth_tokens').select('*').eq('user_id', user_id).eq('platform', 'notion').execute()
+            
+            if oauth_response.data:
+                oauth_token = oauth_response.data[0]
+                api_key = oauth_token.get('access_token')
+                debug_data['step_logs'].append('✅ Found access token in oauth_tokens')
+                debug_data['api_responses'].append({
+                    'step': 'oauth_tokens_lookup',
+                    'response': oauth_token
+                })
+            else:
+                debug_data['step_logs'].append('❌ No oauth tokens found')
+        
+        if not api_key:
+            error_msg = "No Notion configuration or OAuth tokens found"
             logger.error(error_msg)
             debug_data['errors'].append(error_msg)
-            debug_data['step_logs'].append('❌ Configuration lookup failed')
+            debug_data['step_logs'].append('❌ No API key/access token available')
             save_import_log(debug_data)
             return 0
-            
-        notion_config = config_response.data[0]
-        credentials = notion_config.get('credentials', {})
-        # OAuth 연동 후에는 access_token을 사용 (기존 api_key 호환성 유지)
-        api_key = credentials.get('access_token') or credentials.get('api_key')
         
         debug_data['step_logs'].append('✅ Configuration found')
         debug_data['api_responses'].append({
