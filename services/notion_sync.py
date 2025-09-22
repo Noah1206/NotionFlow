@@ -674,13 +674,11 @@ class NotionCalendarSync:
                 'start_datetime': event['start_datetime'],
                 'end_datetime': event['end_datetime'],
                 'is_all_day': event.get('all_day', False),
-                'category': 'notion',
-                'priority': 'medium',  # TEXT 필드이므로 문자열 사용
-                'status': 'confirmed',
-                'source_platform': 'notion',  # NOT NULL 필드
-                'external_id': event['external_id']
+                'platform': 'notion',  # 실제 스키마 필드명
+                'external_event_id': event['external_id'],  # 실제 스키마 필드명
+                'status': 'confirmed'
+                # removed: priority, category, source_platform (not in schema)
                 # created_at, updated_at는 DEFAULT NOW()로 자동 설정
-                # last_synced_at, sync_status 필드는 스키마에 없으므로 제거
             }
             
             # calendar_id 설정 (항상 설정되어야 함)
