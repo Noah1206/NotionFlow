@@ -1237,11 +1237,23 @@ def handle_callback_success(platform, user_info):
                 # Store calendar_id in session for immediate use
                 session['notion_calendar_id'] = calendar_id
                 
-                # OAuth 완료 후 자동 동기화하지 않음
-                # 대신 사용자가 수동으로 캘린더 연동 버튼을 눌러야 함
-                print(f"✅ [OAUTH] Notion OAuth completed. User should select calendar for sync.")
+                # OAuth 완료 후 즉시 동기화 실행
+                print(f"🚀 [OAUTH] Starting immediate Notion sync for calendar: {calendar_id}")
+                try:
+                    from services.notion_sync import sync_notion_events
+                    sync_result = sync_notion_events(user_id)
+                    if sync_result and sync_result.get('success'):
+                        events_count = sync_result.get('synced_events', 0)
+                        print(f"✅ [OAUTH] Synced {events_count} events to calendar_events table")
+                    else:
+                        print(f"⚠️ [OAUTH] Sync completed but no events found or sync failed")
+                except Exception as sync_error:
+                    print(f"❌ [OAUTH] Error during immediate sync: {sync_error}")
+                    import traceback
+                    traceback.print_exc()
+                    sync_result = {'success': False, 'error': str(sync_error)}
+                
                 session['notion_oauth_completed'] = True
-                session['notion_needs_calendar_selection'] = True
                     
         except Exception as sync_e:
             print(f"⚠️ [OAUTH] OAuth completion error: {sync_e}")
