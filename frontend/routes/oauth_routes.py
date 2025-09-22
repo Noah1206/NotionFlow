@@ -591,15 +591,22 @@ def generic_oauth_authorize(platform):
         return jsonify({'error': 'Failed to initiate OAuth flow - Database connection issue'}), 500
     
     # Build authorization parameters
-    # Railway 환경에서는 명시적으로 redirect_uri 설정
-    base_url = os.getenv('BASE_URL')
-    if base_url:
-        redirect_uri = f"{base_url}/oauth/{platform}/callback"
+    # Use platform-specific redirect URI if available, otherwise construct from BASE_URL
+    platform_redirect_uri = os.getenv(f'{platform.upper()}_REDIRECT_URI')
+    if platform_redirect_uri:
+        redirect_uri = platform_redirect_uri
+        print(f"[OAUTH DEBUG] Using platform-specific redirect URI for {platform}: {redirect_uri}")
     else:
-        redirect_uri = url_for('oauth.generic_oauth_callback', platform=platform, _external=True)
-        # Production 환경에서 HTTP로 생성되면 HTTPS로 변경
-        if redirect_uri.startswith('http://') and os.getenv('FLASK_ENV') == 'production':
-            redirect_uri = redirect_uri.replace('http://', 'https://', 1)
+        # Railway 환경에서는 명시적으로 redirect_uri 설정
+        base_url = os.getenv('BASE_URL')
+        if base_url:
+            redirect_uri = f"{base_url}/oauth/{platform}/callback"
+        else:
+            redirect_uri = url_for('oauth.generic_oauth_callback', platform=platform, _external=True)
+            # Production 환경에서 HTTP로 생성되면 HTTPS로 변경
+            if redirect_uri.startswith('http://') and os.getenv('FLASK_ENV') == 'production':
+                redirect_uri = redirect_uri.replace('http://', 'https://', 1)
+        print(f"[OAUTH DEBUG] Using constructed redirect URI for {platform}: {redirect_uri}")
     
     params = {
         'client_id': config['client_id'],
@@ -1017,24 +1024,34 @@ def exchange_code_for_tokens(platform, code, state_data):
     """Exchange authorization code for access tokens"""
     config = OAUTH_CONFIG[platform]
     
-    # Railway 환경에서는 명시적으로 redirect_uri 설정 (authorize와 동일해야 함)
-    base_url = os.getenv('BASE_URL')
-    if base_url:
-        redirect_uri = f"{base_url}/oauth/{platform}/callback"
+    # Use platform-specific redirect URI if available, otherwise construct from BASE_URL (must match authorize step)
+    platform_redirect_uri = os.getenv(f'{platform.upper()}_REDIRECT_URI')
+    if platform_redirect_uri:
+        redirect_uri = platform_redirect_uri
+        print(f"[TOKEN DEBUG] Using platform-specific redirect URI for {platform}: {redirect_uri}")
     else:
-        redirect_uri = url_for('oauth.generic_oauth_callback', platform=platform, _external=True)
-        # Production 환경에서 HTTP로 생성되면 HTTPS로 변경
-        if redirect_uri.startswith('http://') and os.getenv('FLASK_ENV') == 'production':
-            redirect_uri = redirect_uri.replace('http://', 'https://', 1)
+        # Railway 환경에서는 명시적으로 redirect_uri 설정 (authorize와 동일해야 함)
+        base_url = os.getenv('BASE_URL')
+        if base_url:
+            redirect_uri = f"{base_url}/oauth/{platform}/callback"
+        else:
+            redirect_uri = url_for('oauth.generic_oauth_callback', platform=platform, _external=True)
+            # Production 환경에서 HTTP로 생성되면 HTTPS로 변경
+            if redirect_uri.startswith('http://') and os.getenv('FLASK_ENV') == 'production':
+                redirect_uri = redirect_uri.replace('http://', 'https://', 1)
+        print(f"[TOKEN DEBUG] Using constructed redirect URI for {platform}: {redirect_uri}")
     
     # Prepare token request data
     token_data = {
-        'client_id': config['client_id'],
-        'client_secret': config['client_secret'],
-        'code': code,
         'grant_type': 'authorization_code',
+        'code': code,
         'redirect_uri': redirect_uri
     }
+    
+    # For platforms that require client credentials in the body (not Notion)
+    if platform != 'notion':
+        token_data['client_id'] = config['client_id']
+        token_data['client_secret'] = config['client_secret']
     
     print(f"[OAUTH DEBUG] Token exchange redirect_uri: {redirect_uri}")
     
@@ -1046,12 +1063,17 @@ def exchange_code_for_tokens(platform, code, state_data):
         if state_data.get('code_verifier'):
             token_data['code_verifier'] = state_data['code_verifier']
     elif platform == 'notion':
+        # Validate Notion configuration
+        if not config.get('client_id') or not config.get('client_secret'):
+            print(f"[NOTION ERROR] Missing client credentials - ID: {bool(config.get('client_id'))}, Secret: {bool(config.get('client_secret'))}")
+            return None
+            
         # Notion requires form data, not JSON, and uses Basic auth correctly
         headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
             'Notion-Version': '2022-06-28'
         }
-        # Notion token request format
+        # Notion token request format - credentials go in Authorization header, not body
         token_data = {
             'grant_type': 'authorization_code',
             'code': code,
@@ -1062,6 +1084,10 @@ def exchange_code_for_tokens(platform, code, state_data):
         credentials = f"{config['client_id']}:{config['client_secret']}"
         encoded_credentials = base64.b64encode(credentials.encode()).decode()
         headers['Authorization'] = f'Basic {encoded_credentials}'
+        
+        print(f"[NOTION DEBUG] Client ID: {config['client_id'][:8]}...")
+        print(f"[NOTION DEBUG] Redirect URI: {redirect_uri}")
+        print(f"[NOTION DEBUG] Authorization code length: {len(code)}")
     elif platform == 'outlook':
         # Outlook with PKCE
         token_url = config['token_url'].format(tenant=config['tenant_id'])
