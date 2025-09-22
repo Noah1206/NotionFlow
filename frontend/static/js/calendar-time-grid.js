@@ -213,10 +213,10 @@ function scrollToTime(hour) {
     const scrollTop = hoursFromStart * TIME_GRID_CONFIG.hourHeight;
     
     // console.log('📍 Scroll to time calculation:', {
-        hour: hour,
-        hoursFromStart: hoursFromStart,
-        scrollTop: scrollTop
-    });
+    //     hour: hour,
+    //     hoursFromStart: hoursFromStart,
+    //     scrollTop: scrollTop
+    // });
     
     // Use requestAnimationFrame to ensure DOM is fully rendered
     requestAnimationFrame(() => {
@@ -585,12 +585,12 @@ function createEventElement(event) {
     const endDate = new Date(endDateTime);
     
     // console.log('🎯 Creating event element:', {
-        title: event.title,
-        startDateTime: startDateTime,
-        endDateTime: endDateTime,
-        startDate: startDate,
-        endDate: endDate
-    });
+    //     title: event.title,
+    //     startDateTime: startDateTime,
+    //     endDateTime: endDateTime,
+    //     startDate: startDate,
+    //     endDate: endDate
+    // });
     
     // Check if event is in current week
     const weekEnd = new Date(currentWeekStart);
@@ -611,14 +611,14 @@ function createEventElement(event) {
     const width = 100 / 7;
     
     // console.log('📐 Position calculation:', {
-        dayIndex: dayIndex,
-        startHour: startHour,
-        endHour: endHour,
-        top: top,
-        height: height,
-        left: left,
-        TIME_GRID_CONFIG: TIME_GRID_CONFIG
-    });
+    //     dayIndex: dayIndex,
+    //     startHour: startHour,
+    //     endHour: endHour,
+    //     top: top,
+    //     height: height,
+    //     left: left,
+    //     TIME_GRID_CONFIG: TIME_GRID_CONFIG
+    // });
     
     // Assign color scheme if not set
     let colorScheme;
@@ -1210,13 +1210,13 @@ function scrollToCurrentTimeCentered() {
     const scrollTop = Math.max(0, currentTimePosition - centerOffset);
     
     // console.log('📍 Scroll calculation:', {
-        currentHour: currentHour,
-        hoursFromStart: hoursFromStart,
-        currentTimePosition: currentTimePosition,
-        viewportHeight: viewportHeight,
-        centerOffset: centerOffset,
-        scrollTop: scrollTop
-    });
+    //     currentHour: currentHour,
+    //     hoursFromStart: hoursFromStart,
+    //     currentTimePosition: currentTimePosition,
+    //     viewportHeight: viewportHeight,
+    //     centerOffset: centerOffset,
+    //     scrollTop: scrollTop
+    // });
     
     // Use requestAnimationFrame to ensure DOM is fully rendered
     requestAnimationFrame(() => {

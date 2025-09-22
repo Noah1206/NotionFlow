@@ -9,15 +9,15 @@ class GoogleCalendarGrid {
         
         // 🔍 DEBUGGING: 컨테이너 크기 확인
         // console.log('🏗️ GoogleCalendarGrid constructor:', {
-            currentDate: this.currentDate,
-            weekStart: this.weekStart,
-            dayOfWeek: this.currentDate.getDay(),
-            containerWidth: this.container.offsetWidth,
-            containerHeight: this.container.offsetHeight,
-            containerRect: this.container.getBoundingClientRect(),
-            windowWidth: window.innerWidth,
-            windowHeight: window.innerHeight
-        });
+        //     currentDate: this.currentDate,
+        //     weekStart: this.weekStart,
+        //     dayOfWeek: this.currentDate.getDay(),
+        //     containerWidth: this.container.offsetWidth,
+        //     containerHeight: this.container.offsetHeight,
+        //     containerRect: this.container.getBoundingClientRect(),
+        //     windowWidth: window.innerWidth,
+        //     windowHeight: window.innerHeight
+        // });
         
         // Initialize search and event list
         this.initializeEventSearch();
@@ -137,11 +137,11 @@ class GoogleCalendarGrid {
         const availableWidth = containerWidth - timeColumnWidth; // 여백 완전 제거
         const dayColumnWidth = Math.max(250, Math.floor(availableWidth / 7)); // 최소 250px 보장, 7개 요일로 나누기 
         // console.log('🎯 Dynamic sizing:', {
-            containerWidth,
-            availableWidth,
-            dayColumnWidth,
-            totalWidth: timeColumnWidth + (dayColumnWidth * 7)
-        });
+        //     containerWidth,
+        //     availableWidth,
+        //     dayColumnWidth,
+        //     totalWidth: timeColumnWidth + (dayColumnWidth * 7)
+        // });
         
         // 동적 크기를 인스턴스 변수로 저장
         this.timeColumnWidth = timeColumnWidth;
@@ -326,10 +326,10 @@ class GoogleCalendarGrid {
         if (!cell || this.isSelecting) return;
         
         // console.log('🖱️ Cell clicked:', cell, {
-            day: cell.dataset.day,
-            hour: cell.dataset.hour,
-            rect: cell.getBoundingClientRect()
-        });
+        //     day: cell.dataset.day,
+        //     hour: cell.dataset.hour,
+        //     rect: cell.getBoundingClientRect()
+        // });
         
         // Single cell click - create 1 hour event
         const day = parseInt(cell.dataset.day);
@@ -1916,12 +1916,12 @@ class GoogleCalendarGrid {
         const duration = endPosition - startPosition;
         
         // console.log('🎯 Multi-day position calculation:', {
-            startHour, startMin, endHour, endMin,
-            startPosition, endPosition, duration,
-            timeSlotHeight: this.timeSlotHeight,
-            calculatedTop: startPosition * this.timeSlotHeight,
-            calculatedHeight: Math.max(duration * this.timeSlotHeight, 24)
-        });
+        //     startHour, startMin, endHour, endMin,
+        //     startPosition, endPosition, duration,
+        //     timeSlotHeight: this.timeSlotHeight,
+        //     calculatedTop: startPosition * this.timeSlotHeight,
+        //     calculatedHeight: Math.max(duration * this.timeSlotHeight, 24)
+        // });
         
         // Create a single continuous element that spans multiple days
         const firstDayIndex = Math.max(0, startDayIndex);
@@ -1948,11 +1948,11 @@ class GoogleCalendarGrid {
                 const lastColRect = lastDayColumn.getBoundingClientRect();
                 totalWidth = (lastColRect.right - firstColRect.left) - 4; // Actual span minus margins
                 // console.log('📏 Spanning calculation:', {
-                    spanDays,
-                    firstCol: firstColRect.left,
-                    lastCol: lastColRect.right,
-                    totalWidth
-                });
+                //     spanDays,
+                //     firstCol: firstColRect.left,
+                //     lastCol: lastColRect.right,
+                //     totalWidth
+                // });
             } else {
                 // Fallback calculation
                 totalWidth = firstDayColumn.offsetWidth * spanDays - 4;
