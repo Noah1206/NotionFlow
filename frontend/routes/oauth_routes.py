@@ -1046,12 +1046,12 @@ def exchange_code_for_tokens(platform, code, state_data):
         if state_data.get('code_verifier'):
             token_data['code_verifier'] = state_data['code_verifier']
     elif platform == 'notion':
-        # Notion uses JSON format and requires specific headers
+        # Notion requires form data, not JSON, and uses Basic auth correctly
         headers = {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded',
             'Notion-Version': '2022-06-28'
         }
-        # Notion doesn't use PKCE and has different token request format
+        # Notion token request format
         token_data = {
             'grant_type': 'authorization_code',
             'code': code,
@@ -1079,10 +1079,11 @@ def exchange_code_for_tokens(platform, code, state_data):
     
     # Make token request
     if platform == 'notion':
-        # Notion expects JSON data
-        response = requests.post(config['token_url'], json=token_data, headers=headers)
-        print(f"[NOTION DEBUG] Token request - JSON: {token_data}")
+        # Notion expects form data, not JSON
+        response = requests.post(config['token_url'], data=token_data, headers=headers)
+        print(f"[NOTION DEBUG] Token request - Form data: {token_data}")
         print(f"[NOTION DEBUG] Headers: {headers}")
+        print(f"[NOTION DEBUG] URL: {config['token_url']}")
     else:
         # Other platforms expect form data  
         response = requests.post(config['token_url'], data=token_data, headers=headers)
@@ -1091,10 +1092,9 @@ def exchange_code_for_tokens(platform, code, state_data):
         print(f"Token exchange failed for {platform}: {response.status_code}")
         print(f"Request URL: {config['token_url']}")
         print(f"Request Headers: {headers}")
-        if platform == 'notion':
-            print(f"Request Data (JSON): {token_data}")
-        else:
-            print(f"Request Data (Form): {token_data}")
+        print(f"Request Data (Form): {token_data}")
+        print(f"Response Status: {response.status_code}")
+        print(f"Response Headers: {response.headers}")
         print(f"Response: {response.text}")
         return None
     
