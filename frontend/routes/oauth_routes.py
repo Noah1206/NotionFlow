@@ -1021,7 +1021,11 @@ def generic_oauth_callback(platform):
         return handle_callback_error(f'OAuth processing failed: {str(e)}')
 
 def exchange_code_for_tokens(platform, code, state_data):
-    """Exchange authorization code for access tokens"""
+    """Exchange authorization code for access tokens with retry logic and proper timeout handling"""
+    import time
+    from requests.adapters import HTTPAdapter
+    from urllib3.util.retry import Retry
+    
     config = OAUTH_CONFIG[platform]
     
     # Use platform-specific redirect URI if available, otherwise construct from BASE_URL (must match authorize step)
@@ -1071,7 +1075,8 @@ def exchange_code_for_tokens(platform, code, state_data):
         # Notion requires form data, not JSON, and uses Basic auth correctly
         headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'Notion-Version': '2022-06-28'
+            'Notion-Version': '2022-06-28',
+            'User-Agent': 'NotionFlow/1.0'
         }
         # Notion token request format - credentials go in Authorization header, not body
         token_data = {
@@ -1103,38 +1108,105 @@ def exchange_code_for_tokens(platform, code, state_data):
         if state_data.get('code_verifier'):
             token_data['code_verifier'] = state_data['code_verifier']
     
-    # Make token request
-    if platform == 'notion':
-        # Notion expects form data, not JSON
-        response = requests.post(config['token_url'], data=token_data, headers=headers)
-        print(f"[NOTION DEBUG] Token request - Form data: {token_data}")
-        print(f"[NOTION DEBUG] Headers: {headers}")
-        print(f"[NOTION DEBUG] URL: {config['token_url']}")
-    else:
-        # Other platforms expect form data  
-        response = requests.post(config['token_url'], data=token_data, headers=headers)
+    # Create requests session with retry strategy
+    session = requests.Session()
     
-    if response.status_code != 200:
-        print(f"Token exchange failed for {platform}: {response.status_code}")
-        print(f"Request URL: {config['token_url']}")
-        print(f"Request Headers: {headers}")
-        print(f"Request Data (Form): {token_data}")
-        print(f"Response Status: {response.status_code}")
-        print(f"Response Headers: {response.headers}")
-        print(f"Response: {response.text}")
+    # Configure retry strategy specifically for OAuth token endpoints
+    retry_strategy = Retry(
+        total=3,  # Total number of retries
+        backoff_factor=1,  # Wait time between retries: {backoff factor} * (2 ** ({number of total retries} - 1))
+        status_forcelist=[429, 500, 502, 503, 504],  # HTTP status codes to retry on
+        allowed_methods=["POST"]  # Only retry POST requests for token exchange
+    )
+    
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
+    
+    # Set timeouts - connect timeout: 10s, read timeout: 30s
+    timeout = (10, 30)
+    
+    try:
+        # Make token request with retry logic and proper timeout
+        if platform == 'notion':
+            print(f"[NOTION DEBUG] Making token exchange request with retry logic...")
+            print(f"[NOTION DEBUG] Token request - Form data: {token_data}")
+            print(f"[NOTION DEBUG] Headers: {headers}")
+            print(f"[NOTION DEBUG] URL: {config['token_url']}")
+            
+            # Additional delay for Notion API to reduce rate limiting
+            time.sleep(0.5)
+            
+            response = session.post(
+                config['token_url'], 
+                data=token_data, 
+                headers=headers,
+                timeout=timeout
+            )
+        else:
+            # Other platforms expect form data
+            response = session.post(
+                config['token_url'], 
+                data=token_data, 
+                headers=headers,
+                timeout=timeout
+            )
+        
+        print(f"[{platform.upper()} DEBUG] Token response status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"Token exchange failed for {platform}: {response.status_code}")
+            print(f"Request URL: {config['token_url']}")
+            print(f"Request Headers: {headers}")
+            print(f"Request Data (Form): {token_data}")
+            print(f"Response Status: {response.status_code}")
+            print(f"Response Headers: {dict(response.headers)}")
+            print(f"Response: {response.text}")
+            
+            # Handle specific error cases
+            if response.status_code == 429:
+                print(f"[{platform.upper()}] Rate limit hit - consider implementing exponential backoff")
+            elif response.status_code >= 500:
+                print(f"[{platform.upper()}] Server error - this might be temporary")
+            
+            return None
+        
+        result = response.json()
+        print(f"[{platform.upper()} DEBUG] Token exchange successful!")
+        
+        # Check for errors in response
+        if platform == 'slack' and not result.get('ok'):
+            print(f"Slack token exchange error: {result.get('error')}")
+            return None
+        elif 'error' in result:
+            print(f"Token exchange error for {platform}: {result.get('error')}")
+            if platform == 'notion':
+                error_description = result.get('error_description', 'Unknown error')
+                print(f"[NOTION ERROR] Error description: {error_description}")
+            return None
+        
+        return result
+        
+    except requests.exceptions.Timeout as e:
+        print(f"[{platform.upper()} ERROR] Token exchange timeout: {e}")
+        print(f"[{platform.upper()}] This could be due to API rate limiting or slow response")
         return None
-    
-    result = response.json()
-    
-    # Check for errors in response
-    if platform == 'slack' and not result.get('ok'):
-        print(f"Slack token exchange error: {result.get('error')}")
+    except requests.exceptions.ConnectionError as e:
+        print(f"[{platform.upper()} ERROR] Connection error during token exchange: {e}")
         return None
-    elif 'error' in result:
-        print(f"Token exchange error for {platform}: {result.get('error')}")
+    except requests.exceptions.HTTPError as e:
+        print(f"[{platform.upper()} ERROR] HTTP error during token exchange: {e}")
         return None
-    
-    return result
+    except requests.exceptions.RequestException as e:
+        print(f"[{platform.upper()} ERROR] General request error during token exchange: {e}")
+        return None
+    except Exception as e:
+        print(f"[{platform.upper()} ERROR] Unexpected error during token exchange: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
+    finally:
+        session.close()
 
 def handle_callback_success(platform, user_info):
     """Handle successful OAuth callback"""
