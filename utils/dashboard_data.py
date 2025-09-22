@@ -342,6 +342,12 @@ class DashboardDataManager:
     def get_platform_coverage(self, user_id: str) -> Dict[str, Any]:
         """Get detailed platform coverage stats"""
         try:
+            # First check if user exists to avoid foreign key errors
+            user_check = self.supabase.table('users').select('id').eq('id', user_id).execute()
+            if not user_check.data:
+                print(f"User {user_id} not found in users table, skipping platform coverage")
+                return {}
+            
             result = self.supabase.table('platform_coverage').select('*').eq('user_id', user_id).execute()
             
             if not result.data:

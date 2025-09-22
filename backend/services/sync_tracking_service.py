@@ -64,8 +64,17 @@ class SyncTrackingService:
     ) -> Optional[str]:
         """Track a synchronization event"""
         try:
+            # Normalize user_id (remove dashes if present)
+            normalized_user_id = user_id.replace('-', '')
+            
+            # Check if user exists to avoid foreign key errors
+            user_check = self.supabase.table('users').select('id').eq('id', normalized_user_id).execute()
+            if not user_check.data:
+                print(f"User {normalized_user_id} not found in users table, skipping sync event tracking")
+                return None
+            
             event_data = {
-                "user_id": user_id,
+                "user_id": normalized_user_id,
                 "event_type": event_type.value if isinstance(event_type, EventType) else event_type,
                 "platform": platform,
                 "status": status,
