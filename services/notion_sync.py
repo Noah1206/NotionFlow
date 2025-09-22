@@ -712,6 +712,8 @@ class NotionCalendarSync:
             
             print(f"💾 [SAVE] Saving event: {db_event['title']}")
             print(f"📅 [SAVE] Dates: {db_event['start_datetime']} → {db_event['end_datetime']}")
+            print(f"📋 [SAVE] Event data keys: {list(db_event.keys())}")
+            print(f"📋 [SAVE] source_platform value: '{db_event.get('source_platform')}'")
             print(f"📋 [SAVE] Event data: {db_event}")
             
             # 중복 체크 (실제 스키마의 unique constraint에 맞춤: user_id, external_id, source_platform)
