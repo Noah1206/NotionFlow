@@ -1240,8 +1240,8 @@ def handle_callback_success(platform, user_info):
                 # OAuth 완료 후 즉시 동기화 실행
                 print(f"🚀 [OAUTH] Starting immediate Notion sync for calendar: {calendar_id}")
                 try:
-                    from services.notion_sync import sync_notion_events
-                    sync_result = sync_notion_events(user_id)
+                    from services.notion_sync import notion_sync
+                    sync_result = notion_sync.sync_to_calendar(user_id, calendar_id)
                     if sync_result and sync_result.get('success'):
                         events_count = sync_result.get('synced_events', 0)
                         print(f"✅ [OAUTH] Synced {events_count} events to calendar_events table")
