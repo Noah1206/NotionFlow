@@ -1237,9 +1237,12 @@ def handle_callback_success(platform, user_info):
                 # Store calendar_id in session for immediate use
                 session['notion_calendar_id'] = calendar_id
                 
-                # OAuth 완료 후 즉시 동기화 실행
-                print(f"🚀 [OAUTH] Starting immediate Notion sync for calendar: {calendar_id}")
+                # OAuth 완료 후 약간의 지연 후 동기화 실행 (토큰 저장 완료 대기)
+                print(f"🚀 [OAUTH] Starting delayed Notion sync for calendar: {calendar_id}")
                 try:
+                    import time
+                    time.sleep(2)  # 2초 대기로 토큰 저장 완료 보장
+                    
                     from services.notion_sync import notion_sync
                     sync_result = notion_sync.sync_to_calendar(user_id, calendar_id)
                     if sync_result and sync_result.get('success'):
