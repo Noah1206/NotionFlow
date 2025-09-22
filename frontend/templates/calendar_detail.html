@@ -897,6 +897,7 @@
             background: #ffffff !important;
             border-radius: 2px !important;
             width: 70% !important;
+            transition: width 0.1s ease !important;
         }
 
         /* YouTube 모드 스타일 강화 */
@@ -6139,9 +6140,145 @@
             }, 500);
         }
 
+        // 볼륨 관련 변수
+        let currentVolume = 0.7; // 기본 볼륨 70%
+        let isMuted = false;
+        let previousVolume = 0.7;
+
+        /**
+         * 볼륨 슬라이더 클릭 이벤트 처리
+         */
+        function setVolume(event) {
+            const slider = event.currentTarget;
+            const rect = slider.getBoundingClientRect();
+            const clickX = event.clientX - rect.left;
+            const percentage = Math.max(0, Math.min(1, clickX / rect.width));
+            
+            currentVolume = percentage;
+            updateVolumeDisplay();
+            applyVolume();
+            
+            // 음소거 상태 해제
+            if (isMuted) {
+                isMuted = false;
+                updateVolumeIcon();
+            }
+        }
+
+        /**
+         * 볼륨 아이콘 클릭 이벤트 (음소거/해제)
+         */
+        function toggleMute() {
+            if (isMuted) {
+                // 음소거 해제
+                isMuted = false;
+                currentVolume = previousVolume;
+            } else {
+                // 음소거
+                isMuted = true;
+                previousVolume = currentVolume;
+                currentVolume = 0;
+            }
+            
+            updateVolumeDisplay();
+            updateVolumeIcon();
+            applyVolume();
+        }
+
+        /**
+         * 볼륨 표시 업데이트
+         */
+        function updateVolumeDisplay() {
+            const volumeFill = document.getElementById('header-volume-fill');
+            if (volumeFill) {
+                volumeFill.style.width = (currentVolume * 100) + '%';
+            }
+        }
+
+        /**
+         * 볼륨 아이콘 업데이트
+         */
+        function updateVolumeIcon() {
+            const volumeIcon = document.getElementById('header-volume-icon');
+            if (!volumeIcon) return;
+
+            let iconPath;
+            if (isMuted || currentVolume === 0) {
+                // 음소거 아이콘
+                iconPath = 'M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z';
+            } else if (currentVolume < 0.5) {
+                // 낮은 볼륨 아이콘
+                iconPath = 'M3 9v6h4l5 5V4L7 9H3zm7-.17v6.34L7.83 13H5v-2h2.83L10 8.83z';
+            } else {
+                // 높은 볼륨 아이콘 (기본)
+                iconPath = 'M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z';
+            }
+            
+            volumeIcon.innerHTML = `<path d="${iconPath}" />`;
+        }
+
+        /**
+         * 실제 볼륨 적용 (오디오/비디오 요소에)
+         */
+        function applyVolume() {
+            // 페이지의 모든 오디오/비디오 요소에 볼륨 적용
+            const mediaElements = document.querySelectorAll('audio, video');
+            mediaElements.forEach(element => {
+                element.volume = currentVolume;
+                element.muted = isMuted;
+            });
+
+            // YouTube iframe이 있다면 postMessage로 볼륨 제어
+            const youtubeFrames = document.querySelectorAll('iframe[src*="youtube.com"]');
+            youtubeFrames.forEach(frame => {
+                try {
+                    if (isMuted) {
+                        frame.contentWindow.postMessage('{"event":"command","func":"mute","args":""}', '*');
+                    } else {
+                        frame.contentWindow.postMessage('{"event":"command","func":"unMute","args":""}', '*');
+                        frame.contentWindow.postMessage(`{"event":"command","func":"setVolume","args":"${Math.round(currentVolume * 100)}"}`, '*');
+                    }
+                } catch (e) {
+                    console.log('YouTube volume control failed:', e);
+                }
+            });
+
+            // 로컬 저장소에 볼륨 설정 저장
+            localStorage.setItem('notionflow_volume', currentVolume);
+            localStorage.setItem('notionflow_muted', isMuted);
+        }
+
+        /**
+         * 저장된 볼륨 설정 로드
+         */
+        function loadVolumeSettings() {
+            const savedVolume = localStorage.getItem('notionflow_volume');
+            const savedMuted = localStorage.getItem('notionflow_muted');
+            
+            if (savedVolume !== null) {
+                currentVolume = parseFloat(savedVolume);
+            }
+            
+            if (savedMuted !== null) {
+                isMuted = savedMuted === 'true';
+            }
+            
+            updateVolumeDisplay();
+            updateVolumeIcon();
+        }
+
         // 페이지 로드 시 실행될 초기화 함수
         document.addEventListener('DOMContentLoaded', function () {
             console.log('🚀 Platform status checker initialized');
+
+            // 볼륨 설정 로드
+            loadVolumeSettings();
+            
+            // 볼륨 아이콘에 클릭 이벤트 추가
+            const volumeButton = document.querySelector('button[title="볼륨 조절"]');
+            if (volumeButton) {
+                volumeButton.onclick = toggleMute;
+            }
 
             // 각 플랫폼 버튼에 상태 표시 추가 (선택사항)
             updatePlatformButtonStates();
