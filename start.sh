@@ -3,13 +3,9 @@
 # Railway deployment startup script
 echo "🚀 Starting NotionFlow on Railway..."
 
-# Set default port if PORT environment variable is not set
-if [ -z "$PORT" ]; then
-    export PORT=5003
-    echo "PORT not set, defaulting to 5003"
-else
-    echo "Using PORT: $PORT"
-fi
+# Railway provides PORT environment variable
+export PORT=${PORT:-8080}
+echo "Using PORT: $PORT"
 
 # Environment check
 echo "🔍 Environment check:"
@@ -41,10 +37,11 @@ except Exception as e:
 echo "🔄 Starting gunicorn server..."
 exec gunicorn frontend.app:app \
     --bind 0.0.0.0:$PORT \
-    --timeout 300 \
-    --workers 1 \
-    --threads 2 \
+    --timeout 120 \
+    --workers 2 \
+    --threads 4 \
     --worker-class sync \
-    --log-level info \
+    --log-level debug \
     --access-logfile - \
-    --error-logfile -
+    --error-logfile - \
+    --preload
