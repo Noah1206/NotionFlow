@@ -106,7 +106,7 @@ class GoogleCalendarGrid {
         this.weekStart = this.getWeekStart(this.currentDate);
         
         // console.log('🗓️ Week navigation:', direction > 0 ? 'Next week' : 'Previous week', 
-                   'New date:', this.currentDate, 'New week start:', this.weekStart);
+        //            'New date:', this.currentDate, 'New week start:', this.weekStart);
         
         // Re-render the calendar
         this.render();
@@ -1670,7 +1670,7 @@ class GoogleCalendarGrid {
         
         if (!dayColumn) {
             // console.log('❌ Day column not found! Available columns:', 
-                this.container.querySelectorAll('.day-column'));
+            //     this.container.querySelectorAll('.day-column'));
             return;
         }
         

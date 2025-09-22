@@ -169,6 +169,12 @@ class CalendarSyncService:
         events = []
         
         try:
+            # Test connection first to avoid invalid token errors
+            connection_test = provider.test_connection()
+            if not connection_test.get('success'):
+                logger.warning(f"Notion connection test failed: {connection_test.get('error')}")
+                return events
+            
             # Get Notion databases (calendars)
             databases = provider.get_databases()
             
