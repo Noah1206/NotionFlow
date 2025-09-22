@@ -669,18 +669,19 @@ class NotionCalendarSync:
             # 실제 데이터베이스 스키마에 맞게 이벤트 데이터 변환
             db_event = {
                 'user_id': event['user_id'],
-                'external_id': event['external_id'],
                 'title': event['title'],
                 'description': event.get('description', ''),
-                'start_datetime': event['start_datetime'],  # ISO 형식
-                'end_datetime': event['end_datetime'],      # ISO 형식
+                'start_datetime': event['start_datetime'],
+                'end_datetime': event['end_datetime'],
                 'is_all_day': event.get('all_day', False),
-                'source_platform': 'notion',
+                'category': 'notion',
+                'priority': 0,
                 'status': 'confirmed',
-                'priority': 0,  # 기본 우선순위
-                'sync_status': 'synced',  # 동기화 완료 상태
-                'category': 'notion',  # 카테고리
-                # created_at, updated_at은 트리거로 자동 설정
+                'source_platform': 'notion',
+                'external_id': event['external_id'],
+                'last_synced_at': 'now()',
+                'sync_status': 'synced'
+                # created_at, updated_at, sync_hash는 트리거로 자동 설정
             }
             
             # calendar_id 설정 (항상 설정되어야 함)
