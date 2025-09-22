@@ -5821,7 +5821,9 @@ def import_events_from_notion(user_id: str, calendar_id: str) -> int:
                         'start_datetime': start_datetime,
                         'end_datetime': end_datetime,
                         'is_all_day': is_all_day,
+                        'source_platform': 'notion',  # Required field (NOT NULL)
                         'status': 'confirmed',
+                        'priority': 0,  # Default priority
                         'created_at': datetime.now().isoformat(),
                         'updated_at': datetime.now().isoformat()
                     }
