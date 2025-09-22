@@ -6297,13 +6297,43 @@
 
                 const statusResult = await fetchPlatformStatus(currentUserId, 'all');
                 if (statusResult.success) {
-                    // 각 버튼에 연동 상태 표시 (예: 작은 도트 추가)
+                    console.log('Platform statuses loaded:', statusResult.platforms);
+                    // 각 플랫폼 카드 상태 업데이트
                     Object.keys(PLATFORM_CONFIG).forEach(platform => {
                         const platformData = statusResult.platforms[platform];
+                        
+                        // 플랫폼 카드 요소 찾기 (다양한 선택자 시도)
+                        const platformCard = document.querySelector(`[data-platform="${platform}"]`) ||
+                                           document.querySelector(`.platform-card[data-platform="${platform}"]`) ||
+                                           document.querySelector(`[onclick="checkPlatformStatus('${platform}')"]`);
+                        
+                        if (platformCard) {
+                            // 연결 상태에 따라 카드 업데이트
+                            const isConnected = platformData && platformData.connected && platformData.status === 'active';
+                            
+                            // 카드 내 텍스트 요소 찾기
+                            const statusText = platformCard.querySelector('.status-text, .platform-status-text, .connection-status');
+                            const statusButton = platformCard.querySelector('.btn-disconnect, .btn-connect, .connection-button');
+                            
+                            if (statusText) {
+                                statusText.textContent = isConnected ? 
+                                    `연동함: ${platformData.calendar_name || '내 캘린더'}` : 
+                                    '연결 안됨';
+                            }
+                            
+                            if (statusButton) {
+                                statusButton.textContent = isConnected ? '연결 해제' : '연결';
+                                statusButton.className = isConnected ? 'btn-disconnect' : 'btn-connect';
+                            }
+                            
+                            // 카드 스타일 업데이트
+                            platformCard.classList.toggle('connected', isConnected);
+                            platformCard.classList.toggle('disconnected', !isConnected);
+                        }
+                        
+                        // 기존 버튼 인디케이터 로직 유지
                         const button = document.querySelector(`[onclick="checkPlatformStatus('${platform}')"]`);
-
                         if (button && platformData && platformData.configured) {
-                            // 연동된 플랫폼에 시각적 표시 추가
                             button.style.position = 'relative';
                             if (!button.querySelector('.connection-indicator')) {
                                 const indicator = document.createElement('div');
