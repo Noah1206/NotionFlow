@@ -860,7 +860,7 @@ def generic_oauth_callback(platform):
                     # This table doesn't have foreign key constraints and works for all users
                     try:
                         # Check if config already exists
-                        existing_config = supabase.table('calendar_sync_configs').select('*').eq('user_id', normalized_user_id).eq('platform', platform).execute()
+                        existing_config = service_supabase.table('calendar_sync_configs').select('*').eq('user_id', normalized_user_id).eq('platform', platform).execute()
                         
                         # Prepare credentials data
                         credentials_data = {
@@ -880,7 +880,7 @@ def generic_oauth_callback(platform):
                                 'last_sync_at': datetime.now().isoformat(),
                                 'updated_at': datetime.now().isoformat()
                             }
-                            supabase.table('calendar_sync_configs').update(update_data).eq('user_id', normalized_user_id).eq('platform', platform).execute()
+                            service_supabase.table('calendar_sync_configs').update(update_data).eq('user_id', normalized_user_id).eq('platform', platform).execute()
                             print(f"✅ Updated {platform} token in calendar_sync_configs for user {normalized_user_id}")
                         else:
                             # Get the user's first calendar for Notion sync
@@ -888,7 +888,7 @@ def generic_oauth_callback(platform):
                             if platform == 'notion':
                                 try:
                                     # Get user's calendars
-                                    calendars = supabase.table('calendars').select('*').eq('owner_id', normalized_user_id).execute()
+                                    calendars = service_supabase.table('calendars').select('*').eq('owner_id', normalized_user_id).execute()
                                     if calendars.data:
                                         calendar_id = calendars.data[0]['id']
                                         print(f"📅 [OAUTH] Found calendar for Notion sync: {calendar_id}")
@@ -907,7 +907,7 @@ def generic_oauth_callback(platform):
                                             'created_at': datetime.now().isoformat(),
                                             'updated_at': datetime.now().isoformat()
                                         }
-                                        supabase.table('calendars').insert(new_calendar).execute()
+                                        service_supabase.table('calendars').insert(new_calendar).execute()
                                         print(f"📅 [OAUTH] Created new calendar: {calendar_id}")
                                 except Exception as cal_e:
                                     print(f"⚠️ [OAUTH] Error getting/creating calendar: {cal_e}")
@@ -929,7 +929,7 @@ def generic_oauth_callback(platform):
                             # if calendar_id:
                             #     new_config['calendar_id'] = calendar_id
                                 
-                            supabase.table('calendar_sync_configs').insert(new_config).execute()
+                            service_supabase.table('calendar_sync_configs').insert(new_config).execute()
                             print(f"✅ Created {platform} token in calendar_sync_configs for user {normalized_user_id}")
                             
                     except Exception as token_error:
