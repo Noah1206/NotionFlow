@@ -42,13 +42,22 @@ class CalendarSyncService:
         if platform == 'google':
             return self.google_service
         elif platform == 'notion':
-            # Get Notion API key from sync config
+            # Get Notion access token from sync config
             config = self._get_sync_config(platform)
             if config and config.get('credentials'):
-                api_key = config['credentials'].get('api_key')
-                if api_key:
-                    self.notion_service = NotionService(api_key)
-                    return self.notion_service
+                # Try both api_key and access_token for compatibility
+                access_token = config['credentials'].get('access_token') or config['credentials'].get('api_key')
+                if access_token:
+                    try:
+                        self.notion_service = NotionService(access_token)
+                        # Test connection to validate token
+                        test_result = self.notion_service.test_connection()
+                        if test_result.get('success'):
+                            return self.notion_service
+                        else:
+                            logger.warning(f"Notion token validation failed: {test_result.get('error')}")
+                    except Exception as e:
+                        logger.warning(f"Failed to create Notion service: {e}")
             return None
         else:
             logger.warning(f"Unknown platform: {platform}")

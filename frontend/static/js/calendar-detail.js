@@ -1,4 +1,13 @@
 // Calendar Detail - Modern Notion Style
+
+// Prevent YouTube postMessage errors from breaking the app
+window.addEventListener('error', function(event) {
+    if (event.message && event.message.includes('postMessage') && event.message.includes('youtube.com')) {
+        event.preventDefault();
+        return false;
+    }
+}, true);
+
 let currentDate = new Date();
 let currentView = 'week'; // Match HTML default active view
 let selectedDate = null;
@@ -438,14 +447,32 @@ function initYouTubePlayer(videoIdOrUrl, trackInfo = null) {
                 'cc_load_policy': 0,    // Hide closed captions
                 'autohide': 1,          // Hide video controls automatically
                 'enablejsapi': 1,       // Enable JavaScript API
-                'origin': window.location.origin  // Add origin for CORS
+                'origin': window.location.protocol + '//' + window.location.host,  // Proper origin for CORS
+                'host': window.location.host  // Add host parameter
             },
             events: {
                 'onReady': onYouTubePlayerReady,
                 'onStateChange': onYouTubePlayerStateChange,
                 'onError': function(event) {
                     console.warn('🎵 YouTube Player Error (non-critical):', event.data);
-                    // Don't throw error for cross-origin postMessage issues in development
+                    // Handle specific error types
+                    switch(event.data) {
+                        case 2:
+                            console.warn('Invalid YouTube video ID');
+                            break;
+                        case 5:
+                            console.warn('HTML5 player error');
+                            break;
+                        case 100:
+                            console.warn('Video not found or private');
+                            break;
+                        case 101:
+                        case 150:
+                            console.warn('Video owner restricted playback');
+                            break;
+                        default:
+                            console.warn('Unknown YouTube error');
+                    }
                 }
             }
         });
@@ -5650,8 +5677,11 @@ function changeYouTubeVideo() {
 
 // Enhanced notification function (if not already exists)
 function showNotification(message, type = 'info', duration = 3000) {
-    // Check if notification system exists, create simple alert if not
-    if (typeof window.showNotification === 'undefined') {
+    // Check if external notification system exists
+    if (typeof window.notificationUtils !== 'undefined' && window.notificationUtils.showNotification) {
+        // Use existing notification system
+        window.notificationUtils.showNotification(message, type);
+    } else {
         // Create a simple notification div
         const notification = document.createElement('div');
         notification.style.cssText = `
@@ -5688,8 +5718,5 @@ function showNotification(message, type = 'info', duration = 3000) {
                 notification.parentNode.removeChild(notification);
             }
         }, duration);
-    } else {
-        // Use existing notification system
-        window.showNotification(message, type);
     }
 }

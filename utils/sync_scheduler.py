@@ -159,7 +159,14 @@ class SyncScheduler:
             # Get provider for platform
             provider = sync_service.get_provider(platform)
             if not provider:
-                raise Exception(f"Provider not available for {platform}")
+                print(f"⚠️ [SYNC] Provider not available for {platform} (user: {user_id})")
+                # Disable invalid configuration to prevent repeated failures
+                supabase.table('calendar_sync_configs').update({
+                    'is_enabled': False,
+                    'consecutive_failures': 999,
+                    'updated_at': datetime.now().isoformat()
+                }).eq('user_id', user_id).eq('platform', platform).execute()
+                return
             
             # Perform sync
             start_date = datetime.now() - timedelta(days=30)
