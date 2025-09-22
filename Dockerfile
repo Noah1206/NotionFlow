@@ -26,4 +26,4 @@ RUN if [ -f start.sh ]; then chmod +x start.sh; fi
 EXPOSE 8080
 
 # Run the application
-CMD ["./start.sh"]
+CMD ["gunicorn", "frontend.app:app", "--bind", "0.0.0.0:8080", "--workers", "1", "--log-level", "info"]
