@@ -542,26 +542,38 @@
         if (platformName === 'notion') {
             if (confirm('캘린더 연동을 해제하고 다시 선택하시겠습니까? (Notion 연결은 유지됩니다)')) {
                 // 캘린더 선택 상태만 초기화
+                console.log('🔄 [DISCONNECT] Starting Notion calendar reset...');
                 fetch('/api/oauth/notion/reset-calendar', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     }
                 })
-                .then(response => response.json())
+                .then(response => {
+                    console.log('📡 [DISCONNECT] API Response status:', response.status);
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('📊 [DISCONNECT] API Response data:', data);
                     if (data.success) {
                         showNotification('캘린더 연동이 해제되었습니다. 새로운 캘린더를 선택해주세요.', 'success');
+                        
+                        // UI 상태 즉시 업데이트
+                        console.log('🎨 [DISCONNECT] Updating UI to disconnected state...');
+                        updatePlatformStatus('notion', 'disconnected');
+                        
                         // 캘린더 선택 모달 표시
                         setTimeout(() => {
+                            console.log('📅 [DISCONNECT] Showing calendar selection modal...');
                             showCalendarSelectionModal();
                         }, 1000);
                     } else {
+                        console.error('❌ [DISCONNECT] Reset failed:', data.error);
                         showNotification(`연동 해제 실패: ${data.error}`, 'error');
                     }
                 })
                 .catch(error => {
-                    console.error('Reset calendar error:', error);
+                    console.error('❌ [DISCONNECT] Reset calendar error:', error);
                     showNotification('캘린더 연동 해제 중 오류가 발생했습니다.', 'error');
                 });
             }
@@ -756,6 +768,7 @@
 
     // 페이지 로드 시 Notion 캘린더 선택 상태 확인
     function checkNotionCalendarState() {
+        console.log('🔍 [PAGE-LOAD] Checking Notion calendar state...');
         fetch('/api/oauth/notion/calendar-state', {
             method: 'GET',
             headers: {
@@ -764,16 +777,19 @@
         })
         .then(response => response.json())
         .then(data => {
+            console.log('📊 [PAGE-LOAD] Calendar state response:', data);
             if (data.success && data.needs_calendar_selection) {
-                console.log('✅ [LOAD] Notion needs calendar selection - showing modal');
+                console.log('✅ [PAGE-LOAD] Notion needs calendar selection - showing modal');
                 // 페이지 로드 후 잠시 후에 모달 표시
                 setTimeout(() => {
                     showCalendarSelectionModal();
                 }, 2000);
+            } else if (data.success) {
+                console.log('🟢 [PAGE-LOAD] Notion calendar state normal - no action needed');
             }
         })
         .catch(error => {
-            console.error('Failed to check Notion calendar state:', error);
+            console.error('❌ [PAGE-LOAD] Failed to check Notion calendar state:', error);
         });
     }
 
@@ -786,6 +802,7 @@
         updateSettingsData();
         
         // Notion 캘린더 선택 상태 확인
+        console.log('🚀 [PAGE-LOAD] Starting page load sequence...');
         checkNotionCalendarState();
         
         // 30초마다 데이터 업데이트

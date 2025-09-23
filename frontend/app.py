@@ -6563,7 +6563,8 @@ def get_synced_calendars():
         
         # Check for manual disconnection flags to prevent auto-reconnection
         google_manually_disconnected = request.headers.get('X-Google-Disconnected')
-        print(f"[SYNC-CALENDARS] Checking manual disconnection - Google manually disconnected: {google_manually_disconnected}")
+        notion_manually_disconnected = request.headers.get('X-Notion-Disconnected')
+        print(f"[SYNC-CALENDARS] Checking manual disconnection - Google: {google_manually_disconnected}, Notion: {notion_manually_disconnected}")
         
         # Get Supabase client
         supabase_client = get_supabase()
@@ -6586,9 +6587,12 @@ def get_synced_calendars():
                     calendar_id = sync_record['calendar_id']
                     print(f"[SYNC-CALENDARS] Found active sync for {platform} with calendar {calendar_id}")
                     
-                    # Skip Google if manually disconnected to prevent auto-reconnection
+                    # Skip platforms if manually disconnected to prevent auto-reconnection
                     if platform == 'google' and google_manually_disconnected == 'true':
                         print(f"[SYNC-CALENDARS] Skipping Google platform data due to manual disconnection")
+                        continue
+                    if platform == 'notion' and notion_manually_disconnected == 'true':
+                        print(f"[SYNC-CALENDARS] Skipping Notion platform data due to manual disconnection")
                         continue
                     
                     try:
@@ -6642,9 +6646,12 @@ def get_synced_calendars():
                 for token in oauth_tokens.data:
                     platform = token['platform']
                     
-                    # Skip Google if manually disconnected to prevent auto-reconnection
+                    # Skip platforms if manually disconnected to prevent auto-reconnection
                     if platform == 'google' and google_manually_disconnected == 'true':
                         print(f"[SYNC-CALENDARS] Skipping Google platform due to manual disconnection")
+                        continue
+                    if platform == 'notion' and notion_manually_disconnected == 'true':
+                        print(f"[SYNC-CALENDARS] Skipping Notion platform due to manual disconnection")
                         continue
                     
                     # 이미 실제 캘린더 연동이 있으면 건너뛰기
@@ -6681,9 +6688,12 @@ def get_synced_calendars():
                         calendar_id = parts[3]
                         sync_info = session[key]
                         
-                        # Skip Google if manually disconnected to prevent auto-reconnection
+                        # Skip platforms if manually disconnected to prevent auto-reconnection
                         if platform == 'google' and google_manually_disconnected == 'true':
                             print(f"[SYNC-CALENDARS] Skipping Google session data due to manual disconnection")
+                            continue
+                        if platform == 'notion' and notion_manually_disconnected == 'true':
+                            print(f"[SYNC-CALENDARS] Skipping Notion session data due to manual disconnection")
                             continue
                         
                         # 데이터베이스에서 이미 찾은 정보가 없으면 세션 정보 사용

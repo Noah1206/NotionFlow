@@ -3550,12 +3550,17 @@
         try {
             // Check if Google has been manually disconnected to prevent auto-reconnection
             const googleManuallyDisconnected = localStorage.getItem('google_manually_disconnected') === 'true';
-            console.log('Loading synced calendars with Google disconnection flag:', googleManuallyDisconnected);
+            const notionManuallyDisconnected = localStorage.getItem('notion_manually_disconnected') === 'true';
+            console.log('Loading synced calendars with disconnection flags - Google:', googleManuallyDisconnected, 'Notion:', notionManuallyDisconnected);
             
             const headers = {};
             if (googleManuallyDisconnected) {
                 headers['X-Google-Disconnected'] = 'true';
                 console.log('Adding X-Google-Disconnected header to prevent auto-reconnection');
+            }
+            if (notionManuallyDisconnected) {
+                headers['X-Notion-Disconnected'] = 'true';
+                console.log('Adding X-Notion-Disconnected header to prevent auto-reconnection');
             }
             
             const response = await fetch('/api/synced-calendars', {
@@ -3568,6 +3573,17 @@
                 // 각 플랫폼의 연동 상태 업데이트
                 Object.keys(syncedCalendars).forEach(platform => {
                     const syncInfo = syncedCalendars[platform];
+                    
+                    // 수동 연결해제된 플랫폼은 업데이트하지 않음
+                    if (platform === 'google' && googleManuallyDisconnected) {
+                        console.log('Skipping Google platform update due to manual disconnection');
+                        return;
+                    }
+                    if (platform === 'notion' && notionManuallyDisconnected) {
+                        console.log('Skipping Notion platform update due to manual disconnection');
+                        return;
+                    }
+                    
                     updateCalendarSyncStatus(platform, syncInfo);
                 });
             }
