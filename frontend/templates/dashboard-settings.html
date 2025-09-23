@@ -124,8 +124,7 @@
                         연결됨
                     </span>
                 </div>
-                <button class="btn-primary-small" onclick="showCalendarSelectionModal()" style="margin-right: 8px;">캘린더 선택</button>
-                <button class="btn-warning-small" onclick="disconnectPlatform('notion')">연결해제</button>
+                <!-- Notion 버튼들은 JavaScript에서 동적으로 관리됨 -->
             </div>
 
             <div class="platform-card connected">
@@ -502,33 +501,42 @@
                     statusElement.innerHTML = '<i class="fas fa-circle"></i> 연결됨';
                     statusElement.classList.remove('disconnected');
                     
-                    // Notion의 경우 캘린더 선택 버튼도 추가
+                    // Notion의 경우 캘린더 동기화 상태 확인
                     if (platformName === 'notion') {
-                        // 기존 버튼 컨테이너가 있는지 확인
-                        let buttonContainer = platformCard.querySelector('.button-container');
-                        if (!buttonContainer) {
-                            buttonContainer = document.createElement('div');
-                            buttonContainer.className = 'button-container';
-                            buttonContainer.style.cssText = 'display: flex; gap: 8px; justify-content: flex-end;';
-                            platformCard.appendChild(buttonContainer);
+                        // 캘린더 동기화 상태 확인
+                        if (platform.calendar_connected && platform.events_synced) {
+                            // 이미 캘린더가 연결되고 이벤트가 동기화된 경우 - 연결해제 버튼만 표시
+                            actionButton.textContent = '연결해제';
+                            actionButton.className = 'btn-warning-small';
+                            actionButton.onclick = () => disconnectPlatform(platformName);
+                        } else {
+                            // 아직 캘린더가 선택되지 않은 경우 - 캘린더 선택 버튼과 연결해제 버튼 모두 표시
+                            // 기존 버튼 컨테이너가 있는지 확인
+                            let buttonContainer = platformCard.querySelector('.button-container');
+                            if (!buttonContainer) {
+                                buttonContainer = document.createElement('div');
+                                buttonContainer.className = 'button-container';
+                                buttonContainer.style.cssText = 'display: flex; gap: 8px; justify-content: flex-end;';
+                                platformCard.appendChild(buttonContainer);
+                            }
+                            
+                            // 캘린더 선택 버튼 추가
+                            const calendarButton = document.createElement('button');
+                            calendarButton.textContent = '캘린더 선택';
+                            calendarButton.className = 'btn-primary-small';
+                            calendarButton.style.marginRight = '8px';
+                            calendarButton.onclick = () => showCalendarSelectionModal();
+                            
+                            // 연결해제 버튼
+                            actionButton.textContent = '연결해제';
+                            actionButton.className = 'btn-warning-small';
+                            actionButton.onclick = () => disconnectPlatform(platformName);
+                            
+                            // 버튼 컨테이너에 추가
+                            buttonContainer.innerHTML = '';
+                            buttonContainer.appendChild(calendarButton);
+                            buttonContainer.appendChild(actionButton);
                         }
-                        
-                        // 캘린더 선택 버튼 추가
-                        const calendarButton = document.createElement('button');
-                        calendarButton.textContent = '캘린더 선택';
-                        calendarButton.className = 'btn-primary-small';
-                        calendarButton.style.marginRight = '8px';
-                        calendarButton.onclick = () => showCalendarSelectionModal();
-                        
-                        // 연결해제 버튼
-                        actionButton.textContent = '연결해제';
-                        actionButton.className = 'btn-warning-small';
-                        actionButton.onclick = () => disconnectPlatform(platformName);
-                        
-                        // 버튼 컨테이너에 추가
-                        buttonContainer.innerHTML = '';
-                        buttonContainer.appendChild(calendarButton);
-                        buttonContainer.appendChild(actionButton);
                     } else {
                         actionButton.textContent = '연결해제';
                         actionButton.className = 'btn-warning-small';

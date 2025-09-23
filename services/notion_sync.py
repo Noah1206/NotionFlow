@@ -229,36 +229,89 @@ class NotionCalendarSync:
         return calendar_dbs
     
     def get_user_calendar_id(self, user_id: str) -> Optional[str]:
-        """Get the correct calendar_id for a user from the calendar_sync table"""
+        """Get the correct calendar_id for a user from calendar_sync_configs table"""
         try:
             from utils.config import config
-            supabase = config.get_client_for_user(user_id)
+            from utils.uuid_helper import normalize_uuid
+            
+            # Normalize user_id for consistency
+            normalized_user_id = normalize_uuid(user_id)
+            
+            # Use admin client to bypass RLS
+            supabase = config.supabase_admin if hasattr(config, 'supabase_admin') and config.supabase_admin else config.get_client_for_user(user_id)
             
             if not supabase:
                 print(f"❌ [CALENDAR_ID] No Supabase client for user {user_id}")
                 return None
             
-            # Look up calendar_id from calendar_sync table
-            sync_result = supabase.table('calendar_sync').select('calendar_id').eq('user_id', user_id).eq('platform', 'notion').eq('sync_status', 'active').execute()
+            # Look up calendar_id from calendar_sync_configs table
+            sync_result = supabase.table('calendar_sync_configs').select('calendar_id').eq('user_id', normalized_user_id).eq('platform', 'notion').eq('is_enabled', True).execute()
             
-            if sync_result.data:
+            if sync_result.data and sync_result.data[0].get('calendar_id'):
                 calendar_id = sync_result.data[0]['calendar_id']
                 print(f"✅ [CALENDAR_ID] Found calendar_id for user {user_id}: {calendar_id}")
                 return calendar_id
             else:
-                print(f"⚠️ [CALENDAR_ID] No active calendar_sync found for user {user_id}")
+                print(f"⚠️ [CALENDAR_ID] No active calendar_sync_configs found for user {user_id}")
                 
                 # Try to get user's first calendar as fallback
-                calendars_result = supabase.table('calendars').select('id').eq('user_id', user_id).execute()
+                # CRITICAL FIX: Use owner_id instead of user_id for calendars table
+                from utils.uuid_helper import normalize_uuid
+                normalized_user_id = normalize_uuid(user_id)
+                
+                # Try with both normalized and original user_id for maximum compatibility
+                calendars_result = supabase.table('calendars').select('id').or_(f'owner_id.eq.{user_id},owner_id.eq.{normalized_user_id}').execute()
+                
                 if calendars_result.data:
                     calendar_id = calendars_result.data[0]['id']
                     print(f"ℹ️ [CALENDAR_ID] Using fallback calendar_id: {calendar_id}")
                     return calendar_id
+                else:
+                    # If no calendar found, create a default one for the user
+                    print(f"⚠️ [CALENDAR_ID] No calendar found for user {user_id}, creating default calendar")
+                    default_calendar = self._create_default_calendar(user_id, supabase)
+                    if default_calendar:
+                        return default_calendar['id']
                 
                 return None
                 
         except Exception as e:
             print(f"❌ [CALENDAR_ID] Error getting calendar_id for user {user_id}: {e}")
+            return None
+    
+    def _create_default_calendar(self, user_id: str, supabase) -> Optional[Dict]:
+        """Create a default calendar for user if none exists"""
+        try:
+            import uuid
+            from utils.uuid_helper import normalize_uuid
+            
+            normalized_user_id = normalize_uuid(user_id)
+            
+            default_calendar_data = {
+                'id': str(uuid.uuid4()),
+                'owner_id': normalized_user_id,
+                'name': 'My Notion Calendar',
+                'type': 'notion',
+                'color': '#3B82F6',
+                'description': 'Auto-created calendar for Notion sync',
+                'is_active': True,
+                'public_access': False,
+                'allow_editing': True,
+                'created_at': datetime.now(timezone.utc).isoformat(),
+                'updated_at': datetime.now(timezone.utc).isoformat()
+            }
+            
+            result = supabase.table('calendars').insert(default_calendar_data).execute()
+            
+            if result.data:
+                print(f"✅ [CALENDAR_ID] Created default calendar: {result.data[0]['id']}")
+                return result.data[0]
+            else:
+                print(f"❌ [CALENDAR_ID] Failed to create default calendar")
+                return None
+                
+        except Exception as e:
+            print(f"❌ [CALENDAR_ID] Error creating default calendar: {e}")
             return None
 
     def sync_to_calendar(self, user_id: str, calendar_id: str = None) -> Dict[str, Any]:
@@ -663,6 +716,37 @@ class NotionCalendarSync:
             
         return formatted_uuid
 
+    def _get_user_primary_calendar_id(self, user_id: str) -> Optional[str]:
+        """Get user's primary calendar ID (first calendar or default)"""
+        try:
+            from utils.config import config
+            from utils.uuid_helper import normalize_uuid
+            
+            # Normalize user_id for consistency
+            normalized_user_id = normalize_uuid(user_id)
+            
+            # Use admin client to bypass RLS
+            supabase = config.supabase_admin if hasattr(config, 'supabase_admin') and config.supabase_admin else config.get_client_for_user(user_id)
+            
+            if not supabase:
+                print(f"❌ [PRIMARY_CAL] No Supabase client for user {user_id}")
+                return None
+            
+            # Get user's first calendar (using owner_id field)
+            result = supabase.table('calendars').select('id').eq('owner_id', normalized_user_id).order('created_at').limit(1).execute()
+            
+            if result.data:
+                calendar_id = result.data[0]['id']
+                print(f"✅ [PRIMARY_CAL] Found primary calendar: {calendar_id}")
+                return calendar_id
+            else:
+                print(f"⚠️ [PRIMARY_CAL] No calendar found for user {normalized_user_id}")
+                return None
+                
+        except Exception as e:
+            print(f"❌ [PRIMARY_CAL] Error getting primary calendar ID: {e}")
+            return None
+
     def _save_event_to_calendar(self, event: Dict) -> bool:
         """이벤트를 NotionFlow 캘린더에 저장"""
         try:
@@ -723,17 +807,23 @@ class NotionCalendarSync:
                 # created_at, updated_at는 DEFAULT NOW()로 자동 설정
             }
             
-            # calendar_id 설정 (항상 설정되어야 함)
+            # CRITICAL FIX: calendar_id 설정 (항상 설정되어야 함)
             if 'calendar_id' in event and event['calendar_id']:
                 db_event['calendar_id'] = event['calendar_id']
                 print(f"📋 [SAVE] Using calendar_id: {event['calendar_id']}")
             else:
-                # calendar_id가 없으면 에러 로그 및 기본값 사용
-                print(f"⚠️ [SAVE] Missing calendar_id in event: {event}")
-                # source_calendar_id도 설정하여 백업
-                if 'calendar_id' in event:
-                    db_event['source_calendar_id'] = event['calendar_id']
-                    db_event['source_calendar_name'] = 'Notion Calendar'
+                # calendar_id가 없으면 사용자의 첫 번째 캘린더로 설정
+                print(f"⚠️ [SAVE] Missing calendar_id in event, getting user's primary calendar")
+                
+                # Get user's primary calendar
+                primary_calendar_id = self._get_user_primary_calendar_id(user_id)
+                if primary_calendar_id:
+                    db_event['calendar_id'] = primary_calendar_id
+                    print(f"✅ [SAVE] Using primary calendar_id: {primary_calendar_id}")
+                else:
+                    print(f"❌ [SAVE] No calendar found for user {user_id} - event will be orphaned")
+                    # Don't save orphaned events
+                    return False
             
             # ULTRA-CRITICAL: Final datetime validation with timezone awareness
             from datetime import datetime, timedelta, timezone

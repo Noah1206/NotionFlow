@@ -81,6 +81,9 @@ class DashboardDataManager:
                 # Check if calendar is connected for platforms that support it
                 calendar_connected = bool(config.get('calendar_id'))
                 
+                # Check if events have been synced (calendar_events table)
+                events_synced = self._has_synced_events(user_id, platform)
+                
                 # Determine status based on credentials and calendar connection
                 if has_valid_credentials and calendar_connected:
                     status = 'connected'  # OAuth + 캘린더 연결 완료
@@ -95,6 +98,7 @@ class DashboardDataManager:
                     'credential_type': platform_info.get('credential_type', 'api_key'),
                     'configured': has_valid_credentials,
                     'calendar_connected': calendar_connected,
+                    'events_synced': events_synced,
                     'last_sync': config['last_sync_at'],
                     'sync_frequency': config.get('sync_frequency_minutes', 15),
                     'health_status': status,
@@ -152,6 +156,15 @@ class DashboardDataManager:
             print(f"Error validating credentials for {platform}: {e}")
             return False
     
+    def _has_synced_events(self, user_id: str, platform: str) -> bool:
+        """Check if platform has any synced events"""
+        try:
+            result = self.supabase.table('calendar_events').select('id').eq('user_id', user_id).eq('source_platform', platform).limit(1).execute()
+            return bool(result.data and len(result.data) > 0)
+        except Exception as e:
+            print(f"Error checking synced events for {platform}: {e}")
+            return False
+    
     def get_user_calendar_events(self, user_id: str, days_ahead: int = 30, start_datetime: datetime = None, end_datetime: datetime = None, calendar_ids: List[str] = None) -> List[Dict]:
         """Get user's calendar events, optionally filtered by calendar IDs"""
         try:
@@ -175,13 +188,16 @@ class DashboardDataManager:
             
             # Filter by calendar IDs if provided
             if calendar_ids:
-                # Include events that exactly match the specified calendar_id(s)
-                # This applies to ALL events including Notion events - they must have matching calendar_id
-                query = query.in_('calendar_id', calendar_ids)
-                # print(f"📅 [EVENTS] Filtering by calendar IDs: {calendar_ids}")
+                # CRITICAL FIX: Include orphaned events (null calendar_id) when showing primary calendar
+                # This ensures orphaned events appear until they can be properly assigned
+                
+                # Always include events with null calendar_id alongside specified calendars
+                # This is a temporary fix to show orphaned events in any calendar view
+                calendar_filter = ",".join([f"'{cid}'" for cid in calendar_ids])
+                query = query.or_(f'calendar_id.in.({calendar_filter}),calendar_id.is.null')
+                print(f"📅 [EVENTS] Filtering by calendar IDs + orphaned events: {calendar_ids}")
             else:
-                # print(f"📅 [EVENTS] No calendar ID filter - showing all events")
-                pass
+                print(f"📅 [EVENTS] No calendar ID filter - showing all events")
             
             result = query.order('start_datetime').execute()
             
@@ -199,6 +215,21 @@ class DashboardDataManager:
         except Exception as e:
             print(f"Error getting calendar events: {e}")
             return []
+    
+    def _get_user_primary_calendar_id(self, user_id: str) -> Optional[str]:
+        """Get user's primary calendar ID (first calendar or default)"""
+        try:
+            # Get user's first calendar
+            result = self.admin_client.table('calendars').select('id').eq('owner_id', user_id).order('created_at').limit(1).execute()
+            
+            if result.data:
+                return result.data[0]['id']
+            else:
+                return None
+                
+        except Exception as e:
+            print(f"Error getting primary calendar ID: {e}")
+            return None
     
     def get_user_calendars(self, user_id: str) -> Dict[str, Any]:
         """Get user's calendar list from new calendars table"""
