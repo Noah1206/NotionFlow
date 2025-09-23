@@ -996,10 +996,12 @@ def calendar_detail_main():
             try:
                 events = dashboard_data.get_user_calendar_events(
                     user_id=user_id,
-                    days_ahead=30,
+                    days_ahead=365,  # Extended to 1 year to include all Notion events
                     calendar_ids=[calendar_id]
                 )
                 print(f"[DEBUG] Found {len(events)} events for calendar {calendar_id}")
+                if events:
+                    print(f"[DEBUG] Sample event: {events[0]}")
             except Exception as e:
                 print(f"[ERROR] Failed to get events for calendar {calendar_id}: {e}")
         
@@ -1088,6 +1090,10 @@ def calendar_detail_main():
         'all_events': all_events,
         'current_date': dt.now().strftime('%Y-%m-%d')
     })
+    
+    print(f"[DEBUG] Total events being passed to template: {len(all_events)}")
+    if all_events:
+        print(f"[DEBUG] Sample template event: {all_events[0]}")
     
     return render_template('calendar_detail_main.html', **context)
 

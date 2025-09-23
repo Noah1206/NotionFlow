@@ -185,8 +185,8 @@ def get_single_calendar_events(calendar_id):
         user_id = normalize_uuid(user_id)
         # print(f"🔍 [SINGLE EVENTS] Current user_id: {user_id}, calendar_id: {calendar_id}")
         
-        # Get optional query parameters
-        days_ahead = int(request.args.get('days_ahead', 30))
+        # Get optional query parameters - extended to 365 days to include all Notion events
+        days_ahead = int(request.args.get('days_ahead', 365))
         
         # 🔄 Notion 자동 동기화 (연결된 사용자만)
         # print(f"🔍 [NOTION SYNC] Checking sync for single calendar: {calendar_id}, user_id={user_id}")
@@ -296,7 +296,7 @@ def get_calendar_events():
         
         # Get calendar IDs from query params
         calendar_ids = request.args.getlist('calendar_ids[]')
-        days_ahead = int(request.args.get('days_ahead', 30))
+        days_ahead = int(request.args.get('days_ahead', 365))  # Extended to 1 year for all Notion events
         
         # 🔄 Notion 자동 동기화 (연결된 사용자만)
         # print(f"🔍 [NOTION SYNC] Checking sync: calendar_ids={calendar_ids}, user_id={user_id}")

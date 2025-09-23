@@ -510,6 +510,14 @@ document.addEventListener('DOMContentLoaded', function() {
 // 캘린더 초기화
 function initializeCalendar() {
     console.log('Initializing calendar with data:', CALENDAR_DATA);
+    console.log(`[DEBUG] Total calendars: ${CALENDAR_DATA.calendars.length}`);
+    console.log(`[DEBUG] Total events: ${CALENDAR_DATA.events.length}`);
+    console.log(`[DEBUG] Current date: ${CALENDAR_DATA.currentDate}`);
+    
+    if (CALENDAR_DATA.events.length > 0) {
+        console.log(`[DEBUG] Sample event structure:`, CALENDAR_DATA.events[0]);
+        console.log(`[DEBUG] All event dates:`, CALENDAR_DATA.events.map(e => e.date));
+    }
     
     // 뷰 버튼 이벤트 리스너 설정
     document.querySelectorAll('.btn-view').forEach(btn => {
@@ -585,8 +593,12 @@ function createCalendarCell(date, currentMonth) {
     const eventsContainer = document.createElement('div');
     eventsContainer.className = 'events-container';
     
+    console.log(`[DEBUG] Cell for ${date.toISOString().split('T')[0]} has ${events.length} events`);
+    
     if (events.length > 0) {
-        events.slice(0, 6).forEach(event => { // 최대 6개까지 표시 (3개 → 6개로 확장)
+        console.log(`[DEBUG] Creating ${events.length} event elements for date ${date.toISOString().split('T')[0]}`);
+        events.slice(0, 6).forEach((event, index) => { // 최대 6개까지 표시 (3개 → 6개로 확장)
+            console.log(`[DEBUG] Creating event element ${index + 1}:`, event);
             const eventElement = createEventElement(event);
             eventsContainer.appendChild(eventElement);
         });
@@ -597,6 +609,8 @@ function createCalendarCell(date, currentMonth) {
             moreElement.textContent = `+${events.length - 6}개 더`;
             eventsContainer.appendChild(moreElement);
         }
+    } else {
+        console.log(`[DEBUG] No events for date ${date.toISOString().split('T')[0]}`);
     }
     
     // 이벤트 유무와 관계없이 항상 컨테이너 추가
@@ -626,10 +640,21 @@ function createEventElement(event) {
 // 특정 날짜의 이벤트 가져오기
 function getEventsForDate(date) {
     const dateString = date.toISOString().split('T')[0];
-    return CALENDAR_DATA.events.filter(event => {
+    console.log(`[DEBUG] Getting events for date: ${dateString}`);
+    console.log(`[DEBUG] Available events:`, CALENDAR_DATA.events);
+    console.log(`[DEBUG] Visible calendars:`, Array.from(visibleCalendars));
+    
+    const filteredEvents = CALENDAR_DATA.events.filter(event => {
+        console.log(`[DEBUG] Checking event:`, event);
+        console.log(`[DEBUG] Event date: ${event.date}, Target date: ${dateString}`);
+        console.log(`[DEBUG] Calendar visible: ${visibleCalendars.has(event.calendar_id)}`);
+        
         if (!visibleCalendars.has(event.calendar_id)) return false;
         return event.date === dateString;
     });
+    
+    console.log(`[DEBUG] Filtered events for ${dateString}:`, filteredEvents);
+    return filteredEvents;
 }
 
 // 오늘 날짜인지 확인
