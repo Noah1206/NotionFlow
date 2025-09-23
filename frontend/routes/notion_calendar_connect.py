@@ -76,12 +76,54 @@ def connect_notion_to_calendar():
         # Clear the session flag
         session.pop('notion_needs_calendar_selection', None)
         
-        return jsonify({
-            'success': True,
-            'message': f'Notion connected to calendar successfully',
-            'calendar_id': calendar_id,
-            'clear_disconnected_flag': True  # 프론트엔드에서 localStorage 플래그 제거
-        })
+        # 🚀 IMMEDIATE SYNC & GRID BLOCK GENERATION
+        # Import here to avoid circular imports
+        import sys
+        import os
+        sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+        from services.notion_sync import sync_notion_events
+        
+        try:
+            print(f"🚀 [CONNECT] Starting immediate Notion sync for calendar {calendar_id}")
+            
+            # Trigger immediate Notion sync
+            sync_result = sync_notion_events(user_id, calendar_id)
+            
+            if sync_result.get('success'):
+                synced_count = sync_result.get('synced_count', 0)
+                print(f"✅ [CONNECT] Immediate sync completed: {synced_count} events synced")
+                
+                return jsonify({
+                    'success': True,
+                    'message': f'Notion connected successfully. {synced_count} events synced to calendar.',
+                    'calendar_id': calendar_id,
+                    'synced_count': synced_count,
+                    'trigger_calendar_refresh': True,  # 프론트엔드에서 캘린더 새로고침 트리거
+                    'clear_disconnected_flag': True
+                })
+            else:
+                print(f"⚠️ [CONNECT] Sync completed with issues: {sync_result.get('error', 'Unknown error')}")
+                
+                return jsonify({
+                    'success': True,
+                    'message': f'Notion connected successfully, but sync had issues: {sync_result.get("error", "Unknown error")}',
+                    'calendar_id': calendar_id,
+                    'sync_warning': sync_result.get('error'),
+                    'trigger_calendar_refresh': True,
+                    'clear_disconnected_flag': True
+                })
+                
+        except Exception as sync_error:
+            print(f"❌ [CONNECT] Immediate sync failed: {sync_error}")
+            
+            return jsonify({
+                'success': True,
+                'message': f'Notion connected successfully, but immediate sync failed: {str(sync_error)}',
+                'calendar_id': calendar_id,
+                'sync_error': str(sync_error),
+                'trigger_calendar_refresh': True,
+                'clear_disconnected_flag': True
+            })
         
     except Exception as e:
         print(f"Error connecting Notion to calendar: {e}")

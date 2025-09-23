@@ -6434,9 +6434,61 @@
             return frontendEvent;
         }
         
+        // 🔄 LISTEN FOR REFRESH TRIGGERS FROM OTHER PAGES
+        function setupRefreshListeners() {
+            console.log('🔄 [LISTENER] Setting up calendar refresh listeners');
+            
+            // Method 1: localStorage listener for same-origin communication
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'calendar_grid_refresh_trigger' && e.newValue) {
+                    try {
+                        const refreshData = JSON.parse(e.newValue);
+                        if (refreshData.calendar_id === '{{ calendar.id }}') {
+                            console.log('🔄 [LISTENER] localStorage refresh trigger received:', refreshData);
+                            setTimeout(() => {
+                                loadCalendarEvents();
+                            }, 500);
+                        }
+                    } catch (error) {
+                        console.error('❌ [LISTENER] Error parsing localStorage refresh data:', error);
+                    }
+                }
+            });
+            
+            // Method 2: PostMessage listener
+            window.addEventListener('message', (e) => {
+                if (e.origin !== window.location.origin) return;
+                
+                if (e.data.type === 'CALENDAR_GRID_REFRESH' && e.data.calendar_id === '{{ calendar.id }}') {
+                    console.log('🔄 [LISTENER] PostMessage refresh trigger received:', e.data);
+                    setTimeout(() => {
+                        loadCalendarEvents();
+                    }, 500);
+                }
+            });
+            
+            // Method 3: BroadcastChannel listener
+            if (typeof BroadcastChannel !== 'undefined') {
+                const channel = new BroadcastChannel('calendar_updates');
+                channel.onmessage = (e) => {
+                    if (e.data.type === 'REFRESH_CALENDAR_GRID' && e.data.calendar_id === '{{ calendar.id }}') {
+                        console.log('🔄 [LISTENER] BroadcastChannel refresh trigger received:', e.data);
+                        setTimeout(() => {
+                            loadCalendarEvents();
+                        }, 500);
+                    }
+                };
+            }
+            
+            console.log('✅ [LISTENER] All refresh listeners set up successfully');
+        }
+
         // Load events when page is ready
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 Individual calendar page loaded, loading events...');
+            
+            // Set up refresh listeners first
+            setupRefreshListeners();
             
             // Load events immediately
             loadCalendarEvents();

@@ -1059,6 +1059,57 @@
     src="{{ url_for('static', filename='js/apple-setup-wizard.js') }}?v={{ range(100000, 999999) | random }}"></script>
 <script src="{{ url_for('static', filename='js/platform-health.js') }}?v={{ range(100000, 999999) | random }}"></script>
 <script>
+    // 🚀 CALENDAR GRID REFRESH TRIGGER FUNCTION
+    function triggerCalendarGridRefresh(calendarId, syncedCount = 0) {
+        console.log(`🚀 [TRIGGER] Starting calendar grid refresh for calendar ${calendarId} with ${syncedCount} events`);
+        
+        try {
+            // Method 1: localStorage event trigger for same-origin communication
+            const refreshData = {
+                timestamp: Date.now(),
+                calendar_id: calendarId,
+                synced_count: syncedCount,
+                action: 'refresh_calendar_grid'
+            };
+            
+            localStorage.setItem('calendar_grid_refresh_trigger', JSON.stringify(refreshData));
+            console.log('✅ [TRIGGER] localStorage refresh trigger set');
+            
+            // Remove the trigger after a short delay to avoid multiple triggers
+            setTimeout(() => {
+                localStorage.removeItem('calendar_grid_refresh_trigger');
+            }, 1000);
+            
+            // Method 2: Direct window communication if available
+            if (window.opener && !window.opener.closed) {
+                window.opener.postMessage({
+                    type: 'CALENDAR_GRID_REFRESH',
+                    calendar_id: calendarId,
+                    synced_count: syncedCount
+                }, window.location.origin);
+                console.log('✅ [TRIGGER] PostMessage sent to opener window');
+            }
+            
+            // Method 3: BroadcastChannel for modern browser support
+            if (typeof BroadcastChannel !== 'undefined') {
+                const channel = new BroadcastChannel('calendar_updates');
+                channel.postMessage({
+                    type: 'REFRESH_CALENDAR_GRID',
+                    calendar_id: calendarId,
+                    synced_count: syncedCount,
+                    timestamp: Date.now()
+                });
+                channel.close();
+                console.log('✅ [TRIGGER] BroadcastChannel message sent');
+            }
+            
+            console.log('🎉 [TRIGGER] All calendar refresh triggers sent successfully');
+            
+        } catch (error) {
+            console.error('❌ [TRIGGER] Error triggering calendar refresh:', error);
+        }
+    }
+
     // 현재 연결 중인 플랫폼과 선택된 캘린더를 저장
     let currentConnectingPlatform = null;
     let selectedCalendarId = null;
@@ -2879,6 +2930,19 @@
                 }
                 
                 console.log('✅ [NOTION-FIX] Calendar connection updated successfully:', connectResult);
+                
+                // 🚀 IMMEDIATE CALENDAR GRID REFRESH TRIGGER
+                if (connectResult.trigger_calendar_refresh) {
+                    console.log('🚀 [CALENDAR-REFRESH] Triggering immediate calendar grid refresh');
+                    
+                    // Update success message with sync info
+                    if (connectResult.synced_count > 0) {
+                        console.log(`🎉 [CALENDAR-REFRESH] ${connectResult.synced_count} events synced and ready for grid display`);
+                    }
+                    
+                    // Trigger calendar refresh in any open calendar tab/window
+                    triggerCalendarGridRefresh(calendarId, connectResult.synced_count || 0);
+                }
             }
             
             const response = await fetch('/api/sync-calendar', {
