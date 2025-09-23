@@ -2314,6 +2314,9 @@ async function loadEvents() {
             renderWeekView();
             renderDayView();
             
+            // Update sidebar event list
+            updateSidebarEventList(calendarEvents);
+            
         } else {
             console.error('Failed to load events:', response.status);
             // Load demo events as fallback
@@ -2335,6 +2338,9 @@ function loadDemoEvents() {
     // Demo events disabled - show empty calendar instead
     calendarEvents = [];
     console.log('Demo events disabled - showing empty calendar');
+    
+    // Update sidebar event list (will show empty state)
+    updateSidebarEventList(calendarEvents);
 }
 
 function getEventsForDate(date) {
@@ -5719,4 +5725,108 @@ function showNotification(message, type = 'info', duration = 3000) {
             }
         }, duration);
     }
+}
+
+// 사이드바 이벤트 목록 업데이트 함수
+function updateSidebarEventList(events) {
+    const eventListContainer = document.getElementById('event-list');
+    if (!eventListContainer) {
+        console.warn('Event list container not found');
+        return;
+    }
+
+    console.log(`📋 Updating sidebar with ${events.length} events`);
+
+    // 이벤트가 없는 경우
+    if (!events || events.length === 0) {
+        eventListContainer.innerHTML = `
+            <div class="event-list-empty">
+                <p>표시할 일정이 없습니다.</p>
+            </div>
+        `;
+        return;
+    }
+
+    // 이벤트를 날짜순으로 정렬 (가까운 날짜 우선)
+    const sortedEvents = events.sort((a, b) => {
+        const dateA = new Date(a.start_datetime || a.date);
+        const dateB = new Date(b.start_datetime || b.date);
+        return dateA - dateB;
+    });
+
+    // 최근 15개 이벤트만 표시 (성능 최적화)
+    const recentEvents = sortedEvents.slice(0, 15);
+
+    // 이벤트 HTML 생성
+    const eventsHTML = recentEvents.map(event => {
+        const eventDate = new Date(event.start_datetime || event.date);
+        const formattedDate = formatEventDate(eventDate);
+        const formattedTime = event.is_all_day ? '종일' : formatEventTime(eventDate);
+        
+        return `
+            <div class="event-list-item" data-event-id="${event.id}">
+                <div class="event-list-item-title">${event.title}</div>
+                <div class="event-list-item-time">
+                    ${formattedDate} ${formattedTime !== '종일' ? '• ' + formattedTime : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    eventListContainer.innerHTML = eventsHTML;
+
+    // 이벤트 클릭 리스너 추가
+    eventListContainer.querySelectorAll('.event-list-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            const eventId = e.currentTarget.dataset.eventId;
+            const event = events.find(ev => ev.id === eventId);
+            if (event) {
+                showEventDetails(event);
+            }
+        });
+    });
+}
+
+// 날짜 포맷팅 함수
+function formatEventDate(date) {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const eventDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    
+    const diffTime = eventDay - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) {
+        return '오늘';
+    } else if (diffDays === 1) {
+        return '내일';
+    } else if (diffDays === -1) {
+        return '어제';
+    } else if (diffDays > 1 && diffDays <= 7) {
+        return `${diffDays}일 후`;
+    } else if (diffDays < -1 && diffDays >= -7) {
+        return `${Math.abs(diffDays)}일 전`;
+    } else {
+        return date.toLocaleDateString('ko-KR', { 
+            month: 'short', 
+            day: 'numeric',
+            weekday: 'short'
+        });
+    }
+}
+
+// 시간 포맷팅 함수
+function formatEventTime(date) {
+    return date.toLocaleTimeString('ko-KR', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false
+    });
+}
+
+// 이벤트 상세 표시 함수
+function showEventDetails(event) {
+    console.log('Showing event details:', event);
+    // 여기에 이벤트 상세 모달을 표시하는 로직 추가
+    // 기존의 이벤트 모달 함수가 있다면 그것을 사용
 }
