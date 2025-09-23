@@ -968,13 +968,23 @@ def calendar_detail_main():
     if calendar_db and hasattr(calendar_db, 'is_available') and calendar_db.is_available():
         calendars = calendar_db.get_user_calendars(user_id)
     
-    # Get events for all calendars
+    # Get events for all calendars from database
     all_events = []
     for calendar in (calendars or []):
         calendar_id = calendar.get('id', '')
-        # Get events from in-memory storage directly
-        events_key = f"{user_id}_{calendar_id}"
-        events = calendar_events.get(events_key, [])
+        
+        # Get events from database using dashboard_data if available
+        events = []
+        if dashboard_data:
+            try:
+                events = dashboard_data.get_user_calendar_events(
+                    user_id=user_id,
+                    days_ahead=30,
+                    calendar_ids=[calendar_id]
+                )
+                print(f"[DEBUG] Found {len(events)} events for calendar {calendar_id}")
+            except Exception as e:
+                print(f"[ERROR] Failed to get events for calendar {calendar_id}: {e}")
         
         # Add test events if no events exist (for demo purposes)
         if not events and calendar.get('name') == '내 새 캘린더':
@@ -1039,6 +1049,18 @@ def calendar_detail_main():
             events = test_events
         
         for event in events:
+            # Convert API event format to frontend format
+            if 'start_datetime' in event and 'date' not in event:
+                # Extract date from start_datetime
+                event['date'] = event['start_datetime'].split('T')[0]
+                # Extract time from start_datetime
+                if 'T' in event['start_datetime']:
+                    time_part = event['start_datetime'].split('T')[1]
+                    event['start_time'] = time_part.split('+')[0][:5]  # Get HH:MM
+                if 'end_datetime' in event and 'T' in event['end_datetime']:
+                    end_time_part = event['end_datetime'].split('T')[1]
+                    event['end_time'] = end_time_part.split('+')[0][:5]  # Get HH:MM
+            
             event['calendar_name'] = calendar.get('name', '')
             event['calendar_color'] = calendar.get('color', '#2563eb')
             event['calendar_id'] = calendar_id
