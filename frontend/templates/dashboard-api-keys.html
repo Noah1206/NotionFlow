@@ -1490,9 +1490,9 @@
                                     syncBtn.style.display = 'none';
                                 }
                             } else if (statusElement && platform.configured && !platform.calendar_connected) {
-                                // OAuth만 완료된 상태 (캘린더 미연결)
-                                statusElement.className = 'platform-status partial';
-                                statusElement.innerHTML = '<span class="status-dot"></span>인증 완료';
+                                // OAuth 완료 상태도 연결됨으로 표시 (단일 디자인)
+                                statusElement.className = 'platform-status connected';
+                                statusElement.innerHTML = '<span class="status-dot"></span>연결됨';
 
                                 // 연결 버튼 숨기기
                                 if (connectBtn) {
@@ -1790,8 +1790,9 @@
                             // Mark platform OAuth completed but calendar not connected yet
                             markPlatformConnected(event.data.platform);
 
-                            updatePlatformStatus(event.data.platform, 'oauth_only');
-                            showNotification(`${getKoreanPlatformName(event.data.platform)} OAuth 연결 완료! 이제 캘린더를 연동해주세요.`, 'success');
+                            // 올바른 디자인 적용 - 연결 완료 상태로 변경 (one-click-disconnect-btn 디자인 사용)
+                            updatePlatformStatus(event.data.platform, 'connected');
+                            showNotification(`${getKoreanPlatformName(event.data.platform)} 연결이 완료되었습니다!`, 'success');
                             updateConnectionStats();
                             updatePlatformStatus();
                             resolve(event.data);
@@ -1884,33 +1885,6 @@
             // 캘린더 연동 버튼 숨기기 (이미 연결됨)
             if (syncBtn) {
                 syncBtn.style.display = 'none';
-            }
-        } else if (status === 'oauth_only') {
-            statusElement.className = 'platform-status partial';
-            statusElement.innerHTML = '<span class="status-dot"></span>인증 완료';
-
-            // 기존 연결 버튼 숨기기
-            if (connectBtn) {
-                connectBtn.style.display = 'none';
-            }
-
-            // 원클릭 버튼을 연결해제 버튼으로 변경
-            const oneClickBtn = card.querySelector('.one-click-btn-small');
-            if (oneClickBtn) {
-                oneClickBtn.className = 'one-click-disconnect-btn';
-                oneClickBtn.setAttribute('onclick', `oneClickDisconnect('${platform}')`);
-                oneClickBtn.innerHTML = `
-                    <span class="btn-text">연결해제</span>
-                    <div class="btn-loader" style="display: none;">
-                        <div class="loader-spinner"></div>
-                    </div>
-                `;
-            }
-
-            // 캘린더 연동 버튼 표시 (OAuth 완료, 캘린더 연동 대기)
-            if (syncBtn) {
-                syncBtn.style.display = 'inline-flex';
-                syncBtn.onclick = () => openCalendarSyncModal(platform);
             }
         } else {
             statusElement.className = 'platform-status disconnected';
@@ -3611,61 +3585,9 @@
         const connectBtn = card.querySelector('.platform-connect-btn');
         const syncBtn = card.querySelector('.platform-sync-btn');
         
-        if (syncInfo.sync_status === 'oauth_only') {
-            // OAuth만 연동된 상태
-            if (statusElement) {
-                statusElement.className = 'platform-status oauth-connected';
-                statusElement.innerHTML = '<span class="status-dot"></span>OAuth 연동 완료';
-            }
-            
-            // 연결하기 버튼 숨기고 캘린더 연동 버튼 표시
-            if (connectBtn) connectBtn.style.display = 'none';
-            if (syncBtn) {
-                syncBtn.style.display = 'inline-flex';
-                const syncText = syncBtn.querySelector('.sync-text');
-                if (syncText) {
-                    syncText.textContent = '캘린더 연동';
-                }
-            }
-        } else if (syncInfo.sync_status === 'active' && syncInfo.calendar_id) {
-            // 완전한 캘린더 연동 상태
-            if (statusElement) {
-                statusElement.className = 'platform-status connected';
-                statusElement.innerHTML = '<span class="status-dot"></span>캘린더 연동됨';
-            }
-            
-            // 연결하기 버튼과 원클릭 버튼 숨기기
-            if (connectBtn) connectBtn.style.display = 'none';
-            const oneClickBtn = card.querySelector('.one-click-btn-small');
-            if (oneClickBtn) oneClickBtn.style.display = 'none';
-            
-            // 캘린더 연동 버튼 업데이트
-            if (syncBtn) {
-                syncBtn.style.display = 'inline-flex';
-                syncBtn.style.position = 'relative';
-                const syncText = syncBtn.querySelector('.sync-text');
-                if (syncText) {
-                    syncText.textContent = `연동됨: ${syncInfo.calendar_name}`;
-                    syncBtn.classList.add('synced');
-                    syncBtn.title = `${syncInfo.calendar_name}과 연동됨 (${syncInfo.synced_at})`;
-                }
-                
-                // 연동 해제 X 버튼 추가
-                let disconnectBtn = syncBtn.querySelector('.sync-disconnect-btn');
-                if (!disconnectBtn) {
-                    disconnectBtn = document.createElement('button');
-                    disconnectBtn.className = 'sync-disconnect-btn';
-                    disconnectBtn.innerHTML = '×';
-                    disconnectBtn.title = '캘린더 연동 해제';
-                    disconnectBtn.onclick = (e) => {
-                        e.stopPropagation();
-                        disconnectCalendarSync(platform, syncInfo.calendar_id);
-                    };
-                    syncBtn.appendChild(disconnectBtn);
-                }
-                
-                // Removed manual import button - auto-import on connection now
-            }
+        if (syncInfo.sync_status === 'oauth_only' || (syncInfo.sync_status === 'active' && syncInfo.calendar_id)) {
+            // 모든 연동 상태에서 동일한 디자인 사용 (one-click-disconnect-btn)
+            updatePlatformStatus(platform, 'connected');
         }
     }
 
