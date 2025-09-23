@@ -6299,6 +6299,61 @@
         }
     </script>
 
+    <!-- Individual Calendar Event Loading Script -->
+    <script>
+        // Load events for individual calendar page
+        async function loadCalendarEvents() {
+            const calendarId = '{{ calendar.id }}';
+            console.log('🔄 Loading events for individual calendar:', calendarId);
+            
+            try {
+                const response = await fetch(`/api/calendars/${calendarId}/events`);
+                if (response.ok) {
+                    const events = await response.json();
+                    console.log('📅 Loaded events for individual calendar:', events.length);
+                    
+                    if (events.length > 0) {
+                        console.log('📅 Sample event:', events[0]);
+                        
+                        // Wait for googleCalendarGrid to be available
+                        if (window.googleCalendarGrid && typeof window.googleCalendarGrid.loadEvents === 'function') {
+                            window.googleCalendarGrid.loadEvents(events);
+                            console.log('✅ Events loaded into calendar grid');
+                        } else {
+                            // Fallback: store events and wait for grid initialization
+                            window.pendingCalendarEvents = events;
+                            console.log('⏳ Stored events for later loading');
+                        }
+                    } else {
+                        console.log('ℹ️ No events found for this calendar');
+                    }
+                } else {
+                    console.error('❌ Failed to load calendar events:', response.status);
+                }
+            } catch (error) {
+                console.error('❌ Error loading calendar events:', error);
+            }
+        }
+        
+        // Load events when page is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Individual calendar page loaded, loading events...');
+            
+            // Load events immediately
+            loadCalendarEvents();
+            
+            // Also try loading after a short delay in case grid isn't ready
+            setTimeout(() => {
+                if (window.pendingCalendarEvents && window.googleCalendarGrid) {
+                    console.log('🔄 Loading pending events into grid...');
+                    window.googleCalendarGrid.loadEvents(window.pendingCalendarEvents);
+                    window.pendingCalendarEvents = null;
+                }
+            }, 1000);
+        });
+    </script>
+
+
 </body>
 
 </html>

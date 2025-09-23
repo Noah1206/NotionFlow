@@ -502,6 +502,14 @@ let currentDate = new Date();
 
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🎯 [CRITICAL] Calendar page loaded - starting initialization');
+    console.log('🎯 [CRITICAL] CALENDAR_DATA exists:', typeof CALENDAR_DATA !== 'undefined');
+    if (typeof CALENDAR_DATA !== 'undefined') {
+        console.log('🎯 [CRITICAL] CALENDAR_DATA content:', CALENDAR_DATA);
+    } else {
+        console.error('❌ [CRITICAL] CALENDAR_DATA is undefined!');
+    }
+    
     initializeCalendar();
     generateCalendarView();
     updateDateDisplay();
