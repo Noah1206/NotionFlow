@@ -124,6 +124,7 @@
                         연결됨
                     </span>
                 </div>
+                <button class="btn-primary-small" onclick="showCalendarSelectionModal()" style="margin-right: 8px;">캘린더 선택</button>
                 <button class="btn-warning-small" onclick="disconnectPlatform('notion')">연결해제</button>
             </div>
 
@@ -537,28 +538,58 @@
     
     // 플랫폼 연결해제 함수  
     function disconnectPlatform(platformName) {
-        if (confirm(`${platformName} 연결을 해제하시겠습니까?`)) {
-            // 연결해제 API 호출
-            fetch(`/api/oauth/${platformName}/disconnect`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showNotification(`${platformName} 연결이 해제되었습니다.`, 'success');
-                    // 페이지 새로고침으로 상태 업데이트
-                    setTimeout(() => window.location.reload(), 1000);
-                } else {
-                    showNotification(`연결해제 실패: ${data.error}`, 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Disconnect error:', error);
-                showNotification('연결해제 중 오류가 발생했습니다.', 'error');
-            });
+        // Notion의 경우 특별 처리: OAuth 유지하고 캘린더 선택만 재설정
+        if (platformName === 'notion') {
+            if (confirm('캘린더 연동을 해제하고 다시 선택하시겠습니까? (Notion 연결은 유지됩니다)')) {
+                // 캘린더 선택 상태만 초기화
+                fetch('/api/oauth/notion/reset-calendar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('캘린더 연동이 해제되었습니다. 새로운 캘린더를 선택해주세요.', 'success');
+                        // 캘린더 선택 모달 표시
+                        setTimeout(() => {
+                            showCalendarSelectionModal();
+                        }, 1000);
+                    } else {
+                        showNotification(`연동 해제 실패: ${data.error}`, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Reset calendar error:', error);
+                    showNotification('캘린더 연동 해제 중 오류가 발생했습니다.', 'error');
+                });
+            }
+        } else {
+            // 다른 플랫폼은 기존 로직 사용
+            if (confirm(`${platformName} 연결을 해제하시겠습니까?`)) {
+                // 연결해제 API 호출
+                fetch(`/api/oauth/${platformName}/disconnect`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification(`${platformName} 연결이 해제되었습니다.`, 'success');
+                        // 페이지 새로고침으로 상태 업데이트
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        showNotification(`연결해제 실패: ${data.error}`, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Disconnect error:', error);
+                    showNotification('연결해제 중 오류가 발생했습니다.', 'error');
+                });
+            }
         }
     }
 
@@ -723,6 +754,29 @@
         return time.toLocaleDateString('ko-KR');
     }
 
+    // 페이지 로드 시 Notion 캘린더 선택 상태 확인
+    function checkNotionCalendarState() {
+        fetch('/api/oauth/notion/calendar-state', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.needs_calendar_selection) {
+                console.log('✅ [LOAD] Notion needs calendar selection - showing modal');
+                // 페이지 로드 후 잠시 후에 모달 표시
+                setTimeout(() => {
+                    showCalendarSelectionModal();
+                }, 2000);
+            }
+        })
+        .catch(error => {
+            console.error('Failed to check Notion calendar state:', error);
+        });
+    }
+
     // 페이지 로드 시 데이터 업데이트
     document.addEventListener('DOMContentLoaded', function() {
         // 차트를 전역 변수로 저장
@@ -730,6 +784,9 @@
         
         // 실제 데이터 로드
         updateSettingsData();
+        
+        // Notion 캘린더 선택 상태 확인
+        checkNotionCalendarState();
         
         // 30초마다 데이터 업데이트
         setInterval(updateSettingsData, 30000);
@@ -749,12 +806,19 @@
                 'success'
             );
             
-            // Notion 연결이고 동기화가 성공했으면 캘린더로 이동
-            if (event.data.platform === 'notion' && event.data.redirect_to_calendar) {
-                setTimeout(() => {
-                    console.log('Redirecting to calendar after Notion sync...');
-                    window.location.href = '/calendar';
-                }, 1500); // 1.5초 후 이동 (알림이 보인 후)
+            // Notion 연결 완료 후 캘린더 선택 UI 표시 또는 페이지 이동
+            if (event.data.platform === 'notion') {
+                if (event.data.redirect_to_calendar) {
+                    setTimeout(() => {
+                        console.log('Redirecting to calendar after Notion sync...');
+                        window.location.href = '/calendar';
+                    }, 1500);
+                } else {
+                    // 캘린더 선택 UI 표시
+                    setTimeout(() => {
+                        showCalendarSelectionModal();
+                    }, 1000);
+                }
             } else {
                 // 다른 플랫폼이거나 동기화할 데이터가 없으면 페이지 새로고침
                 setTimeout(() => {
@@ -820,5 +884,203 @@
         }
     `;
     document.head.appendChild(style);
+
+    // 캘린더 선택 모달 표시 함수
+    function showCalendarSelectionModal() {
+        // 기존 모달이 있으면 제거
+        const existingModal = document.getElementById('calendar-selection-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        // 모달 HTML 생성
+        const modalHTML = `
+            <div id="calendar-selection-modal" style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10001;
+            ">
+                <div style="
+                    background: white;
+                    border-radius: 12px;
+                    padding: 24px;
+                    max-width: 500px;
+                    width: 90%;
+                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+                ">
+                    <h3 style="margin: 0 0 16px 0; color: #333; font-size: 20px;">
+                        📅 Notion 캘린더 연동 설정
+                    </h3>
+                    <p style="margin: 0 0 20px 0; color: #666; line-height: 1.5;">
+                        Notion 연결이 완료되었습니다! 이벤트를 동기화할 캘린더를 선택해주세요.
+                    </p>
+                    
+                    <div id="calendar-list" style="margin-bottom: 20px;">
+                        <div class="loading-spinner" style="text-align: center; padding: 20px;">
+                            🔄 캘린더 목록을 불러오는 중...
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                        <button onclick="closeCalendarModal()" style="
+                            background: #f5f5f5;
+                            border: none;
+                            padding: 10px 20px;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            color: #666;
+                        ">나중에</button>
+                        <button id="sync-button" onclick="startNotionSync()" disabled style="
+                            background: #3b82f6;
+                            border: none;
+                            padding: 10px 20px;
+                            border-radius: 6px;
+                            color: white;
+                            cursor: not-allowed;
+                            opacity: 0.5;
+                        ">동기화 시작</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // 모달을 body에 추가
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        // 캘린더 목록 로드
+        loadUserCalendars();
+    }
+
+    // 캘린더 목록 로드
+    async function loadUserCalendars() {
+        try {
+            const response = await fetch('/api/calendars');
+            const result = await response.json();
+            
+            const calendarList = document.getElementById('calendar-list');
+            if (!calendarList) return;
+
+            if (result.success && result.calendars && result.calendars.length > 0) {
+                let calendarsHTML = '<div style="margin-bottom: 12px; font-weight: 600; color: #333;">캘린더 선택:</div>';
+                
+                result.calendars.forEach((calendar, index) => {
+                    calendarsHTML += `
+                        <label style="
+                            display: block;
+                            padding: 12px;
+                            border: 2px solid #e5e5e5;
+                            border-radius: 8px;
+                            margin-bottom: 8px;
+                            cursor: pointer;
+                            transition: all 0.2s;
+                        " onmouseover="this.style.borderColor='#3b82f6'" onmouseout="this.style.borderColor='#e5e5e5'">
+                            <input type="radio" name="selected-calendar" value="${calendar.id}" 
+                                   onchange="selectCalendar('${calendar.id}')" 
+                                   ${index === 0 ? 'checked' : ''} 
+                                   style="margin-right: 8px;">
+                            <span style="font-weight: 500; color: #333;">${calendar.name}</span>
+                            ${calendar.description ? `<div style="font-size: 12px; color: #666; margin-top: 4px;">${calendar.description}</div>` : ''}
+                        </label>
+                    `;
+                });
+                
+                calendarList.innerHTML = calendarsHTML;
+                
+                // 첫 번째 캘린더가 기본 선택되어 있으므로 동기화 버튼 활성화
+                if (result.calendars.length > 0) {
+                    selectCalendar(result.calendars[0].id);
+                }
+            } else {
+                calendarList.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: #666;">
+                        캘린더가 없습니다. 먼저 캘린더를 생성해주세요.
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Failed to load calendars:', error);
+            const calendarList = document.getElementById('calendar-list');
+            if (calendarList) {
+                calendarList.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: #e74c3c;">
+                        캘린더 목록을 불러오는데 실패했습니다.
+                    </div>
+                `;
+            }
+        }
+    }
+
+    // 캘린더 선택
+    function selectCalendar(calendarId) {
+        window.selectedCalendarId = calendarId;
+        const syncButton = document.getElementById('sync-button');
+        if (syncButton) {
+            syncButton.disabled = false;
+            syncButton.style.cursor = 'pointer';
+            syncButton.style.opacity = '1';
+        }
+    }
+
+    // Notion 동기화 시작
+    async function startNotionSync() {
+        if (!window.selectedCalendarId) return;
+
+        const syncButton = document.getElementById('sync-button');
+        if (syncButton) {
+            syncButton.textContent = '동기화 중...';
+            syncButton.disabled = true;
+            syncButton.style.opacity = '0.7';
+        }
+
+        try {
+            const response = await fetch('/api/sync/notion', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    calendar_id: window.selectedCalendarId
+                })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                showNotification(`✅ ${result.synced_events || 0}개의 이벤트가 동기화되었습니다!`, 'success');
+                closeCalendarModal();
+                
+                // 캘린더 페이지로 이동
+                setTimeout(() => {
+                    window.location.href = '/calendar';
+                }, 1500);
+            } else {
+                showNotification(`❌ 동기화 실패: ${result.error}`, 'error');
+            }
+        } catch (error) {
+            console.error('Sync failed:', error);
+            showNotification('❌ 동기화 중 오류가 발생했습니다.', 'error');
+        }
+
+        if (syncButton) {
+            syncButton.textContent = '동기화 시작';
+            syncButton.disabled = false;
+            syncButton.style.opacity = '1';
+        }
+    }
+
+    // 모달 닫기
+    function closeCalendarModal() {
+        const modal = document.getElementById('calendar-selection-modal');
+        if (modal) {
+            modal.remove();
+        }
+    }
 </script>
 {% endblock %}

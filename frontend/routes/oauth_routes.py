@@ -1335,26 +1335,17 @@ def handle_callback_success(platform, user_info):
                 # Store calendar_id in session for immediate use
                 session['notion_calendar_id'] = calendar_id
                 
-                # OAuth 완료 후 약간의 지연 후 동기화 실행 (토큰 저장 완료 대기)
-                print(f"🚀 [OAUTH] Starting delayed Notion sync for calendar: {calendar_id}")
-                try:
-                    import time
-                    time.sleep(2)  # 2초 대기로 토큰 저장 완료 보장
-                    
-                    from services.notion_sync import notion_sync
-                    sync_result = notion_sync.sync_to_calendar(user_id, calendar_id)
-                    if sync_result and sync_result.get('success'):
-                        events_count = sync_result.get('synced_events', 0)
-                        print(f"✅ [OAUTH] Synced {events_count} events to calendar_events table")
-                    else:
-                        print(f"⚠️ [OAUTH] Sync completed but no events found or sync failed")
-                except Exception as sync_error:
-                    print(f"❌ [OAUTH] Error during immediate sync: {sync_error}")
-                    import traceback
-                    traceback.print_exc()
-                    sync_result = {'success': False, 'error': str(sync_error)}
-                
+                # OAuth 완료 후 캘린더 선택을 위한 상태 설정
+                print(f"✅ [OAUTH] Notion OAuth completed. Ready for calendar selection.")
                 session['notion_oauth_completed'] = True
+                session['notion_needs_calendar_selection'] = True
+                
+                # 동기화는 사용자가 캘린더를 선택한 후에 실행하도록 변경
+                sync_result = {
+                    'success': True,
+                    'synced_events': 0,
+                    'message': 'OAuth completed. Please select calendar to sync.'
+                }
                     
         except Exception as sync_e:
             print(f"⚠️ [OAUTH] OAuth completion error: {sync_e}")
@@ -1832,6 +1823,122 @@ def refresh_token(platform):
         }).eq('user_id', user_id).eq('platform', platform).execute()
         
         return jsonify({'success': True, 'expires_at': expires_at})
+
+@oauth_bp.route('/notion/calendar-state', methods=['GET'])
+def get_notion_calendar_state():
+    """Notion 캘린더 선택 상태 확인 (영속성 상태 반영)"""
+    from flask import session
+    
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'User not authenticated'}), 401
+        
+        from utils.config import config
+        supabase = config.get_client_for_user(user_id)
+        
+        if not supabase:
+            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+        
+        # 데이터베이스에서 영속적 상태 확인
+        try:
+            config_result = supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', 'notion').execute()
+            
+            needs_calendar_selection = False
+            
+            if config_result.data:
+                config = config_result.data[0]
+                # sync_status가 'needs_calendar_selection'이거나 calendar_id가 비어있으면 선택 필요
+                needs_calendar_selection = (
+                    config.get('sync_status') == 'needs_calendar_selection' or 
+                    not config.get('calendar_id') or
+                    not config.get('is_enabled')
+                )
+                
+                print(f"ℹ️ [STATE] Calendar config found: sync_status={config.get('sync_status')}, calendar_id={config.get('calendar_id')}, is_enabled={config.get('is_enabled')}")
+            else:
+                # 설정이 없으면 OAuth가 되었는지 확인
+                oauth_result = supabase.table('oauth_tokens').select('*').eq('user_id', user_id).eq('platform', 'notion').execute()
+                if oauth_result.data:
+                    needs_calendar_selection = True  # OAuth는 되었는데 config가 없음
+                    print(f"ℹ️ [STATE] OAuth exists but no calendar config - needs selection")
+            
+            # 세션 상태도 확인 (즉시 반영용)
+            session_needs_selection = session.get('notion_needs_calendar_selection', False)
+            if session_needs_selection:
+                needs_calendar_selection = True
+                print(f"ℹ️ [STATE] Session indicates calendar selection needed")
+            
+            return jsonify({
+                'success': True,
+                'needs_calendar_selection': needs_calendar_selection,
+                'persistent_state': config_result.data[0] if config_result.data else None
+            })
+            
+        except Exception as db_e:
+            print(f"⚠️ [STATE] Database error checking calendar state: {db_e}")
+            # 데이터베이스 오류 시 세션만 확인
+            session_needs_selection = session.get('notion_needs_calendar_selection', False)
+            return jsonify({
+                'success': True,
+                'needs_calendar_selection': session_needs_selection,
+                'fallback_to_session': True
+            })
+        
+    except Exception as e:
+        print(f"❌ [STATE] Error checking Notion calendar state: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@oauth_bp.route('/notion/reset-calendar', methods=['POST'])
+def reset_notion_calendar():
+    """Notion 캘린더 선택 상태만 초기화 (OAuth 토큰은 유지)"""
+    from flask import session
+    
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'User not authenticated'}), 401
+        
+        from utils.config import config
+        supabase = config.get_client_for_user(user_id)
+        
+        if not supabase:
+            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+        
+        # calendar_sync 테이블에서 notion 연동 비활성화 (토큰은 유지)
+        supabase.table('calendar_sync').update({
+            'sync_status': 'inactive',
+            'updated_at': datetime.now().isoformat()
+        }).eq('user_id', user_id).eq('platform', 'notion').execute()
+        
+        # calendar_sync_configs에서도 캘린더 선택 상태 초기화 (토큰은 유지)
+        try:
+            # 기존 config 업데이트 - calendar_id만 제거하고 나머지는 유지
+            supabase.table('calendar_sync_configs').update({
+                'calendar_id': None,  # 캘린더 선택 해제
+                'is_enabled': False,  # 동기화 비활성화
+                'sync_status': 'needs_calendar_selection',  # 캘린더 선택 필요 상태
+                'updated_at': datetime.now().isoformat()
+            }).eq('user_id', user_id).eq('platform', 'notion').execute()
+            
+            print(f"✅ [RESET] Updated calendar_sync_configs with persistent state")
+        except Exception as config_e:
+            print(f"⚠️ [RESET] Could not update calendar_sync_configs: {config_e}")
+        
+        # 세션에서 캘린더 선택 상태 설정 (즉시 반영용)
+        session['notion_needs_calendar_selection'] = True
+        session['notion_calendar_reset'] = True
+        
+        print(f"✅ [RESET] Notion calendar reset for user {user_id}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Calendar selection reset successfully'
+        })
+        
+    except Exception as e:
+        print(f"❌ [RESET] Error resetting Notion calendar: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
         
     except Exception as e:
         print(f"Token refresh error: {e}")
