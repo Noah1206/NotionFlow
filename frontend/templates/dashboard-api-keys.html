@@ -3548,9 +3548,23 @@
     // 페이지 로드 시 연동된 캘린더 정보 불러오기
     async function loadSyncedCalendars() {
         try {
-            // Check if Google has been manually disconnected to prevent auto-reconnection
+            // Check if platforms have been manually disconnected to prevent auto-reconnection
             const googleManuallyDisconnected = localStorage.getItem('google_manually_disconnected') === 'true';
-            const notionManuallyDisconnected = localStorage.getItem('notion_manually_disconnected') === 'true';
+            let notionManuallyDisconnected = localStorage.getItem('notion_manually_disconnected') === 'true';
+            
+            // Also check server-side disconnect state for Notion
+            try {
+                const notionStateResponse = await fetch('/api/oauth/notion/calendar-state');
+                const notionStateData = await notionStateResponse.json();
+                if (notionStateData.success && notionStateData.needs_calendar_selection) {
+                    notionManuallyDisconnected = true;
+                    localStorage.setItem('notion_manually_disconnected', 'true'); // Sync with localStorage
+                    console.log('🔄 [NOTION-STATE] Server indicates Notion needs calendar selection - setting localStorage flag');
+                }
+            } catch (stateError) {
+                console.log('⚠️ [NOTION-STATE] Could not check Notion state:', stateError);
+            }
+            
             console.log('Loading synced calendars with disconnection flags - Google:', googleManuallyDisconnected, 'Notion:', notionManuallyDisconnected);
             
             const headers = {};
