@@ -5348,6 +5348,50 @@ def sync_calendar():
             print(f"[WARNING] Sync database operation failed, using session only: {sync_error}")
         
         # 연동 성공 (DB 저장 실패해도 세션에는 저장됨)
+        
+        # 🔧 CRITICAL FIX: Update calendar_sync_configs for Notion to properly reflect calendar selection
+        if platform == 'notion':
+            try:
+                # Check if config already exists
+                existing_config = supabase_client.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', 'notion').execute()
+                
+                config_data = {
+                    'user_id': user_id,
+                    'platform': 'notion',
+                    'calendar_id': calendar_id,  # Set the selected calendar ID
+                    'is_enabled': True,
+                    'sync_status': 'active',  # Set to active instead of needs_calendar_selection
+                    'sync_frequency_minutes': 15,
+                    'consecutive_failures': 0,
+                    'last_sync_at': datetime.utcnow().isoformat(),
+                    'created_at': datetime.utcnow().isoformat(),
+                    'updated_at': datetime.utcnow().isoformat()
+                }
+                
+                if existing_config.data:
+                    # Update existing config with calendar selection
+                    update_result = supabase_client.table('calendar_sync_configs').update({
+                        'calendar_id': calendar_id,
+                        'is_enabled': True,
+                        'sync_status': 'active',
+                        'last_sync_at': datetime.utcnow().isoformat(),
+                        'updated_at': datetime.utcnow().isoformat()
+                    }).eq('user_id', user_id).eq('platform', 'notion').execute()
+                    print(f"✅ [SYNC] Updated Notion calendar_sync_configs with calendar_id={calendar_id}")
+                else:
+                    # Insert new config
+                    insert_result = supabase_client.table('calendar_sync_configs').insert(config_data).execute()
+                    print(f"✅ [SYNC] Created new Notion calendar_sync_configs with calendar_id={calendar_id}")
+                    
+                # Clear the session flag that indicates calendar selection is needed
+                if 'notion_needs_calendar_selection' in session:
+                    del session['notion_needs_calendar_selection']
+                    print(f"✅ [SYNC] Cleared notion_needs_calendar_selection from session")
+                    
+            except Exception as config_error:
+                print(f"⚠️ [SYNC] Error updating Notion calendar_sync_configs: {config_error}")
+                # Continue even if config update fails
+        
         # Notion에서 NodeFlow로 이벤트 가져오기 (Import)
         synced_events_count = 0
         imported_events_count = 0
