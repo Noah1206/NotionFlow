@@ -517,6 +517,14 @@ function initializeCalendar() {
     if (CALENDAR_DATA.events.length > 0) {
         console.log(`[DEBUG] Sample event structure:`, CALENDAR_DATA.events[0]);
         console.log(`[DEBUG] All event dates:`, CALENDAR_DATA.events.map(e => e.date));
+        
+        // 12월 이벤트 확인
+        const decemberEvents = CALENDAR_DATA.events.filter(e => e.date && e.date.startsWith('2025-12'));
+        console.log(`[DEBUG] December 2025 events: ${decemberEvents.length}`);
+        if (decemberEvents.length > 0) {
+            console.log(`[DEBUG] December event dates:`, decemberEvents.map(e => e.date));
+            console.log(`[DEBUG] SOLUTION: Navigate to December 2025 to see your events!`);
+        }
     }
     
     // 뷰 버튼 이벤트 리스너 설정

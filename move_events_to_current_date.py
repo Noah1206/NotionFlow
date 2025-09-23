@@ -15,21 +15,20 @@ def move_events_to_current_date():
         print("❌ Supabase client not available")
         return
     
-    # Get current date
+    # Get current date and create multiple target dates
     today = datetime.now()
-    tomorrow = today + timedelta(days=1)
-    day_after = today + timedelta(days=2)
+    target_dates = []
+    for i in range(10):  # Create 10 different dates
+        target_date = today + timedelta(days=i)
+        target_time = 9 + i  # Different hours: 9:00, 10:00, 11:00, etc.
+        formatted_date = target_date.strftime(f'%Y-%m-%dT{target_time:02d}:00:00+09:00')
+        target_dates.append(formatted_date)
     
-    # Format dates
-    today_str = today.strftime('%Y-%m-%dT09:00:00+09:00')
-    tomorrow_str = tomorrow.strftime('%Y-%m-%dT10:00:00+09:00') 
-    day_after_str = day_after.strftime('%Y-%m-%dT11:00:00+09:00')
-    
-    print(f"Moving events to: {today_str}, {tomorrow_str}, {day_after_str}")
+    print(f"Moving events to current week: {target_dates[:3]} ... {target_dates[-1]}")
     
     try:
-        # Get some Notion events to move
-        events = config.supabase_client.table('calendar_events').select('*').eq('source_platform', 'notion').limit(3).execute()
+        # Get some Notion events to move (more events for better testing)
+        events = config.supabase_client.table('calendar_events').select('*').eq('source_platform', 'notion').limit(10).execute()
         
         if not events.data:
             print("❌ No Notion events found")
@@ -37,12 +36,13 @@ def move_events_to_current_date():
             
         print(f"📋 Found {len(events.data)} events to move")
         
-        # Update the first 3 events with current dates
-        dates = [today_str, tomorrow_str, day_after_str]
-        
-        for i, event in enumerate(events.data[:3]):
-            new_start = dates[i]
-            new_end = new_start.replace('09:00:00', '10:00:00').replace('10:00:00', '11:00:00').replace('11:00:00', '12:00:00')
+        # Update events with distributed current dates
+        for i, event in enumerate(events.data[:10]):
+            new_start = target_dates[i]
+            # Create end time 1 hour later
+            start_hour = int(new_start.split('T')[1][:2])
+            end_hour = start_hour + 1
+            new_end = new_start.replace(f'{start_hour:02d}:00:00', f'{end_hour:02d}:00:00')
             
             print(f"📅 Moving event '{event['title']}' to {new_start}")
             
