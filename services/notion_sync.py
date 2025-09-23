@@ -21,6 +21,8 @@ class NotionAPI:
             'Notion-Version': '2022-06-28',
             'Content-Type': 'application/json'
         }
+        # 문제 있는 데이터베이스 블랙리스트 (메모리 저장)
+        self.blacklisted_databases = set()
     
     def search_databases(self) -> List[Dict]:
         """모든 데이터베이스 검색"""
@@ -85,16 +87,52 @@ class NotionAPI:
             # 최근 3개월 데이터만 가져오기 (성능 최적화)
             three_months_ago = (datetime.now() - timedelta(days=90)).isoformat()
             
-            # 간단한 쿼리로 시작 (속성 필터 제거)
+            # 안전한 쿼리 - 스키마 확인 후 정렬 설정
             query_payload = {
-                "page_size": page_size,
-                "sorts": [
-                    {
-                        "timestamp": "last_edited_time",
-                        "direction": "descending"
-                    }
-                ]
+                "page_size": page_size
             }
+            
+            # 스키마에서 날짜 프로퍼티가 있는지 확인하고 있으면 정렬에 사용
+            try:
+                if 'schema' in locals() and 'properties' in locals():
+                    # 날짜 타입 프로퍼티 찾기
+                    date_property_name = None
+                    for prop_name, prop_data in properties.items():
+                        if prop_data.get('type') == 'date':
+                            date_property_name = prop_name
+                            break
+                    
+                    if date_property_name:
+                        # 날짜 프로퍼티로 정렬
+                        query_payload["sorts"] = [
+                            {
+                                "property": date_property_name,
+                                "direction": "descending"
+                            }
+                        ]
+                        print(f"✅ Using date property '{date_property_name}' for sorting")
+                    else:
+                        # 날짜 프로퍼티가 없으면 timestamp로 정렬
+                        query_payload["sorts"] = [
+                            {
+                                "timestamp": "last_edited_time",
+                                "direction": "descending"
+                            }
+                        ]
+                        print("📅 No date property found, using last_edited_time for sorting")
+                else:
+                    # 스키마 확인 실패시 안전한 기본값
+                    query_payload["sorts"] = [
+                        {
+                            "timestamp": "last_edited_time",
+                            "direction": "descending"
+                        }
+                    ]
+                    print("⚠️ Schema not available, using last_edited_time for sorting")
+            except Exception as sort_error:
+                print(f"⚠️ Error setting up sort: {sort_error}")
+                # 정렬 없이 진행
+                pass
             
             if start_cursor:
                 query_payload["start_cursor"] = start_cursor
@@ -140,14 +178,38 @@ class NotionAPI:
             
             # 특정 에러 패턴 감지
             error_str = str(e).lower()
-            if 'property' in error_str and 'date' in error_str:
-                print(f"🔍 Date property access error for database {database_id}")
-                print("This database may not have the expected Date property or may be inaccessible")
+            if 'property' in error_str and ('date' in error_str or 'name' in error_str or 'id' in error_str):
+                print(f"🔍 Property access error for database {database_id}")
+                print("This database may have an incompatible schema or may be inaccessible")
+                # 문제 있는 데이터베이스는 블랙리스트에 추가
+                self._add_to_blacklist(database_id, "property_access_error")
                 
             elif 'not found' in error_str or '404' in error_str:
                 print(f"🗑️ Database {database_id} not found - may have been deleted")
+                self._add_to_blacklist(database_id, "not_found")
+                
+            elif 'unauthorized' in error_str or '403' in error_str:
+                print(f"🔒 Database {database_id} access denied")
+                self._add_to_blacklist(database_id, "access_denied")
                 
             return {'results': [], 'has_more': False, 'next_cursor': None, 'total_count': 0}
+    
+    def _add_to_blacklist(self, database_id: str, reason: str):
+        """문제 있는 데이터베이스를 블랙리스트에 추가"""
+        self.blacklisted_databases.add(database_id)
+        print(f"🚫 Database {database_id} added to blacklist (reason: {reason})")
+    
+    def _is_blacklisted(self, database_id: str) -> bool:
+        """데이터베이스가 블랙리스트에 있는지 확인"""
+        return database_id in self.blacklisted_databases
+    
+    def query_database_safe(self, database_id: str, page_size: int = 50, start_cursor: str = None) -> Dict:
+        """안전한 데이터베이스 쿼리 - 블랙리스트 확인"""
+        if self._is_blacklisted(database_id):
+            print(f"⏭️ Skipping blacklisted database {database_id}")
+            return {'results': [], 'has_more': False, 'next_cursor': None, 'total_count': 0}
+        
+        return self.query_database(database_id, page_size, start_cursor)
 
 
 # Notion 캘린더 동기화 클래스
@@ -420,7 +482,7 @@ class NotionCalendarSync:
                 
                 while True:
                     # 한 번에 15개씩 처리 (API 부하 및 worker timeout 방지)
-                    result = notion_api.query_database(db_id, page_size=15, start_cursor=start_cursor)
+                    result = notion_api.query_database_safe(db_id, page_size=15, start_cursor=start_cursor)
                     pages = result.get('results', [])
                     
                     if not pages:
@@ -587,26 +649,47 @@ class NotionCalendarSync:
         return None
     
     def _extract_date(self, properties: Dict) -> Optional[Dict]:
-        """페이지에서 날짜 정보 추출"""
-        # 일반적인 날짜 속성명들
-        date_keys = ['Date', 'Due', 'When', '날짜', '일정', 'Start', 'End', '시작', '종료', 'Deadline']
-        
-        for key in date_keys:
-            if key in properties and properties[key].get('type') == 'date':
-                date_prop = properties[key].get('date')
-                if date_prop:
+        """페이지에서 날짜 정보 추출 - 안전한 방식으로 모든 날짜 타입 속성 확인"""
+        try:
+            # 먼저 일반적인 날짜 속성명들을 확인
+            common_date_keys = ['Date', 'Due', 'When', '날짜', '일정', 'Start', 'End', '시작', '종료', 'Deadline', 'Created', 'Updated']
+            
+            for key in common_date_keys:
+                if key in properties and properties[key].get('type') == 'date':
+                    date_prop = properties[key].get('date')
+                    if date_prop:
+                        start = date_prop.get('start')
+                        end = date_prop.get('end') or start
+                        
+                        if start:
+                            # 시간 정보가 없으면 종일 이벤트
+                            all_day = 'T' not in start
+                            
+                            return {
+                                'start': start,
+                                'end': end,
+                                'all_day': all_day
+                            }
+            
+            # 일반적인 이름으로 찾지 못한 경우, 모든 속성을 순회하여 날짜 타입 찾기
+            for prop_name, prop_data in properties.items():
+                if prop_data.get('type') == 'date' and prop_data.get('date'):
+                    date_prop = prop_data.get('date')
                     start = date_prop.get('start')
                     end = date_prop.get('end') or start
                     
                     if start:
-                        # 시간 정보가 없으면 종일 이벤트
                         all_day = 'T' not in start
+                        print(f"✅ Found date property '{prop_name}': {start} → {end}")
                         
                         return {
                             'start': start,
                             'end': end,
                             'all_day': all_day
                         }
+        
+        except Exception as e:
+            print(f"⚠️ Error extracting date from properties: {e}")
         
         return None
     
@@ -1039,7 +1122,7 @@ class NotionCalendarSync:
                 start_cursor = None
                 
                 while True:
-                    result = notion_api.query_database(db_id, page_size=50, start_cursor=start_cursor)
+                    result = notion_api.query_database_safe(db_id, page_size=50, start_cursor=start_cursor)
                     pages = result.get('results', [])
                     
                     if not pages:
