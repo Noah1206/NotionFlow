@@ -1299,29 +1299,47 @@ def handle_callback_success(platform, user_info):
                         
                         # Check if sync entry already exists
                         existing_sync = supabase.table('calendar_sync').select('*').eq('user_id', user_id).eq('calendar_id', calendar_id).eq('platform', 'notion').execute()
-                        if not existing_sync.data:
+                        
+                        # Check if user explicitly disconnected - don't auto-reactivate
+                        config_check = supabase.table('calendar_sync_configs').select('sync_status, is_enabled').eq('user_id', user_id).eq('platform', 'notion').execute()
+                        is_disconnected = (config_check.data and 
+                                         (config_check.data[0].get('sync_status') == 'needs_calendar_selection' or 
+                                          not config_check.data[0].get('is_enabled', True)))
+                        
+                        if is_disconnected:
+                            print(f"🚫 [OAUTH] Skipping calendar_sync creation - user disconnected Notion")
+                        elif not existing_sync.data:
                             supabase.table('calendar_sync').insert(sync_data).execute()
                             print(f"✅ [OAUTH] Created calendar_sync entry for Notion->Calendar: {calendar_id}")
                         else:
-                            # Update existing sync entry
-                            supabase.table('calendar_sync').update({
-                                'sync_status': 'active',
-                                'synced_at': datetime.now().isoformat(),
-                                'updated_at': datetime.now().isoformat()
-                            }).eq('id', existing_sync.data[0]['id']).execute()
-                            print(f"✅ [OAUTH] Updated existing calendar_sync entry")
+                            # Only update if not manually disconnected
+                            existing_status = existing_sync.data[0].get('sync_status')
+                            if existing_status != 'inactive':
+                                supabase.table('calendar_sync').update({
+                                    'sync_status': 'active',
+                                    'synced_at': datetime.now().isoformat(),
+                                    'updated_at': datetime.now().isoformat()
+                                }).eq('id', existing_sync.data[0]['id']).execute()
+                                print(f"✅ [OAUTH] Updated existing calendar_sync entry")
+                            else:
+                                print(f"🚫 [OAUTH] Skipping sync update - user manually disconnected (status: {existing_status})")
                         
-                        # Try to update calendar_sync_configs with calendar_id (if column exists)
-                        try:
-                            update_data = {
-                                'calendar_id': calendar_id,
-                                'updated_at': datetime.now().isoformat()
-                            }
-                            supabase.table('calendar_sync_configs').update(update_data).eq('user_id', user_id).eq('platform', 'notion').execute()
-                            print(f"✅ [OAUTH] Updated calendar_sync_configs with calendar_id")
-                        except Exception as config_update_e:
-                            print(f"ℹ️ [OAUTH] calendar_sync_configs update failed (column may not exist): {config_update_e}")
-                            # This is okay - calendar_sync table is the main source of truth
+                        # Try to update calendar_sync_configs with calendar_id (if not disconnected)
+                        if not is_disconnected:
+                            try:
+                                update_data = {
+                                    'calendar_id': calendar_id,
+                                    'is_enabled': True,
+                                    'sync_status': 'active',
+                                    'updated_at': datetime.now().isoformat()
+                                }
+                                supabase.table('calendar_sync_configs').update(update_data).eq('user_id', user_id).eq('platform', 'notion').execute()
+                                print(f"✅ [OAUTH] Updated calendar_sync_configs with calendar_id")
+                            except Exception as config_update_e:
+                                print(f"ℹ️ [OAUTH] calendar_sync_configs update failed (column may not exist): {config_update_e}")
+                                # This is okay - calendar_sync table is the main source of truth
+                        else:
+                            print(f"🚫 [OAUTH] Skipping calendar_sync_configs update - user disconnected")
                             
                     except Exception as link_e:
                         print(f"⚠️ [OAUTH] Failed to create calendar association: {link_e}")
@@ -1910,20 +1928,24 @@ def reset_notion_calendar():
             return jsonify({'success': False, 'error': 'Database connection failed'}), 500
         
         # calendar_sync 테이블에서 notion 연동 비활성화 (토큰은 유지)
-        supabase.table('calendar_sync').update({
+        sync_result = supabase.table('calendar_sync').update({
             'sync_status': 'inactive',
             'updated_at': datetime.now().isoformat()
         }).eq('user_id', user_id).eq('platform', 'notion').execute()
         
+        print(f"🛠️ [RESET] Updated {len(sync_result.data) if sync_result.data else 0} calendar_sync records")
+        
         # calendar_sync_configs에서도 캘린더 선택 상태 초기화 (토큰은 유지)
         try:
             # 기존 config 업데이트 - calendar_id만 제거하고 나머지는 유지
-            supabase.table('calendar_sync_configs').update({
+            config_result = supabase.table('calendar_sync_configs').update({
                 'calendar_id': None,  # 캘린더 선택 해제
                 'is_enabled': False,  # 동기화 비활성화
                 'sync_status': 'needs_calendar_selection',  # 캘린더 선택 필요 상태
                 'updated_at': datetime.now().isoformat()
             }).eq('user_id', user_id).eq('platform', 'notion').execute()
+            
+            print(f"🛠️ [RESET] Updated {len(config_result.data) if config_result.data else 0} calendar_sync_configs records")
             
             print(f"✅ [RESET] Updated calendar_sync_configs with persistent state")
         except Exception as config_e:
@@ -1933,7 +1955,25 @@ def reset_notion_calendar():
         session['notion_needs_calendar_selection'] = True
         session['notion_calendar_reset'] = True
         
-        print(f"✅ [RESET] Notion calendar reset for user {user_id}")
+        print(f"✅ [RESET] Notion calendar reset for user {user_id} - Check these logs for verification")
+        
+        # 검증을 위해 업데이트된 데이터 확인
+        try:
+            verify_sync = supabase.table('calendar_sync').select('*').eq('user_id', user_id).eq('platform', 'notion').execute()
+            verify_config = supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', 'notion').execute()
+            
+            print(f"🔍 [VERIFY] calendar_sync records after reset: {len(verify_sync.data) if verify_sync.data else 0}")
+            if verify_sync.data:
+                for record in verify_sync.data:
+                    print(f"  - sync_status: {record.get('sync_status')}, calendar_id: {record.get('calendar_id')}")
+                    
+            print(f"🔍 [VERIFY] calendar_sync_configs records after reset: {len(verify_config.data) if verify_config.data else 0}")
+            if verify_config.data:
+                for record in verify_config.data:
+                    print(f"  - sync_status: {record.get('sync_status')}, is_enabled: {record.get('is_enabled')}, calendar_id: {record.get('calendar_id')}")
+                    
+        except Exception as verify_e:
+            print(f"⚠️ [VERIFY] Could not verify database state: {verify_e}")
         
         return jsonify({
             'success': True,
@@ -1942,6 +1982,8 @@ def reset_notion_calendar():
         
     except Exception as e:
         print(f"❌ [RESET] Error resetting Notion calendar: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @oauth_bp.route('/disconnect/<platform>')
