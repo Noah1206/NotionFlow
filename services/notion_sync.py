@@ -62,6 +62,26 @@ class NotionAPI:
             import requests
             from datetime import datetime, timedelta
             
+            # 먼저 데이터베이스 스키마 확인 (방어 로직)
+            try:
+                schema_response = requests.get(
+                    f"{self.base_url}/databases/{database_id}",
+                    headers=self.headers,
+                    timeout=10
+                )
+                if schema_response.status_code != 200:
+                    print(f"⚠️ Database schema check failed for {database_id}: {schema_response.status_code}")
+                    print(f"Response: {schema_response.text}")
+                    return {'results': [], 'has_more': False, 'next_cursor': None, 'total_count': 0}
+                    
+                schema = schema_response.json()
+                properties = schema.get('properties', {})
+                print(f"✅ Database {database_id} has {len(properties)} properties")
+                
+            except Exception as schema_error:
+                print(f"⚠️ Could not check database schema for {database_id}: {schema_error}")
+                # Continue with query anyway
+            
             # 최근 3개월 데이터만 가져오기 (성능 최적화)
             three_months_ago = (datetime.now() - timedelta(days=90)).isoformat()
             
@@ -95,12 +115,38 @@ class NotionAPI:
                     'total_count': len(result.get('results', []))
                 }
             else:
-                print(f"❌ Database query failed: {response.status_code}")
+                print(f"❌ Database query failed for {database_id}: {response.status_code}")
                 print(f"Response: {response.text}")
+                
+                # 400 에러인 경우 더 자세한 분석
+                if response.status_code == 400:
+                    try:
+                        error_data = response.json()
+                        error_code = error_data.get('code')
+                        error_message = error_data.get('message', '')
+                        
+                        if 'property' in error_message.lower() and 'date' in error_message.lower():
+                            print(f"🔍 Date property error detected for database {database_id}")
+                            print(f"Error: {error_message}")
+                            # 이 데이터베이스는 날짜 속성이 없거나 잘못된 구조
+                        
+                    except Exception as parse_error:
+                        print(f"Could not parse error response: {parse_error}")
+                
                 return {'results': [], 'has_more': False, 'next_cursor': None, 'total_count': 0}
                 
         except Exception as e:
-            print(f"❌ Error querying database: {e}")
+            print(f"❌ Error querying database {database_id}: {e}")
+            
+            # 특정 에러 패턴 감지
+            error_str = str(e).lower()
+            if 'property' in error_str and 'date' in error_str:
+                print(f"🔍 Date property access error for database {database_id}")
+                print("This database may not have the expected Date property or may be inaccessible")
+                
+            elif 'not found' in error_str or '404' in error_str:
+                print(f"🗑️ Database {database_id} not found - may have been deleted")
+                
             return {'results': [], 'has_more': False, 'next_cursor': None, 'total_count': 0}
 
 
