@@ -1300,9 +1300,15 @@ def handle_callback_success(platform, user_info):
                         # Check if sync entry already exists
                         existing_sync = supabase.table('calendar_sync').select('*').eq('user_id', user_id).eq('calendar_id', calendar_id).eq('platform', 'notion').execute()
                         
-                        # Check if user explicitly disconnected - don't auto-reactivate
-                        config_check = supabase.table('calendar_sync_configs').select('sync_status, is_enabled').eq('user_id', user_id).eq('platform', 'notion').execute()
-                        is_disconnected = (config_check.data and 
+                        # Check if user explicitly disconnected - don't auto-reactivate (use service role for RLS bypass)
+                        try:
+                            from utils.config import config
+                            service_supabase = config.supabase_admin if hasattr(config, 'supabase_admin') and config.supabase_admin else supabase
+                            config_check = service_supabase.table('calendar_sync_configs').select('sync_status, is_enabled').eq('user_id', user_id).eq('platform', 'notion').execute()
+                        except Exception as config_e:
+                            print(f"⚠️ [OAUTH] Could not check calendar_sync_configs: {config_e}")
+                            config_check = None
+                        is_disconnected = (config_check and config_check.data and 
                                          (config_check.data[0].get('sync_status') == 'needs_calendar_selection' or 
                                           not config_check.data[0].get('is_enabled', True)))
                         
@@ -1333,7 +1339,7 @@ def handle_callback_success(platform, user_info):
                                     'sync_status': 'active',
                                     'updated_at': datetime.now().isoformat()
                                 }
-                                supabase.table('calendar_sync_configs').update(update_data).eq('user_id', user_id).eq('platform', 'notion').execute()
+                                service_supabase.table('calendar_sync_configs').update(update_data).eq('user_id', user_id).eq('platform', 'notion').execute()
                                 print(f"✅ [OAUTH] Updated calendar_sync_configs with calendar_id")
                             except Exception as config_update_e:
                                 print(f"ℹ️ [OAUTH] calendar_sync_configs update failed (column may not exist): {config_update_e}")
