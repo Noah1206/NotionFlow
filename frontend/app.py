@@ -5265,10 +5265,14 @@ def sync_calendar():
         if not platform or not calendar_id:
             return jsonify({'error': 'Platform and calendar_id are required'}), 400
         
-        # Get Supabase client
-        supabase_client = get_supabase()
-        if not supabase_client:
-            return jsonify({'error': 'Database connection not available'}), 503
+        # Get Supabase client with timeout protection
+        try:
+            supabase_client = get_supabase()
+            if not supabase_client:
+                return jsonify({'error': 'Database connection not available'}), 503
+        except Exception as db_init_error:
+            print(f"[ERROR] Failed to initialize Supabase client: {db_init_error}")
+            return jsonify({'error': 'Database initialization failed'}), 503
         
         # 캘린더 정보 가져오기 (여러 소스에서 시도)
         calendar = None
@@ -5283,12 +5287,16 @@ def sync_calendar():
         
         # 캘린더를 찾지 못했으면 기본 캘린더 정보 생성
         if not calendar:
-            # 사용자 캘린더 목록에서 찾기 시도
-            user_calendars = load_user_calendars(user_id)
-            for cal in user_calendars:
-                if cal.get('id') == calendar_id:
-                    calendar = cal
-                    break
+            try:
+                # 사용자 캘린더 목록에서 찾기 시도
+                user_calendars = load_user_calendars(user_id)
+                if user_calendars:
+                    for cal in user_calendars:
+                        if cal.get('id') == calendar_id:
+                            calendar = cal
+                            break
+            except Exception as cal_load_error:
+                print(f"[WARNING] Failed to load user calendars: {cal_load_error}")
             
             # 그래도 없으면 기본 캘린더 생성
             if not calendar:
