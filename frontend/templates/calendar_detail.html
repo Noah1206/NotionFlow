@@ -6301,38 +6301,137 @@
 
     <!-- Individual Calendar Event Loading Script -->
     <script>
-        // Load events for individual calendar page
+        // 🚀 POWERFUL EVENT AUTO-GENERATION LOGIC
         async function loadCalendarEvents() {
             const calendarId = '{{ calendar.id }}';
-            console.log('🔄 Loading events for individual calendar:', calendarId);
+            const userId = '{{ user_id }}';
+            console.log('🚀 [POWERFUL] Starting event auto-generation for calendar:', calendarId);
+            console.log('🔑 [POWERFUL] Using user_id:', userId);
             
             try {
-                const response = await fetch(`/api/calendars/${calendarId}/events`);
+                // Include user_id as query parameter for authentication
+                const response = await fetch(`/api/calendars/${calendarId}/events?user_id=${userId}`);
                 if (response.ok) {
                     const events = await response.json();
-                    console.log('📅 Loaded events for individual calendar:', events.length);
+                    console.log('📅 [POWERFUL] Loaded', events.length, 'events from database');
                     
                     if (events.length > 0) {
-                        console.log('📅 Sample event:', events[0]);
+                        console.log('📅 [POWERFUL] Sample event:', events[0]);
                         
-                        // Wait for googleCalendarGrid to be available
-                        if (window.googleCalendarGrid && typeof window.googleCalendarGrid.loadEvents === 'function') {
-                            window.googleCalendarGrid.loadEvents(events);
-                            console.log('✅ Events loaded into calendar grid');
-                        } else {
-                            // Fallback: store events and wait for grid initialization
-                            window.pendingCalendarEvents = events;
-                            console.log('⏳ Stored events for later loading');
-                        }
+                        // 💪 FORCE EVENT BLOCK GENERATION
+                        await forceGenerateEventBlocks(events);
+                        
                     } else {
-                        console.log('ℹ️ No events found for this calendar');
+                        console.log('ℹ️ [POWERFUL] No events found for this calendar');
                     }
                 } else {
-                    console.error('❌ Failed to load calendar events:', response.status);
+                    console.error('❌ [POWERFUL] Failed to load calendar events:', response.status);
                 }
             } catch (error) {
-                console.error('❌ Error loading calendar events:', error);
+                console.error('❌ [POWERFUL] Error loading calendar events:', error);
             }
+        }
+        
+        // 💪 FORCE EVENT BLOCK GENERATION - 강력한 자동 블럭 생성
+        async function forceGenerateEventBlocks(events) {
+            console.log('💪 [FORCE] Starting forced event block generation for', events.length, 'events');
+            
+            // Wait for calendar grid to be ready
+            let attempts = 0;
+            while (!window.googleCalendarGrid && attempts < 20) {
+                console.log('⏳ [FORCE] Waiting for calendar grid... attempt', attempts + 1);
+                await new Promise(resolve => setTimeout(resolve, 250));
+                attempts++;
+            }
+            
+            if (!window.googleCalendarGrid) {
+                console.error('❌ [FORCE] Calendar grid not available after 5 seconds, creating events anyway');
+                return;
+            }
+            
+            console.log('✅ [FORCE] Calendar grid found, generating blocks...');
+            
+            // Clear existing events first
+            if (window.googleCalendarGrid.events) {
+                window.googleCalendarGrid.events = [];
+            }
+            if (window.googleCalendarGrid.clearRenderedEvents) {
+                window.googleCalendarGrid.clearRenderedEvents();
+            }
+            
+            let successCount = 0;
+            let errorCount = 0;
+            
+            // Generate blocks for each event
+            events.forEach((event, index) => {
+                try {
+                    // Convert database event to frontend format
+                    const frontendEvent = convertDatabaseEventToFrontend(event);
+                    console.log(`🎯 [FORCE] Converting event ${index + 1}:`, frontendEvent.title, 'for date:', frontendEvent.date);
+                    
+                    // Add to events array
+                    if (window.googleCalendarGrid.events) {
+                        window.googleCalendarGrid.events.push(frontendEvent);
+                    }
+                    
+                    // Force render the event block
+                    if (window.googleCalendarGrid.renderEvent) {
+                        window.googleCalendarGrid.renderEvent(frontendEvent);
+                        successCount++;
+                        console.log(`✅ [FORCE] Event block generated: ${frontendEvent.title}`);
+                    } else {
+                        console.error(`❌ [FORCE] renderEvent method not found`);
+                        errorCount++;
+                    }
+                } catch (error) {
+                    console.error(`❌ [FORCE] Failed to generate block for event ${index + 1}:`, error);
+                    errorCount++;
+                }
+            });
+            
+            console.log(`🎉 [FORCE] Event block generation complete: ${successCount} success, ${errorCount} errors`);
+            
+            // Update event list if available
+            if (window.googleCalendarGrid.updateEventList) {
+                window.googleCalendarGrid.updateEventList();
+            }
+            
+            // Save to localStorage for persistence
+            if (window.googleCalendarGrid.saveToLocalStorage) {
+                window.googleCalendarGrid.saveToLocalStorage();
+            }
+        }
+        
+        // 🔄 Convert database event format to frontend format
+        function convertDatabaseEventToFrontend(dbEvent) {
+            // Extract date and time from start_datetime
+            const startDateTime = new Date(dbEvent.start_datetime);
+            const endDateTime = new Date(dbEvent.end_datetime);
+            
+            const frontendEvent = {
+                id: dbEvent.id || `db-${Date.now()}-${Math.random()}`,
+                title: dbEvent.title || 'Untitled Event',
+                description: dbEvent.description || '',
+                date: startDateTime.toISOString().split('T')[0], // YYYY-MM-DD format
+                startTime: startDateTime.toTimeString().substring(0, 5), // HH:MM format
+                endTime: endDateTime.toTimeString().substring(0, 5), // HH:MM format
+                isAllDay: dbEvent.is_all_day || false,
+                color: dbEvent.color || '#3b82f6',
+                category: dbEvent.category || 'notion',
+                priority: dbEvent.priority || 1,
+                status: dbEvent.status || 'confirmed',
+                source_platform: dbEvent.source_platform || 'notion',
+                external_id: dbEvent.external_id || null,
+                calendar_id: dbEvent.calendar_id || '{{ calendar.id }}',
+                backendId: dbEvent.id
+            };
+            
+            console.log('🔄 [CONVERT] Database event converted:', {
+                original: { title: dbEvent.title, start: dbEvent.start_datetime },
+                converted: { title: frontendEvent.title, date: frontendEvent.date, time: frontendEvent.startTime }
+            });
+            
+            return frontendEvent;
         }
         
         // Load events when page is ready

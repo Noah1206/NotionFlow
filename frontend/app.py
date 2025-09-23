@@ -1280,6 +1280,7 @@ def calendar_detail(calendar_id):
     
     context.update({
         'calendar': calendar,
+        'user_id': user_id,
         'page_title': f'{calendar["name"]} - 캘린더 상세'
     })
     
@@ -5077,7 +5078,8 @@ def friends_page():
 def get_calendar_events(calendar_id):
     """Get all events for a specific calendar with optional date range filtering"""
     try:
-        user_id = session.get('user_id')
+        # Try to get user_id from session first, then from query parameter
+        user_id = session.get('user_id') or request.args.get('user_id')
         if not user_id:
             return jsonify({'error': 'Not authenticated'}), 401
         
