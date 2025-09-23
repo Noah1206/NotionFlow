@@ -194,25 +194,50 @@ class CalendarSyncService:
                 # Query database for events
                 # Note: This is a simplified version - actual implementation would need proper filtering
                 try:
-                    response = provider.client.databases.query(
-                        database_id=database_id,
-                        filter={
-                            "and": [
-                                {
-                                    "property": "Date",
-                                    "date": {
-                                        "after": start_date.isoformat()
-                                    }
-                                },
-                                {
-                                    "property": "Date",
-                                    "date": {
-                                        "before": end_date.isoformat()
-                                    }
+                    # First, try to get database schema to find date properties
+                    try:
+                        db_schema = provider.client.databases.retrieve(database_id=database_id)
+                        properties = db_schema.get('properties', {})
+                        
+                        # Find date property dynamically
+                        date_prop_name = None
+                        for prop_name, prop_info in properties.items():
+                            if prop_info.get('type') == 'date':
+                                date_prop_name = prop_name
+                                break
+                        
+                        # If we found a date property, use it for filtering
+                        if date_prop_name:
+                            response = provider.client.databases.query(
+                                database_id=database_id,
+                                filter={
+                                    "and": [
+                                        {
+                                            "property": date_prop_name,
+                                            "date": {
+                                                "after": start_date.isoformat()
+                                            }
+                                        },
+                                        {
+                                            "property": date_prop_name,
+                                            "date": {
+                                                "before": end_date.isoformat()
+                                            }
+                                        }
+                                    ]
                                 }
-                            ]
-                        }
-                    )
+                            )
+                        else:
+                            # No date property found, query without filter
+                            response = provider.client.databases.query(
+                                database_id=database_id
+                            )
+                    except Exception as schema_error:
+                        # If schema check fails, query without filter
+                        logger.warning(f"Could not get schema for database {database_id}: {schema_error}")
+                        response = provider.client.databases.query(
+                            database_id=database_id
+                        )
                     
                     # Convert Notion pages to events
                     for page in response.get('results', []):
@@ -286,9 +311,24 @@ class CalendarSyncService:
             if not title:
                 title = 'Untitled Event'
             
-            # Extract date
-            date_prop = properties.get('Date', {}) or properties.get('날짜', {})
-            if not date_prop or date_prop.get('type') != 'date':
+            # Extract date - try common names first, then find any date property
+            date_prop = None
+            date_prop_names = ['Date', '날짜', 'Due', 'When', '일정', 'Start', 'End', '시작', '종료', 'Deadline']
+            
+            # Try common date property names
+            for prop_name in date_prop_names:
+                if prop_name in properties and properties[prop_name].get('type') == 'date':
+                    date_prop = properties[prop_name]
+                    break
+            
+            # If not found, look for any date type property
+            if not date_prop:
+                for prop_name, prop_data in properties.items():
+                    if prop_data.get('type') == 'date':
+                        date_prop = prop_data
+                        break
+            
+            if not date_prop:
                 return None
                 
             date_info = date_prop.get('date', {})
