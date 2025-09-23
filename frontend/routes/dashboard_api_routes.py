@@ -186,11 +186,26 @@ def get_dashboard_stats():
                 success_rate = 0.0
                 avg_sync_time = "N/A"
         
-        # Get actual event count from calendar events if available
+        # Get actual event count from calendar events using same logic as calendar list page
         try:
-            events_result = supabase.table('calendar_events').select('id', count='exact').eq('user_id', user_id).execute()
+            from datetime import datetime, timedelta
+            from utils.uuid_helper import normalize_uuid
+            
+            # Use same filtering as calendar list page (365 days ahead)
+            normalized_user_id = normalize_uuid(user_id)
+            start_datetime = datetime.now()
+            end_datetime = start_datetime + timedelta(days=365)
+            
+            events_result = supabase.table('calendar_events').select('id', count='exact')\
+                .eq('user_id', normalized_user_id)\
+                .gte('start_datetime', start_datetime.isoformat())\
+                .lte('start_datetime', end_datetime.isoformat())\
+                .execute()
+            
             synced_events_count = getattr(events_result, 'count', len(sync_events)) if hasattr(events_result, 'count') else len(sync_events)
-        except Exception:
+            print(f"📊 [API-STATS] Found {synced_events_count} events for user {user_id} (using same filter as calendar list)")
+        except Exception as e:
+            print(f"⚠️ [API-STATS] Error counting events: {e}")
             synced_events_count = len(sync_events)
         
         # Return real-time stats
