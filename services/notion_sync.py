@@ -29,7 +29,7 @@ class NotionAPI:
         try:
             import requests
             
-            print(f"🔍 [NOTION API] Searching databases with token: {self.token[:20]}...")
+            # Searching Notion databases
             
             response = requests.post(
                 f"{self.base_url}/search",
@@ -119,7 +119,7 @@ class NotionAPI:
                                 "direction": "descending"
                             }
                         ]
-                        print("📅 No date property found, using last_edited_time for sorting")
+                        # Using last_edited_time for sorting
                 else:
                     # 스키마 확인 실패시 안전한 기본값
                     query_payload["sorts"] = [
@@ -164,7 +164,7 @@ class NotionAPI:
                         error_message = error_data.get('message', '')
                         
                         if 'property' in error_message.lower() and 'date' in error_message.lower():
-                            print(f"🔍 Date property error detected for database {database_id}")
+                            # Date property error detected
                             print(f"Error: {error_message}")
                             # 이 데이터베이스는 날짜 속성이 없거나 잘못된 구조
                         
@@ -179,7 +179,7 @@ class NotionAPI:
             # 특정 에러 패턴 감지
             error_str = str(e).lower()
             if 'property' in error_str and ('date' in error_str or 'name' in error_str or 'id' in error_str):
-                print(f"🔍 Property access error for database {database_id}")
+                # Property access error
                 print("This database may have an incompatible schema or may be inaccessible")
                 # 문제 있는 데이터베이스는 블랙리스트에 추가
                 self._add_to_blacklist(database_id, "property_access_error")
@@ -227,10 +227,10 @@ class NotionCalendarSync:
             
             # UUID 정규화 (통일된 형식 - 하이픈 없음)
             normalized_user_id = normalize_uuid(user_id)
-            print(f"🔍 [TOKEN] Searching for user {user_id} (normalized: {normalized_user_id})")
+            # Searching for user token
             
             # 통일된 형식 사용 - 더 이상 여러 형식을 시도하지 않음
-            print(f"🔍 [TOKEN] Using unified format: {normalized_user_id}")
+            # Using unified user format
             
             supabase = config.get_client_for_user(user_id)
             
@@ -239,13 +239,13 @@ class NotionCalendarSync:
                 return None
             
             # 1. calendar_sync_configs 테이블에서 검색 (새로운 주요 저장소)
-            print(f"🔍 [TOKEN] Checking calendar_sync_configs for user {normalized_user_id}")
+            # Checking sync configs for user
             config_result = supabase.table('calendar_sync_configs').select('*').eq(
                 'user_id', normalized_user_id
             ).eq('platform', 'notion').execute()
             
             if config_result.data:
-                print(f"📋 [TOKEN] Found config data: {config_result.data}")
+                # Found sync config data
                 creds = config_result.data[0].get('credentials', {})
                 if isinstance(creds, dict):
                     token = creds.get('access_token')
@@ -289,7 +289,7 @@ class NotionCalendarSync:
                 from flask import session
                 if session and session.get('platform_tokens', {}).get('notion', {}).get('access_token'):
                     token = session['platform_tokens']['notion']['access_token']
-                    print(f"💾 Using session token for user {user_id}: {token[:20]}...")
+                    # Using session token
                     return token
             except Exception as session_error:
                 print(f"⚠️ Could not check session tokens: {session_error}")
@@ -304,7 +304,7 @@ class NotionCalendarSync:
                 from flask import session
                 if session and session.get('platform_tokens', {}).get('notion', {}).get('access_token'):
                     token = session['platform_tokens']['notion']['access_token']
-                    print(f"💾 Using session token fallback for user {user_id}: {token[:20]}...")
+                    # Using token fallback
                     return token
             except:
                 pass
@@ -327,12 +327,12 @@ class NotionCalendarSync:
             
             if any(keyword in title.lower() for keyword in calendar_keywords):
                 calendar_dbs.append(db)
-                print(f"📅 Found calendar database: {title}")
+                # Found calendar database
             
             # 날짜 속성이 있는지 체크
             elif self._has_date_property(db):
                 calendar_dbs.append(db)
-                print(f"📅 Found database with date property: {title}")
+                # Found database with date property
         
         return calendar_dbs
     
@@ -435,11 +435,11 @@ class NotionCalendarSync:
                         'synced_events': 0
                     }
             
-            print(f"🔄 [NOTION] Starting Notion sync for user {user_id}, calendar {calendar_id}")
+            print(f"Starting Notion sync for user {user_id}")
             
             # 1. Notion 토큰 확인
             token = self.get_user_notion_token(user_id)
-            print(f"🔍 [NOTION] Token check result: {'Found' if token else 'Not found'}")
+            # Token validation complete
             
             if not token:
                 print(f"❌ [NOTION] No token found for user {user_id}")
@@ -450,11 +450,11 @@ class NotionCalendarSync:
                 }
             
             # 2. Notion API 초기화
-            print(f"🔧 [NOTION] Initializing Notion API with token: {token[:20]}...")
+            # Initializing Notion API
             notion_api = NotionAPI(token)
             
             # 3. 캘린더 데이터베이스 찾기
-            print(f"🔍 [NOTION] Searching for calendar databases...")
+            # Searching calendar databases
             calendar_dbs = self.find_calendar_databases(notion_api)
             print(f"📚 [NOTION] Found {len(calendar_dbs)} calendar databases")
             
@@ -474,7 +474,7 @@ class NotionCalendarSync:
                 db_id = db['id']
                 db_title = self._get_db_title(db)
                 
-                print(f"📋 Processing database: {db_title}")
+                # Processing database
                 
                 # 페이지네이션으로 페이지들 조회
                 start_cursor = None
@@ -699,15 +699,12 @@ class NotionCalendarSync:
             start_str = date_info['start']
             end_str = date_info['end']
             
-            print(f"🔧 [NORMALIZE] Input dates: start={start_str}, end={end_str}")
-            
             # ISO 형식 파싱
             from datetime import datetime, timedelta
             import re
             
             # 시간 정보가 있는지 확인
             has_time = 'T' in start_str
-            print(f"🔧 [NORMALIZE] Has time: {has_time}")
             
             if has_time:
                 # 시간 정보가 있는 경우
@@ -740,52 +737,50 @@ class NotionCalendarSync:
                 start_dt = datetime.fromisoformat(start_str + 'T00:00:00+00:00')
                 end_dt = datetime.fromisoformat(end_str + 'T23:59:59+00:00')
             
-            print(f"🔧 [NORMALIZE] Parsed dates: start={start_dt}, end={end_dt}")
+            # Date validation
             
             # CRITICAL: Prevent constraint violations with multiple validation layers
-            print(f"🔍 [NORMALIZE] Comparing: start={start_dt} vs end={end_dt}")
-            print(f"🔍 [NORMALIZE] Comparison result: end <= start = {end_dt <= start_dt}")
-            print(f"🔍 [NORMALIZE] Exact equality: end == start = {end_dt == start_dt}")
+            # Validate date order
             
             # Convert to UTC for reliable comparison if needed
             if start_dt.tzinfo and end_dt.tzinfo:
                 start_utc = start_dt.astimezone(timezone.utc)
                 end_utc = end_dt.astimezone(timezone.utc)
-                print(f"🌍 [NORMALIZE] UTC comparison: {start_utc} vs {end_utc}")
+                # UTC conversion for comparison
             else:
                 start_utc, end_utc = start_dt, end_dt
             
             # Primary fix: end must be after start
             if end_utc <= start_utc:
-                print(f"🚨 [NORMALIZE] CONSTRAINT VIOLATION DETECTED: end <= start")
+                # Fix constraint violation: end <= start
                 if not has_time:
                     # All-day events: ensure 24-hour span
                     start_dt = start_dt.replace(hour=0, minute=0, second=0, microsecond=0)
                     end_dt = start_dt + timedelta(days=1)
-                    print(f"📅 [NORMALIZE] All-day fixed: {start_dt} → {end_dt}")
+                    # Fixed all-day event duration
                 else:
                     # Timed events: minimum 1-hour duration
                     end_dt = start_dt + timedelta(hours=1)
-                    print(f"⏰ [NORMALIZE] Timed fixed: {start_dt} → {end_dt}")
+                    # Fixed timed event duration
             
             # Secondary safety check: after fixing, verify again
             end_final_utc = end_dt.astimezone(timezone.utc) if end_dt.tzinfo else end_dt
             start_final_utc = start_dt.astimezone(timezone.utc) if start_dt.tzinfo else start_dt
             
             if end_final_utc <= start_final_utc:
-                print(f"🚨 [NORMALIZE] SECONDARY FAILURE: forcing 2-hour duration")
+                # Secondary fix: 2-hour duration
                 end_dt = start_dt + timedelta(hours=2)
             
             # Final absolute guarantee: never allow equality
             if end_dt == start_dt:
-                print(f"🚨 [NORMALIZE] EMERGENCY: identical times, adding 10 minutes")
+                # Emergency fix: add 10 minutes
                 end_dt = start_dt + timedelta(minutes=10)
             
             # ISO 형식으로 반환
             result_start = start_dt.isoformat()
             result_end = end_dt.isoformat()
             
-            print(f"✅ [NORMALIZE] Final result: {result_start} → {result_end}")
+            # Date normalization complete
             return result_start, result_end
             
         except Exception as e:
@@ -797,7 +792,7 @@ class NotionCalendarSync:
             start_default = now.isoformat()
             end_default = (now + timedelta(hours=1)).isoformat()
             
-            print(f"🔄 [NORMALIZE] Using safe defaults: {start_default} → {end_default}")
+            # Using safe default dates
             return start_default, end_default
     
     def _extract_description(self, properties: Dict) -> Optional[str]:
@@ -826,7 +821,7 @@ class NotionCalendarSync:
             email_hash = hashlib.md5(uuid_str.encode()).hexdigest()
             # DB 저장 형식으로 변환 (하이픈 없음)
             uuid_str = email_hash
-            print(f"🔄 [UUID] Generated UUID from email: {uuid_str}")
+            # Generated UUID from email
             return uuid_str
             
         # 하이픈 제거 후 재포맷
@@ -841,7 +836,7 @@ class NotionCalendarSync:
         formatted_uuid = clean_uuid.lower()
         
         if formatted_uuid != uuid_str.replace('-', '').lower():
-            print(f"🔧 [UUID] Normalized: {uuid_str} → {formatted_uuid}")
+            # UUID normalized
             
         return formatted_uuid
 
@@ -897,7 +892,7 @@ class NotionCalendarSync:
                 user_check = supabase.table('users').select('id').eq('id', user_id).execute()
                 
                 if not user_check.data:
-                    print(f"📝 [SAVE] Creating user record for {user_id}")
+                    # Creating user record
                     # Get user email from session or platform tokens
                     user_email = session.get('user_email')
                     if not user_email:
@@ -909,15 +904,15 @@ class NotionCalendarSync:
                     # Create user using proper helper function
                     from utils.uuid_helper import ensure_auth_user_exists
                     if ensure_auth_user_exists(user_id, user_email, 'Notion User'):
-                        print(f"✅ [SAVE] Created/verified user record: {user_id}")
+                        # User record created/verified
                     else:
-                        print(f"❌ [SAVE] Failed to create user record")
+                        print("Error: Failed to create user record")
                         return False
                 else:
-                    print(f"✅ [SAVE] User already exists: {user_id}")
+                    # User record verified
                     
             except Exception as user_e:
-                print(f"❌ [SAVE] Critical error ensuring user exists: {user_e}")
+                print(f"Error: Critical user error - {user_e}")
                 return False
             
             # 실제 데이터베이스 스키마에 맞게 이벤트 데이터 변환
@@ -939,18 +934,18 @@ class NotionCalendarSync:
             # CRITICAL FIX: calendar_id 설정 (항상 설정되어야 함)
             if 'calendar_id' in event and event['calendar_id']:
                 db_event['calendar_id'] = event['calendar_id']
-                print(f"📋 [SAVE] Using calendar_id: {event['calendar_id']}")
+                # Using event calendar_id
             else:
                 # calendar_id가 없으면 사용자의 첫 번째 캘린더로 설정
-                print(f"⚠️ [SAVE] Missing calendar_id in event, getting user's primary calendar")
+                # Getting primary calendar for event
                 
                 # Get user's primary calendar
                 primary_calendar_id = self._get_user_primary_calendar_id(user_id)
                 if primary_calendar_id:
                     db_event['calendar_id'] = primary_calendar_id
-                    print(f"✅ [SAVE] Using primary calendar_id: {primary_calendar_id}")
+                    # Using primary calendar
                 else:
-                    print(f"❌ [SAVE] No calendar found for user {user_id} - event will be orphaned")
+                    print(f"Warning: No calendar found for user {user_id}")
                     # Don't save orphaned events
                     return False
             
@@ -961,7 +956,7 @@ class NotionCalendarSync:
                 start_str = db_event['start_datetime']
                 end_str = db_event['end_datetime']
                 
-                print(f"🔍 [SAVE] Final validation - parsing: {start_str} → {end_str}")
+                # Final date validation
                 
                 # Handle various timezone formats in the final check
                 if start_str.endswith('Z'):
@@ -974,31 +969,30 @@ class NotionCalendarSync:
                     start_dt = datetime.fromisoformat(start_str + '+00:00')
                     end_dt = datetime.fromisoformat(end_str + '+00:00')
                 
-                print(f"🔍 [SAVE] Parsed: {start_dt} vs {end_dt}")
+                # Date parsing validation
                 
                 # Convert to UTC for reliable comparison
                 start_utc = start_dt.astimezone(timezone.utc) if start_dt.tzinfo else start_dt
                 end_utc = end_dt.astimezone(timezone.utc) if end_dt.tzinfo else end_dt
                 
-                print(f"🌍 [SAVE] UTC comparison: {start_utc} vs {end_utc}")
-                print(f"🔍 [SAVE] end <= start: {end_utc <= start_utc}")
+                # UTC time comparison validation
                 
                 # ABSOLUTE CONSTRAINT VIOLATION CHECK
                 if end_utc <= start_utc:
-                    print(f"🚨 [SAVE] CRITICAL CONSTRAINT VIOLATION: end ({end_utc}) <= start ({start_utc})")
+                    # Critical: fixing constraint violation
                     
                     # Force minimum duration based on event type
                     if db_event.get('is_all_day', False):
                         # All-day: 24 hours minimum
                         end_dt = start_dt + timedelta(days=1)
-                        print(f"📅 [SAVE] All-day fixed with 24h duration")
+                        # Fixed all-day event duration
                     else:
                         # Timed: 2 hours minimum (extra safe)
                         end_dt = start_dt + timedelta(hours=2)
-                        print(f"⏰ [SAVE] Timed fixed with 2h duration")
+                        # Fixed timed event duration
                     
                     db_event['end_datetime'] = end_dt.isoformat()
-                    print(f"🔧 [SAVE] CONSTRAINT FIXED: {start_str} → {db_event['end_datetime']}")
+                    # Constraint violation fixed
                 
                 # Triple-check: verify the fix worked
                 final_start = datetime.fromisoformat(db_event['start_datetime'].replace('Z', '+00:00') if 'Z' in db_event['start_datetime'] else db_event['start_datetime'])
@@ -1011,26 +1005,22 @@ class NotionCalendarSync:
                     final_start_utc, final_end_utc = final_start, final_end
                 
                 if final_end_utc <= final_start_utc:
-                    print(f"🚨 [SAVE] FINAL CHECK FAILED - using emergency fallback")
+                    # Using emergency time fallback
                     now = datetime.now(timezone.utc)
                     db_event['start_datetime'] = now.isoformat()
                     db_event['end_datetime'] = (now + timedelta(hours=3)).isoformat()
                 
-                print(f"✅ [SAVE] Final times validated: {db_event['start_datetime']} → {db_event['end_datetime']}")
+                # Event times validated
                     
             except Exception as e:
-                print(f"❌ [SAVE] Datetime validation error: {e}")
+                print(f"Error: Date validation failed - {e}")
                 # Emergency fallback: guaranteed safe times
                 now = datetime.now(timezone.utc)
                 db_event['start_datetime'] = now.isoformat()
                 db_event['end_datetime'] = (now + timedelta(hours=3)).isoformat()
-                print(f"🆘 [SAVE] EMERGENCY fallback: {db_event['start_datetime']} → {db_event['end_datetime']}")
+                # Emergency fallback applied
             
-            print(f"💾 [SAVE] Saving event: {db_event['title']}")
-            print(f"📅 [SAVE] Dates: {db_event['start_datetime']} → {db_event['end_datetime']}")
-            print(f"📋 [SAVE] Event data keys: {list(db_event.keys())}")
-            print(f"📋 [SAVE] source_platform value: '{db_event.get('source_platform')}'")
-            print(f"📋 [SAVE] Event data: {db_event}")
+            # Saving event to database
             
             # 중복 체크 (실제 스키마의 unique constraint에 맞춤: user_id, external_id, source_platform)
             try:
@@ -1042,7 +1032,7 @@ class NotionCalendarSync:
                 
                 if existing.data:
                     # 기존 이벤트 업데이트
-                    print(f"🔄 [SAVE] Updating existing event: {db_event['title']}")
+                    # Updating existing event
                     result = supabase.table('calendar_events').update({
                         'title': db_event['title'],
                         'description': db_event['description'],
@@ -1054,13 +1044,13 @@ class NotionCalendarSync:
                     print(f"✅ Updated existing event: {db_event['title']}")
                 else:
                     # 새 이벤트 생성
-                    print(f"🆕 [SAVE] Creating new event: {db_event['title']}")
+                    # Creating new event
                     result = supabase.table('calendar_events').insert(db_event).execute()
                     print(f"✅ Created new event: {db_event['title']}")
                 
                 return bool(result.data)
             except Exception as save_error:
-                print(f"❌ [SAVE] Error saving event '{db_event['title']}': {save_error}")
+                print(f"Error saving event '{db_event['title']}': {save_error}")
                 return False
             
         except Exception as e:
@@ -1078,7 +1068,7 @@ class NotionCalendarSync:
             def background_sync():
                 # 5초 후 백그라운드에서 나머지 동기화 시작
                 time.sleep(5)
-                print(f"🔄 Starting background sync for user {user_id}")
+                # Starting background sync
                 
                 try:
                     # 전체 동기화 실행 (제한 없이)
@@ -1090,7 +1080,7 @@ class NotionCalendarSync:
             bg_thread = threading.Thread(target=background_sync, daemon=True)
             bg_thread.start()
             
-            print(f"📅 Background sync scheduled for user {user_id}")
+            # Background sync scheduled
             
         except Exception as e:
             print(f"❌ Failed to schedule background sync: {e}")
@@ -1098,7 +1088,7 @@ class NotionCalendarSync:
     def _full_background_sync(self, user_id: str, calendar_id: str, access_token: str):
         """백그라운드에서 전체 데이터 동기화 (제한 없이)"""
         try:
-            print(f"🔄 Starting full background sync for user {user_id}")
+            # Starting full background sync
             
             # Notion API 초기화
             notion_api = NotionAPI(access_token)
@@ -1116,7 +1106,7 @@ class NotionCalendarSync:
                 db_id = db['id']
                 db_title = self._get_db_title(db)
                 
-                print(f"📋 Background processing database: {db_title}")
+                # Background processing database
                 
                 # 이미 동기화된 이벤트 확인 (중복 방지)
                 start_cursor = None
@@ -1136,7 +1126,7 @@ class NotionCalendarSync:
                             if event and self._save_event_to_calendar(event):
                                 total_synced += 1
                                 if total_synced % 10 == 0:  # 10개마다 로그
-                                    print(f"🔄 Background synced {total_synced} additional events...")
+                                    # Background sync progress
                     
                     if not result.get('has_more', False):
                         break
