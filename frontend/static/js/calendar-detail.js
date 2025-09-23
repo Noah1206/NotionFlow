@@ -1571,6 +1571,16 @@ function renderWeekView() {
     container.innerHTML = '<div class="week-view-placeholder">주간 뷰는 개발 중입니다.</div>';
 }
 
+function renderDayView() {
+    // Day view is not actively used, but function needs to exist
+    // This is a placeholder for future implementation
+    console.log('📅 Day view called - using month view instead');
+    // For now, just ensure month view is rendered
+    if (typeof renderMonthView === 'function') {
+        renderMonthView();
+    }
+}
+
 function renderAgendaView() {
     // console.log('🔍 Rendering agenda view');
     
