@@ -2721,6 +2721,15 @@
         syncBtn.classList.add('hidden');
         completeBtn.classList.remove('hidden');
 
+        // 🔧 CRITICAL FIX: Clear manually disconnected flag when sync completes
+        if (selectedCalendarData.platform === 'notion') {
+            localStorage.removeItem('notion_manually_disconnected');
+            console.log('✅ [SYNC-COMPLETE] Cleared notion_manually_disconnected flag - sync completed successfully');
+        } else if (selectedCalendarData.platform === 'google') {
+            localStorage.removeItem('google_manually_disconnected');
+            console.log('✅ [SYNC-COMPLETE] Cleared google_manually_disconnected flag - sync completed successfully');
+        }
+
         // 연동 상태 업데이트
         const syncInfo = {
             calendar_name: selectedCalendarData.name,
@@ -2876,6 +2885,16 @@
                 }
                 
                 alert(successMessage);
+                
+                // 🔧 CRITICAL FIX: Clear manually disconnected flag when sync completes
+                if (platform === 'notion') {
+                    localStorage.removeItem('notion_manually_disconnected');
+                    console.log('✅ [SYNC-COMPLETE] Cleared notion_manually_disconnected flag - sync completed successfully');
+                } else if (platform === 'google') {
+                    localStorage.removeItem('google_manually_disconnected');
+                    console.log('✅ [SYNC-COMPLETE] Cleared google_manually_disconnected flag - sync completed successfully');
+                }
+                
                 closeCalendarSyncModal();
 
                 // 연동 상태 즉시 업데이트
