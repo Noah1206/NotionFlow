@@ -3721,7 +3721,6 @@ blueprints_to_register = [
     ('routes.sync_status_routes', 'sync_status_bp', '[DATA] Sync Status'),
     ('routes.auto_connect_routes', 'auto_connect_bp', '[LAUNCH] Auto-Connect'),
     ('routes.oauth_routes', 'oauth_bp', '[AUTH] OAuth'),
-    ('oauth.embedded_oauth', 'embedded_oauth_bp', '[LINK] Embedded OAuth'),
     ('routes.integration_routes', 'integration_bp', '[LINK] Integration'),
     ('routes.enhanced_features_routes', 'enhanced_bp', '[LAUNCH] Enhanced Features'),
     ('routes.dashboard_api_routes', 'dashboard_api_bp', '[DATA] Dashboard API'),

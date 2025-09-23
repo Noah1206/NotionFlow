@@ -1823,6 +1823,10 @@ def refresh_token(platform):
         }).eq('user_id', user_id).eq('platform', platform).execute()
         
         return jsonify({'success': True, 'expires_at': expires_at})
+        
+    except Exception as e:
+        print(f"Token refresh error: {e}")
+        return jsonify({'error': 'Token refresh failed'}), 500
 
 @oauth_bp.route('/notion/calendar-state', methods=['GET'])
 def get_notion_calendar_state():
@@ -1939,10 +1943,6 @@ def reset_notion_calendar():
     except Exception as e:
         print(f"❌ [RESET] Error resetting Notion calendar: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
-        
-    except Exception as e:
-        print(f"Token refresh error: {e}")
-        return jsonify({'error': 'Token refresh failed'}), 500
 
 @oauth_bp.route('/disconnect/<platform>')
 def disconnect_platform(platform):
