@@ -1002,7 +1002,11 @@ def calendar_detail_main():
                 print(f"[DEBUG] Found {len(events)} events for calendar {calendar_id}")
                 if events:
                     print(f"[DEBUG] Sample event: {events[0]}")
-                    print(f"[DEBUG] All event titles: {[e.get('title', 'No title') for e in events[:5]]}")
+                    print(f"[DEBUG] Event dates: {[e.get('start_datetime', e.get('date', 'No date'))[:10] for e in events[:10]]}")
+                    current_week_events = [e for e in events if e.get('start_datetime', '').startswith('2025-09')]
+                    print(f"[DEBUG] September 2025 events: {len(current_week_events)}")
+                    if current_week_events:
+                        print(f"[DEBUG] Sept event titles: {[e.get('title') for e in current_week_events]}")
             except Exception as e:
                 print(f"[ERROR] Failed to get events for calendar {calendar_id}: {e}")
         
@@ -1097,6 +1101,10 @@ def calendar_detail_main():
     print(f"[DEBUG] Total events being passed to template: {len(all_events)}")
     if all_events:
         print(f"[DEBUG] Sample template event: {all_events[0]}")
+        sept_events = [e for e in all_events if e.get('date', '').startswith('2025-09')]
+        print(f"[DEBUG] Template September events: {len(sept_events)}")
+        if sept_events:
+            print(f"[DEBUG] Template Sept events: {[(e.get('title'), e.get('date')) for e in sept_events]}")
     
     return render_template('calendar_detail_main.html', **context)
 
