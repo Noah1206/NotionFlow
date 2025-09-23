@@ -7127,39 +7127,40 @@ def check_google_calendar_connection(user_id):
 # (Cache control functions already defined above with proper decorators)
 
 if __name__ == '__main__':
-    # Start sync scheduler (if available)
+    # ✅ FIXED: Sync scheduler with singleton pattern to prevent multiple instances
     try:
         from utils.sync_scheduler import start_sync_scheduler
         start_sync_scheduler()
-        print("[SUCCESS] Sync scheduler started")
+        print("✅ [SUCCESS] Sync scheduler started with singleton protection")
     except ImportError as e:
-        print(f"[WARNING] Sync scheduler not available: {e}")
+        print(f"⚠️  [WARNING] Sync scheduler not available: {e}")
     except Exception as e:
-        print(f"[ERROR] Failed to start sync scheduler: {e}")
+        print(f"❌ [ERROR] Failed to start sync scheduler: {e}")
     
     port = int(os.environ.get('PORT', 5003))
     app.run(host='0.0.0.0', port=port, debug=True)
 elif os.environ.get('RENDER') and not os.environ.get('FLASK_ENV') == 'development':
     # Production startup with error handling (only on Render platform)
+    # ✅ FIXED: Production sync scheduler with singleton pattern
     try:
         from utils.sync_scheduler import start_sync_scheduler
         start_sync_scheduler()
-        print("[SUCCESS] Production sync scheduler started")
+        print("✅ [SUCCESS] Production sync scheduler started with singleton protection")
     except ImportError as e:
-        print(f"[WARNING] Sync scheduler not available in production: {e}")
+        print(f"⚠️  [WARNING] Sync scheduler not available in production: {e}")
     except Exception as e:
-        print(f"[ERROR] Failed to start production sync scheduler: {e}")
+        print(f"❌ [ERROR] Failed to start production sync scheduler: {e}")
 elif os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('FLASK_ENV') == 'production':
     # Railway deployment startup
     print("[INFO] Starting in Railway production mode")
     try:
         from utils.sync_scheduler import start_sync_scheduler
         start_sync_scheduler()
-        print("[SUCCESS] Railway sync scheduler started")
+        print("✅ [SUCCESS] Railway sync scheduler started with singleton protection")
     except ImportError as e:
-        print(f"[WARNING] Sync scheduler not available on Railway: {e}")
+        print(f"⚠️  [WARNING] Sync scheduler not available on Railway: {e}")
     except Exception as e:
-        print(f"[ERROR] Failed to start Railway sync scheduler: {e}")
+        print(f"❌ [ERROR] Failed to start Railway sync scheduler: {e}")
 # No else block - allow clean imports without starting sync scheduler
 
 # 플랫폼별 일정 동기화 헬퍼 함수들

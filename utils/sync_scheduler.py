@@ -5,6 +5,9 @@ Automatic 15-minute interval synchronization system
 
 import threading
 import time
+import fcntl
+import tempfile
+import atexit
 from datetime import datetime, timedelta
 from typing import Dict, List
 from supabase import create_client
@@ -27,31 +30,89 @@ if not SUPABASE_KEY:
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 class SyncScheduler:
-    """Automatic calendar synchronization scheduler"""
+    """Automatic calendar synchronization scheduler with singleton pattern"""
+    
+    _instance = None
+    _lock = threading.Lock()
+    _file_lock = None
+    _lock_file_path = None
+    
+    def __new__(cls):
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = super(SyncScheduler, cls).__new__(cls)
+                    cls._instance._initialized = False
+        return cls._instance
     
     def __init__(self):
+        if self._initialized:
+            return
+            
         self.is_running = False
         self.sync_thread = None
         self.sync_interval = 900  # 15 minutes in seconds
         self.last_sync_times = {}  # Track last sync per user/platform
+        self._initialized = True
+        
+        # Create lock file to prevent multiple scheduler instances
+        self._lock_file_path = os.path.join(tempfile.gettempdir(), 'notionflow_sync_scheduler.lock')
+        self._file_lock = None
+        
+        # Register cleanup on exit
+        atexit.register(self._cleanup_lock)
         
     def start_scheduler(self):
-        """Start the sync scheduler"""
+        """Start the sync scheduler with file locking to prevent duplicates"""
         if self.is_running:
-            # Sync scheduler is already running
+            print("🔄 Sync scheduler is already running in this instance")
+            return
+            
+        # Try to acquire file lock to prevent multiple scheduler instances
+        try:
+            self._file_lock = open(self._lock_file_path, 'w')
+            fcntl.flock(self._file_lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            self._file_lock.write(f"PID: {os.getpid()}\nStarted: {datetime.now().isoformat()}\n")
+            self._file_lock.flush()
+            print(f"🔒 Acquired sync scheduler lock (PID: {os.getpid()})")
+        except (IOError, OSError) as e:
+            print(f"⚠️  Cannot start sync scheduler - another instance is already running: {e}")
+            if self._file_lock:
+                self._file_lock.close()
+                self._file_lock = None
             return
         
         self.is_running = True
         self.sync_thread = threading.Thread(target=self._sync_loop, daemon=True)
         self.sync_thread.start()
-        # Sync scheduler started
+        print(f"✅ Sync scheduler started successfully (PID: {os.getpid()})")
     
     def stop_scheduler(self):
-        """Stop the sync scheduler"""
+        """Stop the sync scheduler and release file lock"""
         self.is_running = False
         if self.sync_thread:
             self.sync_thread.join()
-        # Sync scheduler stopped
+        self._cleanup_lock()
+        print("🛑 Sync scheduler stopped")
+    
+    def _cleanup_lock(self):
+        """Clean up file lock resources"""
+        if self._file_lock:
+            try:
+                fcntl.flock(self._file_lock.fileno(), fcntl.LOCK_UN)
+                self._file_lock.close()
+                print(f"🔓 Released sync scheduler lock (PID: {os.getpid()})")
+            except:
+                pass
+            finally:
+                self._file_lock = None
+        
+        # Remove lock file if it exists
+        try:
+            if self._lock_file_path and os.path.exists(self._lock_file_path):
+                os.remove(self._lock_file_path)
+        except:
+            pass
     
     def _sync_loop(self):
         """Main sync loop running in background thread"""

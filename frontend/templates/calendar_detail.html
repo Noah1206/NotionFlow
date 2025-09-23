@@ -6332,20 +6332,22 @@
             }
         }
         
-        // 💪 FORCE EVENT BLOCK GENERATION - 강력한 자동 블럭 생성
+        // 💪 FORCE EVENT BLOCK GENERATION - 빠른 자동 블럭 생성 (최적화됨)
         async function forceGenerateEventBlocks(events) {
-            console.log('💪 [FORCE] Starting forced event block generation for', events.length, 'events');
+            console.log('💪 [FORCE] Starting FAST event block generation for', events.length, 'events');
             
-            // Wait for calendar grid to be ready
+            // 🚀 ULTRA-FAST GRID DETECTION (0.5초 최대 대기)
             let attempts = 0;
-            while (!window.googleCalendarGrid && attempts < 20) {
-                console.log('⏳ [FORCE] Waiting for calendar grid... attempt', attempts + 1);
-                await new Promise(resolve => setTimeout(resolve, 250));
+            while (!window.googleCalendarGrid && attempts < 5) {
+                console.log('⚡ [FAST] Quick grid check... attempt', attempts + 1);
+                await new Promise(resolve => setTimeout(resolve, 100)); // 100ms씩만 기다림
                 attempts++;
             }
             
             if (!window.googleCalendarGrid) {
-                console.error('❌ [FORCE] Calendar grid not available after 5 seconds, creating events anyway');
+                console.log('⚡ [FAST] Grid not ready yet, using fallback instant creation');
+                // 그리드가 없어도 강제로 생성
+                createEventsDirectly(events);
                 return;
             }
             
@@ -6402,6 +6404,77 @@
             }
         }
         
+        // ⚡ INSTANT EVENT CREATION FALLBACK (그리드 없어도 생성)
+        function createEventsDirectly(events) {
+            console.log('⚡ [INSTANT] Creating events directly without waiting for grid');
+            
+            // Store events for later when grid becomes available
+            window.instantEventsCache = events.map(event => convertDatabaseEventToFrontend(event));
+            
+            // Try to inject events into the DOM directly
+            const calendarContainer = document.getElementById('calendar-grid-container');
+            if (calendarContainer) {
+                console.log('⚡ [INSTANT] Found calendar container, injecting events directly');
+                
+                events.forEach((event, index) => {
+                    const frontendEvent = convertDatabaseEventToFrontend(event);
+                    
+                    // Create a simple event block directly in the DOM
+                    const eventElement = document.createElement('div');
+                    eventElement.className = 'instant-event-block';
+                    eventElement.style.cssText = `
+                        position: absolute;
+                        background: ${frontendEvent.color || '#3b82f6'};
+                        color: white;
+                        padding: 4px 8px;
+                        border-radius: 4px;
+                        font-size: 12px;
+                        z-index: 100;
+                        cursor: pointer;
+                        max-width: 120px;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                    `;
+                    eventElement.textContent = frontendEvent.title;
+                    eventElement.title = `${frontendEvent.title} (${frontendEvent.startTime})`;
+                    
+                    calendarContainer.appendChild(eventElement);
+                    console.log(`⚡ [INSTANT] Added instant event: ${frontendEvent.title}`);
+                });
+            }
+            
+            // Set up a quick retry when grid becomes available
+            let retryCount = 0;
+            const retryInterval = setInterval(() => {
+                if (window.googleCalendarGrid && window.instantEventsCache) {
+                    console.log('⚡ [INSTANT] Grid now available, converting instant events to proper blocks');
+                    
+                    // Remove instant blocks
+                    document.querySelectorAll('.instant-event-block').forEach(el => el.remove());
+                    
+                    // Add events properly to grid
+                    window.instantEventsCache.forEach(event => {
+                        if (window.googleCalendarGrid.events) {
+                            window.googleCalendarGrid.events.push(event);
+                        }
+                        if (window.googleCalendarGrid.renderEvent) {
+                            window.googleCalendarGrid.renderEvent(event);
+                        }
+                    });
+                    
+                    window.instantEventsCache = null;
+                    clearInterval(retryInterval);
+                    console.log('✅ [INSTANT] Successfully converted to proper grid events');
+                    
+                } else if (retryCount > 30) { // 3초 후 포기
+                    clearInterval(retryInterval);
+                    console.log('⚠️ [INSTANT] Grid still not available after 3 seconds, keeping instant events');
+                }
+                retryCount++;
+            }, 100);
+        }
+
         // 🔄 Convert database event format to frontend format
         function convertDatabaseEventToFrontend(dbEvent) {
             // Extract date and time from start_datetime
@@ -6445,9 +6518,8 @@
                         const refreshData = JSON.parse(e.newValue);
                         if (refreshData.calendar_id === '{{ calendar.id }}') {
                             console.log('🔄 [LISTENER] localStorage refresh trigger received:', refreshData);
-                            setTimeout(() => {
-                                loadCalendarEvents();
-                            }, 500);
+                            // 즉시 실행 (지연 없음)
+                            loadCalendarEvents();
                         }
                     } catch (error) {
                         console.error('❌ [LISTENER] Error parsing localStorage refresh data:', error);
@@ -6461,9 +6533,8 @@
                 
                 if (e.data.type === 'CALENDAR_GRID_REFRESH' && e.data.calendar_id === '{{ calendar.id }}') {
                     console.log('🔄 [LISTENER] PostMessage refresh trigger received:', e.data);
-                    setTimeout(() => {
-                        loadCalendarEvents();
-                    }, 500);
+                    // 즉시 실행 (지연 없음)
+                    loadCalendarEvents();
                 }
             });
             
@@ -6473,9 +6544,8 @@
                 channel.onmessage = (e) => {
                     if (e.data.type === 'REFRESH_CALENDAR_GRID' && e.data.calendar_id === '{{ calendar.id }}') {
                         console.log('🔄 [LISTENER] BroadcastChannel refresh trigger received:', e.data);
-                        setTimeout(() => {
-                            loadCalendarEvents();
-                        }, 500);
+                        // 즉시 실행 (지연 없음)
+                        loadCalendarEvents();
                     }
                 };
             }
@@ -6493,14 +6563,14 @@
             // Load events immediately
             loadCalendarEvents();
             
-            // Also try loading after a short delay in case grid isn't ready
+            // Quick fallback check (단축된 대기)
             setTimeout(() => {
                 if (window.pendingCalendarEvents && window.googleCalendarGrid) {
                     console.log('🔄 Loading pending events into grid...');
                     window.googleCalendarGrid.loadEvents(window.pendingCalendarEvents);
                     window.pendingCalendarEvents = null;
                 }
-            }, 1000);
+            }, 200); // 1초 → 0.2초로 단축
         });
     </script>
 
