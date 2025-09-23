@@ -307,7 +307,7 @@ class NotionCalendarSync:
             
             # 4. 각 데이터베이스에서 이벤트 추출 및 동기화
             total_synced = 0
-            max_initial_load = 100  # 초기 로드 시 최대 이벤트 수 제한
+            max_initial_load = 50  # 초기 로드 시 최대 이벤트 수 제한 (worker timeout 방지)
             
             for db in calendar_dbs:
                 db_id = db['id']
@@ -320,8 +320,8 @@ class NotionCalendarSync:
                 db_synced = 0
                 
                 while True:
-                    # 한 번에 25개씩 처리 (API 부하 감소)
-                    result = notion_api.query_database(db_id, page_size=25, start_cursor=start_cursor)
+                    # 한 번에 15개씩 처리 (API 부하 및 worker timeout 방지)
+                    result = notion_api.query_database(db_id, page_size=15, start_cursor=start_cursor)
                     pages = result.get('results', [])
                     
                     if not pages:
@@ -329,40 +329,26 @@ class NotionCalendarSync:
                     
                     print(f"📄 Processing {len(pages)} pages from {db_title}")
                     
-                    # 배치로 이벤트 처리
-                    events_batch = []
+                    # 즉시 처리 방식으로 메모리 사용량 최소화
                     for page in pages:
-                        # Notion 페이지를 캘린더 이벤트로 변환
+                        # Notion 페이지를 캘린더 이벤트로 변환 및 즉시 저장
                         event = self._convert_page_to_event(page, calendar_id, user_id)
                         if event:
-                            events_batch.append(event)
-                    
-                    # 배치 저장 (메모리 최적화)
-                    batch_size = 10  # 10개씩 처리하여 메모리 사용량 제한
-                    for i in range(0, len(events_batch), batch_size):
-                        batch = events_batch[i:i + batch_size]
-                        
-                        for event in batch:
                             if self._save_event_to_calendar(event):
                                 total_synced += 1
                                 db_synced += 1
                                 print(f"✅ Synced: {event['title']}")
+                            else:
+                                print(f"❌ Failed to save: {event['title']}")
                         
-                        # 메모리 정리 및 Worker 안정성 확보
-                        del batch
-                        import gc
-                        gc.collect()
-                        
-                        # CPU와 메모리 부하 방지
-                        import time
-                        time.sleep(0.3)
+                        # 초기 로드 제한 확인 (더 빨리 체크)
+                        if total_synced >= max_initial_load:
+                            print(f"⚡ Initial load limit reached ({max_initial_load} events). Breaking early.")
+                            break
                     
-                    # 배치 전체 메모리 정리
-                    del events_batch
-                    import gc
-                    gc.collect()
-                        else:
-                            print(f"❌ Failed to save: {event['title']}")
+                    # Worker 안정성을 위한 짧은 휴식
+                    import time
+                    time.sleep(0.1)
                     
                     # 초기 로드 제한 확인
                     if total_synced >= max_initial_load:
@@ -558,22 +544,27 @@ class NotionCalendarSync:
             
             print(f"🔧 [NORMALIZE] Parsed dates: start={start_dt}, end={end_dt}")
             
-            # end_date가 start_date보다 이전이거나 같으면 수정
+            # Critical fix: ensure end_dt is ALWAYS after start_dt to prevent constraint violations
             if end_dt <= start_dt:
                 print(f"⚠️ [NORMALIZE] End date is not after start date, fixing...")
                 if not has_time:
-                    # 종일 이벤트인 경우: 시작은 00:00, 끝은 23:59
+                    # 종일 이벤트인 경우: 시작일 00:00에서 다음날 00:00까지 (24시간)
                     start_dt = start_dt.replace(hour=0, minute=0, second=0, microsecond=0)
-                    end_dt = start_dt.replace(hour=23, minute=59, second=59, microsecond=999999)
+                    end_dt = start_dt + timedelta(days=1)
                     print(f"📅 [NORMALIZE] All-day event fixed: {start_dt} → {end_dt}")
                 else:
                     # 시간 이벤트인 경우: 최소 1시간 duration
                     end_dt = start_dt + timedelta(hours=1)
                     print(f"⏰ [NORMALIZE] Timed event fixed: {start_dt} → {end_dt}")
             
-            # 최종 검증: end가 여전히 start와 같거나 이전이면 강제로 1분 추가
+            # Double validation: ensure end is ALWAYS greater than start (never equal)
             if end_dt <= start_dt:
-                print(f"🚨 [NORMALIZE] Final check failed, adding 1 minute")
+                print(f"🚨 [NORMALIZE] Final safety check - enforcing minimum 1 hour duration")
+                end_dt = start_dt + timedelta(hours=1)
+            
+            # Triple validation: absolute safety check to prevent database constraint violations
+            if end_dt == start_dt:
+                print(f"🚨 [NORMALIZE] CRITICAL: Identical times detected, adding 1 minute minimum")
                 end_dt = start_dt + timedelta(minutes=1)
             
             # ISO 형식으로 반환
@@ -712,20 +703,42 @@ class NotionCalendarSync:
                     db_event['source_calendar_id'] = event['calendar_id']
                     db_event['source_calendar_name'] = 'Notion Calendar'
             
-            # 최종 datetime 검증 및 수정
+            # Critical: Final datetime validation to prevent constraint violations
             from datetime import datetime, timedelta
             try:
                 start_dt = datetime.fromisoformat(db_event['start_datetime'].replace('Z', '+00:00'))
                 end_dt = datetime.fromisoformat(db_event['end_datetime'].replace('Z', '+00:00'))
                 
+                # Absolute safety check: end MUST be after start to satisfy valid_datetime_range constraint
                 if end_dt <= start_dt:
-                    print(f"🚨 [SAVE] Final validation failed: end_datetime ({end_dt}) <= start_datetime ({start_dt})")
+                    print(f"🚨 [SAVE] CRITICAL: Constraint violation detected - end_datetime ({end_dt}) <= start_datetime ({start_dt})")
+                    
+                    # Ensure minimum duration based on event type
+                    if db_event.get('is_all_day', False):
+                        # All-day events: minimum 24 hours
+                        end_dt = start_dt + timedelta(days=1)
+                        print(f"📅 [SAVE] All-day event: enforced 24-hour duration")
+                    else:
+                        # Timed events: minimum 1 hour
+                        end_dt = start_dt + timedelta(hours=1)
+                        print(f"⏰ [SAVE] Timed event: enforced 1-hour duration")
+                    
+                    db_event['end_datetime'] = end_dt.isoformat()
+                    print(f"🔧 [SAVE] Fixed constraint violation: {db_event['start_datetime']} → {db_event['end_datetime']}")
+                
+                # Additional safety check for exact equality (should never happen but extra protection)
+                if end_dt == start_dt:
+                    print(f"🚨 [SAVE] EMERGENCY: Identical datetimes detected - adding 1 minute minimum")
                     end_dt = start_dt + timedelta(minutes=1)
                     db_event['end_datetime'] = end_dt.isoformat()
-                    print(f"🔧 [SAVE] Fixed: new end_datetime = {db_event['end_datetime']}")
                     
             except Exception as e:
-                print(f"⚠️ [SAVE] Datetime validation error: {e}")
+                print(f"❌ [SAVE] Datetime validation error: {e}")
+                # Fallback: use current time + 1 hour as safe default
+                now = datetime.now()
+                db_event['start_datetime'] = now.isoformat()
+                db_event['end_datetime'] = (now + timedelta(hours=1)).isoformat()
+                print(f"🔄 [SAVE] Using safe fallback times: {db_event['start_datetime']} → {db_event['end_datetime']}")
             
             print(f"💾 [SAVE] Saving event: {db_event['title']}")
             print(f"📅 [SAVE] Dates: {db_event['start_datetime']} → {db_event['end_datetime']}")

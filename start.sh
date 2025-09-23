@@ -11,11 +11,14 @@ echo "PORT: $PORT"
 exec gunicorn frontend.app:app \
     --bind 0.0.0.0:$PORT \
     --workers 1 \
-    --timeout 600 \
+    --timeout 300 \
+    --graceful-timeout 30 \
     --keep-alive 2 \
-    --max-requests 1000 \
-    --max-requests-jitter 100 \
+    --max-requests 500 \
+    --max-requests-jitter 50 \
     --preload \
     --worker-class sync \
-    --worker-connections 1000 \
-    --log-level info
+    --worker-connections 500 \
+    --log-level info \
+    --access-logfile - \
+    --error-logfile -
