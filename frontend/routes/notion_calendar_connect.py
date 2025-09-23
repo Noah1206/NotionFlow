@@ -35,9 +35,11 @@ def connect_notion_to_calendar():
         if not calendar_check.data:
             return jsonify({'error': 'Calendar not found or access denied'}), 404
             
-        # Update calendar_sync_configs with the selected calendar_id
+        # Update calendar_sync_configs with the selected calendar_id and enable sync
         update_result = supabase.table('calendar_sync_configs').update({
             'calendar_id': calendar_id,
+            'sync_status': 'active',
+            'is_enabled': True,
             'updated_at': datetime.now().isoformat()
         }).eq('user_id', user_id).eq('platform', 'notion').execute()
         
@@ -77,7 +79,8 @@ def connect_notion_to_calendar():
         return jsonify({
             'success': True,
             'message': f'Notion connected to calendar successfully',
-            'calendar_id': calendar_id
+            'calendar_id': calendar_id,
+            'clear_disconnected_flag': True  # 프론트엔드에서 localStorage 플래그 제거
         })
         
     except Exception as e:
@@ -97,9 +100,11 @@ def disconnect_notion_from_calendar():
         
         supabase = config.get_client_for_user(user_id)
         
-        # Update calendar_sync_configs to remove calendar_id
+        # Update calendar_sync_configs to remove calendar_id and set selection needed status
         supabase.table('calendar_sync_configs').update({
             'calendar_id': None,
+            'sync_status': 'needs_calendar_selection',
+            'is_enabled': False,
             'updated_at': datetime.now().isoformat()
         }).eq('user_id', user_id).eq('platform', 'notion').execute()
         

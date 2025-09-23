@@ -1103,7 +1103,8 @@
         }
 
         try {
-            const response = await fetch('/api/sync/notion', {
+            // 먼저 캘린더 연결
+            const connectResponse = await fetch('/api/notion/connect-calendar', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1113,18 +1114,46 @@
                 })
             });
 
-            const result = await response.json();
+            const connectResult = await connectResponse.json();
             
-            if (result.success) {
-                showNotification(`✅ ${result.synced_events || 0}개의 이벤트가 동기화되었습니다!`, 'success');
-                closeCalendarModal();
+            if (connectResult.success) {
+                // localStorage 플래그 제거
+                if (connectResult.clear_disconnected_flag) {
+                    localStorage.removeItem('notion_manually_disconnected');
+                    console.log('🧹 [CONNECT] Cleared notion_manually_disconnected flag');
+                }
                 
-                // 캘린더 페이지로 이동
-                setTimeout(() => {
-                    window.location.href = '/calendar';
-                }, 1500);
+                // 동기화 시작
+                const syncResponse = await fetch('/api/sync/notion', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        calendar_id: window.selectedCalendarId
+                    })
+                });
+
+                const syncResult = await syncResponse.json();
+                
+                if (syncResult.success) {
+                    showNotification(`✅ 캘린더 연결 및 ${syncResult.synced_events || 0}개의 이벤트가 동기화되었습니다!`, 'success');
+                    closeCalendarModal();
+                    
+                    // 플랫폼 상태 업데이트
+                    updatePlatformStatus('notion', 'connected');
+                    
+                    // 캘린더 페이지로 이동
+                    setTimeout(() => {
+                        window.location.href = '/calendar';
+                    }, 1500);
+                } else {
+                    showNotification(`✅ 캘린더 연결 완료, ⚠️ 동기화 경고: ${syncResult.error}`, 'warning');
+                    closeCalendarModal();
+                    updatePlatformStatus('notion', 'connected');
+                }
             } else {
-                showNotification(`❌ 동기화 실패: ${result.error}`, 'error');
+                showNotification(`❌ 캘린더 연결 실패: ${connectResult.error}`, 'error');
             }
         } catch (error) {
             console.error('Sync failed:', error);

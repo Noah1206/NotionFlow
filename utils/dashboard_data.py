@@ -237,8 +237,20 @@ class DashboardDataManager:
             
             # Process each calendar
             for calendar in result.data:
-                # Skip event count query for now since calendar_id column doesn't exist
-                event_count = 0
+                # Calculate actual event count for this calendar
+                try:
+                    # Query calendar_events table to get actual event count
+                    events_result = self.admin_client.table('calendar_events').select(
+                        'id', count='exact'
+                    ).eq('user_id', normalized_user_id).eq('calendar_id', calendar['id']).execute()
+                    
+                    event_count = events_result.count if events_result.count is not None else 0
+                    print(f"📊 [EVENT-COUNT] Calendar '{calendar['name']}' ({calendar['id'][:8]}...): {event_count} events")
+                    
+                except Exception as count_error:
+                    print(f"⚠️ [EVENT-COUNT] Error counting events for calendar {calendar['id']}: {count_error}")
+                    event_count = 0
+                
                 total_events_count += event_count
                 
                 # Format created time for last sync display
