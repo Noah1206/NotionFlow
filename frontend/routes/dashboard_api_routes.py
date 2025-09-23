@@ -120,16 +120,11 @@ def get_dashboard_stats():
     user_id = get_current_user_id()
     
     try:
-        from supabase import create_client
+        # Use existing config instead of creating new client
+        supabase = config.supabase_admin if config.supabase_admin else config.supabase_client
         
-        # Supabase connection
-        SUPABASE_URL = os.environ.get('SUPABASE_URL')
-        SUPABASE_KEY = os.environ.get('SUPABASE_API_KEY')
-        
-        if not SUPABASE_URL or not SUPABASE_KEY:
-            raise Exception("Supabase credentials not configured")
-        
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        if not supabase:
+            raise Exception("Supabase client not available")
         
         # Get connected platforms count - only platforms with actual API keys configured
         platforms_result = supabase.table('registered_platforms').select('*').eq('user_id', user_id).eq('is_active', True).execute()

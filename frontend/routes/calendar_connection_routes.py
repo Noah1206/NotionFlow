@@ -19,6 +19,38 @@ from utils.config import config
 
 calendar_conn_bp = Blueprint('calendar_connections', __name__, url_prefix='/api/calendars')
 
+@calendar_conn_bp.route('', methods=['GET'])
+def get_calendars():
+    """Get user's calendar list - redirect to proper API"""
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({'error': 'Authentication required'}), 401
+    
+    try:
+        # Use dashboard data manager to get calendars
+        from utils.dashboard_data import DashboardDataManager
+        dashboard_data = DashboardDataManager()
+        
+        # UUID 정규화
+        from utils.uuid_helper import normalize_uuid
+        normalized_user_id = normalize_uuid(user_id)
+        
+        calendars_data = dashboard_data.get_user_calendars(normalized_user_id)
+        
+        return jsonify({
+            'success': True,
+            'personal_calendars': calendars_data.get('personal_calendars', []),
+            'shared_calendars': calendars_data.get('shared_calendars', []),
+            'summary': calendars_data.get('summary', {})
+        })
+        
+    except Exception as e:
+        print(f"Error getting calendars: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to get calendars'
+        }), 500
+
 def get_current_user_id():
     """Get current authenticated user ID"""
     from utils.auth_manager import AuthManager

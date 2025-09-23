@@ -468,10 +468,10 @@
                 const button = platformCard.querySelector('button');
                 
                 // 기존의 특별한 버튼들 제거 (초록색 버튼, X 버튼 등)
+                // :contains() 셀렉터는 브라우저 네이티브에서 지원되지 않으므로 제거
                 const existingSpecialButtons = platformCard.querySelectorAll(
                     '.btn-success, .connection-status-btn, .sync-status-btn, [class*="connected-btn"], ' +
-                    '.btn-success-small, [onclick*="disconnectSpecial"], [class*="green"], ' +
-                    'button:contains("연동됨"), button:contains("×"), button[class*="close"]'
+                    '.btn-success-small, [onclick*="disconnectSpecial"], [class*="green"], button[class*="close"]'
                 );
                 existingSpecialButtons.forEach(btn => btn.remove());
                 

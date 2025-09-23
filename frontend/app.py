@@ -5892,9 +5892,10 @@ def import_events_from_notion(user_id: str, calendar_id: str) -> int:
                     debug_data['step_logs'].append(f"📅 Processing event: '{title}' on {start_date}")
                     logger.info(f"    Processing event: {title} - {start_datetime} to {end_datetime}")
                     
-                    # 기존 이벤트 확인 (중복 방지)
+                    # 기존 이벤트 확인 (external_id 기반 중복 방지 - 더 정확함)
                     debug_data['step_logs'].append(f"🔍 Checking for duplicates of '{title}'...")
-                    existing_check = supabase_client.table('calendar_events').select('id').eq('user_id', user_id).eq('title', title).eq('start_datetime', start_datetime).execute()
+                    notion_page_id = page.get('id', '')
+                    existing_check = supabase_client.table('calendar_events').select('id').eq('user_id', user_id).eq('external_id', notion_page_id).eq('source_platform', 'notion').execute()
                     
                     if existing_check.data:
                         logger.info(f"    Skipping duplicate: {title}")
@@ -6127,8 +6128,8 @@ def import_events_from_google(user_id: str, calendar_id: str) -> int:
                 else:
                     continue
                 
-                # 기존 이벤트 확인 (중복 방지)
-                existing_check = supabase_client.table('calendar_events').select('id').eq('user_id', user_id).eq('title', summary).eq('start_datetime', start_datetime).execute()
+                # 기존 이벤트 확인 (external_id 기반 중복 방지 - 더 정확함)
+                existing_check = supabase_client.table('calendar_events').select('id').eq('user_id', user_id).eq('external_id', event_id).eq('source_platform', 'google').execute()
                 
                 if existing_check.data:
                     print(f"  Skipping duplicate: {summary}")

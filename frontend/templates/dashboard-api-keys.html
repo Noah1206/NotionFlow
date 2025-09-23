@@ -3605,7 +3605,29 @@
             if (response.ok) {
                 // Notion 특별 처리 (API 응답에 없어도 처리)
                 if (notionManuallyDisconnected) {
-                    console.log('Notion OAuth connected but needs calendar selection - showing calendar sync button');
+                    console.log('Notion OAuth connected but checking if calendar selection and events sync are complete...');
+                    
+                    // 실제로 이벤트가 동기화되었는지 확인
+                    try {
+                        const platformsResponse = await fetch('/api/dashboard/platforms');
+                        const platformsData = await platformsResponse.json();
+                        
+                        if (platformsData.success && platformsData.platforms && platformsData.platforms.notion) {
+                            const notionPlatform = platformsData.platforms.notion;
+                            
+                            // 캘린더가 연결되고 이벤트가 동기화된 경우
+                            if (notionPlatform.calendar_connected && notionPlatform.events_synced) {
+                                console.log('Notion is fully synced (calendar connected + events synced) - clearing manual disconnect flag');
+                                localStorage.removeItem('notion_manually_disconnected');
+                                // 완전히 연결된 상태로 처리하므로 이 특별 처리를 건너뜀
+                                return;
+                            }
+                        }
+                    } catch (error) {
+                        console.log('Could not check Notion sync status:', error);
+                    }
+                    
+                    console.log('Notion OAuth connected but still needs calendar selection - showing calendar sync button');
                     
                     const platformCard = document.querySelector(`[data-platform="notion"]`);
                     if (platformCard) {
