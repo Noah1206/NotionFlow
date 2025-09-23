@@ -5795,8 +5795,42 @@ def import_events_from_notion(user_id: str, calendar_id: str) -> int:
                         start_datetime = f"{start_date}T09:00:00Z"
                         end_datetime = f"{end_date}T10:00:00Z"
                     else:
+                        # CRITICAL: Apply datetime constraint validation for timed events
                         start_datetime = start_date
                         end_datetime = end_date
+                        
+                        # Validate and fix constraint violations
+                        from datetime import datetime, timedelta, timezone
+                        try:
+                            # Parse datetime strings with timezone handling
+                            if start_datetime.endswith('Z'):
+                                start_dt = datetime.fromisoformat(start_datetime.replace('Z', '+00:00'))
+                                end_dt = datetime.fromisoformat(end_datetime.replace('Z', '+00:00'))
+                            elif '+' in start_datetime or '-' in start_datetime[-6:]:
+                                start_dt = datetime.fromisoformat(start_datetime)
+                                end_dt = datetime.fromisoformat(end_datetime)
+                            else:
+                                start_dt = datetime.fromisoformat(start_datetime + '+00:00')
+                                end_dt = datetime.fromisoformat(end_datetime + '+00:00')
+                            
+                            # Convert to UTC for reliable comparison
+                            start_utc = start_dt.astimezone(timezone.utc) if start_dt.tzinfo else start_dt
+                            end_utc = end_dt.astimezone(timezone.utc) if end_dt.tzinfo else end_dt
+                            
+                            # CONSTRAINT VIOLATION FIX: ensure end > start
+                            if end_utc <= start_utc:
+                                debug_data['step_logs'].append(f"🚨 FIXING constraint violation for '{title}': {start_utc} == {end_utc}")
+                                # Add minimum 1-hour duration for timed events
+                                end_dt = start_dt + timedelta(hours=1)
+                                end_datetime = end_dt.isoformat()
+                                debug_data['step_logs'].append(f"✅ Fixed to: {start_datetime} → {end_datetime}")
+                                
+                        except Exception as dt_error:
+                            debug_data['errors'].append(f"Datetime parsing error for '{title}': {dt_error}")
+                            # Fallback: use current time + 1 hour
+                            now = datetime.now(timezone.utc)
+                            start_datetime = now.isoformat()
+                            end_datetime = (now + timedelta(hours=1)).isoformat()
                         
                     event_data.update({
                         'start_datetime': start_datetime,
@@ -6003,8 +6037,29 @@ def import_events_from_google(user_id: str, calendar_id: str) -> int:
                 # 종일 이벤트 vs 시간 지정 이벤트
                 if 'dateTime' in start:
                     start_datetime = start['dateTime']
-                    end_datetime = end.get('dateTime', start_datetime)
+                    end_datetime = end.get('dateTime')
                     is_all_day = False
+                    
+                    # CRITICAL: Fix constraint violation if end time is missing or same as start
+                    if not end_datetime or end_datetime == start_datetime:
+                        from datetime import datetime, timedelta
+                        try:
+                            start_dt = datetime.fromisoformat(start_datetime.replace('Z', '+00:00'))
+                            end_dt = start_dt + timedelta(hours=1)  # Default 1-hour duration
+                            end_datetime = end_dt.isoformat()
+                        except:
+                            # Fallback: manually add :01:00 to indicate 1 hour later
+                            if 'T' in start_datetime:
+                                base_time = start_datetime.split('T')[0]
+                                time_part = start_datetime.split('T')[1]
+                                if ':' in time_part:
+                                    hour = int(time_part.split(':')[0])
+                                    end_hour = str(hour + 1).zfill(2)
+                                    end_datetime = f"{base_time}T{end_hour}:{time_part.split(':', 1)[1]}"
+                                else:
+                                    end_datetime = start_datetime + ":01:00"
+                            else:
+                                end_datetime = start_datetime + "T01:00:00"
                 elif 'date' in start:
                     # 종일 이벤트
                     start_date = start['date']
