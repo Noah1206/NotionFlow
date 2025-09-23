@@ -3584,7 +3584,38 @@
             const syncedCalendars = await response.json();
 
             if (response.ok) {
-                // 각 플랫폼의 연동 상태 업데이트
+                // Notion 특별 처리 (API 응답에 없어도 처리)
+                if (notionManuallyDisconnected) {
+                    console.log('Notion OAuth connected but needs calendar selection - showing calendar sync button');
+                    
+                    const platformCard = document.querySelector(`[data-platform="notion"]`);
+                    if (platformCard) {
+                        const statusElement = platformCard.querySelector('.platform-status');
+                        const connectBtn = platformCard.querySelector('.platform-connect-btn, .one-click-btn-small');
+                        const syncBtn = platformCard.querySelector('.platform-sync-btn');
+                        
+                        // OAuth 연결됨 상태로 표시 (주황색으로 구분)
+                        statusElement.className = 'platform-status oauth-connected';
+                        statusElement.innerHTML = '<span class="status-dot"></span>OAuth 연결됨';
+                        
+                        // 연결 버튼들 숨기기
+                        if (connectBtn) {
+                            connectBtn.style.display = 'none';
+                        }
+                        
+                        // 캘린더 연동 버튼 표시 (강제로 override)
+                        if (syncBtn) {
+                            syncBtn.style.display = 'inline-flex';
+                            syncBtn.style.setProperty('display', 'inline-flex', 'important');
+                            const syncText = syncBtn.querySelector('.sync-text');
+                            if (syncText) {
+                                syncText.textContent = '캘린더 선택';
+                            }
+                        }
+                    }
+                }
+                
+                // 각 플랫폼의 연동 상태 업데이트 (API 응답에 있는 것들만)
                 Object.keys(syncedCalendars).forEach(platform => {
                     const syncInfo = syncedCalendars[platform];
                     
@@ -3594,34 +3625,8 @@
                         return;
                     }
                     if (platform === 'notion' && notionManuallyDisconnected) {
-                        // Notion의 경우 OAuth는 연결됐지만 캘린더 선택이 필요한 상태
-                        console.log('Notion OAuth connected but needs calendar selection - showing calendar sync button');
-                        
-                        const platformCard = document.querySelector(`[data-platform="notion"]`);
-                        if (platformCard) {
-                            const statusElement = platformCard.querySelector('.platform-status');
-                            const connectBtn = platformCard.querySelector('.platform-connect-btn, .one-click-btn-small');
-                            const syncBtn = platformCard.querySelector('.platform-sync-btn');
-                            
-                            // OAuth 연결됨 상태로 표시 (주황색으로 구분)
-                            statusElement.className = 'platform-status oauth-connected';
-                            statusElement.innerHTML = '<span class="status-dot"></span>OAuth 연결됨';
-                            
-                            // 연결 버튼들 숨기기
-                            if (connectBtn) {
-                                connectBtn.style.display = 'none';
-                            }
-                            
-                            // 캘린더 연동 버튼 표시 (강제로 override)
-                            if (syncBtn) {
-                                syncBtn.style.display = 'inline-flex';
-                                syncBtn.style.setProperty('display', 'inline-flex', 'important');
-                                const syncText = syncBtn.querySelector('.sync-text');
-                                if (syncText) {
-                                    syncText.textContent = '캘린더 선택';
-                                }
-                            }
-                        }
+                        // 이미 위에서 처리했으므로 건너뛰기
+                        console.log('Skipping Notion - already handled above');
                         return;
                     }
                     
