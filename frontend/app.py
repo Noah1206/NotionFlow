@@ -6577,6 +6577,25 @@ def get_synced_calendars():
         synced_platforms = {}
         
         # 1. 데이터베이스에서 연동 정보 조회 시도
+        # 먼저 연결해제된 플랫폼들을 확인
+        disconnected_platforms = set()
+        try:
+            config_response = supabase_client.table('calendar_sync_configs').select('*').eq('user_id', user_id).execute()
+            if config_response.data:
+                for config in config_response.data:
+                    platform = config['platform']
+                    sync_status = config.get('sync_status')
+                    is_enabled = config.get('is_enabled', True)
+                    
+                    # 단절된 상태나 캘린더 선택이 필요한 상태를 추적
+                    if (sync_status == 'needs_calendar_selection' or 
+                        not is_enabled or 
+                        not config.get('calendar_id')):
+                        disconnected_platforms.add(platform)
+                        print(f"[SYNC-CALENDARS] Platform {platform} is disconnected or needs calendar selection")
+        except Exception as config_error:
+            print(f"Pre-check calendar sync configs read error: {config_error}")
+        
         try:
             sync_response = supabase_client.table('calendar_sync').select('*').eq('user_id', user_id).eq('sync_status', 'active').execute()
             print(f"[SYNC-CALENDARS] Active sync records found: {len(sync_response.data) if sync_response.data else 0}")
@@ -6593,6 +6612,11 @@ def get_synced_calendars():
                         continue
                     if platform == 'notion' and notion_manually_disconnected == 'true':
                         print(f"[SYNC-CALENDARS] Skipping Notion platform data due to manual disconnection")
+                        continue
+                    
+                    # Skip platforms that are disconnected in configs
+                    if platform in disconnected_platforms:
+                        print(f"[SYNC-CALENDARS] Skipping {platform} platform data due to config disconnection")
                         continue
                     
                     try:
@@ -6616,28 +6640,9 @@ def get_synced_calendars():
         except Exception as db_error:
             print(f"Database error fetching synced calendars: {db_error}")
         
-        # 2. calendar_sync_configs 확인 (연결 해제 상태 반영)
-        try:
-            config_response = supabase_client.table('calendar_sync_configs').select('*').eq('user_id', user_id).execute()
-            print(f"[SYNC-CALENDARS] Calendar sync configs found: {len(config_response.data) if config_response.data else 0}")
-            
-            disconnected_platforms = set()
-            if config_response.data:
-                for config in config_response.data:
-                    platform = config['platform']
-                    sync_status = config.get('sync_status')
-                    is_enabled = config.get('is_enabled', True)
-                    
-                    # 단절된 상태나 캘린더 선택이 필요한 상태를 추적
-                    if (sync_status == 'needs_calendar_selection' or 
-                        not is_enabled or 
-                        not config.get('calendar_id')):
-                        disconnected_platforms.add(platform)
-                        print(f"[SYNC-CALENDARS] Platform {platform} is disconnected or needs calendar selection")
-        except Exception as config_error:
-            print(f"Calendar sync configs read error: {config_error}")
+        # 2. OAuth 토큰 확인 (실제 OAuth 연동 여부 확인) - 이미 연결해제된 플랫폼 제외
         
-        # 3. OAuth 토큰 확인 (실제 OAuth 연동 여부 확인)
+        # 3. OAuth 토큰 데이터 처리
         try:
             oauth_tokens = supabase_client.table('oauth_tokens').select('*').eq('user_id', user_id).execute()
             print(f"[SYNC-CALENDARS] OAuth tokens found: {len(oauth_tokens.data) if oauth_tokens.data else 0}")

@@ -543,7 +543,7 @@
             if (confirm('캘린더 연동을 해제하고 다시 선택하시겠습니까? (Notion 연결은 유지됩니다)')) {
                 // 캘린더 선택 상태만 초기화
                 console.log('🔄 [DISCONNECT] Starting Notion calendar reset...');
-                fetch('/api/oauth/notion/reset-calendar', {
+                fetch('/oauth/notion/reset-calendar', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -581,7 +581,7 @@
             // 다른 플랫폼은 기존 로직 사용
             if (confirm(`${platformName} 연결을 해제하시겠습니까?`)) {
                 // 연결해제 API 호출
-                fetch(`/api/oauth/${platformName}/disconnect`, {
+                fetch(`/oauth/disconnect/${platformName}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -769,7 +769,7 @@
     // 페이지 로드 시 Notion 캘린더 선택 상태 확인
     function checkNotionCalendarState() {
         console.log('🔍 [PAGE-LOAD] Checking Notion calendar state...');
-        fetch('/api/oauth/notion/calendar-state', {
+        fetch('/oauth/notion/calendar-state', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

@@ -3554,7 +3554,7 @@
             
             // Also check server-side disconnect state for Notion
             try {
-                const notionStateResponse = await fetch('/api/oauth/notion/calendar-state');
+                const notionStateResponse = await fetch('/oauth/notion/calendar-state');
                 const notionStateData = await notionStateResponse.json();
                 if (notionStateData.success && notionStateData.needs_calendar_selection) {
                     notionManuallyDisconnected = true;
