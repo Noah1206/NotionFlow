@@ -3648,6 +3648,35 @@
                                 return;
                             } else {
                                 console.log('❌ Notion not fully synced - calendar_connected:', notionPlatform.calendar_connected, 'events_synced:', notionPlatform.events_synced);
+                                
+                                // OAuth는 연결되어 있지만 캘린더 선택이 안 되어 있는 경우
+                                if (notionPlatform.configured || notionPlatform.enabled || notionPlatform.health_status === 'oauth_only') {
+                                    console.log('🔄 Notion OAuth connected but needs calendar selection - showing calendar sync button');
+                                    
+                                    const platformCard = document.querySelector(`[data-platform="notion"]`);
+                                    if (platformCard) {
+                                        const statusElement = platformCard.querySelector('.platform-status');
+                                        const connectBtn = platformCard.querySelector('.platform-connect-btn, .one-click-btn-small');
+                                        const syncBtn = platformCard.querySelector('.platform-sync-btn');
+                                        
+                                        // OAuth 연결됨 상태로 표시
+                                        statusElement.className = 'platform-status connected';
+                                        statusElement.innerHTML = '<span class="status-dot"></span>연결됨';
+                                        
+                                        // 연결 버튼들 숨기기
+                                        if (connectBtn) connectBtn.style.display = 'none';
+                                        const oneClickBtn = platformCard.querySelector('.one-click-btn-small');
+                                        if (oneClickBtn) oneClickBtn.style.display = 'none';
+                                        
+                                        // 캘린더 선택 버튼 보여주기
+                                        if (syncBtn) {
+                                            syncBtn.style.display = 'block';
+                                            const syncText = syncBtn.querySelector('.sync-text');
+                                            if (syncText) syncText.textContent = '캘린더 선택';
+                                        }
+                                    }
+                                    return; // 캘린더 선택 버튼을 보여준 후 종료
+                                }
                             }
                         } else {
                             console.log('❌ No Notion platform data found in API response');

@@ -106,17 +106,28 @@ class DashboardDataManager:
                     'created_at': config['created_at']
                 }
             
-            # Add unconfigured platforms
+            # Add unconfigured platforms and check for OAuth tokens
             for platform_id, platform_info in platform_configs.items():
                 if platform_id not in platforms:
+                    # Check if this platform has OAuth tokens even without calendar_sync_configs entry
+                    has_oauth_credentials = self._has_valid_credentials(user_id, platform_id, {})
+                    
+                    # If OAuth credentials exist, set appropriate status
+                    if has_oauth_credentials:
+                        status = 'oauth_only'  # OAuth completed but no calendar setup
+                    else:
+                        status = 'not_configured'
+                    
                     platforms[platform_id] = {
                         'name': platform_info['name'],
                         'enabled': False,
                         'credential_type': platform_info['credential_type'],
-                        'configured': False,
+                        'configured': has_oauth_credentials,
+                        'calendar_connected': False,
+                        'events_synced': False,
                         'last_sync': None,
                         'sync_frequency': 15,
-                        'health_status': 'not_configured',
+                        'health_status': status,
                         'failures': 0,
                         'created_at': None
                     }
@@ -130,23 +141,43 @@ class DashboardDataManager:
     def _has_valid_credentials(self, user_id: str, platform: str, config: dict) -> bool:
         """Check if platform has valid credentials stored"""
         try:
-            # Check if credentials field exists and has content
+            # First check if credentials field exists and has content
             credentials = config.get('credentials')
-            if not credentials:
-                return False
-                
-            # For Notion, check if access_token exists and is not empty
+            has_config_credentials = bool(credentials)
+            
+            # Also check OAuth tokens table for OAuth-based platforms
+            has_oauth_token = False
+            if platform in ['notion', 'google', 'outlook']:
+                try:
+                    oauth_result = self.supabase.table('oauth_tokens').select('access_token').eq('user_id', user_id).eq('platform', platform).execute()
+                    if oauth_result.data:
+                        for token in oauth_result.data:
+                            if token.get('access_token'):
+                                has_oauth_token = True
+                                break
+                except Exception as oauth_error:
+                    print(f"Error checking OAuth tokens for {platform}: {oauth_error}")
+            
+            # For Notion, check both OAuth and credentials
             if platform == 'notion':
+                if has_oauth_token:
+                    return True
                 if isinstance(credentials, dict):
                     access_token = credentials.get('access_token')
                     return bool(access_token and access_token.strip() and access_token != '')
                 return False
                 
-            # For Google, check if we have refresh_token or access_token
+            # For Google, check both OAuth and credentials
             elif platform == 'google':
+                if has_oauth_token:
+                    return True
                 if isinstance(credentials, dict):
                     return bool(credentials.get('refresh_token') or credentials.get('access_token'))
                 return False
+                
+            # For Outlook, check OAuth tokens
+            elif platform == 'outlook':
+                return has_oauth_token
                 
             # For other platforms, check if credentials exist
             else:
