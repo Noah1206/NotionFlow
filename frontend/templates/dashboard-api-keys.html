@@ -2855,6 +2855,28 @@
         }
 
         try {
+            // 🔧 CRITICAL FIX: For Notion, first call connect-calendar API to update calendar_sync_configs
+            if (platform === 'notion') {
+                console.log('🔧 [NOTION-FIX] Calling /api/notion/connect-calendar first to update calendar_sync_configs');
+                const connectResponse = await fetch('/api/notion/connect-calendar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        calendar_id: calendarId
+                    })
+                });
+
+                const connectResult = await connectResponse.json();
+                
+                if (!connectResponse.ok) {
+                    throw new Error(connectResult.error || 'Failed to connect calendar');
+                }
+                
+                console.log('✅ [NOTION-FIX] Calendar connection updated successfully:', connectResult);
+            }
+            
             const response = await fetch('/api/sync-calendar', {
                 method: 'POST',
                 headers: {
