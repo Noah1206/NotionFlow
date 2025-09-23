@@ -3585,9 +3585,17 @@
         const connectBtn = card.querySelector('.platform-connect-btn');
         const syncBtn = card.querySelector('.platform-sync-btn');
         
-        if (syncInfo.sync_status === 'oauth_only' || (syncInfo.sync_status === 'active' && syncInfo.calendar_id)) {
-            // 모든 연동 상태에서 동일한 디자인 사용 (one-click-disconnect-btn)
+        // 디버깅 로그
+        console.log(`[updateCalendarSyncStatus] ${platform}:`, syncInfo);
+        
+        // syncInfo가 실제로 연동되어 있을 때만 connected 상태로 업데이트
+        // sync_status가 active이고 calendar_id가 있을 때만 연결됨으로 표시
+        if (syncInfo && syncInfo.sync_status === 'active' && syncInfo.calendar_id) {
+            // 실제로 캘린더가 연동된 경우에만
+            console.log(`[updateCalendarSyncStatus] ${platform} is actively connected with calendar:`, syncInfo.calendar_id);
             updatePlatformStatus(platform, 'connected');
+        } else {
+            console.log(`[updateCalendarSyncStatus] ${platform} is not connected or has no calendar`);
         }
     }
 
@@ -3749,7 +3757,8 @@
                 let googleJustConnected = false;
                 
                 for (const [platform, status] of Object.entries(data.platforms)) {
-                    if (status.connected) {
+                    // 명확하게 연결 상태를 확인
+                    if (status && status.connected === true) {
                         updatePlatformStatus(platform, 'connected');
                         
                         // Check if Google was just connected - only set flag if explicitly triggered by OAuth
@@ -3763,6 +3772,7 @@
                             }
                         }
                     } else {
+                        // 연결되지 않은 상태로 명확히 설정
                         updatePlatformStatus(platform, 'disconnected');
                     }
                 }
@@ -3818,9 +3828,11 @@
     }
     
     // 페이지 로드 완료 후 연동 정보 불러오기
-    document.addEventListener('DOMContentLoaded', function () {
-        loadSyncedCalendars();
-        loadAllPlatformStatus(); // Load platform connection states
+    document.addEventListener('DOMContentLoaded', async function () {
+        // 먼저 플랫폼 연결 상태를 로드하고 UI를 초기화
+        await loadAllPlatformStatus(); // Load platform connection states first
+        // 그 다음에 캘린더 동기화 정보를 로드 (실제 연동된 경우에만 업데이트)
+        await loadSyncedCalendars();
     });
 
 </script>
