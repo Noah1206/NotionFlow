@@ -544,7 +544,7 @@ class NotionCalendarSync:
             # 초기 로드 제한에 도달한 경우 백그라운드에서 나머지 동기화 예약
             if total_synced >= max_initial_load:
                 try:
-                    self._schedule_background_sync(user_id, calendar_id, access_token)
+                    self._schedule_background_sync(user_id, calendar_id, token)
                     result['background_sync_scheduled'] = True
                 except Exception as bg_error:
                     print(f"⚠️ Failed to schedule background sync: {bg_error}")
@@ -1104,7 +1104,7 @@ class NotionCalendarSync:
             notion_api = NotionAPI(access_token)
             
             # 모든 캘린더 데이터베이스 조회
-            calendar_dbs = notion_api.search_calendar_databases()
+            calendar_dbs = self.find_calendar_databases(notion_api)
             
             if not calendar_dbs:
                 print("📭 No calendar databases found in background sync")
