@@ -193,8 +193,8 @@ class DashboardDataManager:
                 
                 # Always include events with null calendar_id alongside specified calendars
                 # This is a temporary fix to show orphaned events in any calendar view
-                calendar_filter = ",".join([f"'{cid}'" for cid in calendar_ids])
-                query = query.or_(f'calendar_id.in.({calendar_filter}),calendar_id.is.null')
+                # CRITICAL FIX: UUID fields should not be quoted in Supabase queries
+                query = query.or_(f'calendar_id.in.({",".join(calendar_ids)}),calendar_id.is.null')
                 print(f"📅 [EVENTS] Filtering by calendar IDs + orphaned events: {calendar_ids}")
             else:
                 print(f"📅 [EVENTS] No calendar ID filter - showing all events")

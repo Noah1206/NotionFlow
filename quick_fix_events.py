@@ -1,105 +1,38 @@
 #!/usr/bin/env python3
 """
-🔧 Quick Fix for Orphaned Events
-Uses existing utils to fix calendar_id issues
+🔧 빠른 이벤트 수정 스크립트
 """
 
 import os
 import sys
+sys.path.append("/Users/johyeon-ung/Desktop/NotionFlow")
 
-# Add utils to path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'utils'))
+from utils.config import config
+from datetime import datetime
 
 def quick_fix():
-    """Quick fix for orphaned events using existing utils"""
-    try:
-        # Import existing utilities
-        from utils.dashboard_data import dashboard_data
-        from utils.uuid_helper import normalize_uuid
-        
-        if not dashboard_data or not dashboard_data.admin_client:
-            print("❌ Dashboard data manager not available")
-            return
-        
-        supabase = dashboard_data.admin_client
-        
-        # Use your actual user ID
-        user_id = "e390559f-c328-4786-ac5d-c74b5409451b"
-        normalized_user_id = normalize_uuid(user_id)
-        
-        print(f"🔧 Quick fixing events for user: {normalized_user_id}")
-        
-        # 1. Get user's calendars
-        calendars = supabase.table('calendars').select('id, name').eq('owner_id', normalized_user_id).execute()
-        
-        if not calendars.data:
-            print("❌ No calendars found")
-            return
-        
-        primary_calendar_id = calendars.data[0]['id']
-        calendar_name = calendars.data[0]['name']
-        
-        print(f"📅 Primary calendar: {calendar_name} ({primary_calendar_id})")
-        
-        # 2. Count orphaned events (null calendar_id)
-        orphaned = supabase.table('calendar_events').select('id', count='exact').eq('user_id', normalized_user_id).is_('calendar_id', 'null').execute()
-        
-        orphan_count = orphaned.count if orphaned.count is not None else 0
-        print(f"⚠️  Found {orphan_count} orphaned events")
-        
-        if orphan_count == 0:
-            print("✅ No orphaned events found!")
-            
-            # Check total events
-            total = supabase.table('calendar_events').select('id', count='exact').eq('user_id', normalized_user_id).execute()
-            total_count = total.count if total.count is not None else 0
-            
-            # Check events in primary calendar
-            in_calendar = supabase.table('calendar_events').select('id', count='exact').eq('user_id', normalized_user_id).eq('calendar_id', primary_calendar_id).execute()
-            in_calendar_count = in_calendar.count if in_calendar.count is not None else 0
-            
-            print(f"📊 Total events: {total_count}")
-            print(f"📊 Events in primary calendar: {in_calendar_count}")
-            
-            return
-        
-        # 3. Update orphaned events
-        print(f"🔧 Updating {orphan_count} orphaned events...")
-        
-        update_result = supabase.table('calendar_events').update({
-            'calendar_id': primary_calendar_id
-        }).eq('user_id', normalized_user_id).is_('calendar_id', 'null').execute()
-        
-        print("✅ Update completed!")
-        
-        # 4. Verify
-        remaining = supabase.table('calendar_events').select('id', count='exact').eq('user_id', normalized_user_id).is_('calendar_id', 'null').execute()
-        remaining_count = remaining.count if remaining.count is not None else 0
-        
-        if remaining_count == 0:
-            print("🎉 All orphaned events fixed!")
-        else:
-            print(f"⚠️  {remaining_count} events still orphaned")
-        
-        # Final stats
-        total = supabase.table('calendar_events').select('id', count='exact').eq('user_id', normalized_user_id).execute()
-        in_calendar = supabase.table('calendar_events').select('id', count='exact').eq('user_id', normalized_user_id).eq('calendar_id', primary_calendar_id).execute()
-        
-        total_count = total.count if total.count is not None else 0
-        in_calendar_count = in_calendar.count if in_calendar.count is not None else 0
-        
-        print(f"\n📊 FINAL STATS:")
-        print(f"   Total events: {total_count}")
-        print(f"   Events in primary calendar: {in_calendar_count}")
-        print(f"   Coverage: {in_calendar_count/total_count*100:.1f}%" if total_count > 0 else "   Coverage: 0%")
-        
-        if in_calendar_count > 0:
-            print(f"\n🎉 SUCCESS! Your {in_calendar_count} events should now appear in calendar views!")
-        
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        import traceback
-        traceback.print_exc()
+    print("🔧 빠른 이벤트 수정 시작...")
+    
+    user_id = "87875eda6797f839f8c70aa90efb1352"
+    target_calendar_id = "6db7a044-c84b-4e4d-b23f-482cde1f80fc"
+    
+    # 고아 이벤트 찾기
+    orphaned = config.supabase_admin.table("calendar_events").select("id").eq("user_id", user_id).is_("calendar_id", "null").execute()
+    
+    if not orphaned.data:
+        print("✅ 고아 이벤트 없음")
+        return
+    
+    count = len(orphaned.data)
+    print(f"📝 {count}개 고아 이벤트 수정중...")
+    
+    # 수정 실행
+    config.supabase_admin.table("calendar_events").update({
+        "calendar_id": target_calendar_id,
+        "updated_at": datetime.now().isoformat()
+    }).eq("user_id", user_id).is_("calendar_id", "null").execute()
+    
+    print(f"✅ {count}개 이벤트 수정 완료!")
 
 if __name__ == "__main__":
     quick_fix()
