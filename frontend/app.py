@@ -996,7 +996,7 @@ def calendar_detail_main():
             try:
                 events = dashboard_data.get_user_calendar_events(
                     user_id=user_id,
-                    days_ahead=365,  # Extended to 1 year to include all Notion events
+                    days_ahead=3650,  # 10 years to include all events (no date restriction)
                     calendar_ids=[calendar_id]
                 )
                 print(f"[DEBUG] Found {len(events)} events for calendar {calendar_id}")
