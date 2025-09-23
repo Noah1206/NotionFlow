@@ -5067,13 +5067,12 @@ def get_calendar_events(calendar_id):
         else:
             print(f"[DEBUG] No events found for user_id: {user_id} or {normalized_user_id}")
         
-        # Include events for this user (checking both UUID formats)
-        # Show all events for the user regardless of calendar_id for now
+        # Include events for this user AND specific calendar_id (checking both UUID formats)
         query = supabase_client.table('calendar_events').select('''
             id, title, description, start_datetime, end_datetime,
             is_all_day, status, location, attendees, created_at, updated_at, 
             calendar_id, source_platform, category, priority
-        ''').or_(f'user_id.eq.{user_id},user_id.eq.{normalized_user_id}')
+        ''').or_(f'user_id.eq.{user_id},user_id.eq.{normalized_user_id}').eq('calendar_id', calendar_id)
         
         # Add date range filtering if provided
         if start_date and end_date:
