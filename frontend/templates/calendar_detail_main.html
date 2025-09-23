@@ -648,20 +648,30 @@ function createEventElement(event) {
 // 특정 날짜의 이벤트 가져오기
 function getEventsForDate(date) {
     const dateString = date.toISOString().split('T')[0];
-    console.log(`[DEBUG] Getting events for date: ${dateString}`);
-    console.log(`[DEBUG] Available events:`, CALENDAR_DATA.events);
-    console.log(`[DEBUG] Visible calendars:`, Array.from(visibleCalendars));
+    
+    // 9월 23일만 자세히 로그
+    if (dateString === '2025-09-23') {
+        console.log(`[DEBUG] Getting events for TODAY: ${dateString}`);
+        console.log(`[DEBUG] Available events:`, CALENDAR_DATA.events.length);
+        console.log(`[DEBUG] Visible calendars:`, Array.from(visibleCalendars));
+        
+        const septEvents = CALENDAR_DATA.events.filter(e => e.date && e.date.startsWith('2025-09'));
+        console.log(`[DEBUG] September events in data:`, septEvents);
+        
+        septEvents.forEach((event, i) => {
+            console.log(`[DEBUG] Sept Event ${i+1}: title="${event.title}", date="${event.date}", calendar_id="${event.calendar_id}"`);
+            console.log(`[DEBUG] Calendar visible for this event: ${visibleCalendars.has(event.calendar_id)}`);
+        });
+    }
     
     const filteredEvents = CALENDAR_DATA.events.filter(event => {
-        console.log(`[DEBUG] Checking event:`, event);
-        console.log(`[DEBUG] Event date: ${event.date}, Target date: ${dateString}`);
-        console.log(`[DEBUG] Calendar visible: ${visibleCalendars.has(event.calendar_id)}`);
-        
         if (!visibleCalendars.has(event.calendar_id)) return false;
         return event.date === dateString;
     });
     
-    console.log(`[DEBUG] Filtered events for ${dateString}:`, filteredEvents);
+    if (dateString === '2025-09-23') {
+        console.log(`[DEBUG] Filtered events for TODAY ${dateString}:`, filteredEvents);
+    }
     return filteredEvents;
 }
 
