@@ -1002,6 +1002,7 @@ def calendar_detail_main():
                 print(f"[DEBUG] Found {len(events)} events for calendar {calendar_id}")
                 if events:
                     print(f"[DEBUG] Sample event: {events[0]}")
+                    print(f"[DEBUG] All event titles: {[e.get('title', 'No title') for e in events[:5]]}")
             except Exception as e:
                 print(f"[ERROR] Failed to get events for calendar {calendar_id}: {e}")
         
@@ -1067,6 +1068,7 @@ def calendar_detail_main():
             ]
             events = test_events
         
+        print(f"[DEBUG] Processing {len(events)} events for calendar {calendar_id}")
         for event in events:
             # Convert API event format to frontend format
             if 'start_datetime' in event and 'date' not in event:
@@ -1084,6 +1086,7 @@ def calendar_detail_main():
             event['calendar_color'] = calendar.get('color', '#2563eb')
             event['calendar_id'] = calendar_id
             all_events.append(event)
+            print(f"[DEBUG] Added event '{event.get('title', 'No title')}' to all_events")
     
     context.update({
         'calendars': calendars,

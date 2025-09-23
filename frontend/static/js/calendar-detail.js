@@ -2283,10 +2283,14 @@ async function loadEvents() {
         const calendarId = window.location.pathname.split('/').pop();
         
         // Fetch events from API
+        console.log(`📡 Fetching events from: /api/calendars/${calendarId}/events`);
         const response = await fetch(`/api/calendars/${calendarId}/events`);
+        
+        console.log(`📡 API Response status: ${response.status}`);
         
         if (response.ok) {
             const events = await response.json();
+            console.log(`📊 Received ${events.length} events from API:`, events);
             
             // Transform API events to calendar format
             calendarEvents = events.map(event => ({
