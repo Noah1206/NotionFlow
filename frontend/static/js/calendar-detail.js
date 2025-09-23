@@ -2289,7 +2289,29 @@ async function loadEvents() {
         console.log(`📡 API Response status: ${response.status}`);
         
         if (response.ok) {
-            const events = await response.json();
+            const data = await response.json();
+            console.log('🔍 Raw API Response:', data);
+            console.log('🔍 Response Type:', typeof data);
+            console.log('🔍 Is Array?:', Array.isArray(data));
+            
+            // Handle both array and object responses
+            let events = [];
+            if (!data) {
+                console.warn('⚠️ API returned null or undefined');
+                events = [];
+            } else if (Array.isArray(data)) {
+                events = data;
+            } else if (typeof data === 'object') {
+                // Check for common response patterns
+                events = data.events || data.data || data.items || [];
+                console.log('📋 API returned object with keys:', Object.keys(data));
+                
+                // If data has an error property, log it
+                if (data.error) {
+                    console.error('❌ API returned error:', data.error);
+                }
+            }
+            
             console.log(`📊 Received ${events.length} events from API:`, events);
             
             // Transform API events to calendar format
