@@ -1446,9 +1446,60 @@ function createMainCalendarCell(day, type, year, month) {
     dateNumber.textContent = day;
     cell.appendChild(dateNumber);
     
-    // Events container (for future use)
+    // Events container - now actually add events!
     const eventsContainer = document.createElement('div');
     eventsContainer.className = 'events-container';
+    
+    // Get events for this date and add them
+    const cellDate = new Date(year, month, day);
+    const dayEvents = getEventsForDate(cellDate);
+    
+    // Add up to 3 event blocks using existing calendar-event class
+    const maxEventsToShow = 3;
+    dayEvents.slice(0, maxEventsToShow).forEach(event => {
+        const eventBlock = document.createElement('div');
+        eventBlock.className = 'calendar-event';
+        
+        // Add color class if available
+        if (event.color) {
+            if (event.color.includes('green')) eventBlock.classList.add('green');
+            else if (event.color.includes('red')) eventBlock.classList.add('red');
+            else if (event.color.includes('orange')) eventBlock.classList.add('orange');
+            else if (event.color.includes('purple')) eventBlock.classList.add('purple');
+            else if (event.color.includes('teal')) eventBlock.classList.add('teal');
+        }
+        
+        // Event content
+        const eventContent = document.createElement('div');
+        eventContent.className = 'calendar-event-content';
+        eventContent.textContent = `${event.time} ${event.title}`;
+        eventContent.title = `${event.time} - ${event.title}`;
+        eventBlock.appendChild(eventContent);
+        
+        // Style adjustments for month view - override absolute positioning from CSS
+        eventBlock.style.position = 'relative';
+        eventBlock.style.marginBottom = '2px';
+        eventBlock.style.fontSize = '11px';
+        eventBlock.style.padding = '2px 6px';
+        eventBlock.style.minHeight = '18px';
+        eventBlock.style.zIndex = '10';
+        eventBlock.style.display = 'flex';
+        eventBlock.style.alignItems = 'center';
+        
+        eventsContainer.appendChild(eventBlock);
+    });
+    
+    // If there are more events, show a "+N more" indicator
+    if (dayEvents.length > maxEventsToShow) {
+        const moreIndicator = document.createElement('div');
+        moreIndicator.className = 'more-events';
+        moreIndicator.style.fontSize = '10px';
+        moreIndicator.style.color = '#6b7280';
+        moreIndicator.style.marginTop = '2px';
+        moreIndicator.textContent = `+${dayEvents.length - maxEventsToShow} more`;
+        eventsContainer.appendChild(moreIndicator);
+    }
+    
     cell.appendChild(eventsContainer);
     
     // Click handler
@@ -2322,9 +2373,7 @@ async function loadEvents() {
                 }
             }
             
-            console.log(`📊 Received ${events.length} events from API:`, events);
-            
-            // Transform API events to calendar format
+            // Transform API events to calendar format (no debug logs for performance)
             calendarEvents = events.map(event => ({
                 id: event.id,
                 title: event.title || 'Untitled Event',
@@ -2341,14 +2390,15 @@ async function loadEvents() {
             
             // If no events, keep empty (don't show demo events)
             if (calendarEvents.length === 0) {
-                // Keep calendarEvents empty to show an empty calendar
                 calendarEvents = [];
             }
             
-            // Render the calendar with loaded events
-            renderMonthView();
-            renderWeekView();
-            renderDayView();
+            // Render the calendar with loaded events (optimized - only render current view)
+            if (currentView === 'month') {
+                renderMonthView();
+            } else if (currentView === 'week') {
+                renderWeekView();
+            }
             
             // Update sidebar event list
             updateSidebarEventList(calendarEvents);
@@ -5771,7 +5821,7 @@ function updateSidebarEventList(events) {
         return;
     }
 
-    console.log(`📋 Updating sidebar with ${events.length} events`);
+    // Remove debug log for performance
 
     // 이벤트가 없는 경우
     if (!events || events.length === 0) {
