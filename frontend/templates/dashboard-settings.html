@@ -501,9 +501,39 @@
                     platformCard.className = 'platform-card connected';
                     statusElement.innerHTML = '<i class="fas fa-circle"></i> 연결됨';
                     statusElement.classList.remove('disconnected');
-                    actionButton.textContent = '연결해제';
-                    actionButton.className = 'btn-warning-small';
-                    actionButton.onclick = () => disconnectPlatform(platformName);
+                    
+                    // Notion의 경우 캘린더 선택 버튼도 추가
+                    if (platformName === 'notion') {
+                        // 기존 버튼 컨테이너가 있는지 확인
+                        let buttonContainer = platformCard.querySelector('.button-container');
+                        if (!buttonContainer) {
+                            buttonContainer = document.createElement('div');
+                            buttonContainer.className = 'button-container';
+                            buttonContainer.style.cssText = 'display: flex; gap: 8px; justify-content: flex-end;';
+                            platformCard.appendChild(buttonContainer);
+                        }
+                        
+                        // 캘린더 선택 버튼 추가
+                        const calendarButton = document.createElement('button');
+                        calendarButton.textContent = '캘린더 선택';
+                        calendarButton.className = 'btn-primary-small';
+                        calendarButton.style.marginRight = '8px';
+                        calendarButton.onclick = () => showCalendarSelectionModal();
+                        
+                        // 연결해제 버튼
+                        actionButton.textContent = '연결해제';
+                        actionButton.className = 'btn-warning-small';
+                        actionButton.onclick = () => disconnectPlatform(platformName);
+                        
+                        // 버튼 컨테이너에 추가
+                        buttonContainer.innerHTML = '';
+                        buttonContainer.appendChild(calendarButton);
+                        buttonContainer.appendChild(actionButton);
+                    } else {
+                        actionButton.textContent = '연결해제';
+                        actionButton.className = 'btn-warning-small';
+                        actionButton.onclick = () => disconnectPlatform(platformName);
+                    }
                 } else {
                     // 연결되지 않은 상태
                     platformCard.className = 'platform-card disconnected';
@@ -515,6 +545,22 @@
                 }
             }
         });
+    }
+    
+    // 개별 플랫폼 상태 업데이트 함수
+    function updatePlatformStatus(platformName, status) {
+        const platformGrid = document.querySelector('.platform-grid');
+        const platformNames = ['notion', 'google', 'apple', 'outlook', 'slack'];
+        const platformIndex = platformNames.indexOf(platformName);
+        
+        if (platformIndex >= 0 && platformGrid.children[platformIndex]) {
+            const platformCard = platformGrid.children[platformIndex];
+            
+            // 설정에 따라 UI 업데이트
+            setTimeout(() => {
+                updateSettingsData(); // 전체 데이터를 다시 로드해서 UI 업데이트
+            }, 100);
+        }
     }
     
     // 플랫폼 연결 함수
