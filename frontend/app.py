@@ -675,6 +675,23 @@ def calendar_list():
                 user_calendars = calendar_db.get_user_calendars(user_id)
                 print(f"[SEARCH] Raw calendar data from database: {user_calendars}")
                 
+                # Update each calendar with actual event count from database
+                if dashboard_data:
+                    for cal in user_calendars:
+                        calendar_id = cal.get('id')
+                        if calendar_id:
+                            try:
+                                events = dashboard_data.get_user_calendar_events(
+                                    user_id=user_id,
+                                    days_ahead=365,  # Get all events within a year
+                                    calendar_ids=[calendar_id]
+                                )
+                                cal['event_count'] = len(events)
+                                print(f"[DEBUG] Calendar {calendar_id}: {len(events)} events")
+                            except Exception as e:
+                                print(f"[ERROR] Failed to get event count for calendar {calendar_id}: {e}")
+                                cal['event_count'] = 0
+                
                 # Separate personal and shared calendars
                 personal_calendars = [cal for cal in user_calendars if not cal.get('is_shared', False)]
                 shared_calendars = [cal for cal in user_calendars if cal.get('is_shared', False)]
