@@ -3612,19 +3612,26 @@
                         const platformsResponse = await fetch('/api/dashboard/platforms');
                         const platformsData = await platformsResponse.json();
                         
+                        console.log('🔍 [DEBUG] Platforms API response:', platformsData);
+                        
                         if (platformsData.success && platformsData.platforms && platformsData.platforms.notion) {
                             const notionPlatform = platformsData.platforms.notion;
+                            console.log('🔍 [DEBUG] Notion platform data:', notionPlatform);
                             
                             // 캘린더가 연결되고 이벤트가 동기화된 경우
                             if (notionPlatform.calendar_connected && notionPlatform.events_synced) {
-                                console.log('Notion is fully synced (calendar connected + events synced) - clearing manual disconnect flag');
+                                console.log('✅ Notion is fully synced (calendar connected + events synced) - clearing manual disconnect flag');
                                 localStorage.removeItem('notion_manually_disconnected');
                                 // 완전히 연결된 상태로 처리하므로 이 특별 처리를 건너뜀
                                 return;
+                            } else {
+                                console.log('❌ Notion not fully synced - calendar_connected:', notionPlatform.calendar_connected, 'events_synced:', notionPlatform.events_synced);
                             }
+                        } else {
+                            console.log('❌ No Notion platform data found in API response');
                         }
                     } catch (error) {
-                        console.log('Could not check Notion sync status:', error);
+                        console.log('❌ Could not check Notion sync status:', error);
                     }
                     
                     console.log('Notion OAuth connected but still needs calendar selection - showing calendar sync button');
