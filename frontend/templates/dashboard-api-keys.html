@@ -3594,19 +3594,18 @@
                         return;
                     }
                     if (platform === 'notion' && notionManuallyDisconnected) {
-                        // Notion의 경우 캘린더 선택이 필요한 상태에서는 특별 처리
-                        console.log('Notion needs calendar selection - showing calendar sync button');
+                        // Notion의 경우 OAuth는 연결됐지만 캘린더 선택이 필요한 상태
+                        console.log('Notion OAuth connected but needs calendar selection - showing calendar sync button');
                         
-                        // Notion OAuth는 연결됨으로 표시하고 캘린더 연동 버튼 보여주기
                         const platformCard = document.querySelector(`[data-platform="notion"]`);
                         if (platformCard) {
                             const statusElement = platformCard.querySelector('.platform-status');
                             const connectBtn = platformCard.querySelector('.platform-connect-btn, .one-click-btn-small');
                             const syncBtn = platformCard.querySelector('.platform-sync-btn');
                             
-                            // OAuth 연결됨 상태로 표시
-                            statusElement.className = 'platform-status connected';
-                            statusElement.innerHTML = '<span class="status-dot"></span>연결됨';
+                            // OAuth 연결됨 상태로 표시 (주황색으로 구분)
+                            statusElement.className = 'platform-status oauth-connected';
+                            statusElement.innerHTML = '<span class="status-dot"></span>OAuth 연결됨';
                             
                             // 연결 버튼들 숨기기
                             if (connectBtn) {
