@@ -529,14 +529,30 @@ class NotionCalendarSync:
             
             if has_time:
                 # 시간 정보가 있는 경우
-                if '+' in start_str or 'Z' in start_str:
-                    # 이미 timezone 정보가 있음
-                    start_dt = datetime.fromisoformat(start_str.replace('Z', '+00:00'))
-                    end_dt = datetime.fromisoformat(end_str.replace('Z', '+00:00'))
-                else:
-                    # timezone 정보가 없으면 UTC로 가정
-                    start_dt = datetime.fromisoformat(start_str + '+00:00')
-                    end_dt = datetime.fromisoformat(end_str + '+00:00')
+                try:
+                    # Handle various timezone formats
+                    if start_str.endswith('Z'):
+                        start_dt = datetime.fromisoformat(start_str.replace('Z', '+00:00'))
+                        end_dt = datetime.fromisoformat(end_str.replace('Z', '+00:00'))
+                    elif '+' in start_str and start_str.count('+') == 1:
+                        # Handle +09:00 format
+                        start_dt = datetime.fromisoformat(start_str)
+                        end_dt = datetime.fromisoformat(end_str)
+                    elif '.' in start_str and start_str.endswith('+09:00'):
+                        # Handle .000+09:00 format specifically
+                        start_dt = datetime.fromisoformat(start_str)
+                        end_dt = datetime.fromisoformat(end_str)
+                    else:
+                        # No timezone, assume UTC
+                        start_dt = datetime.fromisoformat(start_str + '+00:00')
+                        end_dt = datetime.fromisoformat(end_str + '+00:00')
+                except ValueError as parse_error:
+                    print(f"⚠️ [NORMALIZE] Datetime parsing error: {parse_error}")
+                    # Fallback: try to parse without timezone and add UTC
+                    base_start = start_str.split('+')[0].split('Z')[0]
+                    base_end = end_str.split('+')[0].split('Z')[0]
+                    start_dt = datetime.fromisoformat(base_start + '+00:00')
+                    end_dt = datetime.fromisoformat(base_end + '+00:00')
             else:
                 # 날짜만 있는 경우 (종일 이벤트)
                 start_dt = datetime.fromisoformat(start_str + 'T00:00:00+00:00')
@@ -544,28 +560,44 @@ class NotionCalendarSync:
             
             print(f"🔧 [NORMALIZE] Parsed dates: start={start_dt}, end={end_dt}")
             
-            # Critical fix: ensure end_dt is ALWAYS after start_dt to prevent constraint violations
-            if end_dt <= start_dt:
-                print(f"⚠️ [NORMALIZE] End date is not after start date, fixing...")
+            # CRITICAL: Prevent constraint violations with multiple validation layers
+            print(f"🔍 [NORMALIZE] Comparing: start={start_dt} vs end={end_dt}")
+            print(f"🔍 [NORMALIZE] Comparison result: end <= start = {end_dt <= start_dt}")
+            print(f"🔍 [NORMALIZE] Exact equality: end == start = {end_dt == start_dt}")
+            
+            # Convert to UTC for reliable comparison if needed
+            if start_dt.tzinfo and end_dt.tzinfo:
+                start_utc = start_dt.astimezone(timezone.utc)
+                end_utc = end_dt.astimezone(timezone.utc)
+                print(f"🌍 [NORMALIZE] UTC comparison: {start_utc} vs {end_utc}")
+            else:
+                start_utc, end_utc = start_dt, end_dt
+            
+            # Primary fix: end must be after start
+            if end_utc <= start_utc:
+                print(f"🚨 [NORMALIZE] CONSTRAINT VIOLATION DETECTED: end <= start")
                 if not has_time:
-                    # 종일 이벤트인 경우: 시작일 00:00에서 다음날 00:00까지 (24시간)
+                    # All-day events: ensure 24-hour span
                     start_dt = start_dt.replace(hour=0, minute=0, second=0, microsecond=0)
                     end_dt = start_dt + timedelta(days=1)
-                    print(f"📅 [NORMALIZE] All-day event fixed: {start_dt} → {end_dt}")
+                    print(f"📅 [NORMALIZE] All-day fixed: {start_dt} → {end_dt}")
                 else:
-                    # 시간 이벤트인 경우: 최소 1시간 duration
+                    # Timed events: minimum 1-hour duration
                     end_dt = start_dt + timedelta(hours=1)
-                    print(f"⏰ [NORMALIZE] Timed event fixed: {start_dt} → {end_dt}")
+                    print(f"⏰ [NORMALIZE] Timed fixed: {start_dt} → {end_dt}")
             
-            # Double validation: ensure end is ALWAYS greater than start (never equal)
-            if end_dt <= start_dt:
-                print(f"🚨 [NORMALIZE] Final safety check - enforcing minimum 1 hour duration")
-                end_dt = start_dt + timedelta(hours=1)
+            # Secondary safety check: after fixing, verify again
+            end_final_utc = end_dt.astimezone(timezone.utc) if end_dt.tzinfo else end_dt
+            start_final_utc = start_dt.astimezone(timezone.utc) if start_dt.tzinfo else start_dt
             
-            # Triple validation: absolute safety check to prevent database constraint violations
+            if end_final_utc <= start_final_utc:
+                print(f"🚨 [NORMALIZE] SECONDARY FAILURE: forcing 2-hour duration")
+                end_dt = start_dt + timedelta(hours=2)
+            
+            # Final absolute guarantee: never allow equality
             if end_dt == start_dt:
-                print(f"🚨 [NORMALIZE] CRITICAL: Identical times detected, adding 1 minute minimum")
-                end_dt = start_dt + timedelta(minutes=1)
+                print(f"🚨 [NORMALIZE] EMERGENCY: identical times, adding 10 minutes")
+                end_dt = start_dt + timedelta(minutes=10)
             
             # ISO 형식으로 반환
             result_start = start_dt.isoformat()
@@ -703,42 +735,77 @@ class NotionCalendarSync:
                     db_event['source_calendar_id'] = event['calendar_id']
                     db_event['source_calendar_name'] = 'Notion Calendar'
             
-            # Critical: Final datetime validation to prevent constraint violations
-            from datetime import datetime, timedelta
+            # ULTRA-CRITICAL: Final datetime validation with timezone awareness
+            from datetime import datetime, timedelta, timezone
             try:
-                start_dt = datetime.fromisoformat(db_event['start_datetime'].replace('Z', '+00:00'))
-                end_dt = datetime.fromisoformat(db_event['end_datetime'].replace('Z', '+00:00'))
+                # Parse with proper timezone handling
+                start_str = db_event['start_datetime']
+                end_str = db_event['end_datetime']
                 
-                # Absolute safety check: end MUST be after start to satisfy valid_datetime_range constraint
-                if end_dt <= start_dt:
-                    print(f"🚨 [SAVE] CRITICAL: Constraint violation detected - end_datetime ({end_dt}) <= start_datetime ({start_dt})")
+                print(f"🔍 [SAVE] Final validation - parsing: {start_str} → {end_str}")
+                
+                # Handle various timezone formats in the final check
+                if start_str.endswith('Z'):
+                    start_dt = datetime.fromisoformat(start_str.replace('Z', '+00:00'))
+                    end_dt = datetime.fromisoformat(end_str.replace('Z', '+00:00'))
+                elif '+' in start_str or '-' in start_str[-6:]:
+                    start_dt = datetime.fromisoformat(start_str)
+                    end_dt = datetime.fromisoformat(end_str)
+                else:
+                    start_dt = datetime.fromisoformat(start_str + '+00:00')
+                    end_dt = datetime.fromisoformat(end_str + '+00:00')
+                
+                print(f"🔍 [SAVE] Parsed: {start_dt} vs {end_dt}")
+                
+                # Convert to UTC for reliable comparison
+                start_utc = start_dt.astimezone(timezone.utc) if start_dt.tzinfo else start_dt
+                end_utc = end_dt.astimezone(timezone.utc) if end_dt.tzinfo else end_dt
+                
+                print(f"🌍 [SAVE] UTC comparison: {start_utc} vs {end_utc}")
+                print(f"🔍 [SAVE] end <= start: {end_utc <= start_utc}")
+                
+                # ABSOLUTE CONSTRAINT VIOLATION CHECK
+                if end_utc <= start_utc:
+                    print(f"🚨 [SAVE] CRITICAL CONSTRAINT VIOLATION: end ({end_utc}) <= start ({start_utc})")
                     
-                    # Ensure minimum duration based on event type
+                    # Force minimum duration based on event type
                     if db_event.get('is_all_day', False):
-                        # All-day events: minimum 24 hours
+                        # All-day: 24 hours minimum
                         end_dt = start_dt + timedelta(days=1)
-                        print(f"📅 [SAVE] All-day event: enforced 24-hour duration")
+                        print(f"📅 [SAVE] All-day fixed with 24h duration")
                     else:
-                        # Timed events: minimum 1 hour
-                        end_dt = start_dt + timedelta(hours=1)
-                        print(f"⏰ [SAVE] Timed event: enforced 1-hour duration")
+                        # Timed: 2 hours minimum (extra safe)
+                        end_dt = start_dt + timedelta(hours=2)
+                        print(f"⏰ [SAVE] Timed fixed with 2h duration")
                     
                     db_event['end_datetime'] = end_dt.isoformat()
-                    print(f"🔧 [SAVE] Fixed constraint violation: {db_event['start_datetime']} → {db_event['end_datetime']}")
+                    print(f"🔧 [SAVE] CONSTRAINT FIXED: {start_str} → {db_event['end_datetime']}")
                 
-                # Additional safety check for exact equality (should never happen but extra protection)
-                if end_dt == start_dt:
-                    print(f"🚨 [SAVE] EMERGENCY: Identical datetimes detected - adding 1 minute minimum")
-                    end_dt = start_dt + timedelta(minutes=1)
-                    db_event['end_datetime'] = end_dt.isoformat()
+                # Triple-check: verify the fix worked
+                final_start = datetime.fromisoformat(db_event['start_datetime'].replace('Z', '+00:00') if 'Z' in db_event['start_datetime'] else db_event['start_datetime'])
+                final_end = datetime.fromisoformat(db_event['end_datetime'].replace('Z', '+00:00') if 'Z' in db_event['end_datetime'] else db_event['end_datetime'])
+                
+                if final_start.tzinfo:
+                    final_start_utc = final_start.astimezone(timezone.utc)
+                    final_end_utc = final_end.astimezone(timezone.utc)
+                else:
+                    final_start_utc, final_end_utc = final_start, final_end
+                
+                if final_end_utc <= final_start_utc:
+                    print(f"🚨 [SAVE] FINAL CHECK FAILED - using emergency fallback")
+                    now = datetime.now(timezone.utc)
+                    db_event['start_datetime'] = now.isoformat()
+                    db_event['end_datetime'] = (now + timedelta(hours=3)).isoformat()
+                
+                print(f"✅ [SAVE] Final times validated: {db_event['start_datetime']} → {db_event['end_datetime']}")
                     
             except Exception as e:
                 print(f"❌ [SAVE] Datetime validation error: {e}")
-                # Fallback: use current time + 1 hour as safe default
-                now = datetime.now()
+                # Emergency fallback: guaranteed safe times
+                now = datetime.now(timezone.utc)
                 db_event['start_datetime'] = now.isoformat()
-                db_event['end_datetime'] = (now + timedelta(hours=1)).isoformat()
-                print(f"🔄 [SAVE] Using safe fallback times: {db_event['start_datetime']} → {db_event['end_datetime']}")
+                db_event['end_datetime'] = (now + timedelta(hours=3)).isoformat()
+                print(f"🆘 [SAVE] EMERGENCY fallback: {db_event['start_datetime']} → {db_event['end_datetime']}")
             
             print(f"💾 [SAVE] Saving event: {db_event['title']}")
             print(f"📅 [SAVE] Dates: {db_event['start_datetime']} → {db_event['end_datetime']}")
