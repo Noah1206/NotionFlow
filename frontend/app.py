@@ -5754,8 +5754,15 @@ def import_events_from_notion(user_id: str, calendar_id: str) -> int:
             debug_data['step_logs'].append(f"📄 Found {len(pages)} events in {db_title}")
             db_info['events_found'] = len(pages)
             
-            # 5. 각 페이지를 이벤트로 변환해서 저장
+            # 5. 각 페이지를 이벤트로 변환해서 저장 (limit to prevent worker timeout)
+            max_events_per_run = 30  # Prevent worker timeout
+            processed_count = 0
+            
             for page in pages:
+                # Early exit to prevent worker timeout
+                if processed_count >= max_events_per_run:
+                    debug_data['step_logs'].append(f"⚡ Reached processing limit of {max_events_per_run} events to prevent timeout")
+                    break
                 try:
                     page_id = page['id']
                     properties = page.get('properties', {})
@@ -5849,6 +5856,7 @@ def import_events_from_notion(user_id: str, calendar_id: str) -> int:
                         logger.info(f"    Skipping duplicate: {title}")
                         debug_data['step_logs'].append(f"⚠️ Skipped '{title}': already exists")
                         event_data['duplicate'] = True
+                        processed_count += 1  # Count skipped events too
                         continue
                     
                     event_data['duplicate'] = False
@@ -5885,6 +5893,11 @@ def import_events_from_notion(user_id: str, calendar_id: str) -> int:
                         error_msg = f"Failed to save event '{title}' to database"
                         logger.error(f"    ❌ {error_msg}")
                         debug_data['step_logs'].append(f"❌ Failed to save '{title}'")
+                    
+                    # Increment processed count regardless of success/failure
+                    processed_count += 1
+                    
+                    if not result.data:
                         debug_data['errors'].append(error_msg)
                         event_data['import_success'] = False
                         event_data['database_error'] = str(result)

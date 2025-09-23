@@ -307,7 +307,7 @@ class NotionCalendarSync:
             
             # 4. 각 데이터베이스에서 이벤트 추출 및 동기화
             total_synced = 0
-            max_initial_load = 50  # 초기 로드 시 최대 이벤트 수 제한 (worker timeout 방지)
+            max_initial_load = 30  # 초기 로드 시 최대 이벤트 수 제한 (worker timeout 방지)
             
             for db in calendar_dbs:
                 db_id = db['id']
