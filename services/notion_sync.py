@@ -337,12 +337,30 @@ class NotionCalendarSync:
                         if event:
                             events_batch.append(event)
                     
-                    # 배치 저장
-                    for event in events_batch:
-                        if self._save_event_to_calendar(event):
-                            total_synced += 1
-                            db_synced += 1
-                            print(f"✅ Synced: {event['title']}")
+                    # 배치 저장 (메모리 최적화)
+                    batch_size = 10  # 10개씩 처리하여 메모리 사용량 제한
+                    for i in range(0, len(events_batch), batch_size):
+                        batch = events_batch[i:i + batch_size]
+                        
+                        for event in batch:
+                            if self._save_event_to_calendar(event):
+                                total_synced += 1
+                                db_synced += 1
+                                print(f"✅ Synced: {event['title']}")
+                        
+                        # 메모리 정리 및 Worker 안정성 확보
+                        del batch
+                        import gc
+                        gc.collect()
+                        
+                        # CPU와 메모리 부하 방지
+                        import time
+                        time.sleep(0.3)
+                    
+                    # 배치 전체 메모리 정리
+                    del events_batch
+                    import gc
+                    gc.collect()
                         else:
                             print(f"❌ Failed to save: {event['title']}")
                     
@@ -826,7 +844,9 @@ class NotionCalendarSync:
                     
                     start_cursor = result.get('next_cursor')
                     
-                    # 백그라운드 처리 시 더 긴 대기 (서버 부하 방지)
+                    # 백그라운드 처리 시 메모리 정리 및 부하 방지
+                    import gc
+                    gc.collect()
                     time.sleep(0.5)
             
             print(f"✅ Background sync completed: {total_synced} additional events synced")
