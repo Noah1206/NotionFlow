@@ -5246,19 +5246,54 @@
         });
 
         function closeOverlayEventForm(event) {
-            console.log('🚫 SIMPLE CLOSE - Direct and clean approach');
+            console.log('🚫 ULTIMATE POPUP KILLER');
             
-            // IMMEDIATE STOP - 모든 이벤트 차단
+            // 즉시 모든 이벤트 차단
             if (event) {
                 event.preventDefault();
                 event.stopPropagation();
                 event.stopImmediatePropagation();
             }
             
-            // 강력한 전역 차단 - 10초 동안
+            // 강력한 전역 차단
             window.POPUP_ABSOLUTELY_BLOCKED = true;
             window.POPUP_CREATION_BLOCKED = true;
             overlayClosedByUser = true;
+            
+            // DOM에서 팝업 완전 제거 후 재생성 방지
+            const overlay = document.getElementById('calendar-overlay-form');
+            if (overlay) {
+                overlay.remove();
+                console.log('💀 Popup removed from DOM completely');
+            }
+            
+            // 페이지 전체에 일시적 이벤트 차단 막 설치
+            const blocker = document.createElement('div');
+            blocker.id = 'popup-blocker';
+            blocker.style.cssText = `
+                position: fixed;
+                top: 0; left: 0; right: 0; bottom: 0;
+                z-index: 999999;
+                pointer-events: auto;
+                background: transparent;
+            `;
+            blocker.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🛡️ Click blocked by popup blocker');
+                return false;
+            };
+            document.body.appendChild(blocker);
+            console.log('🛡️ Popup blocker installed');
+            
+            // 3초 후 차단막 제거
+            setTimeout(() => {
+                const blockerEl = document.getElementById('popup-blocker');
+                if (blockerEl) {
+                    blockerEl.remove();
+                    console.log('🔓 Popup blocker removed');
+                }
+            }, 3000);
             
             // Add temporary global event blocker
             const globalEventBlocker = function(e) {

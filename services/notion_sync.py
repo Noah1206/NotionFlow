@@ -912,7 +912,7 @@ class NotionCalendarSync:
                         return False
                 else:
                     # User record verified
-                    
+                    pass
             except Exception as user_e:
                 print(f"Error: Critical user error - {user_e}")
                 return False
