@@ -574,14 +574,9 @@ class GoogleCalendarGrid {
     }
     
     handleMouseUp(e) {
-        console.log('🖱️ handleMouseUp called, isSelecting:', this.isSelecting);
-        console.log('🔍 Flags check in mouseUp:', {
-            POPUP_CREATION_BLOCKED: window.POPUP_CREATION_BLOCKED,
-            OVERLAY_CLOSING_IN_PROGRESS: window.OVERLAY_CLOSING_IN_PROGRESS
-        });
-        
-        if (window.POPUP_CREATION_BLOCKED || window.OVERLAY_CLOSING_IN_PROGRESS) {
-            console.log('🚫 MouseUp blocked - popup flags active');
+        // 간단한 팝업 차단 체크
+        if (window.POPUP_ABSOLUTELY_BLOCKED || window.POPUP_CREATION_BLOCKED) {
+            console.log('🚫 MouseUp blocked');
             e.preventDefault();
             e.stopPropagation();
             return;
@@ -612,9 +607,9 @@ class GoogleCalendarGrid {
             return;
         }
         
-        // Check if popup creation is blocked
-        if (window.POPUP_CREATION_BLOCKED || window.OVERLAY_CLOSING_IN_PROGRESS) {
-            console.log('🚫 Cell click prevented - popup blocked or closing');
+        // 간단한 팝업 차단 체크
+        if (window.POPUP_ABSOLUTELY_BLOCKED || window.POPUP_CREATION_BLOCKED) {
+            console.log('🚫 Cell click prevented - popup blocked');
             e.preventDefault();
             e.stopPropagation();
             return;
@@ -741,16 +736,9 @@ class GoogleCalendarGrid {
     }
     
     finishSelection() {
-        console.log('🏁 finishSelection called');
-        console.log('🔍 Flags check in finishSelection:', {
-            POPUP_CREATION_BLOCKED: window.POPUP_CREATION_BLOCKED,
-            OVERLAY_CLOSING_IN_PROGRESS: window.OVERLAY_CLOSING_IN_PROGRESS,
-            isSelecting: this.isSelecting,
-            selectedCellsSize: this.selectedCells.size
-        });
-        
-        if (window.POPUP_CREATION_BLOCKED || window.OVERLAY_CLOSING_IN_PROGRESS) {
-            console.log('🚫 finishSelection blocked - popup flags active');
+        // 간단한 팝업 차단 체크
+        if (window.POPUP_ABSOLUTELY_BLOCKED || window.POPUP_CREATION_BLOCKED) {
+            console.log('🚫 finishSelection blocked');
             this.isSelecting = false;
             this.clearSelection();
             return;
@@ -834,9 +822,9 @@ class GoogleCalendarGrid {
             
             // Use the existing overlay form with clicked cell information
             if (typeof showOverlayEventForm !== 'undefined') {
-                // Check if popup creation is blocked before creating
-                if (window.POPUP_CREATION_BLOCKED || window.OVERLAY_CLOSING_IN_PROGRESS) {
-                    console.log('🚫 [Grid] Event creation blocked - popup closing or blocked');
+                // 간단한 팝업 차단 체크
+                if (window.POPUP_ABSOLUTELY_BLOCKED || window.POPUP_CREATION_BLOCKED) {
+                    console.log('🚫 [Grid] Event creation blocked');
                     return;
                 }
                 

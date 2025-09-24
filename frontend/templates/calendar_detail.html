@@ -4988,43 +4988,11 @@
 
         // Overlay Event Form Functions
         function showOverlayEventForm(date, time, clickedCell = null, endTime = null) {
-            showOverlayCallCount++;
-            const now = Date.now();
-            const timeSinceLastClose = now - lastCloseTime;
+            console.log('🔄 showOverlayEventForm called');
             
-            console.log('🔄 showOverlayEventForm called with:', { 
-                date, 
-                time, 
-                callNumber: showOverlayCallCount,
-                timeSinceLastClose: timeSinceLastClose + 'ms',
-                overlayClosedByUser, 
-                globalBlocked: window.POPUP_CREATION_BLOCKED,
-                closingInProgress: window.OVERLAY_CLOSING_IN_PROGRESS
-            });
-            console.log('📍 showOverlayEventForm stack trace:', new Error().stack);
-            console.log('🕐 Call timestamp:', new Date().toISOString());
-            
-            // Detect rapid successive calls (possible infinite loop)
-            if (timeSinceLastClose < 1000 && timeSinceLastClose > 0) {
-                console.error('🚨 RAPID SUCCESSIVE CALL DETECTED! Time since last close:', timeSinceLastClose + 'ms');
-                console.error('🚨 This might indicate an infinite reopening loop!');
-            }
-            
-            // Check global popup creation block
-            if (window.POPUP_CREATION_BLOCKED) {
-                console.log('🚫 Overlay creation blocked - GLOBAL FLAG ACTIVE');
-                return;
-            }
-            
-            // Check if overlay is currently closing
-            if (window.OVERLAY_CLOSING_IN_PROGRESS) {
-                console.log('🚫 Overlay creation blocked - CLOSING IN PROGRESS');
-                return;
-            }
-            
-            // Check if user just closed the popup - don't reopen immediately
-            if (overlayClosedByUser) {
-                console.log('🚫 Overlay creation blocked - user just closed popup');
+            // 간단하고 직관적인 차단 - 하나라도 true면 차단
+            if (window.POPUP_ABSOLUTELY_BLOCKED || window.POPUP_CREATION_BLOCKED || overlayClosedByUser) {
+                console.log('🚫 팝업 생성 완전 차단됨!');
                 return;
             }
             
@@ -5191,9 +5159,9 @@
         // Flag to prevent reopening when user explicitly closes popup
         let overlayClosedByUser = false;
         
-        // Initialize global flags
+        // 간단한 전역 플래그 초기화
+        window.POPUP_ABSOLUTELY_BLOCKED = false;
         window.POPUP_CREATION_BLOCKED = false;
-        window.OVERLAY_CLOSING_IN_PROGRESS = false;
         
         // Track all showOverlayEventForm calls to debug infinite reopening
         let showOverlayCallCount = 0;
@@ -5278,20 +5246,19 @@
         });
 
         function closeOverlayEventForm(event) {
-            lastCloseTime = Date.now();
-            console.log('🚫 ULTIMATE CLOSE - Maximum blocking approach (Close #' + Math.floor(Math.random() * 1000) + ')');
+            console.log('🚫 SIMPLE CLOSE - Direct and clean approach');
             
-            // Stop all event propagation immediately
+            // IMMEDIATE STOP - 모든 이벤트 차단
             if (event) {
                 event.preventDefault();
                 event.stopPropagation();
                 event.stopImmediatePropagation();
             }
             
-            // Set multiple blocking flags
-            overlayClosedByUser = true;
+            // 강력한 전역 차단 - 10초 동안
+            window.POPUP_ABSOLUTELY_BLOCKED = true;
             window.POPUP_CREATION_BLOCKED = true;
-            window.OVERLAY_CLOSING_IN_PROGRESS = true;
+            overlayClosedByUser = true;
             
             // Add temporary global event blocker
             const globalEventBlocker = function(e) {
@@ -5346,13 +5313,13 @@
                 console.log('⚠️ clearOverlayEventForm failed:', e);
             }
             
-            // Set shorter timeout to reset flag (500ms should be enough)
+            // 3초 후 플래그 리셋 (충분한 시간)
             setTimeout(() => {
-                console.log('🔓 Resetting all overlay flags');
-                overlayClosedByUser = false;
+                console.log('🔓 플래그 리셋 - 팝업 생성 다시 허용');
+                window.POPUP_ABSOLUTELY_BLOCKED = false;
                 window.POPUP_CREATION_BLOCKED = false;
-                window.OVERLAY_CLOSING_IN_PROGRESS = false;
-            }, 500); // 500ms
+                overlayClosedByUser = false;
+            }, 3000); // 3초
             
             // Block any further event processing
             if (event) {
