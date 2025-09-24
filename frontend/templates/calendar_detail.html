@@ -5317,29 +5317,8 @@
                 console.log('🔓 Global event blockers removed');
             }, 200);
             
-            // Surgical approach: Hide overlay instead of removing it completely
-            const overlay = document.getElementById('calendar-overlay-form');
-            if (overlay) {
-                console.log('🫥 Hiding existing overlay');
-                overlay.style.display = 'none';
-                overlay.style.visibility = 'hidden';
-                overlay.style.opacity = '0';
-                overlay.style.pointerEvents = 'none';
-            } else {
-                console.log('ℹ️ No main overlay found');
-            }
-            
-            // Also hide any backup overlays that might exist
-            const allOverlays = document.querySelectorAll('.calendar-overlay-form');
-            allOverlays.forEach((element, index) => {
-                console.log(`🫥 Hiding overlay ${index}:`, element.className, element.id);
-                element.style.display = 'none';
-                element.style.visibility = 'hidden';
-                element.style.opacity = '0';
-                element.style.pointerEvents = 'none';
-            });
-            
-            console.log('✅ SURGICAL CLOSE - Overlays hidden but preserved');
+            // 위에서 이미 DOM에서 제거했으므로 추가 처리 불필요
+            console.log('✅ ULTIMATE KILL COMPLETE');
             
             // Clear form data
             try {
