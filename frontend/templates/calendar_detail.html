@@ -4996,18 +4996,20 @@
                 return;
             }
             
-            console.log('✅ All checks passed, proceeding with overlay creation');
-
             // Find existing overlay (should always exist in HTML)
             let overlay = document.getElementById('calendar-overlay-form');
             if (overlay) {
                 console.log('✅ Found existing overlay');
                 
+                // 이미 팝업이 보이면 무시 (핵심 수정!)
+                if (overlay.style.display === 'block' && overlay.style.visibility === 'visible') {
+                    console.log('🚫 Overlay already visible, ignoring duplicate request');
+                    return;
+                }
+                
                 // If overlay is hidden, show it
                 if (overlay.style.display === 'none' || overlay.style.visibility === 'hidden') {
                     console.log('🔄 Revealing previously hidden overlay');
-                } else {
-                    console.log('ℹ️ Overlay already visible, reusing it');
                 }
             } else {
                 // If no overlay exists, this is an error - the HTML should have it
@@ -5015,6 +5017,8 @@
                 console.error('❌ Expected #calendar-overlay-form to exist in HTML');
                 return;
             }
+            
+            console.log('✅ All checks passed, proceeding with overlay creation');
 
             // Show the overlay with multiple methods
             console.log('✅ Showing overlay');
