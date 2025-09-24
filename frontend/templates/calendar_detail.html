@@ -4988,7 +4988,12 @@
 
         // Overlay Event Form Functions
         function showOverlayEventForm(date, time, clickedCell = null, endTime = null) {
-            console.log('🔄 showOverlayEventForm called with:', { date, time, overlayClosedByUser });
+            console.log('🔄 showOverlayEventForm called with:', { 
+                date, 
+                time, 
+                overlayClosedByUser, 
+                globalBlocked: window.POPUP_CREATION_BLOCKED 
+            });
             console.log('📍 showOverlayEventForm stack trace:', new Error().stack);
             
             // Check global popup creation block
@@ -5002,6 +5007,8 @@
                 console.log('🚫 Overlay creation blocked - user just closed popup');
                 return;
             }
+            
+            console.log('✅ All checks passed, proceeding with overlay creation');
 
             // Look for ANY overlay that might exist
             const overlays = document.querySelectorAll('.calendar-overlay-form, #calendar-overlay-form, [id*="overlay"], [class*="overlay"], [class*="popup"]');
@@ -5233,12 +5240,12 @@
                 console.log('⚠️ clearOverlayEventForm failed:', e);
             }
             
-            // Set longer timeout to reset flag
+            // Set shorter timeout to reset flag (1 second should be enough)
             setTimeout(() => {
                 console.log('🔓 Resetting all overlay flags');
                 overlayClosedByUser = false;
                 window.POPUP_CREATION_BLOCKED = false;
-            }, 5000); // 5 seconds
+            }, 1000); // 1 second
             
             // Block any further event processing
             if (event) {
