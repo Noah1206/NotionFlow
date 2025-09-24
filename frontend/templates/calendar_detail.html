@@ -4991,31 +4991,41 @@
             console.log('🔄 showOverlayEventForm called with:', { date, time, overlayClosedByUser });
             console.log('📍 showOverlayEventForm stack trace:', new Error().stack);
             
+            // Check global popup creation block
+            if (window.POPUP_CREATION_BLOCKED) {
+                console.log('🚫 Overlay creation blocked - GLOBAL FLAG ACTIVE');
+                return;
+            }
+            
             // Check if user just closed the popup - don't reopen immediately
             if (overlayClosedByUser) {
                 console.log('🚫 Overlay creation blocked - user just closed popup');
                 return;
             }
 
+            // Look for ANY overlay that might exist
+            const overlays = document.querySelectorAll('.calendar-overlay-form, #calendar-overlay-form, [id*="overlay"], [class*="overlay"], [class*="popup"]');
+            if (overlays.length > 0) {
+                console.log('🚫 Found existing overlays/popups:', overlays.length);
+                overlays.forEach((overlay, index) => {
+                    console.log(`  - Overlay ${index}:`, overlay.className, overlay.id, overlay.style.display);
+                });
+                
+                // Close all existing overlays/popups first
+                console.log('🧹 Cleaning up all existing overlays/popups');
+                overlays.forEach(overlay => overlay.remove());
+                
+                // Don't create new popup if we just cleaned up
+                return;
+            }
+
+            // Double check with getElementById
             const overlay = document.getElementById('calendar-overlay-form');
             if (overlay) {
-                // Check if overlay is already visible
-                const isAlreadyVisible = overlay.style.display !== 'none' && !overlay.classList.contains('hidden');
-                console.log('📍 Overlay already visible:', isAlreadyVisible);
-
-                // If popup is already visible, close it first before creating new one
-                if (isAlreadyVisible) {
-                    console.log('🔄 Closing existing popup to create new one at different position');
-                    closeOverlayEventForm();
-                    // Wait a moment for the close animation, then show at new position
-                    setTimeout(() => {
-                        // Double-check the flag before reopening
-                        if (!overlayClosedByUser) {
-                            showOverlayEventForm(date, time, clickedCell);
-                        }
-                    }, 100);
-                    return;
-                }
+                console.log('🚫 Still found overlay with getElementById, removing...');
+                overlay.remove();
+                return;
+            }
 
                 // Show the overlay with multiple methods
                 overlay.style.display = 'block';
@@ -5170,21 +5180,51 @@
             
             overlayClosedByUser = true;
             
-            // Nuclear option: Remove ALL overlays from DOM
-            const allOverlays = document.querySelectorAll('.calendar-overlay-form, #calendar-overlay-form, [id*="overlay"], [class*="overlay"]');
-            allOverlays.forEach((overlay, index) => {
-                console.log(`🗑️ Removing overlay ${index}:`, overlay.className, overlay.id);
-                overlay.remove();
+            // Set global flag to prevent ANY popup creation
+            window.POPUP_CREATION_BLOCKED = true;
+            
+            // Nuclear option: Remove ALL overlays from DOM (more comprehensive)
+            const selectors = [
+                '.calendar-overlay-form', 
+                '#calendar-overlay-form',
+                '[id*="overlay"]', 
+                '[class*="overlay"]',
+                '[class*="popup"]', 
+                '[id*="popup"]', 
+                '.event-creation-popup',
+                '.modal',
+                '.dialog',
+                '[role="dialog"]',
+                '[role="modal"]'
+            ];
+            
+            selectors.forEach(selector => {
+                const elements = document.querySelectorAll(selector);
+                elements.forEach((element, index) => {
+                    console.log(`🗑️ Removing ${selector} ${index}:`, element.className, element.id);
+                    element.remove();
+                });
             });
             
-            // Also remove any popups
-            const allPopups = document.querySelectorAll('[class*="popup"], [id*="popup"], .event-creation-popup');
-            allPopups.forEach((popup, index) => {
-                console.log(`🗑️ Removing popup ${index}:`, popup.className, popup.id);
-                popup.remove();
+            // Also clear any overlays that might be in specific containers
+            const containers = document.querySelectorAll('body, .main-content, .calendar-container');
+            containers.forEach(container => {
+                const children = container.children;
+                for (let i = children.length - 1; i >= 0; i--) {
+                    const child = children[i];
+                    if (child.className && (
+                        child.className.includes('overlay') || 
+                        child.className.includes('popup') ||
+                        child.className.includes('modal') ||
+                        child.id && child.id.includes('overlay')
+                    )) {
+                        console.log('🗑️ Removing from container:', child.className, child.id);
+                        child.remove();
+                    }
+                }
             });
             
-            console.log('💥 ALL OVERLAYS AND POPUPS DESTROYED');
+            console.log('💥 COMPLETE DESTRUCTION - ALL OVERLAYS/POPUPS REMOVED');
             
             // Clear form data
             try {
@@ -5193,11 +5233,12 @@
                 console.log('⚠️ clearOverlayEventForm failed:', e);
             }
             
-            // Set timeout to reset flag
+            // Set longer timeout to reset flag
             setTimeout(() => {
-                console.log('🔓 Resetting overlay flag');
+                console.log('🔓 Resetting all overlay flags');
                 overlayClosedByUser = false;
-            }, 3000);
+                window.POPUP_CREATION_BLOCKED = false;
+            }, 5000); // 5 seconds
             
             // Block any further event processing
             if (event) {
