@@ -583,6 +583,18 @@ class GoogleCalendarGrid {
         const cell = e.target.closest('.time-cell');
         if (!cell || this.isSelecting) return;
         
+        // Prevent cell clicks if popup was just closed
+        if (this.preventNextCellClick) {
+            console.log('🚫 Cell click prevented - popup was just closed');
+            return;
+        }
+        
+        // Check if a popup is already active
+        if (window.eventCreationPopupActive) {
+            console.log('🚫 Cell click prevented - popup already active');
+            return;
+        }
+        
         // console.log('🖱️ Cell clicked:', cell, {
         //     day: cell.dataset.day,
         //     hour: cell.dataset.hour,
@@ -1327,7 +1339,7 @@ class GoogleCalendarGrid {
         popup.innerHTML = `
             <div class="popup-header" style="background: ${randomGradient};">
                 <h2 class="popup-title">새 일정</h2>
-                <button type="button" class="popup-close-btn" onclick="window.googleCalendarGrid.closeEventPopup()">
+                <button type="button" class="popup-close-btn" onclick="event.stopPropagation(); window.googleCalendarGrid.closeEventPopup()">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -1389,7 +1401,7 @@ class GoogleCalendarGrid {
                 </div>
                 
                 <div class="popup-footer-compact">
-                    <button type="button" class="btn-cancel-compact" onclick="window.googleCalendarGrid.closeEventPopup()">
+                    <button type="button" class="btn-cancel-compact" onclick="event.stopPropagation(); window.googleCalendarGrid.closeEventPopup()">
                         취소
                     </button>
                     <button type="button" class="btn-save-compact" onclick="window.googleCalendarGrid.saveEventFromFullScreen()">
@@ -1516,7 +1528,7 @@ class GoogleCalendarGrid {
         popup.innerHTML = `
             <div class="popup-header">
                 <div class="popup-title">일정 편집</div>
-                <button class="close-btn" onclick="window.googleCalendarGrid.closeEventPopup()">×</button>
+                <button class="close-btn" onclick="event.stopPropagation(); window.googleCalendarGrid.closeEventPopup()">×</button>
             </div>
             <div class="popup-content">
                 <div class="datetime-section">
@@ -1575,7 +1587,7 @@ class GoogleCalendarGrid {
                 <button type="button" class="btn-secondary" onclick="window.googleCalendarGrid.deleteEventById('${eventData.id}')">
                     삭제
                 </button>
-                <button type="button" class="btn-secondary" onclick="this.closest('.event-creation-popup').remove()">
+                <button type="button" class="btn-secondary" onclick="event.stopPropagation(); this.closest('.event-creation-popup').remove()">
                     취소
                 </button>
                 <button type="button" class="btn-primary" onclick="window.googleCalendarGrid.updateEventFromForm()">
@@ -3140,6 +3152,9 @@ class GoogleCalendarGrid {
     }
 
     closeEventPopup() {
+        // Reset popup active flag first to prevent immediate reopening
+        window.eventCreationPopupActive = false;
+        
         const popup = document.querySelector('.event-creation-popup');
         if (popup) {
             // Start slide-out animation
@@ -3153,14 +3168,22 @@ class GoogleCalendarGrid {
             }, 300); // Match CSS transition duration
         }
         
+        // Also remove backdrop
+        const backdrop = document.querySelector('.popup-backdrop');
+        if (backdrop) {
+            backdrop.remove();
+        }
         
         // Clear popup reference
         if (this.currentPopup) {
             this.currentPopup = null;
         }
         
-        // Reset popup active flag
-        window.eventCreationPopupActive = false;
+        // Temporarily disable cell clicks to prevent immediate reopening
+        this.preventNextCellClick = true;
+        setTimeout(() => {
+            this.preventNextCellClick = false;
+        }, 500);
         
         // console.log('🚪 Event popup closed');
     }
