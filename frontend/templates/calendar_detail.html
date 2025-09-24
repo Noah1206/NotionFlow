@@ -5010,39 +5010,22 @@
             
             console.log('✅ All checks passed, proceeding with overlay creation');
 
-            // Look for ANY overlay that might exist
-            const overlays = document.querySelectorAll('.calendar-overlay-form, #calendar-overlay-form, [id*="overlay"], [class*="overlay"], [class*="popup"]');
-            if (overlays.length > 0) {
-                console.log('🚫 Found existing overlays/popups:', overlays.length);
-                overlays.forEach((overlay, index) => {
-                    console.log(`  - Overlay ${index}:`, overlay.className, overlay.id, overlay.style.display);
-                });
-                
-                // Close all existing overlays/popups first
-                console.log('🧹 Cleaning up all existing overlays/popups');
-                overlays.forEach(overlay => overlay.remove());
-                
-                // Don't create new popup if we just cleaned up
-                return;
-            }
-
-            // Double check with getElementById
+            // Find existing overlay (should always exist in HTML)
             let overlay = document.getElementById('calendar-overlay-form');
             if (overlay) {
-                console.log('🚫 Still found overlay with getElementById, removing...');
-                overlay.remove();
-                overlay = null;
-            }
-            
-            // Create new overlay if it doesn't exist
-            if (!overlay) {
-                console.log('🔨 Creating new overlay element');
-                overlay = window.createOverlayElement();
-                if (!overlay) {
-                    console.error('❌ Failed to create overlay element');
-                    return;
+                console.log('✅ Found existing overlay');
+                
+                // If overlay is hidden, show it
+                if (overlay.style.display === 'none' || overlay.style.visibility === 'hidden') {
+                    console.log('🔄 Revealing previously hidden overlay');
+                } else {
+                    console.log('ℹ️ Overlay already visible, reusing it');
                 }
-                document.body.appendChild(overlay);
+            } else {
+                // If no overlay exists, this is an error - the HTML should have it
+                console.error('❌ No overlay element found in DOM');
+                console.error('❌ Expected #calendar-overlay-form to exist in HTML');
+                return;
             }
 
             // Show the overlay with multiple methods
@@ -5056,7 +5039,10 @@
 
                 // Set the date and time if provided
                 if (date) {
-                    document.getElementById('overlay-event-date').value = date;
+                    const dateInput = document.getElementById('overlay-event-date');
+                    if (dateInput) {
+                        dateInput.value = date;
+                    }
                 }
 
                 // Hide end date field for single-day events
@@ -5071,8 +5057,15 @@
                 const timeInputs = overlay.querySelectorAll('.time-input-group, .time-input');
                 timeInputs.forEach(input => input.style.display = 'block');
                 if (time) {
-                    document.getElementById('overlay-start-time').value = time;
-                    document.getElementById('overlay-start-time-display').textContent = convertToAMPM(time);
+                    const startTimeInput = document.getElementById('overlay-start-time');
+                    if (startTimeInput) {
+                        startTimeInput.value = time;
+                    }
+                    
+                    const startTimeDisplay = document.getElementById('overlay-start-time-display');
+                    if (startTimeDisplay && typeof convertToAMPM !== 'undefined') {
+                        startTimeDisplay.textContent = convertToAMPM(time);
+                    }
 
                     // Use provided endTime if available, otherwise set to one hour later
                     let finalEndTime;
@@ -5087,8 +5080,15 @@
                         console.log('🕐 Using default end time (start + 1 hour):', finalEndTime);
                     }
 
-                    document.getElementById('overlay-end-time').value = finalEndTime;
-                    document.getElementById('overlay-end-time-display').textContent = convertToAMPM(finalEndTime);
+                    const endTimeInput = document.getElementById('overlay-end-time');
+                    if (endTimeInput) {
+                        endTimeInput.value = finalEndTime;
+                    }
+                    
+                    const endTimeDisplay = document.getElementById('overlay-end-time-display');
+                    if (endTimeDisplay && typeof convertToAMPM !== 'undefined') {
+                        endTimeDisplay.textContent = convertToAMPM(finalEndTime);
+                    }
                 }
 
                 // Position popup at clicked cell location
@@ -5210,10 +5210,19 @@
                             <div class="form-group">
                                 <input type="date" id="overlay-event-date" name="date" required>
                             </div>
+                            <div class="form-group" id="end-date-group" style="display: none;">
+                                <input type="date" id="overlay-end-date" name="end_date">
+                            </div>
                             <div class="form-group time-input-group">
-                                <input type="time" id="overlay-start-time" name="start_time" required>
+                                <div class="time-input">
+                                    <input type="time" id="overlay-start-time" name="start_time" required>
+                                    <span id="overlay-start-time-display" class="time-display"></span>
+                                </div>
                                 <span>~</span>
-                                <input type="time" id="overlay-end-time" name="end_time" required>
+                                <div class="time-input">
+                                    <input type="time" id="overlay-end-time" name="end_time" required>
+                                    <span id="overlay-end-time-display" class="time-display"></span>
+                                </div>
                             </div>
                             <div class="form-actions">
                                 <button type="button" class="btn-cancel"
@@ -5244,7 +5253,7 @@
         });
 
         function closeOverlayEventForm(event) {
-            console.log('🚫 EMERGENCY CLOSE - Using nuclear option');
+            console.log('🚫 Closing popup - Using surgical approach');
             
             // Stop all event propagation immediately
             if (event) {
@@ -5258,48 +5267,51 @@
             // Set global flag to prevent ANY popup creation
             window.POPUP_CREATION_BLOCKED = true;
             
-            // Nuclear option: Remove ALL overlays from DOM (more comprehensive)
-            const selectors = [
-                '.calendar-overlay-form', 
-                '#calendar-overlay-form',
-                '[id*="overlay"]', 
-                '[class*="overlay"]',
-                '[class*="popup"]', 
-                '[id*="popup"]', 
-                '.event-creation-popup',
-                '.modal',
-                '.dialog',
-                '[role="dialog"]',
-                '[role="modal"]'
-            ];
+            // Add temporary global event blocker
+            const globalEventBlocker = function(e) {
+                console.log('🛡️ Global event blocked during close:', e.type, e.target?.className || 'unknown');
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                return false;
+            };
             
-            selectors.forEach(selector => {
-                const elements = document.querySelectorAll(selector);
-                elements.forEach((element, index) => {
-                    console.log(`🗑️ Removing ${selector} ${index}:`, element.className, element.id);
-                    element.remove();
+            // Block all common events temporarily during close
+            ['click', 'mousedown', 'mouseup', 'touchstart', 'touchend'].forEach(eventType => {
+                document.addEventListener(eventType, globalEventBlocker, { capture: true, once: false });
+            });
+            
+            // Remove event blockers after a short delay
+            setTimeout(() => {
+                ['click', 'mousedown', 'mouseup', 'touchstart', 'touchend'].forEach(eventType => {
+                    document.removeEventListener(eventType, globalEventBlocker, { capture: true });
                 });
+                console.log('🔓 Global event blockers removed');
+            }, 200);
+            
+            // Surgical approach: Hide overlay instead of removing it completely
+            const overlay = document.getElementById('calendar-overlay-form');
+            if (overlay) {
+                console.log('🫥 Hiding existing overlay');
+                overlay.style.display = 'none';
+                overlay.style.visibility = 'hidden';
+                overlay.style.opacity = '0';
+                overlay.style.pointerEvents = 'none';
+            } else {
+                console.log('ℹ️ No main overlay found');
+            }
+            
+            // Also hide any backup overlays that might exist
+            const allOverlays = document.querySelectorAll('.calendar-overlay-form');
+            allOverlays.forEach((element, index) => {
+                console.log(`🫥 Hiding overlay ${index}:`, element.className, element.id);
+                element.style.display = 'none';
+                element.style.visibility = 'hidden';
+                element.style.opacity = '0';
+                element.style.pointerEvents = 'none';
             });
             
-            // Also clear any overlays that might be in specific containers
-            const containers = document.querySelectorAll('body, .main-content, .calendar-container');
-            containers.forEach(container => {
-                const children = container.children;
-                for (let i = children.length - 1; i >= 0; i--) {
-                    const child = children[i];
-                    if (child.className && (
-                        child.className.includes('overlay') || 
-                        child.className.includes('popup') ||
-                        child.className.includes('modal') ||
-                        child.id && child.id.includes('overlay')
-                    )) {
-                        console.log('🗑️ Removing from container:', child.className, child.id);
-                        child.remove();
-                    }
-                }
-            });
-            
-            console.log('💥 COMPLETE DESTRUCTION - ALL OVERLAYS/POPUPS REMOVED');
+            console.log('✅ SURGICAL CLOSE - Overlays hidden but preserved');
             
             // Clear form data
             try {
@@ -5308,12 +5320,12 @@
                 console.log('⚠️ clearOverlayEventForm failed:', e);
             }
             
-            // Set shorter timeout to reset flag (1 second should be enough)
+            // Set shorter timeout to reset flag (300ms should be enough)
             setTimeout(() => {
                 console.log('🔓 Resetting all overlay flags');
                 overlayClosedByUser = false;
                 window.POPUP_CREATION_BLOCKED = false;
-            }, 1000); // 1 second
+            }, 300); // 300ms
             
             // Block any further event processing
             if (event) {
@@ -5343,14 +5355,29 @@
         }
 
         function clearOverlayEventForm() {
-            document.getElementById('overlay-event-title').value = '';
-            document.getElementById('overlay-event-date').value = '';
-            document.getElementById('overlay-start-time').value = '09:00';
-            document.getElementById('overlay-end-time').value = '10:00';
-            document.getElementById('overlay-start-time-display').textContent = '오전 09:00';
-            document.getElementById('overlay-end-time-display').textContent = '오전 10:00';
+            // Safely clear form fields with null checks
+            const title = document.getElementById('overlay-event-title');
+            if (title) title.value = '';
+            
+            const date = document.getElementById('overlay-event-date');
+            if (date) date.value = '';
+            
+            const startTime = document.getElementById('overlay-start-time');
+            if (startTime) startTime.value = '09:00';
+            
+            const endTime = document.getElementById('overlay-end-time');
+            if (endTime) endTime.value = '10:00';
+            
+            const startTimeDisplay = document.getElementById('overlay-start-time-display');
+            if (startTimeDisplay) startTimeDisplay.textContent = '오전 09:00';
+            
+            const endTimeDisplay = document.getElementById('overlay-end-time-display');
+            if (endTimeDisplay) endTimeDisplay.textContent = '오전 10:00';
+            
             const description = document.getElementById('overlay-event-description');
             if (description) description.value = '';
+            
+            console.log('✅ Form cleared safely with null checks');
         }
 
         function saveOverlayEvent(event) {
