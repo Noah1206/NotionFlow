@@ -105,14 +105,26 @@ class GoogleCalendarGrid {
         // Recalculate week start
         this.weekStart = this.getWeekStart(this.currentDate);
         
-        // console.log('🗓️ Week navigation:', direction > 0 ? 'Next week' : 'Previous week', 
-        //            'New date:', this.currentDate, 'New week start:', this.weekStart);
-        
         // Re-render the calendar
         this.render();
         
+        // Re-render existing events for the new week
+        this.rerenderAllEvents();
+        
         // Update current time indicator
         this.updateCurrentTimeIndicator();
+    }
+    
+    // Helper function to re-render all events
+    rerenderAllEvents() {
+        // Clear existing event elements from DOM
+        const existingEvents = this.container.querySelectorAll('.calendar-event');
+        existingEvents.forEach(event => event.remove());
+        
+        // Re-render all events
+        this.events.forEach(event => {
+            this.renderEvent(event);
+        });
     }
     
     render() {
@@ -2757,36 +2769,56 @@ class GoogleCalendarGrid {
     }
     
     convertBackendEventToFrontend(backendEvent) {
-        // Debug: Log the backend event structure
-        // console.log('🔍 Converting backend event:', backendEvent);
-        
         // Convert backend event format to match frontend expectations
         let date = backendEvent.date;
         let startTime = backendEvent.startTime || backendEvent.start_time;
         let endTime = backendEvent.endTime || backendEvent.end_time;
         
-        // Fallback: If no date (null, undefined, or empty), provide a default
-        if (!date || date === null || date === undefined || date === '') {
-            // Try to extract from startTime if available
-            if (startTime && (startTime.includes('T') || startTime.includes('-'))) {
-                try {
-                    date = new Date(startTime).toISOString().split('T')[0];
-                } catch (e) {
-                    date = '2025-09-02'; // Default fallback
+        // Try to extract date from start_datetime or start_date (API response format)
+        if (!date && (backendEvent.start_datetime || backendEvent.start_date)) {
+            try {
+                const startDateTime = backendEvent.start_datetime || backendEvent.start_date;
+                const parsedDate = new Date(startDateTime);
+                if (!isNaN(parsedDate.getTime())) {
+                    date = parsedDate.toISOString().split('T')[0];
+                    // Also extract time if not already set
+                    if (!startTime) {
+                        startTime = parsedDate.toTimeString().slice(0, 5);
+                    }
                 }
-            } else {
-                // Use today's date or a reasonable default
-                const today = new Date();
-                date = today.toISOString().split('T')[0];
+            } catch (e) {
+                console.warn('Failed to parse start_datetime:', backendEvent.start_datetime);
             }
         }
         
-        // Ensure we have time values
+        // Try to extract end time from end_datetime
+        if (!endTime && backendEvent.end_datetime) {
+            try {
+                const endDateTime = new Date(backendEvent.end_datetime);
+                if (!isNaN(endDateTime.getTime())) {
+                    endTime = endDateTime.toTimeString().slice(0, 5);
+                }
+            } catch (e) {
+                console.warn('Failed to parse end_datetime:', backendEvent.end_datetime);
+            }
+        }
+        
+        // Final fallbacks
+        if (!date) {
+            const today = new Date();
+            date = today.toISOString().split('T')[0];
+        }
+        
         if (!startTime || startTime.length < 5) {
             startTime = '09:00';
         }
         if (!endTime || endTime.length < 5) {
-            endTime = '10:00';
+            // Default to 1 hour duration
+            const startHour = parseInt(startTime.split(':')[0]);
+            const startMinute = parseInt(startTime.split(':')[1]);
+            const endHour = startMinute >= 30 ? startHour + 1 : startHour;
+            const endMinute = startMinute >= 30 ? 0 : 30;
+            endTime = `${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`;
         }
         
         const convertedEvent = {
