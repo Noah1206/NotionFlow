@@ -574,6 +574,19 @@ class GoogleCalendarGrid {
     }
     
     handleMouseUp(e) {
+        console.log('🖱️ handleMouseUp called, isSelecting:', this.isSelecting);
+        console.log('🔍 Flags check in mouseUp:', {
+            POPUP_CREATION_BLOCKED: window.POPUP_CREATION_BLOCKED,
+            OVERLAY_CLOSING_IN_PROGRESS: window.OVERLAY_CLOSING_IN_PROGRESS
+        });
+        
+        if (window.POPUP_CREATION_BLOCKED || window.OVERLAY_CLOSING_IN_PROGRESS) {
+            console.log('🚫 MouseUp blocked - popup flags active');
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+        
         if (this.isSelecting) {
             this.finishSelection();
         }
@@ -728,6 +741,21 @@ class GoogleCalendarGrid {
     }
     
     finishSelection() {
+        console.log('🏁 finishSelection called');
+        console.log('🔍 Flags check in finishSelection:', {
+            POPUP_CREATION_BLOCKED: window.POPUP_CREATION_BLOCKED,
+            OVERLAY_CLOSING_IN_PROGRESS: window.OVERLAY_CLOSING_IN_PROGRESS,
+            isSelecting: this.isSelecting,
+            selectedCellsSize: this.selectedCells.size
+        });
+        
+        if (window.POPUP_CREATION_BLOCKED || window.OVERLAY_CLOSING_IN_PROGRESS) {
+            console.log('🚫 finishSelection blocked - popup flags active');
+            this.isSelecting = false;
+            this.clearSelection();
+            return;
+        }
+        
         if (!this.isSelecting || this.selectedCells.size === 0) {
             this.isSelecting = false;
             this.clearSelection();

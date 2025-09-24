@@ -4988,13 +4988,27 @@
 
         // Overlay Event Form Functions
         function showOverlayEventForm(date, time, clickedCell = null, endTime = null) {
+            showOverlayCallCount++;
+            const now = Date.now();
+            const timeSinceLastClose = now - lastCloseTime;
+            
             console.log('🔄 showOverlayEventForm called with:', { 
                 date, 
                 time, 
+                callNumber: showOverlayCallCount,
+                timeSinceLastClose: timeSinceLastClose + 'ms',
                 overlayClosedByUser, 
-                globalBlocked: window.POPUP_CREATION_BLOCKED 
+                globalBlocked: window.POPUP_CREATION_BLOCKED,
+                closingInProgress: window.OVERLAY_CLOSING_IN_PROGRESS
             });
             console.log('📍 showOverlayEventForm stack trace:', new Error().stack);
+            console.log('🕐 Call timestamp:', new Date().toISOString());
+            
+            // Detect rapid successive calls (possible infinite loop)
+            if (timeSinceLastClose < 1000 && timeSinceLastClose > 0) {
+                console.error('🚨 RAPID SUCCESSIVE CALL DETECTED! Time since last close:', timeSinceLastClose + 'ms');
+                console.error('🚨 This might indicate an infinite reopening loop!');
+            }
             
             // Check global popup creation block
             if (window.POPUP_CREATION_BLOCKED) {
@@ -5179,6 +5193,11 @@
         
         // Initialize global flags
         window.POPUP_CREATION_BLOCKED = false;
+        window.OVERLAY_CLOSING_IN_PROGRESS = false;
+        
+        // Track all showOverlayEventForm calls to debug infinite reopening
+        let showOverlayCallCount = 0;
+        let lastCloseTime = 0;
         
         // Debug function to check current state
         window.checkPopupState = function() {
@@ -5259,7 +5278,8 @@
         });
 
         function closeOverlayEventForm(event) {
-            console.log('🚫 ULTIMATE CLOSE - Maximum blocking approach');
+            lastCloseTime = Date.now();
+            console.log('🚫 ULTIMATE CLOSE - Maximum blocking approach (Close #' + Math.floor(Math.random() * 1000) + ')');
             
             // Stop all event propagation immediately
             if (event) {
@@ -5345,9 +5365,14 @@
             console.log('🖱️ handleOverlayClick called', event.target);
             console.log('🎯 Event target classes:', event.target.classList);
             console.log('📍 handleOverlayClick stack trace:', new Error().stack);
+            console.log('🔍 Flags check:', {
+                overlayClosedByUser,
+                globalBlocked: window.POPUP_CREATION_BLOCKED,
+                closingInProgress: window.OVERLAY_CLOSING_IN_PROGRESS
+            });
             
-            if (overlayClosedByUser) {
-                console.log('🚫 handleOverlayClick blocked - user just closed popup');
+            if (overlayClosedByUser || window.POPUP_CREATION_BLOCKED || window.OVERLAY_CLOSING_IN_PROGRESS) {
+                console.log('🚫 handleOverlayClick blocked - flags active');
                 event.preventDefault();
                 event.stopPropagation();
                 return false;
@@ -5355,7 +5380,7 @@
             // Close overlay when clicking on background
             if (event.target.classList.contains('calendar-overlay-form')) {
                 console.log('✅ Clicked on background, closing overlay');
-                closeOverlayEventForm();
+                closeOverlayEventForm(event);
             } else {
                 console.log('❌ Not clicking on background');
             }
