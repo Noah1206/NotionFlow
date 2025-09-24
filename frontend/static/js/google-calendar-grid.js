@@ -2886,8 +2886,33 @@ class GoogleCalendarGrid {
                 return this.deleteEvent(altEventData);
             }
             
-            console.error('Event still not found after alternative search. Searched ID:', eventIdStr);
+            // 마지막 시도: 모든 필드에서 숫자 ID 찾기
+            const finalAttemptEvent = this.events.find(event => {
+                const fields = [
+                    event.id, event.notion_id, event.uuid, event.event_id, 
+                    event.backendId, event.frontendId, event.tempId,
+                    event.timestamp, event.created_at
+                ];
+                
+                return fields.some(field => 
+                    field && (String(field) === eventIdStr || String(field).includes(eventIdStr))
+                );
+            });
+            
+            if (finalAttemptEvent) {
+                console.log('✅ Found event with final attempt:', finalAttemptEvent.title);
+                return this.deleteEvent(finalAttemptEvent);
+            }
+            
+            console.error('Event not found after all attempts. Searched ID:', eventIdStr);
             console.error('Sample event structure:', this.events[0]);
+            
+            // DOM에서 강제로 제거
+            const eventElements = document.querySelectorAll(`[data-event-id="${eventId}"], [data-id="${eventId}"]`);
+            eventElements.forEach(el => {
+                el.remove();
+                console.log('🗑️ Force removed from DOM');
+            });
             return;
         }
         
