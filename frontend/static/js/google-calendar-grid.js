@@ -2630,8 +2630,17 @@ class GoogleCalendarGrid {
             const response = await fetch(`/api/calendars/${calendarId}/events`);
             
             if (response.ok) {
-                const events = await response.json();
-                // console.log('📅 Loaded events from backend:', events);
+                const data = await response.json();
+                
+                // Handle both array and object responses (same logic as calendar-detail.js)
+                let events = [];
+                if (Array.isArray(data)) {
+                    events = data;
+                } else if (typeof data === 'object' && data !== null) {
+                    events = data.events || data.data || data.items || [];
+                } else {
+                    events = [];
+                }
                 
                 // Clear existing events
                 this.events = [];
@@ -2642,10 +2651,8 @@ class GoogleCalendarGrid {
                         this.events.push(frontendEvent);
                         this.renderEvent(frontendEvent);
                     });
-                    // console.log(`✅ Successfully loaded ${events.length} events from backend`);
                 } else {
                     // No backend events, try localStorage
-                    // console.log('📝 No backend events, loading from localStorage...');
                     this.loadBackupEvents();
                 }
             } else {
