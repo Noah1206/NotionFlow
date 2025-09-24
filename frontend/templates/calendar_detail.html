@@ -5246,7 +5246,7 @@
         });
 
         function closeOverlayEventForm(event) {
-            console.log('🚫 NUCLEAR POPUP DESTROYER');
+            console.log('🚫 FINAL POPUP SOLUTION');
             
             // 즉시 모든 이벤트 차단
             if (event) {
@@ -5255,19 +5255,34 @@
                 event.stopImmediatePropagation();
             }
             
-            // 단순하게 팝업 숨기기
-            document.querySelectorAll('.calendar-overlay-form, [id*="overlay"], [class*="popup"], [class*="modal"]').forEach(el => {
-                el.style.display = 'none !important';
-                el.style.visibility = 'hidden !important';
-                el.style.opacity = '0 !important';
-                el.style.pointerEvents = 'none !important';
-                el.remove(); // 아예 제거
-            });
-            
-            // 그 전까지는 모든 팝업 생성 완전 차단
+            // 강력한 플래그 설정
             window.POPUP_ABSOLUTELY_BLOCKED = true;
             window.POPUP_CREATION_BLOCKED = true;
             overlayClosedByUser = true;
+            
+            // 캘린더 그리드 비활성화
+            const gridBody = document.querySelector('.calendar-grid-body');
+            if (gridBody) {
+                gridBody.style.pointerEvents = 'none';
+                console.log('🔒 Calendar grid disabled');
+            }
+            
+            // 모든 팝업 제거
+            document.querySelectorAll('.calendar-overlay-form, [id*="overlay"], [class*="popup"], [class*="modal"]').forEach(el => {
+                el.remove();
+            });
+            
+            // 1초 후 캘린더 그리드 재활성화 + 플래그 리셋
+            setTimeout(() => {
+                if (gridBody) {
+                    gridBody.style.pointerEvents = 'auto';
+                    console.log('🔓 Calendar grid re-enabled');
+                }
+                window.POPUP_ABSOLUTELY_BLOCKED = false;
+                window.POPUP_CREATION_BLOCKED = false;
+                overlayClosedByUser = false;
+                console.log('🔓 All flags reset');
+            }, 1000);
             
             // 모든 오버레이 요소들 즉시 제거
             document.querySelectorAll('.calendar-overlay-form, [id*="overlay"], [class*="popup"], [class*="modal"]').forEach(el => {
@@ -5474,11 +5489,22 @@
                         if (response.ok) {
                             const result = await response.json();
                             console.log('✅ Multi-day event created:', result);
+                            console.log('🔍 Result ID fields:', {
+                                id: result.id,
+                                event_id: result.event_id, 
+                                backendId: result.backendId,
+                                uuid: result.uuid
+                            });
 
                             // Add the new event directly to the calendar without page refresh
                             if (window.googleCalendarGrid) {
+                                // 서버에서 온 실제 ID 사용
+                                const actualId = result.id || result.event_id || result.backendId || result.uuid;
+                                console.log('🆔 Using actual ID for new event:', actualId);
+                                
                                 const newEventForGrid = {
-                                    id: result.id || Date.now().toString(),
+                                    id: actualId,
+                                    backendId: actualId,  // backendId도 같은 값으로 설정
                                     title: apiData.title,
                                     description: apiData.description || '',
                                     date: apiData.date,        // Start date
@@ -5548,11 +5574,22 @@
                     if (response.ok) {
                         const result = await response.json();
                         console.log('✅ Single-day event saved to backend successfully:', result);
+                        console.log('🔍 Result ID fields:', {
+                            id: result.id,
+                            event_id: result.event_id,
+                            backendId: result.backendId,
+                            uuid: result.uuid
+                        });
 
                         // Add the new event directly to the calendar without page refresh
                         if (window.googleCalendarGrid) {
+                            // 서버에서 온 실제 ID 사용
+                            const actualId = result.id || result.event_id || result.backendId || result.uuid;
+                            console.log('🆔 Using actual ID for new event:', actualId);
+                            
                             const newEventForGrid = {
-                                id: result.id || Date.now().toString(),
+                                id: actualId,
+                                backendId: actualId,  // backendId도 같은 값으로 설정
                                 title: apiData.title,
                                 description: apiData.description || '',
                                 date: apiData.date,
