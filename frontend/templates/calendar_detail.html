@@ -5140,10 +5140,30 @@
         // Flag to prevent reopening when user explicitly closes popup
         let overlayClosedByUser = false;
         
-        // Override global loadEvents function temporarily when popup is closed by user
-        let originalLoadEvents = null;
+        // Add global event listener to catch and prevent events during popup closing
+        document.addEventListener('click', function(event) {
+            if (overlayClosedByUser) {
+                console.log('🚫 Global click blocked - popup closing in progress');
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+                return false;
+            }
+        }, true); // Use capture phase
+        
+        document.addEventListener('change', function(event) {
+            if (overlayClosedByUser) {
+                console.log('🚫 Global change blocked - popup closing in progress');
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+                return false;
+            }
+        }, true);
 
         function closeOverlayEventForm(event) {
+            console.log('🚫 closeOverlayEventForm called');
+            
             // Stop all event propagation immediately
             if (event) {
                 event.preventDefault();
@@ -5151,62 +5171,47 @@
                 event.stopImmediatePropagation();
             }
             
-            console.log('🚫 closeOverlayEventForm called', { byUser: true });
-            overlayClosedByUser = true; // Set flag to prevent automatic reopening
+            overlayClosedByUser = true;
             
-            // Temporarily disable loadEvents to prevent cascade events
-            if (typeof window.loadEvents === 'function' && !originalLoadEvents) {
-                originalLoadEvents = window.loadEvents;
-                window.loadEvents = function() {
-                    console.log('🚫 loadEvents blocked while popup closing');
-                    return Promise.resolve();
-                };
-            }
-            
+            // Find and completely hide the overlay
             const overlay = document.getElementById('calendar-overlay-form');
             if (overlay) {
-                console.log('✅ Found overlay element, hiding it forcefully');
+                console.log('✅ Forcefully hiding overlay');
                 
-                // Remove all event listeners temporarily to prevent cascading
-                const newOverlay = overlay.cloneNode(true);
-                overlay.parentNode.replaceChild(newOverlay, overlay);
+                // Immediately hide with all possible methods
+                overlay.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; position: absolute !important; top: -9999px !important; left: -9999px !important; z-index: -1 !important; width: 0 !important; height: 0 !important; overflow: hidden !important;';
+                overlay.classList.add('hidden');
+                overlay.classList.remove('show');
+                overlay.setAttribute('aria-hidden', 'true');
+                overlay.setAttribute('style', 'display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; position: absolute !important; top: -9999px !important; left: -9999px !important; z-index: -1 !important; width: 0 !important; height: 0 !important; overflow: hidden !important;');
                 
-                // Use more forceful hiding methods
-                newOverlay.style.display = 'none !important';
-                newOverlay.style.visibility = 'hidden !important';
-                newOverlay.style.opacity = '0 !important';
-                newOverlay.style.pointerEvents = 'none !important';
-                newOverlay.classList.add('hidden');
-                newOverlay.classList.remove('show');
+                // Also remove from DOM temporarily to prevent any CSS rules from affecting it
+                const parent = overlay.parentNode;
+                if (parent) {
+                    parent.removeChild(overlay);
+                    setTimeout(() => {
+                        parent.appendChild(overlay);
+                    }, 100);
+                }
                 
+                // Clear form
                 clearOverlayEventForm();
                 
-                // Clear the flag after a longer delay and restore loadEvents
+                // Set timeout to reset flag
                 setTimeout(() => {
-                    console.log('🔓 Clearing overlayClosedByUser flag');
+                    console.log('🔓 Resetting overlay flag');
                     overlayClosedByUser = false;
-                    
-                    // Restore original loadEvents function
-                    if (originalLoadEvents) {
-                        window.loadEvents = originalLoadEvents;
-                        originalLoadEvents = null;
-                        console.log('🔄 loadEvents function restored');
-                    }
-                }, 1000);
-                
-                // Re-attach event listeners to the new overlay
-                setTimeout(() => {
-                    const finalOverlay = document.getElementById('calendar-overlay-form');
-                    if (finalOverlay) {
-                        finalOverlay.onclick = handleOverlayClick;
-                    }
-                }, 100);
+                }, 2000);
                 
             } else {
-                console.log('❌ Overlay element not found');
+                console.log('❌ Overlay not found');
             }
             
-            return false; // Prevent any further event handling
+            // Block any further event processing
+            if (event) {
+                event.returnValue = false;
+            }
+            return false;
         }
 
         function handleOverlayClick(event) {
