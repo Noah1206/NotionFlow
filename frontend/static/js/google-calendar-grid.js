@@ -2831,21 +2831,33 @@ class GoogleCalendarGrid {
         
         const eventData = this.events.find(event => String(event.id) === eventIdStr);
         if (!eventData) {
-            console.error('Event not found for deletion:', eventId, 'Available events:', this.events.map(e => ({id: e.id, title: e.title})));
+            console.error('Event not found for deletion:', eventId, 'Available events:', this.events.slice(0, 5).map(e => ({id: e.id, notion_id: e.notion_id, title: e.title})));
             
-            // Try alternative search methods
+            // Try all possible ID fields
             const altEventData = this.events.find(event => 
+                String(event.id) === eventIdStr ||
+                String(event.notion_id) === eventIdStr ||
+                String(event.uuid) === eventIdStr ||
+                String(event.event_id) === eventIdStr ||
                 event.id == eventId || 
                 event.notion_id == eventId ||
-                String(event.notion_id) === eventIdStr
+                event.uuid == eventId ||
+                event.event_id == eventId
             );
             
             if (altEventData) {
-                console.log('Found event with alternative search:', altEventData);
+                console.log('Found event with alternative search:', {
+                    id: altEventData.id,
+                    notion_id: altEventData.notion_id,
+                    uuid: altEventData.uuid,
+                    event_id: altEventData.event_id,
+                    title: altEventData.title
+                });
                 return this.deleteEvent(altEventData);
             }
             
-            console.error('Event still not found after alternative search');
+            console.error('Event still not found after alternative search. Searched ID:', eventIdStr);
+            console.error('Sample event structure:', this.events[0]);
             return;
         }
         

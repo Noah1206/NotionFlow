@@ -5027,16 +5027,28 @@
             }
 
             // Double check with getElementById
-            const overlay = document.getElementById('calendar-overlay-form');
+            let overlay = document.getElementById('calendar-overlay-form');
             if (overlay) {
                 console.log('🚫 Still found overlay with getElementById, removing...');
                 overlay.remove();
-                return;
+                overlay = null;
+            }
+            
+            // Create new overlay if it doesn't exist
+            if (!overlay) {
+                console.log('🔨 Creating new overlay element');
+                overlay = window.createOverlayElement();
+                if (!overlay) {
+                    console.error('❌ Failed to create overlay element');
+                    return;
+                }
+                document.body.appendChild(overlay);
             }
 
-                // Show the overlay with multiple methods
-                overlay.style.display = 'block';
-                overlay.style.visibility = 'visible';
+            // Show the overlay with multiple methods
+            console.log('✅ Showing overlay');
+            overlay.style.display = 'block';
+            overlay.style.visibility = 'visible';
                 overlay.style.opacity = '1';
                 overlay.style.pointerEvents = 'auto';
                 overlay.classList.remove('hidden');
@@ -5159,6 +5171,63 @@
 
         // Flag to prevent reopening when user explicitly closes popup
         let overlayClosedByUser = false;
+        
+        // Initialize global flags
+        window.POPUP_CREATION_BLOCKED = false;
+        
+        // Debug function to check current state
+        window.checkPopupState = function() {
+            console.log('🔍 Current popup state:', {
+                overlayClosedByUser,
+                globalBlocked: window.POPUP_CREATION_BLOCKED,
+                existingOverlays: document.querySelectorAll('.calendar-overlay-form, #calendar-overlay-form').length
+            });
+        };
+        
+        // Function to create overlay element
+        window.createOverlayElement = function() {
+            const overlay = document.createElement('div');
+            overlay.id = 'calendar-overlay-form';
+            overlay.className = 'calendar-overlay-form hidden';
+            overlay.onclick = handleOverlayClick;
+            
+            overlay.innerHTML = `
+                <div class="overlay-form-content" onclick="event.stopPropagation()">
+                    <div class="form-header">
+                        <h2 id="overlay-form-title">새 일정</h2>
+                        <button class="close-overlay-btn"
+                            onclick="console.log('❌ Close button clicked'); return window.closeOverlayEventForm(event);"
+                            title="닫기">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="form-body">
+                        <form id="overlay-event-form" class="event-form">
+                            <div class="form-group">
+                                <input type="text" id="overlay-event-title" name="title" placeholder="일정 제목" required>
+                            </div>
+                            <div class="form-group">
+                                <input type="date" id="overlay-event-date" name="date" required>
+                            </div>
+                            <div class="form-group time-input-group">
+                                <input type="time" id="overlay-start-time" name="start_time" required>
+                                <span>~</span>
+                                <input type="time" id="overlay-end-time" name="end_time" required>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn-cancel"
+                                    onclick="console.log('⛔ Cancel button clicked'); return window.closeOverlayEventForm(event);">취소</button>
+                                <button type="submit" class="btn-save">저장</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            
+            return overlay;
+        };
         
         // Add global event listener to catch and prevent events during popup closing
         const eventTypes = ['click', 'change', 'input', 'submit', 'focus', 'blur', 'mousedown', 'mouseup', 'keydown', 'keyup'];
