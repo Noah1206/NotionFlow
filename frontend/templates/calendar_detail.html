@@ -4988,6 +4988,9 @@
 
         // Overlay Event Form Functions
         function showOverlayEventForm(date, time, clickedCell = null, endTime = null) {
+            console.log('🔄 showOverlayEventForm called with:', { date, time, overlayClosedByUser });
+            console.log('📍 showOverlayEventForm stack trace:', new Error().stack);
+            
             // Check if user just closed the popup - don't reopen immediately
             if (overlayClosedByUser) {
                 console.log('🚫 Overlay creation blocked - user just closed popup');
@@ -5141,31 +5144,32 @@
         let overlayClosedByUser = false;
         
         // Add global event listener to catch and prevent events during popup closing
-        document.addEventListener('click', function(event) {
-            if (overlayClosedByUser) {
-                console.log('🚫 Global click blocked - popup closing in progress');
-                event.preventDefault();
-                event.stopPropagation();
-                event.stopImmediatePropagation();
-                return false;
-            }
-        }, true); // Use capture phase
+        const eventTypes = ['click', 'change', 'input', 'submit', 'focus', 'blur', 'mousedown', 'mouseup', 'keydown', 'keyup'];
         
-        document.addEventListener('change', function(event) {
-            if (overlayClosedByUser) {
-                console.log('🚫 Global change blocked - popup closing in progress');
-                event.preventDefault();
-                event.stopPropagation();
-                event.stopImmediatePropagation();
-                return false;
-            }
-        }, true);
+        eventTypes.forEach(eventType => {
+            document.addEventListener(eventType, function(event) {
+                if (overlayClosedByUser) {
+                    console.log(`🚫 Global ${eventType} blocked - popup closing in progress`, event.target);
+                    event.preventDefault();
+                    event.stopPropagation();
+                    event.stopImmediatePropagation();
+                    return false;
+                }
+            }, true); // Use capture phase
+        });
 
         function closeOverlayEventForm(event) {
             console.log('🚫 closeOverlayEventForm called');
+            console.log('📍 Stack trace:', new Error().stack);
             
             // Stop all event propagation immediately
             if (event) {
+                console.log('🎯 Event details:', {
+                    type: event.type,
+                    target: event.target,
+                    currentTarget: event.currentTarget,
+                    bubbles: event.bubbles
+                });
                 event.preventDefault();
                 event.stopPropagation();
                 event.stopImmediatePropagation();
@@ -5217,6 +5221,14 @@
         function handleOverlayClick(event) {
             console.log('🖱️ handleOverlayClick called', event.target);
             console.log('🎯 Event target classes:', event.target.classList);
+            console.log('📍 handleOverlayClick stack trace:', new Error().stack);
+            
+            if (overlayClosedByUser) {
+                console.log('🚫 handleOverlayClick blocked - user just closed popup');
+                event.preventDefault();
+                event.stopPropagation();
+                return false;
+            }
             // Close overlay when clicking on background
             if (event.target.classList.contains('calendar-overlay-form')) {
                 console.log('✅ Clicked on background, closing overlay');

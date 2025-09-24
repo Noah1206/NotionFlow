@@ -2339,6 +2339,9 @@ function goToToday() {
 
 // Event management
 async function loadEvents() {
+    console.log('🔄 loadEvents called');
+    console.log('📍 loadEvents stack trace:', new Error().stack);
+    
     try {
         // Get calendar ID from the page
         const calendarId = window.location.pathname.split('/').pop();
@@ -3280,6 +3283,7 @@ async function checkCalendarExists(retryCount = 0) {
         // 캘린더 이름 업데이트 방지 - HTML에서 설정된 이름 유지
         // 캘린더 목록 API의 이름으로 덮어쓰지 않음
         console.log('✅ 캘린더 존재 확인됨, 기존 이름 유지');
+        console.log('📍 캘린더 확인 stack trace:', new Error().stack);
         
         return true;
     } catch (error) {

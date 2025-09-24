@@ -837,6 +837,7 @@ class NotionCalendarSync:
         
         if formatted_uuid != uuid_str.replace('-', '').lower():
             # UUID normalized
+            pass
             
         return formatted_uuid
 
