@@ -2610,7 +2610,12 @@
                 <div class="trash-popup" id="trash-popup">
                     <div class="trash-popup-header">
                         <h3>🗑️ 휴지통</h3>
-                        <button class="trash-close-btn" onclick="window.hideTrashPopup()">×</button>
+                        <div class="trash-header-actions">
+                            <button class="trash-empty-all-btn" id="trash-empty-all-btn" onclick="window.emptyTrash()" title="휴지통 비우기">
+                                🗑️ 비우기
+                            </button>
+                            <button class="trash-close-btn" onclick="window.hideTrashPopup()">×</button>
+                        </div>
                     </div>
                     <div class="trash-popup-content" id="trash-popup-content">
                         <!-- Trashed events will be populated here -->
@@ -4689,7 +4694,7 @@
         .trash-popup-header {
             display: flex;
             align-items: center;
-            justify-content: between;
+            justify-content: space-between;
             padding: 20px;
             border-bottom: 1px solid #e9ecef;
             background: #f8f9fa;
@@ -4701,6 +4706,38 @@
             font-weight: 600;
             color: #495057;
             flex: 1;
+        }
+
+        .trash-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .trash-empty-all-btn {
+            background: #dc3545;
+            border: none;
+            color: white;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .trash-empty-all-btn:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+        }
+
+        .trash-empty-all-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(220, 53, 69, 0.3);
         }
 
         .trash-close-btn {

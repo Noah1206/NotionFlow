@@ -119,6 +119,7 @@ class GoogleCalendarGrid {
     populateTrashPopup() {
         const content = document.getElementById('trash-popup-content');
         const emptyMessage = document.getElementById('trash-empty');
+        const emptyButton = document.getElementById('trash-empty-all-btn');
         
         if (!content) return;
         
@@ -128,10 +129,12 @@ class GoogleCalendarGrid {
         
         if (this.trashedEvents.length === 0) {
             emptyMessage.style.display = 'block';
+            if (emptyButton) emptyButton.style.display = 'none';
             return;
         }
         
         emptyMessage.style.display = 'none';
+        if (emptyButton) emptyButton.style.display = 'flex';
         
         this.trashedEvents.forEach(eventData => {
             const eventItem = this.createTrashEventItem(eventData);
@@ -221,6 +224,66 @@ class GoogleCalendarGrid {
         }
         
         console.log('Event restored from trash:', restoredEvent);
+    }
+    
+    // Empty trash functionality
+    async emptyTrash() {
+        if (this.trashedEvents.length === 0) {
+            if (window.showNotification) {
+                showNotification('휴지통이 이미 비어있습니다', 'info');
+            }
+            return;
+        }
+        
+        const confirmed = confirm(`휴지통에 있는 ${this.trashedEvents.length}개의 일정을 영구적으로 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`);
+        
+        if (!confirmed) return;
+        
+        try {
+            const calendarId = document.querySelector('.calendar-workspace')?.dataset.calendarId || 'e3b088c5-58550';
+            
+            // Delete events from backend if they have backendId
+            const eventsWithBackendId = this.trashedEvents.filter(event => event.backendId);
+            
+            if (eventsWithBackendId.length > 0) {
+                for (const eventData of eventsWithBackendId) {
+                    try {
+                        const response = await fetch(`/api/calendar/${calendarId}/events/${eventData.backendId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                        if (!response.ok) {
+                            console.warn(`Failed to delete event ${eventData.backendId} from backend`);
+                        }
+                    } catch (error) {
+                        console.error(`Failed to delete event ${eventData.backendId}:`, error);
+                    }
+                }
+            }
+            
+            // Clear all trashed events
+            this.trashedEvents = [];
+            this.saveTrashedEvents();
+            
+            // Update trash popup
+            this.populateTrashPopup();
+            
+            // Show success notification
+            if (window.showNotification) {
+                showNotification('휴지통이 비워졌습니다', 'success');
+            }
+            
+            console.log('Trash emptied successfully');
+            
+        } catch (error) {
+            console.error('Failed to empty trash:', error);
+            if (window.showNotification) {
+                showNotification('휴지통 비우기에 실패했습니다', 'error');
+            }
+        }
     }
     
     initSidebarMonitoring() {
@@ -3650,5 +3713,11 @@ window.showTrashPopup = function() {
 window.hideTrashPopup = function() {
     if (window.googleCalendarGrid) {
         window.googleCalendarGrid.hideTrashPopup();
+    }
+};
+
+window.emptyTrash = function() {
+    if (window.googleCalendarGrid) {
+        window.googleCalendarGrid.emptyTrash();
     }
 };
