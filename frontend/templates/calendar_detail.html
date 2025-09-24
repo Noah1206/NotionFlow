@@ -5245,7 +5245,7 @@
         });
 
         function closeOverlayEventForm(event) {
-            console.log('🚫 SIMPLE CLOSE');
+            console.log('🚫 ABSOLUTE KILLER');
             
             // 즉시 이벤트 차단
             if (event) {
@@ -5254,18 +5254,31 @@
                 event.stopImmediatePropagation();
             }
             
-            // 팝업 숨기기
-            const overlay = document.getElementById('calendar-overlay-form');
-            if (overlay) {
-                overlay.style.display = 'none';
+            // 강력한 차단
+            window.POPUP_BLOCKED = true;
+            
+            // 팝업 완전 제거
+            document.querySelectorAll('.calendar-overlay-form, [id*="overlay"]').forEach(el => {
+                el.remove();
+                console.log('💀 Removed:', el.id || el.className);
+            });
+            
+            // 전체 페이지에 클릭 차단막 설치
+            let blocker = document.getElementById('click-blocker');
+            if (!blocker) {
+                blocker = document.createElement('div');
+                blocker.id = 'click-blocker';
+                blocker.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:999999;background:rgba(0,0,0,0.01);';
+                document.body.appendChild(blocker);
             }
             
-            // 간단한 플래그로 2초간 재생성 방지
-            window.POPUP_BLOCKED = true;
+            // 3초 후 차단막 제거
             setTimeout(() => {
+                const b = document.getElementById('click-blocker');
+                if (b) b.remove();
                 window.POPUP_BLOCKED = false;
-                console.log('🔓 Popup creation allowed again');
-            }, 2000);
+                console.log('🔓 All clear');
+            }, 3000);
             
             // 모든 오버레이 요소들 즉시 제거
             document.querySelectorAll('.calendar-overlay-form, [id*="overlay"], [class*="popup"], [class*="modal"]').forEach(el => {
