@@ -2504,6 +2504,21 @@ window.closeOverlayEventForm = function(event) {
         event.stopPropagation();
         event.stopImmediatePropagation();
     }
+    
+    // Set flag to prevent immediate re-opening
+    window.POPUP_BLOCKED = true;
+    
+    // Clear any active selection state in GoogleCalendarGrid
+    if (window.googleCalendarGrid) {
+        window.googleCalendarGrid.isSelecting = false;
+        window.googleCalendarGrid.clearSelection();
+    }
+    
+    // Reset the flag after a delay
+    setTimeout(() => {
+        window.POPUP_BLOCKED = false;
+    }, 500);
+    
     closeEventModal();
     return false;
 };

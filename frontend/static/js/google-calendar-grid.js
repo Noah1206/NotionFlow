@@ -763,6 +763,12 @@ class GoogleCalendarGrid {
     }
     
     createEvent(startDay, startHour, endDay, endHour, clickedCell = null) {
+        // Check if popup creation is blocked
+        if (window.POPUP_BLOCKED) {
+            console.log('🚫 createEvent blocked - popup was just closed');
+            return;
+        }
+        
         // console.log('🎯 createEvent called:', {startDay, startHour, endDay, endHour});
         
         // Ensure weekStart is properly initialized
@@ -3700,6 +3706,20 @@ function openEventForm(date = null, eventData = null) {
 function closeEventForm() {
     const overlayForm = document.getElementById('calendar-overlay-form');
     const overlayContent = overlayForm?.querySelector('.overlay-form-content');
+    
+    // Set flag to prevent immediate re-opening
+    window.POPUP_BLOCKED = true;
+    
+    // Clear any active selection state in GoogleCalendarGrid
+    if (window.googleCalendarGrid) {
+        window.googleCalendarGrid.isSelecting = false;
+        window.googleCalendarGrid.clearSelection();
+    }
+    
+    // Reset the flag after a delay
+    setTimeout(() => {
+        window.POPUP_BLOCKED = false;
+    }, 500);
     
     if (overlayForm && overlayContent) {
         // Add closing animation
