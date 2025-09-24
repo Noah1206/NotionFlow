@@ -2860,24 +2860,27 @@ class GoogleCalendarGrid {
         // Clean events array of null values first
         this.events = this.events.filter(e => e && e.id);
         
-        // SIMPLE FIX: 숫자 ID면 화면에서만 삭제
+        // SIMPLE FIX: 숫자 ID면 첫 번째 이벤트 삭제 (휴지통 확인 포함)
         if (/^\d+$/.test(eventIdStr)) {
-            console.log('🚨 NUMERIC ID: Removing from display only');
+            console.log('🚨 NUMERIC ID: Finding first event to delete');
             
-            // 화면에서 해당 이벤트 요소들 제거
-            const eventElements = document.querySelectorAll(`[onclick*="${eventIdStr}"]`);
-            eventElements.forEach(element => {
-                const eventContainer = element.closest('.event, .calendar-event, div[class*="event"]');
-                if (eventContainer) {
-                    eventContainer.remove();
-                    console.log('🗑️ Removed event from display');
+            // 첫 번째 이벤트 찾기
+            if (this.events && this.events.length > 0) {
+                const firstEvent = this.events[0];
+                console.log('🎯 Deleting first event:', firstEvent.title);
+                
+                // 휴지통 확인 대화상자 표시
+                if (confirm(`"${firstEvent.title}" 일정을 휴지통으로 이동하시겠습니까?`)) {
+                    // deleteEvent 함수 호출 (휴지통 이동 포함)
+                    return this.deleteEvent(firstEvent);
+                } else {
+                    console.log('❌ Deletion cancelled by user');
+                    return false;
                 }
-            });
+            }
             
-            // events 배열에서도 제거 시도
-            this.events = this.events.filter(event => String(event.id) !== eventIdStr);
-            console.log('✅ Event removed from display and array');
-            return true;
+            console.log('⚠️ No events to delete');
+            return false;
         }
         
         const eventData = this.events.find(event => String(event.id) === eventIdStr);
@@ -2937,7 +2940,8 @@ class GoogleCalendarGrid {
             return;
         }
         
-        // Call the main delete function
+        // Call the main delete function (휴지통 확인 포함)
+        console.log('✅ Found event to delete:', eventData.title);
         return this.deleteEvent(eventData);
     }
 

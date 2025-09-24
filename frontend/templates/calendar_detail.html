@@ -2638,7 +2638,7 @@
                         <div class="form-header">
                             <h2 id="overlay-form-title">새 일정</h2>
                             <button class="close-overlay-btn"
-                                onclick="console.log('❌ Close button clicked'); return window.closeOverlayEventForm(event);"
+                                onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); window.closeOverlayEventForm(event); return false;"
                                 title="닫기">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2">
@@ -2733,7 +2733,7 @@
 
                             <div class="form-actions">
                                 <button type="button" class="btn-cancel"
-                                    onclick="console.log('⛔ Cancel button clicked'); return window.closeOverlayEventForm(event);">취소</button>
+                                    onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); window.closeOverlayEventForm(event); return false;">취소</button>
                                 <button type="submit" class="btn-save">저장</button>
                             </div>
                         </form>
@@ -5187,7 +5187,7 @@
                     <div class="form-header">
                         <h2 id="overlay-form-title">새 일정</h2>
                         <button class="close-overlay-btn"
-                            onclick="console.log('❌ Close button clicked'); return window.closeOverlayEventForm(event);"
+                            onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); window.closeOverlayEventForm(event); return false;"
                             title="닫기">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M6 18L18 6M6 6l12 12" />
@@ -5218,7 +5218,7 @@
                             </div>
                             <div class="form-actions">
                                 <button type="button" class="btn-cancel"
-                                    onclick="console.log('⛔ Cancel button clicked'); return window.closeOverlayEventForm(event);">취소</button>
+                                    onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); window.closeOverlayEventForm(event); return false;">취소</button>
                                 <button type="submit" class="btn-save">저장</button>
                             </div>
                         </form>
@@ -5244,46 +5244,62 @@
             }, true); // Use capture phase
         });
 
+        // 전역 변수로 원본 함수 저장
+        window.originalShowOverlayEventForm = window.originalShowOverlayEventForm || showOverlayEventForm;
+        
         function closeOverlayEventForm(event) {
-            console.log('🚫 EXTREME KILLER - DISABLING EVERYTHING');
+            console.log('🚫 NUCLEAR OPTION - COMPLETE SHUTDOWN');
             
-            // 즉시 이벤트 차단
+            // 1. 즉시 모든 이벤트 전파 차단
             if (event) {
                 event.preventDefault();
                 event.stopPropagation();
                 event.stopImmediatePropagation();
             }
             
-            // showOverlayEventForm 함수 자체를 백업하고 무력화
-            const originalShow = window.showOverlayEventForm;
+            // 2. showOverlayEventForm 함수 완전 무력화
             window.showOverlayEventForm = function() {
-                console.log('🚫 FUNCTION DISABLED - NO POPUP');
+                console.log('❌ POPUP CREATION BLOCKED');
                 return false;
             };
             
-            // 팝업 완전 제거
-            document.querySelectorAll('.calendar-overlay-form, #calendar-overlay-form, [id*="overlay"], [class*="overlay"], [class*="popup"]').forEach(el => {
-                el.style.display = 'none';
-                el.style.visibility = 'hidden';
+            // 3. 모든 마우스 이벤트 리스너 일시 제거
+            document.removeEventListener('mouseup', window.handleMouseUp);
+            document.removeEventListener('mousedown', window.handleMouseDown);
+            document.removeEventListener('click', window.handleCellClick);
+            
+            // 4. 팝업 DOM 완전 제거
+            const allOverlays = document.querySelectorAll('.calendar-overlay-form, #calendar-overlay-form, [id*="overlay"], [class*="overlay"], [class*="popup"], [class*="modal"]');
+            allOverlays.forEach(el => {
                 el.remove();
+                console.log('💀 Destroyed:', el.id || el.className);
             });
             
-            // 캘린더 그리드도 완전 비활성화
-            const gridBody = document.querySelector('.calendar-grid-body');
-            if (gridBody) {
-                gridBody.style.pointerEvents = 'none';
-                gridBody.style.opacity = '0.5';
-            }
+            // 5. 페이지 전체 차단막 설치
+            const shield = document.createElement('div');
+            shield.id = 'nuclear-shield';
+            shield.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:2147483647;cursor:not-allowed;';
+            shield.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                console.log('⛔ BLOCKED BY NUCLEAR SHIELD');
+                return false;
+            };
+            document.body.appendChild(shield);
             
-            // 3초 후 모든 것 복원
+            // 6. 3초 후 복원
             setTimeout(() => {
-                console.log('🔓 RESTORING EVERYTHING');
-                window.showOverlayEventForm = originalShow;
-                if (gridBody) {
-                    gridBody.style.pointerEvents = 'auto';
-                    gridBody.style.opacity = '1';
-                }
-                console.log('✅ FULLY RESTORED');
+                console.log('🔄 RESTORING SYSTEM...');
+                
+                // 함수 복원
+                window.showOverlayEventForm = window.originalShowOverlayEventForm;
+                
+                // 차단막 제거
+                const s = document.getElementById('nuclear-shield');
+                if (s) s.remove();
+                
+                console.log('✅ SYSTEM RESTORED - SAFE TO USE');
             }, 3000);
             
             // 모든 오버레이 요소들 즉시 제거
