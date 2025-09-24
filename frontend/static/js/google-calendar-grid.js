@@ -2646,8 +2646,32 @@ class GoogleCalendarGrid {
                 this.events = [];
                 
                 if (events && events.length > 0) {
-                    events.forEach(event => {
+                    // Distribute events across different time slots if they lack time info
+                    let hourOffset = 0;
+                    let minuteOffset = 0;
+                    
+                    events.forEach((event, index) => {
                         const frontendEvent = this.convertBackendEventToFrontend(event);
+                        
+                        // If the event has no specific time (default 09:00-10:00), distribute it
+                        if (!event.start_datetime || (!event.start_time && !event.startTime)) {
+                            // Distribute events from 8 AM to 6 PM in 30-minute intervals
+                            const baseHour = 8;
+                            const totalSlots = 20; // 10 hours * 2 slots per hour
+                            const slotIndex = index % totalSlots;
+                            
+                            hourOffset = Math.floor(slotIndex / 2);
+                            minuteOffset = (slotIndex % 2) * 30;
+                            
+                            const startHour = baseHour + hourOffset;
+                            const startMinute = minuteOffset;
+                            const endHour = startMinute === 30 ? startHour + 1 : startHour;
+                            const endMinute = startMinute === 30 ? 0 : 30;
+                            
+                            frontendEvent.startTime = `${String(startHour).padStart(2, '0')}:${String(startMinute).padStart(2, '0')}`;
+                            frontendEvent.endTime = `${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`;
+                        }
+                        
                         this.events.push(frontendEvent);
                         this.renderEvent(frontendEvent);
                     });
