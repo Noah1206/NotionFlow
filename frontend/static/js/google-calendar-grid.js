@@ -575,7 +575,7 @@ class GoogleCalendarGrid {
     
     handleMouseUp(e) {
         // 간단한 팝업 차단 체크
-        if (window.POPUP_ABSOLUTELY_BLOCKED || window.POPUP_CREATION_BLOCKED) {
+        if (window.POPUP_BLOCKED) {
             console.log('🚫 MouseUp blocked');
             e.preventDefault();
             e.stopPropagation();
@@ -608,8 +608,8 @@ class GoogleCalendarGrid {
         }
         
         // 간단한 팝업 차단 체크
-        if (window.POPUP_ABSOLUTELY_BLOCKED || window.POPUP_CREATION_BLOCKED) {
-            console.log('🚫 Cell click prevented - popup blocked');
+        if (window.POPUP_BLOCKED) {
+            console.log('🚫 Cell click prevented');
             e.preventDefault();
             e.stopPropagation();
             return;
@@ -737,7 +737,7 @@ class GoogleCalendarGrid {
     
     finishSelection() {
         // 간단한 팝업 차단 체크
-        if (window.POPUP_ABSOLUTELY_BLOCKED || window.POPUP_CREATION_BLOCKED) {
+        if (window.POPUP_BLOCKED) {
             console.log('🚫 finishSelection blocked');
             this.isSelecting = false;
             this.clearSelection();
@@ -823,7 +823,7 @@ class GoogleCalendarGrid {
             // Use the existing overlay form with clicked cell information
             if (typeof showOverlayEventForm !== 'undefined') {
                 // 간단한 팝업 차단 체크
-                if (window.POPUP_ABSOLUTELY_BLOCKED || window.POPUP_CREATION_BLOCKED) {
+                if (window.POPUP_BLOCKED) {
                     console.log('🚫 [Grid] Event creation blocked');
                     return;
                 }
@@ -2855,9 +2855,43 @@ class GoogleCalendarGrid {
     async deleteEventById(eventId) {
         // Convert eventId to string for consistent comparison
         const eventIdStr = String(eventId);
+        console.log('🗑️ Attempting to delete event with ID:', eventIdStr);
         
         // Clean events array of null values first
         this.events = this.events.filter(e => e && e.id);
+        
+        // EMERGENCY FIX: 숫자 ID 감지시 DOM 기반 삭제
+        if (/^\d+$/.test(eventIdStr)) {
+            console.log('🚨 EMERGENCY: Numeric ID detected, using DOM-based deletion');
+            
+            // 클릭된 삭제 버튼에서 가장 가까운 이벤트 요소 찾기
+            const deleteButtons = document.querySelectorAll('.delete-event-btn, [onclick*="deleteEvent"]');
+            let targetEventElement = null;
+            
+            for (const btn of deleteButtons) {
+                if (btn.onclick && btn.onclick.toString().includes(eventIdStr)) {
+                    targetEventElement = btn.closest('.event, .calendar-event, [data-event-id]');
+                    break;
+                }
+            }
+            
+            if (targetEventElement) {
+                // DOM 요소에서 실제 이벤트 ID 찾기
+                const realId = targetEventElement.dataset.eventId || 
+                              targetEventElement.dataset.id ||
+                              targetEventElement.getAttribute('data-event-id');
+                              
+                if (realId) {
+                    console.log('🔧 Found real ID from DOM:', realId);
+                    return this.deleteEventById(realId); // 재귀 호출
+                }
+                
+                // 실제 ID를 못 찾으면 DOM에서 직접 제거
+                targetEventElement.remove();
+                console.log('🗑️ Removed event element from DOM');
+                return true;
+            }
+        }
         
         const eventData = this.events.find(event => String(event.id) === eventIdStr);
         if (!eventData) {

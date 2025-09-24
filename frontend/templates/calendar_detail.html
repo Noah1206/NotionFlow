@@ -4990,9 +4990,9 @@
         function showOverlayEventForm(date, time, clickedCell = null, endTime = null) {
             console.log('🔄 showOverlayEventForm called');
             
-            // 간단하고 직관적인 차단 - 하나라도 true면 차단
-            if (window.POPUP_ABSOLUTELY_BLOCKED || window.POPUP_CREATION_BLOCKED || overlayClosedByUser) {
-                console.log('🚫 팝업 생성 완전 차단됨!');
+            // 간단한 차단
+            if (window.POPUP_BLOCKED) {
+                console.log('🚫 팝업 차단됨');
                 return;
             }
             
@@ -5160,8 +5160,7 @@
         let overlayClosedByUser = false;
         
         // 간단한 전역 플래그 초기화
-        window.POPUP_ABSOLUTELY_BLOCKED = false;
-        window.POPUP_CREATION_BLOCKED = false;
+        window.POPUP_BLOCKED = false;
         
         // Track all showOverlayEventForm calls to debug infinite reopening
         let showOverlayCallCount = 0;
@@ -5246,43 +5245,27 @@
         });
 
         function closeOverlayEventForm(event) {
-            console.log('🚫 FINAL POPUP SOLUTION');
+            console.log('🚫 SIMPLE CLOSE');
             
-            // 즉시 모든 이벤트 차단
+            // 즉시 이벤트 차단
             if (event) {
                 event.preventDefault();
                 event.stopPropagation();
                 event.stopImmediatePropagation();
             }
             
-            // 강력한 플래그 설정
-            window.POPUP_ABSOLUTELY_BLOCKED = true;
-            window.POPUP_CREATION_BLOCKED = true;
-            overlayClosedByUser = true;
-            
-            // 캘린더 그리드 비활성화
-            const gridBody = document.querySelector('.calendar-grid-body');
-            if (gridBody) {
-                gridBody.style.pointerEvents = 'none';
-                console.log('🔒 Calendar grid disabled');
+            // 팝업 숨기기
+            const overlay = document.getElementById('calendar-overlay-form');
+            if (overlay) {
+                overlay.style.display = 'none';
             }
             
-            // 모든 팝업 제거
-            document.querySelectorAll('.calendar-overlay-form, [id*="overlay"], [class*="popup"], [class*="modal"]').forEach(el => {
-                el.remove();
-            });
-            
-            // 1초 후 캘린더 그리드 재활성화 + 플래그 리셋
+            // 간단한 플래그로 2초간 재생성 방지
+            window.POPUP_BLOCKED = true;
             setTimeout(() => {
-                if (gridBody) {
-                    gridBody.style.pointerEvents = 'auto';
-                    console.log('🔓 Calendar grid re-enabled');
-                }
-                window.POPUP_ABSOLUTELY_BLOCKED = false;
-                window.POPUP_CREATION_BLOCKED = false;
-                overlayClosedByUser = false;
-                console.log('🔓 All flags reset');
-            }, 1000);
+                window.POPUP_BLOCKED = false;
+                console.log('🔓 Popup creation allowed again');
+            }, 2000);
             
             // 모든 오버레이 요소들 즉시 제거
             document.querySelectorAll('.calendar-overlay-form, [id*="overlay"], [class*="popup"], [class*="modal"]').forEach(el => {
