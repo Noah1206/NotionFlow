@@ -2860,37 +2860,24 @@ class GoogleCalendarGrid {
         // Clean events array of null values first
         this.events = this.events.filter(e => e && e.id);
         
-        // EMERGENCY FIX: 숫자 ID 감지시 DOM 기반 삭제
+        // SIMPLE FIX: 숫자 ID면 화면에서만 삭제
         if (/^\d+$/.test(eventIdStr)) {
-            console.log('🚨 EMERGENCY: Numeric ID detected, using DOM-based deletion');
+            console.log('🚨 NUMERIC ID: Removing from display only');
             
-            // 클릭된 삭제 버튼에서 가장 가까운 이벤트 요소 찾기
-            const deleteButtons = document.querySelectorAll('.delete-event-btn, [onclick*="deleteEvent"]');
-            let targetEventElement = null;
-            
-            for (const btn of deleteButtons) {
-                if (btn.onclick && btn.onclick.toString().includes(eventIdStr)) {
-                    targetEventElement = btn.closest('.event, .calendar-event, [data-event-id]');
-                    break;
+            // 화면에서 해당 이벤트 요소들 제거
+            const eventElements = document.querySelectorAll(`[onclick*="${eventIdStr}"]`);
+            eventElements.forEach(element => {
+                const eventContainer = element.closest('.event, .calendar-event, div[class*="event"]');
+                if (eventContainer) {
+                    eventContainer.remove();
+                    console.log('🗑️ Removed event from display');
                 }
-            }
+            });
             
-            if (targetEventElement) {
-                // DOM 요소에서 실제 이벤트 ID 찾기
-                const realId = targetEventElement.dataset.eventId || 
-                              targetEventElement.dataset.id ||
-                              targetEventElement.getAttribute('data-event-id');
-                              
-                if (realId) {
-                    console.log('🔧 Found real ID from DOM:', realId);
-                    return this.deleteEventById(realId); // 재귀 호출
-                }
-                
-                // 실제 ID를 못 찾으면 DOM에서 직접 제거
-                targetEventElement.remove();
-                console.log('🗑️ Removed event element from DOM');
-                return true;
-            }
+            // events 배열에서도 제거 시도
+            this.events = this.events.filter(event => String(event.id) !== eventIdStr);
+            console.log('✅ Event removed from display and array');
+            return true;
         }
         
         const eventData = this.events.find(event => String(event.id) === eventIdStr);
