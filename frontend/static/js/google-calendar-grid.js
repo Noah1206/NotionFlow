@@ -586,12 +586,25 @@ class GoogleCalendarGrid {
         // Prevent cell clicks if popup was just closed
         if (this.preventNextCellClick) {
             console.log('🚫 Cell click prevented - popup was just closed');
+            e.preventDefault();
+            e.stopPropagation();
             return;
         }
         
         // Check if a popup is already active
         if (window.eventCreationPopupActive) {
             console.log('🚫 Cell click prevented - popup already active');
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+        
+        // Check if overlay is visible
+        const overlay = document.getElementById('calendar-overlay-form');
+        if (overlay && overlay.style.display !== 'none' && !overlay.classList.contains('hidden')) {
+            console.log('🚫 Cell click prevented - overlay already visible');
+            e.preventDefault();
+            e.stopPropagation();
             return;
         }
         
@@ -3183,7 +3196,7 @@ class GoogleCalendarGrid {
         this.preventNextCellClick = true;
         setTimeout(() => {
             this.preventNextCellClick = false;
-        }, 500);
+        }, 1000); // Increased delay to 1 second for better prevention
         
         // console.log('🚪 Event popup closed');
     }

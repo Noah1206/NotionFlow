@@ -2638,7 +2638,7 @@
                         <div class="form-header">
                             <h2 id="overlay-form-title">새 일정</h2>
                             <button class="close-overlay-btn"
-                                onclick="event.stopPropagation(); console.log('❌ Close button clicked'); window.closeOverlayEventForm()"
+                                onclick="console.log('❌ Close button clicked'); window.closeOverlayEventForm()"
                                 title="닫기">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2">
@@ -2733,7 +2733,7 @@
 
                             <div class="form-actions">
                                 <button type="button" class="btn-cancel"
-                                    onclick="event.stopPropagation(); console.log('⛔ Cancel button clicked'); window.closeOverlayEventForm()">취소</button>
+                                    onclick="console.log('⛔ Cancel button clicked'); window.closeOverlayEventForm()">취소</button>
                                 <button type="submit" class="btn-save">저장</button>
                             </div>
                         </form>
@@ -4988,12 +4988,6 @@
 
         // Overlay Event Form Functions
         function showOverlayEventForm(date, time, clickedCell = null, endTime = null) {
-            // Check if user just closed the popup - don't reopen immediately
-            if (overlayClosedByUser) {
-                console.log('🚫 Overlay creation blocked - user just closed popup');
-                return;
-            }
-
             const overlay = document.getElementById('calendar-overlay-form');
             if (overlay) {
                 // Check if overlay is already visible
@@ -5006,10 +5000,7 @@
                     closeOverlayEventForm();
                     // Wait a moment for the close animation, then show at new position
                     setTimeout(() => {
-                        // Double-check the flag before reopening
-                        if (!overlayClosedByUser) {
-                            showOverlayEventForm(date, time, clickedCell);
-                        }
+                        showOverlayEventForm(date, time, clickedCell);
                     }, 100);
                     return;
                 }
