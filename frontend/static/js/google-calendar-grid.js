@@ -2860,26 +2860,46 @@ class GoogleCalendarGrid {
         // Clean events array of null values first
         this.events = this.events.filter(e => e && e.id);
         
-        // SIMPLE FIX: 숫자 ID면 첫 번째 이벤트 삭제 (휴지통 확인 포함)
+        // FIX: 숫자 ID면 클릭된 요소에서 실제 이벤트 찾기
         if (/^\d+$/.test(eventIdStr)) {
-            console.log('🚨 NUMERIC ID: Finding first event to delete');
+            console.log('🚨 NUMERIC ID: Finding clicked event to delete');
             
-            // 첫 번째 이벤트 찾기
-            if (this.events && this.events.length > 0) {
-                const firstEvent = this.events[0];
-                console.log('🎯 Deleting first event:', firstEvent.title);
-                
-                // 휴지통 확인 대화상자 표시
-                if (confirm(`"${firstEvent.title}" 일정을 휴지통으로 이동하시겠습니까?`)) {
-                    // deleteEvent 함수 호출 (휴지통 이동 포함)
-                    return this.deleteEvent(firstEvent);
-                } else {
-                    console.log('❌ Deletion cancelled by user');
+            // 클릭된 삭제 버튼 찾기
+            const clickedButton = document.querySelector(`[onclick*="${eventIdStr}"]`);
+            if (clickedButton) {
+                // 삭제 버튼이 속한 이벤트 요소 찾기
+                const eventElement = clickedButton.closest('.event, .calendar-event, [class*="event"]');
+                if (eventElement) {
+                    // 이벤트 요소에서 제목 추출
+                    const titleElement = eventElement.querySelector('.event-title, [class*="title"], h3, h4, span');
+                    const eventTitle = titleElement ? titleElement.textContent.trim() : 'Unknown Event';
+                    
+                    // 제목으로 실제 이벤트 찾기
+                    const actualEvent = this.events.find(e => e.title === eventTitle);
+                    if (actualEvent) {
+                        console.log('✅ Found actual event to delete:', actualEvent.title);
+                        
+                        // 휴지통 확인 대화상자 표시
+                        if (confirm(`"${actualEvent.title}" 일정을 휴지통으로 이동하시겠습니까?`)) {
+                            return this.deleteEvent(actualEvent);
+                        } else {
+                            console.log('❌ Deletion cancelled by user');
+                            return false;
+                        }
+                    }
+                    
+                    // 이벤트를 못 찾으면 제목으로 확인 후 DOM에서만 제거
+                    console.log('⚠️ Event not found in array, removing from DOM only');
+                    if (confirm(`"${eventTitle}" 일정을 삭제하시겠습니까?`)) {
+                        eventElement.remove();
+                        console.log('🗑️ Removed from DOM');
+                        return true;
+                    }
                     return false;
                 }
             }
             
-            console.log('⚠️ No events to delete');
+            console.log('⚠️ Could not find clicked event');
             return false;
         }
         

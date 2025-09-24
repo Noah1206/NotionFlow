@@ -2468,11 +2468,45 @@ function openEventModal() {
 
 function closeEventModal() {
     const modal = document.getElementById('event-modal');
+    const overlayForm = document.getElementById('calendar-overlay-form');
+    
+    // Close regular event modal if it exists
     if (modal) {
         modal.style.display = 'none';
         clearEventForm();
     }
+    
+    // Also close overlay form if it exists (for time grid popups)
+    if (overlayForm) {
+        const overlayContent = overlayForm.querySelector('.overlay-form-content');
+        if (overlayContent) {
+            // Add closing animation
+            overlayContent.style.animation = 'slideDownToBottom 0.3s cubic-bezier(0.4, 0, 1, 1)';
+            overlayForm.style.animation = 'fadeOut 0.3s ease';
+            
+            // Hide after animation completes
+            setTimeout(() => {
+                overlayForm.style.display = 'none';
+                // Reset animations for next time
+                overlayContent.style.animation = '';
+                overlayForm.style.animation = '';
+            }, 300);
+        } else {
+            overlayForm.style.display = 'none';
+        }
+    }
 }
+
+// Make closeOverlayEventForm function available globally
+window.closeOverlayEventForm = function(event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+    }
+    closeEventModal();
+    return false;
+};
 
 function openDayModal(date) {
     // Navigate to calendar day page instead of opening modal
