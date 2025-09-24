@@ -906,6 +906,7 @@ class NotionCalendarSync:
                     from utils.uuid_helper import ensure_auth_user_exists
                     if ensure_auth_user_exists(user_id, user_email, 'Notion User'):
                         # User record created/verified
+                        pass
                     else:
                         print("Error: Failed to create user record")
                         return False

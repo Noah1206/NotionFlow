@@ -5159,17 +5159,10 @@
         });
 
         function closeOverlayEventForm(event) {
-            console.log('🚫 closeOverlayEventForm called');
-            console.log('📍 Stack trace:', new Error().stack);
+            console.log('🚫 EMERGENCY CLOSE - Using nuclear option');
             
             // Stop all event propagation immediately
             if (event) {
-                console.log('🎯 Event details:', {
-                    type: event.type,
-                    target: event.target,
-                    currentTarget: event.currentTarget,
-                    bubbles: event.bubbles
-                });
                 event.preventDefault();
                 event.stopPropagation();
                 event.stopImmediatePropagation();
@@ -5177,39 +5170,34 @@
             
             overlayClosedByUser = true;
             
-            // Find and completely hide the overlay
-            const overlay = document.getElementById('calendar-overlay-form');
-            if (overlay) {
-                console.log('✅ Forcefully hiding overlay');
-                
-                // Immediately hide with all possible methods
-                overlay.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; position: absolute !important; top: -9999px !important; left: -9999px !important; z-index: -1 !important; width: 0 !important; height: 0 !important; overflow: hidden !important;';
-                overlay.classList.add('hidden');
-                overlay.classList.remove('show');
-                overlay.setAttribute('aria-hidden', 'true');
-                overlay.setAttribute('style', 'display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; position: absolute !important; top: -9999px !important; left: -9999px !important; z-index: -1 !important; width: 0 !important; height: 0 !important; overflow: hidden !important;');
-                
-                // Also remove from DOM temporarily to prevent any CSS rules from affecting it
-                const parent = overlay.parentNode;
-                if (parent) {
-                    parent.removeChild(overlay);
-                    setTimeout(() => {
-                        parent.appendChild(overlay);
-                    }, 100);
-                }
-                
-                // Clear form
+            // Nuclear option: Remove ALL overlays from DOM
+            const allOverlays = document.querySelectorAll('.calendar-overlay-form, #calendar-overlay-form, [id*="overlay"], [class*="overlay"]');
+            allOverlays.forEach((overlay, index) => {
+                console.log(`🗑️ Removing overlay ${index}:`, overlay.className, overlay.id);
+                overlay.remove();
+            });
+            
+            // Also remove any popups
+            const allPopups = document.querySelectorAll('[class*="popup"], [id*="popup"], .event-creation-popup');
+            allPopups.forEach((popup, index) => {
+                console.log(`🗑️ Removing popup ${index}:`, popup.className, popup.id);
+                popup.remove();
+            });
+            
+            console.log('💥 ALL OVERLAYS AND POPUPS DESTROYED');
+            
+            // Clear form data
+            try {
                 clearOverlayEventForm();
-                
-                // Set timeout to reset flag
-                setTimeout(() => {
-                    console.log('🔓 Resetting overlay flag');
-                    overlayClosedByUser = false;
-                }, 2000);
-                
-            } else {
-                console.log('❌ Overlay not found');
+            } catch (e) {
+                console.log('⚠️ clearOverlayEventForm failed:', e);
             }
+            
+            // Set timeout to reset flag
+            setTimeout(() => {
+                console.log('🔓 Resetting overlay flag');
+                overlayClosedByUser = false;
+            }, 3000);
             
             // Block any further event processing
             if (event) {
