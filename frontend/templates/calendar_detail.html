@@ -5245,7 +5245,7 @@
         });
 
         function closeOverlayEventForm(event) {
-            console.log('🚫 ABSOLUTE KILLER');
+            console.log('🚫 EXTREME KILLER - DISABLING EVERYTHING');
             
             // 즉시 이벤트 차단
             if (event) {
@@ -5254,30 +5254,36 @@
                 event.stopImmediatePropagation();
             }
             
-            // 강력한 차단
-            window.POPUP_BLOCKED = true;
+            // showOverlayEventForm 함수 자체를 백업하고 무력화
+            const originalShow = window.showOverlayEventForm;
+            window.showOverlayEventForm = function() {
+                console.log('🚫 FUNCTION DISABLED - NO POPUP');
+                return false;
+            };
             
             // 팝업 완전 제거
-            document.querySelectorAll('.calendar-overlay-form, [id*="overlay"]').forEach(el => {
+            document.querySelectorAll('.calendar-overlay-form, #calendar-overlay-form, [id*="overlay"], [class*="overlay"], [class*="popup"]').forEach(el => {
+                el.style.display = 'none';
+                el.style.visibility = 'hidden';
                 el.remove();
-                console.log('💀 Removed:', el.id || el.className);
             });
             
-            // 전체 페이지에 클릭 차단막 설치
-            let blocker = document.getElementById('click-blocker');
-            if (!blocker) {
-                blocker = document.createElement('div');
-                blocker.id = 'click-blocker';
-                blocker.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:999999;background:rgba(0,0,0,0.01);';
-                document.body.appendChild(blocker);
+            // 캘린더 그리드도 완전 비활성화
+            const gridBody = document.querySelector('.calendar-grid-body');
+            if (gridBody) {
+                gridBody.style.pointerEvents = 'none';
+                gridBody.style.opacity = '0.5';
             }
             
-            // 3초 후 차단막 제거
+            // 3초 후 모든 것 복원
             setTimeout(() => {
-                const b = document.getElementById('click-blocker');
-                if (b) b.remove();
-                window.POPUP_BLOCKED = false;
-                console.log('🔓 All clear');
+                console.log('🔓 RESTORING EVERYTHING');
+                window.showOverlayEventForm = originalShow;
+                if (gridBody) {
+                    gridBody.style.pointerEvents = 'auto';
+                    gridBody.style.opacity = '1';
+                }
+                console.log('✅ FULLY RESTORED');
             }, 3000);
             
             // 모든 오버레이 요소들 즉시 제거
