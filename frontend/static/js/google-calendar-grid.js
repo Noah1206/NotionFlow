@@ -599,6 +599,14 @@ class GoogleCalendarGrid {
             return;
         }
         
+        // Check if popup creation is blocked
+        if (window.POPUP_CREATION_BLOCKED || window.OVERLAY_CLOSING_IN_PROGRESS) {
+            console.log('🚫 Cell click prevented - popup blocked or closing');
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+        
         // Check if overlay is visible
         const overlay = document.getElementById('calendar-overlay-form');
         if (overlay && overlay.style.display !== 'none' && !overlay.classList.contains('hidden')) {
@@ -798,13 +806,19 @@ class GoogleCalendarGrid {
             
             // Use the existing overlay form with clicked cell information
             if (typeof showOverlayEventForm !== 'undefined') {
+                // Check if popup creation is blocked before creating
+                if (window.POPUP_CREATION_BLOCKED || window.OVERLAY_CLOSING_IN_PROGRESS) {
+                    console.log('🚫 [Grid] Event creation blocked - popup closing or blocked');
+                    return;
+                }
+                
                 // Find the clicked cell to pass position information
                 let cellElement = clickedCell;
                 if (!cellElement) {
                     // Try to find the cell by day and hour if not provided
                     cellElement = document.querySelector(`.time-cell[data-day="${startDay}"][data-hour="${startHour}"]`);
                 }
-                // console.log('🎯 Passing clicked cell to overlay form with both times:', { startTimeStr, endTimeStr });
+                console.log('🎯 [Grid] Calling showOverlayEventForm with both times:', { startTimeStr, endTimeStr });
                 showOverlayEventForm(dateStr, startTimeStr, cellElement, endTimeStr);
             }
         }

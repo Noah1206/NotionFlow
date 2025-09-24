@@ -5002,6 +5002,12 @@
                 return;
             }
             
+            // Check if overlay is currently closing
+            if (window.OVERLAY_CLOSING_IN_PROGRESS) {
+                console.log('🚫 Overlay creation blocked - CLOSING IN PROGRESS');
+                return;
+            }
+            
             // Check if user just closed the popup - don't reopen immediately
             if (overlayClosedByUser) {
                 console.log('🚫 Overlay creation blocked - user just closed popup');
@@ -5253,7 +5259,7 @@
         });
 
         function closeOverlayEventForm(event) {
-            console.log('🚫 Closing popup - Using surgical approach');
+            console.log('🚫 ULTIMATE CLOSE - Maximum blocking approach');
             
             // Stop all event propagation immediately
             if (event) {
@@ -5262,10 +5268,10 @@
                 event.stopImmediatePropagation();
             }
             
+            // Set multiple blocking flags
             overlayClosedByUser = true;
-            
-            // Set global flag to prevent ANY popup creation
             window.POPUP_CREATION_BLOCKED = true;
+            window.OVERLAY_CLOSING_IN_PROGRESS = true;
             
             // Add temporary global event blocker
             const globalEventBlocker = function(e) {
@@ -5320,12 +5326,13 @@
                 console.log('⚠️ clearOverlayEventForm failed:', e);
             }
             
-            // Set shorter timeout to reset flag (300ms should be enough)
+            // Set shorter timeout to reset flag (500ms should be enough)
             setTimeout(() => {
                 console.log('🔓 Resetting all overlay flags');
                 overlayClosedByUser = false;
                 window.POPUP_CREATION_BLOCKED = false;
-            }, 300); // 300ms
+                window.OVERLAY_CLOSING_IN_PROGRESS = false;
+            }, 500); // 500ms
             
             // Block any further event processing
             if (event) {
