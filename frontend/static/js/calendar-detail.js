@@ -2504,49 +2504,6 @@ window.closeOverlayEventForm = function(event) {
         event.stopPropagation();
         event.stopImmediatePropagation();
     }
-    
-    // Set multiple blocking flags with longer duration
-    window.POPUP_BLOCKED = true;
-    window.FORCE_CLOSE_POPUP = true;
-    window.DISABLE_ALL_GRID_INTERACTIONS = true;
-    
-    // Clear any active selection state in GoogleCalendarGrid
-    if (window.googleCalendarGrid) {
-        window.googleCalendarGrid.isSelecting = false;
-        window.googleCalendarGrid.clearSelection();
-        
-        // Completely disable the grid temporarily
-        const gridBody = window.googleCalendarGrid.container?.querySelector('.calendar-grid-body');
-        if (gridBody) {
-            gridBody.style.pointerEvents = 'none';
-            gridBody.setAttribute('data-popup-closing', 'true');
-            
-            // Re-enable after longer delay
-            setTimeout(() => {
-                gridBody.style.pointerEvents = '';
-                gridBody.removeAttribute('data-popup-closing');
-            }, 1500);
-        }
-    }
-    
-    // Stop all existing timeouts that might interfere
-    if (window.popupTimeoutId) {
-        clearTimeout(window.popupTimeoutId);
-    }
-    if (window.popupTimeoutId2) {
-        clearTimeout(window.popupTimeoutId2);
-    }
-    
-    // Reset flags with staggered timeouts
-    window.popupTimeoutId = setTimeout(() => {
-        window.POPUP_BLOCKED = false;
-    }, 800);
-    
-    window.popupTimeoutId2 = setTimeout(() => {
-        window.FORCE_CLOSE_POPUP = false;
-        window.DISABLE_ALL_GRID_INTERACTIONS = false;
-    }, 1500);
-    
     closeEventModal();
     return false;
 };

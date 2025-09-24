@@ -574,17 +574,6 @@ class GoogleCalendarGrid {
     }
     
     handleMouseUp(e) {
-        // 강화된 팝업 차단 체크
-        if (window.POPUP_BLOCKED || window.FORCE_CLOSE_POPUP || window.DISABLE_ALL_GRID_INTERACTIONS) {
-            console.log('🚫 MouseUp blocked by enhanced popup protection');
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            this.isSelecting = false;
-            this.clearSelection();
-            return;
-        }
-        
         if (this.isSelecting) {
             this.finishSelection();
         }
@@ -593,41 +582,6 @@ class GoogleCalendarGrid {
     handleCellClick(e) {
         const cell = e.target.closest('.time-cell');
         if (!cell || this.isSelecting) return;
-        
-        // 강화된 팝업 차단 체크 - 모든 상호작용 차단
-        if (window.POPUP_BLOCKED || window.FORCE_CLOSE_POPUP || window.DISABLE_ALL_GRID_INTERACTIONS) {
-            console.log('🚫 Cell click blocked by enhanced popup protection');
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            return;
-        }
-        
-        // 그리드가 비활성화 상태인지 체크
-        const gridBody = this.container?.querySelector('.calendar-grid-body');
-        if (gridBody && gridBody.hasAttribute('data-popup-closing')) {
-            console.log('🚫 Cell click blocked - grid is disabled');
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            return;
-        }
-        
-        // Prevent cell clicks if popup was just closed
-        if (this.preventNextCellClick) {
-            console.log('🚫 Cell click prevented - popup was just closed');
-            e.preventDefault();
-            e.stopPropagation();
-            return;
-        }
-        
-        // Check if a popup is already active
-        if (window.eventCreationPopupActive) {
-            console.log('🚫 Cell click prevented - popup already active');
-            e.preventDefault();
-            e.stopPropagation();
-            return;
-        }
         
         // Check if overlay is visible
         const overlay = document.getElementById('calendar-overlay-form');
@@ -750,13 +704,6 @@ class GoogleCalendarGrid {
     }
     
     finishSelection() {
-        // 강화된 팝업 차단 체크
-        if (window.POPUP_BLOCKED || window.FORCE_CLOSE_POPUP || window.DISABLE_ALL_GRID_INTERACTIONS) {
-            console.log('🚫 finishSelection blocked by enhanced popup protection');
-            this.isSelecting = false;
-            this.clearSelection();
-            return;
-        }
         
         if (!this.isSelecting || this.selectedCells.size === 0) {
             this.isSelecting = false;
@@ -777,18 +724,6 @@ class GoogleCalendarGrid {
     }
     
     createEvent(startDay, startHour, endDay, endHour, clickedCell = null) {
-        // 강화된 팝업 생성 차단 체크
-        if (window.POPUP_BLOCKED || window.FORCE_CLOSE_POPUP || window.DISABLE_ALL_GRID_INTERACTIONS) {
-            console.log('🚫 createEvent blocked by enhanced popup protection');
-            return;
-        }
-        
-        // 그리드가 비활성화 상태인지 체크
-        const gridBody = this.container?.querySelector('.calendar-grid-body');
-        if (gridBody && gridBody.hasAttribute('data-popup-closing')) {
-            console.log('🚫 createEvent blocked - grid is disabled');
-            return;
-        }
         
         // console.log('🎯 createEvent called:', {startDay, startHour, endDay, endHour});
         
@@ -970,6 +905,10 @@ class GoogleCalendarGrid {
             const storageKey = 'calendar_events_backup';
             localStorage.setItem(storageKey, JSON.stringify(this.events));
             
+            // 🚨 NUCLEAR DOM REMOVAL - 즉시 UI에서 제거
+            console.log('🚀 Calling nuclear DOM removal...');
+            window.forceRemoveEventFromDOM(eventData);
+            
             // Remove from DOM immediately - comprehensive search
             console.log('🗑️ Removing event from display:', eventData.title, 'ID:', eventData.id);
             
@@ -1013,6 +952,10 @@ class GoogleCalendarGrid {
             
             // 캘린더 그리드 전체 새로고침 (강제)
             setTimeout(() => {
+                // 다시 한번 강력한 DOM 제거 시도
+                console.log('🔄 Second nuclear DOM removal attempt...');
+                window.forceRemoveEventFromDOM(eventData);
+                
                 if (this.renderEvents) {
                     this.renderEvents();
                     console.log('🔄 Calendar grid refreshed');
@@ -1026,6 +969,13 @@ class GoogleCalendarGrid {
                     loadEvents();
                     console.log('🔄 Events reloaded');
                 }
+                
+                // 최종 정리 작업
+                setTimeout(() => {
+                    console.log('🔄 Final nuclear cleanup...');
+                    window.forceRemoveEventFromDOM(eventData);
+                    console.log('✅ All cleanup completed');
+                }, 200);
             }, 100);
             
             // Close any open popup
@@ -3731,6 +3681,12 @@ function openEventForm(date = null, eventData = null) {
     
     if (!overlayForm) return;
     
+    // 이미 팝업이 열려있으면 무시
+    if (overlayForm.style.display === 'flex') {
+        console.log('🚫 Popup already open, ignoring');
+        return;
+    }
+    
     // Show the overlay form
     overlayForm.style.display = 'flex';
     
@@ -3770,48 +3726,6 @@ function openEventForm(date = null, eventData = null) {
 function closeEventForm() {
     const overlayForm = document.getElementById('calendar-overlay-form');
     const overlayContent = overlayForm?.querySelector('.overlay-form-content');
-    
-    // Set multiple blocking flags with longer duration
-    window.POPUP_BLOCKED = true;
-    window.FORCE_CLOSE_POPUP = true;
-    window.DISABLE_ALL_GRID_INTERACTIONS = true;
-    
-    // Clear any active selection state in GoogleCalendarGrid
-    if (window.googleCalendarGrid) {
-        window.googleCalendarGrid.isSelecting = false;
-        window.googleCalendarGrid.clearSelection();
-        
-        // Completely disable the grid temporarily
-        const gridBody = window.googleCalendarGrid.container?.querySelector('.calendar-grid-body');
-        if (gridBody) {
-            gridBody.style.pointerEvents = 'none';
-            gridBody.setAttribute('data-popup-closing', 'true');
-            
-            // Re-enable after longer delay
-            setTimeout(() => {
-                gridBody.style.pointerEvents = '';
-                gridBody.removeAttribute('data-popup-closing');
-            }, 1500);
-        }
-    }
-    
-    // Stop all existing timeouts that might interfere
-    if (window.popupTimeoutId) {
-        clearTimeout(window.popupTimeoutId);
-    }
-    if (window.popupTimeoutId2) {
-        clearTimeout(window.popupTimeoutId2);
-    }
-    
-    // Reset flags with staggered timeouts
-    window.popupTimeoutId = setTimeout(() => {
-        window.POPUP_BLOCKED = false;
-    }, 800);
-    
-    window.popupTimeoutId2 = setTimeout(() => {
-        window.FORCE_CLOSE_POPUP = false;
-        window.DISABLE_ALL_GRID_INTERACTIONS = false;
-    }, 1500);
     
     if (overlayForm && overlayContent) {
         // Add closing animation
@@ -3994,4 +3908,46 @@ window.emptyTrash = function() {
     if (window.googleCalendarGrid) {
         window.googleCalendarGrid.emptyTrash();
     }
+};
+
+// 🚨 NUCLEAR DOM REMOVAL - 강력한 즉시 제거 함수
+window.forceRemoveEventFromDOM = function(eventData) {
+    console.log('🚨 NUCLEAR DOM REMOVAL for:', eventData.title, 'ID:', eventData.id);
+    
+    let removedCount = 0;
+    
+    // 1단계: ID 기반 모든 요소 즉시 제거
+    const idSelectors = [
+        `[data-event-id="${eventData.id}"]`,
+        `[data-id="${eventData.id}"]`, 
+        `[id*="${eventData.id}"]`,
+        `[onclick*="${eventData.id}"]`
+    ];
+    
+    idSelectors.forEach(selector => {
+        document.querySelectorAll(selector).forEach(el => {
+            el.style.display = 'none';
+            el.remove();
+            removedCount++;
+            console.log(`💀 ID removal: ${selector}`);
+        });
+    });
+    
+    // 2단계: 제목 기반 브루트 포스 검색
+    const allElements = document.querySelectorAll('*');
+    allElements.forEach(el => {
+        const text = el.textContent || '';
+        if (text.includes(eventData.title) && 
+            (el.className.includes('event') || 
+             el.style.position === 'absolute' ||
+             el.querySelector('[onclick*="delete"]'))) {
+            el.style.display = 'none';
+            el.remove();
+            removedCount++;
+            console.log(`💀 Title-based removal: "${eventData.title}"`);
+        }
+    });
+    
+    console.log(`✅ NUCLEAR REMOVAL: ${removedCount} elements removed`);
+    return removedCount;
 };
