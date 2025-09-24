@@ -6,6 +6,7 @@ class GoogleCalendarGrid {
         this.currentDate = new Date();
         this.weekStart = this.getWeekStart(this.currentDate);
         this.events = [];
+        this.trashedEvents = this.loadTrashedEvents();
         
         // 🔍 DEBUGGING: 컨테이너 크기 확인
         // console.log('🏗️ GoogleCalendarGrid constructor:', {
@@ -38,6 +39,188 @@ class GoogleCalendarGrid {
         
         // Monitor sidebar changes
         this.initSidebarMonitoring();
+    }
+    
+    // Trash management methods
+    loadTrashedEvents() {
+        const storageKey = 'calendar_trashed_events';
+        try {
+            const saved = localStorage.getItem(storageKey);
+            return saved ? JSON.parse(saved) : [];
+        } catch (error) {
+            console.error('Failed to load trashed events:', error);
+            return [];
+        }
+    }
+    
+    saveTrashedEvents() {
+        const storageKey = 'calendar_trashed_events';
+        try {
+            localStorage.setItem(storageKey, JSON.stringify(this.trashedEvents));
+        } catch (error) {
+            console.error('Failed to save trashed events:', error);
+        }
+    }
+    
+    moveEventToTrash(eventData) {
+        // Add timestamp when moved to trash
+        const trashedEvent = {
+            ...eventData,
+            trashedAt: new Date().toISOString()
+        };
+        
+        this.trashedEvents.push(trashedEvent);
+        this.saveTrashedEvents();
+        
+        console.log('Event moved to trash:', trashedEvent);
+    }
+    
+    restoreEventFromTrash(eventId) {
+        const eventIndex = this.trashedEvents.findIndex(event => event.id === eventId);
+        
+        if (eventIndex !== -1) {
+            const restoredEvent = this.trashedEvents[eventIndex];
+            // Remove trashedAt property
+            const { trashedAt, ...cleanEvent } = restoredEvent;
+            
+            // Remove from trash
+            this.trashedEvents.splice(eventIndex, 1);
+            this.saveTrashedEvents();
+            
+            // Add back to active events
+            this.events.push(cleanEvent);
+            
+            // Update localStorage with current events
+            const storageKey = 'calendar_events_backup';
+            localStorage.setItem(storageKey, JSON.stringify(this.events));
+            
+            return cleanEvent;
+        }
+        
+        return null;
+    }
+    
+    // Trash popup functionality
+    showTrashPopup() {
+        const popup = document.getElementById('trash-popup');
+        if (popup) {
+            popup.style.display = 'flex';
+            this.populateTrashPopup();
+        }
+    }
+    
+    hideTrashPopup() {
+        const popup = document.getElementById('trash-popup');
+        if (popup) {
+            popup.style.display = 'none';
+        }
+    }
+    
+    populateTrashPopup() {
+        const content = document.getElementById('trash-popup-content');
+        const emptyMessage = document.getElementById('trash-empty');
+        
+        if (!content) return;
+        
+        // Clear existing content except empty message
+        const existingItems = content.querySelectorAll('.trash-event-item');
+        existingItems.forEach(item => item.remove());
+        
+        if (this.trashedEvents.length === 0) {
+            emptyMessage.style.display = 'block';
+            return;
+        }
+        
+        emptyMessage.style.display = 'none';
+        
+        this.trashedEvents.forEach(eventData => {
+            const eventItem = this.createTrashEventItem(eventData);
+            content.appendChild(eventItem);
+        });
+    }
+    
+    createTrashEventItem(eventData) {
+        const item = document.createElement('div');
+        item.className = 'trash-event-item';
+        item.draggable = true;
+        item.dataset.eventId = eventData.id;
+        
+        const eventDate = new Date(eventData.date);
+        const startTime = eventData.startTime || '00:00';
+        const endTime = eventData.endTime || '01:00';
+        
+        item.innerHTML = `
+            <div class="event-title">${eventData.title}</div>
+            <div class="event-time">${startTime} - ${endTime}</div>
+            <div class="event-date">${eventDate.toLocaleDateString('ko-KR')}</div>
+        `;
+        
+        // Add drag event listeners
+        item.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', eventData.id);
+            e.dataTransfer.effectAllowed = 'move';
+            console.log('Drag started for event:', eventData.id);
+        });
+        
+        return item;
+    }
+    
+    // Show confirmation dialog for event restoration
+    showRestoreConfirmation(trashedEvent, newDay, newHour, targetCell) {
+        const newDate = new Date(this.weekStart);
+        newDate.setDate(newDate.getDate() + newDay);
+        const dateStr = newDate.toLocaleDateString('ko-KR');
+        const timeStr = `${newHour.toString().padStart(2, '0')}:00`;
+        
+        const confirmed = confirm(`"${trashedEvent.title}" 일정을 ${dateStr} ${timeStr}에 복원하시겠습니까?`);
+        
+        if (confirmed) {
+            this.restoreEventToCalendar(trashedEvent, newDay, newHour);
+        }
+    }
+    
+    // Restore event from trash to calendar
+    restoreEventToCalendar(trashedEvent, newDay, newHour) {
+        // Update event data with new time and date
+        const restoredEvent = { ...trashedEvent };
+        delete restoredEvent.trashedAt;
+        
+        // Update date
+        const newDate = new Date(this.weekStart);
+        newDate.setDate(newDate.getDate() + newDay);
+        restoredEvent.date = newDate.toISOString().split('T')[0];
+        
+        // Update time (keep original duration if possible)
+        const originalStartTime = trashedEvent.startTime || '09:00';
+        const originalEndTime = trashedEvent.endTime || '10:00';
+        const [startHour, startMin] = originalStartTime.split(':').map(Number);
+        const [endHour, endMin] = originalEndTime.split(':').map(Number);
+        const duration = (endHour * 60 + endMin) - (startHour * 60 + startMin); // duration in minutes
+        
+        restoredEvent.startTime = `${newHour.toString().padStart(2, '0')}:00`;
+        const newEndMinutes = newHour * 60 + duration;
+        const newEndHour = Math.floor(newEndMinutes / 60);
+        const newEndMin = newEndMinutes % 60;
+        restoredEvent.endTime = `${newEndHour.toString().padStart(2, '0')}:${newEndMin.toString().padStart(2, '0')}`;
+        
+        // Restore from trash
+        this.restoreEventFromTrash(trashedEvent.id);
+        
+        // Re-render events to show the restored event
+        this.renderEvents();
+        
+        // Update event list
+        this.updateEventList();
+        
+        // Update trash popup
+        this.populateTrashPopup();
+        
+        // Show success notification
+        if (window.showNotification) {
+            showNotification(`일정 "${restoredEvent.title}"이 복원되었습니다`, 'success');
+        }
+        
+        console.log('Event restored from trash:', restoredEvent);
     }
     
     initSidebarMonitoring() {
@@ -631,25 +814,9 @@ class GoogleCalendarGrid {
     }
     
     async deleteEvent(eventData) {
-        if (confirm(`"${eventData.title}" 일정을 삭제하시겠습니까?`)) {
-            try {
-                // Try to delete from backend if it has a backend ID
-                if (eventData.backendId) {
-                    const calendarId = document.querySelector('.calendar-workspace')?.dataset.calendarId || 'e3b088c5-58550';
-                    const response = await fetch(`/api/calendar/${calendarId}/events/${eventData.backendId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    
-                    if (!response.ok) {
-                        console.warn('Backend delete failed, removing locally only');
-                    }
-                }
-            } catch (error) {
-                console.error('Failed to delete from backend:', error);
-            }
+        if (confirm(`"${eventData.title}" 일정을 휴지통으로 이동하시겠습니까?`)) {
+            // Move event to trash instead of permanent deletion
+            this.moveEventToTrash(eventData);
             
             // Remove from events array
             this.events = this.events.filter(e => e.id !== eventData.id);
@@ -660,9 +827,7 @@ class GoogleCalendarGrid {
             
             // Remove from DOM immediately - search in entire document
             const eventElements = document.querySelectorAll(`[data-event-id="${eventData.id}"]`);
-            // console.log(`🗑️ Removing ${eventElements.length} event elements with id:`, eventData.id);
             eventElements.forEach(element => {
-                // console.log('Removing element:', element);
                 element.remove();
             });
             
@@ -680,7 +845,7 @@ class GoogleCalendarGrid {
             popups.forEach(popup => popup.remove());
             
             if (window.showNotification) {
-                showNotification('일정이 삭제되었습니다', 'success');
+                showNotification('일정이 휴지통으로 이동되었습니다', 'success');
             }
         }
     }
@@ -2151,7 +2316,16 @@ class GoogleCalendarGrid {
         const newDay = parseInt(targetCell.dataset.day);
         const newHour = parseInt(targetCell.dataset.hour);
         
-        // Find the event element and data
+        // Check if this is a trash event restoration
+        const trashedEvent = this.trashedEvents.find(event => event.id === eventId);
+        
+        if (trashedEvent) {
+            // This is a trash restoration - show confirmation dialog
+            this.showRestoreConfirmation(trashedEvent, newDay, newHour, targetCell);
+            return;
+        }
+        
+        // Find the event element and data (existing event move)
         const eventElement = this.container.querySelector(`[data-event-id="${eventId}"]`);
         const eventData = this.events.find(event => event.id === eventId);
         
@@ -3465,3 +3639,16 @@ document.addEventListener('DOMContentLoaded', () => {
         window.googleCalendarGrid = new GoogleCalendarGrid(container);
     }
 });
+
+// Global trash functions
+window.showTrashPopup = function() {
+    if (window.googleCalendarGrid) {
+        window.googleCalendarGrid.showTrashPopup();
+    }
+};
+
+window.hideTrashPopup = function() {
+    if (window.googleCalendarGrid) {
+        window.googleCalendarGrid.hideTrashPopup();
+    }
+};
