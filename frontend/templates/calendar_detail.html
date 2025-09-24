@@ -2638,7 +2638,7 @@
                         <div class="form-header">
                             <h2 id="overlay-form-title">새 일정</h2>
                             <button class="close-overlay-btn"
-                                onclick="event.stopPropagation(); console.log('❌ Close button clicked'); window.closeOverlayEventForm()"
+                                onclick="console.log('❌ Close button clicked'); return window.closeOverlayEventForm(event);"
                                 title="닫기">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2">
@@ -2733,7 +2733,7 @@
 
                             <div class="form-actions">
                                 <button type="button" class="btn-cancel"
-                                    onclick="event.stopPropagation(); console.log('⛔ Cancel button clicked'); window.closeOverlayEventForm()">취소</button>
+                                    onclick="console.log('⛔ Cancel button clicked'); return window.closeOverlayEventForm(event);">취소</button>
                                 <button type="submit" class="btn-save">저장</button>
                             </div>
                         </form>
@@ -5139,29 +5139,74 @@
 
         // Flag to prevent reopening when user explicitly closes popup
         let overlayClosedByUser = false;
+        
+        // Override global loadEvents function temporarily when popup is closed by user
+        let originalLoadEvents = null;
 
-        function closeOverlayEventForm() {
-            console.log('🚫 closeOverlayEventForm called');
+        function closeOverlayEventForm(event) {
+            // Stop all event propagation immediately
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+            }
+            
+            console.log('🚫 closeOverlayEventForm called', { byUser: true });
             overlayClosedByUser = true; // Set flag to prevent automatic reopening
+            
+            // Temporarily disable loadEvents to prevent cascade events
+            if (typeof window.loadEvents === 'function' && !originalLoadEvents) {
+                originalLoadEvents = window.loadEvents;
+                window.loadEvents = function() {
+                    console.log('🚫 loadEvents blocked while popup closing');
+                    return Promise.resolve();
+                };
+            }
+            
             const overlay = document.getElementById('calendar-overlay-form');
             if (overlay) {
-                console.log('✅ Found overlay element, hiding it');
+                console.log('✅ Found overlay element, hiding it forcefully');
+                
+                // Remove all event listeners temporarily to prevent cascading
+                const newOverlay = overlay.cloneNode(true);
+                overlay.parentNode.replaceChild(newOverlay, overlay);
+                
                 // Use more forceful hiding methods
-                overlay.style.display = 'none !important';
-                overlay.style.visibility = 'hidden';
-                overlay.style.opacity = '0';
-                overlay.style.pointerEvents = 'none';
-                overlay.classList.add('hidden');
-                overlay.classList.remove('show');
+                newOverlay.style.display = 'none !important';
+                newOverlay.style.visibility = 'hidden !important';
+                newOverlay.style.opacity = '0 !important';
+                newOverlay.style.pointerEvents = 'none !important';
+                newOverlay.classList.add('hidden');
+                newOverlay.classList.remove('show');
+                
                 clearOverlayEventForm();
                 
-                // Clear the flag after a delay to allow normal operation later
+                // Clear the flag after a longer delay and restore loadEvents
                 setTimeout(() => {
+                    console.log('🔓 Clearing overlayClosedByUser flag');
                     overlayClosedByUser = false;
-                }, 500);
+                    
+                    // Restore original loadEvents function
+                    if (originalLoadEvents) {
+                        window.loadEvents = originalLoadEvents;
+                        originalLoadEvents = null;
+                        console.log('🔄 loadEvents function restored');
+                    }
+                }, 1000);
+                
+                // Re-attach event listeners to the new overlay
+                setTimeout(() => {
+                    const finalOverlay = document.getElementById('calendar-overlay-form');
+                    if (finalOverlay) {
+                        finalOverlay.onclick = handleOverlayClick;
+                    }
+                }, 100);
+                
             } else {
                 console.log('❌ Overlay element not found');
             }
+            
+            return false; // Prevent any further event handling
         }
 
         function handleOverlayClick(event) {
