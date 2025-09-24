@@ -905,78 +905,74 @@ class GoogleCalendarGrid {
             const storageKey = 'calendar_events_backup';
             localStorage.setItem(storageKey, JSON.stringify(this.events));
             
-            // 🚨 NUCLEAR DOM REMOVAL - 즉시 UI에서 제거
-            console.log('🚀 Calling nuclear DOM removal...');
-            window.forceRemoveEventFromDOM(eventData);
-            
             // Remove from DOM immediately - comprehensive search
             console.log('🗑️ Removing event from display:', eventData.title, 'ID:', eventData.id);
             
-            // 모든 가능한 선택자로 이벤트 요소 찾아서 제거
-            const selectors = [
-                `[data-event-id="${eventData.id}"]`,
-                `[data-id="${eventData.id}"]`,
-                `.calendar-event[data-event-id="${eventData.id}"]`,
-                `.event[data-event-id="${eventData.id}"]`,
-                `[onclick*="${eventData.id}"]`
-            ];
-            
+            // 간단하고 효과적인 DOM 제거
+            console.log('🔍 Looking for elements to remove...');
             let removedCount = 0;
-            selectors.forEach(selector => {
-                const elements = document.querySelectorAll(selector);
-                elements.forEach(element => {
-                    element.remove();
-                    removedCount++;
-                    console.log(`💀 Removed element with selector: ${selector}`);
-                });
+            
+            // 1. 모든 div 요소에서 제목이 포함된 것 찾기
+            const allDivs = document.querySelectorAll('div');
+            allDivs.forEach(div => {
+                if (div.textContent && div.textContent.includes(eventData.title)) {
+                    // 이벤트 관련 요소인지 확인
+                    if (div.style.position === 'absolute' || 
+                        div.querySelector('[onclick*="delete"]') ||
+                        div.className.includes('event') ||
+                        div.parentElement?.className.includes('event')) {
+                        
+                        console.log(`💀 Removing div containing: "${eventData.title}"`);
+                        div.remove();
+                        removedCount++;
+                    }
+                }
             });
             
-            // 제목으로도 찾기 (마지막 수단)
-            if (removedCount === 0) {
-                console.log('🔍 Searching by title as fallback...');
-                const allEventElements = document.querySelectorAll('div[class*="event"], .event, .calendar-event');
-                allEventElements.forEach(element => {
-                    const textContent = element.textContent;
-                    if (textContent && textContent.includes(eventData.title)) {
-                        element.remove();
+            // 2. 모든 span 요소도 확인
+            const allSpans = document.querySelectorAll('span');
+            allSpans.forEach(span => {
+                if (span.textContent && span.textContent.includes(eventData.title)) {
+                    const container = span.closest('div');
+                    if (container && (container.style.position === 'absolute' || 
+                                   container.querySelector('[onclick*="delete"]'))) {
+                        console.log(`💀 Removing span container for: "${eventData.title}"`);
+                        container.remove();
                         removedCount++;
-                        console.log(`💀 Removed by title match: ${eventData.title}`);
                     }
-                });
-            }
+                }
+            });
             
             console.log(`✅ Removed ${removedCount} elements from display`);
             
             // Update event list and refresh display
             this.updateEventList();
             
-            // 캘린더 그리드 전체 새로고침 (강제)
+            // 🔄 강제 그리드 새로고침 - 모든 이벤트 다시 그리기
+            console.log('🔄 Force refresh: clearing all rendered events and re-rendering...');
+            
+            // 1. 모든 렌더된 이벤트 완전히 제거
+            this.clearRenderedEvents();
+            
+            // 2. 현재 남은 이벤트들만 다시 렌더링
+            this.events.filter(event => event && event.id && event.date).forEach(event => {
+                this.renderEvent(event);
+                console.log('✅ Re-rendered event:', event.title);
+            });
+            
+            // 3. 이벤트 목록도 업데이트
+            this.updateEventList();
+            
+            // 4. 추가 새로고침 (안전장치)
             setTimeout(() => {
-                // 다시 한번 강력한 DOM 제거 시도
-                console.log('🔄 Second nuclear DOM removal attempt...');
-                window.forceRemoveEventFromDOM(eventData);
-                
+                console.log('🔄 Additional refresh...');
                 if (this.renderEvents) {
                     this.renderEvents();
-                    console.log('🔄 Calendar grid refreshed');
                 } else if (this.render) {
                     this.render();
-                    console.log('🔄 Calendar rendered');
                 }
-                
-                // 마지막 수단: 페이지 이벤트 목록 새로고침
-                if (typeof loadEvents === 'function') {
-                    loadEvents();
-                    console.log('🔄 Events reloaded');
-                }
-                
-                // 최종 정리 작업
-                setTimeout(() => {
-                    console.log('🔄 Final nuclear cleanup...');
-                    window.forceRemoveEventFromDOM(eventData);
-                    console.log('✅ All cleanup completed');
-                }, 200);
-            }, 100);
+                console.log('✅ Final refresh completed');
+            }, 200);
             
             // Close any open popup
             const popups = document.querySelectorAll('.event-creation-popup');
