@@ -3107,6 +3107,8 @@ class GoogleCalendarGrid {
             return false;
         }
         
+        // 아래 코드는 함수 밖에 있어서 주석 처리
+        /*
         const eventData = this.events.find(event => String(event.id) === eventIdStr);
         if (!eventData) {
             console.error('Event not found for deletion:', eventId, 'Available events:', this.events.slice(0, 5).map(e => ({id: e.id, notion_id: e.notion_id, title: e.title})));
@@ -3168,6 +3170,7 @@ class GoogleCalendarGrid {
         console.log('✅ Found event to delete:', eventData.title);
         return this.deleteEvent(eventData);
     }
+    */
 
     moveEventToTrash(event) {
         // 휴지통 배열에 추가 (LocalStorage 사용)
