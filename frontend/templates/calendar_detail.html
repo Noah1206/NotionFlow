@@ -5715,16 +5715,14 @@
         forcePopupStyles();
 
         function handleOverlayClick(event) {
-            console.log('🖱️ handleOverlayClick called', event.target);
-            console.log('🎯 Event target classes:', event.target.classList);
-            
-            // Close overlay when clicking on background
             if (event.target.classList.contains('calendar-overlay-form')) {
-                console.log('✅ Clicked on background, closing overlay');
                 closeOverlayEventForm(event);
-            } else {
-                console.log('❌ Not clicking on background');
             }
+        }
+
+        function clearOverlayEventForm() {
+            const form = document.querySelector('#calendar-overlay-form form');
+            if (form) form.reset();
         }
 
         // Make functions globally available
