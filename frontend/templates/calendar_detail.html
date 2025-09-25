@@ -5798,7 +5798,7 @@
             content.innerHTML = html;
         }
         
-        function emptyTrash() {
+        async function emptyTrash() {
             const currentCalendarId = window.location.pathname.split('/').pop();
             let trashedEvents = JSON.parse(localStorage.getItem('trashedEvents') || '[]');
             
@@ -5811,13 +5811,46 @@
             }
             
             if (confirm(`휴지통의 ${currentCalendarTrashedEvents.length}개 일정을 완전히 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`)) {
-                // 현재 캘린더의 휴지통 이벤트만 제거
+                // 서버에서 각 이벤트 삭제
+                let deletedCount = 0;
+                let failedCount = 0;
+                
+                for (const event of currentCalendarTrashedEvents) {
+                    try {
+                        // 서버에 삭제 요청
+                        const response = await fetch(`/api/calendar/${currentCalendarId}/event/${event.id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                        if (response.ok) {
+                            deletedCount++;
+                            console.log(`✅ Permanently deleted from server: ${event.title}`);
+                        } else {
+                            failedCount++;
+                            console.error(`❌ Failed to delete from server: ${event.title}`);
+                        }
+                    } catch (error) {
+                        failedCount++;
+                        console.error('Error deleting event from server:', error);
+                    }
+                }
+                
+                // localStorage에서도 제거
                 trashedEvents = trashedEvents.filter(event => event.calendarId !== currentCalendarId);
                 localStorage.setItem('trashedEvents', JSON.stringify(trashedEvents));
                 
                 updateTrashUI();
-                alert(`${currentCalendarTrashedEvents.length}개 일정이 완전히 삭제되었습니다.`);
-                console.log(`🗑️ ${currentCalendarTrashedEvents.length} events permanently deleted from trash`);
+                
+                if (failedCount > 0) {
+                    alert(`${deletedCount}개 일정이 삭제되었고, ${failedCount}개 일정 삭제에 실패했습니다.`);
+                } else {
+                    alert(`${deletedCount}개 일정이 완전히 삭제되었습니다.`);
+                }
+                
+                console.log(`🗑️ ${deletedCount} events permanently deleted, ${failedCount} failed`);
             }
         }
 

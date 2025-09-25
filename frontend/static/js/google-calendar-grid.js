@@ -894,6 +894,27 @@ class GoogleCalendarGrid {
             // Move event to trash instead of permanent deletion
             this.moveEventToTrash(eventData);
             
+            // 서버에 삭제 요청 보내기
+            try {
+                const calendarId = window.location.pathname.split('/').pop();
+                const response = await fetch(`/api/calendar/${calendarId}/event/${eventData.id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    console.log('✅ Event deleted from server:', eventData.title);
+                } else {
+                    console.error('❌ Failed to delete from server, status:', response.status);
+                    // 서버 삭제 실패해도 클라이언트에서는 계속 진행
+                }
+            } catch (error) {
+                console.error('Error deleting from server:', error);
+                // 네트워크 오류가 있어도 클라이언트에서는 계속 진행
+            }
+            
             // Remove from events array
             this.events = this.events.filter(e => e.id !== eventData.id);
             
@@ -3229,12 +3250,32 @@ class GoogleCalendarGrid {
     }
 
     // 휴지통에서 완전 삭제
-    permanentlyDeleteEvent(eventId) {
+    async permanentlyDeleteEvent(eventId) {
         let trashedEvents = JSON.parse(localStorage.getItem('trashedEvents') || '[]');
         const eventIndex = trashedEvents.findIndex(e => String(e.id) === String(eventId));
         
         if (eventIndex !== -1) {
-            const eventTitle = trashedEvents[eventIndex].title;
+            const event = trashedEvents[eventIndex];
+            const eventTitle = event.title;
+            
+            // 서버에 삭제 요청 (이미 휴지통에 있으므로 확인 없이 삭제)
+            try {
+                const calendarId = event.calendarId || window.location.pathname.split('/').pop();
+                const response = await fetch(`/api/calendar/${calendarId}/event/${eventId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    console.log('✅ Event permanently deleted from server:', eventTitle);
+                } else {
+                    console.error('❌ Failed to delete from server, status:', response.status);
+                }
+            } catch (error) {
+                console.error('Error deleting from server:', error);
+            }
             
             // 휴지통에서 완전 제거
             trashedEvents.splice(eventIndex, 1);
