@@ -4990,6 +4990,12 @@
         function showOverlayEventForm(date, time, clickedCell = null, endTime = null) {
             console.log('🔄 showOverlayEventForm called');
             
+            // 영구 차단 체크
+            if (window.POPUP_PERMANENTLY_CLOSED) {
+                console.log('🚫 팝업 영구 차단됨');
+                return;
+            }
+            
             // 간단한 차단
             if (window.POPUP_BLOCKED) {
                 console.log('🚫 팝업 차단됨');
@@ -5251,6 +5257,9 @@
         // 전역 변수로 원본 함수 저장
         window.originalShowOverlayEventForm = window.originalShowOverlayEventForm || showOverlayEventForm;
         
+        // 전역 차단 플래그
+        window.POPUP_PERMANENTLY_CLOSED = false;
+        
         function closeOverlayEventForm(event) {
             // 1. 이벤트 차단
             if (event) {
@@ -5259,16 +5268,20 @@
                 event.stopImmediatePropagation();
             }
             
-            // 2. 팝업 숨기기
+            // 2. 영구 차단 플래그 설정
+            window.POPUP_PERMANENTLY_CLOSED = true;
+            
+            // 3. 팝업 숨기기
             const overlay = document.getElementById('calendar-overlay-form');
             if (overlay) {
                 overlay.style.display = 'none';
+                overlay.style.visibility = 'hidden';
             }
             
-            // 3. 모든 팝업 생성 함수 비활성화
-            window.showOverlayEventForm = function() { return false; };
-            window.showOverlayEventFormMultiDay = function() { return false; };
-            window.createOverlayElement = function() { return false; };
+            // 4. 3초 후 차단 해제 (다음 클릭을 위해)
+            setTimeout(() => {
+                window.POPUP_PERMANENTLY_CLOSED = false;
+            }, 3000);
             
             return false;
             
