@@ -3064,49 +3064,82 @@ class GoogleCalendarGrid {
     }
 
     moveEventToTrash(event) {
-        // 휴지통으로 보내기 API 호출
-        fetch(`/api/calendar/${this.calendarId}/events/${event.id}/trash`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                title: event.title,
-                date: event.date,
-                start_time: event.start_time,
-                end_time: event.end_time
-            })
-        })
-        .then(response => {
-            if (response.ok) {
-                console.log('🗑️ Event moved to trash:', event.id);
-            } else {
-                console.error('❌ Failed to move event to trash:', event.id);
-            }
-        })
-        .catch(error => {
-            console.error('❌ Error moving event to trash:', error);
-        });
+        // 휴지통 배열에 추가 (LocalStorage 사용)
+        let trashedEvents = JSON.parse(localStorage.getItem('trashedEvents') || '[]');
+        
+        // 이벤트에 삭제 시간 추가
+        const trashedEvent = {
+            ...event,
+            deletedAt: new Date().toISOString(),
+            calendarId: window.location.pathname.split('/').pop() // URL에서 calendarId 추출
+        };
+        
+        trashedEvents.push(trashedEvent);
+        localStorage.setItem('trashedEvents', JSON.stringify(trashedEvents));
+        
+        console.log('🗑️ Event moved to trash:', event.id, event.title);
+        
+        // 휴지통 UI 업데이트 (있다면)
+        if (window.updateTrashUI) {
+            window.updateTrashUI();
+        }
     }
 
-    deleteEventFromBackend(eventId) {
-        // 휴지통에서 완전 삭제 API 호출
-        fetch(`/api/calendar/${this.calendarId}/events/${eventId}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        })
-        .then(response => {
-            if (response.ok) {
-                console.log('✅ Event permanently deleted from backend:', eventId);
-            } else {
-                console.error('❌ Failed to permanently delete event from backend:', eventId);
+    // 휴지통에서 이벤트 복원
+    restoreEventFromTrash(eventId) {
+        let trashedEvents = JSON.parse(localStorage.getItem('trashedEvents') || '[]');
+        const eventIndex = trashedEvents.findIndex(e => String(e.id) === String(eventId));
+        
+        if (eventIndex !== -1) {
+            const eventToRestore = trashedEvents[eventIndex];
+            
+            // 휴지통에서 제거
+            trashedEvents.splice(eventIndex, 1);
+            localStorage.setItem('trashedEvents', JSON.stringify(trashedEvents));
+            
+            // 캘린더에 다시 추가
+            delete eventToRestore.deletedAt;
+            delete eventToRestore.calendarId;
+            
+            this.events.push(eventToRestore);
+            this.saveToLocalStorage();
+            this.renderEvent(eventToRestore);
+            
+            console.log('♻️ Event restored from trash:', eventToRestore.title);
+            
+            if (window.updateTrashUI) {
+                window.updateTrashUI();
             }
-        })
-        .catch(error => {
-            console.error('❌ Error permanently deleting event from backend:', error);
-        });
+        }
+    }
+
+    // 휴지통에서 완전 삭제
+    permanentlyDeleteEvent(eventId) {
+        let trashedEvents = JSON.parse(localStorage.getItem('trashedEvents') || '[]');
+        const eventIndex = trashedEvents.findIndex(e => String(e.id) === String(eventId));
+        
+        if (eventIndex !== -1) {
+            const eventTitle = trashedEvents[eventIndex].title;
+            
+            // 휴지통에서 완전 제거
+            trashedEvents.splice(eventIndex, 1);
+            localStorage.setItem('trashedEvents', JSON.stringify(trashedEvents));
+            
+            console.log('🗑️ Event permanently deleted:', eventTitle);
+            
+            if (window.updateTrashUI) {
+                window.updateTrashUI();
+            }
+        }
+    }
+
+    // 휴지통 이벤트 가져오기
+    getTrashedEvents() {
+        const currentCalendarId = window.location.pathname.split('/').pop();
+        let trashedEvents = JSON.parse(localStorage.getItem('trashedEvents') || '[]');
+        
+        // 현재 캘린더의 휴지통 이벤트만 반환
+        return trashedEvents.filter(event => event.calendarId === currentCalendarId);
     }
 
     updateMainContentDimensions() {
@@ -4052,4 +4085,25 @@ window.forceRemoveEventFromDOM = function(eventData) {
     
     console.log(`✅ NUCLEAR REMOVAL: ${removedCount} elements removed`);
     return removedCount;
+};
+
+
+// 전역 휴지통 함수들 등록
+window.restoreEventFromTrash = function(eventId) {
+    if (window.googleCalendarGrid) {
+        window.googleCalendarGrid.restoreEventFromTrash(eventId);
+    }
+};
+
+window.permanentlyDeleteEvent = function(eventId) {
+    if (window.googleCalendarGrid) {
+        window.googleCalendarGrid.permanentlyDeleteEvent(eventId);
+    }
+};
+
+window.getTrashedEvents = function() {
+    if (window.googleCalendarGrid) {
+        return window.googleCalendarGrid.getTrashedEvents();
+    }
+    return [];
 };
