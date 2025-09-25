@@ -1,34 +1,33 @@
-# Use Node.js base image with Python (multi-stage build alternative)
-# This is often cached on cloud platforms and avoids Docker Hub issues
-FROM node:18-bullseye
+# Use Debian slim which should be available
+FROM debian:bullseye-slim
 
-# Install Python 3.11
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Install system dependencies and Python 3.9 (available in Debian bullseye)
 RUN apt-get update && apt-get install -y \
-    python3.11 \
-    python3.11-pip \
-    python3.11-venv \
-    && ln -sf /usr/bin/python3.11 /usr/bin/python3 \
-    && ln -sf /usr/bin/python3.11 /usr/bin/python \
-    && rm -rf /var/lib/apt/lists/*
+    python3 \
+    python3-pip \
+    python3-dev \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && python3 -m pip install --upgrade pip
 
 # Set working directory
 WORKDIR /app
 
-# Copy requirements first for better caching
+# Copy requirements and install Python packages
 COPY requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
 
-# Create and activate virtual environment, then install dependencies
-RUN python -m pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
-
-# Copy the rest of the application
+# Copy application
 COPY . .
-
-# Make start script executable if it exists
-RUN if [ -f start.sh ]; then chmod +x start.sh; fi
 
 # Expose port
 EXPOSE 8080
 
-# Run the application
-CMD ["gunicorn", "frontend.app:app", "--bind", "0.0.0.0:8080", "--workers", "1", "--log-level", "info"]
+# Run application
+CMD ["python3", "app.py"]

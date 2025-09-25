@@ -1,0 +1,27 @@
+# Ultra-simple Alpine Linux based Dockerfile
+FROM alpine:3.18
+
+# Install Python and pip
+RUN apk add --no-cache \
+    python3 \
+    py3-pip \
+    python3-dev \
+    gcc \
+    musl-dev \
+    linux-headers
+
+# Set working directory
+WORKDIR /app
+
+# Copy requirements and install dependencies
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+# Copy application
+COPY . .
+
+# Expose port
+EXPOSE 8080
+
+# Run application
+CMD ["python3", "app.py"]
