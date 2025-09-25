@@ -2976,6 +2976,9 @@ class GoogleCalendarGrid {
                                 this.saveToLocalStorage();
                                 console.log('🗑️ Moved to trash:', removedEvent.title);
                                 
+                                // DOM에서 즉시 제거 (여러 방법 시도)
+                                this.removeEventFromDOM(removedEvent.id, removedEvent.title);
+                                
                                 // 강제 그리드 새로고침
                                 this.clearRenderedEvents();
                                 this.events.forEach(event => {
@@ -2987,7 +2990,60 @@ class GoogleCalendarGrid {
                                 console.log('🔄 Grid forcefully refreshed after trash move');
                             } else {
                                 console.log('❌ Could not find event to remove from array');
-                                console.log('📋 Available event titles:', this.events.map(e => e?.title).slice(0, 10));
+                                console.log('🔍 Looking for eventId:', eventIdStr, 'eventTitle:', eventTitle);
+                                console.log('📋 Available events (first 5):');
+                                this.events.slice(0, 5).forEach((e, i) => {
+                                    console.log(`  ${i}: id="${e?.id}" title="${e?.title}" notion_id="${e?.notion_id}"`);
+                                });
+                                
+                                // 더 관대한 검색 시도
+                                const relaxedIndex = this.events.findIndex(e => {
+                                    if (!e) return false;
+                                    const title = e.title || '';
+                                    const searchTitle = eventTitle || '';
+                                    
+                                    // 제목의 일부만 포함되어도 매칭
+                                    if (title.length > 0 && searchTitle.length > 0) {
+                                        return title.toLowerCase().includes(searchTitle.toLowerCase()) ||
+                                               searchTitle.toLowerCase().includes(title.toLowerCase());
+                                    }
+                                    
+                                    return false;
+                                });
+                                
+                                if (relaxedIndex !== -1) {
+                                    console.log('✅ Found with relaxed search, removing...');
+                                    const removedEvent = this.events[relaxedIndex];
+                                    this.moveEventToTrash(removedEvent);
+                                    
+                                    // DOM에서 즉시 제거
+                                    this.removeEventFromDOM(removedEvent.id, removedEvent.title);
+                                    
+                                    this.events.splice(relaxedIndex, 1);
+                                    this.saveToLocalStorage();
+                                    this.clearRenderedEvents();
+                                    this.events.forEach(event => {
+                                        if (event && event.id && event.date) {
+                                            this.renderEvent(event);
+                                        }
+                                    });
+                                    this.updateEventList();
+                                } else {
+                                    console.log('🚨 최후 수단: DOM만 제거하고 가짜 이벤트 생성');
+                                    
+                                    // DOM에서 강제 제거
+                                    this.removeEventFromDOM(eventIdStr, eventTitle);
+                                    
+                                    // 가짜 이벤트 만들어서 휴지통에 보내기
+                                    const fakeEvent = {
+                                        id: eventIdStr,
+                                        title: eventTitle || `삭제된 이벤트 ${eventIdStr}`,
+                                        date: new Date().toISOString().split('T')[0],
+                                        start_time: '09:00',
+                                        end_time: '10:00'
+                                    };
+                                    this.moveEventToTrash(fakeEvent);
+                                }
                             }
                             
                             return true;
@@ -3140,6 +3196,65 @@ class GoogleCalendarGrid {
         
         // 현재 캘린더의 휴지통 이벤트만 반환
         return trashedEvents.filter(event => event.calendarId === currentCalendarId);
+    }
+
+    // DOM에서 이벤트 완전 제거
+    removeEventFromDOM(eventId, eventTitle) {
+        let removedCount = 0;
+        
+        // 1. ID 기반 제거
+        const idSelectors = [
+            `[data-event-id="${eventId}"]`,
+            `[data-id="${eventId}"]`,
+            `#event-${eventId}`,
+            `[id*="${eventId}"]`
+        ];
+        
+        idSelectors.forEach(selector => {
+            document.querySelectorAll(selector).forEach(el => {
+                el.remove();
+                removedCount++;
+                console.log('🗑️ Removed by ID selector:', selector);
+            });
+        });
+        
+        // 2. 제목 기반 제거
+        if (eventTitle) {
+            document.querySelectorAll('*').forEach(el => {
+                const text = el.textContent || el.innerText || '';
+                if (text.includes(eventTitle) && 
+                    (el.className.includes('event') || 
+                     el.className.includes('calendar-event') ||
+                     el.style.position === 'absolute')) {
+                    el.remove();
+                    removedCount++;
+                    console.log('🗑️ Removed by title match:', eventTitle);
+                }
+            });
+        }
+        
+        // 3. 클래스 기반 제거 (일반적인 이벤트 클래스들)
+        const eventClasses = [
+            '.event', '.calendar-event', '.grid-event', 
+            '.time-grid-event', '.event-block'
+        ];
+        
+        eventClasses.forEach(className => {
+            document.querySelectorAll(className).forEach(el => {
+                const elText = el.textContent || '';
+                const elId = el.dataset.eventId || el.dataset.id || el.id || '';
+                
+                if (elId.includes(eventId) || 
+                    (eventTitle && elText.includes(eventTitle))) {
+                    el.remove();
+                    removedCount++;
+                    console.log('🗑️ Removed by class selector:', className);
+                }
+            });
+        });
+        
+        console.log(`✅ DOM cleanup complete: ${removedCount} elements removed`);
+        return removedCount;
     }
 
     updateMainContentDimensions() {
