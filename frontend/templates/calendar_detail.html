@@ -4986,61 +4986,15 @@
             }
         }
 
-        // Overlay Event Form Functions
+        // 간단한 팝업 시스템
+        window.popupOpen = false;
+        
         function showOverlayEventForm(date, time, clickedCell = null, endTime = null) {
-            console.log('🔄 showOverlayEventForm called');
+            // 이미 열려있으면 무시
+            if (window.popupOpen) return;
             
-            // 🚨 다중 차단 체크 (Nuclear Defense System)
-            if (window.POPUP_PERMANENTLY_CLOSED) {
-                console.log('🚫 팝업 영구 차단됨 (POPUP_PERMANENTLY_CLOSED)');
-                return false;
-            }
-            
-            if (window.POPUP_BLOCKED) {
-                console.log('🚫 팝업 차단됨 (POPUP_BLOCKED)');
-                return false;
-            }
-            
-            if (window.POPUP_ABSOLUTELY_BLOCKED) {
-                console.log('🚫 팝업 절대 차단됨 (POPUP_ABSOLUTELY_BLOCKED)');
-                return false;
-            }
-            
-            if (window.POPUP_CREATION_BLOCKED) {
-                console.log('🚫 팝업 생성 차단됨 (POPUP_CREATION_BLOCKED)');
-                return false;
-            }
-            
-            // 시간 기반 차단 (최근 0.1초 내 닫았으면 차단 - 즉시 다시 열리는 것만 방지)
-            const now = Date.now();
-            if (window.lastPopupCloseTime && (now - window.lastPopupCloseTime) < 100) {
-                console.log('🚫 시간 기반 차단 - 즉시 재오픈 방지');
-                return false;
-            }
-            
-            // Find existing overlay (should always exist in HTML)
-            let overlay = document.getElementById('calendar-overlay-form');
-            if (overlay) {
-                console.log('✅ Found existing overlay');
-                
-                // 이미 팝업이 보이면 무시 (핵심 수정!)
-                if (overlay.style.display === 'block' && overlay.style.visibility === 'visible') {
-                    console.log('🚫 Overlay already visible, ignoring duplicate request');
-                    return;
-                }
-                
-                // If overlay is hidden, show it
-                if (overlay.style.display === 'none' || overlay.style.visibility === 'hidden') {
-                    console.log('🔄 Revealing previously hidden overlay');
-                }
-            } else {
-                // If no overlay exists, this is an error - the HTML should have it
-                console.error('❌ No overlay element found in DOM');
-                console.error('❌ Expected #calendar-overlay-form to exist in HTML');
-                return;
-            }
-            
-            console.log('✅ All checks passed, proceeding with overlay creation');
+            window.popupOpen = true;
+            const overlay = document.getElementById('calendar-overlay-form');
 
             // Show the overlay with multiple methods
             console.log('✅ Showing overlay');
@@ -5281,25 +5235,15 @@
         window.POPUP_PERMANENTLY_CLOSED = false;
         
         function closeOverlayEventForm(event) {
-            // 1. 이벤트 차단
             if (event) {
                 event.preventDefault();
                 event.stopPropagation();
-                event.stopImmediatePropagation();
             }
             
-            // 2. 모든 차단 플래그 설정 및 시간 기록
-            window.POPUP_PERMANENTLY_CLOSED = true;
-            window.POPUP_ABSOLUTELY_BLOCKED = true;
-            window.POPUP_CREATION_BLOCKED = true;
-            window.lastPopupCloseTime = Date.now(); // 시간 기반 차단용
-            console.log('🚨 All blocking flags set, timestamp recorded:', new Date().toISOString());
-            
-            // 3. 팝업 숨기기
+            window.popupOpen = false;
             const overlay = document.getElementById('calendar-overlay-form');
             if (overlay) {
                 overlay.style.display = 'none';
-                overlay.style.visibility = 'hidden';
             }
             
             // 4. 팝업 DOM 완전 제거 - 즉시 실행!
