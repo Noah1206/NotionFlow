@@ -1128,7 +1128,7 @@ class NotionCalendarSync:
                             if event and self._save_event_to_calendar(event):
                                 total_synced += 1
                                 if total_synced % 10 == 0:  # 10개마다 로그
-                                    # Background sync progress
+                                    pass  # Background sync progress
                     
                     if not result.get('has_more', False):
                         break
