@@ -5725,6 +5725,13 @@
             if (form) form.reset();
         }
 
+        function closeOverlayEventForm(event) {
+            const overlay = document.getElementById('calendar-overlay-form');
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+        }
+
         // Alias for backward compatibility
         function closeEventForm() {
             closeOverlayEventForm();
@@ -5732,7 +5739,7 @@
 
         // Make functions globally available
         window.showOverlayEventForm = showOverlayEventForm;
-        
+        window.closeOverlayEventForm = closeOverlayEventForm;
         window.handleOverlayClick = handleOverlayClick;
         window.clearOverlayEventForm = clearOverlayEventForm;
         window.closeEventForm = closeEventForm;
