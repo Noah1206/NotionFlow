@@ -2950,11 +2950,43 @@ class GoogleCalendarGrid {
                             console.log('🗑️ Removed from DOM only');
                             
                             // 🚨 강제로 배열에서도 제거 시도 (제목 기반)
-                            const indexToRemove = this.events.findIndex(e => e && e.title && e.title.includes(eventTitle.trim()));
+                            console.log('🔍 Searching in events array for title:', eventTitle.trim());
+                            console.log('🔍 Current events array length:', this.events.length);
+                            
+                            // 여러 방법으로 이벤트 찾기
+                            let indexToRemove = -1;
+                            
+                            // 1. 정확한 제목 매칭
+                            indexToRemove = this.events.findIndex(e => e && e.title && e.title.trim() === eventTitle.trim());
+                            
+                            // 2. 부분 제목 매칭
+                            if (indexToRemove === -1) {
+                                indexToRemove = this.events.findIndex(e => e && e.title && e.title.includes(eventTitle.trim()));
+                            }
+                            
+                            // 3. 숫자 ID 매칭 (timestamp 기반)
+                            if (indexToRemove === -1) {
+                                indexToRemove = this.events.findIndex(e => e && String(e.id).includes(eventIdStr));
+                            }
+                            
                             if (indexToRemove !== -1) {
+                                const removedEvent = this.events[indexToRemove];
                                 this.events.splice(indexToRemove, 1);
                                 this.saveToLocalStorage();
-                                console.log('✅ Force removed from events array by title match');
+                                console.log('✅ Force removed from events array:', removedEvent.title);
+                                
+                                // 강제 그리드 새로고침
+                                this.clearRenderedEvents();
+                                this.events.forEach(event => {
+                                    if (event && event.id && event.date) {
+                                        this.renderEvent(event);
+                                    }
+                                });
+                                this.updateEventList();
+                                console.log('🔄 Grid forcefully refreshed after array removal');
+                            } else {
+                                console.log('❌ Could not find event to remove from array');
+                                console.log('📋 Available event titles:', this.events.map(e => e?.title).slice(0, 10));
                             }
                             
                             return true;
