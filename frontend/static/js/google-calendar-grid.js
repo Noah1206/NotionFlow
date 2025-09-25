@@ -3214,44 +3214,35 @@ class GoogleCalendarGrid {
 
     // 필터링된 이벤트로 그리드 업데이트
     updateWithFilteredEvents(filteredEvents, selectedCalendarIds) {
-        console.log('🔍 [DEBUG] Filtering disabled - showing all events');
-        console.log('🔍 Original filtered events:', filteredEvents?.length, 'Selected calendars:', selectedCalendarIds);
+        console.log('🔍 Updating grid with filtered events:', filteredEvents?.length, 'Selected calendars:', selectedCalendarIds);
         
-        // 임시로 필터링 비활성화 - 모든 이벤트 표시
-        console.log('📅 [DEBUG] Bypassing filtering - showing all events');
-        this.showAllEvents();
-        return;
-        
-        // 아래는 원래 필터링 로직 (현재 비활성화됨)
-        /*
         // 현재 캘린더 ID 확인 
         const currentCalendarId = window.location.pathname.split('/').pop();
         
-        // 선택된 캘린더가 없는 경우에만 숨기기 (현재 캘린더는 항상 표시)
+        // 필터링이 없거나 빈 경우 - 모든 이벤트 표시 (기본 동작)
         if (!selectedCalendarIds || selectedCalendarIds.length === 0) {
-            console.log('📅 No calendars selected, showing all events in current calendar');
-            // 현재 캘린더의 모든 이벤트 표시 (필터링 없음)
+            console.log('📅 No calendar filtering - showing all events');
             this.showAllEvents();
             return;
         }
         
-        // 현재 캘린더가 선택되지 않은 경우 자동으로 추가
+        // 현재 캘린더가 선택되지 않은 경우 - 여전히 모든 이벤트 표시 (사용자가 직접 현재 캘린더 페이지를 보고 있으므로)
         if (!selectedCalendarIds.includes(currentCalendarId)) {
-            console.log('📅 Adding current calendar to selection:', currentCalendarId);
-            selectedCalendarIds.push(currentCalendarId);
+            console.log('📅 Current calendar not in selection, but showing all events since user is viewing this calendar');
+            this.showAllEvents();
+            return;
         }
         
-        // 필터링된 이벤트가 있는 경우
+        // 필터링된 이벤트가 있는 경우에만 필터링 적용
         if (filteredEvents && filteredEvents.length > 0) {
-            console.log('📅 Showing filtered events');
+            console.log('📅 Applying event filtering');
             this.showFilteredEvents(filteredEvents);
             this.updateEventList(filteredEvents);
         } else {
-            console.log('📅 No events to show for selected calendars');
-            this.hideAllEvents();
-            this.updateEventList([]);
+            // 필터링 결과가 없어도 현재 캘린더 페이지에서는 모든 이벤트 표시
+            console.log('📅 No filtered events, showing all events for current calendar');
+            this.showAllEvents();
         }
-        */
     }
     
     // 모든 이벤트 숨기기
