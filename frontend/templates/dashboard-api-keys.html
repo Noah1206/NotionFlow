@@ -1111,10 +1111,10 @@
         const calendarList = document.getElementById('calendar-list');
 
         // 플랫폼 이름 표시
-        platformDisplay.textContent = getKoreanPlatformName(platformName);
+        if (platformDisplay) platformDisplay.textContent = getKoreanPlatformName(platformName);
 
         // 모달 표시
-        modal.style.display = 'flex';
+        if (modal) modal.style.display = 'flex';
 
         // 캘린더 목록 로딩
         await loadUserCalendars(calendarList);
@@ -1131,11 +1131,11 @@
         const confirmBtn = document.getElementById('confirm-calendar-selection');
         
         // 모달 제목과 설명 변경
-        modalTitle.textContent = '캘린더 연동 설정';
-        platformDisplay.textContent = getKoreanPlatformName(platformName);
+        if (modalTitle) modalTitle.textContent = '캘린더 연동 설정';
+        if (platformDisplay) platformDisplay.textContent = getKoreanPlatformName(platformName);
         
         // 버튼 텍스트 변경
-        confirmBtn.textContent = '선택한 캘린더와 연동';
+        if (confirmBtn) confirmBtn.textContent = '선택한 캘린더와 연동';
         
         // 모달 표시
         modal.style.display = 'flex';
@@ -1297,7 +1297,7 @@
 
         // 버튼 상태 변경
         button.disabled = true;
-        buttonText.textContent = '연결 중...';
+        if (buttonText) buttonText.textContent = '연결 중...';
         loader.style.display = 'flex';
 
         // 카드 애니메이션
@@ -1328,7 +1328,7 @@
                     // 버튼을 연결해제 버튼으로 변경
                     button.className = 'platform-disconnect-btn';
                     button.setAttribute('onclick', 'disconnectPlatform(\'' + platformName + '\')');
-                    buttonText.textContent = '연결 해제';
+                    if (buttonText) buttonText.textContent = '연결 해제';
 
                     // 통계 및 플랫폼 상태 업데이트
                     updateConnectionStats();
@@ -1349,7 +1349,7 @@
 
                     button.className = 'platform-disconnect-btn';
                     button.setAttribute('onclick', 'disconnectPlatform(\'' + platformName + '\')');
-                    buttonText.textContent = '연결 해제';
+                    if (buttonText) buttonText.textContent = '연결 해제';
 
                     updateConnectionStats();
                     updatePlatformStatus();
@@ -1368,7 +1368,7 @@
         setTimeout(() => {
             button.disabled = false;
             if (button.className === 'platform-connect-btn') {
-                buttonText.textContent = '연결하기';
+                if (buttonText) buttonText.textContent = '연결하기';
             }
             loader.style.display = 'none';
             card.style.transform = '';
@@ -1412,7 +1412,7 @@
 
         // 버튼 상태 변경
         button.disabled = true;
-        buttonText.textContent = '해제 중...';
+        if (buttonText) buttonText.textContent = '해제 중...';
         loader.style.display = 'flex';
 
         try {
@@ -1652,10 +1652,15 @@
             checkAndHideGuide();
         } catch (error) {
             // 에러 시 기본값 설정 (조용히)
-            document.getElementById('connected-count').textContent = '0';
-            document.getElementById('sync-count').textContent = '0';
-            document.getElementById('success-rate').textContent = '0%';
-            document.getElementById('sync-speed').textContent = 'N/A';
+            const connectedCountEl = document.getElementById('connected-count');
+            const syncCountEl = document.getElementById('sync-count');
+            const successRateEl = document.getElementById('success-rate');
+            const syncSpeedEl = document.getElementById('sync-speed');
+            
+            if (connectedCountEl) connectedCountEl.textContent = '0';
+            if (syncCountEl) syncCountEl.textContent = '0';
+            if (successRateEl) successRateEl.textContent = '0%';
+            if (syncSpeedEl) syncSpeedEl.textContent = 'N/A';
             // 에러 시에도 가이드 체크
             checkAndHideGuide();
         }
@@ -1695,17 +1700,27 @@
                 avg_sync_time: {{ (stats.avg_sync_time if stats and stats.avg_sync_time else "N/A") | tojson }}
             };
 
-    // DOM 업데이트
-    document.getElementById('connected-count').textContent = stats.connected_count;
-    document.getElementById('sync-count').textContent = stats.synced_events;
-    document.getElementById('success-rate').textContent = stats.success_rate;
-    document.getElementById('sync-speed').textContent = stats.avg_sync_time;
+    // DOM 업데이트 (null 체크 포함)
+    const connectedCountEl = document.getElementById('connected-count');
+    const syncCountEl = document.getElementById('sync-count');
+    const successRateEl = document.getElementById('success-rate');
+    const syncSpeedEl = document.getElementById('sync-speed');
+    
+    if (connectedCountEl) connectedCountEl.textContent = stats.connected_count;
+    if (syncCountEl) syncCountEl.textContent = stats.synced_events;
+    if (successRateEl) successRateEl.textContent = stats.success_rate;
+    if (syncSpeedEl) syncSpeedEl.textContent = stats.avg_sync_time;
         } catch (error) {
         // 에러 시 기본값 설정 (조용히)
-        document.getElementById('connected-count').textContent = '0';
-        document.getElementById('sync-count').textContent = '0';
-        document.getElementById('success-rate').textContent = '0%';
-        document.getElementById('sync-speed').textContent = 'N/A';
+        const connectedCountEl = document.getElementById('connected-count');
+        const syncCountEl = document.getElementById('sync-count');
+        const successRateEl = document.getElementById('success-rate');
+        const syncSpeedEl = document.getElementById('sync-speed');
+        
+        if (connectedCountEl) connectedCountEl.textContent = '0';
+        if (syncCountEl) syncCountEl.textContent = '0';
+        if (successRateEl) successRateEl.textContent = '0%';
+        if (syncSpeedEl) syncSpeedEl.textContent = 'N/A';
     }
     }
 
@@ -1912,7 +1927,7 @@
                 syncBtn.style.display = 'block';
                 const syncText = syncBtn.querySelector('.sync-text');
                 if (syncText) {
-                    syncText.textContent = '캘린더 변경';
+                    if (syncText) syncText.textContent = '캘린더 변경';
                 }
             }
         } else {
@@ -2231,7 +2246,8 @@
                 document.getElementById('step3').classList.remove('hidden');
 
                 // 완료 정보 업데이트
-                document.getElementById('synced-calendar-name').textContent = window.selectedCalendarName;
+                const syncedCalendarNameEl = document.getElementById('synced-calendar-name');
+                if (syncedCalendarNameEl) syncedCalendarNameEl.textContent = window.selectedCalendarName;
 
                 // 버튼 상태 변경
                 document.getElementById('sync-btn').classList.add('hidden');
@@ -2250,7 +2266,7 @@
             showNotification(`연동 실패: ${error.message}`, 'error');
 
             syncBtn.disabled = false;
-            syncBtn.textContent = originalText;
+            if (syncBtn) syncBtn.textContent = originalText;
         }
     }
 
@@ -2263,7 +2279,7 @@
         if (syncBtn) {
             const syncText = syncBtn.querySelector('.sync-text');
             if (syncText) {
-                syncText.textContent = `연동됨: ${calendarName}`;
+                if (syncText) syncText.textContent = `연동됨: ${calendarName}`;
                 syncBtn.classList.add('synced');
                 syncBtn.title = `${calendarName}과 연동됨`;
             }
@@ -2307,7 +2323,7 @@
                 if (syncBtn) {
                     const syncText = syncBtn.querySelector('.sync-text');
                     if (syncText) {
-                        syncText.textContent = '캘린더 연동';
+                        if (syncText) syncText.textContent = '캘린더 연동';
                     }
                     syncBtn.classList.remove('synced');
                     syncBtn.title = '';
@@ -2619,7 +2635,7 @@
         // 다음 버튼 활성화
         const nextBtn = document.getElementById('next-step-btn');
         nextBtn.disabled = false;
-        nextBtn.textContent = '다음';
+        if (nextBtn) nextBtn.textContent = '다음';
     }
 
     // 스텝 이동 함수
@@ -2662,7 +2678,7 @@
 
         // 버튼 업데이트
         const nextBtn = document.getElementById('next-step-btn');
-        nextBtn.textContent = '설정 완료';
+        if (nextBtn) nextBtn.textContent = '설정 완료';
     }
 
     // 연동 버튼 표시
@@ -2718,7 +2734,7 @@
 
             // 버튼 복원
             syncBtn.disabled = false;
-            syncBtn.textContent = originalText;
+            if (syncBtn) syncBtn.textContent = originalText;
         }
     }
 
@@ -2741,7 +2757,8 @@
         document.getElementById('step3').classList.remove('hidden');
 
         // 완료 정보 업데이트
-        document.getElementById('synced-calendar-name').textContent = selectedCalendarData.name;
+        const syncedCalendarNameEl = document.getElementById('synced-calendar-name');
+        if (syncedCalendarNameEl) syncedCalendarNameEl.textContent = selectedCalendarData.name;
 
         // 버튼 업데이트
         const syncBtn = document.getElementById('sync-btn');
@@ -3773,7 +3790,7 @@
                             syncBtn.style.setProperty('display', 'inline-flex', 'important');
                             const syncText = syncBtn.querySelector('.sync-text');
                             if (syncText) {
-                                syncText.textContent = '캘린더 선택';
+                                if (syncText) syncText.textContent = '캘린더 선택';
                             }
                         }
                     }
