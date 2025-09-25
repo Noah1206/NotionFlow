@@ -2638,7 +2638,7 @@
                         <div class="form-header">
                             <h2 id="overlay-form-title">새 일정</h2>
                             <button class="close-overlay-btn"
-                                onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); window.closeEventForm(); return false;"
+                                onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); window.closeOverlayEventForm(event); return false;"
                                 title="닫기">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2">
@@ -2733,7 +2733,7 @@
 
                             <div class="form-actions">
                                 <button type="button" class="btn-cancel"
-                                    onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); window.closeEventForm(); return false;">취소</button>
+                                    onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); window.closeOverlayEventForm(event); return false;">취소</button>
                                 <button type="submit" class="btn-save">저장</button>
                             </div>
                         </form>
@@ -5725,11 +5725,17 @@
             if (form) form.reset();
         }
 
+        // Alias for backward compatibility
+        function closeEventForm() {
+            closeOverlayEventForm();
+        }
+
         // Make functions globally available
         window.showOverlayEventForm = showOverlayEventForm;
         
         window.handleOverlayClick = handleOverlayClick;
         window.clearOverlayEventForm = clearOverlayEventForm;
+        window.closeEventForm = closeEventForm;
         window.saveOverlayEvent = saveOverlayEvent;
         window.repositionOverlayPopup = repositionOverlayPopup;
 
