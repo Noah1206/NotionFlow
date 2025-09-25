@@ -894,25 +894,32 @@ class GoogleCalendarGrid {
             // Move event to trash instead of permanent deletion
             this.moveEventToTrash(eventData);
             
-            // 서버에 삭제 요청 보내기
-            try {
-                const calendarId = window.location.pathname.split('/').pop();
-                const response = await fetch(`/api/calendar/${calendarId}/event/${eventData.id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json'
+            // 타임스탬프 기반 ID는 클라이언트 전용이므로 서버 호출 안 함
+            const isClientOnlyEvent = /^\d{13,}$/.test(String(eventData.id));
+            
+            if (!isClientOnlyEvent) {
+                // 서버에 삭제 요청 보내기 (실제 서버 이벤트인 경우만)
+                try {
+                    const calendarId = window.location.pathname.split('/').pop();
+                    const response = await fetch(`/calendar/${calendarId}/events/${eventData.id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        console.log('✅ Event deleted from server:', eventData.title);
+                    } else {
+                        console.error('❌ Failed to delete from server, status:', response.status);
+                        // 서버 삭제 실패해도 클라이언트에서는 계속 진행
                     }
-                });
-                
-                if (response.ok) {
-                    console.log('✅ Event deleted from server:', eventData.title);
-                } else {
-                    console.error('❌ Failed to delete from server, status:', response.status);
-                    // 서버 삭제 실패해도 클라이언트에서는 계속 진행
+                } catch (error) {
+                    console.error('Error deleting from server:', error);
+                    // 네트워크 오류가 있어도 클라이언트에서는 계속 진행
                 }
-            } catch (error) {
-                console.error('Error deleting from server:', error);
-                // 네트워크 오류가 있어도 클라이언트에서는 계속 진행
+            } else {
+                console.log('📱 Client-only event, skipping server deletion:', eventData.title);
             }
             
             // Remove from events array
@@ -1180,10 +1187,22 @@ class GoogleCalendarGrid {
     
     updateEventList() {
         const eventListContainer = document.getElementById('event-list');
-        if (!eventListContainer) return;
+        if (!eventListContainer) {
+            console.warn('Event list container not found, retrying...');
+            // Retry after DOM is ready
+            setTimeout(() => {
+                this.updateEventList();
+            }, 100);
+            return;
+        }
+        
+        // Ensure events array is valid
+        if (!this.events || !Array.isArray(this.events)) {
+            this.events = [];
+        }
         
         // Sort events by date and time
-        const sortedEvents = [...this.events].sort((a, b) => {
+        const sortedEvents = [...this.events].filter(event => event && event.id).sort((a, b) => {
             const dateA = new Date(a.date + 'T' + a.startTime);
             const dateB = new Date(b.date + 'T' + b.startTime);
             return dateA - dateB;
@@ -3258,23 +3277,30 @@ class GoogleCalendarGrid {
             const event = trashedEvents[eventIndex];
             const eventTitle = event.title;
             
-            // 서버에 삭제 요청 (이미 휴지통에 있으므로 확인 없이 삭제)
-            try {
-                const calendarId = event.calendarId || window.location.pathname.split('/').pop();
-                const response = await fetch(`/api/calendar/${calendarId}/event/${eventId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json'
+            // 타임스탬프 기반 ID는 클라이언트 전용이므로 서버 호출 안 함
+            const isClientOnlyEvent = /^\d{13,}$/.test(String(eventId));
+            
+            if (!isClientOnlyEvent) {
+                // 서버에 삭제 요청 (실제 서버 이벤트인 경우만)
+                try {
+                    const calendarId = event.calendarId || window.location.pathname.split('/').pop();
+                    const response = await fetch(`/calendar/${calendarId}/events/${eventId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        console.log('✅ Event permanently deleted from server:', eventTitle);
+                    } else {
+                        console.error('❌ Failed to delete from server, status:', response.status);
                     }
-                });
-                
-                if (response.ok) {
-                    console.log('✅ Event permanently deleted from server:', eventTitle);
-                } else {
-                    console.error('❌ Failed to delete from server, status:', response.status);
+                } catch (error) {
+                    console.error('Error deleting from server:', error);
                 }
-            } catch (error) {
-                console.error('Error deleting from server:', error);
+            } else {
+                console.log('📱 Client-only event, no server deletion needed:', eventTitle);
             }
             
             // 휴지통에서 완전 제거
@@ -3838,135 +3864,6 @@ class GoogleCalendarGrid {
         this.updateEventList();
     }
     
-    updateEventList(eventsToShow = null, searchQuery = null, retryCount = 0) {
-        // DOM이 완전히 로드될 때까지 대기
-        const eventList = document.getElementById('event-list');
-        if (!eventList) {
-            // 최대 5번 재시도
-            if (retryCount < 5) {
-                setTimeout(() => {
-                    this.updateEventList(eventsToShow, searchQuery, retryCount + 1);
-                }, 100);
-            }
-            return;
-        }
-        
-        const events = eventsToShow || this.events;
-        // console.log('📋 Updating event list with', events.length, 'events');
-        
-        // Clear existing list
-        eventList.innerHTML = '';
-        
-        if (events.length === 0) {
-            const emptyMessage = searchQuery ? 
-                `<div class="event-list-empty">
-                    <div style="margin-bottom: 8px;">🔍</div>
-                    <div>"${searchQuery}"에 대한 검색 결과가 없습니다</div>
-                    <div style="font-size: 12px; margin-top: 4px; opacity: 0.7;">다른 키워드로 검색해보세요</div>
-                </div>` : 
-                `<div class="event-list-empty">
-                    <div>등록된 일정이 없습니다</div>
-                    <div style="font-size: 12px; margin-top: 4px; opacity: 0.7;">새 일정을 추가해보세요</div>
-                </div>`;
-            
-            eventList.innerHTML = emptyMessage;
-            return;
-        }
-        
-        // Sort events by date and time
-        const sortedEvents = [...events].sort((a, b) => {
-            const dateA = new Date(a.date + 'T' + a.startTime);
-            const dateB = new Date(b.date + 'T' + b.startTime);
-            return dateA - dateB;
-        });
-        
-        sortedEvents.forEach((event, index) => {
-            const eventItem = this.createEventListItem(event);
-            
-            // Add search result styling if this is a search
-            if (searchQuery) {
-                eventItem.classList.add('search-result-item');
-            }
-            
-            // Stagger animation for better visual effect
-            setTimeout(() => {
-                eventList.appendChild(eventItem);
-            }, index * 50);
-        });
-    }
-    
-    createEventListItem(event) {
-        const item = document.createElement('div');
-        item.className = 'event-list-item';
-        item.dataset.eventId = event.id;
-        
-        // Format date and time with enhanced formatting
-        const eventDate = new Date(event.date);
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
-        
-        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-        const dayName = dayNames[eventDate.getDay()];
-        
-        let dateDisplay;
-        if (eventDate.toDateString() === today.toDateString()) {
-            dateDisplay = '오늘';
-        } else if (eventDate.toDateString() === tomorrow.toDateString()) {
-            dateDisplay = '내일';
-        } else {
-            dateDisplay = `${eventDate.getMonth() + 1}월 ${eventDate.getDate()}일 (${dayName})`;
-        }
-        
-        // Format time range with improved display
-        const startTime = event.startTime;
-        const endTime = event.endTime;
-        const timeRange = `${startTime} - ${endTime}`;
-        
-        item.innerHTML = `
-            <div class="event-list-item-title">${event.title}</div>
-            <div class="event-list-item-time">${dateDisplay} · ${timeRange}</div>
-        `;
-        
-        // Add click handler to highlight event
-        item.addEventListener('click', () => {
-            this.highlightEventInCalendar(event.id);
-        });
-        
-        // Add right-click context menu for list items
-        item.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            this.showEventContextMenu(e, event);
-        });
-        
-        // Add entry animation
-        item.classList.add('event-list-item-enter');
-        
-        return item;
-    }
-    
-    highlightEventInCalendar(eventId) {
-        // Clear previous highlighting
-        document.querySelectorAll('.event-list-item.highlighted').forEach(item => {
-            item.classList.remove('highlighted');
-        });
-        
-        // Highlight clicked item
-        const clickedItem = document.querySelector(`[data-event-id="${eventId}"]`);
-        if (clickedItem) {
-            clickedItem.classList.add('highlighted');
-        }
-        
-        // Find and highlight the event in calendar
-        this.clearEventHighlighting();
-        this.highlightEvent(eventId);
-        
-        // Scroll to the event if needed
-        const eventElement = document.querySelector(`.calendar-event[data-event-id="${eventId}"]`);
-        if (eventElement) {
-            eventElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    }
 
     // Reposition existing popup to new clicked cell location
     repositionPopup(popup, clickedCell) {
