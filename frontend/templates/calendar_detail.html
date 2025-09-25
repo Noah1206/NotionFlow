@@ -4990,14 +4990,10 @@
         window.popupOpen = false;
         
         function showOverlayEventForm(date, time, clickedCell = null, endTime = null) {
-            // 이미 열려있으면 무시
             if (window.popupOpen) return;
             
             window.popupOpen = true;
             const overlay = document.getElementById('calendar-overlay-form');
-
-            // Show the overlay with multiple methods
-            console.log('✅ Showing overlay');
             overlay.style.display = 'block';
             overlay.style.visibility = 'visible';
                 overlay.style.opacity = '1';

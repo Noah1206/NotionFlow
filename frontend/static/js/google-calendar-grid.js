@@ -790,13 +790,10 @@ class GoogleCalendarGrid {
                     return;
                 }
                 
-                // Find the clicked cell to pass position information
                 let cellElement = clickedCell;
                 if (!cellElement) {
-                    // Try to find the cell by day and hour if not provided
                     cellElement = document.querySelector(`.time-cell[data-day="${startDay}"][data-hour="${startHour}"]`);
                 }
-                console.log('🎯 [Grid] Calling showOverlayEventForm with both times:', { startTimeStr, endTimeStr });
                 showOverlayEventForm(dateStr, startTimeStr, cellElement, endTimeStr);
             }
         }
@@ -3752,19 +3749,12 @@ class GoogleCalendarGrid {
 // ============ SIDEBAR EVENT FORM FUNCTIONS ============
 
 function openEventForm(date = null, eventData = null) {
-    const overlayForm = document.getElementById('calendar-overlay-form');
-    const formTitle = document.getElementById('overlay-form-title');
-    const form = document.getElementById('overlay-event-form');
+    if (window.popupOpen) return;
     
+    window.popupOpen = true;
+    const overlayForm = document.getElementById('calendar-overlay-form');
     if (!overlayForm) return;
     
-    // 이미 팝업이 열려있으면 무시
-    if (overlayForm.style.display === 'flex') {
-        console.log('🚫 Popup already open, ignoring');
-        return;
-    }
-    
-    // Show the overlay form
     overlayForm.style.display = 'flex';
     
     // Reset form
@@ -3801,59 +3791,10 @@ function openEventForm(date = null, eventData = null) {
 }
 
 function closeEventForm() {
+    window.popupOpen = false;
     const overlayForm = document.getElementById('calendar-overlay-form');
-    const overlayContent = overlayForm?.querySelector('.overlay-form-content');
-    
-    // 모든 팝업 생성 관련 상태 완전 초기화
-    if (window.googleCalendarGrid) {
-        // 선택 상태 완전 초기화
-        window.googleCalendarGrid.isSelecting = false;
-        window.googleCalendarGrid.selectedCells = new Set();
-        window.googleCalendarGrid.selectionStart = null;
-        window.googleCalendarGrid.selectionEnd = null;
-        
-        // 드래그 상태 초기화
-        window.googleCalendarGrid.isDragging = false;
-        window.googleCalendarGrid.isResizing = false;
-        window.googleCalendarGrid.dragStartY = 0;
-        window.googleCalendarGrid.dragStartTime = null;
-        window.googleCalendarGrid.originalEventData = null;
-        
-        // 선택 표시 제거
-        window.googleCalendarGrid.clearSelection();
-        
-        // 모든 이벤트 리스너 일시 비활성화 (300ms)
-        const gridBody = window.googleCalendarGrid.container?.querySelector('.calendar-grid-body');
-        if (gridBody) {
-            gridBody.style.pointerEvents = 'none';
-            setTimeout(() => {
-                gridBody.style.pointerEvents = '';
-            }, 300);
-        }
-    }
-    
-    // 전역 상태 플래그 초기화
-    window.eventCreationPopupActive = false;
-    window.isCreatingEvent = false;
-    
-    // 모든 관련 타임아웃 정리
-    if (window.popupTimeoutId) {
-        clearTimeout(window.popupTimeoutId);
-        window.popupTimeoutId = null;
-    }
-    
-    if (overlayForm && overlayContent) {
-        // Add closing animation
-        overlayContent.style.animation = 'slideDownToBottom 0.3s cubic-bezier(0.4, 0, 1, 1)';
-        overlayForm.style.animation = 'fadeOut 0.3s ease';
-        
-        // Hide after animation completes
-        setTimeout(() => {
-            overlayForm.style.display = 'none';
-            // Reset animations for next time
-            overlayContent.style.animation = '';
-            overlayForm.style.animation = '';
-        }, 300);
+    if (overlayForm) {
+        overlayForm.style.display = 'none';
     }
 }
 
