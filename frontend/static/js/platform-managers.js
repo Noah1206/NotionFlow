@@ -475,6 +475,67 @@ class GoogleManager extends PlatformManager {
             this.showNotification(`캘린더 연결 중 오류: ${error.message}`, 'error');
         }
     }
+    
+    // Google Calendar 동기화 메서드 추가
+    async syncCalendarEvents() {
+        if (!this.syncBtn) {
+            console.error('Sync button not found');
+            return;
+        }
+        
+        this.showLoading(this.syncBtn);
+        
+        try {
+            console.log('🔄 Starting Google Calendar sync...');
+            
+            const response = await fetch('/api/google-calendar/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                const message = result.message || `Google Calendar 동기화 완료: ${result.events_processed || 0}개 이벤트`;
+                this.showNotification(message, 'success');
+                
+                // 페이지 새로고침으로 캘린더 업데이트
+                if (typeof window.googleCalendarGrid?.loadFromBackend === 'function') {
+                    await window.googleCalendarGrid.loadFromBackend();
+                }
+                
+                console.log('✅ Google Calendar sync completed:', result);
+                
+            } else {
+                const error = result.error || 'Google Calendar 동기화 실패';
+                throw new Error(error);
+            }
+            
+        } catch (error) {
+            console.error('Google Calendar sync error:', error);
+            this.showNotification(`Google Calendar 동기화 실패: ${error.message}`, 'error');
+        } finally {
+            this.hideLoading(this.syncBtn);
+        }
+    }
+    
+    // 동기화 상태 확인
+    async checkSyncStatus() {
+        try {
+            const response = await fetch('/api/google-calendar/status');
+            if (response.ok) {
+                const data = await response.json();
+                return {
+                    last_sync: data.last_sync,
+                    events_count: data.events_count,
+                    sync_enabled: data.sync_enabled
+                };
+            }
+        } catch (error) {
+            console.error('Error checking Google Calendar sync status:', error);
+        }
+        return null;
+    }
 }
 
 // Apple Calendar Platform Manager  

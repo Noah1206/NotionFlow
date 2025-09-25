@@ -3873,6 +3873,15 @@ except ImportError as e:
     print(f"[WARNING] Slack slash commands not available: {e}")
     pass
 
+# 📅 Register Google Calendar Sync Routes (optional)
+try:
+    from routes.google_calendar_sync_routes import google_calendar_bp
+    app.register_blueprint(google_calendar_bp)
+    print("[SUCCESS] Google Calendar sync routes registered")
+except ImportError as e:
+    print(f"[WARNING] Google Calendar sync routes not available: {e}")
+    pass
+
 # Removed duplicate health endpoint
 
 # ====== 💳 PAYMENT SYSTEM ROUTES ======

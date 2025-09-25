@@ -3214,8 +3214,16 @@ class GoogleCalendarGrid {
 
     // 필터링된 이벤트로 그리드 업데이트
     updateWithFilteredEvents(filteredEvents, selectedCalendarIds) {
-        console.log('🔍 Updating grid with filtered events:', filteredEvents?.length, 'Selected calendars:', selectedCalendarIds);
+        console.log('🔍 [DEBUG] Filtering disabled - showing all events');
+        console.log('🔍 Original filtered events:', filteredEvents?.length, 'Selected calendars:', selectedCalendarIds);
         
+        // 임시로 필터링 비활성화 - 모든 이벤트 표시
+        console.log('📅 [DEBUG] Bypassing filtering - showing all events');
+        this.showAllEvents();
+        return;
+        
+        // 아래는 원래 필터링 로직 (현재 비활성화됨)
+        /*
         // 현재 캘린더 ID 확인 
         const currentCalendarId = window.location.pathname.split('/').pop();
         
@@ -3243,6 +3251,7 @@ class GoogleCalendarGrid {
             this.hideAllEvents();
             this.updateEventList([]);
         }
+        */
     }
     
     // 모든 이벤트 숨기기

@@ -156,9 +156,9 @@
                     </div>
                 </div>
                 <div class="platform-actions">
-                    <button class="platform-sync-btn" onclick="openCalendarSyncModal('google')" data-platform="google"
+                    <button class="platform-sync-btn" onclick="syncGoogleCalendar()" data-platform="google"
                         style="display: none;">
-                        <span class="sync-text">캘린더 연동</span>
+                        <span class="sync-text">캘린더 동기화</span>
                         <div class="sync-loader" style="display: none;">
                             <div class="loader-dot"></div>
                         </div>
@@ -1033,6 +1033,7 @@
 <script
     src="{{ url_for('static', filename='js/apple-setup-wizard.js') }}?v={{ range(100000, 999999) | random }}"></script>
 <script src="{{ url_for('static', filename='js/platform-health.js') }}?v={{ range(100000, 999999) | random }}"></script>
+<script src="{{ url_for('static', filename='js/platform-managers.js') }}?v={{ range(100000, 999999) | random }}"></script>
 <script>
     // 🚀 CALENDAR GRID REFRESH TRIGGER FUNCTION
     function triggerCalendarGridRefresh(calendarId, syncedCount = 0) {
@@ -4067,6 +4068,42 @@
             console.error('Google Calendar 이벤트 자동 가져오기 실패:', error);
             // 에러가 있어도 사용자에게 너무 큰 알림을 주지 않도록 함
             console.log('Google Calendar 이벤트 자동 가져오기를 건너뜁니다.');
+        }
+    }
+
+    // Google Calendar 동기화 함수
+    async function syncGoogleCalendar() {
+        try {
+            console.log('🔄 Starting Google Calendar sync...');
+            
+            // GoogleManager를 사용하여 동기화 실행
+            const googleManager = PlatformManagerFactory.create('google');
+            if (googleManager && typeof googleManager.syncCalendarEvents === 'function') {
+                await googleManager.syncCalendarEvents();
+            } else {
+                // Fallback: 직접 API 호출
+                const response = await fetch('/api/google-calendar/sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    const message = result.message || `Google Calendar 동기화 완료: ${result.events_processed || 0}개 이벤트`;
+                    showNotification(message, 'success');
+                    
+                    // 캘린더 새로고침
+                    if (typeof loadSyncedCalendars === 'function') {
+                        loadSyncedCalendars();
+                    }
+                } else {
+                    throw new Error(result.error || 'Google Calendar 동기화 실패');
+                }
+            }
+        } catch (error) {
+            console.error('Google Calendar sync error:', error);
+            showNotification(`Google Calendar 동기화 실패: ${error.message}`, 'error');
         }
     }
 
