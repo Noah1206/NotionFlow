@@ -6841,6 +6841,18 @@
         // Load events when page is ready
         document.addEventListener('DOMContentLoaded', function() {
             
+            // Initialize GoogleCalendarGrid first
+            const container = document.getElementById('calendar-grid-container');
+            if (container && typeof GoogleCalendarGrid !== 'undefined') {
+                window.googleCalendarGrid = new GoogleCalendarGrid(container);
+                console.log('✅ GoogleCalendarGrid initialized successfully');
+            } else {
+                console.error('❌ Could not initialize GoogleCalendarGrid:', {
+                    container: container,
+                    GoogleCalendarGridClass: typeof GoogleCalendarGrid
+                });
+            }
+            
             // Set up refresh listeners first
             setupRefreshListeners();
             
