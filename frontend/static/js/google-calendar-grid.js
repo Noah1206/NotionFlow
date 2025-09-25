@@ -2967,6 +2967,11 @@ class GoogleCalendarGrid {
                             
                             if (indexToRemove !== -1) {
                                 const removedEvent = this.events[indexToRemove];
+                                
+                                // 백엔드에서 삭제 요청
+                                this.deleteEventFromBackend(removedEvent.id);
+                                
+                                // 클라이언트에서 제거
                                 this.events.splice(indexToRemove, 1);
                                 this.saveToLocalStorage();
                                 console.log('✅ Force removed from events array:', removedEvent.title);
@@ -3056,6 +3061,25 @@ class GoogleCalendarGrid {
         // Call the main delete function (휴지통 확인 포함)
         console.log('✅ Found event to delete:', eventData.title);
         return this.deleteEvent(eventData);
+    }
+
+    deleteEventFromBackend(eventId) {
+        fetch(`/api/calendar/${this.calendarId}/events/${eventId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log('✅ Event deleted from backend:', eventId);
+            } else {
+                console.error('❌ Failed to delete event from backend:', eventId);
+            }
+        })
+        .catch(error => {
+            console.error('❌ Error deleting event from backend:', error);
+        });
     }
 
     updateMainContentDimensions() {
