@@ -3163,8 +3163,14 @@ class GoogleCalendarGrid {
             
             console.log('♻️ Event restored from trash:', eventToRestore.title);
             
+            // 휴지통 UI 업데이트
             if (window.updateTrashUI) {
                 window.updateTrashUI();
+            }
+            
+            // 복원 후 휴지통 닫기
+            if (window.hideTrashPopup) {
+                setTimeout(() => window.hideTrashPopup(), 500);
             }
         }
     }

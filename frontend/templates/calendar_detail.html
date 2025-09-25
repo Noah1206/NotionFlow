@@ -5751,6 +5751,67 @@
             closeOverlayEventForm();
         }
 
+        // Trash functions
+        function showTrashPopup() {
+            const popup = document.getElementById('trash-popup');
+            if (popup) {
+                updateTrashUI();
+                popup.style.display = 'block';
+            }
+        }
+        
+        function hideTrashPopup() {
+            const popup = document.getElementById('trash-popup');
+            if (popup) {
+                popup.style.display = 'none';
+            }
+        }
+        
+        function updateTrashUI() {
+            const trashedEvents = getTrashedEvents();
+            const content = document.getElementById('trash-popup-content');
+            const emptyDiv = document.getElementById('trash-empty');
+            
+            if (!content) return;
+            
+            if (trashedEvents.length === 0) {
+                content.innerHTML = '<div class="trash-empty" id="trash-empty">휴지통이 비어있습니다.</div>';
+                return;
+            }
+            
+            let html = '';
+            trashedEvents.forEach(event => {
+                const deletedDate = new Date(event.deletedAt).toLocaleDateString('ko-KR');
+                html += `
+                    <div class="trash-event-item" data-event-id="${event.id}">
+                        <div class="event-title">${event.title || '제목 없음'}</div>
+                        <div class="event-time">${event.start_time || '시간 없음'} - ${event.end_time || ''}</div>
+                        <div class="event-date">${event.date || ''} (${deletedDate} 삭제됨)</div>
+                        <div class="trash-event-actions" style="margin-top: 8px; display: flex; gap: 8px;">
+                            <button onclick="restoreEventFromTrash('${event.id}')" style="background: #28a745; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 12px;">복원</button>
+                            <button onclick="permanentlyDeleteEvent('${event.id}')" style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 12px;">완전삭제</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            content.innerHTML = html;
+        }
+        
+        function emptyTrash() {
+            if (confirm('휴지통을 완전히 비우시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+                const currentCalendarId = window.location.pathname.split('/').pop();
+                let trashedEvents = JSON.parse(localStorage.getItem('trashedEvents') || '[]');
+                
+                // 현재 캘린더의 휴지통 이벤트만 제거
+                trashedEvents = trashedEvents.filter(event => event.calendarId !== currentCalendarId);
+                localStorage.setItem('trashedEvents', JSON.stringify(trashedEvents));
+                
+                updateTrashUI();
+                console.log('🗑️ Trash emptied for current calendar');
+            }
+        }
+
         // Make functions globally available
         window.showOverlayEventForm = showOverlayEventForm;
         window.closeOverlayEventForm = closeOverlayEventForm;
@@ -5759,6 +5820,10 @@
         window.closeEventForm = closeEventForm;
         window.saveOverlayEvent = saveOverlayEvent;
         window.repositionOverlayPopup = repositionOverlayPopup;
+        window.showTrashPopup = showTrashPopup;
+        window.hideTrashPopup = hideTrashPopup;
+        window.updateTrashUI = updateTrashUI;
+        window.emptyTrash = emptyTrash;
 
         // Time Picker Functions
         let currentTimePickerType = null; // 'start' or 'end'
