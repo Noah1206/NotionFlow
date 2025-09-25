@@ -5252,62 +5252,23 @@
         window.originalShowOverlayEventForm = window.originalShowOverlayEventForm || showOverlayEventForm;
         
         function closeOverlayEventForm(event) {
-            console.log('🚫 COMPLETE POPUP SHUTDOWN');
-            
-            // 1. 즉시 모든 이벤트 전파 차단
+            // 1. 이벤트 차단
             if (event) {
                 event.preventDefault();
                 event.stopPropagation();
                 event.stopImmediatePropagation();
             }
             
-            // 2. 모든 팝업 요소를 완전히 숨기고 비활성화
+            // 2. 팝업 숨기기
             const overlay = document.getElementById('calendar-overlay-form');
             if (overlay) {
                 overlay.style.display = 'none';
-                overlay.style.visibility = 'hidden';
-                overlay.style.opacity = '0';
-                overlay.style.pointerEvents = 'none';
-                overlay.classList.add('hidden');
-                overlay.classList.remove('show');
-                
-                // 추가적으로 DOM에서 완전히 제거
-                overlay.remove();
-                console.log('🗑️ Overlay DOM element completely removed');
             }
             
-            // 3. showOverlayEventForm 함수 완전 무력화 (더 강력하게)
-            window.showOverlayEventForm = function() {
-                console.log('❌ POPUP CREATION PERMANENTLY BLOCKED');
-                return false;
-            };
-            
-            // 4. 모든 관련 전역 변수 초기화
-            window.POPUP_BLOCKED = true;
-            window.eventCreationPopupActive = false;
-            window.isCreatingEvent = false;
-            
-            // 5. GoogleCalendarGrid 상태 완전 초기화
-            if (window.googleCalendarGrid) {
-                window.googleCalendarGrid.isSelecting = false;
-                window.googleCalendarGrid.selectedCells = new Set();
-                window.googleCalendarGrid.selectionStart = null;
-                window.googleCalendarGrid.selectionEnd = null;
-                window.googleCalendarGrid.clearSelection();
-            }
-            
-            // 6. 2초 후에만 복원 (더 긴 시간)
-            setTimeout(() => {
-                window.POPUP_BLOCKED = false;
-                // showOverlayEventForm 복원하지 않음 - 완전히 비활성화 상태 유지
-                console.log('🔓 Basic interactions restored (popup creation still blocked)');
-            }, 2000);
-            
-            // 7. 모든 타임아웃 정리
-            if (window.popupTimeoutId) {
-                clearTimeout(window.popupTimeoutId);
-                window.popupTimeoutId = null;
-            }
+            // 3. 모든 팝업 생성 함수 비활성화
+            window.showOverlayEventForm = function() { return false; };
+            window.showOverlayEventFormMultiDay = function() { return false; };
+            window.createOverlayElement = function() { return false; };
             
             return false;
             

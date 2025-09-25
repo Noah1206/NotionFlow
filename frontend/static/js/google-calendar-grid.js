@@ -908,71 +908,75 @@ class GoogleCalendarGrid {
             // Remove from DOM immediately - comprehensive search
             console.log('🗑️ Removing event from display:', eventData.title, 'ID:', eventData.id);
             
-            // 간단하고 효과적인 DOM 제거
-            console.log('🔍 Looking for elements to remove...');
+            // 🎯 정확한 DOM 제거 - renderEvent에서 생성된 구조 기반
+            console.log('🎯 Removing event element with exact selectors...');
             let removedCount = 0;
             
-            // 1. 모든 div 요소에서 제목이 포함된 것 찾기
-            const allDivs = document.querySelectorAll('div');
-            allDivs.forEach(div => {
-                if (div.textContent && div.textContent.includes(eventData.title)) {
-                    // 이벤트 관련 요소인지 확인
-                    if (div.style.position === 'absolute' || 
-                        div.querySelector('[onclick*="delete"]') ||
-                        div.className.includes('event') ||
-                        div.parentElement?.className.includes('event')) {
-                        
-                        console.log(`💀 Removing div containing: "${eventData.title}"`);
-                        div.remove();
-                        removedCount++;
-                    }
+            // 1. data-event-id 속성으로 직접 제거 (가장 정확함)
+            const eventElements = document.querySelectorAll(`[data-event-id="${eventData.id}"]`);
+            eventElements.forEach(element => {
+                console.log(`💀 Removed by data-event-id: ${eventData.id}`);
+                element.remove();
+                removedCount++;
+            });
+            
+            // 2. calendar-event 클래스이면서 제목이 일치하는 요소
+            const calendarEvents = document.querySelectorAll('.calendar-event');
+            calendarEvents.forEach(element => {
+                if (element.textContent && element.textContent.includes(eventData.title)) {
+                    console.log(`💀 Removed by title match: "${eventData.title}"`);
+                    element.remove();
+                    removedCount++;
                 }
             });
             
-            // 2. 모든 span 요소도 확인
-            const allSpans = document.querySelectorAll('span');
-            allSpans.forEach(span => {
-                if (span.textContent && span.textContent.includes(eventData.title)) {
-                    const container = span.closest('div');
-                    if (container && (container.style.position === 'absolute' || 
-                                   container.querySelector('[onclick*="delete"]'))) {
-                        console.log(`💀 Removing span container for: "${eventData.title}"`);
-                        container.remove();
-                        removedCount++;
-                    }
+            // 3. 삭제 버튼의 onclick에 해당 ID가 포함된 요소들
+            const deleteButtons = document.querySelectorAll(`[onclick*="deleteEventById('${eventData.id}')"]`);
+            deleteButtons.forEach(button => {
+                // 삭제 버튼이 속한 calendar-event 요소 찾기
+                const eventContainer = button.closest('.calendar-event');
+                if (eventContainer) {
+                    console.log(`💀 Removed via delete button: "${eventData.title}"`);
+                    eventContainer.remove();
+                    removedCount++;
                 }
             });
             
             console.log(`✅ Removed ${removedCount} elements from display`);
             
+            // 🚨 IMMEDIATE FORCE REMOVAL - 즉시 강제 제거
+            console.log('🚨 IMMEDIATE FORCE REMOVAL...');
+            
+            // 모든 .calendar-event 요소에서 해당 제목이 포함된 것들 제거
+            document.querySelectorAll('.calendar-event').forEach(element => {
+                if (element.textContent && element.textContent.includes(eventData.title)) {
+                    element.style.display = 'none'; // 즉시 숨기기
+                    element.remove(); // 그리고 제거
+                    console.log(`💀 FORCE REMOVED: "${eventData.title}"`);
+                }
+            });
+            
             // Update event list and refresh display
             this.updateEventList();
             
             // 🔄 강제 그리드 새로고침 - 모든 이벤트 다시 그리기
-            console.log('🔄 Force refresh: clearing all rendered events and re-rendering...');
-            
-            // 1. 모든 렌더된 이벤트 완전히 제거
-            this.clearRenderedEvents();
-            
-            // 2. 현재 남은 이벤트들만 다시 렌더링
-            this.events.filter(event => event && event.id && event.date).forEach(event => {
-                this.renderEvent(event);
-                console.log('✅ Re-rendered event:', event.title);
-            });
-            
-            // 3. 이벤트 목록도 업데이트
-            this.updateEventList();
-            
-            // 4. 추가 새로고침 (안전장치)
             setTimeout(() => {
-                console.log('🔄 Additional refresh...');
-                if (this.renderEvents) {
-                    this.renderEvents();
-                } else if (this.render) {
-                    this.render();
-                }
-                console.log('✅ Final refresh completed');
-            }, 200);
+                console.log('🔄 Force refresh: clearing all rendered events and re-rendering...');
+                
+                // 1. 모든 렌더된 이벤트 완전히 제거
+                this.clearRenderedEvents();
+                
+                // 2. 현재 남은 이벤트들만 다시 렌더링
+                this.events.filter(event => event && event.id && event.date).forEach(event => {
+                    this.renderEvent(event);
+                    console.log('✅ Re-rendered event:', event.title);
+                });
+                
+                // 3. 이벤트 목록도 업데이트
+                this.updateEventList();
+                
+                console.log('✅ Force refresh completed');
+            }, 50);
             
             // Close any open popup
             const popups = document.querySelectorAll('.event-creation-popup');
