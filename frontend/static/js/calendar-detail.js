@@ -2396,6 +2396,15 @@ async function loadEvents() {
                 calendarEvents = [];
             }
             
+            // Pass events to GoogleCalendarGrid if it exists
+            if (window.googleCalendarGrid && typeof window.googleCalendarGrid.loadEvents === 'function') {
+                console.log('🔄 Passing events to GoogleCalendarGrid:', events.length, 'events');
+                window.googleCalendarGrid.loadEvents(events);
+            } else {
+                console.log('⚠️ GoogleCalendarGrid not ready, storing events for later');
+                window.pendingCalendarEvents = events;
+            }
+            
             // Render the calendar with loaded events (optimized - only render current view)
             if (currentView === 'month') {
                 renderMonthView();

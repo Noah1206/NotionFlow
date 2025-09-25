@@ -3499,6 +3499,43 @@ class GoogleCalendarGrid {
         // console.log('📏 Updated dimensions - Sidebar:', sidebarWidth, 'Main content:', mainContentWidth);
     }
 
+    // 서버에서 받은 이벤트 데이터를 직접 로드하는 메서드
+    loadEvents(events) {
+        console.log('📥 [DEBUG] loadEvents called with:', events?.length, 'events');
+        
+        if (!events || !Array.isArray(events)) {
+            console.warn('⚠️ loadEvents called with invalid data:', events);
+            return;
+        }
+        
+        // 기존 이벤트 초기화
+        this.events = [];
+        
+        // 이벤트 변환 및 렌더링
+        events.forEach(event => {
+            try {
+                // 백엔드 이벤트를 프론트엔드 형식으로 변환
+                const frontendEvent = this.convertBackendEventToFrontend(event);
+                
+                // 이벤트 저장
+                this.events.push(frontendEvent);
+                
+                // 렌더링
+                this.renderEvent(frontendEvent);
+            } catch (error) {
+                console.error('Failed to process event:', event, error);
+            }
+        });
+        
+        // 이벤트 목록 업데이트
+        this.updateEventList();
+        
+        // localStorage에 백업
+        this.saveToLocalStorage();
+        
+        console.log('✅ [DEBUG] Loaded', this.events.length, 'events successfully');
+    }
+    
     async loadExistingEvents() {
         // console.log('📥 Loading existing events...');
         
