@@ -4986,10 +4986,13 @@
             
             window.popupOpen = true;
             const overlay = document.getElementById('calendar-overlay-form');
-            overlay.style.display = 'block';
-            overlay.style.visibility = 'visible';
+            if (overlay) {
+                overlay.style.display = 'block';
+                overlay.style.visibility = 'visible';
                 overlay.style.opacity = '1';
                 overlay.style.pointerEvents = 'auto';
+                overlay.style.zIndex = '1000';
+            }
                 overlay.classList.remove('hidden');
                 overlay.classList.add('show');
 
@@ -5726,18 +5729,21 @@
         }
 
         function closeOverlayEventForm(event) {
-            // 모든 오버레이 완전 제거
-            document.querySelectorAll('.calendar-overlay-form, #calendar-overlay-form, [id*="overlay"], [class*="overlay"], [class*="popup"], [class*="modal"]').forEach(el => {
-                el.remove();
-            });
+            // 메인 오버레이만 숨기기 (제거하지 않음)
+            const overlay = document.getElementById('calendar-overlay-form');
+            if (overlay) {
+                overlay.style.display = 'none';
+                overlay.style.visibility = 'hidden';
+                overlay.style.opacity = '0';
+                overlay.style.pointerEvents = 'none';
+                overlay.style.zIndex = '-1';
+            }
             
-            // 혹시나 남은 것들 스타일로 숨기기
-            const remaining = document.querySelectorAll('[style*="display: block"], [style*="visible"]');
-            remaining.forEach(el => {
-                if (el.id && el.id.includes('overlay')) {
-                    el.style.display = 'none';
-                }
-            });
+            // 폼 초기화
+            clearOverlayEventForm();
+            
+            // 팝업 플래그 리셋
+            window.popupOpen = false;
         }
 
         // Alias for backward compatibility
