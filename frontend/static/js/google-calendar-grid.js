@@ -3516,23 +3516,33 @@ class GoogleCalendarGrid {
             const calendarId = calendarElement.dataset.calendarId;
             // console.log('🔍 Fetching events for calendar:', calendarId);
             
+            console.log('🌐 [DEBUG] Fetching events from API:', `/api/calendars/${calendarId}/events`);
             const response = await fetch(`/api/calendars/${calendarId}/events`);
+            
+            console.log('🌐 [DEBUG] API response status:', response.status);
             
             if (response.ok) {
                 const data = await response.json();
+                console.log('🌐 [DEBUG] API response data:', data);
                 
                 // Handle both array and object responses (same logic as calendar-detail.js)
                 let events = [];
                 if (Array.isArray(data)) {
                     events = data;
+                    console.log('🌐 [DEBUG] Data is array, using directly:', events.length, 'events');
                 } else if (typeof data === 'object' && data !== null) {
                     events = data.events || data.data || data.items || [];
+                    console.log('🌐 [DEBUG] Data is object, extracted events:', events.length, 'events');
                 } else {
                     events = [];
+                    console.log('🌐 [DEBUG] Data is neither array nor object, using empty array');
                 }
+                
+                console.log('🌐 [DEBUG] Final events to process:', events.length, events);
                 
                 // Clear existing events
                 this.events = [];
+                console.log('🌐 [DEBUG] Cleared existing events array');
                 
                 if (events && events.length > 0) {
                     // Distribute events across different time slots if they lack time info
@@ -3733,10 +3743,20 @@ class GoogleCalendarGrid {
     loadFromLocalStorage() {
         try {
             const storageKey = 'calendar_events_backup';
-            const events = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            const rawData = localStorage.getItem(storageKey);
+            console.log('📱 [DEBUG] Raw localStorage data:', rawData);
+            
+            const events = JSON.parse(rawData || '[]');
+            console.log('📱 [DEBUG] Parsed events from localStorage:', events.length, events);
+            
             // Filter out null/invalid events when loading
             const validEvents = events.filter(event => event && event.id && event.date);
-            // console.log('📱 Loaded from localStorage backup:', validEvents.length, 'valid events out of', events.length, 'total');
+            console.log('📱 [DEBUG] Valid events after filtering:', validEvents.length, 'out of', events.length, 'total');
+            
+            // Check specific dates
+            const sept25Events = validEvents.filter(event => event.date === '2025-09-25');
+            console.log('📱 [DEBUG] Events for 2025-09-25:', sept25Events.length, sept25Events);
+            
             return validEvents;
         } catch (error) {
             console.error('❌ Failed to load from localStorage:', error);
