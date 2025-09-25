@@ -2055,15 +2055,26 @@ class GoogleCalendarGrid {
         const eventElement = document.createElement('div');
         eventElement.className = 'calendar-event';
         
-        // Apply color as inline style if it's a hex color
-        if (eventData.color && eventData.color.startsWith('#')) {
+        // Apply color based on event source
+        if (eventData.source === 'google_calendar') {
+            // Google Calendar events - Green theme
+            eventElement.style.backgroundColor = '#34a853'; // Google Green
+            eventElement.style.borderLeft = '4px solid #1e7e34';
+            eventElement.classList.add('google-calendar-event');
+        } else if (eventData.source === 'notion') {
+            // Notion events - Original blue theme
+            eventElement.style.backgroundColor = '#3b82f6';
+            eventElement.style.borderLeft = '4px solid #1d4ed8';
+            eventElement.classList.add('notion-event');
+        } else if (eventData.color && eventData.color.startsWith('#')) {
+            // Custom color specified
             eventElement.style.backgroundColor = eventData.color;
         } else if (eventData.color) {
             // If it's a color class name
             eventElement.classList.add(eventData.color);
         } else {
-            // Default color if none specified
-            eventElement.style.backgroundColor = '#3b82f6';
+            // Default color for other events
+            eventElement.style.backgroundColor = '#6b7280'; // Gray for unknown sources
         }
         
         eventElement.innerHTML = `
@@ -2172,11 +2183,21 @@ class GoogleCalendarGrid {
         eventElement.className = 'calendar-event all-day-event';
         eventElement.dataset.eventId = eventData.id;
         
-        // Apply color as inline style
-        if (eventData.color && eventData.color.startsWith('#')) {
+        // Apply color based on event source
+        if (eventData.source === 'google_calendar') {
+            // Google Calendar events - Green theme
+            eventElement.style.backgroundColor = '#34a853';
+            eventElement.style.borderLeft = '4px solid #1e7e34';
+            eventElement.classList.add('google-calendar-event');
+        } else if (eventData.source === 'notion') {
+            // Notion events - Original blue theme
+            eventElement.style.backgroundColor = '#3b82f6';
+            eventElement.style.borderLeft = '4px solid #1d4ed8';
+            eventElement.classList.add('notion-event');
+        } else if (eventData.color && eventData.color.startsWith('#')) {
             eventElement.style.backgroundColor = eventData.color;
         } else {
-            eventElement.style.backgroundColor = '#3b82f6';
+            eventElement.style.backgroundColor = '#6b7280';
         }
         
         eventElement.style.cssText += `
