@@ -1,13 +1,18 @@
-# Use Python 3.11 slim image
-FROM python:3.11-slim
+# Use Node.js base image with Python (multi-stage build alternative)
+# This is often cached on cloud platforms and avoids Docker Hub issues
+FROM node:18-bullseye
+
+# Install Python 3.11
+RUN apt-get update && apt-get install -y \
+    python3.11 \
+    python3.11-pip \
+    python3.11-venv \
+    && ln -sf /usr/bin/python3.11 /usr/bin/python3 \
+    && ln -sf /usr/bin/python3.11 /usr/bin/python \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
-    && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
 COPY requirements.txt .

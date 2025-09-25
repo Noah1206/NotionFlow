@@ -16,4 +16,9 @@ from frontend.app import app
 # Health check is handled in frontend/app.py
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5003)))
+    # Cloud Run sets PORT environment variable
+    port = int(os.environ.get('PORT', 8080))
+    debug = os.environ.get('FLASK_ENV', 'production') == 'development'
+    
+    print(f"Starting NotionFlow app on port {port} (debug={debug})")
+    app.run(debug=debug, host='0.0.0.0', port=port)

@@ -1,0 +1,19 @@
+# Docker ignore file to speed up builds
+.git
+.gitignore
+README.md
+.env
+.env.*
+*.log
+node_modules
+__pycache__
+*.pyc
+.pytest_cache
+.coverage
+.vscode
+.idea
+*.md
+.DS_Store
+Dockerfile*
+docker-compose*
+.dockerignore
