@@ -948,13 +948,25 @@ class GoogleCalendarGrid {
             console.log('🚨 IMMEDIATE FORCE REMOVAL...');
             
             // 모든 .calendar-event 요소에서 해당 제목이 포함된 것들 제거
+            let immediateRemovalCount = 0;
             document.querySelectorAll('.calendar-event').forEach(element => {
                 if (element.textContent && element.textContent.includes(eventData.title)) {
                     element.style.display = 'none'; // 즉시 숨기기
                     element.remove(); // 그리고 제거
+                    immediateRemovalCount++;
                     console.log(`💀 FORCE REMOVED: "${eventData.title}"`);
                 }
             });
+            
+            // 추가적으로 data-event-id로도 제거
+            document.querySelectorAll(`[data-event-id="${eventData.id}"]`).forEach(element => {
+                element.style.display = 'none';
+                element.remove();
+                immediateRemovalCount++;
+                console.log(`💀 REMOVED BY ID: ${eventData.id}`);
+            });
+            
+            console.log(`🗑️ IMMEDIATE REMOVAL: ${immediateRemovalCount} elements removed`);
             
             // Update event list and refresh display
             this.updateEventList();
@@ -966,13 +978,28 @@ class GoogleCalendarGrid {
                 // 1. 모든 렌더된 이벤트 완전히 제거
                 this.clearRenderedEvents();
                 
-                // 2. 현재 남은 이벤트들만 다시 렌더링
-                this.events.filter(event => event && event.id && event.date).forEach(event => {
+                // 2. 추가로 모든 calendar-event 클래스 요소 강제 제거
+                document.querySelectorAll('.calendar-event').forEach(element => {
+                    element.remove();
+                });
+                
+                // 3. 현재 남은 이벤트들만 다시 렌더링 (삭제된 이벤트 제외)
+                const validEvents = this.events.filter(event => {
+                    return event && 
+                           event.id && 
+                           event.date && 
+                           event.title !== eventData.title && // 삭제된 이벤트 제목 제외
+                           String(event.id) !== String(eventData.id); // 삭제된 이벤트 ID 제외
+                });
+                
+                console.log(`🔄 Rendering ${validEvents.length} remaining events (excluding deleted event)`);
+                
+                validEvents.forEach(event => {
                     this.renderEvent(event);
                     console.log('✅ Re-rendered event:', event.title);
                 });
                 
-                // 3. 이벤트 목록도 업데이트
+                // 4. 이벤트 목록도 업데이트
                 this.updateEventList();
                 
                 console.log('✅ Force refresh completed');
@@ -2908,14 +2935,32 @@ class GoogleCalendarGrid {
                         }
                     }
                     
-                    // 이벤트를 못 찾으면 제목으로 확인 후 DOM에서만 제거
-                    console.log('⚠️ Event not found in array, removing from DOM only');
-                    if (confirm(`"${eventTitle}" 일정을 삭제하시겠습니까?`)) {
-                        eventElement.remove();
-                        console.log('🗑️ Removed from DOM');
-                        return true;
+                    // 이벤트를 못 찾으면 제목으로 배열에서 찾아서 완전 삭제
+                    console.log('⚠️ Event not found by ID, searching by title in array...');
+                    const eventByTitle = this.events.find(e => e.title === eventTitle);
+                    
+                    if (eventByTitle) {
+                        console.log('✅ Found event by title, calling full deleteEvent:', eventByTitle.title);
+                        // 제목으로 찾은 이벤트로 완전한 삭제 프로세스 실행
+                        return this.deleteEvent(eventByTitle);
+                    } else {
+                        console.log('⚠️ Event not found in array at all, DOM removal only');
+                        if (confirm(`"${eventTitle}" 일정을 삭제하시겠습니까?`)) {
+                            eventElement.remove();
+                            console.log('🗑️ Removed from DOM only');
+                            
+                            // 🚨 강제로 배열에서도 제거 시도 (제목 기반)
+                            const indexToRemove = this.events.findIndex(e => e && e.title && e.title.includes(eventTitle.trim()));
+                            if (indexToRemove !== -1) {
+                                this.events.splice(indexToRemove, 1);
+                                this.saveToLocalStorage();
+                                console.log('✅ Force removed from events array by title match');
+                            }
+                            
+                            return true;
+                        }
+                        return false;
                     }
-                    return false;
                 }
             }
             
