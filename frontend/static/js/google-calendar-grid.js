@@ -3219,13 +3219,18 @@ class GoogleCalendarGrid {
         // 현재 캘린더 ID 확인 
         const currentCalendarId = window.location.pathname.split('/').pop();
         
-        // 선택된 캘린더가 없거나 현재 캘린더가 선택되지 않은 경우
-        if (!selectedCalendarIds || selectedCalendarIds.length === 0 || !selectedCalendarIds.includes(currentCalendarId)) {
-            console.log('📅 Current calendar not selected, hiding all events');
-            // 모든 이벤트 숨기기
-            this.hideAllEvents();
-            this.updateEventList([]); // 사이드바에서도 숨기기
+        // 선택된 캘린더가 없는 경우에만 숨기기 (현재 캘린더는 항상 표시)
+        if (!selectedCalendarIds || selectedCalendarIds.length === 0) {
+            console.log('📅 No calendars selected, showing all events in current calendar');
+            // 현재 캘린더의 모든 이벤트 표시 (필터링 없음)
+            this.showAllEvents();
             return;
+        }
+        
+        // 현재 캘린더가 선택되지 않은 경우 자동으로 추가
+        if (!selectedCalendarIds.includes(currentCalendarId)) {
+            console.log('📅 Adding current calendar to selection:', currentCalendarId);
+            selectedCalendarIds.push(currentCalendarId);
         }
         
         // 필터링된 이벤트가 있는 경우
@@ -3246,6 +3251,16 @@ class GoogleCalendarGrid {
         eventElements.forEach(element => {
             element.style.display = 'none';
         });
+    }
+    
+    // 모든 이벤트 표시
+    showAllEvents() {
+        const eventElements = this.container.querySelectorAll('.calendar-event');
+        eventElements.forEach(element => {
+            element.style.display = 'block';
+        });
+        // 사이드바 이벤트 목록도 업데이트
+        this.updateEventList(this.events);
     }
     
     // 필터링된 이벤트만 표시
