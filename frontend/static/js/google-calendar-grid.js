@@ -3029,20 +3029,61 @@ class GoogleCalendarGrid {
                                     });
                                     this.updateEventList();
                                 } else {
-                                    console.log('🚨 최후 수단: DOM만 제거하고 가짜 이벤트 생성');
+                                    console.log('🚨 최후 수단: DOM제거 + 배열에서 강제 검색/제거');
                                     
                                     // DOM에서 강제 제거
                                     this.removeEventFromDOM(eventIdStr, eventTitle);
                                     
-                                    // 가짜 이벤트 만들어서 휴지통에 보내기
-                                    const fakeEvent = {
-                                        id: eventIdStr,
-                                        title: eventTitle || `삭제된 이벤트 ${eventIdStr}`,
-                                        date: new Date().toISOString().split('T')[0],
-                                        start_time: '09:00',
-                                        end_time: '10:00'
-                                    };
-                                    this.moveEventToTrash(fakeEvent);
+                                    // 배열에서 ID나 제목으로 강제 검색해서 제거
+                                    let foundAndRemoved = false;
+                                    
+                                    // 더 관대한 검색으로 배열에서 제거
+                                    for (let i = this.events.length - 1; i >= 0; i--) {
+                                        const event = this.events[i];
+                                        if (!event) continue;
+                                        
+                                        const matchesId = String(event.id) === eventIdStr || 
+                                                         String(event.notion_id) === eventIdStr ||
+                                                         String(event.uuid) === eventIdStr;
+                                        
+                                        const matchesTitle = eventTitle && event.title && 
+                                                           event.title.includes(eventTitle);
+                                        
+                                        if (matchesId || matchesTitle) {
+                                            console.log('💀 강제 제거:', event.title, 'at index', i);
+                                            
+                                            // 휴지통으로 보내기
+                                            this.moveEventToTrash(event);
+                                            
+                                            // 배열에서 제거
+                                            this.events.splice(i, 1);
+                                            foundAndRemoved = true;
+                                            break;
+                                        }
+                                    }
+                                    
+                                    if (!foundAndRemoved) {
+                                        console.log('🚨 배열에서도 못찾음 - 가짜 이벤트 생성');
+                                        const fakeEvent = {
+                                            id: eventIdStr,
+                                            title: eventTitle || `삭제된 이벤트 ${eventIdStr}`,
+                                            date: new Date().toISOString().split('T')[0],
+                                            start_time: '09:00',
+                                            end_time: '10:00'
+                                        };
+                                        this.moveEventToTrash(fakeEvent);
+                                    }
+                                    
+                                    // 배열 저장 및 그리드 새로고침
+                                    this.saveToLocalStorage();
+                                    this.clearRenderedEvents();
+                                    this.events.forEach(event => {
+                                        if (event && event.id && event.date) {
+                                            this.renderEvent(event);
+                                        }
+                                    });
+                                    this.updateEventList();
+                                    console.log('🔄 최후수단 완료 - 배열 길이:', this.events.length);
                                 }
                             }
                             
