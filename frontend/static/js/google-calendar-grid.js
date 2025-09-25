@@ -128,12 +128,12 @@ class GoogleCalendarGrid {
         existingItems.forEach(item => item.remove());
         
         if (this.trashedEvents.length === 0) {
-            emptyMessage.style.display = 'block';
+            if (emptyMessage) emptyMessage.style.display = 'block';
             if (emptyButton) emptyButton.style.display = 'none';
             return;
         }
         
-        emptyMessage.style.display = 'none';
+        if (emptyMessage) emptyMessage.style.display = 'none';
         if (emptyButton) emptyButton.style.display = 'flex';
         
         this.trashedEvents.forEach(eventData => {
@@ -2917,8 +2917,19 @@ class GoogleCalendarGrid {
                     const titleElement = eventElement.querySelector('.event-title, [class*="title"], h3, h4, span');
                     const eventTitle = titleElement ? titleElement.textContent.trim() : 'Unknown Event';
                     
-                    // 제목으로 실제 이벤트 찾기
-                    const actualEvent = this.events.find(e => e.title === eventTitle);
+                    // 제목으로 실제 이벤트 찾기 (여러 방법 시도)
+                    let actualEvent = this.events.find(e => e.title === eventTitle);
+                    
+                    // 정확한 매치가 없으면 부분 매치 시도
+                    if (!actualEvent) {
+                        actualEvent = this.events.find(e => e.title && e.title.trim() === eventTitle.trim());
+                    }
+                    
+                    // 여전히 없으면 부분 문자열 매치 시도
+                    if (!actualEvent) {
+                        actualEvent = this.events.find(e => e.title && e.title.includes(eventTitle.trim()));
+                    }
+                    
                     if (actualEvent) {
                         console.log('✅ Found actual event to delete:', actualEvent.title);
                         
@@ -2931,55 +2942,94 @@ class GoogleCalendarGrid {
                         }
                     }
                     
-                    // 이벤트를 못 찾으면 제목으로 배열에서 찾아서 완전 삭제
-                    console.log('⚠️ Event not found by ID, searching by title in array...');
-                    const eventByTitle = this.events.find(e => e.title === eventTitle);
+                    // 이벤트를 배열에서 전혀 찾을 수 없는 경우
+                    console.log('⚠️ Event not found in array at all, DOM removal only');
+                    console.log('🔍 DEBUG - Looking for title:', `"${eventTitle.trim()}"`);
+                    console.log('🔍 DEBUG - Events in array:');
+                    this.events.forEach((e, index) => {
+                        console.log(`  [${index}] "${e.title}" (ID: ${e.id})`);
+                    });
                     
-                    if (eventByTitle) {
-                        console.log('✅ Found event by title, calling full deleteEvent:', eventByTitle.title);
-                        // 제목으로 찾은 이벤트로 완전한 삭제 프로세스 실행
-                        return this.deleteEvent(eventByTitle);
-                    } else {
-                        console.log('⚠️ Event not found in array at all, DOM removal only');
-                        if (confirm(`"${eventTitle}" 일정을 삭제하시겠습니까?`)) {
-                            eventElement.remove();
-                            console.log('🗑️ Removed from DOM only');
+                    if (confirm(`"${eventTitle}" 일정을 삭제하시겠습니까?`)) {
+                        eventElement.remove();
+                        console.log('🗑️ Removed from DOM only');
+                        
+                        // 🚨 강제로 배열에서도 제거 시도 (제목 기반)
+                        console.log('🔍 Searching in events array for title:', eventTitle.trim());
+                        console.log('🔍 Current events array length:', this.events.length);
+                        
+                        // 여러 방법으로 이벤트 찾기
+                        let indexToRemove = -1;
+                        
+                        // 1. 정확한 제목 매칭
+                        indexToRemove = this.events.findIndex(e => e && e.title && e.title.trim() === eventTitle.trim());
+                        
+                        // 2. 부분 제목 매칭
+                        if (indexToRemove === -1) {
+                            indexToRemove = this.events.findIndex(e => e && e.title && e.title.includes(eventTitle.trim()));
+                        }
+                        
+                        // 3. 숫자 ID 매칭 (timestamp 기반)
+                        if (indexToRemove === -1) {
+                            indexToRemove = this.events.findIndex(e => e && String(e.id).includes(eventIdStr));
+                        }
+                        
+                        if (indexToRemove !== -1) {
+                            const removedEvent = this.events[indexToRemove];
                             
-                            // 🚨 강제로 배열에서도 제거 시도 (제목 기반)
-                            console.log('🔍 Searching in events array for title:', eventTitle.trim());
-                            console.log('🔍 Current events array length:', this.events.length);
+                            // 휴지통으로 보내기 (완전 삭제 아님)
+                            this.moveEventToTrash(removedEvent);
                             
-                            // 여러 방법으로 이벤트 찾기
-                            let indexToRemove = -1;
+                            // 클라이언트에서 제거
+                            this.events.splice(indexToRemove, 1);
+                            this.saveToLocalStorage();
+                            console.log('🗑️ Moved to trash:', removedEvent.title);
                             
-                            // 1. 정확한 제목 매칭
-                            indexToRemove = this.events.findIndex(e => e && e.title && e.title.trim() === eventTitle.trim());
+                            // DOM에서 즉시 제거 (여러 방법 시도)
+                            this.removeEventFromDOM(removedEvent.id, removedEvent.title);
                             
-                            // 2. 부분 제목 매칭
-                            if (indexToRemove === -1) {
-                                indexToRemove = this.events.findIndex(e => e && e.title && e.title.includes(eventTitle.trim()));
-                            }
+                            // 강제 그리드 새로고침
+                            this.clearRenderedEvents();
+                            this.events.forEach(event => {
+                                if (event && event.id && event.date) {
+                                    this.renderEvent(event);
+                                }
+                            });
+                            this.updateEventList();
+                            console.log('🔄 Grid forcefully refreshed after trash move');
+                        } else {
+                            console.log('❌ Could not find event to remove from array');
+                            console.log('🔍 Looking for eventId:', eventIdStr, 'eventTitle:', eventTitle);
+                            console.log('📋 Available events (first 5):');
+                            this.events.slice(0, 5).forEach((e, i) => {
+                                console.log(`  ${i}: id="${e?.id}" title="${e?.title}" notion_id="${e?.notion_id}"`);
+                            });
                             
-                            // 3. 숫자 ID 매칭 (timestamp 기반)
-                            if (indexToRemove === -1) {
-                                indexToRemove = this.events.findIndex(e => e && String(e.id).includes(eventIdStr));
-                            }
-                            
-                            if (indexToRemove !== -1) {
-                                const removedEvent = this.events[indexToRemove];
+                            // 더 관대한 검색 시도
+                            const relaxedIndex = this.events.findIndex(e => {
+                                if (!e) return false;
+                                const title = e.title || '';
+                                const searchTitle = eventTitle || '';
                                 
-                                // 휴지통으로 보내기 (완전 삭제 아님)
+                                // 제목의 일부만 포함되어도 매칭
+                                if (title.length > 0 && searchTitle.length > 0) {
+                                    return title.toLowerCase().includes(searchTitle.toLowerCase()) ||
+                                           searchTitle.toLowerCase().includes(title.toLowerCase());
+                                }
+                                
+                                return false;
+                            });
+                                
+                            if (relaxedIndex !== -1) {
+                                console.log('✅ Found with relaxed search, removing...');
+                                const removedEvent = this.events[relaxedIndex];
                                 this.moveEventToTrash(removedEvent);
                                 
-                                // 클라이언트에서 제거
-                                this.events.splice(indexToRemove, 1);
-                                this.saveToLocalStorage();
-                                console.log('🗑️ Moved to trash:', removedEvent.title);
-                                
-                                // DOM에서 즉시 제거 (여러 방법 시도)
+                                // DOM에서 즉시 제거
                                 this.removeEventFromDOM(removedEvent.id, removedEvent.title);
                                 
-                                // 강제 그리드 새로고침
+                                this.events.splice(relaxedIndex, 1);
+                                this.saveToLocalStorage();
                                 this.clearRenderedEvents();
                                 this.events.forEach(event => {
                                     if (event && event.id && event.date) {
@@ -2987,77 +3037,36 @@ class GoogleCalendarGrid {
                                     }
                                 });
                                 this.updateEventList();
-                                console.log('🔄 Grid forcefully refreshed after trash move');
                             } else {
-                                console.log('❌ Could not find event to remove from array');
-                                console.log('🔍 Looking for eventId:', eventIdStr, 'eventTitle:', eventTitle);
-                                console.log('📋 Available events (first 5):');
-                                this.events.slice(0, 5).forEach((e, i) => {
-                                    console.log(`  ${i}: id="${e?.id}" title="${e?.title}" notion_id="${e?.notion_id}"`);
-                                });
+                                console.log('🚨 최후 수단: DOM제거 + 배열에서 강제 검색/제거');
                                 
-                                // 더 관대한 검색 시도
-                                const relaxedIndex = this.events.findIndex(e => {
-                                    if (!e) return false;
-                                    const title = e.title || '';
-                                    const searchTitle = eventTitle || '';
-                                    
-                                    // 제목의 일부만 포함되어도 매칭
-                                    if (title.length > 0 && searchTitle.length > 0) {
-                                        return title.toLowerCase().includes(searchTitle.toLowerCase()) ||
-                                               searchTitle.toLowerCase().includes(title.toLowerCase());
-                                    }
-                                    
-                                    return false;
-                                });
+                                // DOM에서 강제 제거
+                                this.removeEventFromDOM(eventIdStr, eventTitle);
                                 
-                                if (relaxedIndex !== -1) {
-                                    console.log('✅ Found with relaxed search, removing...');
-                                    const removedEvent = this.events[relaxedIndex];
-                                    this.moveEventToTrash(removedEvent);
+                                // 배열에서 ID나 제목으로 강제 검색해서 제거
+                                let foundAndRemoved = false;
+                                
+                                // 더 관대한 검색으로 배열에서 제거
+                                for (let i = this.events.length - 1; i >= 0; i--) {
+                                    const event = this.events[i];
+                                    if (!event) continue;
                                     
-                                    // DOM에서 즉시 제거
-                                    this.removeEventFromDOM(removedEvent.id, removedEvent.title);
+                                    const matchesId = String(event.id) === eventIdStr || 
+                                                     String(event.notion_id) === eventIdStr ||
+                                                     String(event.uuid) === eventIdStr;
                                     
-                                    this.events.splice(relaxedIndex, 1);
-                                    this.saveToLocalStorage();
-                                    this.clearRenderedEvents();
-                                    this.events.forEach(event => {
-                                        if (event && event.id && event.date) {
-                                            this.renderEvent(event);
-                                        }
-                                    });
-                                    this.updateEventList();
-                                } else {
-                                    console.log('🚨 최후 수단: DOM제거 + 배열에서 강제 검색/제거');
+                                    const matchesTitle = eventTitle && event.title && 
+                                                       event.title.includes(eventTitle);
                                     
-                                    // DOM에서 강제 제거
-                                    this.removeEventFromDOM(eventIdStr, eventTitle);
-                                    
-                                    // 배열에서 ID나 제목으로 강제 검색해서 제거
-                                    let foundAndRemoved = false;
-                                    
-                                    // 더 관대한 검색으로 배열에서 제거
-                                    for (let i = this.events.length - 1; i >= 0; i--) {
-                                        const event = this.events[i];
-                                        if (!event) continue;
+                                    if (matchesId || matchesTitle) {
+                                        console.log('💀 강제 제거:', event.title, 'at index', i);
                                         
-                                        const matchesId = String(event.id) === eventIdStr || 
-                                                         String(event.notion_id) === eventIdStr ||
-                                                         String(event.uuid) === eventIdStr;
+                                        // 휴지통으로 보내기
+                                        this.moveEventToTrash(event);
                                         
-                                        const matchesTitle = eventTitle && event.title && 
-                                                           event.title.includes(eventTitle);
-                                        
-                                        if (matchesId || matchesTitle) {
-                                            console.log('💀 강제 제거:', event.title, 'at index', i);
-                                            
-                                            // 휴지통으로 보내기
-                                            this.moveEventToTrash(event);
-                                            
-                                            // 배열에서 제거
-                                            this.events.splice(i, 1);
-                                            foundAndRemoved = true;
+                                        // 배열에서 제거
+                                        this.events.splice(i, 1);
+                                        foundAndRemoved = true;
                                             break;
                                         }
                                     }
@@ -4194,24 +4203,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Global trash functions
-window.showTrashPopup = function() {
-    if (window.googleCalendarGrid) {
-        window.googleCalendarGrid.showTrashPopup();
-    }
-};
+// Global trash functions - let calendar_detail.html handle these
+// window.showTrashPopup is defined in calendar_detail.html
 
-window.hideTrashPopup = function() {
-    if (window.googleCalendarGrid) {
-        window.googleCalendarGrid.hideTrashPopup();
-    }
-};
+// window.hideTrashPopup is defined in calendar_detail.html
 
-window.emptyTrash = function() {
-    if (window.googleCalendarGrid) {
-        window.googleCalendarGrid.emptyTrash();
-    }
-};
+// window.emptyTrash is defined in calendar_detail.html
 
 // 🚨 NUCLEAR DOM REMOVAL - 강력한 즉시 제거 함수
 window.forceRemoveEventFromDOM = function(eventData) {
