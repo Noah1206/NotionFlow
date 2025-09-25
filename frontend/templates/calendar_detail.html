@@ -5714,6 +5714,19 @@
         document.addEventListener('DOMContentLoaded', forcePopupStyles);
         forcePopupStyles();
 
+        function handleOverlayClick(event) {
+            console.log('🖱️ handleOverlayClick called', event.target);
+            console.log('🎯 Event target classes:', event.target.classList);
+            
+            // Close overlay when clicking on background
+            if (event.target.classList.contains('calendar-overlay-form')) {
+                console.log('✅ Clicked on background, closing overlay');
+                closeOverlayEventForm(event);
+            } else {
+                console.log('❌ Not clicking on background');
+            }
+        }
+
         // Make functions globally available
         window.showOverlayEventForm = showOverlayEventForm;
         

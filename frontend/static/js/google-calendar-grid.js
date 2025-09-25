@@ -586,7 +586,6 @@ class GoogleCalendarGrid {
         // Check if overlay is visible
         const overlay = document.getElementById('calendar-overlay-form');
         if (overlay && overlay.style.display !== 'none' && !overlay.classList.contains('hidden')) {
-            console.log('🚫 Cell click prevented - overlay already visible');
             e.preventDefault();
             e.stopPropagation();
             return;
