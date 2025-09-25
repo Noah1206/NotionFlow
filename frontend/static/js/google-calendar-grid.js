@@ -3818,9 +3818,6 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
-function closeOverlayEventForm() {
-    closeEventForm();
-}
 
 // Handle backdrop click to close overlay
 function handleOverlayClick(event) {
@@ -3936,7 +3933,6 @@ function saveOverlayEvent(event) {
 // Override the original click handlers to use overlay form
 window.openEventForm = openEventForm;
 window.closeEventForm = closeEventForm;
-window.closeOverlayEventForm = closeOverlayEventForm;
 window.saveOverlayEvent = saveOverlayEvent;
 
 // Initialize when DOM is loaded

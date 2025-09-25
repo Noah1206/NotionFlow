@@ -2497,16 +2497,6 @@ function closeEventModal() {
     }
 }
 
-window.closeOverlayEventForm = function(event) {
-    if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-    }
-    
-    window.popupOpen = false;
-    closeEventModal();
-    return false;
-};
 
 function openDayModal(date) {
     // Navigate to calendar day page instead of opening modal
