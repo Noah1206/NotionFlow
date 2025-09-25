@@ -19,39 +19,6 @@
                 <p class="api-subtitle">플랫폼과 안전하게 연결하고 캘린더를 동기화하세요</p>
             </div>
         </div>
-
-        <!-- 상태 요약 카드 -->
-        <div class="api-status-cards">
-            <div class="status-card active">
-                <div class="status-icon">🔗</div>
-                <div class="status-content">
-                    <div class="status-number" id="connected-count">{{ stats.connected_count if stats else 0 }}</div>
-                    <div class="status-label">연결된 플랫폼</div>
-                </div>
-            </div>
-            <div class="status-card">
-                <div class="status-icon">📅</div>
-                <div class="status-content">
-                    <div class="status-number" id="sync-count">{{ stats.synced_events if stats else 0 }}</div>
-                    <div class="status-label">동기화된 이벤트</div>
-                </div>
-            </div>
-            <div class="status-card">
-                <div class="status-icon">✅</div>
-                <div class="status-content">
-                    <div class="status-number success" id="success-rate">{{ stats.success_rate if stats else "0%" }}
-                    </div>
-                    <div class="status-label">성공률</div>
-                </div>
-            </div>
-            <div class="status-card">
-                <div class="status-icon">⚡</div>
-                <div class="status-content">
-                    <div class="status-number" id="sync-speed">{{ stats.avg_sync_time if stats else 'N/A' }}</div>
-                    <div class="status-label">평균 동기화 시간</div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- 캘린더 설정 가이드 -->
@@ -373,10 +340,10 @@
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
         notification.textContent = message;
-        
+
         // Add to page
         document.body.appendChild(notification);
-        
+
         // Auto remove after 3 seconds
         setTimeout(() => {
             if (notification.parentNode) {
@@ -401,10 +368,10 @@
         currentConnectingPlatform = platform;
         const modal = document.getElementById('calendar-selection-modal');
         const calendarListContainer = document.getElementById('calendar-list-container');
-        
+
         modal.style.display = 'flex';
         calendarListContainer.innerHTML = '<div class="loading">캘린더 목록을 불러오는 중...</div>';
-        
+
         // Load calendar list
         loadUserCalendars(calendarListContainer);
     }
@@ -414,7 +381,7 @@
         modal.style.display = 'none';
         selectedCalendarId = null;
         currentConnectingPlatform = null;
-        
+
         // Reset confirm button
         document.getElementById('confirm-calendar-selection').disabled = true;
     }
@@ -426,11 +393,11 @@
             if (!googleResponse.ok) {
                 throw new Error('Google Calendar 목록을 불러올 수 없습니다');
             }
-            
+
             const googleData = await googleResponse.json();
             if (googleData.success && googleData.calendars && googleData.calendars.length > 0) {
                 calendarListContainer.innerHTML = '';
-                
+
                 googleData.calendars.forEach(calendar => {
                     calendar.source = 'google';
                     const calendarItem = createCalendarItem(calendar);
@@ -439,7 +406,7 @@
             } else {
                 displayNoCalendarsMessage(calendarListContainer);
             }
-            
+
         } catch (error) {
             console.error('캘린더 목록 로드 오류:', error);
             calendarListContainer.innerHTML = `<div class="error">캘린더 목록을 불러오는데 실패했습니다: ${error.message}</div>`;
@@ -447,15 +414,15 @@
     }
 
     function displayNoCalendarsMessage(container) {
-        container.innerHTML = 
+        container.innerHTML =
             '<div class="no-calendars-message">' +
-                '<div class="no-calendars-icon">' +
-                    '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
-                        '<path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>' +
-                    '</svg>' +
-                '</div>' +
-                '<h4>캘린더가 없습니다</h4>' +
-                '<p>먼저 캘린더를 생성해주세요.</p>' +
+            '<div class="no-calendars-icon">' +
+            '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+            '<path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>' +
+            '</svg>' +
+            '</div>' +
+            '<h4>캘린더가 없습니다</h4>' +
+            '<p>먼저 캘린더를 생성해주세요.</p>' +
             '</div>';
     }
 
@@ -464,19 +431,19 @@
         item.className = 'calendar-item';
         item.setAttribute('data-calendar-id', calendar.id);
         item.onclick = () => selectCalendar(calendar.id);
-        
+
         const sourceIcon = calendar.source === 'google' ? '📅' : '📝';
         const sourceText = calendar.source === 'google' ? 'Google' : 'Notion';
-        
-        item.innerHTML = 
+
+        item.innerHTML =
             '<div class="calendar-radio"></div>' +
             '<div class="calendar-info">' +
-                '<div class="calendar-name">' + sourceIcon + ' ' + (calendar.name || '') + '</div>' +
-                '<div class="calendar-description">' + (calendar.description || '') + '</div>' +
-                '<div class="calendar-source">' + sourceText + '</div>' +
+            '<div class="calendar-name">' + sourceIcon + ' ' + (calendar.name || '') + '</div>' +
+            '<div class="calendar-description">' + (calendar.description || '') + '</div>' +
+            '<div class="calendar-source">' + sourceText + '</div>' +
             '</div>' +
             '<div class="calendar-type ' + (calendar.type || 'personal') + '">' + getCalendarTypeText(calendar.type, calendar.source) + '</div>';
-        
+
         return item;
     }
 
@@ -503,13 +470,13 @@
         document.querySelectorAll('.calendar-item').forEach(item => {
             item.classList.remove('selected');
         });
-        
+
         // Add new selection
         const selectedItem = document.querySelector('[data-calendar-id="' + calendarId + '"]');
         if (selectedItem) {
             selectedItem.classList.add('selected');
             selectedCalendarId = calendarId;
-            
+
             // Enable confirm button
             document.getElementById('confirm-calendar-selection').disabled = false;
         }
@@ -537,10 +504,10 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ calendar_id: selectedCalendarId })
                 });
-                
+
                 showNotification(`${getKoreanPlatformName(currentConnectingPlatform)} 연결 완료!`, 'success');
             }
-            
+
         } catch (error) {
             console.error('캘린더 연결 중 오류:', error);
             showNotification('캘린더 연결 중 오류가 발생했습니다.', 'error');
@@ -556,9 +523,9 @@
     }
 
     // Initialize on page load
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         console.log('Clean API Keys page loaded');
-        
+
         // Hide guide if already hidden
         const guide = document.getElementById('calendar-setup-guide');
         if (guide && localStorage.getItem('calendar_guide_hidden') === 'true') {
@@ -568,6 +535,7 @@
 </script>
 
 <!-- New Platform Managers -->
-<script src="{{ url_for('static', filename='js/platform-managers.js') }}?v={{ range(100000, 999999) | random }}"></script>
+<script
+    src="{{ url_for('static', filename='js/platform-managers.js') }}?v={{ range(100000, 999999) | random }}"></script>
 
 {% endblock %}

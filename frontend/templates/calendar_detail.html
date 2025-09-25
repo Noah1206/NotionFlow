@@ -4826,7 +4826,13 @@
             // Initialize calendar selector
             calendarSelector.init('calendar-selector-widget', {
                 onSelectionChange: function (events, calendarIds) {
-
+                    console.log('📅 Calendar selection changed:', calendarIds, 'events:', events?.length);
+                    
+                    // Update GoogleCalendarGrid with filtered events
+                    if (window.googleCalendarGrid) {
+                        window.googleCalendarGrid.updateWithFilteredEvents(events, calendarIds);
+                    }
+                    
                     // Update calendar grid with new events
                     if (typeof updateCalendarGrid === 'function') {
                         updateCalendarGrid(events);
@@ -4838,6 +4844,24 @@
                     }
                 }
             });
+
+            // 현재 캘린더가 기본으로 선택되도록 설정
+            setTimeout(() => {
+                const currentCalendarId = window.location.pathname.split('/').pop();
+                console.log('📅 Setting default calendar selection:', currentCalendarId);
+                
+                // 캘린더 선택기가 로드되면 현재 캘린더를 선택상태로 만들기
+                if (calendarSelector && calendarSelector.selectCalendar) {
+                    calendarSelector.selectCalendar(currentCalendarId);
+                } else {
+                    // 수동으로 체크박스 선택
+                    const checkbox = document.querySelector(`#calendar-selector-widget input[value="${currentCalendarId}"]`);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                        console.log('📅 Manually selected current calendar checkbox');
+                    }
+                }
+            }, 1500); // 캘린더 선택기가 완전히 로드된 후
 
             // Check if calendar has media file and show media player
             setTimeout(() => {

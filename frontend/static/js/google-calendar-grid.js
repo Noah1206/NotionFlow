@@ -3212,6 +3212,62 @@ class GoogleCalendarGrid {
     }
     */
 
+    // 필터링된 이벤트로 그리드 업데이트
+    updateWithFilteredEvents(filteredEvents, selectedCalendarIds) {
+        console.log('🔍 Updating grid with filtered events:', filteredEvents?.length, 'Selected calendars:', selectedCalendarIds);
+        
+        // 현재 캘린더 ID 확인 
+        const currentCalendarId = window.location.pathname.split('/').pop();
+        
+        // 선택된 캘린더가 없거나 현재 캘린더가 선택되지 않은 경우
+        if (!selectedCalendarIds || selectedCalendarIds.length === 0 || !selectedCalendarIds.includes(currentCalendarId)) {
+            console.log('📅 Current calendar not selected, hiding all events');
+            // 모든 이벤트 숨기기
+            this.hideAllEvents();
+            this.updateEventList([]); // 사이드바에서도 숨기기
+            return;
+        }
+        
+        // 필터링된 이벤트가 있는 경우
+        if (filteredEvents && filteredEvents.length > 0) {
+            console.log('📅 Showing filtered events');
+            this.showFilteredEvents(filteredEvents);
+            this.updateEventList(filteredEvents);
+        } else {
+            console.log('📅 No events to show for selected calendars');
+            this.hideAllEvents();
+            this.updateEventList([]);
+        }
+    }
+    
+    // 모든 이벤트 숨기기
+    hideAllEvents() {
+        const eventElements = this.container.querySelectorAll('.calendar-event');
+        eventElements.forEach(element => {
+            element.style.display = 'none';
+        });
+    }
+    
+    // 필터링된 이벤트만 표시
+    showFilteredEvents(filteredEvents) {
+        // 먼저 모든 이벤트 숨기기
+        this.hideAllEvents();
+        
+        // 필터링된 이벤트 ID 목록 생성
+        const filteredEventIds = new Set(filteredEvents.map(e => String(e.id)));
+        
+        // 해당하는 이벤트들만 표시
+        const eventElements = this.container.querySelectorAll('.calendar-event');
+        eventElements.forEach(element => {
+            const eventId = element.getAttribute('data-event-id') || 
+                           element.getAttribute('data-id');
+            
+            if (eventId && filteredEventIds.has(String(eventId))) {
+                element.style.display = '';
+            }
+        });
+    }
+
     moveEventToTrash(event) {
         // 휴지통 배열에 추가 (LocalStorage 사용)
         let trashedEvents = JSON.parse(localStorage.getItem('trashedEvents') || '[]');
