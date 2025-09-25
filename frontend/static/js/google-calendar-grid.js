@@ -3744,10 +3744,16 @@ class GoogleCalendarGrid {
         this.updateEventList();
     }
     
-    updateEventList(eventsToShow = null, searchQuery = null) {
+    updateEventList(eventsToShow = null, searchQuery = null, retryCount = 0) {
+        // DOM이 완전히 로드될 때까지 대기
         const eventList = document.getElementById('event-list');
         if (!eventList) {
-            console.warn('Event list container not found');
+            // 최대 5번 재시도
+            if (retryCount < 5) {
+                setTimeout(() => {
+                    this.updateEventList(eventsToShow, searchQuery, retryCount + 1);
+                }, 100);
+            }
             return;
         }
         
