@@ -5726,10 +5726,18 @@
         }
 
         function closeOverlayEventForm(event) {
-            const overlay = document.getElementById('calendar-overlay-form');
-            if (overlay) {
-                overlay.style.display = 'none';
-            }
+            // 모든 오버레이 완전 제거
+            document.querySelectorAll('.calendar-overlay-form, #calendar-overlay-form, [id*="overlay"], [class*="overlay"], [class*="popup"], [class*="modal"]').forEach(el => {
+                el.remove();
+            });
+            
+            // 혹시나 남은 것들 스타일로 숨기기
+            const remaining = document.querySelectorAll('[style*="display: block"], [style*="visible"]');
+            remaining.forEach(el => {
+                if (el.id && el.id.includes('overlay')) {
+                    el.style.display = 'none';
+                }
+            });
         }
 
         // Alias for backward compatibility
