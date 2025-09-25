@@ -2968,13 +2968,13 @@ class GoogleCalendarGrid {
                             if (indexToRemove !== -1) {
                                 const removedEvent = this.events[indexToRemove];
                                 
-                                // 백엔드에서 삭제 요청
-                                this.deleteEventFromBackend(removedEvent.id);
+                                // 휴지통으로 보내기 (완전 삭제 아님)
+                                this.moveEventToTrash(removedEvent);
                                 
                                 // 클라이언트에서 제거
                                 this.events.splice(indexToRemove, 1);
                                 this.saveToLocalStorage();
-                                console.log('✅ Force removed from events array:', removedEvent.title);
+                                console.log('🗑️ Moved to trash:', removedEvent.title);
                                 
                                 // 강제 그리드 새로고침
                                 this.clearRenderedEvents();
@@ -2984,7 +2984,7 @@ class GoogleCalendarGrid {
                                     }
                                 });
                                 this.updateEventList();
-                                console.log('🔄 Grid forcefully refreshed after array removal');
+                                console.log('🔄 Grid forcefully refreshed after trash move');
                             } else {
                                 console.log('❌ Could not find event to remove from array');
                                 console.log('📋 Available event titles:', this.events.map(e => e?.title).slice(0, 10));
@@ -3063,7 +3063,34 @@ class GoogleCalendarGrid {
         return this.deleteEvent(eventData);
     }
 
+    moveEventToTrash(event) {
+        // 휴지통으로 보내기 API 호출
+        fetch(`/api/calendar/${this.calendarId}/events/${event.id}/trash`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                title: event.title,
+                date: event.date,
+                start_time: event.start_time,
+                end_time: event.end_time
+            })
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log('🗑️ Event moved to trash:', event.id);
+            } else {
+                console.error('❌ Failed to move event to trash:', event.id);
+            }
+        })
+        .catch(error => {
+            console.error('❌ Error moving event to trash:', error);
+        });
+    }
+
     deleteEventFromBackend(eventId) {
+        // 휴지통에서 완전 삭제 API 호출
         fetch(`/api/calendar/${this.calendarId}/events/${eventId}`, {
             method: 'DELETE',
             headers: {
@@ -3072,13 +3099,13 @@ class GoogleCalendarGrid {
         })
         .then(response => {
             if (response.ok) {
-                console.log('✅ Event deleted from backend:', eventId);
+                console.log('✅ Event permanently deleted from backend:', eventId);
             } else {
-                console.error('❌ Failed to delete event from backend:', eventId);
+                console.error('❌ Failed to permanently delete event from backend:', eventId);
             }
         })
         .catch(error => {
-            console.error('❌ Error deleting event from backend:', error);
+            console.error('❌ Error permanently deleting event from backend:', error);
         });
     }
 
