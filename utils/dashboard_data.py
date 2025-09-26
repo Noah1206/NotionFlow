@@ -282,6 +282,22 @@ class DashboardDataManager:
             print(f"🔍 All calendars in database: {all_calendars_result.data}")
             print(f"🔍 Total calendars in DB: {len(all_calendars_result.data) if all_calendars_result.data else 0}")
             
+            # Show calendars that match EITHER user_id format
+            matching_original = [cal for cal in (all_calendars_result.data or []) if cal.get('owner_id') == original_user_id]
+            matching_normalized = [cal for cal in (all_calendars_result.data or []) if cal.get('owner_id') == normalized_user_id]
+            
+            print(f"🔍 Calendars matching original user_id ({original_user_id}): {len(matching_original)}")
+            print(f"🔍 Calendars matching normalized user_id ({normalized_user_id}): {len(matching_normalized)}")
+            
+            if matching_original:
+                print(f"🔍 Original format matches: {[cal['name'] for cal in matching_original]}")
+            if matching_normalized:
+                print(f"🔍 Normalized format matches: {[cal['name'] for cal in matching_normalized]}")
+            
+            # IMPORTANT: Show the exact user_id format used in the database
+            all_owner_ids = list(set([cal.get('owner_id') for cal in (all_calendars_result.data or []) if cal.get('owner_id')]))
+            print(f"🔍 All unique owner_ids in database: {all_owner_ids}")
+            
             # Get calendars from new calendars table using admin client
             # Query with BOTH formats for maximum compatibility
             result = self.admin_client.table('calendars').select('''
