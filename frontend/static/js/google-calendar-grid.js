@@ -3,7 +3,8 @@
 class GoogleCalendarGrid {
     constructor(container) {
         this.container = container;
-        this.currentDate = new Date();
+        this.currentDate = new Date(); // This should be current date
+        console.log('📅 [INIT] Current date:', this.currentDate);
         this.weekStart = this.getWeekStart(this.currentDate);
         this.events = [];
         this.trashedEvents = this.loadTrashedEvents();
@@ -337,9 +338,9 @@ class GoogleCalendarGrid {
         // Calculate days to subtract to get to Sunday
         const daysToSunday = day;
         const weekStart = new Date(d.getTime() - (daysToSunday * 24 * 60 * 60 * 1000));
-        weekStart.setHours(0, 0, 0, 0); // Set to beginning of day
+        weekStart.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
         
-        // console.log('🗓️ Week start calculated:', weekStart, 'from date:', date, 'day:', day, 'daysToSunday:', daysToSunday);
+        console.log('🗓️ Week start calculated:', weekStart, 'from date:', date, 'day:', day, 'daysToSunday:', daysToSunday);
         return weekStart;
     }
 
@@ -1333,28 +1334,19 @@ class GoogleCalendarGrid {
         if (eventIds.length === 0) return;
         
         const confirmMessage = eventIds.length === 1 
-            ? '선택한 일정을 삭제하시겠습니까?' 
-            : `선택한 ${eventIds.length}개의 일정을 삭제하시겠습니까?`;
+            ? '선택한 일정을 휴지통으로 이동하시겠습니까?' 
+            : `선택한 ${eventIds.length}개의 일정을 휴지통으로 이동하시겠습니까?`;
             
         if (confirm(confirmMessage)) {
-            // Delete each event
+            let movedCount = 0;
+            
+            // Move each event to trash
             for (const eventId of eventIds) {
                 const eventData = this.events.find(e => e.id === eventId);
                 if (eventData) {
-                    // Try to delete from backend if it has a backend ID
-                    if (eventData.backendId) {
-                        try {
-                            const calendarId = document.querySelector('.calendar-workspace')?.dataset.calendarId || 'e3b088c5-58550';
-                            await fetch(`/api/calendar/${calendarId}/attendees/${eventData.backendId}`, {
-                                method: 'DELETE',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                }
-                            });
-                        } catch (error) {
-                            console.error('Failed to delete from backend:', error);
-                        }
-                    }
+                    // Move to trash instead of deleting
+                    this.moveToTrash(eventData);
+                    movedCount++;
                     
                     // Remove from DOM
                     const eventElements = document.querySelectorAll(`[data-event-id="${eventId}"]`);
@@ -1373,11 +1365,13 @@ class GoogleCalendarGrid {
             this.updateEventList();
             
             if (window.showNotification) {
-                const message = eventIds.length === 1 
-                    ? '일정이 삭제되었습니다' 
-                    : `${eventIds.length}개의 일정이 삭제되었습니다`;
+                const message = movedCount === 1 
+                    ? '일정이 휴지통으로 이동되었습니다' 
+                    : `${movedCount}개의 일정이 휴지통으로 이동되었습니다`;
                 showNotification(message, 'success');
             }
+            
+            console.log(`✅ ${movedCount}개의 일정이 휴지통으로 이동되었습니다`);
         }
     }
     
