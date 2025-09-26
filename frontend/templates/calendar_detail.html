@@ -422,29 +422,42 @@
             margin-bottom: 0 !important;
         }
 
-        /* 🏷️ SECTION HEADERS - Minimal and Clean */
+        /* 🏷️ SECTION HEADERS - Refined Typography */
         .sidebar-widget .widget-header,
         div.sidebar-widget .widget-header,
         .sidebar .widget-header {
             background: transparent !important;
             padding: 0 0 12px 0 !important;
-            border-bottom: 1px solid #e8eaed !important;
+            border-bottom: 1px solid rgba(229, 231, 235, 0.6) !important;
             display: flex !important;
             align-items: center !important;
             justify-content: space-between !important;
-            margin: 0 0 16px 0 !important;
+            margin: 0 0 20px 0 !important;
             border-radius: 0 !important;
+            position: relative !important;
+        }
+
+        /* Header Accent Line */
+        .sidebar-widget .widget-header::after {
+            content: "" !important;
+            position: absolute !important;
+            bottom: -1px !important;
+            left: 0 !important;
+            width: 40px !important;
+            height: 2px !important;
+            background: linear-gradient(90deg, #3b82f6, transparent) !important;
+            border-radius: 1px !important;
         }
 
         .sidebar-widget .widget-header h4,
         div.sidebar-widget .widget-header h4,
         .sidebar .widget-header h4 {
-            font-size: 15px !important;
-            font-weight: 600 !important;
-            color: #1f2937 !important;
+            font-size: 13px !important;
+            font-weight: 700 !important;
+            color: #64748b !important;
             margin: 0 !important;
-            text-transform: none !important;
-            letter-spacing: -0.01em !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.05em !important;
             font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif !important;
         }
 
@@ -470,69 +483,101 @@
             background: transparent !important;
         }
 
-        /* 📝 MINIMAL EVENT ITEMS - Text-like with Subtle Hover Effects */
+        /* 📝 REFINED EVENT ITEMS - Elegant Minimalism */
         .event-list-item {
-            padding: 12px 8px !important;
-            margin-bottom: 4px !important;
+            padding: 14px 12px !important;
+            margin-bottom: 2px !important;
             background: transparent !important;
             border: none !important;
-            border-radius: 8px !important;
+            border-radius: 6px !important;
             cursor: pointer !important;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
             font-size: 14px !important;
-            line-height: 1.4 !important;
+            line-height: 1.5 !important;
             position: relative !important;
             overflow: hidden !important;
-            border-left: 2px solid transparent !important;
+            border-left: 3px solid transparent !important;
         }
 
-        /* Hover Effect - Subtle Shadow and Background */
+        /* Subtle Hover State - Refined Interaction */
         .event-list-item:hover {
-            background: #f8fafc !important;
-            border-left: 2px solid #e2e8f0 !important;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
-            transform: none !important;
+            background: linear-gradient(90deg, rgba(248, 250, 252, 0.8) 0%, rgba(241, 245, 249, 0.4) 100%) !important;
+            border-left: 3px solid rgba(148, 163, 184, 0.4) !important;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+            transform: translateX(2px) !important;
         }
 
-        /* Active/Selected State */
+        /* Active/Highlighted State - Clear Selection */
         .event-list-item.highlighted {
-            background: #f0f9ff !important;
-            border-left: 2px solid #3b82f6 !important;
-            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1) !important;
+            background: linear-gradient(90deg, rgba(239, 246, 255, 0.9) 0%, rgba(219, 234, 254, 0.3) 100%) !important;
+            border-left: 3px solid #3b82f6 !important;
+            box-shadow: inset 0 1px 3px rgba(59, 130, 246, 0.1) !important;
         }
 
-        /* Remove all existing decorative elements */
+        /* Event Item Micro-interaction */
         .event-list-item::before {
-            display: none !important;
+            content: "" !important;
+            position: absolute !important;
+            top: 50% !important;
+            left: -100% !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent) !important;
+            transform: translateY(-50%) !important;
+            transition: left 0.6s ease !important;
         }
 
-        /* Event Title - Clean Typography */
+        .event-list-item:hover::before {
+            left: 100% !important;
+        }
+
+
+        /* Event Title - Refined Typography */
         .event-list-item-title {
             font-weight: 500 !important;
-            color: #374151 !important;
-            margin-bottom: 4px !important;
+            color: #1e293b !important;
+            margin-bottom: 6px !important;
             font-size: 14px !important;
-            line-height: 1.3 !important;
+            line-height: 1.4 !important;
+            transition: color 0.2s ease !important;
         }
 
-        /* Event Time - Subtle and Clean */
+        .event-list-item:hover .event-list-item-title {
+            color: #0f172a !important;
+        }
+
+        /* Event Time - Elegant Metadata */
         .event-list-item-time {
-            color: #6b7280 !important;
+            color: #94a3b8 !important;
             font-size: 12px !important;
             font-weight: 400 !important;
-            display: flex !important;
+            display: inline-flex !important;
             align-items: center !important;
             background: transparent !important;
-            padding: 0 !important;
+            padding: 2px 0 !important;
             border-radius: 0 !important;
             width: auto !important;
+            transition: color 0.2s ease !important;
         }
 
+        .event-list-item:hover .event-list-item-time {
+            color: #64748b !important;
+        }
+
+        /* Time Icon - Minimal */
         .event-list-item-time::before {
-            content: "🕐" !important;
-            margin-right: 6px !important;
-            font-size: 11px !important;
-            opacity: 0.7 !important;
+            content: "" !important;
+            display: inline-block !important;
+            width: 3px !important;
+            height: 3px !important;
+            background: #cbd5e1 !important;
+            border-radius: 50% !important;
+            margin-right: 8px !important;
+            transition: background 0.2s ease !important;
+        }
+
+        .event-list-item:hover .event-list-item-time::before {
+            background: #94a3b8 !important;
         }
 
         /* Empty State - Clean and Minimal */
@@ -634,10 +679,75 @@
             transform: none !important;
         }
 
-        /* ✨ SIDEBAR ANIMATION - Smooth Interactions */
+        /* ✨ ENHANCED SIDEBAR DESIGN - Modern & Refined */
         .left-sidebar {
-            background: #f8fafc !important;
-            border-right: 1px solid #e5e7eb !important;
+            background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%) !important;
+            border-right: 1px solid rgba(229, 231, 235, 0.8) !important;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.02) !important;
+            position: relative !important;
+        }
+
+        /* 🌟 SIDEBAR TOP GRADIENT - Subtle Depth */
+        .left-sidebar::before {
+            content: "" !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            height: 120px !important;
+            background: linear-gradient(180deg, rgba(59, 130, 246, 0.03) 0%, transparent 100%) !important;
+            pointer-events: none !important;
+            z-index: 0 !important;
+        }
+
+        /* 📍 SIDEBAR CONTENT WRAPPER - Z-Index Fix */
+        .left-sidebar > * {
+            position: relative !important;
+            z-index: 1 !important;
+        }
+
+        /* 🎯 MINI CALENDAR - Enhanced Style */
+        .mini-calendar-widget {
+            background: rgba(255, 255, 255, 0.7) !important;
+            backdrop-filter: blur(10px) !important;
+            border: 1px solid rgba(229, 231, 235, 0.5) !important;
+            border-radius: 12px !important;
+            padding: 16px !important;
+            margin-bottom: 24px !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .mini-calendar-widget:hover {
+            background: rgba(255, 255, 255, 0.9) !important;
+            border-color: rgba(59, 130, 246, 0.2) !important;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08) !important;
+        }
+
+        /* 📅 CALENDAR CELLS - Interactive Design */
+        .mini-calendar-widget .calendar-cell {
+            position: relative !important;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+        .mini-calendar-widget .calendar-cell::after {
+            content: "" !important;
+            position: absolute !important;
+            inset: 2px !important;
+            border-radius: 4px !important;
+            border: 1px solid transparent !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .mini-calendar-widget .calendar-cell:hover::after {
+            border-color: rgba(59, 130, 246, 0.3) !important;
+            background: rgba(59, 130, 246, 0.05) !important;
+        }
+
+        .mini-calendar-widget .calendar-cell.today {
+            font-weight: 600 !important;
+            background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+            color: white !important;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
         }
 
         /* 🎯 FINAL OVERRIDES - Ensure Unified Design */
