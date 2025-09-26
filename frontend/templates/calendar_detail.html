@@ -400,45 +400,51 @@
             /* 패딩/보더 포함 계산 */
         }
 
-        /* 사이드바 위젯 스타일 개선 - 최고 우선순위 강제 적용 */
+        /* 🎨 UNIFIED SIDEBAR DESIGN - Clean, Cohesive, Non-Blocky */
         .sidebar .sidebar-widget,
         #sidebar .sidebar-widget,
         div.sidebar-widget,
         div[class*="sidebar-widget"] {
-            margin: 8px 0 !important;
-            background: #ffffff !important;
-            border: 1px solid #e9ecef !important;
-            border-radius: 12px !important;
-            overflow: hidden !important;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+            margin: 0 0 24px 0 !important;
+            background: transparent !important;
+            border: none !important;
+            border-radius: 0 !important;
+            overflow: visible !important;
+            box-shadow: none !important;
             transition: all 0.2s ease !important;
             padding: 0 !important;
             display: block !important;
             font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif !important;
         }
 
+        /* Last widget removes bottom margin for clean flow */
+        .sidebar .sidebar-widget:last-child {
+            margin-bottom: 0 !important;
+        }
+
+        /* 🏷️ SECTION HEADERS - Minimal and Clean */
         .sidebar-widget .widget-header,
         div.sidebar-widget .widget-header,
         .sidebar .widget-header {
-            background: #f8f9fa !important;
-            padding: 16px 20px !important;
-            border-bottom: 1px solid #e9ecef !important;
+            background: transparent !important;
+            padding: 0 0 12px 0 !important;
+            border-bottom: 1px solid #e8eaed !important;
             display: flex !important;
             align-items: center !important;
             justify-content: space-between !important;
-            margin: 0 !important;
-            border-radius: 12px 12px 0 0 !important;
+            margin: 0 0 16px 0 !important;
+            border-radius: 0 !important;
         }
 
         .sidebar-widget .widget-header h4,
         div.sidebar-widget .widget-header h4,
         .sidebar .widget-header h4 {
-            font-size: 14px !important;
+            font-size: 15px !important;
             font-weight: 600 !important;
-            color: #495057 !important;
+            color: #1f2937 !important;
             margin: 0 !important;
             text-transform: none !important;
-            letter-spacing: 0 !important;
+            letter-spacing: -0.01em !important;
             font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif !important;
         }
 
@@ -448,44 +454,173 @@
             font-size: 16px !important;
         }
 
-        /* 미니 캘린더 위젯 특별 스타일링 */
-        #calendar-selector-widget,
-        div#calendar-selector-widget {
-            background: #ffffff !important;
-            border: 1px solid #e9ecef !important;
-            border-radius: 12px !important;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
-            overflow: hidden !important;
-            margin: 8px 0 !important;
+        /* 📅 EXTENDED EVENT LIST - Longer Height for Better UX */
+        .event-list-container,
+        div.event-list-container {
+            padding: 0 !important;
+            background: transparent !important;
+            margin: 0 !important;
         }
 
-        /* 일정 불러오기 위젯 스타일링 */
+        .event-list {
+            max-height: 500px !important; /* Extended from 320px */
+            overflow-y: auto !important;
+            margin-top: 0 !important;
+            padding: 8px 0 !important;
+            background: transparent !important;
+        }
+
+        /* 📝 MINIMAL EVENT ITEMS - Text-like with Subtle Hover Effects */
+        .event-list-item {
+            padding: 12px 8px !important;
+            margin-bottom: 4px !important;
+            background: transparent !important;
+            border: none !important;
+            border-radius: 8px !important;
+            cursor: pointer !important;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            font-size: 14px !important;
+            line-height: 1.4 !important;
+            position: relative !important;
+            overflow: hidden !important;
+            border-left: 2px solid transparent !important;
+        }
+
+        /* Hover Effect - Subtle Shadow and Background */
+        .event-list-item:hover {
+            background: #f8fafc !important;
+            border-left: 2px solid #e2e8f0 !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+            transform: none !important;
+        }
+
+        /* Active/Selected State */
+        .event-list-item.highlighted {
+            background: #f0f9ff !important;
+            border-left: 2px solid #3b82f6 !important;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1) !important;
+        }
+
+        /* Remove all existing decorative elements */
+        .event-list-item::before {
+            display: none !important;
+        }
+
+        /* Event Title - Clean Typography */
+        .event-list-item-title {
+            font-weight: 500 !important;
+            color: #374151 !important;
+            margin-bottom: 4px !important;
+            font-size: 14px !important;
+            line-height: 1.3 !important;
+        }
+
+        /* Event Time - Subtle and Clean */
+        .event-list-item-time {
+            color: #6b7280 !important;
+            font-size: 12px !important;
+            font-weight: 400 !important;
+            display: flex !important;
+            align-items: center !important;
+            background: transparent !important;
+            padding: 0 !important;
+            border-radius: 0 !important;
+            width: auto !important;
+        }
+
+        .event-list-item-time::before {
+            content: "🕐" !important;
+            margin-right: 6px !important;
+            font-size: 11px !important;
+            opacity: 0.7 !important;
+        }
+
+        /* Empty State - Clean and Minimal */
+        .event-list-empty {
+            text-align: center !important;
+            color: #9ca3af !important;
+            padding: 24px 16px !important;
+            font-style: italic !important;
+            background: transparent !important;
+            border-radius: 0 !important;
+            font-size: 13px !important;
+        }
+
+        /* Scrollbar - Ultra Minimal */
+        .event-list::-webkit-scrollbar {
+            width: 3px !important;
+        }
+
+        .event-list::-webkit-scrollbar-track {
+            background: transparent !important;
+            border-radius: 0 !important;
+            margin: 0 !important;
+        }
+
+        .event-list::-webkit-scrollbar-thumb {
+            background: #d1d5db !important;
+            border-radius: 2px !important;
+            border: none !important;
+        }
+
+        .event-list::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af !important;
+        }
+
+        .event-list::-webkit-scrollbar-corner {
+            background: transparent !important;
+        }
+
+        /* 📋 CALENDAR SELECTOR - Unified Design */
+        #calendar-selector-widget,
+        div#calendar-selector-widget {
+            background: transparent !important;
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            overflow: visible !important;
+            margin: 0 0 24px 0 !important;
+        }
+
+        /* 🗂️ ALL WIDGET CONTENT - Clean and Spacious */
+        .sidebar-widget .widget-content,
+        .sidebar-widget > div:not(.widget-header),
+        .mini-calendar-content,
+        .calendar-selector-content {
+            background: transparent !important;
+            padding: 0 !important;
+            border: none !important;
+            margin: 0 !important;
+        }
+
+        /* 📥 IMPORT CALENDAR WIDGET - Unified Design */
         .import-calendar-content,
         div.import-calendar-content {
-            padding: 16px 20px !important;
-            background: #ffffff !important;
+            padding: 0 !important;
+            background: transparent !important;
         }
 
         .import-options,
         div.import-options {
             display: flex !important;
             flex-direction: column !important;
-            gap: 10px !important;
+            gap: 8px !important;
         }
 
+        /* 🔗 IMPORT BUTTONS - Minimal and Text-like */
         .import-btn,
         button.import-btn {
             display: flex !important;
             align-items: center !important;
             justify-content: flex-start !important;
             gap: 12px !important;
-            padding: 12px 16px !important;
-            background: #ffffff !important;
-            border: 1px solid #e9ecef !important;
-            border-radius: 8px !important;
+            padding: 12px 8px !important;
+            background: transparent !important;
+            border: none !important;
+            border-radius: 6px !important;
             font-size: 14px !important;
-            font-weight: 500 !important;
-            color: #495057 !important;
+            font-weight: 400 !important;
+            color: #374151 !important;
             cursor: pointer !important;
             transition: all 0.2s ease !important;
             width: 100% !important;
@@ -494,17 +629,28 @@
 
         .import-btn:hover,
         button.import-btn:hover {
-            background: #f8f9fa !important;
-            border-color: #ddd !important;
-            transform: translateY(-1px) !important;
+            background: #f8fafc !important;
+            color: #1f2937 !important;
+            transform: none !important;
         }
 
-        /* 일정 위젯 내부 컨텐츠 스타일링 */
-        .event-list-container,
-        div.event-list-container {
-            padding: 16px 20px !important;
-            background: #ffffff !important;
+        /* ✨ SIDEBAR ANIMATION - Smooth Interactions */
+        .left-sidebar {
+            background: #f8fafc !important;
+            border-right: 1px solid #e5e7eb !important;
+        }
+
+        /* 🎯 FINAL OVERRIDES - Ensure Unified Design */
+        .sidebar .sidebar-widget * {
+            box-shadow: none !important;
+        }
+
+        /* 🧹 CLEAN OVERRIDES - Remove Old Conflicting Styles */
+        .sidebar .sidebar-widget .event-list-container {
+            padding: 0 !important;
+            background: transparent !important;
             margin: 0 !important;
+            border: none !important;
         }
 
         #event-list,
