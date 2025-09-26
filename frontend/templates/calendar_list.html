@@ -19,17 +19,18 @@
             <p class="page-subtitle">일정과 이벤트를 관리하세요</p>
         </div>
         <div class="header-actions">
-            <button class="btn-deselect-all" id="deselectAllBtn" onclick="deselectAllCalendars()" style="display: none;">
+            <button class="btn-deselect-all" id="deselectAllBtn" onclick="deselectAllCalendars()"
+                style="display: none;">
                 <svg class="btn-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                          d="M6 18L18 6M6 6l12 12" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
                 <span>선택 해제</span>
             </button>
-            <button class="btn-delete-selected" id="deleteSelectedBtn" onclick="deleteSelectedCalendars()" style="display: none;">
+            <button class="btn-delete-selected" id="deleteSelectedBtn" onclick="deleteSelectedCalendars()"
+                style="display: none;">
                 <svg class="btn-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
                 <span>선택 삭제</span>
             </button>
@@ -65,97 +66,101 @@
         <div class="calendars-container-refined">
             {% set all_calendars = personal_calendars + shared_calendars %}
             {% if all_calendars %}
-                {% for calendar in all_calendars %}
-                <div class="calendar-card-refined {% if calendar in shared_calendars %}shared-calendar-refined{% endif %}" data-calendar="{{ calendar.id }}" onclick="openCalendar('{{ calendar.id }}')">
-                    <div class="card-header-refined">
-                        <div class="calendar-identity">
-                            <div class="calendar-color-refined" style="background: {{ calendar.color }};"></div>
-                            <div class="calendar-info-refined">
-                                <h3 class="calendar-name-refined">
-                                    {{ calendar.name }}
-                                    {% if calendar in shared_calendars or calendar.get('shared_with_count', 0) > 0 or calendar.get('is_shared', False) %}
-                                    <span class="shared-badge" style="display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; padding: 2px 8px; background: #ede9fe; color: #7c3aed; border-radius: 12px; font-size: 11px; font-weight: 500;">
-                                        <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                        </svg>
-                                        공유됨
-                                    </span>
-                                    {% endif %}
-                                </h3>
-                                <p class="calendar-meta">
-                                    {{ calendar.event_count }}개 이벤트
-                                    {% if calendar in shared_calendars or calendar.get('shared_with_count', 0) > 0 or calendar.get('is_shared', False) %}
-                                        • {{ calendar.shared_with_count }}명과 공유 중
-                                    {% else %}
-                                        • {{ calendar.last_sync_display }}
-                                    {% endif %}
-                                </p>
-                            </div>
-                        </div>
-                        <div class="card-actions-hover">
-                            <button class="btn-delete-calendar" onclick="event.stopPropagation(); confirmDeleteCalendar('{{ calendar.id }}', '{{ calendar.name }}');" title="삭제">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                            </button>
-                            <label class="calendar-checkbox-container" onclick="event.stopPropagation()">
-                                <input type="checkbox" class="calendar-select-checkbox" 
-                                       value="{{ calendar.id }}" 
-                                       onchange="toggleCalendarSelection('{{ calendar.id }}')">
-                                <span class="calendar-checkbox-checkmark"></span>
-                            </label>
+            {% for calendar in all_calendars %}
+            <div class="calendar-card-refined {% if calendar in shared_calendars %}shared-calendar-refined{% endif %}"
+                data-calendar="{{ calendar.id }}" onclick="openCalendar('{{ calendar.id }}')">
+                <div class="card-header-refined">
+                    <div class="calendar-identity">
+                        <div class="calendar-color-refined" style="background: {{ calendar.color }};"></div>
+                        <div class="calendar-info-refined">
+                            <h3 class="calendar-name-refined">
+                                {{ calendar.name }}
+                                {% if calendar in shared_calendars or calendar.get('shared_with_count', 0) > 0 or
+                                calendar.get('is_shared', False) %}
+                                <span class="shared-badge"
+                                    style="display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; padding: 2px 8px; background: #ede9fe; color: #7c3aed; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                                    <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                    공유됨
+                                </span>
+                                {% endif %}
+                            </h3>
+                            <p class="calendar-meta">
+                                {{ calendar.event_count }}개 이벤트
+                                {% if calendar in shared_calendars or calendar.get('shared_with_count', 0) > 0 or
+                                calendar.get('is_shared', False) %}
+                                • {{ calendar.shared_with_count }}명과 공유 중
+                                {% else %}
+                                • {{ calendar.last_sync_display }}
+                                {% endif %}
+                            </p>
                         </div>
                     </div>
-                    <div
-                        class="sync-indicator-refined {{ 'active' if calendar.sync_status == 'synced' else ('syncing' if calendar.sync_status == 'syncing' else '') }}">
-                        {% if calendar.sync_status == 'synced' %}
-                        <svg class="sync-icon" width="12" height="12" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>동기화됨</span>
-                        {% elif calendar.sync_status == 'syncing' %}
-                        <svg class="sync-icon rotating" width="12" height="12" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        <span>동기화 중</span>
-                        {% else %}
-                        <svg class="sync-icon" width="12" height="12" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
-                        </svg>
-                        <span>비활성</span>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endfor %}
-            {% else %}
-                <!-- No calendars message -->
-                <div class="new-calendar-card-refined" onclick="createNewCalendar()" style="grid-column: span 2;">
-                    <div class="new-calendar-content-refined">
-                        <div class="new-calendar-icon-refined">
-                            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                    d="M12 4v16m8-8H4" />
+                    <div class="card-actions-hover">
+                        <button class="btn-delete-calendar"
+                            onclick="event.stopPropagation(); confirmDeleteCalendar('{{ calendar.id }}', '{{ calendar.name }}');"
+                            title="삭제">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
-                        </div>
-                        <h3 class="new-calendar-title-refined">첫 번째 캘린더 만들기</h3>
-                        <p class="new-calendar-description-refined">이벤트 조직화를 시작하세요</p>
+                        </button>
+                        <label class="calendar-checkbox-container" onclick="event.stopPropagation()">
+                            <input type="checkbox" class="calendar-select-checkbox" value="{{ calendar.id }}"
+                                onchange="toggleCalendarSelection('{{ calendar.id }}')">
+                            <span class="calendar-checkbox-checkmark"></span>
+                        </label>
                     </div>
                 </div>
+                <div
+                    class="sync-indicator-refined {{ 'active' if calendar.sync_status == 'synced' else ('syncing' if calendar.sync_status == 'syncing' else '') }}">
+                    {% if calendar.sync_status == 'synced' %}
+                    <svg class="sync-icon" width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>동기화됨</span>
+                    {% elif calendar.sync_status == 'syncing' %}
+                    <svg class="sync-icon rotating" width="12" height="12" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span>동기화 중</span>
+                    {% else %}
+                    <svg class="sync-icon" width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
+                    </svg>
+                    <span>비활성</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <!-- No calendars message -->
+            <div class="new-calendar-card-refined" onclick="createNewCalendar()" style="grid-column: span 2;">
+                <div class="new-calendar-content-refined">
+                    <div class="new-calendar-icon-refined">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M12 4v16m8-8H4" />
+                        </svg>
+                    </div>
+                    <h3 class="new-calendar-title-refined">첫 번째 캘린더 만들기</h3>
+                    <p class="new-calendar-description-refined">이벤트 조직화를 시작하세요</p>
+                </div>
+            </div>
             {% endif %}
-            
+
             <!-- Create New Calendar Card -->
             <div class="new-calendar-card-refined" onclick="createNewCalendar()">
                 <div class="new-calendar-content-refined">
                     <div class="new-calendar-icon-refined">
                         <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M12 4v16m8-8H4" />
                         </svg>
                     </div>
                     <h3 class="new-calendar-title-refined">캘린더 만들기</h3>
@@ -163,31 +168,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Quick Actions (Refined) -->
-    <div class="quick-actions-refined">
-        <button class="quick-action-refined" onclick="syncAllCalendars()">
-            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            <span>전체 동기화</span>
-        </button>
-        <button class="quick-action-refined" onclick="exportCalendars()">
-            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <span>내보내기</span>
-        </button>
-        <button class="quick-action-refined" onclick="importCalendar()">
-            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-            </svg>
-            <span>가져오기</span>
-        </button>
     </div>
 </div>
 
@@ -198,11 +178,11 @@
             <h2 class="modal-title">새 캘린더 만들기</h2>
             <button class="modal-close-btn" onclick="closeCreateModal()">
                 <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
         </div>
-        
+
         <div class="modal-body">
             <!-- 캘린더 이름 -->
             <div class="form-group">
@@ -217,7 +197,8 @@
                 <div class="file-upload-area" id="file-upload-area">
                     <div class="file-upload-placeholder" id="file-upload-placeholder">
                         <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-5 12l-3-3m0 0l3-3m-3 3h12M5 12v8a2 2 0 002 2h10a2 2 0 002-2v-8"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-5 12l-3-3m0 0l3-3m-3 3h12M5 12v8a2 2 0 002 2h10a2 2 0 002-2v-8" />
                         </svg>
                         <p>MP3, MP4, MOV 파일을 드래그하거나 클릭하여 업로드</p>
                         <span class="file-size-limit">최대 50MB</span>
@@ -226,7 +207,8 @@
                         <div class="file-info">
                             <div class="file-icon">
                                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                                 </svg>
                             </div>
                             <div class="file-details">
@@ -236,11 +218,13 @@
                         </div>
                         <button type="button" class="file-remove-btn" onclick="removeFile()">
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                     </div>
-                    <input type="file" id="file-input" accept=".mp3,.mp4,.mov,.avi,.wmv,.wav,.m4a" style="display: none;">
+                    <input type="file" id="file-input" accept=".mp3,.mp4,.mov,.avi,.wmv,.wav,.m4a"
+                        style="display: none;">
                 </div>
             </div>
 
@@ -253,9 +237,9 @@
             <div class="form-group">
                 <label class="form-label" for="youtube-url">YouTube URL *</label>
                 <div class="youtube-input-container">
-                    <input type="url" id="youtube-url" class="form-input youtube-input" 
-                           placeholder="https://www.youtube.com/watch?v=... 또는 https://youtu.be/..." 
-                           onchange="validateYouTubeUrl(this)" onpaste="handleYouTubePaste(event)" required>
+                    <input type="url" id="youtube-url" class="form-input youtube-input"
+                        placeholder="https://www.youtube.com/watch?v=... 또는 https://youtu.be/..."
+                        onchange="validateYouTubeUrl(this)" onpaste="handleYouTubePaste(event)" required>
                     <div class="youtube-status" id="youtube-status" style="display: none;">
                         <div class="youtube-loading" style="display: none;">
                             <div class="spinner"></div>
@@ -276,13 +260,15 @@
                             </div>
                             <button type="button" class="youtube-remove-btn" onclick="clearYouTube()">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                         </div>
                         <div class="youtube-error" id="youtube-error" style="display: none;">
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             <span id="youtube-error-text">유효하지 않은 YouTube URL입니다</span>
                         </div>
@@ -305,1045 +291,1059 @@
 </div>
 
 <style>
-/* 캘린더 생성 모달 스타일 */
-.calendar-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 999999 !important;
-    backdrop-filter: blur(4px);
-}
-
-.calendar-modal {
-    background: #ffffff;
-    border-radius: 16px;
-    max-width: 500px;
-    width: 90%;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-    position: relative;
-    z-index: 999999 !important;
-}
-
-.modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 24px 32px;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.modal-title {
-    font-size: 20px;
-    font-weight: 600;
-    color: #000000;
-    margin: 0;
-}
-
-.modal-close-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #6b7280;
-    transition: all 0.2s ease;
-}
-
-.modal-close-btn:hover {
-    background: #f3f4f6;
-    color: #374151;
-}
-
-.modal-body {
-    padding: 32px;
-}
-
-.form-group {
-    margin-bottom: 24px;
-}
-
-.form-label {
-    display: block;
-    font-size: 14px;
-    font-weight: 600;
-    color: #374151;
-    margin-bottom: 8px;
-}
-
-.form-input {
-    width: 100%;
-    padding: 12px 16px;
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
-    font-size: 15px;
-    transition: all 0.2s ease;
-    background: #ffffff;
-}
-
-.form-input:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.form-select {
-    width: 100%;
-    padding: 12px 16px;
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
-    font-size: 15px;
-    background: #ffffff;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.form-select:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-/* 캘린더 유형 선택 */
-.calendar-type-selector {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-}
-
-.type-option {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 16px;
-    border: 2px solid #e5e7eb;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.type-option:hover {
-    border-color: #d1d5db;
-    background: #f9fafb;
-}
-
-.type-option.active {
-    border-color: #3b82f6;
-    background: #eff6ff;
-}
-
-.type-icon {
-    flex-shrink: 0;
-    width: 40px;
-    height: 40px;
-    background: #f3f4f6;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #6b7280;
-}
-
-.type-option.active .type-icon {
-    background: #3b82f6;
-    color: white;
-}
-
-.type-content h3 {
-    font-size: 14px;
-    font-weight: 600;
-    color: #374151;
-    margin: 0 0 4px 0;
-}
-
-.type-content p {
-    font-size: 12px;
-    color: #6b7280;
-    margin: 0;
-}
-
-
-.modal-footer {
-    display: flex;
-    gap: 12px;
-    padding: 24px 32px;
-    border-top: 1px solid #f0f0f0;
-    justify-content: flex-end;
-}
-
-.btn-secondary {
-    padding: 12px 24px;
-    border: 2px solid #e5e7eb;
-    background: #ffffff;
-    color: #374151;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.btn-secondary:hover {
-    background: #f9fafb;
-    border-color: #d1d5db;
-}
-
-.btn-primary {
-    padding: 12px 24px;
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    position: relative;
-    min-width: 140px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.btn-primary:hover {
-    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-
-.btn-primary:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-
-.create-loader {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: inherit;
-    border-radius: inherit;
-}
-
-.loader-spinner {
-    width: 16px;
-    height: 16px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-top: 2px solid white;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* 파일 업로드 영역 */
-.file-upload-area {
-    border: 2px dashed #e5e7eb;
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    background: #fafbfc;
-}
-
-.file-upload-area:hover {
-    border-color: #3b82f6;
-    background: #f0f7ff;
-}
-
-.file-upload-area.dragover {
-    border-color: #3b82f6;
-    background: #eff6ff;
-    transform: scale(1.02);
-}
-
-.file-upload-placeholder {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    color: #6b7280;
-}
-
-.file-upload-placeholder svg {
-    color: #9ca3af;
-}
-
-.file-upload-placeholder p {
-    margin: 0;
-    font-size: 14px;
-    font-weight: 500;
-}
-
-.file-size-limit {
-    font-size: 12px;
-    color: #9ca3af;
-}
-
-.file-upload-preview {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-}
-
-.file-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.file-icon {
-    width: 40px;
-    height: 40px;
-    background: #3b82f6;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-}
-
-.file-details {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-}
-
-.file-name {
-    font-size: 14px;
-    font-weight: 500;
-    color: #374151;
-}
-
-.file-size {
-    font-size: 12px;
-    color: #6b7280;
-}
-
-.file-remove-btn {
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    color: #dc2626;
-    border-radius: 6px;
-    padding: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.file-remove-btn:hover {
-    background: #fee2e2;
-    border-color: #fca5a5;
-}
-
-/* YouTube URL 입력 필드 스타일 */
-.form-divider {
-    display: flex;
-    align-items: center;
-    margin: 24px 0;
-    position: relative;
-}
-
-.form-divider::before {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: #e5e7eb;
-}
-
-.form-divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: #e5e7eb;
-}
-
-.divider-text {
-    padding: 0 16px;
-    font-size: 14px;
-    color: #6b7280;
-    background: white;
-}
-
-.youtube-input-container {
-    position: relative;
-}
-
-.youtube-input {
-    padding-right: 40px;
-}
-
-.youtube-status {
-    margin-top: 12px;
-}
-
-.youtube-loading {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px;
-    background: #f8fafc;
-    border-radius: 8px;
-    color: #6b7280;
-    font-size: 14px;
-}
-
-.youtube-loading .spinner {
-    width: 16px;
-    height: 16px;
-    border: 2px solid #e5e7eb;
-    border-top: 2px solid #3b82f6;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.youtube-preview {
-    display: flex;
-    gap: 12px;
-    padding: 12px;
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    position: relative;
-}
-
-.youtube-thumbnail {
-    position: relative;
-    width: 120px;
-    height: 68px;
-    border-radius: 6px;
-    overflow: hidden;
-    flex-shrink: 0;
-}
-
-.youtube-thumbnail img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.youtube-duration {
-    position: absolute;
-    bottom: 4px;
-    right: 4px;
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 500;
-}
-
-.youtube-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.youtube-title {
-    margin: 0 0 6px 0;
-    font-size: 14px;
-    font-weight: 600;
-    color: #111827;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    line-height: 1.4;
-}
-
-.youtube-channel {
-    margin: 0 0 8px 0;
-    font-size: 13px;
-    color: #6b7280;
-}
-
-.youtube-stats {
-    display: flex;
-    gap: 12px;
-    font-size: 12px;
-    color: #9ca3af;
-}
-
-.youtube-views::before {
-    content: '👁 ';
-}
-
-.youtube-publish-date::before {
-    content: '📅 ';
-}
-
-.youtube-remove-btn {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: rgba(255, 255, 255, 0.9);
-    border: none;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: #6b7280;
-    transition: all 0.2s ease;
-}
-
-.youtube-remove-btn:hover {
-    background: #fee2e2;
-    color: #dc2626;
-}
-
-.youtube-error {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    border-radius: 8px;
-    color: #dc2626;
-    font-size: 14px;
-}
-
-.form-help {
-    display: block;
-    margin-top: 6px;
-    font-size: 12px;
-    color: #6b7280;
-}
-
-/* Make calendar cards clickable */
-.calendar-card-refined {
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.calendar-card-refined:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-/* New calendar card styles to match create calendar card */
-.new-calendar-card-refined {
-    min-height: 120px; /* Match existing calendar cards */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px dashed #e5e7eb;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    background: #fafbfc;
-}
-
-.new-calendar-card-refined:hover {
-    border-color: #3b82f6;
-    background: #f0f7ff;
-    transform: translateY(-2px);
-}
-
-.new-calendar-content-refined {
-    text-align: center;
-    padding: 1rem;
-}
-
-.new-calendar-icon-refined {
-    width: 40px;
-    height: 40px;
-    background: #f3f4f6;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 12px;
-    color: #9ca3af;
-    transition: all 0.2s ease;
-}
-
-.new-calendar-card-refined:hover .new-calendar-icon-refined {
-    background: #3b82f6;
-    color: white;
-}
-
-.new-calendar-title-refined {
-    font-size: 14px;
-    font-weight: 600;
-    color: #374151;
-    margin: 0 0 4px 0;
-}
-
-.new-calendar-description-refined {
-    font-size: 12px;
-    color: #9ca3af;
-    margin: 0;
-}
-
-/* Calendar card consistent sizing */
-.calendar-card-refined,
-.new-calendar-card-refined {
-    min-height: 120px;
-    margin-bottom: 12px;
-}
-
-.calendars-container-refined {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
-    margin-top: 16px;
-}
-
-/* Calendar card base styles */
-.calendar-card-refined {
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 16px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    position: relative;
-}
-
-.card-header-refined {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-}
-
-.calendar-identity {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    flex: 1;
-}
-
-.calendar-color-refined {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    margin-top: 4px;
-}
-
-.calendar-info-refined h3 {
-    font-size: 16px;
-    font-weight: 600;
-    color: #1f2937;
-    margin: 0 0 4px 0;
-    line-height: 1.3;
-}
-
-.calendar-meta {
-    font-size: 13px;
-    color: #6b7280;
-    margin: 0;
-    line-height: 1.4;
-}
-
-.card-actions-hover {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
-
-.calendar-card-refined:hover .card-actions-hover {
-    opacity: 1;
-}
-
-.card-menu-btn {
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    border-radius: 6px;
-    padding: 4px;
-    cursor: pointer;
-    color: #6b7280;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-}
-
-.card-menu-btn:hover {
-    background: #f3f4f6;
-    color: #374151;
-}
-
-/* 체크박스 스타일 */
-.calendar-checkbox-container {
-    position: relative;
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-}
-
-.calendar-select-checkbox {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
-    height: 0;
-    width: 0;
-}
-
-.calendar-checkbox-checkmark {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 20px;
-    width: 20px;
-    background-color: #f9fafb;
-    border: 2px solid #e5e7eb;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-}
-
-.calendar-checkbox-container:hover .calendar-checkbox-checkmark {
-    background-color: #f3f4f6;
-    border-color: #d1d5db;
-}
-
-.calendar-select-checkbox:checked ~ .calendar-checkbox-checkmark {
-    background-color: #6366f1;
-    border-color: #6366f1;
-}
-
-.calendar-checkbox-checkmark:after {
-    content: "";
-    position: absolute;
-    display: none;
-    left: 6px;
-    top: 2px;
-    width: 5px;
-    height: 10px;
-    border: solid white;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
-}
-
-.calendar-select-checkbox:checked ~ .calendar-checkbox-checkmark:after {
-    display: block;
-}
-    gap: 4px;
-}
-
-.sync-indicator-refined {
-    margin-top: 12px;
-    padding: 6px 8px;
-    background: #f9fafb;
-    border-radius: 6px;
-    font-size: 11px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    color: #6b7280;
-}
-
-.sync-indicator-refined.active {
-    background: #f0f9ff;
-    color: #0369a1;
-}
-
-.sync-indicator-refined .sync-icon {
-    flex-shrink: 0;
-}
-
-.shared-indicator {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #7c3aed;
-}
-
-/* Section styles */
-.calendar-section-refined {
-    margin-bottom: 32px;
-}
-
-.section-header-refined {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16px;
-}
-
-.section-title-refined {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 18px;
-    font-weight: 600;
-    color: #1f2937;
-    margin: 0;
-}
-
-.section-icon {
-    color: #6b7280;
-}
-
-.section-count-refined {
-    background: #f3f4f6;
-    color: #6b7280;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-/* Delete Calendar Button */
-.btn-delete-calendar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    background: rgba(239, 68, 68, 0.1);
-    border: none;
-    border-radius: 6px;
-    color: #ef4444;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    opacity: 0;
-    margin-right: 4px;
-}
-
-.btn-delete-calendar:hover {
-    background: rgba(239, 68, 68, 0.2);
-    color: #dc2626;
-    transform: scale(1.05);
-}
-
-.calendar-card-refined:hover .btn-delete-calendar {
-    opacity: 1;
-}
-
-/* Delete Modal */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    backdrop-filter: blur(4px);
-}
-
-.delete-modal {
-    background: white;
-    border-radius: 12px;
-    padding: 0;
-    max-width: 420px;
-    width: 90%;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    animation: modalSlideIn 0.3s ease-out;
-}
-
-@keyframes modalSlideIn {
-    from {
+    /* 캘린더 생성 모달 스타일 */
+    .calendar-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 999999 !important;
+        backdrop-filter: blur(4px);
+    }
+
+    .calendar-modal {
+        background: #ffffff;
+        border-radius: 16px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        position: relative;
+        z-index: 999999 !important;
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 24px 32px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .modal-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #000000;
+        margin: 0;
+    }
+
+    .modal-close-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6b7280;
+        transition: all 0.2s ease;
+    }
+
+    .modal-close-btn:hover {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .modal-body {
+        padding: 32px;
+    }
+
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 8px;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 15px;
+        transition: all 0.2s ease;
+        background: #ffffff;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .form-select {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 15px;
+        background: #ffffff;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .form-select:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    /* 캘린더 유형 선택 */
+    .calendar-type-selector {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .type-option {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .type-option:hover {
+        border-color: #d1d5db;
+        background: #f9fafb;
+    }
+
+    .type-option.active {
+        border-color: #3b82f6;
+        background: #eff6ff;
+    }
+
+    .type-icon {
+        flex-shrink: 0;
+        width: 40px;
+        height: 40px;
+        background: #f3f4f6;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6b7280;
+    }
+
+    .type-option.active .type-icon {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .type-content h3 {
+        font-size: 14px;
+        font-weight: 600;
+        color: #374151;
+        margin: 0 0 4px 0;
+    }
+
+    .type-content p {
+        font-size: 12px;
+        color: #6b7280;
+        margin: 0;
+    }
+
+
+    .modal-footer {
+        display: flex;
+        gap: 12px;
+        padding: 24px 32px;
+        border-top: 1px solid #f0f0f0;
+        justify-content: flex-end;
+    }
+
+    .btn-secondary {
+        padding: 12px 24px;
+        border: 2px solid #e5e7eb;
+        background: #ffffff;
+        color: #374151;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+        background: #f9fafb;
+        border-color: #d1d5db;
+    }
+
+    .btn-primary {
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+        min-width: 140px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .create-loader {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: inherit;
+        border-radius: inherit;
+    }
+
+    .loader-spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top: 2px solid white;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* 파일 업로드 영역 */
+    .file-upload-area {
+        border: 2px dashed #e5e7eb;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        background: #fafbfc;
+    }
+
+    .file-upload-area:hover {
+        border-color: #3b82f6;
+        background: #f0f7ff;
+    }
+
+    .file-upload-area.dragover {
+        border-color: #3b82f6;
+        background: #eff6ff;
+        transform: scale(1.02);
+    }
+
+    .file-upload-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        color: #6b7280;
+    }
+
+    .file-upload-placeholder svg {
+        color: #9ca3af;
+    }
+
+    .file-upload-placeholder p {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .file-size-limit {
+        font-size: 12px;
+        color: #9ca3af;
+    }
+
+    .file-upload-preview {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+    }
+
+    .file-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .file-icon {
+        width: 40px;
+        height: 40px;
+        background: #3b82f6;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+
+    .file-details {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .file-name {
+        font-size: 14px;
+        font-weight: 500;
+        color: #374151;
+    }
+
+    .file-size {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .file-remove-btn {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #dc2626;
+        border-radius: 6px;
+        padding: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .file-remove-btn:hover {
+        background: #fee2e2;
+        border-color: #fca5a5;
+    }
+
+    /* YouTube URL 입력 필드 스타일 */
+    .form-divider {
+        display: flex;
+        align-items: center;
+        margin: 24px 0;
+        position: relative;
+    }
+
+    .form-divider::before {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #e5e7eb;
+    }
+
+    .form-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #e5e7eb;
+    }
+
+    .divider-text {
+        padding: 0 16px;
+        font-size: 14px;
+        color: #6b7280;
+        background: white;
+    }
+
+    .youtube-input-container {
+        position: relative;
+    }
+
+    .youtube-input {
+        padding-right: 40px;
+    }
+
+    .youtube-status {
+        margin-top: 12px;
+    }
+
+    .youtube-loading {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px;
+        background: #f8fafc;
+        border-radius: 8px;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .youtube-loading .spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid #e5e7eb;
+        border-top: 2px solid #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .youtube-preview {
+        display: flex;
+        gap: 12px;
+        padding: 12px;
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        position: relative;
+    }
+
+    .youtube-thumbnail {
+        position: relative;
+        width: 120px;
+        height: 68px;
+        border-radius: 6px;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+
+    .youtube-thumbnail img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .youtube-duration {
+        position: absolute;
+        bottom: 4px;
+        right: 4px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .youtube-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .youtube-title {
+        margin: 0 0 6px 0;
+        font-size: 14px;
+        font-weight: 600;
+        color: #111827;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        line-height: 1.4;
+    }
+
+    .youtube-channel {
+        margin: 0 0 8px 0;
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+    .youtube-stats {
+        display: flex;
+        gap: 12px;
+        font-size: 12px;
+        color: #9ca3af;
+    }
+
+    .youtube-views::before {
+        content: '👁 ';
+    }
+
+    .youtube-publish-date::before {
+        content: '📅 ';
+    }
+
+    .youtube-remove-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #6b7280;
+        transition: all 0.2s ease;
+    }
+
+    .youtube-remove-btn:hover {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .youtube-error {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        color: #dc2626;
+        font-size: 14px;
+    }
+
+    .form-help {
+        display: block;
+        margin-top: 6px;
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    /* Make calendar cards clickable */
+    .calendar-card-refined {
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .calendar-card-refined:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    /* New calendar card styles to match create calendar card */
+    .new-calendar-card-refined {
+        min-height: 120px;
+        /* Match existing calendar cards */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px dashed #e5e7eb;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: #fafbfc;
+    }
+
+    .new-calendar-card-refined:hover {
+        border-color: #3b82f6;
+        background: #f0f7ff;
+        transform: translateY(-2px);
+    }
+
+    .new-calendar-content-refined {
+        text-align: center;
+        padding: 1rem;
+    }
+
+    .new-calendar-icon-refined {
+        width: 40px;
+        height: 40px;
+        background: #f3f4f6;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 12px;
+        color: #9ca3af;
+        transition: all 0.2s ease;
+    }
+
+    .new-calendar-card-refined:hover .new-calendar-icon-refined {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .new-calendar-title-refined {
+        font-size: 14px;
+        font-weight: 600;
+        color: #374151;
+        margin: 0 0 4px 0;
+    }
+
+    .new-calendar-description-refined {
+        font-size: 12px;
+        color: #9ca3af;
+        margin: 0;
+    }
+
+    /* Calendar card consistent sizing */
+    .calendar-card-refined,
+    .new-calendar-card-refined {
+        min-height: 120px;
+        margin-bottom: 12px;
+    }
+
+    .calendars-container-refined {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 16px;
+        margin-top: 16px;
+    }
+
+    /* Calendar card base styles */
+    .calendar-card-refined {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        position: relative;
+    }
+
+    .card-header-refined {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+    }
+
+    .calendar-identity {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        flex: 1;
+    }
+
+    .calendar-color-refined {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        margin-top: 4px;
+    }
+
+    .calendar-info-refined h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0 0 4px 0;
+        line-height: 1.3;
+    }
+
+    .calendar-meta {
+        font-size: 13px;
+        color: #6b7280;
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .card-actions-hover {
+        display: flex;
+        align-items: center;
+        gap: 8px;
         opacity: 0;
-        transform: scale(0.95) translateY(-20px);
+        transition: opacity 0.2s ease;
     }
-    to {
+
+    .calendar-card-refined:hover .card-actions-hover {
         opacity: 1;
-        transform: scale(1) translateY(0);
     }
-}
 
-.delete-modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px 24px 16px;
-    border-bottom: 1px solid #f1f5f9;
-}
+    .card-menu-btn {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 4px;
+        cursor: pointer;
+        color: #6b7280;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
 
-.delete-modal-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #1e293b;
-    margin: 0;
-}
+    .card-menu-btn:hover {
+        background: #f3f4f6;
+        color: #374151;
+    }
 
-.modal-close-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    background: transparent;
-    border: none;
-    border-radius: 6px;
-    color: #64748b;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
+    /* 체크박스 스타일 */
+    .calendar-checkbox-container {
+        position: relative;
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
 
-.modal-close-btn:hover {
-    background: #f1f5f9;
-    color: #1e293b;
-}
+    .calendar-select-checkbox {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+        height: 0;
+        width: 0;
+    }
 
-.delete-modal-body {
-    padding: 24px;
-    text-align: center;
-}
+    .calendar-checkbox-checkmark {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 20px;
+        width: 20px;
+        background-color: #f9fafb;
+        border: 2px solid #e5e7eb;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+    }
 
-.delete-warning-icon {
-    margin-bottom: 16px;
-}
+    .calendar-checkbox-container:hover .calendar-checkbox-checkmark {
+        background-color: #f3f4f6;
+        border-color: #d1d5db;
+    }
 
-.delete-warning-icon svg {
-    color: #f59e0b;
-}
+    .calendar-select-checkbox:checked~.calendar-checkbox-checkmark {
+        background-color: #6366f1;
+        border-color: #6366f1;
+    }
 
-.delete-modal-content {
-    margin-bottom: 24px;
-}
+    .calendar-checkbox-checkmark:after {
+        content: "";
+        position: absolute;
+        display: none;
+        left: 6px;
+        top: 2px;
+        width: 5px;
+        height: 10px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+    }
 
-.delete-warning-text {
-    font-size: 16px;
-    color: #1e293b;
-    margin: 0 0 12px 0;
-}
+    .calendar-select-checkbox:checked~.calendar-checkbox-checkmark:after {
+        display: block;
+    }
 
-.delete-description {
-    font-size: 14px;
-    color: #64748b;
-    line-height: 1.5;
-    margin: 0;
-}
+    gap: 4px;
+    }
 
-.delete-modal-actions {
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
-    padding: 0 24px 24px;
-}
+    .sync-indicator-refined {
+        margin-top: 12px;
+        padding: 6px 8px;
+        background: #f9fafb;
+        border-radius: 6px;
+        font-size: 11px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        color: #6b7280;
+    }
 
-.btn-cancel, .btn-delete-confirm {
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
+    .sync-indicator-refined.active {
+        background: #f0f9ff;
+        color: #0369a1;
+    }
 
-.btn-cancel {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    color: #64748b;
-}
+    .sync-indicator-refined .sync-icon {
+        flex-shrink: 0;
+    }
 
-.btn-cancel:hover {
-    background: #f1f5f9;
-    color: #475569;
-}
+    .shared-indicator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #7c3aed;
+    }
 
-.btn-delete-confirm {
-    background: #ef4444;
-    border: none;
-    color: white;
-}
+    /* Section styles */
+    .calendar-section-refined {
+        margin-bottom: 32px;
+    }
 
-.btn-delete-confirm:hover {
-    background: #dc2626;
-}
+    .section-header-refined {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+    }
 
-.btn-delete-confirm:disabled {
-    background: #94a3b8;
-    cursor: not-allowed;
-}
+    .section-title-refined {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 18px;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0;
+    }
 
-/* Bulk Action Buttons */
-.btn-deselect-all {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    color: #64748b;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    margin-right: 8px;
-}
+    .section-icon {
+        color: #6b7280;
+    }
 
-.btn-deselect-all:hover {
-    background: #f1f5f9;
-    border-color: #cbd5e1;
-    color: #475569;
-    transform: translateY(-1px);
-}
+    .section-count-refined {
+        background: #f3f4f6;
+        color: #6b7280;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
 
-.btn-delete-selected {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    border-radius: 8px;
-    color: #dc2626;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    margin-right: 8px;
-}
+    /* Delete Calendar Button */
+    .btn-delete-calendar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        background: rgba(239, 68, 68, 0.1);
+        border: none;
+        border-radius: 6px;
+        color: #ef4444;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        opacity: 0;
+        margin-right: 4px;
+    }
 
-.btn-delete-selected:hover {
-    background: #fee2e2;
-    border-color: #fca5a5;
-    color: #b91c1c;
-    transform: translateY(-1px);
-}
+    .btn-delete-calendar:hover {
+        background: rgba(239, 68, 68, 0.2);
+        color: #dc2626;
+        transform: scale(1.05);
+    }
 
-.btn-delete-selected:disabled,
-.btn-deselect-all:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-}
+    .calendar-card-refined:hover .btn-delete-calendar {
+        opacity: 1;
+    }
+
+    /* Delete Modal */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        backdrop-filter: blur(4px);
+    }
+
+    .delete-modal {
+        background: white;
+        border-radius: 12px;
+        padding: 0;
+        max-width: 420px;
+        width: 90%;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        animation: modalSlideIn 0.3s ease-out;
+    }
+
+    @keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95) translateY(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+
+    .delete-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 24px 16px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .delete-modal-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0;
+    }
+
+    .modal-close-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: transparent;
+        border: none;
+        border-radius: 6px;
+        color: #64748b;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .modal-close-btn:hover {
+        background: #f1f5f9;
+        color: #1e293b;
+    }
+
+    .delete-modal-body {
+        padding: 24px;
+        text-align: center;
+    }
+
+    .delete-warning-icon {
+        margin-bottom: 16px;
+    }
+
+    .delete-warning-icon svg {
+        color: #f59e0b;
+    }
+
+    .delete-modal-content {
+        margin-bottom: 24px;
+    }
+
+    .delete-warning-text {
+        font-size: 16px;
+        color: #1e293b;
+        margin: 0 0 12px 0;
+    }
+
+    .delete-description {
+        font-size: 14px;
+        color: #64748b;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    .delete-modal-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        padding: 0 24px 24px;
+    }
+
+    .btn-cancel,
+    .btn-delete-confirm {
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-cancel {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        color: #64748b;
+    }
+
+    .btn-cancel:hover {
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .btn-delete-confirm {
+        background: #ef4444;
+        border: none;
+        color: white;
+    }
+
+    .btn-delete-confirm:hover {
+        background: #dc2626;
+    }
+
+    .btn-delete-confirm:disabled {
+        background: #94a3b8;
+        cursor: not-allowed;
+    }
+
+    /* Bulk Action Buttons */
+    .btn-deselect-all {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        color: #64748b;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-right: 8px;
+    }
+
+    .btn-deselect-all:hover {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
+        color: #475569;
+        transform: translateY(-1px);
+    }
+
+    .btn-delete-selected {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        color: #dc2626;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-right: 8px;
+    }
+
+    .btn-delete-selected:hover {
+        background: #fee2e2;
+        border-color: #fca5a5;
+        color: #b91c1c;
+        transform: translateY(-1px);
+    }
+
+    .btn-delete-selected:disabled,
+    .btn-deselect-all:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
 </style>
 
 <!-- Delete Confirmation Modal -->
@@ -1353,15 +1353,15 @@
             <h3 class="delete-modal-title">캘린더 삭제</h3>
             <button class="modal-close-btn" onclick="closeDeleteModal()">
                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
         </div>
         <div class="delete-modal-body">
             <div class="delete-warning-icon">
                 <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
             </div>
             <div class="delete-modal-content">
@@ -1378,7 +1378,7 @@
             <button class="btn-delete-confirm" onclick="deleteCalendar()" id="confirm-delete-btn">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
                 삭제하기
             </button>
@@ -1400,24 +1400,24 @@
             modal.style.display = 'none';
         }
         document.body.classList.remove('modal-open');
-        
+
         // 폼 초기화 (안전하게)
         const nameInput = document.getElementById('calendar-name');
         if (nameInput) {
             nameInput.value = '내 새 캘린더';
         }
-        
+
         const activeTypeOption = document.querySelector('.type-option.active');
         if (activeTypeOption) {
             activeTypeOption.classList.remove('active');
         }
-        
+
         const personalTypeOption = document.querySelector('.type-option[data-type="personal"]');
         if (personalTypeOption) {
             personalTypeOption.classList.add('active');
         }
-        
-        
+
+
         // 파일 업로드 초기화
         resetFileUpload();
     }
@@ -1456,7 +1456,7 @@
         // 파일 형식 검증
         const allowedTypes = ['audio/mpeg', 'audio/mp3', 'video/mp4', 'video/quicktime', 'video/x-msvideo', 'audio/wav', 'audio/mp4'];
         const allowedExtensions = ['.mp3', '.mp4', '.mov', '.avi', '.wmv', '.wav', '.m4a'];
-        
+
         const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
         if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
             alert('지원되지 않는 파일 형식입니다. MP3, MP4, MOV, AVI, WMV, WAV, M4A 파일만 업로드 가능합니다.');
@@ -1469,7 +1469,7 @@
         // 파일 정보 표시
         document.getElementById('file-name').textContent = file.name;
         document.getElementById('file-size').textContent = formatFileSize(file.size);
-        
+
         // UI 업데이트
         document.getElementById('file-upload-placeholder').style.display = 'none';
         document.getElementById('file-upload-preview').style.display = 'flex';
@@ -1490,7 +1490,7 @@
     // YouTube URL 유효성 검사 함수
     function validateYouTubeUrl(input) {
         const url = input.value.trim();
-        
+
         if (!url) {
             hideYouTubeStatus();
             return;
@@ -1546,7 +1546,7 @@
             }
 
             const videoData = await response.json();
-            
+
             if (!videoData.success) {
                 throw new Error(videoData.error || '비디오 정보를 가져올 수 없습니다');
             }
@@ -1588,11 +1588,11 @@
         document.getElementById('youtube-title').textContent = info.title;
         document.getElementById('youtube-channel').textContent = info.channel_name;
         document.getElementById('youtube-duration').textContent = info.duration_formatted;
-        
+
         // 조회수 포맷팅
         const viewCount = parseInt(info.view_count);
         document.getElementById('youtube-views').textContent = formatNumber(viewCount);
-        
+
         // 게시일 포맷팅
         const publishDate = new Date(info.published_at);
         document.getElementById('youtube-publish-date').textContent = formatDate(publishDate);
@@ -1656,7 +1656,7 @@
         const now = new Date();
         const diff = now - date;
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        
+
         if (days < 1) {
             return '오늘';
         } else if (days < 7) {
@@ -1672,21 +1672,21 @@
 
     async function createCalendarFromModal() {
         console.log('🔍 createCalendarFromModal() called');
-        
+
         const createBtn = document.querySelector('[onclick="createCalendarFromModal()"]');
         if (!createBtn) {
             console.error('❌ Create button not found');
             return;
         }
-        
+
         const createText = createBtn.querySelector('.create-text');
         const createLoader = createBtn.querySelector('.create-loader');
-        
+
         if (!createText || !createLoader) {
             console.error('❌ Button elements not found');
             return;
         }
-        
+
         // 로딩 상태 시작
         createBtn.disabled = true;
         createText.style.display = 'none';
@@ -1736,9 +1736,9 @@
             // Check if there's a media file to upload
             const fileInput = document.getElementById('file-input');
             const hasMediaFile = fileInput && fileInput.files && fileInput.files.length > 0;
-            
+
             let response;
-            
+
             if (hasMediaFile) {
                 // Use FormData for file upload
                 const formData = new FormData();
@@ -1747,9 +1747,9 @@
                 formData.append('color', color);
                 formData.append('is_shared', isShared);
                 formData.append('media_file', fileInput.files[0]);
-                
+
                 console.log('📎 Uploading media file:', fileInput.files[0].name);
-                
+
                 response = await fetch('/api/calendar/create', {
                     method: 'POST',
                     body: formData
@@ -1773,7 +1773,7 @@
 
             console.log('🔍 Response status:', response.status);
             const result = await response.json();
-            
+
             // 디버깅을 위한 로그
             console.log('🔍 API Response:', result);
             console.log('Calendar object:', result.calendar);
@@ -1782,11 +1782,11 @@
             if (result.success) {
                 console.log('🔍 Calendar creation successful!');
                 closeCreateModal();
-                
+
                 // 생성된 캘린더의 상세 페이지로 이동
                 if (result.calendar && result.calendar.id) {
                     console.log('🔍 Redirecting to calendar detail:', `/dashboard/calendar/${result.calendar.id}`);
-                    
+
                     // Add a small delay to ensure server state is updated
                     setTimeout(() => {
                         window.location.href = `/dashboard/calendar/${result.calendar.id}`;
@@ -1886,7 +1886,7 @@
     function setupModalInteractions() {
         // 캘린더 유형 선택
         document.querySelectorAll('.type-option').forEach(option => {
-            option.addEventListener('click', function() {
+            option.addEventListener('click', function () {
                 document.querySelectorAll('.type-option').forEach(opt => opt.classList.remove('active'));
                 this.classList.add('active');
             });
@@ -1896,7 +1896,7 @@
         // 모달 오버레이 클릭으로 닫기
         const modal = document.getElementById('calendar-create-modal');
         if (modal) {
-            modal.addEventListener('click', function(e) {
+            modal.addEventListener('click', function (e) {
                 if (e.target === this) {
                     closeCreateModal();
                 }
@@ -1904,7 +1904,7 @@
         }
 
         // ESC 키로 모달 닫기
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
                 const modal = document.getElementById('calendar-create-modal');
                 if (modal && modal.style.display === 'flex') {
@@ -1914,7 +1914,7 @@
         });
 
         // 엔터 키로 캘린더 생성
-        document.getElementById('calendar-name').addEventListener('keydown', function(e) {
+        document.getElementById('calendar-name').addEventListener('keydown', function (e) {
             if (e.key === 'Enter') {
                 createCalendarFromModal();
             }
@@ -1929,13 +1929,13 @@
         const fileInput = document.getElementById('file-input');
 
         // 파일 업로드 영역 클릭 시 파일 선택 다이얼로그 열기
-        fileUploadArea.addEventListener('click', function(e) {
+        fileUploadArea.addEventListener('click', function (e) {
             if (e.target.closest('.file-remove-btn')) return; // 삭제 버튼 클릭 시 제외
             fileInput.click();
         });
 
         // 파일 선택 시
-        fileInput.addEventListener('change', function(e) {
+        fileInput.addEventListener('change', function (e) {
             const file = e.target.files[0];
             if (file) {
                 handleFileSelect(file);
@@ -1943,22 +1943,22 @@
         });
 
         // 드래그 앤 드롭 이벤트
-        fileUploadArea.addEventListener('dragover', function(e) {
+        fileUploadArea.addEventListener('dragover', function (e) {
             e.preventDefault();
             fileUploadArea.classList.add('dragover');
         });
 
-        fileUploadArea.addEventListener('dragleave', function(e) {
+        fileUploadArea.addEventListener('dragleave', function (e) {
             e.preventDefault();
             if (!fileUploadArea.contains(e.relatedTarget)) {
                 fileUploadArea.classList.remove('dragover');
             }
         });
 
-        fileUploadArea.addEventListener('drop', function(e) {
+        fileUploadArea.addEventListener('drop', function (e) {
             e.preventDefault();
             fileUploadArea.classList.remove('dragover');
-            
+
             const files = e.dataTransfer.files;
             if (files.length > 0) {
                 handleFileSelect(files[0]);
@@ -1976,24 +1976,24 @@
     console.log('🔍 Personal calendars:', {{ personal_calendars | tojson }});
     console.log('🔍 Shared calendars:', {{ shared_calendars | tojson }});
     console.log('🔍 Summary:', {{ summary | tojson }});
-    
+
     // 🔍 Check if data is being passed correctly
     const personalCount = {{ personal_calendars | length }};
     const sharedCount = {{ shared_calendars | length }};
-    
+
     console.log('🔍 Personal calendars count:', personalCount);
     console.log('🔍 Shared calendars count:', sharedCount);
-    
+
     if (personalCount === 0 && sharedCount === 0) {
         console.log('⚠️ No calendars found! This might be the issue.');
         console.log('🔍 Check if dashboard_data_available in backend:', '{{ dashboard_data_available }}');
     }
-    
+
     // 🔍 Monitor for page refresh/navigation
-    window.addEventListener('beforeunload', function() {
+    window.addEventListener('beforeunload', function () {
         console.log('🔍 Page is being refreshed/navigated away');
     });
-    
+
     // Delete Calendar Functions
     let calendarToDelete = null;
 
@@ -2022,52 +2022,52 @@
                 'Content-Type': 'application/json',
             },
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                // Remove calendar card from UI
-                const calendarCard = document.querySelector(`[data-calendar="${calendarToDelete}"]`);
-                if (calendarCard) {
-                    calendarCard.style.transition = 'all 0.3s ease';
-                    calendarCard.style.opacity = '0';
-                    calendarCard.style.transform = 'scale(0.95)';
-                    setTimeout(() => {
-                        calendarCard.remove();
-                        updateCalendarCounts();
-                    }, 300);
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                
-                closeDeleteModal();
-                showNotification('캘린더가 성공적으로 삭제되었습니다.', 'success');
-            } else {
-                throw new Error(data.error || 'Failed to delete calendar');
-            }
-        })
-        .catch(error => {
-            console.error('Error deleting calendar:', error);
-            showNotification('캘린더 삭제 중 오류가 발생했습니다. 다시 시도해주세요.', 'error');
-        })
-        .finally(() => {
-            deleteBtn.disabled = false;
-            deleteBtn.innerHTML = '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>삭제하기';
-        });
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Remove calendar card from UI
+                    const calendarCard = document.querySelector(`[data-calendar="${calendarToDelete}"]`);
+                    if (calendarCard) {
+                        calendarCard.style.transition = 'all 0.3s ease';
+                        calendarCard.style.opacity = '0';
+                        calendarCard.style.transform = 'scale(0.95)';
+                        setTimeout(() => {
+                            calendarCard.remove();
+                            updateCalendarCounts();
+                        }, 300);
+                    }
+
+                    closeDeleteModal();
+                    showNotification('캘린더가 성공적으로 삭제되었습니다.', 'success');
+                } else {
+                    throw new Error(data.error || 'Failed to delete calendar');
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting calendar:', error);
+                showNotification('캘린더 삭제 중 오류가 발생했습니다. 다시 시도해주세요.', 'error');
+            })
+            .finally(() => {
+                deleteBtn.disabled = false;
+                deleteBtn.innerHTML = '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>삭제하기';
+            });
     }
 
     function updateCalendarCounts() {
         const personalCards = document.querySelectorAll('.calendar-section-refined:first-child .calendar-card-refined').length;
         const sharedCards = document.querySelectorAll('.calendar-section-refined:last-child .calendar-card-refined').length;
-        
+
         const personalCount = document.querySelector('.calendar-section-refined:first-child .section-count-refined');
         const sharedCount = document.querySelector('.calendar-section-refined:last-child .section-count-refined');
-        
+
         if (personalCount) personalCount.textContent = personalCards;
         if (sharedCount) sharedCount.textContent = sharedCards;
-        
+
         // Show empty state UI when no calendars exist
         showEmptyStateIfNeeded();
     }
@@ -2075,10 +2075,10 @@
     function showEmptyStateIfNeeded() {
         const personalContainer = document.querySelector('.calendar-section-refined:first-child .calendars-container-refined');
         const sharedContainer = document.querySelector('.calendar-section-refined:last-child .calendars-container-refined');
-        
+
         const personalCards = document.querySelectorAll('.calendar-section-refined:first-child .calendar-card-refined').length;
         const sharedCards = document.querySelectorAll('.calendar-section-refined:last-child .calendar-card-refined').length;
-        
+
         // Handle personal calendars empty state
         if (personalCards === 0 && personalContainer) {
             // Remove existing empty state message if any
@@ -2100,7 +2100,7 @@
                 `;
             }
         }
-        
+
         // Handle shared calendars empty state
         if (sharedCards === 0 && sharedContainer) {
             // Remove existing empty state message if any
@@ -2151,7 +2151,7 @@
             default:
                 backgroundColor = '#3b82f6';
         }
-        
+
         notification.style.cssText = `
             position: fixed;
             top: 20px;
@@ -2167,16 +2167,16 @@
             animation: slideIn 0.3s ease-out;
             background: ${backgroundColor};
         `;
-        
+
         notification.innerHTML = `
             <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
                 <span>${message}</span>
                 <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: currentColor; font-size: 18px; cursor: pointer; opacity: 0.8;">×</button>
             </div>
         `;
-        
+
         document.body.appendChild(notification);
-        
+
         // Auto remove after 4 seconds
         setTimeout(() => {
             if (notification.parentElement) {
@@ -2200,14 +2200,14 @@
     }
 
     // Close modal when clicking outside or pressing Escape
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         const modal = document.getElementById('delete-modal-overlay');
         if (e.target === modal) {
             closeDeleteModal();
         }
     });
 
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
             closeDeleteModal();
         }
@@ -2219,7 +2219,7 @@
     function toggleCalendarSelection(calendarId) {
         const checkbox = document.querySelector(`.calendar-select-checkbox[value="${calendarId}"]`);
         const calendarCard = document.querySelector(`[data-calendar="${calendarId}"]`);
-        
+
         if (checkbox.checked) {
             selectedCalendars.add(calendarId);
             if (calendarCard) {
@@ -2231,14 +2231,14 @@
                 calendarCard.classList.remove('selected');
             }
         }
-        
+
         updateDeleteButtonVisibility();
     }
 
     function updateDeleteButtonVisibility() {
         const deleteBtn = document.getElementById('deleteSelectedBtn');
         const deselectBtn = document.getElementById('deselectAllBtn');
-        
+
         if (selectedCalendars.size > 0) {
             deleteBtn.style.display = 'flex';
             deselectBtn.style.display = 'flex';
@@ -2252,19 +2252,19 @@
         if (selectedCalendars.size === 0) {
             return;
         }
-        
+
         const count = selectedCalendars.size;
-        const message = count === 1 
-            ? '선택한 캘린더 1개를 삭제하시겠습니까?' 
+        const message = count === 1
+            ? '선택한 캘린더 1개를 삭제하시겠습니까?'
             : `선택한 캘린더 ${count}개를 삭제하시겠습니까?`;
-            
+
         if (!confirm(`${message}\n\n이 작업은 되돌릴 수 없으며, 캘린더의 모든 이벤트와 데이터가 영구적으로 삭제됩니다.`)) {
             return;
         }
-        
+
         const deleteBtn = document.getElementById('deleteSelectedBtn');
         const originalHTML = deleteBtn.innerHTML;
-        
+
         // Show loading state
         deleteBtn.disabled = true;
         deleteBtn.innerHTML = `
@@ -2273,63 +2273,63 @@
             </svg>
             <span>삭제 중...</span>
         `;
-        
+
         // Convert Set to Array for processing
         const calendarsToDelete = Array.from(selectedCalendars);
         let deletedCount = 0;
         let failedCount = 0;
-        
+
         // Delete calendars one by one
-        const deletePromises = calendarsToDelete.map(calendarId => 
+        const deletePromises = calendarsToDelete.map(calendarId =>
             fetch(`/api/calendar/${calendarId}/delete`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
                 },
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    deletedCount++;
-                    
-                    // Remove calendar card from UI with animation
-                    const calendarCard = document.querySelector(`[data-calendar="${calendarId}"]`);
-                    if (calendarCard) {
-                        calendarCard.classList.remove('selected');
-                        calendarCard.style.transition = 'all 0.3s ease';
-                        calendarCard.style.opacity = '0';
-                        calendarCard.style.transform = 'scale(0.95)';
-                        setTimeout(() => {
-                            calendarCard.remove();
-                            updateCalendarCounts();
-                        }, 300);
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
                     }
-                    
-                    // Remove from selected set
-                    selectedCalendars.delete(calendarId);
-                } else {
-                    throw new Error(data.error || 'Failed to delete calendar');
-                }
-            })
-            .catch(error => {
-                console.error(`Error deleting calendar ${calendarId}:`, error);
-                failedCount++;
-            })
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        deletedCount++;
+
+                        // Remove calendar card from UI with animation
+                        const calendarCard = document.querySelector(`[data-calendar="${calendarId}"]`);
+                        if (calendarCard) {
+                            calendarCard.classList.remove('selected');
+                            calendarCard.style.transition = 'all 0.3s ease';
+                            calendarCard.style.opacity = '0';
+                            calendarCard.style.transform = 'scale(0.95)';
+                            setTimeout(() => {
+                                calendarCard.remove();
+                                updateCalendarCounts();
+                            }, 300);
+                        }
+
+                        // Remove from selected set
+                        selectedCalendars.delete(calendarId);
+                    } else {
+                        throw new Error(data.error || 'Failed to delete calendar');
+                    }
+                })
+                .catch(error => {
+                    console.error(`Error deleting calendar ${calendarId}:`, error);
+                    failedCount++;
+                })
         );
-        
+
         Promise.all(deletePromises).finally(() => {
             // Reset button state
             deleteBtn.disabled = false;
             deleteBtn.innerHTML = originalHTML;
-            
+
             // Update UI
             updateDeleteButtonVisibility();
-            
+
             // Show result notification
             if (deletedCount > 0 && failedCount === 0) {
                 showNotification(`${deletedCount}개의 캘린더가 성공적으로 삭제되었습니다.`, 'success');
@@ -2346,7 +2346,7 @@
         checkboxes.forEach(checkbox => {
             checkbox.checked = true;
             selectedCalendars.add(checkbox.value);
-            
+
             const calendarCard = document.querySelector(`[data-calendar="${checkbox.value}"]`);
             if (calendarCard) {
                 calendarCard.classList.add('selected');
@@ -2359,7 +2359,7 @@
         const checkboxes = document.querySelectorAll('.calendar-select-checkbox');
         checkboxes.forEach(checkbox => {
             checkbox.checked = false;
-            
+
             const calendarCard = document.querySelector(`[data-calendar="${checkbox.value}"]`);
             if (calendarCard) {
                 calendarCard.classList.remove('selected');
@@ -2370,10 +2370,10 @@
     }
 
     // 🔍 Log when page is loaded
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         console.log('🔍 Calendar list page fully loaded');
         console.log('🔍 Current URL:', window.location.href);
-        
+
         // Check and show empty state UI if needed
         showEmptyStateIfNeeded();
     });
