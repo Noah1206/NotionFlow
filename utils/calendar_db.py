@@ -230,10 +230,21 @@ class CalendarDatabase:
             
             print(f"📋 Calendar exists before deletion: {check_result.data}")
             
-            # Perform the delete operation
+            # Step 1: Delete all calendar_events associated with this calendar
+            print(f"🗑️ Deleting calendar_events for calendar {calendar_id}...")
+            events_delete_result = self.supabase.table('calendar_events').delete().eq('calendar_id', calendar_id).execute()
+            print(f"✅ Deleted {len(events_delete_result.data) if events_delete_result.data else 0} calendar events")
+            
+            # Step 2: Delete calendar shares (if any)
+            print(f"🗑️ Deleting calendar_shares for calendar {calendar_id}...")
+            shares_delete_result = self.supabase.table('calendar_shares').delete().eq('calendar_id', calendar_id).execute()
+            print(f"✅ Deleted {len(shares_delete_result.data) if shares_delete_result.data else 0} calendar shares")
+            
+            # Step 3: Delete the calendar itself
+            print(f"🗑️ Deleting calendar {calendar_id}...")
             delete_result = self.supabase.table('calendars').delete().eq('id', calendar_id).eq('owner_id', user_id).execute()
             
-            print(f"🔍 Delete operation result: {delete_result.data}")
+            print(f"🔍 Calendar delete operation result: {delete_result.data}")
             
             # Verify deletion by checking if calendar still exists
             verify_result = self.supabase.table('calendars').select('*').eq('id', calendar_id).execute()
@@ -241,7 +252,7 @@ class CalendarDatabase:
                 print(f"❌ Calendar still exists after delete attempt: {verify_result.data}")
                 return False
             else:
-                print(f"✅ Calendar {calendar_id} successfully deleted and verified")
+                print(f"✅ Calendar {calendar_id} and all associated data successfully deleted")
                 return True
                 
         except Exception as e:
