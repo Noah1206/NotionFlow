@@ -3,43 +3,66 @@
  * event-form-widget과 view-toggle 스타일 확장
  */
 
-/* 동기화 버튼 - 기존 view-option 스타일 재활용 */
-.sync-trigger {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-    color: white !important;
-    border: none !important;
+/* 아이콘 버튼 스타일 - 깔끔하고 움직임 없는 디자인 */
+.sync-icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
     position: relative;
     overflow: hidden;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+    margin-left: 8px;
 }
 
-.sync-trigger:hover {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+.sync-icon-button:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    /* hover시 움직임 제거 */
+    transform: none;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
 }
 
-.sync-trigger:active {
-    transform: translateY(0);
+.sync-icon-button:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
 }
 
-.sync-trigger .sync-text {
-    display: inline-block;
-    transition: all 0.3s ease;
+.sync-icon-button:focus {
+    outline: 2px solid #10b981;
+    outline-offset: 2px;
 }
 
-.sync-trigger.loading .sync-text {
-    display: none;
+.sync-icon-button .sync-icon {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2;
+    color: white;
+    transition: transform 0.2s ease;
 }
 
-.sync-trigger .sync-loader {
+.sync-icon-button:hover .sync-icon {
+    /* 아이콘 회전 효과 */
+    transform: rotate(180deg);
+}
+
+.sync-icon-button .sync-loader {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
 }
 
-.sync-trigger .loader-spinner {
+.sync-icon-button.loading .sync-icon {
+    display: none;
+}
+
+.sync-icon-button .loader-spinner {
     width: 16px;
     height: 16px;
     border: 2px solid rgba(255, 255, 255, 0.3);

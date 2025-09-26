@@ -14,15 +14,30 @@ class CalendarViewController {
     }
     
     setupViewToggle() {
-        // Add view toggle functionality
+        // Add view toggle functionality - 연동하기 버튼은 제외
         document.querySelectorAll('.view-option').forEach(button => {
+            // 연동하기 버튼은 스킵
+            if (button.id === 'unified-sync-button') {
+                return;
+            }
+            
             button.addEventListener('click', () => {
-                // Remove active from all buttons
-                document.querySelectorAll('.view-option').forEach(btn => btn.classList.remove('active'));
+                const view = button.dataset.view;
+                
+                // data-view가 없는 버튼은 무시
+                if (!view) {
+                    console.warn('Button has no data-view attribute, skipping');
+                    return;
+                }
+                
+                // Remove active from all view buttons (연동하기 버튼 제외)
+                document.querySelectorAll('.view-option:not(#unified-sync-button)').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
                 // Add active to clicked button
                 button.classList.add('active');
                 
-                const view = button.dataset.view;
                 console.log(`🔄 Switching to ${view} view`);
                 this.switchView(view);
             });
@@ -36,6 +51,12 @@ class CalendarViewController {
     }
     
     switchView(view) {
+        // undefined나 null 체크 추가
+        if (!view) {
+            console.warn('View is undefined or null, ignoring switchView call');
+            return;
+        }
+        
         this.currentView = view;
         
         switch (view) {
