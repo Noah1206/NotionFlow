@@ -7323,7 +7323,18 @@ if __name__ == '__main__':
         print(f"❌ [ERROR] Failed to start sync scheduler: {e}")
     
     port = int(os.environ.get('PORT', 5003))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    
+    # Railway production mode - debug=False로 설정하여 경고 제거
+    if os.environ.get('RAILWAY_ENVIRONMENT'):
+        print(f"Starting NotionFlow app on port {port} (debug=False)")
+        # Flask 개발 서버 경고를 숨기기 위한 로그 레벨 설정
+        import logging
+        log = logging.getLogger('werkzeug')
+        log.setLevel(logging.ERROR)
+        app.run(host='0.0.0.0', port=port, debug=False)
+    else:
+        print(f"Starting NotionFlow app on port {port} (debug=True)")
+        app.run(host='0.0.0.0', port=port, debug=True)
 elif os.environ.get('RENDER') and not os.environ.get('FLASK_ENV') == 'development':
     # Production startup with error handling (only on Render platform)
     # ✅ FIXED: Production sync scheduler with singleton pattern
