@@ -17,12 +17,19 @@ class UnifiedSyncModal {
             }
         };
         
-        // 기존 서비스 재활용
-        this.platformManagers = {
-            google: new GooglePlatformManager('google'),
-            notion: new NotionPlatformManager('notion'),
-            apple: new ApplePlatformManager('apple')
-        };
+        // 기존 서비스 재활용 (클래스 존재 여부 확인)
+        this.platformManagers = {};
+        
+        // Platform manager 클래스들이 존재하면 사용, 없으면 fallback
+        if (typeof window.GooglePlatformManager !== 'undefined') {
+            this.platformManagers.google = new window.GooglePlatformManager('google');
+        }
+        if (typeof window.NotionPlatformManager !== 'undefined') {
+            this.platformManagers.notion = new window.NotionPlatformManager('notion');
+        }
+        if (typeof window.ApplePlatformManager !== 'undefined') {
+            this.platformManagers.apple = new window.ApplePlatformManager('apple');
+        }
         
         this.init();
     }
