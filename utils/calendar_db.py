@@ -488,10 +488,8 @@ def load_user_calendars(user_id: str) -> List[Dict[str, Any]]:
     """Backward compatibility: Load calendars (now loads from database)"""
     calendars = calendar_db.get_user_calendars(user_id)
     
-    # If no calendars found, create default
-    if not calendars:
-        print(f"📁 No calendars found for user {user_id}, creating default")
-        if calendar_db.create_default_calendar(user_id):
-            calendars = calendar_db.get_user_calendars(user_id)
+    # Return calendars as-is without automatically creating defaults
+    # Default calendar creation should be explicit, not automatic
+    print(f"📁 Found {len(calendars)} calendars for user {user_id}")
     
     return calendars
