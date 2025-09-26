@@ -138,11 +138,11 @@ const hobbyCategories = {
 document.addEventListener('DOMContentLoaded', async function() {
     // DOM loaded, initializing calendar detail page
     
-    // 먼저 캘린더가 존재하는지 확인
-    const calendarExists = await checkCalendarExists();
-    if (!calendarExists) {
-        return; // 캘린더가 삭제되었으면 초기화 중단
-    }
+    // 캘린더 존재 여부 확인 비활성화 (팝업 방지)
+    // const calendarExists = await checkCalendarExists();
+    // if (!calendarExists) {
+    //     return; // 캘린더가 삭제되었으면 초기화 중단
+    // }
     
     initializeCalendar();
     loadEvents();
