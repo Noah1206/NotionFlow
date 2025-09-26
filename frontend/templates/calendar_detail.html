@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ calendar.name }} - 캘린더 - NotionFlow</title>
-    
+
     <!-- Permissions Policy for YouTube embeds -->
     <meta http-equiv="Permissions-Policy" content="compute-pressure=(), camera=(), microphone=(), geolocation=()">
 
@@ -2351,7 +2351,6 @@
                     </svg>
                 </button>
                 <div class="calendar-header-info">
-                    <div class="calendar-icon-small" style="background: {{ calendar.color or '#3B82F6' }}"></div>
                     <h1 class="calendar-name">{{ calendar.name }}</h1>
                 </div>
             </div>
@@ -2598,20 +2597,21 @@
                         </form>
                     </div>
                 </div>
-                
+
                 <!-- Trash Icon at Bottom of Sidebar -->
                 <div class="trash-icon-container" id="trash-icon-container">
                     <button class="trash-btn" id="trash-btn" onclick="window.showTrashPopup()" title="휴지통">
                         🗑️
                     </button>
                 </div>
-                
+
                 <!-- Trash Popup -->
                 <div class="trash-popup" id="trash-popup">
                     <div class="trash-popup-header">
                         <h3>🗑️ 휴지통</h3>
                         <div class="trash-header-actions">
-                            <button class="trash-empty-all-btn" id="trash-empty-all-btn" onclick="window.emptyTrash()" title="휴지통 비우기">
+                            <button class="trash-empty-all-btn" id="trash-empty-all-btn" onclick="window.emptyTrash()"
+                                title="휴지통 비우기">
                                 🗑️ 비우기
                             </button>
                             <button class="trash-close-btn" onclick="window.hideTrashPopup()">×</button>
@@ -4848,12 +4848,12 @@
             calendarSelector.init('calendar-selector-widget', {
                 onSelectionChange: function (events, calendarIds) {
                     console.log('📅 Calendar selection changed:', calendarIds, 'events:', events?.length);
-                    
+
                     // Update GoogleCalendarGrid with filtered events
                     if (window.googleCalendarGrid) {
                         window.googleCalendarGrid.updateWithFilteredEvents(events, calendarIds);
                     }
-                    
+
                     // Update calendar grid with new events
                     if (typeof updateCalendarGrid === 'function') {
                         updateCalendarGrid(events);
@@ -4870,7 +4870,7 @@
             setTimeout(() => {
                 const currentCalendarId = window.location.pathname.split('/').pop();
                 console.log('📅 Setting default calendar selection:', currentCalendarId);
-                
+
                 // 캘린더 선택기가 로드되면 현재 캘린더를 선택상태로 만들기
                 if (calendarSelector && calendarSelector.selectCalendar) {
                     calendarSelector.selectCalendar(currentCalendarId);
@@ -5025,10 +5025,10 @@
 
         // 간단한 팝업 시스템
         window.popupOpen = false;
-        
+
         function showOverlayEventForm(date, time, clickedCell = null, endTime = null) {
             if (window.popupOpen) return;
-            
+
             window.popupOpen = true;
             const overlay = document.getElementById('calendar-overlay-form');
             if (overlay) {
@@ -5038,80 +5038,80 @@
                 overlay.style.pointerEvents = 'auto';
                 overlay.style.zIndex = '1000';
             }
-                overlay.classList.remove('hidden');
-                overlay.classList.add('show');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('show');
 
-                // Set the date and time if provided
-                if (date) {
-                    const dateInput = document.getElementById('overlay-event-date');
-                    if (dateInput) {
-                        dateInput.value = date;
-                    }
+            // Set the date and time if provided
+            if (date) {
+                const dateInput = document.getElementById('overlay-event-date');
+                if (dateInput) {
+                    dateInput.value = date;
+                }
+            }
+
+            // Hide end date field for single-day events
+            const endDateGroup = document.getElementById('end-date-group');
+            const endDateInput = document.getElementById('overlay-end-date');
+            if (endDateGroup && endDateInput) {
+                endDateGroup.style.display = 'none';
+                endDateInput.required = false;
+            }
+
+            // Show time inputs for single-day timed events
+            const timeInputs = overlay.querySelectorAll('.time-input-group, .time-input');
+            timeInputs.forEach(input => input.style.display = 'block');
+            if (time) {
+                const startTimeInput = document.getElementById('overlay-start-time');
+                if (startTimeInput) {
+                    startTimeInput.value = time;
                 }
 
-                // Hide end date field for single-day events
-                const endDateGroup = document.getElementById('end-date-group');
-                const endDateInput = document.getElementById('overlay-end-date');
-                if (endDateGroup && endDateInput) {
-                    endDateGroup.style.display = 'none';
-                    endDateInput.required = false;
+                const startTimeDisplay = document.getElementById('overlay-start-time-display');
+                if (startTimeDisplay && typeof convertToAMPM !== 'undefined') {
+                    startTimeDisplay.textContent = convertToAMPM(time);
                 }
 
-                // Show time inputs for single-day timed events
-                const timeInputs = overlay.querySelectorAll('.time-input-group, .time-input');
-                timeInputs.forEach(input => input.style.display = 'block');
-                if (time) {
-                    const startTimeInput = document.getElementById('overlay-start-time');
-                    if (startTimeInput) {
-                        startTimeInput.value = time;
-                    }
-                    
-                    const startTimeDisplay = document.getElementById('overlay-start-time-display');
-                    if (startTimeDisplay && typeof convertToAMPM !== 'undefined') {
-                        startTimeDisplay.textContent = convertToAMPM(time);
-                    }
-
-                    // Use provided endTime if available, otherwise set to one hour later
-                    let finalEndTime;
-                    if (endTime) {
-                        finalEndTime = endTime;
-                    } else {
-                        // Set end time to one hour later (default behavior)
-                        const [hours, minutes] = time.split(':');
-                        const endHour = (parseInt(hours) + 1).toString().padStart(2, '0');
-                        finalEndTime = `${endHour}:${minutes}`;
-                    }
-
-                    const endTimeInput = document.getElementById('overlay-end-time');
-                    if (endTimeInput) {
-                        endTimeInput.value = finalEndTime;
-                    }
-                    
-                    const endTimeDisplay = document.getElementById('overlay-end-time-display');
-                    if (endTimeDisplay && typeof convertToAMPM !== 'undefined') {
-                        endTimeDisplay.textContent = convertToAMPM(finalEndTime);
-                    }
-                }
-
-                // Position popup at clicked cell location
-                if (clickedCell) {
-                    repositionOverlayPopup(overlay, clickedCell);
+                // Use provided endTime if available, otherwise set to one hour later
+                let finalEndTime;
+                if (endTime) {
+                    finalEndTime = endTime;
                 } else {
-                    // Fallback to default position if no cell provided
-                    const content = overlay.querySelector('.overlay-form-content');
-                    if (content) {
-                        content.style.setProperty('left', '50px', 'important');
-                        content.style.setProperty('top', '100px', 'important');
-                    }
+                    // Set end time to one hour later (default behavior)
+                    const [hours, minutes] = time.split(':');
+                    const endHour = (parseInt(hours) + 1).toString().padStart(2, '0');
+                    finalEndTime = `${endHour}:${minutes}`;
                 }
 
-                // Focus on title input for new popup
-                setTimeout(() => {
-                    const titleInput = document.getElementById('overlay-event-title');
-                    if (titleInput) {
-                        titleInput.focus();
-                    }
-                }, 100);
+                const endTimeInput = document.getElementById('overlay-end-time');
+                if (endTimeInput) {
+                    endTimeInput.value = finalEndTime;
+                }
+
+                const endTimeDisplay = document.getElementById('overlay-end-time-display');
+                if (endTimeDisplay && typeof convertToAMPM !== 'undefined') {
+                    endTimeDisplay.textContent = convertToAMPM(finalEndTime);
+                }
+            }
+
+            // Position popup at clicked cell location
+            if (clickedCell) {
+                repositionOverlayPopup(overlay, clickedCell);
+            } else {
+                // Fallback to default position if no cell provided
+                const content = overlay.querySelector('.overlay-form-content');
+                if (content) {
+                    content.style.setProperty('left', '50px', 'important');
+                    content.style.setProperty('top', '100px', 'important');
+                }
+            }
+
+            // Focus on title input for new popup
+            setTimeout(() => {
+                const titleInput = document.getElementById('overlay-event-title');
+                if (titleInput) {
+                    titleInput.focus();
+                }
+            }, 100);
         }
 
         // Position overlay popup based on clicked cell (reusing existing repositionPopup logic)
@@ -5270,7 +5270,7 @@
                             if (window.googleCalendarGrid) {
                                 // 서버에서 온 실제 ID 사용
                                 const actualId = result.id || result.event_id || result.backendId || result.uuid;
-                                
+
                                 const newEventForGrid = {
                                     id: actualId,
                                     backendId: actualId,  // backendId도 같은 값으로 설정
@@ -5355,7 +5355,7 @@
                             // 서버에서 온 실제 ID 사용
                             const actualId = result.id || result.event_id || result.backendId || result.uuid;
                             console.log('🆔 Using actual ID for new event:', actualId);
-                            
+
                             const newEventForGrid = {
                                 id: actualId,
                                 backendId: actualId,  // backendId도 같은 값으로 설정
@@ -5783,10 +5783,10 @@
                 overlay.style.pointerEvents = 'none';
                 overlay.style.zIndex = '-1';
             }
-            
+
             // 폼 초기화
             clearOverlayEventForm();
-            
+
             // 팝업 플래그 리셋
             window.popupOpen = false;
         }
@@ -5804,26 +5804,26 @@
                 popup.style.display = 'block';
             }
         }
-        
+
         function hideTrashPopup() {
             const popup = document.getElementById('trash-popup');
             if (popup) {
                 popup.style.display = 'none';
             }
         }
-        
+
         function updateTrashUI() {
             const trashedEvents = getTrashedEvents();
             const content = document.getElementById('trash-popup-content');
             const emptyDiv = document.getElementById('trash-empty');
-            
+
             if (!content) return;
-            
+
             if (trashedEvents.length === 0) {
                 content.innerHTML = '<div class="trash-empty" id="trash-empty">휴지통이 비어있습니다.</div>';
                 return;
             }
-            
+
             let html = '';
             trashedEvents.forEach(event => {
                 const deletedDate = new Date(event.deletedAt).toLocaleDateString('ko-KR');
@@ -5839,31 +5839,31 @@
                     </div>
                 `;
             });
-            
+
             content.innerHTML = html;
         }
-        
+
         async function emptyTrash() {
             const currentCalendarId = window.location.pathname.split('/').pop();
             let trashedEvents = JSON.parse(localStorage.getItem('trashedEvents') || '[]');
-            
+
             // 현재 캘린더의 휴지통 이벤트 확인
             const currentCalendarTrashedEvents = trashedEvents.filter(event => event.calendarId === currentCalendarId);
-            
+
             if (currentCalendarTrashedEvents.length === 0) {
                 alert('휴지통이 이미 비어있습니다.');
                 return;
             }
-            
+
             if (confirm(`휴지통의 ${currentCalendarTrashedEvents.length}개 일정을 완전히 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`)) {
                 // 서버에서 각 이벤트 삭제
                 let deletedCount = 0;
                 let failedCount = 0;
-                
+
                 for (const event of currentCalendarTrashedEvents) {
                     // 타임스탬프 기반 ID는 클라이언트 전용이므로 서버 호출 안 함
                     const isClientOnlyEvent = /^\d{13,}$/.test(String(event.id));
-                    
+
                     if (!isClientOnlyEvent) {
                         try {
                             // 서버에 삭제 요청 (실제 서버 이벤트인 경우만)
@@ -5873,7 +5873,7 @@
                                     'Content-Type': 'application/json'
                                 }
                             });
-                            
+
                             if (response.ok) {
                                 deletedCount++;
                                 console.log(`✅ Permanently deleted from server: ${event.title}`);
@@ -5891,19 +5891,19 @@
                         console.log(`📱 Client-only event deleted: ${event.title}`);
                     }
                 }
-                
+
                 // localStorage에서도 제거
                 trashedEvents = trashedEvents.filter(event => event.calendarId !== currentCalendarId);
                 localStorage.setItem('trashedEvents', JSON.stringify(trashedEvents));
-                
+
                 updateTrashUI();
-                
+
                 if (failedCount > 0) {
                     alert(`${deletedCount}개 일정이 삭제되었고, ${failedCount}개 일정 삭제에 실패했습니다.`);
                 } else {
                     alert(`${deletedCount}개 일정이 완전히 삭제되었습니다.`);
                 }
-                
+
                 console.log(`🗑️ ${deletedCount} events permanently deleted, ${failedCount} failed`);
             }
         }
@@ -6402,11 +6402,11 @@
             const rect = slider.getBoundingClientRect();
             const clickX = event.clientX - rect.left;
             const percentage = Math.max(0, Math.min(1, clickX / rect.width));
-            
+
             currentVolume = percentage;
             updateVolumeDisplay();
             applyVolume();
-            
+
             // 음소거 상태 해제
             if (isMuted) {
                 isMuted = false;
@@ -6428,7 +6428,7 @@
                 previousVolume = currentVolume;
                 currentVolume = 0;
             }
-            
+
             updateVolumeDisplay();
             updateVolumeIcon();
             applyVolume();
@@ -6462,7 +6462,7 @@
                 // 높은 볼륨 아이콘 (기본)
                 iconPath = 'M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z';
             }
-            
+
             volumeIcon.innerHTML = `<path d="${iconPath}" />`;
         }
 
@@ -6502,15 +6502,15 @@
         function loadVolumeSettings() {
             const savedVolume = localStorage.getItem('notionflow_volume');
             const savedMuted = localStorage.getItem('notionflow_muted');
-            
+
             if (savedVolume !== null) {
                 currentVolume = parseFloat(savedVolume);
             }
-            
+
             if (savedMuted !== null) {
                 isMuted = savedMuted === 'true';
             }
-            
+
             updateVolumeDisplay();
             updateVolumeIcon();
         }
@@ -6520,7 +6520,7 @@
 
             // 볼륨 설정 로드
             loadVolumeSettings();
-            
+
             // 볼륨 아이콘에 클릭 이벤트 추가
             const volumeButton = document.querySelector('button[title="볼륨 조절"]');
             if (volumeButton) {
@@ -6544,36 +6544,36 @@
                     // 각 플랫폼 카드 상태 업데이트
                     Object.keys(PLATFORM_CONFIG).forEach(platform => {
                         const platformData = statusResult.platforms[platform];
-                        
+
                         // 플랫폼 카드 요소 찾기 (다양한 선택자 시도)
                         const platformCard = document.querySelector(`[data-platform="${platform}"]`) ||
-                                           document.querySelector(`.platform-card[data-platform="${platform}"]`) ||
-                                           document.querySelector(`[onclick="checkPlatformStatus('${platform}')"]`);
-                        
+                            document.querySelector(`.platform-card[data-platform="${platform}"]`) ||
+                            document.querySelector(`[onclick="checkPlatformStatus('${platform}')"]`);
+
                         if (platformCard) {
                             // 연결 상태에 따라 카드 업데이트
                             const isConnected = platformData && platformData.connected && platformData.status === 'active';
-                            
+
                             // 카드 내 텍스트 요소 찾기
                             const statusText = platformCard.querySelector('.status-text, .platform-status-text, .connection-status');
                             const statusButton = platformCard.querySelector('.btn-disconnect, .btn-connect, .connection-button');
-                            
+
                             if (statusText) {
-                                statusText.textContent = isConnected ? 
-                                    `연동함: ${platformData.calendar_name || '내 캘린더'}` : 
+                                statusText.textContent = isConnected ?
+                                    `연동함: ${platformData.calendar_name || '내 캘린더'}` :
                                     '연결 안됨';
                             }
-                            
+
                             if (statusButton) {
                                 statusButton.textContent = isConnected ? '연결 해제' : '연결';
                                 statusButton.className = isConnected ? 'btn-disconnect' : 'btn-connect';
                             }
-                            
+
                             // 카드 스타일 업데이트
                             platformCard.classList.toggle('connected', isConnected);
                             platformCard.classList.toggle('disconnected', !isConnected);
                         }
-                        
+
                         // 기존 버튼 인디케이터 로직 유지
                         const button = document.querySelector(`[onclick="checkPlatformStatus('${platform}')"]`);
                         if (button && platformData && platformData.configured) {
@@ -6607,18 +6607,18 @@
         async function loadCalendarEvents() {
             const calendarId = '{{ calendar.id }}';
             const userId = '{{ user_id }}';
-            
+
             try {
                 // Include user_id as query parameter for authentication
                 const response = await fetch(`/api/calendars/${calendarId}/events?user_id=${userId}`);
                 if (response.ok) {
                     const events = await response.json();
-                    
+
                     if (events.length > 0) {
-                        
+
                         // 💪 FORCE EVENT BLOCK GENERATION
                         await forceGenerateEventBlocks(events);
-                        
+
                     } else {
                     }
                 } else {
@@ -6628,10 +6628,10 @@
                 console.error('❌ [POWERFUL] Error loading calendar events:', error);
             }
         }
-        
+
         // 💪 FORCE EVENT BLOCK GENERATION - 빠른 자동 블럭 생성 (최적화됨)
         async function forceGenerateEventBlocks(events) {
-            
+
             // 🚀 ULTRA-FAST GRID DETECTION (0.5초 최대 대기)
             let attempts = 0;
             while (!window.googleCalendarGrid && attempts < 5) {
@@ -6639,15 +6639,15 @@
                 await new Promise(resolve => setTimeout(resolve, 100)); // 100ms씩만 기다림
                 attempts++;
             }
-            
+
             if (!window.googleCalendarGrid) {
                 console.log('⚡ [FAST] Grid not ready yet, using fallback instant creation');
                 // 그리드가 없어도 강제로 생성
                 createEventsDirectly(events);
                 return;
             }
-            
-            
+
+
             // Clear existing events first
             if (window.googleCalendarGrid.events) {
                 window.googleCalendarGrid.events = [];
@@ -6655,21 +6655,21 @@
             if (window.googleCalendarGrid.clearRenderedEvents) {
                 window.googleCalendarGrid.clearRenderedEvents();
             }
-            
+
             let successCount = 0;
             let errorCount = 0;
-            
+
             // Generate blocks for each event
             events.forEach((event, index) => {
                 try {
                     // Convert database event to frontend format
                     const frontendEvent = convertDatabaseEventToFrontend(event);
-                    
+
                     // Add to events array
                     if (window.googleCalendarGrid.events) {
                         window.googleCalendarGrid.events.push(frontendEvent);
                     }
-                    
+
                     // Force render the event block
                     if (window.googleCalendarGrid.renderEvent) {
                         window.googleCalendarGrid.renderEvent(frontendEvent);
@@ -6683,32 +6683,32 @@
                     errorCount++;
                 }
             });
-            
-            
+
+
             // Update event list if available
             if (window.googleCalendarGrid.updateEventList) {
                 window.googleCalendarGrid.updateEventList();
             }
-            
+
             // Save to localStorage for persistence
             if (window.googleCalendarGrid.saveToLocalStorage) {
                 window.googleCalendarGrid.saveToLocalStorage();
             }
         }
-        
+
         // ⚡ INSTANT EVENT CREATION FALLBACK (그리드 없어도 생성)
         function createEventsDirectly(events) {
-            
+
             // Store events for later when grid becomes available
             window.instantEventsCache = events.map(event => convertDatabaseEventToFrontend(event));
-            
+
             // Try to inject events into the DOM directly
             const calendarContainer = document.getElementById('calendar-grid-container');
             if (calendarContainer) {
-                
+
                 events.forEach((event, index) => {
                     const frontendEvent = convertDatabaseEventToFrontend(event);
-                    
+
                     // Create a simple event block directly in the DOM
                     const eventElement = document.createElement('div');
                     eventElement.className = 'instant-event-block';
@@ -6728,21 +6728,21 @@
                     `;
                     eventElement.textContent = frontendEvent.title;
                     eventElement.title = `${frontendEvent.title} (${frontendEvent.startTime})`;
-                    
+
                     calendarContainer.appendChild(eventElement);
                     console.log(`⚡ [INSTANT] Added instant event: ${frontendEvent.title}`);
                 });
             }
-            
+
             // Set up a quick retry when grid becomes available
             let retryCount = 0;
             const retryInterval = setInterval(() => {
                 if (window.googleCalendarGrid && window.instantEventsCache) {
                     console.log('⚡ [INSTANT] Grid now available, converting instant events to proper blocks');
-                    
+
                     // Remove instant blocks
                     document.querySelectorAll('.instant-event-block').forEach(el => el.remove());
-                    
+
                     // Add events properly to grid
                     window.instantEventsCache.forEach(event => {
                         if (window.googleCalendarGrid.events) {
@@ -6752,11 +6752,11 @@
                             window.googleCalendarGrid.renderEvent(event);
                         }
                     });
-                    
+
                     window.instantEventsCache = null;
                     clearInterval(retryInterval);
                     console.log('✅ [INSTANT] Successfully converted to proper grid events');
-                    
+
                 } else if (retryCount > 30) { // 3초 후 포기
                     clearInterval(retryInterval);
                     console.log('⚠️ [INSTANT] Grid still not available after 3 seconds, keeping instant events');
@@ -6770,7 +6770,7 @@
             // Extract date and time from start_datetime
             const startDateTime = new Date(dbEvent.start_datetime);
             const endDateTime = new Date(dbEvent.end_datetime);
-            
+
             const frontendEvent = {
                 id: dbEvent.id || `db-${Date.now()}-${Math.random()}`,
                 title: dbEvent.title || 'Untitled Event',
@@ -6788,18 +6788,18 @@
                 calendar_id: dbEvent.calendar_id || '{{ calendar.id }}',
                 backendId: dbEvent.id
             };
-            
+
             console.log('🔄 [CONVERT] Database event converted:', {
                 original: { title: dbEvent.title, start: dbEvent.start_datetime },
                 converted: { title: frontendEvent.title, date: frontendEvent.date, time: frontendEvent.startTime }
             });
-            
+
             return frontendEvent;
         }
-        
+
         // 🔄 LISTEN FOR REFRESH TRIGGERS FROM OTHER PAGES
         function setupRefreshListeners() {
-            
+
             // Method 1: localStorage listener for same-origin communication
             window.addEventListener('storage', (e) => {
                 if (e.key === 'calendar_grid_refresh_trigger' && e.newValue) {
@@ -6814,17 +6814,17 @@
                     }
                 }
             });
-            
+
             // Method 2: PostMessage listener
             window.addEventListener('message', (e) => {
                 if (e.origin !== window.location.origin) return;
-                
+
                 if (e.data.type === 'CALENDAR_GRID_REFRESH' && e.data.calendar_id === '{{ calendar.id }}') {
                     // 즉시 실행 (지연 없음)
                     loadCalendarEvents();
                 }
             });
-            
+
             // Method 3: BroadcastChannel listener
             if (typeof BroadcastChannel !== 'undefined') {
                 const channel = new BroadcastChannel('calendar_updates');
@@ -6835,12 +6835,12 @@
                     }
                 };
             }
-            
+
         }
 
         // Load events when page is ready
-        document.addEventListener('DOMContentLoaded', function() {
-            
+        document.addEventListener('DOMContentLoaded', function () {
+
             // Initialize GoogleCalendarGrid first
             const container = document.getElementById('calendar-grid-container');
             if (container && typeof GoogleCalendarGrid !== 'undefined') {
@@ -6852,17 +6852,17 @@
                     GoogleCalendarGridClass: typeof GoogleCalendarGrid
                 });
             }
-            
+
             // Set up refresh listeners first
             setupRefreshListeners();
-            
+
             // Load events immediately
             loadCalendarEvents();
-            
+
             // Quick fallback check (단축된 대기)
             setTimeout(() => {
                 if (window.pendingCalendarEvents && window.googleCalendarGrid) {
-;
+                    ;
                     window.googleCalendarGrid.loadEvents(window.pendingCalendarEvents);
                     window.pendingCalendarEvents = null;
                 }
@@ -6871,8 +6871,10 @@
     </script>
 
     <!-- 통합 동기화 모달 스타일 및 스크립트 -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/unified-sync-modal.css') }}?v={{ range(100000, 999999) | random }}">
-    <script defer src="{{ url_for('static', filename='js/unified-sync-modal.js') }}?v={{ range(100000, 999999) | random }}"></script>
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/unified-sync-modal.css') }}?v={{ range(100000, 999999) | random }}">
+    <script defer
+        src="{{ url_for('static', filename='js/unified-sync-modal.js') }}?v={{ range(100000, 999999) | random }}"></script>
 
 </body>
 

@@ -1,158 +1,170 @@
 <!DOCTYPE html>
 <html lang="ko" data-theme="light">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ formatted_date }} - {{ calendar.name }} - NotionFlow</title>
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
-    <link rel="icon" type="image/svg+xml" sizes="16x16" href="{{ url_for('static', filename='images/favicon-16x16.svg') }}">
-    <link rel="icon" type="image/svg+xml" sizes="32x32" href="{{ url_for('static', filename='images/favicon-32x32.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="16x16"
+        href="{{ url_for('static', filename='images/favicon-16x16.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="32x32"
+        href="{{ url_for('static', filename='images/favicon-32x32.svg') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='images/apple-touch-icon.svg') }}">
-    <link rel="icon" type="image/svg+xml" sizes="192x192" href="{{ url_for('static', filename='images/icon-192x192.svg') }}">
-    <link rel="icon" type="image/svg+xml" sizes="512x512" href="{{ url_for('static', filename='images/icon-512x512.svg') }}">
-    
+    <link rel="icon" type="image/svg+xml" sizes="192x192"
+        href="{{ url_for('static', filename='images/icon-192x192.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="512x512"
+        href="{{ url_for('static', filename='images/icon-512x512.svg') }}">
+
     <!-- Web App Manifest -->
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <meta name="theme-color" content="#3B82F6">
-    
+
     <!-- CSS Files -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/variables.css') }}?v={{ range(100000, 999999) | random }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-day.css') }}?v={{ range(100000, 999999) | random }}">
-    
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/variables.css') }}?v={{ range(100000, 999999) | random }}">
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/calendar-day.css') }}?v={{ range(100000, 999999) | random }}">
+
     <!-- Core notification system -->
-    <script src="{{ url_for('static', filename='js/notification-utils.js') }}?v={{ range(100000, 999999) | random }}"></script>
+    <script
+        src="{{ url_for('static', filename='js/notification-utils.js') }}?v={{ range(100000, 999999) | random }}"></script>
 </head>
 
 <body class="calendar-day-page">
 
-<div class="calendar-day-workspace" data-calendar-id="{{ calendar.id }}" data-selected-date="{{ selected_date }}">
-    
-    <!-- Top Navigation Bar -->
-    <div class="calendar-topbar">
-        <div class="topbar-left">
-            <button class="btn-back" onclick="window.location.href='/dashboard/calendar/{{ calendar.id }}'">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M19 12H5M12 19l-7-7 7-7"/>
-                </svg>
-            </button>
-            <div class="calendar-header-info">
-                <div class="calendar-icon-small" style="background: {{ calendar.color or '#3B82F6' }}"></div>
-                <div class="header-text">
-                    <h1 class="calendar-name">{{ calendar.name }}</h1>
-                    <div class="date-info">
-                        <span class="formatted-date">{{ formatted_date }}</span>
-                        <span class="weekday">{{ weekday }}</span>
+    <div class="calendar-day-workspace" data-calendar-id="{{ calendar.id }}" data-selected-date="{{ selected_date }}">
+
+        <!-- Top Navigation Bar -->
+        <div class="calendar-topbar">
+            <div class="topbar-left">
+                <button class="btn-back" onclick="window.location.href='/dashboard/calendar/{{ calendar.id }}'">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M19 12H5M12 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <div class="calendar-header-info">
+                    <div class="header-text">
+                        <h1 class="calendar-name">{{ calendar.name }}</h1>
+                        <div class="date-info">
+                            <span class="formatted-date">{{ formatted_date }}</span>
+                            <span class="weekday">{{ weekday }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <div class="topbar-right">
+                <button class="btn-today" onclick="goToToday()">오늘</button>
+            </div>
         </div>
-        
-        <div class="topbar-right">
-            <button class="btn-today" onclick="goToToday()">오늘</button>
+
+        <!-- Main Content Area -->
+        <div class="calendar-day-content">
+            <!-- Weekly Calendar Section -->
+            <div class="weekly-calendar-section">
+                <div class="week-grid" id="week-grid">
+                    <!-- 일주일 그리드가 JavaScript로 동적 생성됩니다 -->
+                </div>
+            </div>
+
+            <!-- Daily Commitment Section -->
+            <div class="daily-commitment-section">
+                <div class="commitment-widget excel-widget">
+                    <div class="widget-header">
+                        <div class="widget-icon">✨</div>
+                        <h2>오늘의 다짐</h2>
+                        <div class="current-time-display" id="header-current-time">14:30</div>
+                    </div>
+                    <div class="commitment-content">
+                        <textarea class="commitment-textarea" placeholder="오늘 하루를 어떻게 보내고 싶나요? 당신의 다짐을 적어보세요..."
+                            rows="3"></textarea>
+                        <div class="commitment-actions">
+                            <button class="btn-save-commitment" onclick="saveCommitment()">💾 저장</button>
+                            <button class="btn-clear-commitment" onclick="clearCommitment()">🗑 지우기</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Grid Container -->
+            <div class="main-content-grid">
+                <!-- Daily Routine Section -->
+                <div class="daily-routine-section excel-widget">
+                    <div class="widget-header">
+                        <div class="widget-icon">🔄</div>
+                        <h3>Daily Routine</h3>
+                        <div class="widget-controls">
+                            <button class="control-btn add-routine" onclick="addRoutineItem()" title="루틴 추가">+</button>
+                            <button class="control-btn clear-routine" onclick="clearAllRoutines()"
+                                title="모두 지우기">✕</button>
+                            <button class="control-btn sort-routine" onclick="sortRoutinesByTime()"
+                                title="시간순 정렬">↕</button>
+                        </div>
+                    </div>
+
+                    <!-- Excel-style grid table -->
+                    <div class="excel-table routine-table">
+                        <div class="table-header">
+                            <div class="header-cell time-column">시간</div>
+                            <div class="header-cell activity-column">활동</div>
+                            <div class="header-cell status-column">완료</div>
+                            <div class="header-cell action-column">작업</div>
+                        </div>
+                        <div class="table-body routine-table-body" id="routine-table-body">
+                            <!-- 루틴들이 JavaScript로 동적으로 로드됩니다 -->
+                        </div>
+                        <div class="empty-state routine-empty" id="routine-empty">
+                            <div class="empty-icon">🔄</div>
+                            <div class="empty-message">일일 루틴을 추가하여 하루를 체계적으로 관리해보세요</div>
+                            <button class="btn-add-first" onclick="addRoutineItem()">첫 루틴 추가</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tasks Section -->
+                <div class="tasks-section excel-widget">
+                    <div class="widget-header">
+                        <div class="widget-icon">✅</div>
+                        <h3>Tasks</h3>
+                        <div class="widget-controls">
+                            <button class="control-btn add-task" onclick="addTaskItem()" title="할 일 추가">+</button>
+                            <button class="control-btn clear-tasks" onclick="clearAllTasks()" title="모두 지우기">✕</button>
+                        </div>
+                    </div>
+
+                    <div class="excel-table tasks-table">
+                        <div class="table-header">
+                            <div class="header-cell status-column">완료</div>
+                            <div class="header-cell task-column">작업</div>
+                            <div class="header-cell tag-column tag-1">태그1</div>
+                            <div class="header-cell tag-column tag-2">태그2</div>
+                            <div class="header-cell tag-column tag-3">태그3</div>
+                            <div class="header-cell tag-column tag-4">태그4</div>
+                            <div class="header-cell tag-column tag-5">태그5</div>
+                            <div class="header-cell priority-column">우선순위</div>
+                            <div class="header-cell action-column">작업</div>
+                        </div>
+                        <div class="table-body tasks-table-body" id="tasks-table-body">
+                            <!-- 작업들이 JavaScript로 동적으로 로드됩니다 -->
+                        </div>
+                        <div class="empty-state tasks-empty" id="tasks-empty">
+                            <div class="empty-icon">✅</div>
+                            <div class="empty-message">오늘 할 일을 추가해보세요</div>
+                            <button class="btn-add-first" onclick="addTaskItem()">첫 작업 추가</button>
+                        </div>
+                    </div>
+                </div>
+            </div> <!-- main-content-grid 닫기 -->
         </div>
     </div>
 
-    <!-- Main Content Area -->
-    <div class="calendar-day-content">
-        <!-- Weekly Calendar Section -->
-        <div class="weekly-calendar-section">
-            <div class="week-grid" id="week-grid">
-                <!-- 일주일 그리드가 JavaScript로 동적 생성됩니다 -->
-            </div>
-        </div>
-        
-        <!-- Daily Commitment Section -->
-        <div class="daily-commitment-section">
-            <div class="commitment-widget excel-widget">
-                <div class="widget-header">
-                    <div class="widget-icon">✨</div>
-                    <h2>오늘의 다짐</h2>
-                    <div class="current-time-display" id="header-current-time">14:30</div>
-                </div>
-                <div class="commitment-content">
-                    <textarea class="commitment-textarea" placeholder="오늘 하루를 어떻게 보내고 싶나요? 당신의 다짐을 적어보세요..." rows="3"></textarea>
-                    <div class="commitment-actions">
-                        <button class="btn-save-commitment" onclick="saveCommitment()">💾 저장</button>
-                        <button class="btn-clear-commitment" onclick="clearCommitment()">🗑 지우기</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Main Content Grid Container -->
-        <div class="main-content-grid">
-            <!-- Daily Routine Section -->
-            <div class="daily-routine-section excel-widget">
-                <div class="widget-header">
-                    <div class="widget-icon">🔄</div>
-                    <h3>Daily Routine</h3>
-                    <div class="widget-controls">
-                        <button class="control-btn add-routine" onclick="addRoutineItem()" title="루틴 추가">+</button>
-                        <button class="control-btn clear-routine" onclick="clearAllRoutines()" title="모두 지우기">✕</button>
-                        <button class="control-btn sort-routine" onclick="sortRoutinesByTime()" title="시간순 정렬">↕</button>
-                    </div>
-                </div>
-                
-                <!-- Excel-style grid table -->
-                <div class="excel-table routine-table">
-                    <div class="table-header">
-                        <div class="header-cell time-column">시간</div>
-                        <div class="header-cell activity-column">활동</div>
-                        <div class="header-cell status-column">완료</div>
-                        <div class="header-cell action-column">작업</div>
-                    </div>
-                    <div class="table-body routine-table-body" id="routine-table-body">
-                        <!-- 루틴들이 JavaScript로 동적으로 로드됩니다 -->
-                    </div>
-                    <div class="empty-state routine-empty" id="routine-empty">
-                        <div class="empty-icon">🔄</div>
-                        <div class="empty-message">일일 루틴을 추가하여 하루를 체계적으로 관리해보세요</div>
-                        <button class="btn-add-first" onclick="addRoutineItem()">첫 루틴 추가</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tasks Section -->
-            <div class="tasks-section excel-widget">
-                <div class="widget-header">
-                    <div class="widget-icon">✅</div>
-                    <h3>Tasks</h3>
-                    <div class="widget-controls">
-                        <button class="control-btn add-task" onclick="addTaskItem()" title="할 일 추가">+</button>
-                        <button class="control-btn clear-tasks" onclick="clearAllTasks()" title="모두 지우기">✕</button>
-                    </div>
-                </div>
-                
-                <div class="excel-table tasks-table">
-                    <div class="table-header">
-                        <div class="header-cell status-column">완료</div>
-                        <div class="header-cell task-column">작업</div>
-                        <div class="header-cell tag-column tag-1">태그1</div>
-                        <div class="header-cell tag-column tag-2">태그2</div>
-                        <div class="header-cell tag-column tag-3">태그3</div>
-                        <div class="header-cell tag-column tag-4">태그4</div>
-                        <div class="header-cell tag-column tag-5">태그5</div>
-                        <div class="header-cell priority-column">우선순위</div>
-                        <div class="header-cell action-column">작업</div>
-                    </div>
-                    <div class="table-body tasks-table-body" id="tasks-table-body">
-                        <!-- 작업들이 JavaScript로 동적으로 로드됩니다 -->
-                    </div>
-                    <div class="empty-state tasks-empty" id="tasks-empty">
-                        <div class="empty-icon">✅</div>
-                        <div class="empty-message">오늘 할 일을 추가해보세요</div>
-                        <button class="btn-add-first" onclick="addTaskItem()">첫 작업 추가</button>
-                    </div>
-                </div>
-            </div>
-        </div> <!-- main-content-grid 닫기 -->
-    </div>
-</div>
-
-<!-- JavaScript -->
-<script src="{{ url_for('static', filename='js/calendar-day.js') }}?v={{ range(100000, 999999) | random }}"></script>
+    <!-- JavaScript -->
+    <script
+        src="{{ url_for('static', filename='js/calendar-day.js') }}?v={{ range(100000, 999999) | random }}"></script>
 
 </body>
+
 </html>
