@@ -3770,15 +3770,60 @@ def get_smart_cache_data(user_id, platform):
         print(f"[ERROR] Failed to get smart cache data: {e}")
         return None
 
-# 🏥 Health Check Endpoint for Render
+# 🏥 Health Check Endpoint for Railway
 @app.route('/health')
 def health_check():
-    """Health check endpoint for Render deployment"""
-    return jsonify({
-        'status': 'healthy',
-        'message': 'NotionFlow is running successfully',
-        'timestamp': dt.utcnow().isoformat()
-    })
+    """Health check endpoint for Railway deployment"""
+    try:
+        # 기본 Flask 앱 상태 체크
+        status = 'healthy'
+        message = 'NotionFlow is running successfully'
+        details = {
+            'environment': os.environ.get('RAILWAY_ENVIRONMENT', 'development'),
+            'blueprints_registered': len(registered_blueprints) if 'registered_blueprints' in globals() else 0,
+            'python_version': sys.version.split()[0]
+        }
+        
+        # 환경변수 체크 (민감정보 제외)
+        env_check = {
+            'has_supabase_url': bool(os.environ.get('SUPABASE_URL')),
+            'has_supabase_key': bool(os.environ.get('SUPABASE_SERVICE_ROLE_KEY') or os.environ.get('SUPABASE_API_KEY')),
+            'has_secret_key': bool(os.environ.get('SECRET_KEY'))
+        }
+        details['environment_check'] = env_check
+        
+        return jsonify({
+            'status': status,
+            'message': message,
+            'timestamp': dt.utcnow().isoformat(),
+            'details': details
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'message': f'Health check failed: {str(e)}',
+            'timestamp': dt.utcnow().isoformat()
+        }), 500
+
+# 추가 헬스체크 엔드포인트 (Railway specific)
+@app.route('/')
+def root_health():
+    """Root endpoint that also serves as health check"""
+    try:
+        return jsonify({
+            'service': 'NotionFlow',
+            'status': 'running',
+            'version': '1.0.0',
+            'timestamp': dt.utcnow().isoformat()
+        })
+    except Exception as e:
+        return jsonify({
+            'service': 'NotionFlow',
+            'status': 'error',
+            'error': str(e),
+            'timestamp': dt.utcnow().isoformat()
+        }), 500
 
 # [SEARCH] Debug endpoint for session testing
 @app.route('/debug/session')
@@ -3812,8 +3857,7 @@ blueprints_to_register = [
     ('routes.notion_calendar_connect', 'notion_calendar_bp', '[NOTION] Notion Calendar Connect'),
     ('routes.session_cleanup', 'session_cleanup_bp', '[DEBUG] Session Cleanup'),
     ('routes.friends_routes', 'friends_bp', '[FRIENDS] Friends System'),
-    ('routes.unified_sync_routes', 'unified_sync_bp', '[SYNC] Unified Multi-Platform Sync'),
-    ('routes.google_calendar_sync_routes', 'google_calendar_bp', '[GOOGLE] Google Calendar Sync')
+    ('routes.unified_sync_routes_simple', 'unified_sync_bp', '[SYNC] Unified Multi-Platform Sync')
 ]
 
 registered_blueprints = []

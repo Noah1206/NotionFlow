@@ -41,18 +41,29 @@ def get_platform_status():
         if isinstance(user_id, tuple):  # Error response
             return user_id
         
-        # 기존 CalendarSyncService 재활용
-        calendar_service = CalendarSyncService(user_id)
+        # 기존 CalendarSyncService 재활용 (에러 처리 추가)
+        try:
+            calendar_service = CalendarSyncService(user_id)
+        except Exception as init_error:
+            print(f"⚠️ CalendarSyncService init failed: {init_error}")
+            calendar_service = None
         
         status = {}
         
         # Google 상태 체크
         try:
-            google_provider = calendar_service.get_provider('google')
-            status['google'] = {
-                'connected': google_provider is not None,
-                'platform': 'Google Calendar'
-            }
+            if calendar_service:
+                google_provider = calendar_service.get_provider('google')
+                status['google'] = {
+                    'connected': google_provider is not None,
+                    'platform': 'Google Calendar'
+                }
+            else:
+                status['google'] = {
+                    'connected': False,
+                    'platform': 'Google Calendar',
+                    'error': 'Calendar service unavailable'
+                }
         except Exception as e:
             status['google'] = {
                 'connected': False,
@@ -62,11 +73,18 @@ def get_platform_status():
         
         # Notion 상태 체크
         try:
-            notion_provider = calendar_service.get_provider('notion')
-            status['notion'] = {
-                'connected': notion_provider is not None,
-                'platform': 'Notion'
-            }
+            if calendar_service:
+                notion_provider = calendar_service.get_provider('notion')
+                status['notion'] = {
+                    'connected': notion_provider is not None,
+                    'platform': 'Notion'
+                }
+            else:
+                status['notion'] = {
+                    'connected': False,
+                    'platform': 'Notion',
+                    'error': 'Calendar service unavailable'
+                }
         except Exception as e:
             status['notion'] = {
                 'connected': False,
@@ -127,22 +145,36 @@ def execute_unified_sync():
             
             try:
                 if platform == 'google':
-                    # 기존 Google Sync 함수 재활용
-                    result = sync_google_calendar_for_user(user_id)
-                    results[platform] = {
-                        'success': True,
-                        'message': f'Google Calendar 동기화 완료: {result.get("synced_count", 0)}개 이벤트',
-                        'details': result
-                    }
+                    # 기존 Google Sync 함수 재활용 (에러 처리 추가)
+                    try:
+                        result = sync_google_calendar_for_user(user_id)
+                        results[platform] = {
+                            'success': True,
+                            'message': f'Google Calendar 동기화 완료: {result.get("synced_count", 0)}개 이벤트',
+                            'details': result
+                        }
+                    except Exception as sync_error:
+                        print(f"❌ Google sync failed: {sync_error}")
+                        results[platform] = {
+                            'success': False,
+                            'message': f'Google Calendar 동기화 실패: {str(sync_error)}'
+                        }
                     
                 elif platform == 'notion':
-                    # 기존 Notion Sync 함수 재활용
-                    result = sync_notion_calendar_for_user(user_id)
-                    results[platform] = {
-                        'success': True,
-                        'message': f'Notion 동기화 완료: {result.get("synced_count", 0)}개 이벤트',
-                        'details': result
-                    }
+                    # 기존 Notion Sync 함수 재활용 (에러 처리 추가)
+                    try:
+                        result = sync_notion_calendar_for_user(user_id)
+                        results[platform] = {
+                            'success': True,
+                            'message': f'Notion 동기화 완료: {result.get("synced_count", 0)}개 이벤트',
+                            'details': result
+                        }
+                    except Exception as sync_error:
+                        print(f"❌ Notion sync failed: {sync_error}")
+                        results[platform] = {
+                            'success': False,
+                            'message': f'Notion 동기화 실패: {str(sync_error)}'
+                        }
                     
                 elif platform == 'apple':
                     # Apple은 향후 구현
