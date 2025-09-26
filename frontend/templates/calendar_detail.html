@@ -6870,6 +6870,9 @@
         });
     </script>
 
+    <!-- 통합 동기화 모달 스타일 및 스크립트 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/unified-sync-modal.css') }}?v={{ range(100000, 999999) | random }}">
+    <script defer src="{{ url_for('static', filename='js/unified-sync-modal.js') }}?v={{ range(100000, 999999) | random }}"></script>
 
 </body>
 

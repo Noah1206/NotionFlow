@@ -1,0 +1,414 @@
+/**
+ * 통합 동기화 모달 스타일 - 기존 스타일 100% 재활용
+ * event-form-widget과 view-toggle 스타일 확장
+ */
+
+/* 동기화 버튼 - 기존 view-option 스타일 재활용 */
+.sync-trigger {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    color: white !important;
+    border: none !important;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.sync-trigger:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.sync-trigger:active {
+    transform: translateY(0);
+}
+
+.sync-trigger .sync-text {
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.sync-trigger.loading .sync-text {
+    display: none;
+}
+
+.sync-trigger .sync-loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.sync-trigger .loader-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 모달 오버레이 - 기존 calendar-overlay-form 스타일 재활용 */
+#sync-modal-overlay {
+    backdrop-filter: blur(2px);
+}
+
+/* 플랫폼 선택 섹션 */
+.platform-selection {
+    margin: 20px 0;
+}
+
+.platform-checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.platform-checkbox {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #f9fafb;
+}
+
+.platform-checkbox:hover {
+    border-color: #d1d5db;
+    background: #f3f4f6;
+}
+
+.platform-checkbox input[type="checkbox"] {
+    margin-right: 16px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.platform-checkbox input[type="checkbox"]:checked + .platform-info {
+    color: #059669;
+    font-weight: 500;
+}
+
+.platform-checkbox input[type="checkbox"]:checked {
+    accent-color: #10b981;
+}
+
+.platform-checkbox:has(input:checked) {
+    border-color: #10b981;
+    background: #ecfdf5;
+}
+
+.platform-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.platform-name {
+    font-weight: 500;
+    font-size: 16px;
+    color: #374151;
+}
+
+.platform-status {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.platform-status.connected {
+    color: #059669;
+}
+
+.platform-status.disconnected {
+    color: #dc2626;
+}
+
+/* 옵션 섹션 - 기존 form-group 스타일 재활용 */
+.sync-options {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.option-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.option-group h4 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.option-group select {
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    background: white;
+    color: #374151;
+    cursor: pointer;
+}
+
+.option-group select:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.checkbox-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    cursor: pointer;
+    font-size: 14px;
+    color: #374151;
+}
+
+.checkbox-option input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #10b981;
+}
+
+.checkbox-option:hover {
+    color: #059669;
+}
+
+/* 단계별 네비게이션 */
+.sync-step {
+    min-height: 300px;
+}
+
+.sync-step h3 {
+    margin: 0 0 20px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.step-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+}
+
+/* 버튼 스타일 - 기존 스타일 재활용 */
+.btn-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn-primary:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-secondary {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+}
+
+.btn-secondary:hover {
+    background: #e5e7eb;
+    border-color: #9ca3af;
+}
+
+/* 검토 및 결과 섹션 */
+.preview-summary {
+    background: #f8fafc;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid #3b82f6;
+    margin: 20px 0;
+}
+
+.preview-summary h4 {
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.preview-summary p {
+    margin: 8px 0;
+    font-size: 14px;
+    color: #475569;
+    line-height: 1.5;
+}
+
+.preview-summary strong {
+    color: #1e293b;
+}
+
+/* 결과 표시 */
+.sync-results {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 20px 0;
+}
+
+.result-item {
+    padding: 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.result-item:has(✅) {
+    background: #ecfdf5;
+    border: 1px solid #d1fae5;
+    color: #065f46;
+}
+
+.result-item:has(❌) {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+}
+
+.result-item strong {
+    text-transform: capitalize;
+}
+
+.result-item small {
+    opacity: 0.8;
+    font-size: 13px;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    #unified-sync-modal {
+        width: 95vw;
+        max-height: 85vh;
+        margin: 0;
+        border-radius: 8px;
+    }
+    
+    .platform-checkbox {
+        padding: 12px;
+    }
+    
+    .platform-name {
+        font-size: 15px;
+    }
+    
+    .step-buttons {
+        flex-direction: column-reverse;
+    }
+    
+    .btn-primary,
+    .btn-secondary {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* 접근성 개선 */
+.platform-checkbox:focus-within,
+.checkbox-option:focus-within {
+    outline: 2px solid #10b981;
+    outline-offset: 2px;
+}
+
+.sync-trigger:focus {
+    outline: 2px solid #10b981;
+    outline-offset: 2px;
+}
+
+/* 로딩 애니메이션 */
+.sync-step.loading {
+    position: relative;
+}
+
+.sync-step.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sync-step.loading::before {
+    content: '처리 중...';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    font-weight: 500;
+    color: #374151;
+}
+
+/* 상태 표시 배지 */
+.status-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.status-badge.connected {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.status-badge.disconnected {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.status-badge.pending {
+    background: #fef3c7;
+    color: #d97706;
+}
