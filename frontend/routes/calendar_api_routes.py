@@ -1189,7 +1189,7 @@ def get_google_calendars():
         if session_token:
             print("📅 [GOOGLE-CALENDARS] Found token in session, attempting to save to database...")
             try:
-                import os_module  # os_module alias already imported above
+                import os as os_module
                 from supabase import create_client
 
                 supabase_url = os_module.environ.get('SUPABASE_URL')
