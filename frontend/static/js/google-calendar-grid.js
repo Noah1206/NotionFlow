@@ -53,6 +53,15 @@ class GoogleCalendarGrid {
             return [];
         }
     }
+
+    isEventInTrash(eventId) {
+        // Check if event is in trash (both new and old trash systems)
+        const trashedEvents = this.loadTrashedEvents();
+        const oldTrashedEvents = JSON.parse(localStorage.getItem('trashedEvents') || '[]');
+
+        return trashedEvents.some(event => String(event.id) === String(eventId)) ||
+               oldTrashedEvents.some(event => String(event.id) === String(eventId));
+    }
     
     saveTrashedEvents() {
         const storageKey = 'calendar_trashed_events';
@@ -368,12 +377,20 @@ class GoogleCalendarGrid {
         const existingEvents = this.container.querySelectorAll('.calendar-event');
         existingEvents.forEach(event => event.remove());
         
-        // Re-render all events
+        // Re-render all events (excluding trashed events)
         this.events.forEach(event => {
-            this.renderEvent(event);
+            // Skip trashed events
+            if (!this.isEventInTrash(event.id)) {
+                this.renderEvent(event);
+            }
         });
     }
-    
+
+    renderEvents() {
+        // Alias for rerenderAllEvents
+        this.rerenderAllEvents();
+    }
+
     render() {
         // 🔧 DYNAMIC WIDTH: 컨테이너 너비에 맞게 동적으로 크기 조정
         let containerWidth = this.container.offsetWidth || this.container.getBoundingClientRect().width;
@@ -1206,8 +1223,16 @@ class GoogleCalendarGrid {
             this.events = [];
         }
         
-        // Sort events by date and time
-        const sortedEvents = [...this.events].filter(event => event && event.id).sort((a, b) => {
+        // Sort events by date and time, excluding trashed events
+        const sortedEvents = [...this.events].filter(event => {
+            if (!event || !event.id) return false;
+            // Filter out trashed events from sidebar display
+            if (this.isEventInTrash(event.id)) {
+                console.log('🗑️ Filtering out trashed event from sidebar:', event.title, 'ID:', event.id);
+                return false;
+            }
+            return true;
+        }).sort((a, b) => {
             const dateA = new Date(a.date + 'T' + a.startTime);
             const dateB = new Date(b.date + 'T' + b.startTime);
             return dateA - dateB;
@@ -1957,10 +1982,16 @@ class GoogleCalendarGrid {
     
     renderEvent(eventData) {
         // Render event silently
-        
+
         // Check for null/undefined event data
         if (!eventData || !eventData.id) {
             console.warn('⚠️ Skipping null or invalid event data:', eventData);
+            return;
+        }
+
+        // Skip events that are in trash
+        if (this.isEventInTrash(eventData.id)) {
+            console.log('🗑️ Skipping trashed event:', eventData.title, 'ID:', eventData.id);
             return;
         }
         
@@ -3269,13 +3300,22 @@ class GoogleCalendarGrid {
         });
     }
     
-    // 모든 이벤트 표시
+    // 모든 이벤트 표시 (휴지통 이벤트 제외)
     showAllEvents() {
         const eventElements = this.container.querySelectorAll('.calendar-event');
         eventElements.forEach(element => {
-            element.style.display = 'block';
+            const eventId = element.getAttribute('data-event-id') ||
+                           element.getAttribute('data-id');
+
+            // 휴지통에 있는 이벤트는 표시하지 않음
+            if (eventId && this.isEventInTrash(eventId)) {
+                element.style.display = 'none';
+                console.log('🗑️ Hiding trashed event from calendar grid:', eventId);
+            } else {
+                element.style.display = 'block';
+            }
         });
-        // 사이드바 이벤트 목록도 업데이트
+        // 사이드바 이벤트 목록도 업데이트 (이미 trash 필터링이 적용됨)
         this.updateEventList(this.events);
     }
     
@@ -3283,17 +3323,21 @@ class GoogleCalendarGrid {
     showFilteredEvents(filteredEvents) {
         // 먼저 모든 이벤트 숨기기
         this.hideAllEvents();
-        
-        // 필터링된 이벤트 ID 목록 생성
-        const filteredEventIds = new Set(filteredEvents.map(e => String(e.id)));
-        
-        // 해당하는 이벤트들만 표시
+
+        // 필터링된 이벤트 ID 목록 생성 (휴지통 이벤트 제외)
+        const filteredEventIds = new Set(
+            filteredEvents
+                .filter(e => !this.isEventInTrash(e.id))
+                .map(e => String(e.id))
+        );
+
+        // 해당하는 이벤트들만 표시 (휴지통 이벤트 제외)
         const eventElements = this.container.querySelectorAll('.calendar-event');
         eventElements.forEach(element => {
-            const eventId = element.getAttribute('data-event-id') || 
+            const eventId = element.getAttribute('data-event-id') ||
                            element.getAttribute('data-id');
-            
-            if (eventId && filteredEventIds.has(String(eventId))) {
+
+            if (eventId && filteredEventIds.has(String(eventId)) && !this.isEventInTrash(eventId)) {
                 element.style.display = '';
             }
         });
