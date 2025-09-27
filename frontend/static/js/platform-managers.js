@@ -374,6 +374,9 @@ class GoogleManager extends PlatformManager {
                     // Show calendar selection modal for fresh connections
                     this.showNotification('Google OAuth 연결 완료 - 캘린더 선택 중...', 'success');
 
+                    // FORCE CLEAR ALL BLUR OVERLAYS before showing calendar selection
+                    this.clearAllBlurOverlays();
+
                     try {
                         await this.showCalendarSelection();
                     } catch (calendarError) {
@@ -508,6 +511,56 @@ class GoogleManager extends PlatformManager {
         });
     }
     
+    clearAllBlurOverlays() {
+        console.log('🧹 [BLUR CLEANUP] Removing ALL blur overlays from the page');
+
+        // Remove all modal-related elements
+        const elementsToRemove = [
+            '.modal-overlay',
+            '.modal-backdrop',
+            '.backdrop',
+            '.calendar-selection-modal',
+            '.calendar-sync-modal',
+            '[class*="modal"]:not(#google-calendar-modal-ultimate)',
+            '[style*="backdrop"]',
+            '[style*="blur"]'
+        ];
+
+        elementsToRemove.forEach(selector => {
+            document.querySelectorAll(selector).forEach(el => {
+                console.log('🗑️ [BLUR CLEANUP] Removing blur element:', el.className || el.id);
+                el.remove();
+            });
+        });
+
+        // Reset body and html styles
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.filter = '';
+        document.documentElement.style.overflow = '';
+        document.documentElement.style.filter = '';
+
+        // Remove backdrop-filter and blur from all elements
+        document.querySelectorAll('*').forEach(el => {
+            if (el.style.backdropFilter) {
+                el.style.backdropFilter = '';
+            }
+            if (el.style.filter && el.style.filter.includes('blur')) {
+                el.style.filter = '';
+            }
+            // Remove any position fixed that might be causing overlay
+            if (el.style.position === 'fixed' && (el.style.background || el.style.backgroundColor)) {
+                const bgColor = el.style.background || el.style.backgroundColor;
+                if (bgColor.includes('rgba') && el !== document.getElementById('google-calendar-modal-ultimate')) {
+                    console.log('🗑️ [BLUR CLEANUP] Removing fixed overlay:', el.className || el.id);
+                    el.remove();
+                }
+            }
+        });
+
+        console.log('✅ [BLUR CLEANUP] All blur overlays removed');
+    }
+
     async showCalendarSelection() {
         try {
             console.log('📅 [GOOGLE] Fetching calendar list...');
@@ -668,12 +721,43 @@ class GoogleManager extends PlatformManager {
         // Create modal HTML with COMPLETE inline styling (no CSS classes)
         const modal = document.createElement('div');
         modal.id = 'google-calendar-modal-ultimate';
-        // Force remove all existing backdrop/overlay elements that might be interfering
-        document.querySelectorAll('.modal-overlay, .backdrop, [style*="backdrop"], [style*="blur"]').forEach(el => {
-            if (el !== modal) {
-                el.style.display = 'none !important';
-                el.style.visibility = 'hidden !important';
-                el.style.zIndex = '-9999 !important';
+        // FORCE REMOVE ALL BLUR OVERLAYS AND MODALS
+        console.log('🧹 [CLEANUP] Removing ALL blur overlays and modal elements');
+
+        // Remove all modal-related elements that could cause blur
+        const elementsToRemove = [
+            '.modal-overlay',
+            '.modal-backdrop',
+            '.backdrop',
+            '.calendar-selection-modal',
+            '.calendar-sync-modal',
+            '[class*="modal"]',
+            '[style*="backdrop"]',
+            '[style*="blur"]',
+            '[style*="position: fixed"]'
+        ];
+
+        elementsToRemove.forEach(selector => {
+            document.querySelectorAll(selector).forEach(el => {
+                if (el !== modal) {
+                    console.log('🗑️ [CLEANUP] Removing element:', el.className || el.id);
+                    el.remove();
+                }
+            });
+        });
+
+        // Force remove any remaining overlay styles on body and html
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.documentElement.style.overflow = '';
+
+        // Remove any backdrop-filter from all elements
+        document.querySelectorAll('*').forEach(el => {
+            if (el.style.backdropFilter) {
+                el.style.backdropFilter = '';
+            }
+            if (el.style.filter && el.style.filter.includes('blur')) {
+                el.style.filter = '';
             }
         });
 
@@ -1224,6 +1308,61 @@ window.connectPlatform = function(platform) {
             console.error(`Connect button not found for platform: ${platform}`);
         }
     }
+};
+
+// Global function to clear all blur overlays
+window.clearAllBlurOverlays = function() {
+    console.log('🧹 [GLOBAL BLUR CLEANUP] Removing ALL blur overlays from the page');
+
+    // Remove all modal-related elements
+    const elementsToRemove = [
+        '.modal-overlay',
+        '.modal-backdrop',
+        '.backdrop',
+        '.calendar-selection-modal',
+        '.calendar-sync-modal',
+        '[class*="modal"]:not(#google-calendar-modal-ultimate)',
+        '[style*="backdrop"]',
+        '[style*="blur"]'
+    ];
+
+    let removedCount = 0;
+    elementsToRemove.forEach(selector => {
+        document.querySelectorAll(selector).forEach(el => {
+            console.log('🗑️ [GLOBAL BLUR CLEANUP] Removing blur element:', el.className || el.id);
+            el.remove();
+            removedCount++;
+        });
+    });
+
+    // Reset body and html styles
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.filter = '';
+    document.documentElement.style.overflow = '';
+    document.documentElement.style.filter = '';
+
+    // Remove backdrop-filter and blur from all elements
+    document.querySelectorAll('*').forEach(el => {
+        if (el.style.backdropFilter) {
+            el.style.backdropFilter = '';
+        }
+        if (el.style.filter && el.style.filter.includes('blur')) {
+            el.style.filter = '';
+        }
+        // Remove any position fixed that might be causing overlay
+        if (el.style.position === 'fixed' && (el.style.background || el.style.backgroundColor)) {
+            const bgColor = el.style.background || el.style.backgroundColor;
+            if (bgColor.includes('rgba') && el !== document.getElementById('google-calendar-modal-ultimate')) {
+                console.log('🗑️ [GLOBAL BLUR CLEANUP] Removing fixed overlay:', el.className || el.id);
+                el.remove();
+                removedCount++;
+            }
+        }
+    });
+
+    console.log(`✅ [GLOBAL BLUR CLEANUP] Removed ${removedCount} blur overlay elements`);
+    return removedCount;
 };
 
 window.oneClickConnect = function(platform) {
