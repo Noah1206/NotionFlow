@@ -1212,9 +1212,12 @@ def get_google_calendars():
                         on_conflict='user_id,platform'
                     ).execute()
                     print("📅 [GOOGLE-CALENDARS] Token saved to database from session")
+                else:
+                    print("⚠️ [GOOGLE-CALENDARS] Missing Supabase credentials for token sync")
 
             except Exception as e:
                 print(f"❌ [GOOGLE-CALENDARS] Failed to save session token to database: {e}")
+                # 세션 토큰 저장 실패해도 계속 진행
 
         # 구글 캘린더 목록 가져오기
         google_calendars = google_service.get_calendar_list(user_id)
@@ -1244,9 +1247,21 @@ def get_google_calendars():
         print(f"❌ [GOOGLE-CALENDARS] Error getting Google calendars: {e}")
         import traceback
         print(f"❌ [GOOGLE-CALENDARS] Traceback: {traceback.format_exc()}")
+
+        # 구체적인 에러 타입별 메시지
+        error_message = str(e)
+        if "No Google OAuth token found" in error_message:
+            error_message = "Google Calendar OAuth token not found. Please re-authenticate."
+        elif "Supabase" in error_message:
+            error_message = "Database connection error. Please try again."
+        elif "import" in error_message.lower():
+            error_message = "Service initialization error. Please try again."
+        else:
+            error_message = f"Failed to get Google calendars: {str(e)}"
+
         return jsonify({
             'success': False,
-            'error': f'Failed to get Google calendars: {str(e)}',
+            'error': error_message,
             'calendars': []
         }), 500
 
