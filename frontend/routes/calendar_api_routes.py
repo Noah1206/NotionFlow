@@ -1158,26 +1158,53 @@ def get_google_calendars():
         user_id = get_current_user_id()
         if not user_id:
             user_id = "e390559f-c328-4786-ac5d-c74b5409451b"  # 임시 사용자 ID
-        
+
+        print(f"📅 [GOOGLE-CALENDARS] Fetching calendars for user_id: {user_id}")
+
         # Google Calendar 서비스 import
         sys.path.append(os.path.join(os.path.dirname(__file__), '../../backend'))
         from services.google_calendar_service import get_google_calendar_service
-        
+
         # Google Calendar 서비스 인스턴스 가져오기
         google_service = get_google_calendar_service()
-        
+        print(f"📅 [GOOGLE-CALENDARS] Google service instance: {google_service}")
+
+        if not google_service:
+            print("❌ [GOOGLE-CALENDARS] Google Calendar service is None")
+            return jsonify({
+                'success': False,
+                'error': 'Google Calendar service not available',
+                'calendars': []
+            })
+
         # 구글 캘린더 목록 가져오기
         google_calendars = google_service.get_calendar_list(user_id)
-        
+        print(f"📅 [GOOGLE-CALENDARS] Retrieved {len(google_calendars)} calendars")
+
+        # 빈 배열 반환 시 구체적인 디버깅 정보 제공
+        if not google_calendars:
+            print(f"⚠️ [GOOGLE-CALENDARS] No calendars found for user {user_id}")
+            # OAuth 토큰 상태 확인
+            service = google_service.get_calendar_service(user_id)
+            if not service:
+                print(f"❌ [GOOGLE-CALENDARS] No calendar service available for user {user_id} - OAuth token may be missing")
+                return jsonify({
+                    'success': False,
+                    'error': 'Google Calendar OAuth token not found. Please re-authenticate.',
+                    'calendars': []
+                })
+
         return jsonify({
             'success': True,
             'calendars': google_calendars,
             'count': len(google_calendars),
             'message': f'Found {len(google_calendars)} Google Calendars'
         })
-        
+
     except Exception as e:
-        print(f"Error getting Google calendars: {e}")
+        print(f"❌ [GOOGLE-CALENDARS] Error getting Google calendars: {e}")
+        import traceback
+        print(f"❌ [GOOGLE-CALENDARS] Traceback: {traceback.format_exc()}")
         return jsonify({
             'success': False,
             'error': f'Failed to get Google calendars: {str(e)}',

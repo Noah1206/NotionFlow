@@ -270,11 +270,19 @@ class NotionManager extends PlatformManager {
                 
                 if (event.data.type === 'oauth_success' && event.data.platform === 'notion') {
                     window.removeEventListener('message', messageHandler);
-                    popup.close();
+                    try {
+                        popup.close();
+                    } catch (e) {
+                        console.log('팝업 닫기 중 Cross-Origin 제한 (정상)');
+                    }
                     resolve({ success: true });
                 } else if (event.data.type === 'oauth_error' && event.data.platform === 'notion') {
                     window.removeEventListener('message', messageHandler);
-                    popup.close();
+                    try {
+                        popup.close();
+                    } catch (e) {
+                        console.log('팝업 닫기 중 Cross-Origin 제한 (정상)');
+                    }
                     resolve({ success: false, error: event.data.error });
                 }
             };
@@ -283,10 +291,15 @@ class NotionManager extends PlatformManager {
             
             // Check if popup is closed
             const checkClosed = setInterval(() => {
-                if (popup.closed) {
-                    clearInterval(checkClosed);
-                    window.removeEventListener('message', messageHandler);
-                    reject(new Error('OAuth 창이 닫혔습니다'));
+                try {
+                    if (popup.closed) {
+                        clearInterval(checkClosed);
+                        window.removeEventListener('message', messageHandler);
+                        reject(new Error('OAuth 창이 닫혔습니다'));
+                    }
+                } catch (e) {
+                    // Cross-Origin Policy로 popup.closed 접근이 차단될 수 있음 (정상)
+                    console.log('팝업 상태 확인 중 Cross-Origin 제한 (정상)');
                 }
             }, 1000);
         });
@@ -408,11 +421,19 @@ class GoogleManager extends PlatformManager {
                 
                 if (event.data.type === 'oauth_success' && event.data.platform === 'google') {
                     window.removeEventListener('message', messageHandler);
-                    popup.close();
+                    try {
+                        popup.close();
+                    } catch (e) {
+                        console.log('팝업 닫기 중 Cross-Origin 제한 (정상)');
+                    }
                     resolve({ success: true });
                 } else if (event.data.type === 'oauth_error' && event.data.platform === 'google') {
                     window.removeEventListener('message', messageHandler);
-                    popup.close();
+                    try {
+                        popup.close();
+                    } catch (e) {
+                        console.log('팝업 닫기 중 Cross-Origin 제한 (정상)');
+                    }
                     resolve({ success: false, error: event.data.error });
                 }
             };
@@ -421,10 +442,15 @@ class GoogleManager extends PlatformManager {
             
             // Check if popup is closed
             const checkClosed = setInterval(() => {
-                if (popup.closed) {
-                    clearInterval(checkClosed);
-                    window.removeEventListener('message', messageHandler);
-                    reject(new Error('OAuth 창이 닫혔습니다'));
+                try {
+                    if (popup.closed) {
+                        clearInterval(checkClosed);
+                        window.removeEventListener('message', messageHandler);
+                        reject(new Error('OAuth 창이 닫혔습니다'));
+                    }
+                } catch (e) {
+                    // Cross-Origin Policy로 popup.closed 접근이 차단될 수 있음 (정상)
+                    console.log('팝업 상태 확인 중 Cross-Origin 제한 (정상)');
                 }
             }, 1000);
         });
@@ -432,16 +458,38 @@ class GoogleManager extends PlatformManager {
     
     async showCalendarSelection() {
         try {
+            console.log('📅 [GOOGLE] Fetching calendar list...');
+
             // Load calendars
             const response = await fetch('/api/google-calendars');
+            console.log('📅 [GOOGLE] Calendar API response status:', response.status);
+
             if (!response.ok) {
-                throw new Error('캘린더 목록을 불러올 수 없습니다');
+                console.error('❌ [GOOGLE] Calendar API request failed:', response.status, response.statusText);
+                throw new Error(`캘린더 목록을 불러올 수 없습니다 (${response.status})`);
             }
-            
+
             const data = await response.json();
-            if (!data.success || !data.calendars.length) {
-                throw new Error('사용 가능한 캘린더가 없습니다');
+            console.log('📅 [GOOGLE] Calendar API response data:', data);
+
+            if (!data.success) {
+                console.error('❌ [GOOGLE] Calendar API returned error:', data.error);
+
+                // OAuth 토큰 관련 오류인 경우 재인증 요청
+                if (data.error && data.error.includes('OAuth token')) {
+                    throw new Error('Google Calendar 인증이 만료되었습니다. 다시 연결해주세요.');
+                }
+
+                throw new Error(data.error || '캘린더 목록을 불러오는데 실패했습니다');
             }
+
+            if (!data.calendars || !data.calendars.length) {
+                console.warn('⚠️ [GOOGLE] No calendars found');
+                throw new Error('Google 계정에 캘린더가 없습니다. Google Calendar에서 캘린더를 생성해주세요.');
+            }
+
+            console.log(`✅ [GOOGLE] Found ${data.calendars.length} calendars`);
+
             
             // Show modal (assuming modal exists)
             if (typeof showCalendarSelectionModal === 'function') {
