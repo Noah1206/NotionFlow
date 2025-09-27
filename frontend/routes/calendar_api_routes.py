@@ -1181,6 +1181,44 @@ def get_google_calendars():
         # 간단한 디버깅으로 시작
         print(f"📅 [GOOGLE-CALENDARS] Basic info - user_id: {user_id}, google_service available: {bool(google_service)}")
 
+        # 세션에서 토큰 확인 및 동기화
+        session_token_key = f'oauth_token_{user_id}_google'
+        session_token = session.get(session_token_key)
+        print(f"📅 [GOOGLE-CALENDARS] Session token exists: {bool(session_token)}")
+
+        if session_token:
+            print("📅 [GOOGLE-CALENDARS] Found token in session, attempting to save to database...")
+            try:
+                import os_module  # os_module alias already imported above
+                from supabase import create_client
+
+                supabase_url = os_module.environ.get('SUPABASE_URL')
+                service_role_key = os_module.environ.get('SUPABASE_SERVICE_ROLE_KEY')
+
+                if supabase_url and service_role_key:
+                    supabase_client = create_client(supabase_url, service_role_key)
+
+                    token_data = {
+                        'user_id': user_id,
+                        'platform': 'google',
+                        'access_token': session_token.get('access_token'),
+                        'refresh_token': session_token.get('refresh_token'),
+                        'expires_at': session_token.get('expires_at'),
+                        'token_type': 'Bearer',
+                        'scope': session_token.get('scope', 'https://www.googleapis.com/auth/calendar')
+                    }
+
+                    print("📅 [GOOGLE-CALENDARS] Attempting to save session token to database...")
+                    result = supabase_client.table('oauth_tokens').upsert(
+                        token_data,
+                        on_conflict='user_id,platform'
+                    ).execute()
+                    print("📅 [GOOGLE-CALENDARS] ✅ Token saved to database from session")
+
+            except Exception as e:
+                print(f"❌ [GOOGLE-CALENDARS] Failed to save session token to database: {e}")
+                # 세션 토큰 저장 실패해도 계속 진행
+
         # 구글 캘린더 목록 가져오기
         google_calendars = google_service.get_calendar_list(user_id)
         print(f"📅 [GOOGLE-CALENDARS] Retrieved {len(google_calendars)} calendars")
