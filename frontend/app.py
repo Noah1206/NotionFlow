@@ -3416,7 +3416,9 @@ def google_oauth_callback():
         import base64
         
         try:
-            decoded_state = base64.urlsafe_b64decode(encoded_state.encode()).decode()
+            # Base64 패딩 추가 (필요한 경우)
+            padded_state = encoded_state + '=' * (4 - len(encoded_state) % 4)
+            decoded_state = base64.urlsafe_b64decode(padded_state.encode()).decode()
             state_data = json.loads(decoded_state)
             user_id = state_data.get('user_id')
             random_state = state_data.get('state')
@@ -3472,11 +3474,18 @@ def google_oauth_callback():
         
         # 토큰 교환 API 호출
         print("Exchanging authorization code for token...")
+        print(f"Token URL: {token_url}")
+        print(f"Token data: client_id={token_data.get('client_id')[:10]}..., code={token_data.get('code')[:20]}..., redirect_uri={token_data.get('redirect_uri')}")
+
         token_response = requests.post(token_url, data=token_data)
-        
+        print(f"Token exchange response status: {token_response.status_code}")
+
         if token_response.status_code != 200:
             error_data = token_response.json()
             error_msg = error_data.get('error', 'Unknown error')
+            error_description = error_data.get('error_description', '')
+            print(f"Token exchange error: {error_msg} - {error_description}")
+            print(f"Full error response: {error_data}")
             
             if error_msg == 'invalid_grant':
                 # OAuth 코드가 만료되었거나 이미 사용됨
