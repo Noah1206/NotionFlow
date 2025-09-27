@@ -1244,106 +1244,50 @@ def get_youtube_info():
 
 @calendar_api_bp.route('/calendar/<calendar_id>/events/<event_id>', methods=['DELETE'])
 def delete_calendar_event(calendar_id, event_id):
+    """Delete a specific calendar event"""
     try:
         user_id = get_current_user_id()
         if not user_id:
-            return jsonify({'error': 'User not authenticated', 'events': [], 'count': 0}), 401
-        
-        # UUID 정규화 - 통일된 형식 사용 (하이픈 없음)
+            return jsonify({'error': 'User not authenticated'}), 401
+
+        # UUID 정규화
         from utils.uuid_helper import normalize_uuid
         user_id = normalize_uuid(user_id)
-        
-        # print(f"🔍 [SINGLE CALENDAR] Loading events for calendar: {calendar_id}, user: {user_id}")
-        
-        # Get events for this specific calendar using existing logic
-        days_ahead = int(request.args.get('days_ahead', 30))
-        
-        # 🔄 Notion 자동 동기화 (연결된 사용자만)
-        # print(f"🔍 [NOTION SYNC] Checking sync for calendar: {calendar_id}")
-        
-        # Check if user has Notion connected
-        notion_sync_enabled = session.get('notion_connected', False)
-        if not notion_sync_enabled:
-            try:
-                from utils.config import config
-                if config.supabase_client:
-                    # Check if user has Notion token in calendar_sync_configs
-                    configs = config.supabase_client.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', 'notion').execute()
-                    if configs.data:
-                        creds = configs.data[0].get('credentials', {})
-                        if isinstance(creds, dict) and creds.get('access_token'):
-                            notion_sync_enabled = True
-                            session['notion_connected'] = True
-                            print(f"🔗 [NOTION SYNC] Notion connection detected for user {user_id}")
-                        else:
-                            print(f"⚠️ [NOTION SYNC] Found config but no valid token")
-                    else:
-                        print(f"⚠️ [NOTION SYNC] No calendar_sync_configs found for user {user_id}")
-            except Exception as e:
-                # print(f"❌ [NOTION SYNC] Error checking connection: {e}")
-                pass
-        
-        if notion_sync_enabled:
-            print(f"🔄 [NOTION SYNC] Will sync to calendar: {calendar_id}")
-            
-            try:
-                import sys
-                sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
-                from services.notion_sync import NotionCalendarSync
-                
-                notion_sync = NotionCalendarSync()
-                
-                # Store user email in session for user creation if needed
-                if 'user_email' not in session:
-                    try:
-                        from utils.config import config
-                        if config.supabase:
-                            user = config.supabase.auth.get_user()
-                            if user and user.user:
-                                session['user_email'] = user.user.email
-                    except:
-                        pass
-                
-                print(f"🔄 [NOTION SYNC] Starting auto-sync for user {user_id}")
-                # Let the sync service determine the correct calendar_id from database
-                result = notion_sync.sync_to_calendar(user_id)
-                print(f"📋 [NOTION SYNC] Sync result: {result}")
-                
-                if result['success']:
-                    # print(f"✅ [NOTION SYNC] Successfully synced {result.get('synced_events', 0)} events from {result.get('databases_processed', 0)} databases")
-                    pass
-                else:
-                    # print(f"❌ [NOTION SYNC] Failed: {result.get('error', 'Unknown error')}")
-                    pass
-                    
-            except Exception as e:
-                print(f"⚠️ [NOTION SYNC] Auto-sync error: {e}")
-                import traceback
-                traceback.print_exc()
+
+        print(f"🗑️ [DELETE EVENT] Deleting event: {event_id} from calendar: {calendar_id}, user: {user_id}")
+
+        # Supabase 연결
+        from utils.config import config
+        supabase = config.supabase_admin if hasattr(config, 'supabase_admin') and config.supabase_admin else config.get_client_for_user(user_id)
+
+        if not supabase:
+            print(f"❌ [DELETE EVENT] No Supabase client for user {user_id}")
+            return jsonify({'error': 'Database connection failed'}), 500
+
+        # 이벤트 존재 확인
+        event_check = supabase.table('events').select('*').eq('id', event_id).eq('calendar_id', calendar_id).eq('user_id', user_id).execute()
+
+        if not event_check.data:
+            print(f"❌ [DELETE EVENT] Event not found: {event_id}")
+            return jsonify({'error': 'Event not found'}), 404
+
+        # 이벤트 삭제
+        delete_result = supabase.table('events').delete().eq('id', event_id).eq('calendar_id', calendar_id).eq('user_id', user_id).execute()
+
+        if delete_result.data:
+            print(f"✅ [DELETE EVENT] Successfully deleted event: {event_id}")
+            return jsonify({
+                'success': True,
+                'message': 'Event deleted successfully',
+                'event_id': event_id
+            }), 200
         else:
-            print(f"⏭️ [NOTION SYNC] Skipping auto-sync: notion_enabled={notion_sync_enabled}")
-        
-        if not dashboard_data:
-            return jsonify({'error': 'Dashboard data manager not available'}), 500
-        
-        # Get events for this specific calendar
-        events = dashboard_data.get_user_calendar_events(
-            user_id=user_id,
-            days_ahead=days_ahead,
-            calendar_ids=[calendar_id]  # Filter to specific calendar
-        )
-        
-        print(f"📅 [SINGLE CALENDAR] Found {len(events)} events for calendar {calendar_id}")
-        
-        return jsonify(events)  # Return events directly as array (matching existing frontend expectation)
-        
+            print(f"❌ [DELETE EVENT] Failed to delete event: {event_id}")
+            return jsonify({'error': 'Failed to delete event'}), 500
+
     except Exception as e:
-        print(f"❌ [SINGLE CALENDAR] Error: {e}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({
-            'error': f'Failed to get events: {str(e)}'
-        }), 500
+        print(f"❌ [DELETE EVENT] Error deleting event {event_id}: {e}")
+        return jsonify({'error': f'Failed to delete event: {str(e)}'}), 500
 
 @calendar_api_bp.route('/calendar/<calendar_id>/events/<event_id>/simple', methods=['DELETE'])
 def delete_calendar_event_simple(calendar_id, event_id):

@@ -6089,16 +6089,20 @@
                     if (!isClientOnlyEvent) {
                         try {
                             // 서버에 삭제 요청 (실제 서버 이벤트인 경우만)
-                            const response = await fetch(`/calendar/${currentCalendarId}/events/${event.id}`, {
+                            const response = await fetch(`/api/calendar/${currentCalendarId}/events/${event.id}`, {
                                 method: 'DELETE',
                                 headers: {
                                     'Content-Type': 'application/json'
                                 }
                             });
 
-                            if (response.ok) {
+                            if (response.ok || response.status === 404) {
                                 deletedCount++;
-                                console.log(`✅ Permanently deleted from server: ${event.title}`);
+                                if (response.status === 404) {
+                                    console.log(`✅ Event already deleted or not found on server: ${event.title}`);
+                                } else {
+                                    console.log(`✅ Permanently deleted from server: ${event.title}`);
+                                }
                             } else {
                                 failedCount++;
                                 console.error(`❌ Failed to delete from server: ${event.title}`);

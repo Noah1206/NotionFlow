@@ -902,15 +902,19 @@ class GoogleCalendarGrid {
                 // 서버에 삭제 요청 보내기 (실제 서버 이벤트인 경우만)
                 try {
                     const calendarId = window.location.pathname.split('/').pop();
-                    const response = await fetch(`/calendar/${calendarId}/events/${eventData.id}`, {
+                    const response = await fetch(`/api/calendar/${calendarId}/events/${eventData.id}`, {
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json'
                         }
                     });
                     
-                    if (response.ok) {
-                        console.log('✅ Event deleted from server:', eventData.title);
+                    if (response.ok || response.status === 404) {
+                        if (response.status === 404) {
+                            console.log('✅ Event already deleted or not found on server:', eventData.title);
+                        } else {
+                            console.log('✅ Event deleted from server:', eventData.title);
+                        }
                     } else {
                         console.error('❌ Failed to delete from server, status:', response.status);
                         // 서버 삭제 실패해도 클라이언트에서는 계속 진행
@@ -3367,15 +3371,19 @@ class GoogleCalendarGrid {
                 // 서버에 삭제 요청 (실제 서버 이벤트인 경우만)
                 try {
                     const calendarId = event.calendarId || window.location.pathname.split('/').pop();
-                    const response = await fetch(`/calendar/${calendarId}/events/${eventId}`, {
+                    const response = await fetch(`/api/calendar/${calendarId}/events/${eventId}`, {
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json'
                         }
                     });
                     
-                    if (response.ok) {
-                        console.log('✅ Event permanently deleted from server:', eventTitle);
+                    if (response.ok || response.status === 404) {
+                        if (response.status === 404) {
+                            console.log('✅ Event already deleted or not found on server:', eventTitle);
+                        } else {
+                            console.log('✅ Event permanently deleted from server:', eventTitle);
+                        }
                     } else {
                         console.error('❌ Failed to delete from server, status:', response.status);
                     }
