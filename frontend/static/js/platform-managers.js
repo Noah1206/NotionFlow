@@ -641,43 +641,62 @@ class GoogleManager extends PlatformManager {
     }
 
     createFallbackCalendarModal(calendars) {
-        // Remove any existing modal
-        const existingModal = document.getElementById('google-calendar-modal');
-        if (existingModal) {
-            existingModal.remove();
-        }
+        console.log('🔧 [GOOGLE] Creating enhanced fallback modal...');
+
+        // Remove any existing modals more aggressively
+        const existingModals = [
+            document.getElementById('google-calendar-modal'),
+            document.getElementById('calendar-selection-modal'),
+            document.querySelector('.calendar-selection-modal'),
+            document.querySelector('.google-calendar-modal'),
+            document.querySelector('[id*="calendar"]'),
+            document.querySelector('[class*="modal"]')
+        ];
+
+        existingModals.forEach(modal => {
+            if (modal && modal.remove) {
+                console.log('🗑️ [GOOGLE] Removing existing modal:', modal.id || modal.className);
+                modal.remove();
+            }
+        });
+
+        // Wait a moment for cleanup
+        setTimeout(() => {
 
         // Create modal HTML
         const modal = document.createElement('div');
         modal.id = 'google-calendar-modal';
         modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: rgba(0, 0, 0, 0.8) !important;
             display: flex !important;
-            justify-content: center;
-            align-items: center;
-            z-index: 999999;
-            backdrop-filter: blur(4px);
-            animation: fadeIn 0.3s ease-out;
+            justify-content: center !important;
+            align-items: center !important;
+            z-index: 9999999 !important;
+            backdrop-filter: blur(8px) !important;
+            animation: fadeIn 0.3s ease-out !important;
+            pointer-events: all !important;
         `;
 
         const modalContent = document.createElement('div');
         modalContent.style.cssText = `
-            background: white;
-            border-radius: 16px;
-            padding: 32px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-            position: relative;
-            transform: scale(1);
-            animation: slideInScale 0.3s ease-out;
+            background: white !important;
+            border-radius: 16px !important;
+            padding: 32px !important;
+            max-width: 600px !important;
+            width: 90% !important;
+            max-height: 80vh !important;
+            overflow-y: auto !important;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3) !important;
+            position: relative !important;
+            transform: scale(1) !important;
+            animation: slideInScale 0.3s ease-out !important;
+            z-index: 99999999 !important;
+            pointer-events: all !important;
         `;
 
         modalContent.innerHTML = `
@@ -797,6 +816,22 @@ class GoogleManager extends PlatformManager {
                 primaryItem.click();
             }
         }
+
+        // Prevent modal background click from closing
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🔒 [GOOGLE] Modal background click prevented');
+            }
+        });
+
+        // Prevent any overlay interference
+        modalContent.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        }, 100); // End of setTimeout
     }
     
     // Google Calendar 동기화 메서드 추가
