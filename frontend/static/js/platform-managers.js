@@ -552,13 +552,56 @@ class GoogleManager extends PlatformManager {
             console.log(`✅ [GOOGLE] Found ${data.calendars.length} calendars`);
 
             
-            // Show modal (assuming modal exists)
+            // Enhanced modal display with fallback strategy
+            console.log('📅 [GOOGLE] Attempting to show calendar selection modal...');
+
+            // Strategy 1: Try existing modal function
+            let modalShown = false;
             if (typeof showCalendarSelectionModal === 'function') {
-                showCalendarSelectionModal('google');
+                try {
+                    console.log('📅 [GOOGLE] Using existing showCalendarSelectionModal function');
+                    showCalendarSelectionModal('google');
+
+                    // Verify modal is actually visible after a short delay
+                    setTimeout(() => {
+                        const modal = document.getElementById('calendar-selection-modal');
+                        if (!modal || modal.style.display === 'none' || getComputedStyle(modal).display === 'none') {
+                            console.log('⚠️ [GOOGLE] Existing modal not visible, creating fallback');
+                            this.createFallbackCalendarModal(data.calendars);
+                        } else {
+                            console.log('✅ [GOOGLE] Existing modal is visible');
+                            modalShown = true;
+                        }
+                    }, 300);
+
+                } catch (modalError) {
+                    console.error('❌ [GOOGLE] Error with existing modal function:', modalError);
+                    this.createFallbackCalendarModal(data.calendars);
+                }
+            } else if (typeof window.showCalendarSelectionModal === 'function') {
+                try {
+                    console.log('📅 [GOOGLE] Using window scope modal function');
+                    window.showCalendarSelectionModal('google');
+
+                    // Verify modal visibility
+                    setTimeout(() => {
+                        const modal = document.getElementById('calendar-selection-modal');
+                        if (!modal || modal.style.display === 'none' || getComputedStyle(modal).display === 'none') {
+                            console.log('⚠️ [GOOGLE] Window modal not visible, creating fallback');
+                            this.createFallbackCalendarModal(data.calendars);
+                        } else {
+                            console.log('✅ [GOOGLE] Window modal is visible');
+                            modalShown = true;
+                        }
+                    }, 300);
+                } catch (modalError) {
+                    console.error('❌ [GOOGLE] Error with window modal function:', modalError);
+                    this.createFallbackCalendarModal(data.calendars);
+                }
             } else {
-                // Auto-select primary calendar
-                const primaryCalendar = data.calendars.find(cal => cal.primary) || data.calendars[0];
-                await this.connectCalendar(primaryCalendar.id);
+                // No modal function found, create fallback immediately
+                console.log('📅 [GOOGLE] No modal function found, creating fallback...');
+                this.createFallbackCalendarModal(data.calendars);
             }
             
         } catch (error) {
@@ -587,13 +630,172 @@ class GoogleManager extends PlatformManager {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ calendar_id: calendarId })
             });
-            
+
             this.updateStatus('connected');
             this.showNotification(`${this.getKoreanName()} 연결 완료!`, 'success');
-            
+
         } catch (error) {
             console.error('Calendar connection error:', error);
             this.showNotification(`캘린더 연결 중 오류: ${error.message}`, 'error');
+        }
+    }
+
+    createFallbackCalendarModal(calendars) {
+        // Remove any existing modal
+        const existingModal = document.getElementById('google-calendar-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        // Create modal HTML
+        const modal = document.createElement('div');
+        modal.id = 'google-calendar-modal';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex !important;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999;
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.3s ease-out;
+        `;
+
+        const modalContent = document.createElement('div');
+        modalContent.style.cssText = `
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            position: relative;
+            transform: scale(1);
+            animation: slideInScale 0.3s ease-out;
+        `;
+
+        modalContent.innerHTML = `
+            <h2 style="margin: 0 0 16px 0;">📅 Google Calendar 선택</h2>
+            <p style="color: #666; margin-bottom: 20px;">동기화할 Google Calendar를 선택해주세요:</p>
+            <div id="calendar-list" style="margin-bottom: 20px;">
+                ${calendars.map((cal, index) => `
+                    <div style="
+                        padding: 12px;
+                        margin-bottom: 8px;
+                        border: 1px solid #e0e0e0;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                    " class="calendar-item" data-calendar-id="${cal.id}" data-index="${index}"
+                       onmouseover="this.style.backgroundColor='#f5f5f5'"
+                       onmouseout="this.style.backgroundColor='white'">
+                        <div style="font-weight: 500;">${cal.name || 'Untitled Calendar'}</div>
+                        ${cal.description ? `<div style="color: #666; font-size: 14px; margin-top: 4px;">${cal.description}</div>` : ''}
+                        ${cal.is_primary ? '<span style="color: #4285f4; font-size: 12px;">기본 캘린더</span>' : ''}
+                    </div>
+                `).join('')}
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button id="google-modal-cancel" style="
+                    background: #f5f5f5;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                ">취소</button>
+                <button id="google-modal-confirm" style="
+                    background: #4285f4;
+                    color: white;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    opacity: 0.5;
+                " disabled>연결</button>
+            </div>
+        `;
+
+        // Add CSS animations to document if not already present
+        if (!document.querySelector('#google-modal-animations')) {
+            const style = document.createElement('style');
+            style.id = 'google-modal-animations';
+            style.textContent = `
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                @keyframes slideInScale {
+                    from {
+                        opacity: 0;
+                        transform: scale(0.9) translateY(-20px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: scale(1) translateY(0);
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
+
+        // Force display after append
+        modal.style.display = 'flex';
+
+        console.log('✅ [GOOGLE] Fallback modal created and displayed');
+        console.log('📅 [GOOGLE] Modal element:', modal);
+        console.log('📅 [GOOGLE] Modal visibility:', getComputedStyle(modal).display);
+
+        // Add event listeners
+        let selectedCalendarId = null;
+        const confirmBtn = modalContent.querySelector('#google-modal-confirm');
+        const cancelBtn = modalContent.querySelector('#google-modal-cancel');
+
+        modalContent.querySelectorAll('.calendar-item').forEach(item => {
+            item.addEventListener('click', () => {
+                // Remove previous selection
+                modalContent.querySelectorAll('.calendar-item').forEach(el => {
+                    el.style.border = '1px solid #e0e0e0';
+                });
+
+                // Add selection
+                item.style.border = '2px solid #4285f4';
+                selectedCalendarId = item.dataset.calendarId;
+
+                // Enable confirm button
+                confirmBtn.disabled = false;
+                confirmBtn.style.opacity = '1';
+            });
+        });
+
+        confirmBtn.addEventListener('click', async () => {
+            if (selectedCalendarId) {
+                await this.connectCalendar(selectedCalendarId);
+                modal.remove();
+            }
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            modal.remove();
+            this.updateStatus('logged_in');
+            this.showNotification('Google Calendar 연결이 취소되었습니다.', 'info');
+        });
+
+        // Auto-select primary calendar if exists
+        const primaryCalendar = calendars.find(cal => cal.is_primary);
+        if (primaryCalendar) {
+            const primaryItem = modalContent.querySelector(`[data-calendar-id="${primaryCalendar.id}"]`);
+            if (primaryItem) {
+                primaryItem.click();
+            }
         }
     }
     
