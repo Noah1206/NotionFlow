@@ -3462,6 +3462,28 @@ def google_oauth_callback():
         
         print(f"Exchanging auth code for token...")
         
+        # OAuth state에서 code_verifier 가져오기 (PKCE용)
+        code_verifier = None
+        try:
+            # Supabase에서 OAuth state 정보 가져오기
+            from supabase import create_client
+            import os
+
+            supabase_url = os.environ.get('SUPABASE_URL')
+            supabase_key = os.environ.get('SUPABASE_API_KEY')
+
+            if supabase_url and supabase_key:
+                supabase_client = create_client(supabase_url, supabase_key)
+
+                # state로 code_verifier 조회
+                state_result = supabase_client.table('oauth_states').select('code_verifier').eq('state', encoded_state).eq('platform', 'google').execute()
+
+                if state_result.data and state_result.data[0]:
+                    code_verifier = state_result.data[0].get('code_verifier')
+                    print(f"Found code_verifier for PKCE: {bool(code_verifier)}")
+        except Exception as e:
+            print(f"Failed to get code_verifier: {e}")
+
         # 직접 Google OAuth API로 토큰 교환
         token_url = 'https://oauth2.googleapis.com/token'
         token_data = {
@@ -3471,6 +3493,11 @@ def google_oauth_callback():
             'redirect_uri': f"{request.host_url}auth/google/callback",
             'grant_type': 'authorization_code'
         }
+
+        # PKCE code_verifier 추가 (있는 경우)
+        if code_verifier:
+            token_data['code_verifier'] = code_verifier
+            print("Added code_verifier to token exchange request")
         
         # 토큰 교환 API 호출
         print("Exchanging authorization code for token...")
