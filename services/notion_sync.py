@@ -337,7 +337,7 @@ class NotionCalendarSync:
         return calendar_dbs
     
     def get_user_calendar_id(self, user_id: str) -> Optional[str]:
-        """Get the correct calendar_id for a user from calendar_sync_configs table"""
+        """Get the correct calendar_id for a user from selected_calendars table"""
         try:
             from utils.config import config
             from utils.uuid_helper import normalize_uuid
@@ -352,35 +352,25 @@ class NotionCalendarSync:
                 print(f"❌ [CALENDAR_ID] No Supabase client for user {user_id}")
                 return None
             
-            # Look up calendar_id from calendar_sync_configs table
-            sync_result = supabase.table('calendar_sync_configs').select('calendar_id').eq('user_id', normalized_user_id).eq('platform', 'notion').eq('is_enabled', True).execute()
-            
-            if sync_result.data and sync_result.data[0].get('calendar_id'):
-                calendar_id = sync_result.data[0]['calendar_id']
-                print(f"✅ [CALENDAR_ID] Found calendar_id for user {user_id}: {calendar_id}")
+            # Look up selected calendars from selected_calendars table
+            selected_result = supabase.table('selected_calendars').select('''
+                calendar_id,
+                user_calendars (
+                    id,
+                    name
+                )
+            ''').eq('user_id', normalized_user_id).eq('is_selected', True).execute()
+
+            if selected_result.data:
+                # Use the first selected calendar
+                calendar_id = selected_result.data[0]['calendar_id']
+                calendar_data = selected_result.data[0].get('user_calendars', {})
+                calendar_name = calendar_data.get('name', 'Unknown') if calendar_data else 'Unknown'
+                print(f"✅ [CALENDAR_ID] Found selected calendar for user {user_id}: {calendar_name} ({calendar_id})")
                 return calendar_id
             else:
-                print(f"⚠️ [CALENDAR_ID] No active calendar_sync_configs found for user {user_id}")
-                
-                # Try to get user's first calendar as fallback
-                # CRITICAL FIX: Use owner_id instead of user_id for calendars table
-                from utils.uuid_helper import normalize_uuid
-                normalized_user_id = normalize_uuid(user_id)
-                
-                # Try with both normalized and original user_id for maximum compatibility
-                calendars_result = supabase.table('calendars').select('id').or_(f'owner_id.eq.{user_id},owner_id.eq.{normalized_user_id}').execute()
-                
-                if calendars_result.data:
-                    calendar_id = calendars_result.data[0]['id']
-                    print(f"ℹ️ [CALENDAR_ID] Using fallback calendar_id: {calendar_id}")
-                    return calendar_id
-                else:
-                    # If no calendar found, create a default one for the user
-                    print(f"⚠️ [CALENDAR_ID] No calendar found for user {user_id}, creating default calendar")
-                    default_calendar = self._create_default_calendar(user_id, supabase)
-                    if default_calendar:
-                        return default_calendar['id']
-                
+                print(f"⚠️ [CALENDAR_ID] No selected calendars found for user {user_id}")
+                print(f"❌ [NOTION SYNC] 동기화할 캘린더가 선택되지 않았습니다. API 키 연결 페이지에서 캘린더를 선택해주세요.")
                 return None
                 
         except Exception as e:
@@ -431,7 +421,7 @@ class NotionCalendarSync:
                 if not calendar_id:
                     return {
                         'success': False,
-                        'error': 'No calendar found for user. Please connect a calendar first.',
+                        'error': '동기화할 캘린더가 선택되지 않았습니다. API 키 연결 페이지에서 캘린더를 선택해주세요.',
                         'synced_events': 0
                     }
             
