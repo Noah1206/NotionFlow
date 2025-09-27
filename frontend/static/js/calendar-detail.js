@@ -2347,16 +2347,12 @@ async function loadEvents() {
         const calendarId = window.location.pathname.split('/').pop();
         
         // Fetch events from API
-        console.log(`📡 Fetching events from: /api/calendars/${calendarId}/events`);
         const response = await fetch(`/api/calendars/${calendarId}/events`);
         
         console.log(`📡 API Response status: ${response.status}`);
         
         if (response.ok) {
             const data = await response.json();
-            console.log('🔍 Raw API Response:', data);
-            console.log('🔍 Response Type:', typeof data);
-            console.log('🔍 Is Array?:', Array.isArray(data));
             
             // Handle both array and object responses
             let events = [];
@@ -2368,7 +2364,6 @@ async function loadEvents() {
             } else if (typeof data === 'object') {
                 // Check for common response patterns
                 events = data.events || data.data || data.items || [];
-                console.log('📋 API returned object with keys:', Object.keys(data));
                 
                 // If data has an error property, log it
                 if (data.error) {
@@ -2398,10 +2393,8 @@ async function loadEvents() {
             
             // Pass events to GoogleCalendarGrid if it exists
             if (window.googleCalendarGrid && typeof window.googleCalendarGrid.loadEvents === 'function') {
-                console.log('🔄 Passing events to GoogleCalendarGrid:', events.length, 'events');
                 window.googleCalendarGrid.loadEvents(events);
             } else {
-                console.log('⚠️ GoogleCalendarGrid not ready, storing events for later');
                 window.pendingCalendarEvents = events;
             }
             

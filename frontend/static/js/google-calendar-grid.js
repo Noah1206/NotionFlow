@@ -1236,7 +1236,6 @@ class GoogleCalendarGrid {
             if (!event || !event.id) return false;
             // Filter out trashed events from sidebar display
             if (this.isEventInTrash(event.id)) {
-                console.log('🗑️ Filtering out trashed event from sidebar:', event.title, 'ID:', event.id);
                 return false;
             }
             return true;
@@ -1999,7 +1998,6 @@ class GoogleCalendarGrid {
 
         // Skip events that are in trash
         if (this.isEventInTrash(eventData.id)) {
-            console.log('🗑️ Skipping trashed event:', eventData.title, 'ID:', eventData.id);
             return;
         }
         
@@ -3656,33 +3654,24 @@ class GoogleCalendarGrid {
             const calendarId = calendarElement.dataset.calendarId;
             // console.log('🔍 Fetching events for calendar:', calendarId);
             
-            console.log('🌐 [DEBUG] Fetching events from API:', `/api/calendars/${calendarId}/events`);
             const response = await fetch(`/api/calendars/${calendarId}/events`);
             
-            console.log('🌐 [DEBUG] API response status:', response.status);
             
             if (response.ok) {
                 const data = await response.json();
-                console.log('🌐 [DEBUG] API response data:', data);
                 
                 // Handle both array and object responses (same logic as calendar-detail.js)
                 let events = [];
                 if (Array.isArray(data)) {
                     events = data;
-                    console.log('🌐 [DEBUG] Data is array, using directly:', events.length, 'events');
                 } else if (typeof data === 'object' && data !== null) {
                     events = data.events || data.data || data.items || [];
-                    console.log('🌐 [DEBUG] Data is object, extracted events:', events.length, 'events');
                 } else {
                     events = [];
-                    console.log('🌐 [DEBUG] Data is neither array nor object, using empty array');
                 }
-                
-                console.log('🌐 [DEBUG] Final events to process:', events.length, events);
-                
+                                
                 // Clear existing events
                 this.events = [];
-                console.log('🌐 [DEBUG] Cleared existing events array');
                 
                 if (events && events.length > 0) {
                     // Distribute events across different time slots if they lack time info
