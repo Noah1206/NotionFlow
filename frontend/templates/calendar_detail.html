@@ -4925,12 +4925,17 @@
             color: #1976d2;
         }
 
-        /* 🗑️ Trash Icon Styles - Bottom Right Position */
+        /* 🗑️ Trash Icon Styles - Sidebar Bottom Right Position */
         .trash-icon-container {
-            position: fixed;
+            position: absolute;
             bottom: 16px;
             right: 16px;
             z-index: 1000;
+        }
+
+        /* Ensure sidebar has relative positioning for absolute child */
+        .left-sidebar {
+            position: relative !important;
         }
 
         .trash-btn {
