@@ -7203,6 +7203,10 @@ def mark_platform_connected(platform):
         # Google Calendar의 경우 database에 configuration 저장
         if platform == 'google':
             try:
+                # Get Supabase client
+                from services.google_calendar_service import google_calendar_service
+                supabase = google_calendar_service.supabase
+
                 # Check if config already exists
                 existing_config = supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', platform).execute()
                 
@@ -7272,9 +7276,11 @@ def mark_platform_disconnected(platform):
             # Google Calendar 연결 해제 - OAuth 토큰 삭제 및 config 비활성화
             try:
                 from services.google_calendar_service import google_calendar_service
+                supabase = google_calendar_service.supabase
+
                 # Supabase에서 토큰 삭제
-                google_calendar_service.supabase.table('oauth_tokens').delete().eq('user_id', user_id).eq('platform', 'google').execute()
-                
+                supabase.table('oauth_tokens').delete().eq('user_id', user_id).eq('platform', 'google').execute()
+
                 # calendar_sync_configs에서 is_enabled를 false로 설정
                 supabase.table('calendar_sync_configs').update({
                     'is_enabled': False,
