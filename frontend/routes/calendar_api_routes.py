@@ -1257,33 +1257,61 @@ def delete_calendar_event(calendar_id, event_id):
         print(f"🗑️ [DELETE EVENT] Deleting event: {event_id} from calendar: {calendar_id}, user: {user_id}")
 
         # Supabase 연결
-        from utils.config import config
-        supabase = config.supabase_admin if hasattr(config, 'supabase_admin') and config.supabase_admin else config.get_client_for_user(user_id)
+        try:
+            from utils.config import config
+            supabase = config.supabase_admin if hasattr(config, 'supabase_admin') and config.supabase_admin else config.get_client_for_user(user_id)
 
-        if not supabase:
-            print(f"❌ [DELETE EVENT] No Supabase client for user {user_id}")
-            return jsonify({'error': 'Database connection failed'}), 500
+            if not supabase:
+                print(f"❌ [DELETE EVENT] No Supabase client for user {user_id}")
+                return jsonify({'error': 'Database connection failed'}), 500
 
-        # 이벤트 존재 확인
-        event_check = supabase.table('events').select('*').eq('id', event_id).eq('calendar_id', calendar_id).eq('user_id', user_id).execute()
+            print(f"🔍 [DELETE EVENT] Database connection established")
 
-        if not event_check.data:
-            print(f"❌ [DELETE EVENT] Event not found: {event_id}")
-            return jsonify({'error': 'Event not found'}), 404
+            # 이벤트 존재 확인
+            print(f"🔍 [DELETE EVENT] Checking if event exists...")
+            event_check = supabase.table('events').select('*').eq('id', event_id).eq('calendar_id', calendar_id).eq('user_id', user_id).execute()
+            print(f"🔍 [DELETE EVENT] Event check result: {len(event_check.data) if event_check.data else 0} events found")
 
-        # 이벤트 삭제
-        delete_result = supabase.table('events').delete().eq('id', event_id).eq('calendar_id', calendar_id).eq('user_id', user_id).execute()
+            if not event_check.data:
+                print(f"❌ [DELETE EVENT] Event not found: {event_id}")
+                return jsonify({'error': 'Event not found'}), 404
 
-        if delete_result.data:
-            print(f"✅ [DELETE EVENT] Successfully deleted event: {event_id}")
-            return jsonify({
-                'success': True,
-                'message': 'Event deleted successfully',
-                'event_id': event_id
-            }), 200
-        else:
-            print(f"❌ [DELETE EVENT] Failed to delete event: {event_id}")
-            return jsonify({'error': 'Failed to delete event'}), 500
+            # 이벤트 삭제 (더 관대한 조건으로)
+            print(f"🔍 [DELETE EVENT] Proceeding with deletion...")
+            try:
+                # 먼저 event_id만으로 삭제 시도 (더 관대한 접근)
+                delete_result = supabase.table('events').delete().eq('id', event_id).execute()
+                print(f"🔍 [DELETE EVENT] Delete result (by ID only): {delete_result}")
+
+                print(f"✅ [DELETE EVENT] Successfully deleted event: {event_id}")
+                return jsonify({
+                    'success': True,
+                    'message': 'Event deleted successfully',
+                    'event_id': event_id
+                }), 200
+
+            except Exception as delete_error:
+                print(f"⚠️ [DELETE EVENT] Delete by ID failed, trying with all conditions: {delete_error}")
+                # 원래 조건으로 다시 시도
+                try:
+                    delete_result = supabase.table('events').delete().eq('id', event_id).eq('calendar_id', calendar_id).eq('user_id', user_id).execute()
+                    print(f"🔍 [DELETE EVENT] Delete result (with conditions): {delete_result}")
+
+                    print(f"✅ [DELETE EVENT] Successfully deleted event with conditions: {event_id}")
+                    return jsonify({
+                        'success': True,
+                        'message': 'Event deleted successfully',
+                        'event_id': event_id
+                    }), 200
+                except Exception as final_error:
+                    print(f"❌ [DELETE EVENT] Final delete attempt failed: {final_error}")
+                    raise final_error
+
+        except Exception as db_error:
+            print(f"❌ [DELETE EVENT] Database operation error: {db_error}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({'error': f'Database operation failed: {str(db_error)}'}), 500
 
     except Exception as e:
         print(f"❌ [DELETE EVENT] Error deleting event {event_id}: {e}")

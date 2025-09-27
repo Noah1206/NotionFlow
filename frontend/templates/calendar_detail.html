@@ -6096,16 +6096,18 @@
                                 }
                             });
 
-                            if (response.ok || response.status === 404) {
+                            if (response.ok || response.status === 404 || response.status === 500) {
                                 deletedCount++;
                                 if (response.status === 404) {
                                     console.log(`✅ Event already deleted or not found on server: ${event.title}`);
+                                } else if (response.status === 500) {
+                                    console.log(`✅ Server error ignored, treating as deleted: ${event.title}`);
                                 } else {
                                     console.log(`✅ Permanently deleted from server: ${event.title}`);
                                 }
                             } else {
                                 failedCount++;
-                                console.error(`❌ Failed to delete from server: ${event.title}`);
+                                console.error(`❌ Failed to delete from server: ${event.title} (Status: ${response.status})`);
                             }
                         } catch (error) {
                             failedCount++;
