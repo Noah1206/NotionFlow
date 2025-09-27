@@ -663,9 +663,11 @@ class GoogleManager extends PlatformManager {
         // Wait a moment for cleanup
         setTimeout(() => {
 
-        // Create modal HTML
+        console.log('🚀 [GOOGLE] Creating ULTIMATE modal with nuclear approach...');
+
+        // Create modal HTML with COMPLETE inline styling (no CSS classes)
         const modal = document.createElement('div');
-        modal.id = 'google-calendar-modal';
+        modal.id = 'google-calendar-modal-ultimate';
         // Force remove all existing backdrop/overlay elements that might be interfering
         document.querySelectorAll('.modal-overlay, .backdrop, [style*="backdrop"], [style*="blur"]').forEach(el => {
             if (el !== modal) {
@@ -804,7 +806,155 @@ class GoogleManager extends PlatformManager {
             document.head.appendChild(style);
         }
 
-        modal.appendChild(modalContent);
+        // Create complete modal structure with inline styles only
+        modal.innerHTML = `
+            <div style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background: rgba(0, 0, 0, 0.9);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 2147483647;
+                backdrop-filter: blur(8px);
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            ">
+                <div style="
+                    background: white;
+                    border-radius: 20px;
+                    padding: 40px;
+                    max-width: 600px;
+                    width: 90%;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+                    position: relative;
+                    z-index: 2147483647;
+                ">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h2 style="margin: 0; font-size: 24px; font-weight: 600; color: #1f2937;">📅 Google Calendar 선택</h2>
+                        <button onclick="document.getElementById('google-calendar-modal-ultimate').remove()" style="
+                            background: none;
+                            border: none;
+                            font-size: 24px;
+                            cursor: pointer;
+                            color: #6b7280;
+                            padding: 8px;
+                            border-radius: 50%;
+                            width: 40px;
+                            height: 40px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        ">×</button>
+                    </div>
+                    <p style="color: #6b7280; margin-bottom: 24px; font-size: 16px;">동기화할 Google Calendar를 선택해주세요:</p>
+                    <div style="margin-bottom: 24px; max-height: 400px; overflow-y: auto;">
+                        ${calendars.map((cal, index) => `
+                            <div onclick="selectGoogleCalendar('${cal.id}', this)" style="
+                                padding: 16px;
+                                margin-bottom: 12px;
+                                border: 2px solid #e5e7eb;
+                                border-radius: 12px;
+                                cursor: pointer;
+                                transition: all 0.2s;
+                                background: white;
+                            " onmouseover="this.style.borderColor='#3b82f6'; this.style.backgroundColor='#f8fafc';"
+                               onmouseout="if(!this.classList.contains('selected')) { this.style.borderColor='#e5e7eb'; this.style.backgroundColor='white'; }">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="
+                                        width: 16px;
+                                        height: 16px;
+                                        background: ${cal.color || '#3b82f6'};
+                                        border-radius: 50%;
+                                        flex-shrink: 0;
+                                    "></div>
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 600; font-size: 16px; color: #1f2937; margin-bottom: 4px;">
+                                            ${cal.name || 'Untitled Calendar'}
+                                            ${cal.is_primary ? '<span style="background: #3b82f6; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 8px;">기본</span>' : ''}
+                                        </div>
+                                        <div style="font-size: 14px; color: #6b7280;">
+                                            ${cal.description || '설명 없음'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                        <button onclick="document.getElementById('google-calendar-modal-ultimate').remove()" style="
+                            padding: 12px 24px;
+                            background: #f3f4f6;
+                            color: #374151;
+                            border: none;
+                            border-radius: 8px;
+                            cursor: pointer;
+                            font-weight: 500;
+                            font-size: 14px;
+                        " onmouseover="this.style.backgroundColor='#e5e7eb'"
+                           onmouseout="this.style.backgroundColor='#f3f4f6'">취소</button>
+                        <button id="ultimate-confirm-btn" onclick="connectSelectedCalendar()" disabled style="
+                            padding: 12px 24px;
+                            background: #3b82f6;
+                            color: white;
+                            border: none;
+                            border-radius: 8px;
+                            cursor: pointer;
+                            font-weight: 500;
+                            font-size: 14px;
+                            opacity: 0.5;
+                        ">연결하기</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Add global functions for calendar selection
+        window.selectedCalendarId = null;
+        window.selectGoogleCalendar = function(calendarId, element) {
+            console.log('📅 [GOOGLE] Calendar selected:', calendarId);
+
+            // Remove previous selection
+            document.querySelectorAll('#google-calendar-modal-ultimate [onclick*="selectGoogleCalendar"]').forEach(el => {
+                el.style.borderColor = '#e5e7eb';
+                el.style.backgroundColor = 'white';
+                el.classList.remove('selected');
+            });
+
+            // Add selection to clicked element
+            element.style.borderColor = '#3b82f6';
+            element.style.backgroundColor = '#eff6ff';
+            element.classList.add('selected');
+            window.selectedCalendarId = calendarId;
+
+            // Enable confirm button
+            const confirmBtn = document.getElementById('ultimate-confirm-btn');
+            confirmBtn.disabled = false;
+            confirmBtn.style.opacity = '1';
+            confirmBtn.style.cursor = 'pointer';
+        };
+
+        window.connectSelectedCalendar = async function() {
+            if (window.selectedCalendarId) {
+                console.log('🔗 [GOOGLE] Connecting calendar:', window.selectedCalendarId);
+
+                try {
+                    const googleManager = PlatformManagerFactory.get('google');
+                    if (googleManager) {
+                        await googleManager.connectCalendar(window.selectedCalendarId);
+                        document.getElementById('google-calendar-modal-ultimate').remove();
+                    }
+                } catch (error) {
+                    console.error('Connection error:', error);
+                    alert('캘린더 연결 중 오류가 발생했습니다: ' + error.message);
+                }
+            }
+        };
+
         document.body.appendChild(modal);
 
         // Force display after append with multiple methods
