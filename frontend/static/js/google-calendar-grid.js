@@ -8,7 +8,10 @@ class GoogleCalendarGrid {
         this.weekStart = this.getWeekStart(this.currentDate);
         this.events = [];
         this.trashedEvents = this.loadTrashedEvents();
-        
+
+        // 영구 삭제 목록 정리
+        this.cleanupPermanentlyDeleted();
+
         // 🔍 DEBUGGING: 컨테이너 크기 확인
         // console.log('🏗️ GoogleCalendarGrid constructor:', {
         //     currentDate: this.currentDate,
@@ -55,6 +58,11 @@ class GoogleCalendarGrid {
     }
 
     isEventInTrash(eventId) {
+        // 영구 삭제된 이벤트는 항상 숨김
+        if (this.isPermanentlyDeleted(eventId)) {
+            return true;
+        }
+
         // Check if event is in trash (both new and old trash systems)
         const trashedEvents = this.loadTrashedEvents();
         const oldTrashedEvents = JSON.parse(localStorage.getItem('trashedEvents') || '[]');
@@ -3346,22 +3354,53 @@ class GoogleCalendarGrid {
     moveEventToTrash(event) {
         // 휴지통 배열에 추가 (LocalStorage 사용)
         let trashedEvents = JSON.parse(localStorage.getItem('trashedEvents') || '[]');
-        
+
         // 이벤트에 삭제 시간 추가
         const trashedEvent = {
             ...event,
             deletedAt: new Date().toISOString(),
             calendarId: window.location.pathname.split('/').pop() // URL에서 calendarId 추출
         };
-        
+
         trashedEvents.push(trashedEvent);
         localStorage.setItem('trashedEvents', JSON.stringify(trashedEvents));
-        
+
         console.log('🗑️ Event moved to trash:', event.id, event.title);
-        
+
         // 휴지통 UI 업데이트 (있다면)
         if (window.updateTrashUI) {
             window.updateTrashUI();
+        }
+    }
+
+    // 영구 삭제된 이벤트 목록 관리
+    addToPermanentlyDeleted(eventId) {
+        let permanentlyDeleted = JSON.parse(localStorage.getItem('permanentlyDeletedEvents') || '[]');
+        if (!permanentlyDeleted.includes(eventId)) {
+            permanentlyDeleted.push(eventId);
+            localStorage.setItem('permanentlyDeletedEvents', JSON.stringify(permanentlyDeleted));
+            console.log('🗑️ Event added to permanently deleted list:', eventId);
+        }
+    }
+
+    isPermanentlyDeleted(eventId) {
+        const permanentlyDeleted = JSON.parse(localStorage.getItem('permanentlyDeletedEvents') || '[]');
+        return permanentlyDeleted.includes(String(eventId));
+    }
+
+    cleanupPermanentlyDeleted() {
+        // 너무 오래된 영구 삭제 기록은 정리 (30일 이후)
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - 30);
+
+        // 현재는 단순히 30일 후에 전체 목록을 초기화
+        const permanentlyDeleted = JSON.parse(localStorage.getItem('permanentlyDeletedEvents') || '[]');
+        const lastCleanup = localStorage.getItem('lastPermanentDeleteCleanup');
+
+        if (!lastCleanup || new Date(lastCleanup) < cutoffDate) {
+            localStorage.setItem('permanentlyDeletedEvents', '[]');
+            localStorage.setItem('lastPermanentDeleteCleanup', new Date().toISOString());
+            console.log('🧹 Cleaned up old permanently deleted events list');
         }
     }
 

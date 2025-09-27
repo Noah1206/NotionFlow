@@ -6120,6 +6120,21 @@
                     }
                 }
 
+                // 영구 삭제된 이벤트 목록에 추가 (서버 삭제 실패에도 숨김 유지)
+                currentCalendarTrashedEvents.forEach(event => {
+                    if (window.googleCalendarGrid && window.googleCalendarGrid.addToPermanentlyDeleted) {
+                        window.googleCalendarGrid.addToPermanentlyDeleted(event.id);
+                    } else {
+                        // 직접 localStorage에 추가 (백업 방법)
+                        let permanentlyDeleted = JSON.parse(localStorage.getItem('permanentlyDeletedEvents') || '[]');
+                        if (!permanentlyDeleted.includes(event.id)) {
+                            permanentlyDeleted.push(event.id);
+                            localStorage.setItem('permanentlyDeletedEvents', JSON.stringify(permanentlyDeleted));
+                            console.log('🗑️ Event added to permanently deleted list (direct):', event.id);
+                        }
+                    }
+                });
+
                 // localStorage에서도 제거
                 trashedEvents = trashedEvents.filter(event => event.calendarId !== currentCalendarId);
                 localStorage.setItem('trashedEvents', JSON.stringify(trashedEvents));

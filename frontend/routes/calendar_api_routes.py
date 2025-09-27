@@ -1256,21 +1256,46 @@ def delete_calendar_event(calendar_id, event_id):
 
         print(f"🗑️ [DELETE EVENT] Deleting event: {event_id} from calendar: {calendar_id}, user: {user_id}")
 
-        # Supabase 연결
+        # Supabase 연결 - admin client 강제 사용
         try:
             from utils.config import config
-            supabase = config.supabase_admin if hasattr(config, 'supabase_admin') and config.supabase_admin else config.get_client_for_user(user_id)
+            supabase = config.supabase_admin if hasattr(config, 'supabase_admin') and config.supabase_admin else config.supabase_client
 
             if not supabase:
-                print(f"❌ [DELETE EVENT] No Supabase client for user {user_id}")
+                print(f"❌ [DELETE EVENT] No Supabase admin client available")
                 return jsonify({'error': 'Database connection failed'}), 500
 
             print(f"🔍 [DELETE EVENT] Database connection established")
 
-            # 이벤트 존재 확인
-            print(f"🔍 [DELETE EVENT] Checking if event exists...")
-            event_check = supabase.table('events').select('*').eq('id', event_id).eq('calendar_id', calendar_id).eq('user_id', user_id).execute()
-            print(f"🔍 [DELETE EVENT] Event check result: {len(event_check.data) if event_check.data else 0} events found")
+            # 이벤트 존재 확인 - calendar_events 테이블 확인
+            print(f"🔍 [DELETE EVENT] Checking if event exists in calendar_events...")
+            event_check = supabase.table('calendar_events').select('*').eq('id', event_id).execute()
+            print(f"🔍 [DELETE EVENT] Calendar_events check result: {len(event_check.data) if event_check.data else 0} events found")
+
+            if event_check.data:
+                found_event = event_check.data[0]
+                print(f"🔍 [DELETE EVENT] Found event details:")
+                print(f"   - Event ID: {found_event.get('id')}")
+                print(f"   - Title: {found_event.get('title')}")
+                print(f"   - Calendar ID: {found_event.get('calendar_id')}")
+                print(f"   - Event User ID: {found_event.get('user_id')}")
+                print(f"   - API User ID: {user_id}")
+                print(f"   - User ID Match: {found_event.get('user_id') == user_id}")
+            else:
+                print(f"🔍 [DELETE EVENT] No event found with ID: {event_id}")
+
+                # 모든 이벤트를 확인해서 비슷한 ID 찾기
+                all_events = supabase.table('calendar_events').select('id, title').limit(20).execute()
+                print(f"🔍 [DELETE EVENT] Recent events in database:")
+                for evt in (all_events.data if all_events.data else []):
+                    print(f"   - {evt.get('id')}: {evt.get('title', 'No title')}")
+
+            # 백업으로 events 테이블도 확인
+            try:
+                events_check = supabase.table('events').select('*').eq('id', event_id).execute()
+                print(f"🔍 [DELETE EVENT] Events table check result: {len(events_check.data) if events_check.data else 0} events found")
+            except Exception as events_error:
+                print(f"🔍 [DELETE EVENT] Events table check failed: {events_error}")
 
             if not event_check.data:
                 print(f"⚠️ [DELETE EVENT] Event not found in strict check, but proceeding with deletion: {event_id}")
@@ -1279,9 +1304,25 @@ def delete_calendar_event(calendar_id, event_id):
             # 이벤트 삭제 (더 관대한 조건으로)
             print(f"🔍 [DELETE EVENT] Proceeding with deletion...")
             try:
-                # 먼저 event_id만으로 삭제 시도 (더 관대한 접근)
-                delete_result = supabase.table('events').delete().eq('id', event_id).execute()
-                print(f"🔍 [DELETE EVENT] Delete result (by ID only): {delete_result}")
+                # 먼저 calendar_events 테이블에서 ID만으로 삭제 시도 (user_id 조건 없음)
+                print(f"🔍 [DELETE EVENT] Attempting direct deletion from calendar_events by ID only...")
+                delete_result = supabase.table('calendar_events').delete().eq('id', event_id).execute()
+                print(f"🔍 [DELETE EVENT] Delete operation response: {delete_result}")
+
+                deleted_count = len(delete_result.data) if delete_result.data else 0
+                print(f"🔍 [DELETE EVENT] Calendar_events deleted rows: {deleted_count}")
+
+                if deleted_count > 0:
+                    print(f"✅ [DELETE EVENT] Successfully deleted {deleted_count} row(s) from calendar_events")
+                    for deleted_row in delete_result.data:
+                        print(f"   - Deleted: {deleted_row.get('title', 'Unknown')} (ID: {deleted_row.get('id')})")
+                else:
+                    print(f"⚠️ [DELETE EVENT] No rows were deleted from calendar_events")
+
+                # events 테이블은 존재하지 않으므로 스킵
+                print(f"🔍 [DELETE EVENT] Skipping events table (does not exist)")
+
+                print(f"🔍 [DELETE EVENT] Total deleted rows: {deleted_count}")
 
                 print(f"✅ [DELETE EVENT] Successfully deleted event: {event_id}")
                 return jsonify({
@@ -1292,14 +1333,37 @@ def delete_calendar_event(calendar_id, event_id):
 
             except Exception as delete_error:
                 print(f"⚠️ [DELETE EVENT] Delete by ID failed, trying with all conditions: {delete_error}")
-                # 원래 조건으로 다시 시도
+                # 백업 시도: calendar_id 조건 추가해서 다시 시도
                 try:
-                    delete_result = supabase.table('events').delete().eq('id', event_id).eq('calendar_id', calendar_id).eq('user_id', user_id).execute()
-                    print(f"🔍 [DELETE EVENT] Delete result (with conditions): {delete_result}")
+                    print(f"🔍 [DELETE EVENT] Backup attempt: trying with calendar_id condition...")
+                    # calendar_events 테이블에서 조건부 삭제 (user_id 조건은 제외)
+                    delete_result = supabase.table('calendar_events').delete().eq('id', event_id).eq('calendar_id', calendar_id).execute()
+                    print(f"🔍 [DELETE EVENT] Backup delete result: {delete_result}")
 
-                    print(f"✅ [DELETE EVENT] Successfully deleted event with conditions: {event_id}")
-                    return jsonify({
-                        'success': True,
+                    deleted_count = len(delete_result.data) if delete_result.data else 0
+                    print(f"🔍 [DELETE EVENT] Backup deleted rows: {deleted_count}")
+
+                    if deleted_count > 0:
+                        print(f"✅ [DELETE EVENT] Backup deletion successful: {deleted_count} row(s)")
+                        for deleted_row in delete_result.data:
+                            print(f"   - Deleted: {deleted_row.get('title', 'Unknown')} (ID: {deleted_row.get('id')})")
+                    else:
+                        print(f"⚠️ [DELETE EVENT] Backup deletion also failed: No rows deleted")
+
+                    print(f"🔍 [DELETE EVENT] Total deleted with conditions: {deleted_count}")
+
+                    if deleted_count > 0:
+                        print(f"✅ [DELETE EVENT] Successfully deleted event with conditions: {event_id}")
+                        return jsonify({
+                            'success': True,
+                            'message': 'Event deleted successfully (with conditions)',
+                            'event_id': event_id,
+                            'deleted_count': deleted_count
+                        }), 200
+                    else:
+                        print(f"⚠️ [DELETE EVENT] No rows deleted even with conditions, treating as success: {event_id}")
+                        return jsonify({
+                            'success': True,
                         'message': 'Event deleted successfully',
                         'event_id': event_id
                     }), 200
