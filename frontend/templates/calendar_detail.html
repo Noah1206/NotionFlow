@@ -4884,39 +4884,35 @@
 
         /* 🗑️ Trash Icon Styles - Fixed at Sidebar Bottom Right */
         .trash-icon-container {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1000;
-        }
-
-        /* Ensure left-sidebar has relative positioning and proper height */
-        .left-sidebar {
-            position: relative !important;
-            min-height: 100vh !important;
+            position: fixed;
+            bottom: 30px;
+            left: 280px;
+            z-index: 9999;
+            pointer-events: auto;
         }
 
         .trash-btn {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            width: 40px;
-            height: 40px;
-            display: flex;
+            background: #ffffff;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            width: 44px;
+            height: 44px;
+            display: flex !important;
             align-items: center;
             justify-content: center;
-            color: #6c757d;
+            color: #007bff;
             cursor: pointer;
             transition: all 0.2s ease;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,123,255,0.3);
+            position: relative;
         }
 
         .trash-btn:hover {
-            background: #e9ecef;
-            border-color: #ced4da;
-            color: #495057;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            background: #007bff;
+            border-color: #007bff;
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,123,255,0.4);
         }
 
         .trash-btn:active {
