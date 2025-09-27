@@ -1345,7 +1345,7 @@ class GoogleCalendarGrid {
                 const eventData = this.events.find(e => e.id === eventId);
                 if (eventData) {
                     // Move to trash instead of deleting
-                    this.moveToTrash(eventData);
+                    this.moveEventToTrash(eventData);
                     movedCount++;
                     
                     // Remove from DOM
