@@ -666,20 +666,33 @@ class GoogleManager extends PlatformManager {
         // Create modal HTML
         const modal = document.createElement('div');
         modal.id = 'google-calendar-modal';
+        // Force remove all existing backdrop/overlay elements that might be interfering
+        document.querySelectorAll('.modal-overlay, .backdrop, [style*="backdrop"], [style*="blur"]').forEach(el => {
+            if (el !== modal) {
+                el.style.display = 'none !important';
+                el.style.visibility = 'hidden !important';
+                el.style.zIndex = '-9999 !important';
+            }
+        });
+
         modal.style.cssText = `
             position: fixed !important;
             top: 0 !important;
             left: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            background: rgba(0, 0, 0, 0.8) !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            background: rgba(0, 0, 0, 0.85) !important;
             display: flex !important;
             justify-content: center !important;
             align-items: center !important;
-            z-index: 9999999 !important;
-            backdrop-filter: blur(8px) !important;
+            z-index: 2147483647 !important;
+            backdrop-filter: blur(10px) !important;
             animation: fadeIn 0.3s ease-out !important;
             pointer-events: all !important;
+            visibility: visible !important;
+            opacity: 1 !important;
         `;
 
         const modalContent = document.createElement('div');
@@ -691,12 +704,16 @@ class GoogleManager extends PlatformManager {
             width: 90% !important;
             max-height: 80vh !important;
             overflow-y: auto !important;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3) !important;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5) !important;
             position: relative !important;
             transform: scale(1) !important;
             animation: slideInScale 0.3s ease-out !important;
-            z-index: 99999999 !important;
+            z-index: 2147483647 !important;
             pointer-events: all !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            display: block !important;
+            margin: auto !important;
         `;
 
         modalContent.innerHTML = `
@@ -740,11 +757,35 @@ class GoogleManager extends PlatformManager {
             </div>
         `;
 
-        // Add CSS animations to document if not already present
-        if (!document.querySelector('#google-modal-animations')) {
+        // Add aggressive CSS overrides to document
+        if (!document.querySelector('#google-modal-override-styles')) {
             const style = document.createElement('style');
-            style.id = 'google-modal-animations';
+            style.id = 'google-modal-override-styles';
             style.textContent = `
+                /* Hide all existing modals and overlays */
+                .modal-overlay:not(#google-calendar-modal),
+                .calendar-selection-modal:not(#google-calendar-modal),
+                [class*="modal"]:not(#google-calendar-modal),
+                [class*="backdrop"]:not(#google-calendar-modal) {
+                    display: none !important;
+                    visibility: hidden !important;
+                    z-index: -9999 !important;
+                }
+
+                /* Force our modal to be visible */
+                #google-calendar-modal {
+                    position: fixed !important;
+                    top: 0 !important;
+                    left: 0 !important;
+                    width: 100vw !important;
+                    height: 100vh !important;
+                    z-index: 2147483647 !important;
+                    display: flex !important;
+                    visibility: visible !important;
+                    opacity: 1 !important;
+                    pointer-events: all !important;
+                }
+
                 @keyframes fadeIn {
                     from { opacity: 0; }
                     to { opacity: 1; }
@@ -766,12 +807,34 @@ class GoogleManager extends PlatformManager {
         modal.appendChild(modalContent);
         document.body.appendChild(modal);
 
-        // Force display after append
-        modal.style.display = 'flex';
+        // Force display after append with multiple methods
+        modal.style.display = 'flex !important';
+        modal.style.visibility = 'visible !important';
+        modal.style.opacity = '1 !important';
+
+        // Force all conflicting elements to be hidden
+        setTimeout(() => {
+            document.querySelectorAll('.modal-overlay, .calendar-selection-modal, [class*="modal"]:not(#google-calendar-modal)').forEach(el => {
+                if (el !== modal) {
+                    el.style.setProperty('display', 'none', 'important');
+                    el.style.setProperty('visibility', 'hidden', 'important');
+                    el.style.setProperty('z-index', '-9999', 'important');
+                }
+            });
+
+            // Re-force our modal to be visible
+            modal.style.setProperty('display', 'flex', 'important');
+            modal.style.setProperty('visibility', 'visible', 'important');
+            modal.style.setProperty('opacity', '1', 'important');
+            modal.style.setProperty('z-index', '2147483647', 'important');
+
+            console.log('🔥 [GOOGLE] FORCE DISPLAYED - Modal should now be visible!');
+            console.log('📅 [GOOGLE] Modal element:', modal);
+            console.log('📅 [GOOGLE] Modal computed style:', getComputedStyle(modal).display);
+            console.log('📅 [GOOGLE] Modal z-index:', getComputedStyle(modal).zIndex);
+        }, 50);
 
         console.log('✅ [GOOGLE] Fallback modal created and displayed');
-        console.log('📅 [GOOGLE] Modal element:', modal);
-        console.log('📅 [GOOGLE] Modal visibility:', getComputedStyle(modal).display);
 
         // Add event listeners
         let selectedCalendarId = null;
