@@ -94,6 +94,29 @@ class GoogleCalendarSyncService:
         
         self.supabase = create_client(self.supabase_url, self.supabase_key)
         print("✅ [GOOGLE SYNC] SupaBase initialized")
+
+    def get_selected_calendars(self, user_id: str) -> List[str]:
+        """사용자가 선택한 캘린더 ID 목록을 조회"""
+        try:
+            # selected_calendars 테이블에서 선택된 캘린더 조회
+            selected_result = self.supabase.table('selected_calendars').select('''
+                user_calendars (
+                    google_calendar_id
+                )
+            ''').eq('user_id', user_id).eq('is_selected', True).execute()
+
+            selected_calendar_ids = []
+            for item in selected_result.data:
+                calendar_data = item.get('user_calendars')
+                if calendar_data and calendar_data.get('google_calendar_id'):
+                    selected_calendar_ids.append(calendar_data['google_calendar_id'])
+
+            print(f"✅ [GOOGLE SYNC] Found {len(selected_calendar_ids)} selected calendars for user {user_id}")
+            return selected_calendar_ids
+
+        except Exception as e:
+            print(f"❌ [GOOGLE SYNC] Error getting selected calendars for user {user_id}: {e}")
+            return []
     
     def get_user_credentials(self, user_id: str):
         """사용자의 Google OAuth 토큰으로 Credentials 생성"""
@@ -154,18 +177,33 @@ class GoogleCalendarSyncService:
                     'events_processed': 0
                 }
             
-            # 3. 캘린더 목록 조회
+            # 3. 캘린더 목록 및 선택된 캘린더 조회
             calendars = google_api.list_calendars()
+            selected_calendar_ids = self.get_selected_calendars(user_id)
+
+            if not selected_calendar_ids:
+                print(f"⚠️ [GOOGLE SYNC] No calendars selected for user {user_id}. Skipping sync.")
+                return {
+                    'success': False,
+                    'error': '동기화할 캘린더가 선택되지 않았습니다. API 키 연결 페이지에서 캘린더를 선택해주세요.',
+                    'events_processed': 0
+                }
+
             total_events = 0
             processed_events = 0
             errors = []
-            
-            # 4. 각 캘린더의 이벤트 동기화
+
+            # 4. 선택된 캘린더만 동기화
             for calendar in calendars:
                 calendar_id = calendar.get('id', 'primary')
                 calendar_name = calendar.get('summary', 'Unknown Calendar')
-                
-                print(f"📅 [GOOGLE SYNC] Processing calendar: {calendar_name} ({calendar_id})")
+
+                # 선택된 캘린더인지 확인
+                if calendar_id not in selected_calendar_ids:
+                    print(f"⏭️ [GOOGLE SYNC] Skipping unselected calendar: {calendar_name} ({calendar_id})")
+                    continue
+
+                print(f"📅 [GOOGLE SYNC] Processing selected calendar: {calendar_name} ({calendar_id})")
                 
                 try:
                     # 이벤트 조회
@@ -190,16 +228,18 @@ class GoogleCalendarSyncService:
             # 5. 결과 반환
             success = len(errors) == 0 or processed_events > 0
             print(f"✅ [GOOGLE SYNC] Sync completed for user {user_id}")
+            print(f"📊 [GOOGLE SYNC] Selected calendars: {len(selected_calendar_ids)}")
             print(f"📊 [GOOGLE SYNC] Total events found: {total_events}")
             print(f"📊 [GOOGLE SYNC] Events processed: {processed_events}")
             print(f"📊 [GOOGLE SYNC] Errors: {len(errors)}")
-            
+
             return {
                 'success': success,
+                'selected_calendars_count': len(selected_calendar_ids),
                 'events_found': total_events,
                 'events_processed': processed_events,
                 'errors': errors,
-                'message': f'Google Calendar 동기화 완료: {processed_events}개 이벤트 처리됨'
+                'message': f'선택된 {len(selected_calendar_ids)}개 캘린더에서 {processed_events}개 이벤트 동기화 완료'
             }
             
         except Exception as e:

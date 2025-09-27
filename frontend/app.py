@@ -4036,6 +4036,15 @@ except ImportError as e:
     print(f"[WARNING] Google Calendar sync routes not available: {e}")
     pass
 
+# 📋 Register Calendar Selection Routes (optional)
+try:
+    from routes.calendar_selection_routes import calendar_selection_bp
+    app.register_blueprint(calendar_selection_bp)
+    print("[SUCCESS] Calendar selection routes registered")
+except ImportError as e:
+    print(f"[WARNING] Calendar selection routes not available: {e}")
+    pass
+
 # Removed duplicate health endpoint
 
 # ====== 💳 PAYMENT SYSTEM ROUTES ======

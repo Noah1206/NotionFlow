@@ -78,23 +78,59 @@ class GoogleCalendarService:
         except Exception as e:
             print(f"Error building Google Calendar service: {e}")
             return None
+
+    def get_selected_calendar(self, user_id: str, calendar_id: str) -> Optional[Dict]:
+        """선택된 캘린더 정보 확인"""
+        try:
+            # 먼저 user_calendars 테이블에서 선택된 캘린더인지 확인
+            response = self.supabase.table('user_calendars').select('*').eq('id', calendar_id).eq('user_id', user_id).execute()
+
+            if not response.data:
+                print(f"캘린더 {calendar_id}를 찾을 수 없습니다.")
+                return None
+
+            calendar_data = response.data[0]
+
+            # 캘린더 선택 상태 확인 (selected_calendars 테이블 확인)
+            selection_response = self.supabase.table('selected_calendars').select('*').eq('user_id', user_id).eq('calendar_id', calendar_id).eq('is_selected', True).execute()
+
+            if not selection_response.data:
+                print(f"캘린더 {calendar_id}가 선택되지 않았습니다.")
+                return None
+
+            return {
+                'id': calendar_data['id'],
+                'name': calendar_data['name'],
+                'google_calendar_id': calendar_data.get('google_calendar_id', 'primary'),
+                'color': calendar_data.get('color', '#4285f4')
+            }
+
+        except Exception as e:
+            print(f"Error checking selected calendar: {e}")
+            return None
     
     def create_event(self, user_id: str, calendar_id: str, event_data: Dict[str, Any]) -> Optional[Dict]:
         """Google Calendar에 일정 생성"""
         service = self.get_calendar_service(user_id)
         if not service:
             return None
-        
+
+        # 선택된 캘린더가 있는지 확인
+        selected_calendar = self.get_selected_calendar(user_id, calendar_id)
+        if not selected_calendar:
+            print(f"캘린더 {calendar_id}가 선택되지 않았거나 존재하지 않습니다.")
+            return None
+
         try:
             # Google Calendar 일정 형식으로 변환
             google_event = self._convert_to_google_event(event_data)
-            
-            # Google Calendar에 일정 생성 (기본 캘린더 사용)
+
+            # 선택된 캘린더에 일정 생성
             created_event = service.events().insert(
-                calendarId='primary',
+                calendarId=selected_calendar['google_calendar_id'],
                 body=google_event
             ).execute()
-            
+
             print(f"Google Calendar 일정 생성 완료: {created_event['id']}")
             return created_event
             
