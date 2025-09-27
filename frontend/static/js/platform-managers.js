@@ -267,39 +267,61 @@ class NotionManager extends PlatformManager {
         return new Promise((resolve, reject) => {
             const messageHandler = (event) => {
                 if (event.origin !== window.location.origin) return;
-                
+
                 if (event.data.type === 'oauth_success' && event.data.platform === 'notion') {
                     window.removeEventListener('message', messageHandler);
+                    clearInterval(checkClosed);
                     try {
                         popup.close();
                     } catch (e) {
-                        console.log('팝업 닫기 중 Cross-Origin 제한 (정상)');
+                        // Cross-Origin 에러 무시 (정상)
                     }
                     resolve({ success: true });
                 } else if (event.data.type === 'oauth_error' && event.data.platform === 'notion') {
                     window.removeEventListener('message', messageHandler);
+                    clearInterval(checkClosed);
                     try {
                         popup.close();
                     } catch (e) {
-                        console.log('팝업 닫기 중 Cross-Origin 제한 (정상)');
+                        // Cross-Origin 에러 무시 (정상)
                     }
                     resolve({ success: false, error: event.data.error });
                 }
             };
-            
+
             window.addEventListener('message', messageHandler);
-            
-            // Check if popup is closed
+
+            // Check if popup is closed (with timeout)
+            let timeoutCount = 0;
+            const maxTimeout = 120; // 2분 타임아웃
+
             const checkClosed = setInterval(() => {
+                timeoutCount++;
+
                 try {
                     if (popup.closed) {
                         clearInterval(checkClosed);
                         window.removeEventListener('message', messageHandler);
                         reject(new Error('OAuth 창이 닫혔습니다'));
+                        return;
                     }
                 } catch (e) {
-                    // Cross-Origin Policy로 popup.closed 접근이 차단될 수 있음 (정상)
-                    console.log('팝업 상태 확인 중 Cross-Origin 제한 (정상)');
+                    // Cross-Origin Policy로 popup.closed 접근이 차단됨 (정상 동작)
+                    // 메시지 핸들러가 있으므로 계속 대기
+                }
+
+                // 타임아웃 체크
+                if (timeoutCount >= maxTimeout) {
+                    clearInterval(checkClosed);
+                    window.removeEventListener('message', messageHandler);
+                    try {
+                        if (popup && !popup.closed) {
+                            popup.close();
+                        }
+                    } catch (e) {
+                        // Cross-Origin 에러 무시
+                    }
+                    reject(new Error('OAuth 인증 시간이 초과되었습니다'));
                 }
             }, 1000);
         });
@@ -351,7 +373,15 @@ class GoogleManager extends PlatformManager {
                 } else {
                     // Show calendar selection modal for fresh connections
                     this.showNotification('Google OAuth 연결 완료 - 캘린더 선택 중...', 'success');
-                    await this.showCalendarSelection();
+
+                    try {
+                        await this.showCalendarSelection();
+                    } catch (calendarError) {
+                        console.error('Calendar selection failed:', calendarError);
+                        // OAuth는 성공했으므로 logged_in 상태 유지
+                        this.updateStatus('logged_in');
+                        // 에러는 showCalendarSelection에서 이미 표시됨
+                    }
                 }
             } else {
                 throw new Error(result.error || 'OAuth 실패');
@@ -418,39 +448,61 @@ class GoogleManager extends PlatformManager {
         return new Promise((resolve, reject) => {
             const messageHandler = (event) => {
                 if (event.origin !== window.location.origin) return;
-                
+
                 if (event.data.type === 'oauth_success' && event.data.platform === 'google') {
                     window.removeEventListener('message', messageHandler);
+                    clearInterval(checkClosed);
                     try {
                         popup.close();
                     } catch (e) {
-                        console.log('팝업 닫기 중 Cross-Origin 제한 (정상)');
+                        // Cross-Origin 에러 무시 (정상)
                     }
                     resolve({ success: true });
                 } else if (event.data.type === 'oauth_error' && event.data.platform === 'google') {
                     window.removeEventListener('message', messageHandler);
+                    clearInterval(checkClosed);
                     try {
                         popup.close();
                     } catch (e) {
-                        console.log('팝업 닫기 중 Cross-Origin 제한 (정상)');
+                        // Cross-Origin 에러 무시 (정상)
                     }
                     resolve({ success: false, error: event.data.error });
                 }
             };
-            
+
             window.addEventListener('message', messageHandler);
-            
-            // Check if popup is closed
+
+            // Check if popup is closed (with timeout)
+            let timeoutCount = 0;
+            const maxTimeout = 120; // 2분 타임아웃
+
             const checkClosed = setInterval(() => {
+                timeoutCount++;
+
                 try {
                     if (popup.closed) {
                         clearInterval(checkClosed);
                         window.removeEventListener('message', messageHandler);
                         reject(new Error('OAuth 창이 닫혔습니다'));
+                        return;
                     }
                 } catch (e) {
-                    // Cross-Origin Policy로 popup.closed 접근이 차단될 수 있음 (정상)
-                    console.log('팝업 상태 확인 중 Cross-Origin 제한 (정상)');
+                    // Cross-Origin Policy로 popup.closed 접근이 차단됨 (정상 동작)
+                    // 메시지 핸들러가 있으므로 계속 대기
+                }
+
+                // 타임아웃 체크
+                if (timeoutCount >= maxTimeout) {
+                    clearInterval(checkClosed);
+                    window.removeEventListener('message', messageHandler);
+                    try {
+                        if (popup && !popup.closed) {
+                            popup.close();
+                        }
+                    } catch (e) {
+                        // Cross-Origin 에러 무시
+                    }
+                    reject(new Error('OAuth 인증 시간이 초과되었습니다'));
                 }
             }, 1000);
         });
@@ -485,7 +537,16 @@ class GoogleManager extends PlatformManager {
 
             if (!data.calendars || !data.calendars.length) {
                 console.warn('⚠️ [GOOGLE] No calendars found');
-                throw new Error('Google 계정에 캘린더가 없습니다. Google Calendar에서 캘린더를 생성해주세요.');
+
+                // 캘린더가 없는 경우 사용자에게 안내
+                this.showNotification(
+                    'Google 계정에 캘린더가 없습니다. Google Calendar에서 캘린더를 생성한 후 다시 연결해주세요.',
+                    'warning'
+                );
+
+                // OAuth는 성공했지만 캘린더가 없으므로 logged_in 상태로 변경
+                this.updateStatus('logged_in');
+                return;
             }
 
             console.log(`✅ [GOOGLE] Found ${data.calendars.length} calendars`);
@@ -502,7 +563,19 @@ class GoogleManager extends PlatformManager {
             
         } catch (error) {
             console.error('Calendar selection error:', error);
-            this.showNotification(`캘린더 선택 중 오류: ${error.message}`, 'error');
+
+            // 에러 타입에 따라 다른 알림 표시
+            if (error.message.includes('캘린더가 없습니다')) {
+                // 캘린더 없음 에러는 이미 처리됨
+                return;
+            } else if (error.message.includes('인증이 만료')) {
+                this.showNotification('Google 인증이 만료되었습니다. 다시 연결해주세요.', 'warning');
+            } else {
+                this.showNotification(`캘린더 연결 중 오류: ${error.message}`, 'error');
+            }
+
+            // 에러 발생 시 예외를 다시 던져서 상위에서 처리할 수 있도록 함
+            throw error;
         }
     }
     
