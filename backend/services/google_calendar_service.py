@@ -57,8 +57,20 @@ class GoogleCalendarService:
             
             # 토큰 만료 시간 설정 (있는 경우)
             if token_data.get('expires_at'):
-                expires_at = datetime.fromisoformat(token_data.get('expires_at').replace('Z', '+00:00'))
-                credentials.expiry = expires_at
+                try:
+                    expires_at_str = token_data.get('expires_at')
+                    # ISO 형식 문자열을 datetime 객체로 변환
+                    if expires_at_str.endswith('Z'):
+                        expires_at_str = expires_at_str.replace('Z', '+00:00')
+                    elif '+' not in expires_at_str and expires_at_str.count(':') >= 2:
+                        # timezone 정보가 없는 경우 UTC로 가정
+                        expires_at_str += '+00:00'
+
+                    expires_at = datetime.fromisoformat(expires_at_str)
+                    credentials.expiry = expires_at
+                except (ValueError, AttributeError) as e:
+                    print(f"Warning: Could not parse expires_at '{token_data.get('expires_at')}': {e}")
+                    # expires_at 파싱 실패 시 None으로 설정 (토큰 갱신 시 자동으로 처리됨)
             
             return credentials
             
@@ -231,19 +243,28 @@ class GoogleCalendarService:
             return []
         
         try:
-            # 기본값 설정
+            # 기본값 설정 - timezone-aware datetime 사용
             if not time_min:
                 if pytz:
                     time_min = datetime.now(pytz.UTC) - timedelta(days=30)
                 else:
                     from datetime import timezone
                     time_min = datetime.now(timezone.utc) - timedelta(days=30)
+            elif hasattr(time_min, 'tzinfo') and time_min.tzinfo is None:
+                # timezone-naive datetime인 경우 UTC로 변환
+                from datetime import timezone
+                time_min = time_min.replace(tzinfo=timezone.utc)
+
             if not time_max:
                 if pytz:
                     time_max = datetime.now(pytz.UTC) + timedelta(days=90)
                 else:
                     from datetime import timezone
                     time_max = datetime.now(timezone.utc) + timedelta(days=90)
+            elif hasattr(time_max, 'tzinfo') and time_max.tzinfo is None:
+                # timezone-naive datetime인 경우 UTC로 변환
+                from datetime import timezone
+                time_max = time_max.replace(tzinfo=timezone.utc)
             
             # Google Calendar에서 일정 조회
             events_result = service.events().list(
