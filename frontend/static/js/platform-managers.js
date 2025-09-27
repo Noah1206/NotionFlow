@@ -403,23 +403,31 @@ class GoogleManager extends PlatformManager {
         if (!confirm(`${this.getKoreanName()} 연결을 해제하시겠습니까?`)) {
             return;
         }
-        
+
         this.showLoading(this.oneClickBtn);
-        
+
         try {
             const response = await fetch(`/api/platform/google/disconnect`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
             });
-            
+
             if (response.ok) {
+                // Clear connection state from localStorage (like Notion)
+                localStorage.setItem('google_manually_disconnected', 'true');
+                localStorage.removeItem('google_calendar_connected');
+                localStorage.removeItem('google_calendar_id');
+                localStorage.removeItem('google_last_connected');
+
+                console.log('🔓 [GOOGLE] Calendar disconnection saved to localStorage');
+
                 this.updateStatus('disconnected');
                 this.showNotification(`${this.getKoreanName()} 연결이 해제되었습니다.`, 'success');
             } else {
                 const error = await response.json();
                 throw new Error(error.error || '연결 해제 실패');
             }
-            
+
         } catch (error) {
             console.error('Google disconnection error:', error);
             this.showNotification(`연결 해제 중 오류: ${error.message}`, 'error');
@@ -430,11 +438,52 @@ class GoogleManager extends PlatformManager {
     
     async checkStatus() {
         try {
+            // Check localStorage for persistent Google Calendar connection (like Notion OAuth logic)
+            const isConnected = localStorage.getItem('google_calendar_connected');
+            const calendarId = localStorage.getItem('google_calendar_id');
+            const lastConnected = localStorage.getItem('google_last_connected');
+            const manuallyDisconnected = localStorage.getItem('google_manually_disconnected');
+
+            // If manually disconnected, don't restore connection
+            if (manuallyDisconnected === 'true') {
+                console.log('🔒 [GOOGLE] Manual disconnection detected - keeping disconnected state');
+                this.updateStatus('disconnected');
+                return;
+            }
+
+            // If localStorage shows connected state, restore it
+            if (isConnected === 'true' && calendarId && lastConnected) {
+                console.log('🔄 [GOOGLE] Restoring connection from localStorage:', {
+                    calendar_id: calendarId,
+                    last_connected: lastConnected
+                });
+
+                // Check if connection is still valid on backend
+                const response = await fetch('/api/dashboard/platforms');
+                if (response.ok) {
+                    const data = await response.json();
+                    const status = data.platforms?.google;
+
+                    if (status && status.configured && status.enabled) {
+                        console.log('✅ [GOOGLE] Backend confirms connection - restoring connected state');
+                        this.updateStatus('connected');
+                        return;
+                    } else {
+                        console.log('⚠️ [GOOGLE] Backend connection lost - clearing localStorage');
+                        // Clear stale localStorage data
+                        localStorage.removeItem('google_calendar_connected');
+                        localStorage.removeItem('google_calendar_id');
+                        localStorage.removeItem('google_last_connected');
+                    }
+                }
+            }
+
+            // Fallback: Check backend status only
             const response = await fetch('/api/dashboard/platforms');
             if (response.ok) {
                 const data = await response.json();
                 const status = data.platforms?.google;
-                
+
                 if (status && status.configured && status.enabled) {
                     this.updateStatus('connected');
                 } else {
@@ -677,15 +726,30 @@ class GoogleManager extends PlatformManager {
     
     async connectCalendar(calendarId) {
         try {
+            console.log(`🔗 [GOOGLE] Connecting calendar: ${calendarId}`);
+
             // Mark as connected in backend
-            await fetch(`/api/platform/google/connect`, {
+            const response = await fetch(`/api/platform/google/connect`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ calendar_id: calendarId })
             });
 
-            this.updateStatus('connected');
-            this.showNotification(`${this.getKoreanName()} 연결 완료!`, 'success');
+            if (response.ok) {
+                // Store connection state in localStorage for persistence (like Notion)
+                localStorage.setItem('google_calendar_connected', 'true');
+                localStorage.setItem('google_calendar_id', calendarId);
+                localStorage.setItem('google_last_connected', new Date().toISOString());
+                localStorage.removeItem('google_manually_disconnected');
+
+                console.log('✅ [GOOGLE] Calendar connection saved to localStorage');
+
+                this.updateStatus('connected');
+                this.showNotification(`${this.getKoreanName()} 연결 완료!`, 'success');
+            } else {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `연결 실패: ${response.status}`);
+            }
 
         } catch (error) {
             console.error('Calendar connection error:', error);
