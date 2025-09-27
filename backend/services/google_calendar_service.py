@@ -45,7 +45,7 @@ class GoogleCalendarService:
             
             token_data = response.data[0]
             
-            # Google Credentials 객체 생성
+            # Google Credentials 객체 생성 (만료 시간 없이 먼저 생성)
             credentials = Credentials(
                 token=token_data.get('access_token'),
                 refresh_token=token_data.get('refresh_token'),
@@ -55,22 +55,10 @@ class GoogleCalendarService:
                 scopes=['https://www.googleapis.com/auth/calendar']
             )
             
-            # 토큰 만료 시간 설정 (있는 경우)
-            if token_data.get('expires_at'):
-                try:
-                    expires_at_str = token_data.get('expires_at')
-                    # ISO 형식 문자열을 datetime 객체로 변환
-                    if expires_at_str.endswith('Z'):
-                        expires_at_str = expires_at_str.replace('Z', '+00:00')
-                    elif '+' not in expires_at_str and expires_at_str.count(':') >= 2:
-                        # timezone 정보가 없는 경우 UTC로 가정
-                        expires_at_str += '+00:00'
-
-                    expires_at = datetime.fromisoformat(expires_at_str)
-                    credentials.expiry = expires_at
-                except (ValueError, AttributeError) as e:
-                    print(f"Warning: Could not parse expires_at '{token_data.get('expires_at')}': {e}")
-                    # expires_at 파싱 실패 시 None으로 설정 (토큰 갱신 시 자동으로 처리됨)
+            # 토큰 만료 시간 설정은 일시적으로 비활성화 (datetime 비교 에러 방지)
+            # Google API 라이브러리가 자동으로 토큰 갱신을 처리할 것임
+            # if token_data.get('expires_at'):
+            #     ... (비활성화됨)
             
             return credentials
             
@@ -205,35 +193,43 @@ class GoogleCalendarService:
         service = self.get_calendar_service(user_id)
         if not service:
             return []
-        
+
         try:
             # Google Calendar 목록 조회
             calendar_list_result = service.calendarList().list().execute()
             calendars = calendar_list_result.get('items', [])
-            
+
             # 캘린더 정보 정리
             formatted_calendars = []
             for calendar in calendars:
-                calendar_info = {
-                    'id': calendar.get('id'),
-                    'name': calendar.get('summary', 'Untitled Calendar'),
-                    'description': calendar.get('description', ''),
-                    'color': calendar.get('backgroundColor', '#3B82F6'),
-                    'timezone': calendar.get('timeZone', 'Asia/Seoul'),
-                    'access_role': calendar.get('accessRole', 'reader'),
-                    'is_primary': calendar.get('primary', False),
-                    'is_selected': calendar.get('selected', True)
-                }
-                formatted_calendars.append(calendar_info)
-            
+                try:
+                    calendar_info = {
+                        'id': calendar.get('id'),
+                        'name': calendar.get('summary', 'Untitled Calendar'),
+                        'description': calendar.get('description', ''),
+                        'color': calendar.get('backgroundColor', '#3B82F6'),
+                        'timezone': calendar.get('timeZone', 'Asia/Seoul'),
+                        'access_role': calendar.get('accessRole', 'reader'),
+                        'is_primary': calendar.get('primary', False),
+                        'is_selected': calendar.get('selected', True)
+                    }
+                    formatted_calendars.append(calendar_info)
+                except Exception as calendar_error:
+                    print(f"Error processing calendar {calendar.get('id', 'unknown')}: {calendar_error}")
+                    # 에러가 발생한 캘린더는 건너뛰고 계속 진행
+                    continue
+
             print(f"Google Calendar에서 {len(formatted_calendars)}개 캘린더 조회")
             return formatted_calendars
-            
+
         except HttpError as e:
             print(f"Google Calendar API error: {e}")
             return []
         except Exception as e:
             print(f"Error getting Google Calendar list: {e}")
+            # 상세한 에러 정보 출력
+            import traceback
+            print(f"Detailed error traceback: {traceback.format_exc()}")
             return []
     
     def get_events(self, user_id: str, calendar_id: str = 'primary', time_min: datetime = None, time_max: datetime = None) -> List[Dict]:
