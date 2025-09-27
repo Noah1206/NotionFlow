@@ -4,18 +4,18 @@
  */
 
 .calendar-selector {
-    background: #ffffff;
-    border-radius: 8px;
+    background: transparent;
+    border-radius: 0;
     padding: 0;
     margin-bottom: 16px;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    box-shadow: rgba(15, 15, 15, 0.05) 0px 0px 0px 1px, rgba(15, 15, 15, 0.1) 0px 3px 6px, rgba(15, 15, 15, 0.2) 0px 9px 24px;
-    overflow: hidden;
-    transition: all 0.12s ease-out;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+    transition: none;
 }
 
 .calendar-selector:hover {
-    box-shadow: rgba(15, 15, 15, 0.05) 0px 0px 0px 1px, rgba(15, 15, 15, 0.1) 0px 5px 10px, rgba(15, 15, 15, 0.2) 0px 15px 40px;
+    box-shadow: none;
 }
 
 .calendar-selector-header {

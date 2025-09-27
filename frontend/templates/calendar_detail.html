@@ -4882,34 +4882,41 @@
             color: #1976d2;
         }
 
-        /* 🗑️ Trash Icon Styles - Fixed at Screen Bottom Right */
+        /* 🗑️ Trash Icon Styles - Fixed at Sidebar Bottom Right */
         .trash-icon-container {
-            position: fixed;
-            bottom: 16px;
-            right: 16px;
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
             z-index: 1000;
         }
 
+        /* Ensure left-sidebar has relative positioning and proper height */
+        .left-sidebar {
+            position: relative !important;
+            min-height: 100vh !important;
+        }
+
         .trash-btn {
-            background: transparent;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            width: 44px;
-            height: 44px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #6b7280;
+            color: #6c757d;
             cursor: pointer;
             transition: all 0.2s ease;
-            box-shadow: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         .trash-btn:hover {
-            background: #f3f4f6;
-            border-color: #d1d5db;
-            color: #374151;
+            background: #e9ecef;
+            border-color: #ced4da;
+            color: #495057;
             transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
 
         .trash-btn:active {
