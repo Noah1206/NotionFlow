@@ -3416,42 +3416,67 @@ def google_oauth_callback():
         import base64
         
         try:
-            # Base64 패딩 추가 (필요한 경우)
-            padded_state = encoded_state + '=' * (4 - len(encoded_state) % 4)
-            decoded_state = base64.urlsafe_b64decode(padded_state.encode()).decode()
-            state_data = json.loads(decoded_state)
-            user_id = state_data.get('user_id')
-            random_state = state_data.get('state')
-            
-            print(f"Decoded state - user_id: {user_id}, random_state: {random_state}")
-            
+            # 먼저 세션에서 state 확인 (노션 방식과 동일)
+            session_state_key = f'oauth_state_{encoded_state}'
+            session_state_data = session.get(session_state_key)
+
+            if session_state_data:
+                print(f"Found OAuth state in session: {bool(session_state_data)}")
+                user_id = session_state_data.get('user_id')
+                print(f"User ID from session state: {user_id}")
+            else:
+                print("OAuth state not found in session, trying to decode state")
+                # Base64 디코딩 시도 (더 안전한 방식)
+                try:
+                    # 패딩 추가
+                    padded_state = encoded_state + '=' * (4 - len(encoded_state) % 4)
+                    # bytes로 디코딩 시도
+                    decoded_bytes = base64.urlsafe_b64decode(padded_state.encode('utf-8'))
+
+                    # UTF-8 디코딩 시도
+                    try:
+                        decoded_state = decoded_bytes.decode('utf-8')
+                        state_data = json.loads(decoded_state)
+                        user_id = state_data.get('user_id')
+                        print(f"Decoded state from base64 - user_id: {user_id}")
+                    except UnicodeDecodeError:
+                        # UTF-8 디코딩 실패 시 다른 인코딩 시도
+                        try:
+                            decoded_state = decoded_bytes.decode('latin-1')
+                            state_data = json.loads(decoded_state)
+                            user_id = state_data.get('user_id')
+                            print(f"Decoded state with latin-1 - user_id: {user_id}")
+                        except:
+                            raise Exception("Failed to decode state with multiple encodings")
+
+                except Exception as inner_decode_error:
+                    print(f"Base64 decode failed: {inner_decode_error}")
+                    # 최종 폴백: 세션에서 user_id 가져오기
+                    user_id = session.get('user_id')
+                    if not user_id:
+                        user_id = encoded_state  # 마지막 폴백
+                    print(f"Using fallback user_id: {user_id}")
+
             # user_id 유효성 확인
             if not user_id:
-                raise Exception("No user_id found in state")
-            
-            # UUID 형식 확인
-            import re
-            uuid_pattern = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-            if not re.match(uuid_pattern, user_id.lower()):
-                print(f"Warning: user_id {user_id} is not a valid UUID format")
-            
-            # 세션의 user_id와 비교
+                raise Exception("No user_id found in any method")
+
+            # 세션의 user_id와 비교 (일관성 확인)
             session_user_id = session.get('user_id')
             print(f"Session user_id: {session_user_id}")
-            print(f"OAuth state user_id: {user_id}")
-            if session_user_id != user_id:
+            print(f"OAuth user_id: {user_id}")
+            if session_user_id and session_user_id != user_id:
                 print(f"Warning: Session user_id ({session_user_id}) != OAuth user_id ({user_id})")
-            
-            # CSRF 검증 (선택적)
-            stored_state = session.get('oauth_state')
-            if stored_state and stored_state != encoded_state:
-                print(f"State mismatch warning: stored != received")
-            
+                # 세션의 user_id를 신뢰
+                user_id = session_user_id
+                print(f"Using session user_id for consistency: {user_id}")
+
         except Exception as decode_error:
-            print(f"Failed to decode state: {decode_error}")
-            # 폴백: state를 그대로 user_id로 사용 (이전 버전 호환)
-            user_id = encoded_state
-            print(f"Using raw state as user_id (fallback): {user_id}")
+            print(f"Failed to extract user_id: {decode_error}")
+            # 최종 폴백: 세션에서 user_id 가져오기
+            user_id = session.get('user_id')
+            if not user_id:
+                raise Exception("No valid user_id available from any source")
         
         # 환경변수 확인
         client_id = os.environ.get('GOOGLE_CLIENT_ID')
@@ -3462,27 +3487,33 @@ def google_oauth_callback():
         
         print(f"Exchanging auth code for token...")
         
-        # OAuth state에서 code_verifier 가져오기 (PKCE용)
+        # OAuth state에서 code_verifier 가져오기 (PKCE용) - 노션 방식과 동일하게
         code_verifier = None
         try:
-            # Supabase에서 OAuth state 정보 가져오기
-            from supabase import create_client
-            import os
+            # 먼저 세션에서 code_verifier 확인
+            if session_state_data and session_state_data.get('code_verifier'):
+                code_verifier = session_state_data.get('code_verifier')
+                print(f"Found code_verifier in session: {bool(code_verifier)}")
+            else:
+                # 세션에 없으면 데이터베이스에서 조회
+                from supabase import create_client
+                import os
 
-            supabase_url = os.environ.get('SUPABASE_URL')
-            supabase_key = os.environ.get('SUPABASE_API_KEY')
+                supabase_url = os.environ.get('SUPABASE_URL')
+                supabase_key = os.environ.get('SUPABASE_API_KEY')
 
-            if supabase_url and supabase_key:
-                supabase_client = create_client(supabase_url, supabase_key)
+                if supabase_url and supabase_key:
+                    supabase_client = create_client(supabase_url, supabase_key)
 
-                # state로 code_verifier 조회
-                state_result = supabase_client.table('oauth_states').select('code_verifier').eq('state', encoded_state).eq('platform', 'google').execute()
+                    # state로 code_verifier 조회 (provider 컬럼 사용)
+                    state_result = supabase_client.table('oauth_states').select('code_verifier').eq('state', encoded_state).eq('provider', 'google').execute()
 
-                if state_result.data and state_result.data[0]:
-                    code_verifier = state_result.data[0].get('code_verifier')
-                    print(f"Found code_verifier for PKCE: {bool(code_verifier)}")
+                    if state_result.data and state_result.data[0]:
+                        code_verifier = state_result.data[0].get('code_verifier')
+                        print(f"Found code_verifier in database: {bool(code_verifier)}")
         except Exception as e:
             print(f"Failed to get code_verifier: {e}")
+            # code_verifier 없어도 계속 진행 (일부 OAuth는 PKCE 필수가 아님)
 
         # 직접 Google OAuth API로 토큰 교환
         token_url = 'https://oauth2.googleapis.com/token'
@@ -3617,6 +3648,15 @@ def google_oauth_callback():
                     ).execute()
                     print(f"Supabase response: {result}")
                     print("Token saved successfully to database")
+
+                    # 데이터베이스 저장 성공 시 세션에도 저장 (노션 방식과 동일)
+                    session[f'oauth_token_{user_id}_google'] = {
+                        'access_token': access_token,
+                        'refresh_token': refresh_token,
+                        'expires_at': expires_at.isoformat(),
+                        'scope': token_json.get('scope', '')
+                    }
+                    print("Token also saved to session for quick access")
                 except Exception as e:
                     import traceback
                     error_details = traceback.format_exc()
