@@ -1359,7 +1359,7 @@ function setVolume(event) {
 function updateVolumeIcon() {
     const volumeIcon = document.getElementById('volume-icon');
     if (!volumeIcon) {
-        console.warn('Volume icon not found');
+        // Silently return if volume icon not found (it may not exist on all pages)
         return;
     }
     

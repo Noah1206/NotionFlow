@@ -1952,7 +1952,7 @@ class GoogleCalendarGrid {
     }
     
     renderEvent(eventData) {
-        console.log('🎯 [DEBUG] renderEvent called with data:', eventData?.title, 'date:', eventData?.date);
+        // Render event silently
         
         // Check for null/undefined event data
         if (!eventData || !eventData.id) {
@@ -1986,15 +1986,12 @@ class GoogleCalendarGrid {
         const timeDiff = eventDate.getTime() - weekStart.getTime();
         const dayIndex = Math.round(timeDiff / (24 * 60 * 60 * 1000));
         
-        console.log('📅 [DEBUG] Event date string:', eventDateStr);
-        console.log('📅 [DEBUG] Event date (parsed):', eventDate);
-        console.log('📅 [DEBUG] Week start (noon):', weekStart);
-        console.log('📅 [DEBUG] Time difference (ms):', timeDiff);
-        console.log('📅 [DEBUG] Day index:', dayIndex);
+        // Date calculation complete
         
-        if (dayIndex < -1 || dayIndex > 7) { // Allow more flexible range
-            console.log('❌ [DEBUG] Event too far from current week, skipping render. DayIndex:', dayIndex, 'Event:', eventData.title);
-            return; // Not in current week
+        // Allow events from multiple weeks (expand range significantly)
+        if (dayIndex < -7 || dayIndex > 14) { // Allow previous and next weeks
+            // Silently skip events that are too far out instead of logging
+            return;
         }
         
         // Adjust dayIndex if it's negative (previous week) or > 6 (next week)
@@ -3688,27 +3685,14 @@ class GoogleCalendarGrid {
     }
     
     loadBackupEvents() {
-        console.log('📱 [DEBUG] Loading events from localStorage backup...');
         const backupEvents = this.loadFromLocalStorage();
-        
-        console.log('📱 [DEBUG] Raw backup events from localStorage:', backupEvents.length, backupEvents);
-        
+
         if (backupEvents.length > 0) {
-            // Filter out null/invalid events before processing
-            const validEvents = backupEvents.filter(event => event && event.id && event.date);
-            
-            console.log('📱 [DEBUG] Valid events after filtering:', validEvents.length, validEvents);
-            
-            validEvents.forEach(event => {
-                console.log('📱 [DEBUG] Processing event:', event.title, 'date:', event.date);
+            backupEvents.forEach(event => {
                 this.events.push(event);
                 this.renderEvent(event);
             });
-            console.log(`✅ [DEBUG] Loaded ${validEvents.length} events from localStorage backup`);
-            // Update the event list
             this.updateEventList();
-        } else {
-            console.log('📝 [DEBUG] No backup events found in localStorage');
         }
     }
     
@@ -3796,19 +3780,29 @@ class GoogleCalendarGrid {
         try {
             const storageKey = 'calendar_events_backup';
             const rawData = localStorage.getItem(storageKey);
-            console.log('📱 [DEBUG] Raw localStorage data:', rawData);
-            
+
+            if (!rawData || rawData === 'null' || rawData === 'undefined') {
+                // Clear invalid localStorage data
+                localStorage.removeItem(storageKey);
+                return [];
+            }
+
             const events = JSON.parse(rawData || '[]');
-            console.log('📱 [DEBUG] Parsed events from localStorage:', events.length, events);
-            
+
             // Filter out null/invalid events when loading
-            const validEvents = events.filter(event => event && event.id && event.date);
-            console.log('📱 [DEBUG] Valid events after filtering:', validEvents.length, 'out of', events.length, 'total');
-            
-            // Check specific dates
-            const sept25Events = validEvents.filter(event => event.date === '2025-09-25');
-            console.log('📱 [DEBUG] Events for 2025-09-25:', sept25Events.length, sept25Events);
-            
+            const validEvents = events.filter(event =>
+                event &&
+                typeof event === 'object' &&
+                event.id &&
+                event.date &&
+                event.title
+            );
+
+            // If all events were invalid, clear the storage
+            if (events.length > 0 && validEvents.length === 0) {
+                localStorage.removeItem(storageKey);
+            }
+
             return validEvents;
         } catch (error) {
             console.error('❌ Failed to load from localStorage:', error);

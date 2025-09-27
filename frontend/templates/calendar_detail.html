@@ -405,14 +405,14 @@
         #sidebar .sidebar-widget,
         div.sidebar-widget,
         div[class*="sidebar-widget"] {
-            margin: 0 0 24px 0 !important;
+            margin: 0 0 32px 0 !important;
             background: transparent !important;
             border: none !important;
             border-radius: 0 !important;
             overflow: visible !important;
             box-shadow: none !important;
             transition: all 0.2s ease !important;
-            padding: 0 !important;
+            padding: 0 16px 0 24px !important; /* Left padding for breathing room */
             display: block !important;
             font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif !important;
         }
@@ -452,12 +452,12 @@
         .sidebar-widget .widget-header h4,
         div.sidebar-widget .widget-header h4,
         .sidebar .widget-header h4 {
-            font-size: 13px !important;
-            font-weight: 700 !important;
-            color: #64748b !important;
+            font-size: 15px !important;
+            font-weight: 600 !important;
+            color: #374151 !important;
             margin: 0 !important;
-            text-transform: uppercase !important;
-            letter-spacing: 0.05em !important;
+            text-transform: none !important;
+            letter-spacing: -0.01em !important;
             font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif !important;
         }
 
@@ -537,7 +537,7 @@
             font-weight: 500 !important;
             color: #1e293b !important;
             margin-bottom: 6px !important;
-            font-size: 14px !important;
+            font-size: 15px !important; /* Increased from 14px */
             line-height: 1.4 !important;
             transition: color 0.2s ease !important;
         }
@@ -549,7 +549,7 @@
         /* Event Time - Elegant Metadata */
         .event-list-item-time {
             color: #94a3b8 !important;
-            font-size: 12px !important;
+            font-size: 13px !important; /* Increased from 12px */
             font-weight: 400 !important;
             display: inline-flex !important;
             align-items: center !important;
@@ -663,7 +663,7 @@
             background: transparent !important;
             border: none !important;
             border-radius: 6px !important;
-            font-size: 14px !important;
+            font-size: 15px !important; /* Increased from 14px */
             font-weight: 400 !important;
             color: #374151 !important;
             cursor: pointer !important;
