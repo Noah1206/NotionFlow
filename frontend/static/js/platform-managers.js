@@ -641,52 +641,15 @@ class GoogleManager extends PlatformManager {
     async showCalendarSelection() {
         try {
             console.log('📅 [GOOGLE] Starting calendar selection...');
-            console.log('📅 [GOOGLE] Checking if showCalendarSelectionModal function exists...');
-            console.log('📅 [GOOGLE] typeof showCalendarSelectionModal:', typeof showCalendarSelectionModal);
-            console.log('📅 [GOOGLE] typeof window.showCalendarSelectionModal:', typeof window.showCalendarSelectionModal);
 
-            // Directly use dashboard modal (like Notion does)
-            console.log('📅 [GOOGLE] Using dashboard calendar selection modal');
-
+            // Simply use dashboard modal (like Notion does)
             if (typeof showCalendarSelectionModal === 'function') {
-                console.log('📅 [GOOGLE] Calling showCalendarSelectionModal("google")...');
-                try {
-                    await showCalendarSelectionModal('google');
-                    console.log('✅ [GOOGLE] Dashboard modal called successfully');
-                    return; // Exit early, modal handles the rest
-                } catch (modalError) {
-                    console.error('❌ [GOOGLE] Dashboard modal failed:', modalError);
-                    // Fall through to fallback modal
-                }
+                await showCalendarSelectionModal('google');
             } else if (typeof window.showCalendarSelectionModal === 'function') {
-                console.log('📅 [GOOGLE] Calling window.showCalendarSelectionModal("google")...');
-                try {
-                    await window.showCalendarSelectionModal('google');
-                    console.log('✅ [GOOGLE] Window dashboard modal called successfully');
-                    return; // Exit early, modal handles the rest
-                } catch (modalError) {
-                    console.error('❌ [GOOGLE] Window dashboard modal failed:', modalError);
-                    // Fall through to fallback modal
-                }
+                await window.showCalendarSelectionModal('google');
+            } else {
+                throw new Error('Calendar selection modal not available');
             }
-
-            // Fallback: Create our own calendar selection modal
-            console.log('🔧 [GOOGLE] Using fallback modal approach...');
-
-            // Fetch user calendars
-            const response = await fetch('/api/calendars');
-            if (!response.ok) {
-                throw new Error('캘린더 목록을 가져올 수 없습니다');
-            }
-
-            const calendarsData = await response.json();
-            if (!calendarsData.success || !calendarsData.calendars || calendarsData.calendars.length === 0) {
-                this.showNotification('연결할 캘린더가 없습니다. 먼저 캘린더를 생성해주세요.', 'warning');
-                this.updateStatus('logged_in');
-                throw new Error('사용 가능한 캘린더가 없습니다');
-            }
-
-            this.createFallbackCalendarModal(calendarsData.calendars);
 
             
         } catch (error) {
@@ -753,7 +716,9 @@ class GoogleManager extends PlatformManager {
     }
 
     createFallbackCalendarModal(calendars) {
-        console.log('🔧 [GOOGLE] Creating enhanced fallback modal...');
+        // Removed - using dashboard modal instead
+        console.log('⚠️ [GOOGLE] Fallback modal removed - using dashboard modal');
+        return;
 
         // Remove any existing modals more aggressively
         const existingModals = [

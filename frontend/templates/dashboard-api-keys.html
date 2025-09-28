@@ -1107,39 +1107,57 @@
     // 캘린더 선택 모달 표시 (일반 연결용)
     async function showCalendarSelectionModal(platformName) {
         console.log('📅 [MODAL] Showing calendar selection modal for:', platformName);
-        console.log('📅 [MODAL] DOM readyState:', document.readyState);
-        console.log('📅 [MODAL] Looking for element: calendar-selection-modal');
-
-        // Debug: Check all elements with modal-related IDs
-        const allModals = document.querySelectorAll('[id*="modal"]');
-        console.log('📅 [MODAL] All modal elements found:', Array.from(allModals).map(el => el.id));
 
         currentConnectingPlatform = platformName;
         let modal = document.getElementById('calendar-selection-modal');
+
+        // DOM 요소가 없으면 동적으로 생성
+        if (!modal) {
+            console.log('📅 [MODAL] Creating modal dynamically...');
+
+            // Create modal HTML
+            modal = document.createElement('div');
+            modal.className = 'calendar-selection-modal';
+            modal.id = 'calendar-selection-modal';
+            modal.style.display = 'none';
+            modal.innerHTML = `
+                <div class="modal-overlay" onclick="closeCalendarSelectionModal()"></div>
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title">캘린더 선택</h3>
+                        <button class="modal-close-btn" onclick="closeCalendarSelectionModal()">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 6l-12 12M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="modal-description">
+                            <span id="platform-name-display"></span> 연결을 위해 동기화할 캘린더를 선택하세요.
+                        </p>
+                        <div class="calendar-list" id="calendar-list">
+                            <div class="loading-state">
+                                <div class="loading-spinner"></div>
+                                <p>캘린더 목록을 불러오는 중...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn-secondary" onclick="closeCalendarSelectionModal()">취소</button>
+                        <button class="btn-primary" id="confirm-calendar-selection" onclick="confirmCalendarSelection()" disabled>
+                            선택한 캘린더로 연결
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            // Append to body
+            document.body.appendChild(modal);
+            console.log('✅ [MODAL] Modal created and appended to body');
+        }
+
         const platformDisplay = document.getElementById('platform-name-display');
         const calendarList = document.getElementById('calendar-list');
-
-        console.log('📅 [MODAL] Modal element:', modal);
-        console.log('📅 [MODAL] Platform display element:', platformDisplay);
-        console.log('📅 [MODAL] Calendar list element:', calendarList);
-
-        // DOM 요소 존재 확인
-        if (!modal) {
-            console.error('❌ [MODAL] calendar-selection-modal element not found');
-            console.log('📅 [MODAL] Trying to wait for DOM and retry...');
-
-            // Wait a bit and try again
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            const retryModal = document.getElementById('calendar-selection-modal');
-            if (!retryModal) {
-                console.error('❌ [MODAL] Still no modal found after retry');
-                return;
-            } else {
-                console.log('✅ [MODAL] Found modal on retry:', retryModal);
-                // Use the retry modal
-                modal = retryModal;
-            }
-        }
 
         if (!calendarList) {
             console.error('❌ [MODAL] calendar-list element not found');
