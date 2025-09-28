@@ -1107,16 +1107,38 @@
     // 캘린더 선택 모달 표시 (일반 연결용)
     async function showCalendarSelectionModal(platformName) {
         console.log('📅 [MODAL] Showing calendar selection modal for:', platformName);
+        console.log('📅 [MODAL] DOM readyState:', document.readyState);
+        console.log('📅 [MODAL] Looking for element: calendar-selection-modal');
+
+        // Debug: Check all elements with modal-related IDs
+        const allModals = document.querySelectorAll('[id*="modal"]');
+        console.log('📅 [MODAL] All modal elements found:', Array.from(allModals).map(el => el.id));
 
         currentConnectingPlatform = platformName;
-        const modal = document.getElementById('calendar-selection-modal');
+        let modal = document.getElementById('calendar-selection-modal');
         const platformDisplay = document.getElementById('platform-name-display');
         const calendarList = document.getElementById('calendar-list');
+
+        console.log('📅 [MODAL] Modal element:', modal);
+        console.log('📅 [MODAL] Platform display element:', platformDisplay);
+        console.log('📅 [MODAL] Calendar list element:', calendarList);
 
         // DOM 요소 존재 확인
         if (!modal) {
             console.error('❌ [MODAL] calendar-selection-modal element not found');
-            return;
+            console.log('📅 [MODAL] Trying to wait for DOM and retry...');
+
+            // Wait a bit and try again
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            const retryModal = document.getElementById('calendar-selection-modal');
+            if (!retryModal) {
+                console.error('❌ [MODAL] Still no modal found after retry');
+                return;
+            } else {
+                console.log('✅ [MODAL] Found modal on retry:', retryModal);
+                // Use the retry modal
+                modal = retryModal;
+            }
         }
 
         if (!calendarList) {
