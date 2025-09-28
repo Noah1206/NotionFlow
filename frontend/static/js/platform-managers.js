@@ -69,9 +69,9 @@ class PlatformManager {
             `;
         }
         
-        // Show sync button
+        // Hide sync button for Google Calendar (like Notion - sync happens automatically)
         if (this.syncBtn) {
-            this.syncBtn.style.display = 'inline-flex';
+            this.syncBtn.style.display = 'none';
         }
     }
     
@@ -726,29 +726,41 @@ class GoogleManager extends PlatformManager {
     
     async connectCalendar(calendarId) {
         try {
-            console.log(`🔗 [GOOGLE] Connecting calendar: ${calendarId}`);
+            console.log(`🔗 [GOOGLE] Connecting user calendar: ${calendarId}`);
 
-            // Mark as connected in backend
-            const response = await fetch(`/api/platform/google/connect`, {
+            // Connect to user's calendar (not Google calendar ID) - similar to Notion
+            const response = await fetch(`/api/google-calendar/connect-calendar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ calendar_id: calendarId })
             });
 
-            if (response.ok) {
+            const result = await response.json();
+
+            if (response.ok && result.success) {
                 // Store connection state in localStorage for persistence (like Notion)
                 localStorage.setItem('google_calendar_connected', 'true');
                 localStorage.setItem('google_calendar_id', calendarId);
                 localStorage.setItem('google_last_connected', new Date().toISOString());
                 localStorage.removeItem('google_manually_disconnected');
 
-                console.log('✅ [GOOGLE] Calendar connection saved to localStorage');
+                console.log('✅ [GOOGLE] Calendar connection completed:', result);
 
                 this.updateStatus('connected');
-                this.showNotification(`${this.getKoreanName()} 연결 완료!`, 'success');
+
+                // Show success message with sync count if available
+                const message = result.synced_count !== undefined ?
+                    `Google Calendar 연결 완료! ${result.synced_count}개 이벤트 동기화됨` :
+                    'Google Calendar 연결 완료!';
+
+                this.showNotification(message, 'success');
+
+                // Trigger calendar refresh if needed
+                if (result.trigger_calendar_refresh && typeof window.refreshCalendar === 'function') {
+                    window.refreshCalendar();
+                }
             } else {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `연결 실패: ${response.status}`);
+                throw new Error(result.error || `연결 실패: ${response.status}`);
             }
 
         } catch (error) {

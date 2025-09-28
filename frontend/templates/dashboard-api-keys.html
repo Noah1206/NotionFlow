@@ -3754,6 +3754,19 @@
                 console.log('⚠️ [NOTION-STATE] Could not check Notion state:', stateError);
             }
 
+            // Also check server-side disconnect state for Google Calendar
+            try {
+                const googleStateResponse = await fetch('/api/google-calendar/calendar-state');
+                const googleStateData = await googleStateResponse.json();
+                if (googleStateData.success && googleStateData.needs_calendar_selection) {
+                    googleManuallyDisconnected = true;
+                    localStorage.setItem('google_manually_disconnected', 'true'); // Sync with localStorage
+                    console.log('🔄 [GOOGLE-STATE] Server indicates Google needs calendar selection - setting localStorage flag');
+                }
+            } catch (stateError) {
+                console.log('⚠️ [GOOGLE-STATE] Could not check Google state:', stateError);
+            }
+
             console.log('Loading synced calendars with disconnection flags - Google:', googleManuallyDisconnected, 'Notion:', notionManuallyDisconnected);
 
             const headers = {};

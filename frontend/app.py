@@ -4039,6 +4039,7 @@ blueprints_to_register = [
     ('routes.platform_connect_routes', 'platform_connect_bp', '[PLATFORM] Platform Calendar Connect'),
     ('routes.health_check_routes', 'health_bp', '[SEARCH] Platform Health Check'),
     ('routes.notion_calendar_connect', 'notion_calendar_bp', '[NOTION] Notion Calendar Connect'),
+    ('routes.google_calendar_connect', 'google_calendar_connect_bp', '[GOOGLE] Google Calendar Connect'),
     ('routes.session_cleanup', 'session_cleanup_bp', '[DEBUG] Session Cleanup'),
     ('routes.friends_routes', 'friends_bp', '[FRIENDS] Friends System'),
     ('routes.unified_sync_routes_simple', 'unified_sync_bp', '[SYNC] Unified Multi-Platform Sync')

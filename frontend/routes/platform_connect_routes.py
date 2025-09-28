@@ -243,18 +243,19 @@ def connect_google_calendar():
                 'error': f'Database query error: {str(e)}'
             }), 500
 
-        # Store OAuth and calendar info in credentials JSON field
+        # Store OAuth info in credentials JSON field (no calendar_id yet)
         connection_data = {
             'user_id': user_id,
             'platform': 'google',
-            'is_enabled': True,
+            'is_enabled': False,  # Not enabled until calendar is selected
             'sync_direction': 'bidirectional',
             'updated_at': datetime.now().isoformat(),
             'credentials': {
                 'oauth_connected': True,
-                'calendar_id': calendar_id,  # Store email/calendar ID here
+                'google_calendar_id': calendar_id,  # Store Google calendar email here
                 'connected_at': datetime.now().isoformat(),
-                'real_time_sync': True
+                'real_time_sync': True,
+                'needs_calendar_selection': True  # Flag that calendar selection is needed
             }
         }
 
@@ -279,8 +280,9 @@ def connect_google_calendar():
 
         return jsonify({
             'success': True,
-            'message': 'Google Calendar connected successfully',
-            'calendar_id': calendar_id
+            'message': 'Google Calendar OAuth connected successfully. Please select a calendar to sync with.',
+            'google_calendar_id': calendar_id,
+            'needs_calendar_selection': True
         })
 
     except Exception as e:
@@ -363,6 +365,51 @@ def get_calendar_platform_status():
 
     except Exception as e:
         print(f"❌ Error getting platform status: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@platform_connect_bp.route('/api/google-calendar/calendar-state', methods=['GET'])
+def get_google_calendar_state():
+    """Google Calendar 캘린더 선택 상태 조회 (노션과 동일한 패턴)"""
+    try:
+        user_id, error_response, status_code = check_auth()
+        if error_response:
+            return error_response, status_code
+
+        supabase = config.get_client_for_user(user_id)
+
+        # Google Calendar 연동 상태 확인
+        result = supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', 'google').execute()
+
+        if not result.data:
+            return jsonify({
+                'success': True,
+                'needs_calendar_selection': False,
+                'oauth_connected': False,
+                'message': 'Google Calendar not connected'
+            })
+
+        config_data = result.data[0]
+        credentials = config_data.get('credentials', {})
+        oauth_connected = credentials.get('oauth_connected', False)
+        has_calendar_id = credentials.get('calendar_id') is not None
+        is_enabled = config_data.get('is_enabled', False)
+
+        # OAuth는 연결되었지만 캘린더 선택이 안된 경우
+        needs_selection = oauth_connected and not (has_calendar_id and is_enabled)
+
+        return jsonify({
+            'success': True,
+            'needs_calendar_selection': needs_selection,
+            'oauth_connected': oauth_connected,
+            'calendar_connected': has_calendar_id and is_enabled,
+            'message': 'Calendar selection needed' if needs_selection else 'Ready'
+        })
+
+    except Exception as e:
+        print(f"❌ Error getting Google Calendar state: {e}")
         return jsonify({
             'success': False,
             'error': str(e)
