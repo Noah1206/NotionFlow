@@ -11,6 +11,7 @@ import os
 # Add parent directory to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 from utils.config import config
+from utils.auth_manager import AuthManager
 
 google_calendar_connect_bp = Blueprint('google_calendar_connect', __name__, url_prefix='/api/google-calendar')
 
@@ -18,14 +19,22 @@ google_calendar_connect_bp = Blueprint('google_calendar_connect', __name__, url_
 def connect_google_to_calendar():
     """Connect Google Calendar to a specific calendar chosen by user"""
     try:
-        user_id = session.get('user_id')
+        print(f"🔗 [GOOGLE-CONNECT] Request received")
+        user_id = AuthManager.get_current_user_id()
         if not user_id:
+            print(f"❌ [GOOGLE-CONNECT] No user authentication")
             return jsonify({'error': 'User not authenticated'}), 401
 
         data = request.get_json()
         calendar_id = data.get('calendar_id')
+        google_calendar_id = data.get('google_calendar_id')
+
+        print(f"🔗 [GOOGLE-CONNECT] User: {user_id}")
+        print(f"🔗 [GOOGLE-CONNECT] NotionFlow calendar_id: {calendar_id}")
+        print(f"🔗 [GOOGLE-CONNECT] Google calendar_id: {google_calendar_id}")
 
         if not calendar_id:
+            print(f"❌ [GOOGLE-CONNECT] Missing calendar_id")
             return jsonify({'error': 'Calendar ID is required'}), 400
 
         # Check if user owns this calendar
@@ -36,13 +45,19 @@ def connect_google_to_calendar():
             return jsonify({'error': 'Calendar not found or access denied'}), 404
 
         # Update calendar_sync_configs with the selected calendar_id and enable sync
+        credentials_data = {
+            'oauth_connected': True,
+            'calendar_id': calendar_id,
+            'connected_at': datetime.now().isoformat(),
+            'real_time_sync': True
+        }
+
+        # Include Google calendar ID if provided
+        if google_calendar_id:
+            credentials_data['google_calendar_id'] = google_calendar_id
+
         update_result = supabase.table('calendar_sync_configs').update({
-            'credentials': {
-                'oauth_connected': True,
-                'calendar_id': calendar_id,
-                'connected_at': datetime.now().isoformat(),
-                'real_time_sync': True
-            },
+            'credentials': credentials_data,
             'is_enabled': True,
             'updated_at': datetime.now().isoformat()
         }).eq('user_id', user_id).eq('platform', 'google').execute()
@@ -134,7 +149,7 @@ def connect_google_to_calendar():
 def disconnect_google_from_calendar():
     """Disconnect Google Calendar from calendar"""
     try:
-        user_id = session.get('user_id')
+        user_id = AuthManager.get_current_user_id()
         if not user_id:
             return jsonify({'error': 'User not authenticated'}), 401
 
