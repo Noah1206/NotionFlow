@@ -445,6 +445,69 @@ def get_user_activity():
             'error': 'Failed to load activity'
         }), 500
 
+@dashboard_api_bp.route('/platforms', methods=['GET'])
+def get_platform_status():
+    """Get all platform connection statuses for the dashboard"""
+    auth_error = require_auth()
+    if auth_error:
+        return auth_error
+
+    user_id = get_current_user_id()
+
+    try:
+        supabase = config.get_client_for_user(user_id)
+
+        # Get all platform connection statuses from calendar_sync_configs
+        result = supabase.table('calendar_sync_configs').select(
+            'platform, calendar_id, is_enabled, real_time_sync, last_sync_at, sync_settings'
+        ).eq('user_id', user_id).execute()
+
+        platform_status = {
+            'notion': {'configured': False, 'enabled': False},
+            'google': {'configured': False, 'enabled': False},
+            'apple': {'configured': False, 'enabled': False},
+            'outlook': {'configured': False, 'enabled': False},
+            'slack': {'configured': False, 'enabled': False}
+        }
+
+        # Update status for connected platforms
+        for config in result.data:
+            platform = config['platform']
+            if platform in platform_status:
+                platform_status[platform] = {
+                    'configured': bool(config.get('calendar_id')),
+                    'enabled': config.get('is_enabled', False),
+                    'calendar_id': config.get('calendar_id'),
+                    'last_sync_at': config.get('last_sync_at'),
+                    'sync_settings': config.get('sync_settings')
+                }
+
+        # Check for Google OAuth token as well (for OAuth-only connection)
+        google_oauth_result = supabase.table('google_tokens').select('id').eq('user_id', user_id).execute()
+        if google_oauth_result.data:
+            # If Google OAuth exists but no calendar selected yet
+            if not platform_status['google']['configured']:
+                platform_status['google']['oauth_connected'] = True
+
+        return jsonify({
+            'success': True,
+            'platforms': platform_status
+        })
+
+    except Exception as e:
+        print(f"Error getting platform status: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to load platform status',
+            'platforms': {
+                'notion': {'configured': False, 'enabled': False},
+                'google': {'configured': False, 'enabled': False},
+                'apple': {'configured': False, 'enabled': False},
+                'outlook': {'configured': False, 'enabled': False},
+                'slack': {'configured': False, 'enabled': False}
+            }
+        }), 500
+
 # Error handlers
 @dashboard_api_bp.errorhandler(404)
 def not_found(error):

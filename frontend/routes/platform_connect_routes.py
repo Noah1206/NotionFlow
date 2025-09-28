@@ -196,24 +196,123 @@ def await_import_existing_events(platform: str, user_id: str, calendar_id: str) 
         print(f"❌ Error importing events from {platform}: {e}")
         return 0
 
+@platform_connect_bp.route('/api/platform/google/connect', methods=['POST'])
+def connect_google_calendar():
+    """Google Calendar 연결 상태 저장 (클라이언트 localStorage와 동기화)"""
+    auth_error = require_auth()
+    if auth_error:
+        return auth_error
+
+    user_id = get_current_user_id()
+
+    try:
+        data = request.get_json() or {}
+        calendar_id = data.get('calendar_id')
+
+        if not calendar_id:
+            return jsonify({
+                'success': False,
+                'error': 'calendar_id is required'
+            }), 400
+
+        supabase = config.get_client_for_user(user_id)
+
+        # Google Calendar 연결 정보 저장 또는 업데이트
+        existing = supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', 'google').execute()
+
+        connection_data = {
+            'user_id': user_id,
+            'platform': 'google',
+            'calendar_id': calendar_id,
+            'is_enabled': True,
+            'real_time_sync': True,
+            'sync_direction': 'bidirectional',
+            'last_sync_at': datetime.now().isoformat(),
+            'updated_at': datetime.now().isoformat(),
+            'sync_settings': {
+                'calendar_id': calendar_id,
+                'connected_at': datetime.now().isoformat()
+            }
+        }
+
+        if existing.data:
+            # Update existing record
+            result = supabase.table('calendar_sync_configs').update(connection_data).eq('user_id', user_id).eq('platform', 'google').execute()
+        else:
+            # Insert new record
+            connection_data['created_at'] = datetime.now().isoformat()
+            result = supabase.table('calendar_sync_configs').insert(connection_data).execute()
+
+        print(f"✅ Google Calendar {calendar_id} connected for user {user_id}")
+
+        return jsonify({
+            'success': True,
+            'message': 'Google Calendar connected successfully',
+            'calendar_id': calendar_id
+        })
+
+    except Exception as e:
+        print(f"❌ Error connecting Google Calendar: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@platform_connect_bp.route('/api/platform/google/disconnect', methods=['POST'])
+def disconnect_google_calendar():
+    """Google Calendar 연결 해제"""
+    auth_error = require_auth()
+    if auth_error:
+        return auth_error
+
+    user_id = get_current_user_id()
+
+    try:
+        supabase = config.get_client_for_user(user_id)
+
+        # Google Calendar 연결 정보 삭제 또는 비활성화
+        update_data = {
+            'calendar_id': None,
+            'is_enabled': False,
+            'real_time_sync': False,
+            'updated_at': datetime.now().isoformat(),
+            'sync_settings': None
+        }
+
+        result = supabase.table('calendar_sync_configs').update(update_data).eq('user_id', user_id).eq('platform', 'google').execute()
+
+        print(f"✅ Google Calendar disconnected for user {user_id}")
+
+        return jsonify({
+            'success': True,
+            'message': 'Google Calendar disconnected successfully'
+        })
+
+    except Exception as e:
+        print(f"❌ Error disconnecting Google Calendar: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 @platform_connect_bp.route('/calendar/platform-status', methods=['GET'])
 def get_platform_status():
     """플랫폼 연동 상태 조회"""
     auth_error = require_auth()
     if auth_error:
         return auth_error
-    
+
     user_id = get_current_user_id()
-    
+
     try:
         supabase = config.get_client_for_user(user_id)
-        
+
         # 모든 플랫폼 연동 상태 조회
         result = supabase.table('calendar_sync_configs').select('''
-            platform, calendar_id, is_enabled, real_time_sync, 
+            platform, calendar_id, is_enabled, real_time_sync,
             last_sync_at, sync_settings
         ''').eq('user_id', user_id).execute()
-        
+
         platform_status = {}
         for config in result.data:
             platform = config['platform']
@@ -225,12 +324,12 @@ def get_platform_status():
                 'last_sync_at': config.get('last_sync_at'),
                 'calendar_name': config.get('sync_settings', {}).get('calendar_name') if config.get('sync_settings') else None
             }
-        
+
         return jsonify({
             'success': True,
             'platforms': platform_status
         })
-        
+
     except Exception as e:
         print(f"❌ Error getting platform status: {e}")
         return jsonify({
