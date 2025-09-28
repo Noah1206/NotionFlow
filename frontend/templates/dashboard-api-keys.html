@@ -1205,6 +1205,8 @@
     // 사용자 캘린더 목록 로드
     async function loadUserCalendars(calendarListContainer) {
         console.log('📅 [LOAD] Loading calendars with container:', calendarListContainer);
+        console.log('🔍 [LOAD] DEBUG - currentConnectingPlatform:', currentConnectingPlatform);
+        console.log('🔍 [LOAD] DEBUG - isGoogleSecondStep:', isGoogleSecondStep);
 
         // container null 체크
         if (!calendarListContainer) {
@@ -1223,6 +1225,7 @@
             } else {
                 console.log('📅 [LOAD] Fetching NotionFlow calendars from /api/calendars...');
             }
+            console.log('🔍 [LOAD] DEBUG - Final API URL:', apiUrl);
 
             const response = await fetch(apiUrl);
 
@@ -1230,8 +1233,20 @@
                 const data = await response.json();
                 console.log('📅 [LOAD] API response:', data);
 
-                if (data.success && data.calendars && data.calendars.length > 0) {
-                    displayCalendarList(data.calendars, calendarListContainer);
+                // /api/calendars는 personal_calendars, shared_calendars 형식으로 응답
+                let calendars = [];
+                if (data.success) {
+                    if (data.calendars && data.calendars.length > 0) {
+                        // Google calendars 형식 (기존)
+                        calendars = data.calendars;
+                    } else if (data.personal_calendars || data.shared_calendars) {
+                        // NotionFlow calendars 형식 (새로운)
+                        calendars = [...(data.personal_calendars || []), ...(data.shared_calendars || [])];
+                    }
+                }
+
+                if (calendars && calendars.length > 0) {
+                    displayCalendarList(calendars, calendarListContainer);
                 } else {
                     // 캘린더가 없으면 생성 안내
                     displayNoCalendarsMessage(calendarListContainer);
