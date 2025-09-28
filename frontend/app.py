@@ -7362,26 +7362,43 @@ def get_all_platform_status():
 def check_google_calendar_connection(user_id):
     """Google Calendar OAuth 토큰 존재 여부로 연결 상태 확인"""
     print(f"[DEBUG] check_google_calendar_connection called for user {user_id}")
-    
+
     try:
         # Check if user has OAuth tokens in database
         supabase_client = get_supabase()
         if not supabase_client:
             print("[DEBUG] No Supabase client available")
             return False
-        
-        # Check oauth_tokens table for Google tokens
+
+        # First check calendar_sync_configs table for Google Calendar connection
+        sync_result = supabase_client.table('calendar_sync_configs').select('calendar_id, is_enabled').eq('user_id', user_id).eq('platform', 'google').execute()
+
+        if sync_result.data:
+            config_data = sync_result.data[0]
+            has_calendar = bool(config_data.get('calendar_id') and config_data.get('is_enabled'))
+            print(f"[DEBUG] Google Calendar sync config found: calendar_id={config_data.get('calendar_id')}, enabled={config_data.get('is_enabled')}")
+            if has_calendar:
+                return True
+
+        # Also check oauth_tokens table for Google OAuth tokens
         oauth_result = supabase_client.table('oauth_tokens').select('access_token, refresh_token').eq('user_id', user_id).eq('platform', 'google').execute()
-        
+
         if oauth_result.data:
             token_data = oauth_result.data[0]
             has_tokens = bool(token_data.get('access_token') and token_data.get('refresh_token'))
             print(f"[DEBUG] Google OAuth tokens found: {has_tokens}")
             return has_tokens
-        else:
-            print("[DEBUG] No Google OAuth tokens found")
-            return False
-            
+
+        # Check google_tokens table as fallback
+        google_tokens_result = supabase_client.table('google_tokens').select('id').eq('user_id', user_id).execute()
+
+        if google_tokens_result.data:
+            print(f"[DEBUG] Google tokens found in google_tokens table")
+            return True
+
+        print("[DEBUG] No Google connection found in any table")
+        return False
+
     except Exception as e:
         print(f"[DEBUG] Error checking Google connection: {e}")
         return False

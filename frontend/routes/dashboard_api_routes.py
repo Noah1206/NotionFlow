@@ -488,6 +488,8 @@ def get_platform_status():
             # If Google OAuth exists but no calendar selected yet
             if not platform_status['google']['configured']:
                 platform_status['google']['oauth_connected'] = True
+                # Even if no calendar is selected, OAuth connection means it's configured
+                platform_status['google']['configured'] = True
 
         return jsonify({
             'success': True,
