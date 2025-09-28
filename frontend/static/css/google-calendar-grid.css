@@ -57,11 +57,16 @@
     background: white;
     box-sizing: border-box;
     /* 정확한 크기 계산 */
+    /* 줌 아웃에도 안정적인 경계선을 위한 개선 */
+    box-shadow: 1px 0 0 0 #e0e0e0;
+    background-clip: padding-box;
 }
 
 .calendar-header .day-header:last-child {
     border-right: none;
     /* 맨 오른쪽 경계선 제거 */
+    box-shadow: none;
+    /* 마지막 컬럼은 그림자도 제거 */
 }
 
 .day-header .day-name {
@@ -161,11 +166,16 @@
     /* 흰색 배경 */
     width: 100%;
     flex: 1;
+    /* 줌 아웃에도 안정적인 경계선을 위한 개선 */
+    box-shadow: 1px 0 0 0 #e0e0e0;
+    background-clip: padding-box;
 }
 
 .day-column:last-child {
     border-right: none;
     /* 맨 오른쪽 경계선 제거 */
+    box-shadow: none;
+    /* 마지막 컬럼은 그림자도 제거 */
 }
 
 /* Time cells - clickable areas */
@@ -183,6 +193,9 @@
     /* 정확한 크기 계산 */
     padding: 0;
     /* 모든 패딩 제거 */
+    /* 줌 아웃에도 안정적인 경계선을 위한 개선 */
+    box-shadow: 0 1px 0 0 #e0e0e0;
+    background-clip: padding-box;
 }
 
 .time-cell:hover {
