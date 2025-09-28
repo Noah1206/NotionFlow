@@ -386,6 +386,9 @@ class GoogleManager extends PlatformManager {
                         // 에러는 showCalendarSelection에서 이미 표시됨
                     }
                 }
+
+                // Mark OAuth as connected in backend (similar to Notion)
+                await this.markOAuthConnected();
             } else {
                 throw new Error(result.error || 'OAuth 실패');
             }
@@ -451,14 +454,43 @@ class GoogleManager extends PlatformManager {
                 return;
             }
 
-            // If localStorage shows connected state, restore it
+            // Check server-side OAuth token status first (like Notion)
+            const googleStateResponse = await fetch('/api/google-calendar/calendar-state');
+            if (googleStateResponse.ok) {
+                const googleStateData = await googleStateResponse.json();
+                if (googleStateData.success) {
+                    if (googleStateData.oauth_connected && googleStateData.calendar_connected) {
+                        // Fully connected (OAuth + calendar selected)
+                        console.log('✅ [GOOGLE] Server confirms full connection - restoring connected state');
+                        this.updateStatus('connected');
+
+                        // Sync localStorage with server state
+                        if (!isConnected) {
+                            localStorage.setItem('google_calendar_connected', 'true');
+                            localStorage.setItem('google_last_connected', new Date().toISOString());
+                        }
+                        return;
+                    } else if (googleStateData.oauth_connected && googleStateData.needs_calendar_selection) {
+                        // OAuth connected but needs calendar selection
+                        console.log('🔄 [GOOGLE] OAuth connected, calendar selection needed');
+                        this.updateStatus('logged_in');
+
+                        // Clear localStorage connection state but keep OAuth
+                        localStorage.removeItem('google_calendar_connected');
+                        localStorage.removeItem('google_calendar_id');
+                        return;
+                    }
+                }
+            }
+
+            // Fallback: If localStorage shows connected state, try to restore it
             if (isConnected === 'true' && calendarId && lastConnected) {
-                console.log('🔄 [GOOGLE] Restoring connection from localStorage:', {
+                console.log('🔄 [GOOGLE] Attempting to restore connection from localStorage:', {
                     calendar_id: calendarId,
                     last_connected: lastConnected
                 });
 
-                // Check if connection is still valid on backend
+                // Additional check with dashboard API for compatibility
                 const response = await fetch('/api/dashboard/platforms');
                 if (response.ok) {
                     const data = await response.json();
@@ -1266,6 +1298,18 @@ class GoogleManager extends PlatformManager {
             console.error('Error checking Google Calendar sync status:', error);
         }
         return null;
+    }
+
+    async markOAuthConnected() {
+        try {
+            await fetch(`/api/platform/google/connect`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            console.log('✅ [GOOGLE] OAuth marked as connected in backend');
+        } catch (error) {
+            console.error('Error marking Google OAuth as connected:', error);
+        }
     }
 }
 
