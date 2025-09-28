@@ -473,8 +473,8 @@ class GoogleCalendarGrid {
         today.setHours(0, 0, 0, 0);
         
         let headerHTML = `
-            <div class="calendar-header" style="display: grid; grid-template-columns: ${this.timeColumnWidth}px repeat(7, ${this.dayColumnWidth}px); width: 100%; height: 60px; min-height: 60px; box-sizing: border-box; padding: 0; margin: 0; background: white; border-bottom: 1px solid #e0e0e0; position: sticky; top: 0; z-index: 1000;">
-                <div class="time-header" style="grid-column: 1; width: ${this.timeColumnWidth}px; height: 100%; display: flex; align-items: center; justify-content: center; border-right: 1px solid #e0e0e0;">GMT+9</div>
+            <div class="calendar-header">
+                <div class="time-header">GMT+9</div>
         `;
         
         for (let i = 0; i < 7; i++) {
@@ -485,9 +485,9 @@ class GoogleCalendarGrid {
             const isWeekend = i === 0 || i === 6;
             
             headerHTML += `
-                <div class="day-header ${isToday ? 'today' : ''}" data-day="${i}" style="grid-column: ${i + 2}; width: ${this.dayColumnWidth}px; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: ${i < 6 ? '1px solid #e0e0e0' : 'none'};">
-                    <div class="day-name" style="font-size: 11px; color: #70757a; text-transform: uppercase; font-weight: 500; margin-bottom: 4px;">${days[i]}</div>
-                    <div class="day-date" style="font-size: 26px; color: ${isToday ? 'white' : '#3c4043'}; font-weight: ${isToday ? '500' : '400'}; ${isToday ? 'background: #1a73e8; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;' : ''}">${date.getDate()}</div>
+                <div class="day-header ${isToday ? 'today' : ''}" data-day="${i}">
+                    <div class="day-name">${days[i]}</div>
+                    <div class="day-date">${date.getDate()}</div>
                 </div>
             `;
         }
@@ -498,8 +498,8 @@ class GoogleCalendarGrid {
     
     renderGrid() {
         let gridHTML = `
-            <div class="calendar-grid-body" style="display: grid; grid-template-columns: ${this.timeColumnWidth}px repeat(7, ${this.dayColumnWidth}px); width: 100%; height: 100%; box-sizing: border-box; padding: 0; margin: 0; padding-top: 10px;">
-                <div class="time-column" style="grid-column: 1; width: ${this.timeColumnWidth}px; flex-shrink: 0;">
+            <div class="calendar-grid-body">
+                <div class="time-column">
                     ${this.renderTimeSlots()}
                 </div>
         `;
@@ -508,7 +508,7 @@ class GoogleCalendarGrid {
         for (let day = 0; day < 7; day++) {
             const isWeekend = day === 0 || day === 6;
             gridHTML += `
-                <div class="day-column ${isWeekend ? 'weekend' : ''}" data-day="${day}" style="grid-column: ${day + 2}; width: ${this.dayColumnWidth}px; height: 100%;">
+                <div class="day-column ${isWeekend ? 'weekend' : ''}" data-day="${day}">
                     ${this.renderTimeCells(day)}
                 </div>
             `;
@@ -3659,10 +3659,13 @@ class GoogleCalendarGrid {
         const remainingWidth = availableContainerWidth - timeColumnWidth;
         const dayColumnWidth = Math.floor(remainingWidth / 7);
 
-        // Use CSS 1fr for equal distribution instead of fixed pixels
-        const newGridTemplate = `80px repeat(7, 1fr)`;
-        header.style.gridTemplateColumns = newGridTemplate;
-        body.style.gridTemplateColumns = newGridTemplate;
+        // Remove any inline grid-template-columns to let CSS handle it
+        header.style.gridTemplateColumns = '';
+        body.style.gridTemplateColumns = '';
+
+        // Ensure CSS classes are applied properly
+        header.classList.add('calendar-header');
+        body.classList.add('calendar-grid-body');
 
         console.log('📏 Adjusted grid layout:', {
             viewportWidth,
