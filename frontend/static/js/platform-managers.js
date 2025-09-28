@@ -668,10 +668,10 @@ class GoogleManager extends PlatformManager {
                     setTimeout(() => {
                         const modal = document.getElementById('calendar-selection-modal');
                         if (!modal || modal.style.display === 'none' || getComputedStyle(modal).display === 'none') {
-                            console.log('⚠️ [GOOGLE] Existing modal not visible, creating fallback');
+                            console.log('📋 [GOOGLE] Using fallback modal (original modal not available)');
                             this.createFallbackCalendarModal(data.calendars);
                         } else {
-                            console.log('✅ [GOOGLE] Existing modal is visible');
+                            console.log('✅ [GOOGLE] Original modal is visible');
                             modalShown = true;
                         }
                     }, 300);
@@ -689,7 +689,7 @@ class GoogleManager extends PlatformManager {
                     setTimeout(() => {
                         const modal = document.getElementById('calendar-selection-modal');
                         if (!modal || modal.style.display === 'none' || getComputedStyle(modal).display === 'none') {
-                            console.log('⚠️ [GOOGLE] Window modal not visible, creating fallback');
+                            console.log('📋 [GOOGLE] Using fallback modal (window modal not available)');
                             this.createFallbackCalendarModal(data.calendars);
                         } else {
                             console.log('✅ [GOOGLE] Window modal is visible');
