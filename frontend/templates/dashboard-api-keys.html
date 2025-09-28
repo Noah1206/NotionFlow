@@ -1213,9 +1213,9 @@
         }
 
         try {
-            // API에서 사용자 캘린더 목록 가져오기
-            console.log('📅 [LOAD] Fetching from /api/google-calendars...');
-            const response = await fetch('/api/google-calendars');
+            // API에서 사용자 캘린더 목록 가져오기 (Google 캘린더가 아닌 사용자가 생성한 캘린더)
+            console.log('📅 [LOAD] Fetching user calendars from /api/calendars...');
+            const response = await fetch('/api/calendars');
 
             if (response.ok) {
                 const data = await response.json();
@@ -1329,7 +1329,7 @@
         const item = document.createElement('div');
         item.className = 'calendar-item';
         item.setAttribute('data-calendar-id', calendar.id);
-        item.onclick = () => selectCalendar(calendar.id);
+        item.onclick = () => selectCalendarForModal(calendar.id);
 
         item.innerHTML =
             '<div class="calendar-radio"></div>' +
@@ -1352,8 +1352,8 @@
         }
     }
 
-    // 캘린더 선택
-    function selectCalendar(calendarId) {
+    // 모달에서 캘린더 선택
+    function selectCalendarForModal(calendarId) {
         // 기존 선택 해제
         document.querySelectorAll('.calendar-item').forEach(item => {
             item.classList.remove('selected');
