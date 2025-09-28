@@ -1220,13 +1220,27 @@ class GoogleManager extends PlatformManager {
         try {
             // Get the Google calendar email from localStorage (stored during OAuth)
             const googleCalendarId = localStorage.getItem('google_oauth_email') || 'unknown@gmail.com';
+            console.log('🔍 [GOOGLE-OAUTH] DEBUG googleCalendarId from localStorage:', googleCalendarId);
 
-            await fetch(`/api/platform/google/connect`, {
+            const requestData = { calendar_id: googleCalendarId };
+            console.log('🔍 [GOOGLE-OAUTH] DEBUG request data:', requestData);
+            console.log('🔍 [GOOGLE-OAUTH] DEBUG JSON string:', JSON.stringify(requestData));
+
+            const response = await fetch(`/api/platform/google/connect`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ calendar_id: googleCalendarId })
+                body: JSON.stringify(requestData)
             });
-            console.log('✅ [GOOGLE] OAuth marked as connected in backend');
+
+            console.log('🔍 [GOOGLE-OAUTH] Response status:', response.status);
+            const result = await response.json();
+            console.log('🔍 [GOOGLE-OAUTH] Response data:', result);
+
+            if (response.ok) {
+                console.log('✅ [GOOGLE] OAuth marked as connected in backend');
+            } else {
+                console.error('❌ [GOOGLE] Failed to mark OAuth as connected:', result);
+            }
         } catch (error) {
             console.error('Error marking Google OAuth as connected:', error);
         }
