@@ -39,10 +39,16 @@ def connect_google_to_calendar():
 
         # Check if user owns this calendar
         supabase = config.get_client_for_user(user_id)
+        print(f"🔗 [GOOGLE-CONNECT] Checking calendar ownership...")
         calendar_check = supabase.table('calendars').select('*').eq('id', calendar_id).eq('owner_id', user_id).execute()
 
+        print(f"🔗 [GOOGLE-CONNECT] Calendar check result: {calendar_check.data}")
+
         if not calendar_check.data:
+            print(f"❌ [GOOGLE-CONNECT] Calendar not found - calendar_id: {calendar_id}, user_id: {user_id}")
             return jsonify({'error': 'Calendar not found or access denied'}), 404
+
+        print(f"✅ [GOOGLE-CONNECT] Calendar ownership verified")
 
         # Update calendar_sync_configs with the selected calendar_id and enable sync
         credentials_data = {
