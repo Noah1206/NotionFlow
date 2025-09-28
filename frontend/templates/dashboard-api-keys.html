@@ -1216,12 +1216,12 @@
             // 플랫폼에 따라 다른 API 호출
             let apiUrl = '/api/calendars'; // 기본값: NotionFlow 캘린더
 
-            // Google 플랫폼인 경우 Google 캘린더 목록 가져오기
-            if (currentConnectingPlatform === 'google') {
+            // Google 플랫폼인 경우, 1단계에서만 Google 캘린더, 2단계에서는 NotionFlow 캘린더
+            if (currentConnectingPlatform === 'google' && !isGoogleSecondStep) {
                 apiUrl = '/api/google-calendars';
-                console.log('📅 [LOAD] Fetching Google calendars for selection...');
+                console.log('📅 [LOAD] Fetching Google calendars for step 1 selection...');
             } else {
-                console.log('📅 [LOAD] Fetching user calendars from /api/calendars...');
+                console.log('📅 [LOAD] Fetching NotionFlow calendars from /api/calendars...');
             }
 
             const response = await fetch(apiUrl);
@@ -1405,6 +1405,9 @@
 
     // Google 연동을 위한 NotionFlow 캘린더 선택 단계
     async function showNotionFlowCalendarSelection() {
+        // 2단계 플래그 설정
+        isGoogleSecondStep = true;
+
         const modal = document.getElementById('calendar-selection-modal');
         const platformDisplay = document.getElementById('platform-name-display');
         const calendarList = document.getElementById('calendar-list');
@@ -1426,17 +1429,13 @@
             confirmBtn.onclick = () => confirmGoogleCalendarConnection();
         }
 
-        // NotionFlow 캘린더 목록 로드
-        const response = await fetch('/api/calendars');
-        if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.calendars) {
-                displayCalendarList(data.calendars, calendarList);
-                // 기존 선택 초기화
-                selectedCalendarId = null;
-                confirmBtn.disabled = true;
-            }
-        }
+        // NotionFlow 캘린더 목록 로드 (loadUserCalendars 사용)
+        // 기존 선택 초기화
+        selectedCalendarId = null;
+        confirmBtn.disabled = true;
+
+        // 캘린더 목록 로드
+        await loadUserCalendars(calendarList);
     }
 
     // Google Calendar 연결 확인
@@ -1575,6 +1574,7 @@
         // 선택 상태 초기화
         selectedCalendarId = null;
         currentConnectingPlatform = null;
+        isGoogleSecondStep = false; // Google 2단계 플래그 리셋
         document.getElementById('confirm-calendar-selection').disabled = true;
     }
 
@@ -2801,6 +2801,7 @@
     // 전역 변수
     let selectedCalendarData = null;
     let currentSyncStep = 1;
+    let isGoogleSecondStep = false; // Google 2단계 여부 추적
 
     // 플랫폼 아이콘 가져오기
     function getPlatformIcon(platform) {
