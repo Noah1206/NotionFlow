@@ -1106,16 +1106,32 @@
 
     // 캘린더 선택 모달 표시 (일반 연결용)
     async function showCalendarSelectionModal(platformName) {
+        console.log('📅 [MODAL] Showing calendar selection modal for:', platformName);
+
         currentConnectingPlatform = platformName;
         const modal = document.getElementById('calendar-selection-modal');
         const platformDisplay = document.getElementById('platform-name-display');
         const calendarList = document.getElementById('calendar-list');
 
+        // DOM 요소 존재 확인
+        if (!modal) {
+            console.error('❌ [MODAL] calendar-selection-modal element not found');
+            return;
+        }
+
+        if (!calendarList) {
+            console.error('❌ [MODAL] calendar-list element not found');
+            return;
+        }
+
+        console.log('✅ [MODAL] Modal elements found:', { modal, platformDisplay, calendarList });
+
         // 플랫폼 이름 표시
         if (platformDisplay) platformDisplay.textContent = getKoreanPlatformName(platformName);
 
         // 모달 표시
-        if (modal) modal.style.display = 'flex';
+        modal.style.display = 'flex';
+        console.log('📅 [MODAL] Modal display set to flex');
 
         // 캘린더 목록 로딩
         await loadUserCalendars(calendarList);
@@ -1148,12 +1164,22 @@
 
     // 사용자 캘린더 목록 로드
     async function loadUserCalendars(calendarListContainer) {
+        console.log('📅 [LOAD] Loading calendars with container:', calendarListContainer);
+
+        // container null 체크
+        if (!calendarListContainer) {
+            console.error('❌ [LOAD] calendarListContainer is null - cannot load calendars');
+            return;
+        }
+
         try {
             // API에서 사용자 캘린더 목록 가져오기
+            console.log('📅 [LOAD] Fetching from /api/google-calendars...');
             const response = await fetch('/api/google-calendars');
 
             if (response.ok) {
                 const data = await response.json();
+                console.log('📅 [LOAD] API response:', data);
 
                 if (data.success && data.calendars && data.calendars.length > 0) {
                     displayCalendarList(data.calendars, calendarListContainer);
@@ -1162,6 +1188,7 @@
                     displayNoCalendarsMessage(calendarListContainer);
                 }
             } else {
+                console.log('⚠️ [LOAD] API request failed, showing sample calendars');
                 // 샘플 캘린더 데이터 표시 (API가 없는 경우)
                 displaySampleCalendars(calendarListContainer);
             }
@@ -1174,16 +1201,38 @@
 
     // 캘린더 목록 표시
     function displayCalendarList(calendars, container) {
+        // container가 null인지 확인
+        if (!container) {
+            console.error('❌ [CALENDAR] Container element is null - cannot display calendar list');
+            console.trace('displayCalendarList called with null container');
+            return;
+        }
+
+        console.log('📅 [CALENDAR] Displaying calendar list:', { calendars, container });
         container.innerHTML = '';
+
+        if (!calendars || calendars.length === 0) {
+            container.innerHTML = '<div class="no-calendars">사용 가능한 캘린더가 없습니다.</div>';
+            return;
+        }
 
         calendars.forEach(calendar => {
             const calendarItem = createCalendarItem(calendar);
-            container.appendChild(calendarItem);
+            if (calendarItem) {
+                container.appendChild(calendarItem);
+            }
         });
     }
 
     // 샘플 캘린더 데이터 표시 (API가 없는 경우)
     function displaySampleCalendars(container) {
+        if (!container) {
+            console.error('❌ [SAMPLE] Container is null - cannot display sample calendars');
+            return;
+        }
+
+        console.log('📅 [SAMPLE] Displaying sample calendars');
+
         const sampleCalendars = [
             {
                 id: 'main-calendar',
@@ -1213,6 +1262,13 @@
 
     // 캘린더가 없을 때 메시지 표시
     function displayNoCalendarsMessage(container) {
+        if (!container) {
+            console.error('❌ [NO-CALENDARS] Container is null - cannot display no calendars message');
+            return;
+        }
+
+        console.log('📅 [NO-CALENDARS] Displaying no calendars message');
+
         container.innerHTML =
             '<div class="no-calendars-message">' +
             '<div class="no-calendars-icon">' +
