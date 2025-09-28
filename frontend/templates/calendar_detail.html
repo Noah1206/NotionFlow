@@ -390,14 +390,14 @@
         /* Google Calendar 그리드 스타일 */
         #calendar-grid-container {
             height: 100%;
-            width: auto;
-            /* 자동 너비로 중앙 정렬 가능 */
-            min-width: 1830px;
-            /* 80px + (200px * 7) = 1480px 최소 크기 */
             width: 100%;
             /* 전체 너비 사용 */
+            max-width: 100%;
+            /* 최대 너비 제한 */
             box-sizing: border-box;
             /* 패딩/보더 포함 계산 */
+            overflow-x: auto;
+            /* 필요시 가로 스크롤 */
         }
 
         /* 🎨 CLEAN SIDEBAR DESIGN - Larger Sections */

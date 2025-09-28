@@ -333,12 +333,15 @@ class GoogleCalendarGrid {
         this.loadExistingEvents(); // Load existing events from backend
         this.updateCurrentTimeIndicator();
         
-        // Add resize listener to maintain header visibility
+        // Add comprehensive resize listener for dynamic sizing
         window.addEventListener('resize', () => {
-            setTimeout(() => {
-                this.ensureHeaderVisibility();
-            }, 200);
+            this.handleResize();
         });
+
+        // Initial resize to set proper dimensions
+        setTimeout(() => {
+            this.handleResize();
+        }, 100);
         
         // Update time indicator every 30 minutes
         setInterval(() => {
@@ -3598,6 +3601,84 @@ class GoogleCalendarGrid {
         document.documentElement.style.setProperty('--main-content-width', `${mainContentWidth}px`);
         
         // console.log('📏 Updated dimensions - Sidebar:', sidebarWidth, 'Main content:', mainContentWidth);
+    }
+
+    // Handle window resize events for dynamic grid sizing
+    handleResize() {
+        // Update main content dimensions first
+        this.updateMainContentDimensions();
+
+        // Ensure header visibility
+        this.ensureHeaderVisibility();
+
+        // Recalculate grid layout
+        this.adjustGridLayout();
+
+        // Update any open popups/modals
+        this.repositionOpenPopups();
+
+        console.log('📐 Grid resized to viewport:', window.innerWidth, 'x', window.innerHeight);
+    }
+
+    // Adjust grid layout for current viewport
+    adjustGridLayout() {
+        const grid = this.container.querySelector('.google-calendar-grid');
+        const header = this.container.querySelector('.calendar-header');
+        const body = this.container.querySelector('.calendar-grid-body');
+
+        if (!grid || !header || !body) return;
+
+        // Force grid to use full available width
+        grid.style.width = '100%';
+        grid.style.maxWidth = '100%';
+
+        // Ensure header spans full width
+        header.style.width = '100%';
+        header.style.maxWidth = '100%';
+
+        // Ensure body spans full width
+        body.style.width = '100%';
+        body.style.maxWidth = '100%';
+
+        // Get container width and calculate optimal column widths
+        const containerWidth = this.container.offsetWidth;
+        const timeColumnWidth = 80; // Fixed time column width
+        const availableWidth = containerWidth - timeColumnWidth;
+        const dayColumnWidth = Math.floor(availableWidth / 7);
+
+        // Update CSS custom properties for dynamic sizing
+        document.documentElement.style.setProperty('--time-column-width', `${timeColumnWidth}px`);
+        document.documentElement.style.setProperty('--day-column-width', `${dayColumnWidth}px`);
+        document.documentElement.style.setProperty('--grid-container-width', `${containerWidth}px`);
+
+        // Force re-render of grid template columns
+        const newGridTemplate = `${timeColumnWidth}px repeat(7, ${dayColumnWidth}px)`;
+        header.style.gridTemplateColumns = newGridTemplate;
+        body.style.gridTemplateColumns = newGridTemplate;
+
+        console.log('📏 Adjusted grid layout:', {
+            containerWidth,
+            timeColumnWidth,
+            dayColumnWidth,
+            gridTemplate: newGridTemplate
+        });
+    }
+
+    // Reposition any open popups after resize
+    repositionOpenPopups() {
+        const popups = document.querySelectorAll('.event-creation-popup');
+        popups.forEach(popup => {
+            // Find the associated cell if possible and reposition
+            const dayData = popup.dataset.day;
+            const hourData = popup.dataset.hour;
+
+            if (dayData && hourData) {
+                const cell = document.querySelector(`.time-cell[data-day="${dayData}"][data-hour="${hourData}"]`);
+                if (cell) {
+                    this.repositionPopup(popup, cell);
+                }
+            }
+        });
     }
 
     // 서버에서 받은 이벤트 데이터를 직접 로드하는 메서드
