@@ -388,19 +388,18 @@
 
     async function loadUserCalendars(calendarListContainer) {
         try {
-            // Load Google calendars
-            const googleResponse = await fetch('/api/google-calendars');
-            if (!googleResponse.ok) {
-                throw new Error('Google Calendar 목록을 불러올 수 없습니다');
+            // Load user-created calendars (like Notion pattern)
+            const response = await fetch('/api/calendars');
+            if (!response.ok) {
+                throw new Error('사용자 캘린더 목록을 불러올 수 없습니다');
             }
 
-            const googleData = await googleResponse.json();
-            if (googleData.success && googleData.calendars && googleData.calendars.length > 0) {
+            const data = await response.json();
+            if (data.success && data.calendars && data.calendars.length > 0) {
                 calendarListContainer.innerHTML = '';
 
-                googleData.calendars.forEach(calendar => {
-                    calendar.source = 'google';
-                    const calendarItem = createCalendarItem(calendar);
+                data.calendars.forEach(calendar => {
+                    const calendarItem = createUserCalendarItem(calendar);
                     calendarListContainer.appendChild(calendarItem);
                 });
             } else {
@@ -426,6 +425,23 @@
             '</div>';
     }
 
+    function createUserCalendarItem(calendar) {
+        const item = document.createElement('div');
+        item.className = 'calendar-item';
+        item.setAttribute('data-calendar-id', calendar.id);
+        item.onclick = () => selectCalendar(calendar.id);
+
+        item.innerHTML =
+            '<div class="calendar-radio"></div>' +
+            '<div class="calendar-info">' +
+            '<div class="calendar-name">📅 ' + (calendar.name || '') + '</div>' +
+            '<div class="calendar-description">' + (calendar.description || '') + '</div>' +
+            '</div>' +
+            '<div class="calendar-type ' + (calendar.type || 'personal') + '">' + getUserCalendarTypeText(calendar.type) + '</div>';
+
+        return item;
+    }
+
     function createCalendarItem(calendar) {
         const item = document.createElement('div');
         item.className = 'calendar-item';
@@ -445,6 +461,17 @@
             '<div class="calendar-type ' + (calendar.type || 'personal') + '">' + getCalendarTypeText(calendar.type, calendar.source) + '</div>';
 
         return item;
+    }
+
+    function getUserCalendarTypeText(type) {
+        switch (type) {
+            case 'primary': return '기본';
+            case 'personal': return '개인';
+            case 'work': return '업무';
+            case 'family': return '가족';
+            case 'study': return '학습';
+            default: return '개인';
+        }
     }
 
     function getCalendarTypeText(type, source) {
