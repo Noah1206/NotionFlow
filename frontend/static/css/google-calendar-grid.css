@@ -1,26 +1,24 @@
 /* Google Calendar Style Grid Layout */
 
 .google-calendar-grid {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    width: 100%;
-    min-width: 100%;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
     /* Force grid to use full available space */
-    max-width: 100%;
-    /* Prevent overflow */
     background: white;
     /* 깔끔한 흰색 배경 */
-    /* border: 외곽선 제거 */
     overflow: visible;
     position: relative;
-    box-sizing: border-box;
+    box-sizing: border-box !important;
 }
 
 /* Header with days */
 .calendar-header {
-    display: grid;
-    grid-template-columns: var(--time-column-width, 80px) repeat(7, 1fr);
+    display: grid !important;
+    grid-template-columns: 80px repeat(7, 1fr) !important;
     /* 시간 컬럼과 각 요일은 동적으로 계산된 크기 사용 */
     border-bottom: 1px solid #e0e0e0;
     /* 깔끔한 회색 선 */
@@ -29,11 +27,11 @@
     position: sticky;
     top: 0;
     z-index: 1000;
-    width: 100%;
-    max-width: 100%;
+    width: 100% !important;
+    max-width: 100% !important;
     height: 60px;
     min-height: 60px;
-    box-sizing: border-box;
+    box-sizing: border-box !important;
 }
 
 .calendar-header .time-header {
@@ -98,17 +96,17 @@
 
 /* Main grid body */
 .calendar-grid-body {
-    flex: 1;
-    display: grid;
-    grid-template-columns: var(--time-column-width, 80px) repeat(7, 1fr);
+    flex: 1 !important;
+    display: grid !important;
+    grid-template-columns: 80px repeat(7, 1fr) !important;
     /* 시간 컬럼과 각 요일은 동적으로 계산된 크기 사용 */
     overflow-y: auto;
     position: relative;
-    width: 100%;
-    max-width: 100%;
+    width: 100% !important;
+    max-width: 100% !important;
     background: white;
     /* 흰색 배경 */
-    box-sizing: border-box;
+    box-sizing: border-box !important;
 }
 
 /* Time column */

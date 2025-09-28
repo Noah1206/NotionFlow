@@ -3628,28 +3628,36 @@ class GoogleCalendarGrid {
 
         if (!grid || !header || !body) return;
 
+        // Get the actual container and parent container widths
+        const parentContainer = this.container.parentElement;
+        const viewportWidth = window.innerWidth;
+        const sidebarWidth = this.getSidebarWidth();
+        const availableContainerWidth = viewportWidth - sidebarWidth;
+
+        // Force container to use full available width
+        this.container.style.width = `${availableContainerWidth}px`;
+        this.container.style.maxWidth = `${availableContainerWidth}px`;
+        this.container.style.minWidth = `${availableContainerWidth}px`;
+
         // Force grid to use full available width
-        grid.style.width = '100%';
-        grid.style.maxWidth = '100%';
+        grid.style.width = `${availableContainerWidth}px`;
+        grid.style.maxWidth = `${availableContainerWidth}px`;
+        grid.style.minWidth = `${availableContainerWidth}px`;
 
         // Ensure header spans full width
-        header.style.width = '100%';
-        header.style.maxWidth = '100%';
+        header.style.width = `${availableContainerWidth}px`;
+        header.style.maxWidth = `${availableContainerWidth}px`;
+        header.style.minWidth = `${availableContainerWidth}px`;
 
         // Ensure body spans full width
-        body.style.width = '100%';
-        body.style.maxWidth = '100%';
+        body.style.width = `${availableContainerWidth}px`;
+        body.style.maxWidth = `${availableContainerWidth}px`;
+        body.style.minWidth = `${availableContainerWidth}px`;
 
-        // Get container width and calculate optimal column widths
-        const containerWidth = this.container.offsetWidth;
+        // Calculate column widths
         const timeColumnWidth = 80; // Fixed time column width
-        const availableWidth = containerWidth - timeColumnWidth;
-        const dayColumnWidth = Math.floor(availableWidth / 7);
-
-        // Update CSS custom properties for dynamic sizing
-        document.documentElement.style.setProperty('--time-column-width', `${timeColumnWidth}px`);
-        document.documentElement.style.setProperty('--day-column-width', `${dayColumnWidth}px`);
-        document.documentElement.style.setProperty('--grid-container-width', `${containerWidth}px`);
+        const remainingWidth = availableContainerWidth - timeColumnWidth;
+        const dayColumnWidth = Math.floor(remainingWidth / 7);
 
         // Force re-render of grid template columns
         const newGridTemplate = `${timeColumnWidth}px repeat(7, ${dayColumnWidth}px)`;
@@ -3657,11 +3665,27 @@ class GoogleCalendarGrid {
         body.style.gridTemplateColumns = newGridTemplate;
 
         console.log('📏 Adjusted grid layout:', {
-            containerWidth,
+            viewportWidth,
+            sidebarWidth,
+            availableContainerWidth,
             timeColumnWidth,
             dayColumnWidth,
             gridTemplate: newGridTemplate
         });
+    }
+
+    // Get sidebar width
+    getSidebarWidth() {
+        const sidebar = document.querySelector('.sidebar');
+        if (!sidebar) return 0;
+
+        const sidebarStyles = window.getComputedStyle(sidebar);
+        const isHidden = sidebarStyles.display === 'none' ||
+                        sidebarStyles.visibility === 'hidden' ||
+                        sidebar.classList.contains('collapsed') ||
+                        sidebar.classList.contains('hidden');
+
+        return isHidden ? 0 : sidebar.offsetWidth;
     }
 
     // Reposition any open popups after resize

@@ -387,17 +387,31 @@
             /* 오른쪽 패딩도 최소화 */
         }
 
+        /* Center Calendar Area 강제 전체 크기 */
+        .center-calendar-area {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100% !important;
+            min-width: 100% !important;
+            box-sizing: border-box !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
         /* Google Calendar 그리드 스타일 */
         #calendar-grid-container {
-            height: 100%;
-            width: 100%;
+            height: 100% !important;
+            width: 100% !important;
             /* 전체 너비 사용 */
-            max-width: 100%;
+            max-width: 100% !important;
+            min-width: 100% !important;
             /* 최대 너비 제한 */
-            box-sizing: border-box;
+            box-sizing: border-box !important;
             /* 패딩/보더 포함 계산 */
             overflow-x: auto;
             /* 필요시 가로 스크롤 */
+            display: block !important;
+            flex: 1 !important;
         }
 
         /* 🎨 CLEAN SIDEBAR DESIGN - Larger Sections */
