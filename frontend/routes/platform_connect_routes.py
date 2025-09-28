@@ -7,8 +7,12 @@ from datetime import datetime
 from utils.auth_manager import AuthManager
 from utils.config import config
 
-def require_auth():
-    return AuthManager.require_auth()
+def check_auth():
+    """Check if user is authenticated and return user_id or error response"""
+    user_id = AuthManager.get_current_user_id()
+    if not user_id:
+        return None, jsonify({'error': 'Authentication required', 'code': 'AUTH_REQUIRED'}), 401
+    return user_id, None, None
 
 def get_current_user_id():
     return AuthManager.get_current_user_id()
@@ -18,11 +22,9 @@ platform_connect_bp = Blueprint('platform_connect', __name__)
 @platform_connect_bp.route('/calendar/connect-platform', methods=['POST'])
 def connect_platform():
     """플랫폼과 사용자 캘린더 연동"""
-    auth_error = require_auth()
-    if auth_error:
-        return auth_error
-    
-    user_id = get_current_user_id()
+    user_id, error_response, status_code = check_auth()
+    if error_response:
+        return error_response, status_code
     
     try:
         data = request.get_json()
@@ -121,11 +123,9 @@ def connect_platform():
 @platform_connect_bp.route('/calendar/disconnect-platform', methods=['POST'])
 def disconnect_platform():
     """플랫폼 캘린더 연동 해제"""
-    auth_error = require_auth()
-    if auth_error:
-        return auth_error
-    
-    user_id = get_current_user_id()
+    user_id, error_response, status_code = check_auth()
+    if error_response:
+        return error_response, status_code
     
     try:
         data = request.get_json()
@@ -199,26 +199,49 @@ def await_import_existing_events(platform: str, user_id: str, calendar_id: str) 
 @platform_connect_bp.route('/api/platform/google/connect', methods=['POST'])
 def connect_google_calendar():
     """Google Calendar 연결 상태 저장 (클라이언트 localStorage와 동기화)"""
-    auth_error = require_auth()
-    if auth_error:
-        return auth_error
-
-    user_id = get_current_user_id()
-
     try:
+        print(f"🔍 Google Calendar connect request received")
+
+        user_id, error_response, status_code = check_auth()
+        if error_response:
+            print(f"❌ Auth error: {error_response}")
+            return error_response, status_code
+
+        print(f"✅ User authenticated: {user_id}")
+
         data = request.get_json() or {}
         calendar_id = data.get('calendar_id')
+        print(f"📅 Calendar ID received: {calendar_id}")
 
         if not calendar_id:
-            return jsonify({
+            error_response = {
                 'success': False,
                 'error': 'calendar_id is required'
-            }), 400
+            }
+            print(f"❌ Missing calendar_id: {error_response}")
+            return jsonify(error_response), 400
 
-        supabase = config.get_client_for_user(user_id)
+        try:
+            from utils.config import config
+            supabase = config.get_client_for_user(user_id)
+            print(f"✅ Supabase client obtained")
+        except Exception as e:
+            print(f"❌ Failed to get Supabase client: {e}")
+            return jsonify({
+                'success': False,
+                'error': f'Database connection error: {str(e)}'
+            }), 500
 
-        # Google Calendar 연결 정보 저장 또는 업데이트
-        existing = supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', 'google').execute()
+        try:
+            # Google Calendar 연결 정보 저장 또는 업데이트
+            existing = supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', 'google').execute()
+            print(f"✅ Checked existing config: {len(existing.data) if existing.data else 0} records found")
+        except Exception as e:
+            print(f"❌ Database query error: {e}")
+            return jsonify({
+                'success': False,
+                'error': f'Database query error: {str(e)}'
+            }), 500
 
         connection_data = {
             'user_id': user_id,
@@ -235,15 +258,24 @@ def connect_google_calendar():
             }
         }
 
-        if existing.data:
-            # Update existing record
-            result = supabase.table('calendar_sync_configs').update(connection_data).eq('user_id', user_id).eq('platform', 'google').execute()
-        else:
-            # Insert new record
-            connection_data['created_at'] = datetime.now().isoformat()
-            result = supabase.table('calendar_sync_configs').insert(connection_data).execute()
+        try:
+            if existing.data:
+                # Update existing record
+                result = supabase.table('calendar_sync_configs').update(connection_data).eq('user_id', user_id).eq('platform', 'google').execute()
+                print(f"✅ Updated existing config")
+            else:
+                # Insert new record
+                connection_data['created_at'] = datetime.now().isoformat()
+                result = supabase.table('calendar_sync_configs').insert(connection_data).execute()
+                print(f"✅ Inserted new config")
 
-        print(f"✅ Google Calendar {calendar_id} connected for user {user_id}")
+            print(f"✅ Google Calendar {calendar_id} connected for user {user_id}")
+        except Exception as e:
+            print(f"❌ Database operation error: {e}")
+            return jsonify({
+                'success': False,
+                'error': f'Database operation error: {str(e)}'
+            }), 500
 
         return jsonify({
             'success': True,
@@ -252,20 +284,20 @@ def connect_google_calendar():
         })
 
     except Exception as e:
-        print(f"❌ Error connecting Google Calendar: {e}")
+        print(f"❌ Unexpected error connecting Google Calendar: {e}")
+        import traceback
+        print(f"❌ Full traceback: {traceback.format_exc()}")
         return jsonify({
             'success': False,
-            'error': str(e)
+            'error': f'Internal server error: {str(e)}'
         }), 500
 
 @platform_connect_bp.route('/api/platform/google/disconnect', methods=['POST'])
 def disconnect_google_calendar():
     """Google Calendar 연결 해제"""
-    auth_error = require_auth()
-    if auth_error:
-        return auth_error
-
-    user_id = get_current_user_id()
+    user_id, error_response, status_code = check_auth()
+    if error_response:
+        return error_response, status_code
 
     try:
         supabase = config.get_client_for_user(user_id)
@@ -296,13 +328,11 @@ def disconnect_google_calendar():
         }), 500
 
 @platform_connect_bp.route('/calendar/platform-status', methods=['GET'])
-def get_platform_status():
+def get_calendar_platform_status():
     """플랫폼 연동 상태 조회"""
-    auth_error = require_auth()
-    if auth_error:
-        return auth_error
-
-    user_id = get_current_user_id()
+    user_id, error_response, status_code = check_auth()
+    if error_response:
+        return error_response, status_code
 
     try:
         supabase = config.get_client_for_user(user_id)
