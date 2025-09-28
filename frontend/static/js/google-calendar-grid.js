@@ -3635,32 +3635,32 @@ class GoogleCalendarGrid {
         const availableContainerWidth = viewportWidth - sidebarWidth;
 
         // Force container to use full available width
-        this.container.style.width = `${availableContainerWidth}px`;
-        this.container.style.maxWidth = `${availableContainerWidth}px`;
-        this.container.style.minWidth = `${availableContainerWidth}px`;
+        this.container.style.width = '100%';
+        this.container.style.maxWidth = '100%';
+        this.container.style.minWidth = '100%';
 
         // Force grid to use full available width
-        grid.style.width = `${availableContainerWidth}px`;
-        grid.style.maxWidth = `${availableContainerWidth}px`;
-        grid.style.minWidth = `${availableContainerWidth}px`;
+        grid.style.width = '100%';
+        grid.style.maxWidth = '100%';
+        grid.style.minWidth = '100%';
 
         // Ensure header spans full width
-        header.style.width = `${availableContainerWidth}px`;
-        header.style.maxWidth = `${availableContainerWidth}px`;
-        header.style.minWidth = `${availableContainerWidth}px`;
+        header.style.width = '100%';
+        header.style.maxWidth = '100%';
+        header.style.minWidth = '100%';
 
         // Ensure body spans full width
-        body.style.width = `${availableContainerWidth}px`;
-        body.style.maxWidth = `${availableContainerWidth}px`;
-        body.style.minWidth = `${availableContainerWidth}px`;
+        body.style.width = '100%';
+        body.style.maxWidth = '100%';
+        body.style.minWidth = '100%';
 
         // Calculate column widths
         const timeColumnWidth = 80; // Fixed time column width
         const remainingWidth = availableContainerWidth - timeColumnWidth;
         const dayColumnWidth = Math.floor(remainingWidth / 7);
 
-        // Force re-render of grid template columns
-        const newGridTemplate = `${timeColumnWidth}px repeat(7, ${dayColumnWidth}px)`;
+        // Use CSS 1fr for equal distribution instead of fixed pixels
+        const newGridTemplate = `80px repeat(7, 1fr)`;
         header.style.gridTemplateColumns = newGridTemplate;
         body.style.gridTemplateColumns = newGridTemplate;
 

@@ -2158,14 +2158,43 @@
             // 원클릭 버튼을 연결해제 버튼으로 변경
             const oneClickBtn = card.querySelector('.one-click-btn-small');
             if (oneClickBtn) {
-                oneClickBtn.className = 'one-click-disconnect-btn';
-                oneClickBtn.setAttribute('onclick', `oneClickDisconnect('${platform}')`);
-                oneClickBtn.innerHTML = `
-                    <span class="btn-text">연결해제</span>
-                    <div class="btn-loader" style="display: none;">
-                        <div class="loader-spinner"></div>
-                    </div>
-                `;
+                // Google Calendar의 경우 캘린더 변경 + 연결해제 버튼 둘 다 표시
+                if (platform === 'google') {
+                    // 캘린더 변경 버튼으로 변경
+                    oneClickBtn.className = 'one-click-change-btn';
+                    oneClickBtn.setAttribute('onclick', `changeGoogleCalendar('${platform}')`);
+                    oneClickBtn.innerHTML = `
+                        <span class="btn-text">캘린더 변경</span>
+                        <div class="btn-loader" style="display: none;">
+                            <div class="loader-spinner"></div>
+                        </div>
+                    `;
+
+                    // 연결해제 버튼을 별도로 추가
+                    const actionContainer = oneClickBtn.parentElement;
+                    if (actionContainer && !actionContainer.querySelector('.google-disconnect-btn')) {
+                        const disconnectBtn = document.createElement('button');
+                        disconnectBtn.className = 'google-disconnect-btn';
+                        disconnectBtn.setAttribute('onclick', `oneClickDisconnect('${platform}')`);
+                        disconnectBtn.innerHTML = `
+                            <span class="btn-text">연결해제</span>
+                            <div class="btn-loader" style="display: none;">
+                                <div class="loader-spinner"></div>
+                            </div>
+                        `;
+                        actionContainer.appendChild(disconnectBtn);
+                    }
+                } else {
+                    // 다른 플랫폼은 기존 로직 유지
+                    oneClickBtn.className = 'one-click-disconnect-btn';
+                    oneClickBtn.setAttribute('onclick', `oneClickDisconnect('${platform}')`);
+                    oneClickBtn.innerHTML = `
+                        <span class="btn-text">연결해제</span>
+                        <div class="btn-loader" style="display: none;">
+                            <div class="loader-spinner"></div>
+                        </div>
+                    `;
+                }
             }
 
             // 캘린더 변경 버튼 표시 (이미 연결되어 있어도 변경 가능)
@@ -2192,15 +2221,39 @@
 
             // 원클릭 버튼을 원래 상태로 되돌리기
             const oneClickDisconnectBtn = card.querySelector('.one-click-disconnect-btn');
-            if (oneClickDisconnectBtn) {
-                oneClickDisconnectBtn.className = 'one-click-btn-small';
-                oneClickDisconnectBtn.setAttribute('onclick', `oneClickConnect('${platform}')`);
-                oneClickDisconnectBtn.innerHTML = `
-                    <span class="btn-text">원클릭</span>
-                    <div class="btn-loader" style="display: none;">
-                        <div class="loader-spinner"></div>
-                    </div>
-                `;
+            const oneClickChangeBtn = card.querySelector('.one-click-change-btn');
+            const googleDisconnectBtn = card.querySelector('.google-disconnect-btn');
+
+            // Google Calendar의 경우 추가 버튼들 정리
+            if (platform === 'google') {
+                // 캘린더 변경 버튼을 원클릭 연결 버튼으로 변경
+                if (oneClickChangeBtn) {
+                    oneClickChangeBtn.className = 'one-click-btn-small';
+                    oneClickChangeBtn.setAttribute('onclick', `oneClickConnect('${platform}')`);
+                    oneClickChangeBtn.innerHTML = `
+                        <span class="btn-text">원클릭</span>
+                        <div class="btn-loader" style="display: none;">
+                            <div class="loader-spinner"></div>
+                        </div>
+                    `;
+                }
+
+                // Google 전용 연결해제 버튼 제거
+                if (googleDisconnectBtn) {
+                    googleDisconnectBtn.remove();
+                }
+            } else {
+                // 다른 플랫폼은 기존 로직 유지
+                if (oneClickDisconnectBtn) {
+                    oneClickDisconnectBtn.className = 'one-click-btn-small';
+                    oneClickDisconnectBtn.setAttribute('onclick', `oneClickConnect('${platform}')`);
+                    oneClickDisconnectBtn.innerHTML = `
+                        <span class="btn-text">원클릭</span>
+                        <div class="btn-loader" style="display: none;">
+                            <div class="loader-spinner"></div>
+                        </div>
+                    `;
+                }
             }
 
             // 연결되지 않은 상태에서는 캘린더 연동 버튼 숨기기
@@ -3889,6 +3942,67 @@
         cursor: not-allowed;
         transform: none;
     }
+
+    /* Google Calendar 캘린더 변경 버튼 스타일 */
+    .one-click-change-btn {
+        background: linear-gradient(45deg, #4285f4 0%, #3367d6 100%);
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(66, 133, 244, 0.3);
+        margin-right: 8px;
+    }
+
+    .one-click-change-btn:hover {
+        background: linear-gradient(45deg, #3367d6 0%, #1a73e8 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(66, 133, 244, 0.4);
+    }
+
+    .one-click-change-btn:active {
+        transform: translateY(0);
+    }
+
+    .one-click-change-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Google Calendar 전용 연결해제 버튼 스타일 */
+    .google-disconnect-btn {
+        background: linear-gradient(45deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+    }
+
+    .google-disconnect-btn:hover {
+        background: linear-gradient(45deg, #c82333 0%, #a71e2a 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
+    }
+
+    .google-disconnect-btn:active {
+        transform: translateY(0);
+    }
+
+    .google-disconnect-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
 `;
     document.head.appendChild(style);
 
@@ -4160,6 +4274,36 @@
                 disconnectBtn.innerHTML = '×';
                 disconnectBtn.style.animation = '';
             }
+        }
+    }
+
+    // Google Calendar 캘린더 변경 함수
+    async function changeGoogleCalendar(platform) {
+        console.log('🔄 [CHANGE-CALENDAR] Google Calendar 변경 시작');
+
+        try {
+            // Google Calendar 목록을 다시 가져와서 선택 모달을 표시
+            console.log('📅 [CHANGE-CALENDAR] Google Calendar 목록 가져오는 중...');
+
+            const response = await fetch('/api/google-calendars');
+            if (!response.ok) {
+                throw new Error(`Failed to fetch Google calendars: ${response.status}`);
+            }
+
+            const googleCalendars = await response.json();
+            console.log('📅 [CHANGE-CALENDAR] Google Calendar 목록:', googleCalendars);
+
+            if (!googleCalendars || googleCalendars.length === 0) {
+                showNotification('Google Calendar에서 캘린더를 찾을 수 없습니다.', 'error');
+                return;
+            }
+
+            // Google Calendar 선택 모달 표시
+            await showGoogleCalendarSelectionModal(googleCalendars);
+
+        } catch (error) {
+            console.error('캘린더 변경 중 오류:', error);
+            showNotification(`캘린더 변경 중 오류가 발생했습니다: ${error.message}`, 'error');
         }
     }
 

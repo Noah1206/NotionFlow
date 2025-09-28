@@ -19,7 +19,7 @@
 .calendar-header {
     display: grid !important;
     grid-template-columns: 80px repeat(7, 1fr) !important;
-    /* 시간 컬럼과 각 요일은 동적으로 계산된 크기 사용 */
+    /* 시간 컬럼 80px 고정, 나머지 7개 컬럼은 균등하게 나누기 */
     border-bottom: 1px solid #e0e0e0;
     /* 깔끔한 회색 선 */
     background: white;
@@ -99,7 +99,7 @@
     flex: 1 !important;
     display: grid !important;
     grid-template-columns: 80px repeat(7, 1fr) !important;
-    /* 시간 컬럼과 각 요일은 동적으로 계산된 크기 사용 */
+    /* 시간 컬럼 80px 고정, 나머지 7개 컬럼은 균등하게 나누기 */
     overflow-y: auto;
     position: relative;
     width: 100% !important;
