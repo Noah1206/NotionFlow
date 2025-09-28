@@ -2856,7 +2856,7 @@
             <!-- Center Calendar Area - Google Calendar Style Grid -->
             <div class="center-calendar-area">
                 <!-- Google Calendar Style Grid Container -->
-                <div id="google-calendar-container" style="height: 100%; width: 100%;">
+                <div id="calendar-grid-container" class="calendar-grid-container" style="height: 100%; width: 100%;">
                     <!-- Google Calendar Grid will be rendered here -->
                 </div>
 
@@ -3017,10 +3017,8 @@
             </div>
 
             <!-- Main Calendar Area -->
-            <div class="calendar-main-content">
-                <div id="calendar-grid-container" class="calendar-grid-container">
-                    <!-- Google Calendar Grid will be rendered here by JS -->
-                </div>
+            <div class="calendar-main-content" style="display: none;">
+                <!-- This section is hidden as we use the center calendar area instead -->
 
                 <!-- Agenda View Container -->
                 <div id="agenda-view-container" class="agenda-view-container">

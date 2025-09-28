@@ -84,7 +84,7 @@ class CalendarViewController {
         }
         
         // Show Google Calendar container
-        const container = document.getElementById('google-calendar-container');
+        const container = document.getElementById('calendar-grid-container');
         if (container) {
             container.style.display = 'block';
             
