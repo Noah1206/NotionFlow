@@ -41,33 +41,35 @@ def sync_google_calendar():
         
         print(f"🚀 [GOOGLE SYNC ROUTE] Starting sync for user: {user_id}")
         
-        # 동기화 추적 시작
-        activity_id = sync_tracker.start_activity(
+        # 동기화 시작 이벤트 추적
+        sync_tracker.track_sync_event(
             user_id=user_id,
-            activity_type=ActivityType.GOOGLE_CALENDAR_SYNC,
-            source_info={'platform': 'google_calendar', 'sync_type': 'manual'}
+            event_type=EventType.SYNC_STARTED,
+            platform='google',
+            status='pending',
+            metadata={'sync_type': 'manual'}
         )
-        
+
         try:
             # Google Calendar 동기화 서비스 실행
             result = sync_google_calendar_for_user(user_id)
-            
+
             # 동기화 결과 로깅
             print(f"📊 [GOOGLE SYNC ROUTE] Sync result for user {user_id}: {result}")
-            
+
             if result.get('success'):
                 # 성공한 경우
-                sync_tracker.log_event(
-                    activity_id=activity_id,
+                sync_tracker.track_sync_event(
+                    user_id=user_id,
                     event_type=EventType.SYNC_COMPLETED,
-                    details={
+                    platform='google',
+                    status='success',
+                    metadata={
                         'events_found': result.get('events_found', 0),
                         'events_processed': result.get('events_processed', 0),
                         'errors': result.get('errors', [])
                     }
                 )
-                
-                sync_tracker.complete_activity(activity_id, success=True)
                 
                 return jsonify({
                     'success': True,
@@ -80,15 +82,15 @@ def sync_google_calendar():
             else:
                 # 실패한 경우
                 error_msg = result.get('error', 'Google Calendar 동기화 실패')
-                
-                sync_tracker.log_event(
-                    activity_id=activity_id,
+
+                sync_tracker.track_sync_event(
+                    user_id=user_id,
                     event_type=EventType.SYNC_ERROR,
-                    details={'error': error_msg}
+                    platform='google',
+                    status='failed',
+                    metadata={'error': error_msg}
                 )
-                
-                sync_tracker.complete_activity(activity_id, success=False, error=error_msg)
-                
+
                 return jsonify({
                     'success': False,
                     'error': error_msg,
@@ -99,15 +101,15 @@ def sync_google_calendar():
             # 예외 발생한 경우
             error_msg = f"Google Calendar 동기화 중 오류: {str(sync_error)}"
             print(f"❌ [GOOGLE SYNC ROUTE] Sync error for user {user_id}: {error_msg}")
-            
-            sync_tracker.log_event(
-                activity_id=activity_id,
+
+            sync_tracker.track_sync_event(
+                user_id=user_id,
                 event_type=EventType.SYNC_ERROR,
-                details={'error': error_msg, 'exception': str(sync_error)}
+                platform='google',
+                status='failed',
+                metadata={'error': error_msg, 'exception': str(sync_error)}
             )
-            
-            sync_tracker.complete_activity(activity_id, success=False, error=error_msg)
-            
+
             return jsonify({
                 'success': False,
                 'error': error_msg
