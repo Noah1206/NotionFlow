@@ -3738,7 +3738,7 @@
     async function loadSyncedCalendars() {
         try {
             // Check if platforms have been manually disconnected to prevent auto-reconnection
-            const googleManuallyDisconnected = localStorage.getItem('google_manually_disconnected') === 'true';
+            let googleManuallyDisconnected = localStorage.getItem('google_manually_disconnected') === 'true';
             let notionManuallyDisconnected = localStorage.getItem('notion_manually_disconnected') === 'true';
 
             // Also check server-side disconnect state for Notion

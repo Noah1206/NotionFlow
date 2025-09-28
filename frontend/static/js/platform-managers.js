@@ -365,30 +365,26 @@ class GoogleManager extends PlatformManager {
                 localStorage.removeItem('google_last_connected');
                 console.log('Google OAuth success - cleared disconnection flags');
                 
-                // Check if user manually disconnected Google Calendar
-                const manuallyDisconnected = localStorage.getItem('google_manually_disconnected');
-                if (manuallyDisconnected === 'true') {
-                    console.log('Google Calendar was manually disconnected - skipping auto-connection');
-                    this.showNotification('Google OAuth 연결 완료 (캘린더 연동 해제 상태 유지)', 'info');
-                } else {
-                    // Show calendar selection modal for fresh connections
-                    this.showNotification('Google OAuth 연결 완료 - 캘린더 선택 중...', 'success');
+                // Show calendar selection modal for fresh connections
+                this.showNotification('Google OAuth 연결 완료 - 캘린더 선택 중...', 'success');
 
-                    // FORCE CLEAR ALL BLUR OVERLAYS before showing calendar selection
-                    this.clearAllBlurOverlays();
-
-                    try {
-                        await this.showCalendarSelection();
-                    } catch (calendarError) {
-                        console.error('Calendar selection failed:', calendarError);
-                        // OAuth는 성공했으므로 logged_in 상태 유지
-                        this.updateStatus('logged_in');
-                        // 에러는 showCalendarSelection에서 이미 표시됨
-                    }
-                }
-
-                // Mark OAuth as connected in backend (similar to Notion)
+                // Mark OAuth as connected in backend first (like Notion)
                 await this.markOAuthConnected();
+
+                // FORCE CLEAR ALL BLUR OVERLAYS before showing calendar selection
+                this.clearAllBlurOverlays();
+
+                // Wait a bit for the OAuth status to be properly set
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                try {
+                    await this.showCalendarSelection();
+                } catch (calendarError) {
+                    console.error('Calendar selection failed:', calendarError);
+                    // OAuth는 성공했으므로 logged_in 상태 유지
+                    this.updateStatus('logged_in');
+                    // 에러는 showCalendarSelection에서 이미 표시됨
+                }
             } else {
                 throw new Error(result.error || 'OAuth 실패');
             }
@@ -644,20 +640,26 @@ class GoogleManager extends PlatformManager {
 
     async showCalendarSelection() {
         try {
-            console.log('📅 [GOOGLE] Fetching calendar list...');
+            console.log('📅 [GOOGLE] Starting calendar selection...');
+            console.log('📅 [GOOGLE] Checking if showCalendarSelectionModal function exists...');
+            console.log('📅 [GOOGLE] typeof showCalendarSelectionModal:', typeof showCalendarSelectionModal);
+            console.log('📅 [GOOGLE] typeof window.showCalendarSelectionModal:', typeof window.showCalendarSelectionModal);
 
             // Directly use dashboard modal (like Notion does)
             console.log('📅 [GOOGLE] Using dashboard calendar selection modal');
 
             if (typeof showCalendarSelectionModal === 'function') {
-                showCalendarSelectionModal('google');
+                console.log('📅 [GOOGLE] Calling showCalendarSelectionModal("google")...');
+                await showCalendarSelectionModal('google');
                 console.log('✅ [GOOGLE] Dashboard modal called successfully');
                 return; // Exit early, modal handles the rest
             } else if (typeof window.showCalendarSelectionModal === 'function') {
-                window.showCalendarSelectionModal('google');
+                console.log('📅 [GOOGLE] Calling window.showCalendarSelectionModal("google")...');
+                await window.showCalendarSelectionModal('google');
                 console.log('✅ [GOOGLE] Window dashboard modal called successfully');
                 return; // Exit early, modal handles the rest
             } else {
+                console.error('❌ [GOOGLE] showCalendarSelectionModal function not found!');
                 throw new Error('Dashboard calendar selection modal not available');
             }
 

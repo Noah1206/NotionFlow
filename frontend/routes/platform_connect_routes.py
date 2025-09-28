@@ -201,6 +201,9 @@ def connect_google_calendar():
     """Google Calendar 연결 상태 저장 (클라이언트 localStorage와 동기화)"""
     try:
         print(f"🔍 Google Calendar connect request received")
+        print(f"🔍 Request headers: {dict(request.headers)}")
+        print(f"🔍 Request content type: {request.content_type}")
+        print(f"🔍 Request data: {request.data}")
 
         user_id, error_response, status_code = check_auth()
         if error_response:
@@ -209,9 +212,20 @@ def connect_google_calendar():
 
         print(f"✅ User authenticated: {user_id}")
 
-        data = request.get_json() or {}
+        # Handle JSON parsing more carefully
+        try:
+            if request.content_type and 'application/json' in request.content_type:
+                data = request.get_json(force=True) or {}
+            else:
+                # Try to parse as JSON anyway
+                data = request.get_json(silent=True) or {}
+        except Exception as e:
+            print(f"❌ JSON parsing error: {e}")
+            data = {}
+
         calendar_id = data.get('calendar_id')
         print(f"📅 Calendar ID received: {calendar_id}")
+        print(f"📅 Request data parsed: {data}")
 
         if not calendar_id:
             error_response = {
