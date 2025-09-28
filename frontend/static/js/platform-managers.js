@@ -1302,9 +1302,13 @@ class GoogleManager extends PlatformManager {
 
     async markOAuthConnected() {
         try {
+            // Get the Google calendar email from localStorage (stored during OAuth)
+            const googleCalendarId = localStorage.getItem('google_oauth_email') || 'unknown@gmail.com';
+
             await fetch(`/api/platform/google/connect`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ calendar_id: googleCalendarId })
             });
             console.log('✅ [GOOGLE] OAuth marked as connected in backend');
         } catch (error) {
