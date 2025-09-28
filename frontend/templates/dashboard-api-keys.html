@@ -1455,7 +1455,11 @@
 
     // Google Calendar 연결 확인
     async function confirmGoogleCalendarConnection() {
+        console.log('🔍 [GOOGLE-CONNECT] DEBUG selectedCalendarId:', selectedCalendarId);
+        console.log('🔍 [GOOGLE-CONNECT] DEBUG window.selectedGoogleCalendarId:', window.selectedGoogleCalendarId);
+
         if (!selectedCalendarId || !window.selectedGoogleCalendarId) {
+            console.log('❌ [GOOGLE-CONNECT] Missing IDs - selectedCalendarId:', selectedCalendarId, 'googleCalendarId:', window.selectedGoogleCalendarId);
             showNotification('NotionFlow 캘린더를 선택해주세요.', 'error');
             return;
         }
