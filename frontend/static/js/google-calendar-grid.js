@@ -3672,8 +3672,7 @@ class GoogleCalendarGrid {
             sidebarWidth,
             availableContainerWidth,
             timeColumnWidth,
-            dayColumnWidth,
-            gridTemplate: newGridTemplate
+            dayColumnWidth
         });
     }
 

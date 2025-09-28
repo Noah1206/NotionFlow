@@ -410,8 +410,10 @@
             /* 최대 너비 제한 */
             box-sizing: border-box !important;
             /* 패딩/보더 포함 계산 */
-            overflow: visible !important;
-            /* 모든 컬럼이 보이도록 */
+            overflow-x: auto !important;
+            /* 가로 스크롤 가능 */
+            overflow-y: visible !important;
+            /* 세로는 보이도록 */
             display: block !important;
             flex: 1 !important;
         }

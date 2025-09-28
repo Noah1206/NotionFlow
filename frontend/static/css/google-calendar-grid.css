@@ -10,7 +10,8 @@
     /* Force grid to use full available space */
     background: white;
     /* 깔끔한 흰색 배경 */
-    overflow: visible;
+    overflow-x: auto !important;
+    overflow-y: visible;
     position: relative;
     box-sizing: border-box !important;
 }
@@ -18,8 +19,8 @@
 /* Header with days */
 .calendar-header {
     display: grid !important;
-    grid-template-columns: 50px repeat(7, 1fr) !important;
-    /* 시간 컬럼 50px 고정, 나머지 7개 컬럼은 균등하게 나누기 */
+    grid-template-columns: 40px repeat(7, 1fr) !important;
+    /* 시간 컬럼 40px 고정, 나머지 7개 컬럼은 균등하게 나누기 */
     border-bottom: 1px solid #e0e0e0;
     /* 깔끔한 회색 선 */
     background: white;
@@ -104,8 +105,8 @@
 .calendar-grid-body {
     flex: 1 !important;
     display: grid !important;
-    grid-template-columns: 50px repeat(7, 1fr) !important;
-    /* 시간 컬럼 50px 고정, 나머지 7개 컬럼은 균등하게 나누기 */
+    grid-template-columns: 40px repeat(7, 1fr) !important;
+    /* 시간 컬럼 40px 고정, 나머지 7개 컬럼은 균등하게 나누기 */
     overflow-y: auto;
     overflow-x: visible;
     position: relative;
@@ -148,13 +149,13 @@
 }
 
 .time-slot .time-label {
-    font-size: 12px;
+    font-size: 10px;
     color: #666666;
     font-weight: 500;
     line-height: 1;
     background: white;
     /* 흰색 배경 */
-    padding: 0 4px;
+    padding: 0 2px;
     transform: translateY(-40%);
     /* 시간 라벨을 약간 위로 조정 */
 }
