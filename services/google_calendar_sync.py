@@ -98,21 +98,25 @@ class GoogleCalendarSyncService:
     def get_selected_calendars(self, user_id: str) -> List[str]:
         """사용자가 선택한 캘린더 ID 목록을 조회"""
         try:
-            # selected_calendars 테이블에서 선택된 캘린더 조회
-            selected_result = self.supabase.table('selected_calendars').select('''
-                user_calendars (
-                    google_calendar_id
-                )
-            ''').eq('user_id', user_id).eq('is_selected', True).execute()
+            # calendar_sync_configs 테이블에서 Google 연동 정보 조회
+            config_result = self.supabase.table('calendar_sync_configs').select('credentials').eq('user_id', user_id).eq('platform', 'google').execute()
 
-            selected_calendar_ids = []
-            for item in selected_result.data:
-                calendar_data = item.get('user_calendars')
-                if calendar_data and calendar_data.get('google_calendar_id'):
-                    selected_calendar_ids.append(calendar_data['google_calendar_id'])
+            if not config_result.data:
+                print(f"⚠️ [GOOGLE SYNC] No Google Calendar config found for user {user_id}")
+                return []
 
-            print(f"✅ [GOOGLE SYNC] Found {len(selected_calendar_ids)} selected calendars for user {user_id}")
-            return selected_calendar_ids
+            # credentials JSON에서 calendar_id 가져오기 (이메일 주소)
+            credentials = config_result.data[0].get('credentials', {})
+            calendar_id = credentials.get('calendar_id')
+
+            if calendar_id:
+                # 현재는 하나의 캘린더만 저장하므로 리스트로 반환
+                selected_calendar_ids = [calendar_id]
+                print(f"✅ [GOOGLE SYNC] Found calendar for user {user_id}: {calendar_id}")
+                return selected_calendar_ids
+            else:
+                print(f"⚠️ [GOOGLE SYNC] No calendar_id in credentials for user {user_id}")
+                return []
 
         except Exception as e:
             print(f"❌ [GOOGLE SYNC] Error getting selected calendars for user {user_id}: {e}")
@@ -252,40 +256,40 @@ class GoogleCalendarSyncService:
             }
     
     def _save_event_to_database(self, event: Dict, user_id: str, calendar_id: str, calendar_name: str):
-        """Google Calendar 이벤트를 SupaBase에 저장 (Notion과 동일한 구조)"""
+        """Google Calendar 이벤트를 SupaBase에 저장"""
         try:
             # 이벤트 데이터 파싱
             event_data = self._parse_google_event(event, calendar_id, calendar_name)
             if not event_data:
                 return
-            
+
             # 기존 이벤트 확인 (중복 방지)
-            existing = self.supabase.table('events').select('*').eq('user_id', user_id).eq('google_event_id', event.get('id')).execute()
-            
+            existing = self.supabase.table('calendar_events').select('*').eq('user_id', user_id).eq('external_id', event.get('id')).execute()
+
             if existing.data:
                 # 기존 이벤트 업데이트
                 update_data = {
                     **event_data,
                     'updated_at': datetime.now(timezone.utc).isoformat()
                 }
-                
-                result = self.supabase.table('events').update(update_data).eq('user_id', user_id).eq('google_event_id', event.get('id')).execute()
+
+                result = self.supabase.table('calendar_events').update(update_data).eq('user_id', user_id).eq('external_id', event.get('id')).execute()
                 print(f"📝 [GOOGLE SYNC] Updated event: {event_data['title']}")
-                
+
             else:
                 # 새 이벤트 삽입
                 insert_data = {
                     **event_data,
                     'user_id': user_id,
-                    'source': 'google_calendar',
-                    'google_event_id': event.get('id'),
-                    'google_calendar_id': calendar_id,
-                    'google_calendar_name': calendar_name,
+                    'source_platform': 'google',  # Changed from 'source'
+                    'external_id': event.get('id'),  # Changed from google_event_id
+                    'source_calendar_id': calendar_id,  # Changed from google_calendar_id
+                    'source_calendar_name': calendar_name,  # Changed from google_calendar_name
                     'created_at': datetime.now(timezone.utc).isoformat(),
                     'updated_at': datetime.now(timezone.utc).isoformat()
                 }
-                
-                result = self.supabase.table('events').insert(insert_data).execute()
+
+                result = self.supabase.table('calendar_events').insert(insert_data).execute()
                 print(f"➕ [GOOGLE SYNC] Inserted new event: {event_data['title']}")
         
         except Exception as e:
@@ -298,50 +302,51 @@ class GoogleCalendarSyncService:
             # 필수 필드 확인
             if not event.get('id') or not event.get('summary'):
                 return None
-            
+
             # 시작/종료 시간 파싱
             start_info = event.get('start', {})
             end_info = event.get('end', {})
-            
+
             # All-day 이벤트 확인
             is_all_day = 'date' in start_info
-            
+
             if is_all_day:
                 # All-day 이벤트
                 start_date = start_info.get('date')
                 end_date = end_info.get('date')
-                
+
+                # Convert date string to datetime with time zone
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+
+                # Set times for all-day events (start at 00:00, end at 23:59)
+                start_datetime = datetime.combine(start_dt.date(), datetime.min.time(), tzinfo=timezone.utc)
+                end_datetime = datetime.combine(end_dt.date(), datetime.max.time(), tzinfo=timezone.utc)
+
                 event_data = {
                     'title': event.get('summary', '제목 없음'),
                     'description': event.get('description', ''),
-                    'date': start_date,
-                    'start_time': '00:00',
-                    'end_time': '23:59',
+                    'start_datetime': start_datetime.isoformat(),
+                    'end_datetime': end_datetime.isoformat(),
                     'is_all_day': True
                 }
             else:
                 # 시간이 지정된 이벤트
                 start_datetime_str = start_info.get('dateTime')
                 end_datetime_str = end_info.get('dateTime')
-                
+
                 if not start_datetime_str or not end_datetime_str:
                     return None
-                
-                # ISO 형식 파싱
+
+                # ISO 형식 파싱 (already includes timezone)
                 start_dt = datetime.fromisoformat(start_datetime_str.replace('Z', '+00:00'))
                 end_dt = datetime.fromisoformat(end_datetime_str.replace('Z', '+00:00'))
-                
-                # 로컬 시간으로 변환 (KST)
-                kst_tz = timezone(timedelta(hours=9))
-                start_kst = start_dt.astimezone(kst_tz)
-                end_kst = end_dt.astimezone(kst_tz)
-                
+
                 event_data = {
                     'title': event.get('summary', '제목 없음'),
                     'description': event.get('description', ''),
-                    'date': start_kst.strftime('%Y-%m-%d'),
-                    'start_time': start_kst.strftime('%H:%M'),
-                    'end_time': end_kst.strftime('%H:%M'),
+                    'start_datetime': start_dt.isoformat(),
+                    'end_datetime': end_dt.isoformat(),
                     'is_all_day': False
                 }
             

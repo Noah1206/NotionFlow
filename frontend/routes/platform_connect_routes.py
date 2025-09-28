@@ -77,16 +77,15 @@ def connect_platform():
         
         # 연동 설정 업데이트
         update_data = {
-            'calendar_id': calendar_id,
             'sync_direction': 'bidirectional' if real_time_sync else 'import_only',
             'is_enabled': True,
-            'real_time_sync': real_time_sync,
-            'last_sync_at': datetime.now().isoformat(),
             'updated_at': datetime.now().isoformat(),
-            'sync_settings': {
+            'credentials': {
+                'calendar_id': calendar_id,
                 'import_existing': import_existing,
                 'real_time_sync': real_time_sync,
-                'calendar_name': calendar_info['name']
+                'calendar_name': calendar_info['name'],
+                'connected_at': datetime.now().isoformat()
             }
         }
         
@@ -141,11 +140,12 @@ def disconnect_platform():
         
         # 연동 설정 업데이트 (연동 해제)
         update_data = {
-            'calendar_id': None,
             'is_enabled': False,
-            'real_time_sync': False,
             'updated_at': datetime.now().isoformat(),
-            'sync_settings': None
+            'credentials': {
+                'disconnected': True,
+                'disconnected_at': datetime.now().isoformat()
+            }
         }
         
         result = supabase.table('calendar_sync_configs').update(update_data).eq('user_id', user_id).eq('platform', platform).execute()
@@ -243,18 +243,18 @@ def connect_google_calendar():
                 'error': f'Database query error: {str(e)}'
             }), 500
 
+        # Store OAuth and calendar info in credentials JSON field
         connection_data = {
             'user_id': user_id,
             'platform': 'google',
-            'calendar_id': calendar_id,
             'is_enabled': True,
-            'real_time_sync': True,
             'sync_direction': 'bidirectional',
-            'last_sync_at': datetime.now().isoformat(),
             'updated_at': datetime.now().isoformat(),
-            'sync_settings': {
-                'calendar_id': calendar_id,
-                'connected_at': datetime.now().isoformat()
+            'credentials': {
+                'oauth_connected': True,
+                'calendar_id': calendar_id,  # Store email/calendar ID here
+                'connected_at': datetime.now().isoformat(),
+                'real_time_sync': True
             }
         }
 
@@ -304,11 +304,12 @@ def disconnect_google_calendar():
 
         # Google Calendar 연결 정보 삭제 또는 비활성화
         update_data = {
-            'calendar_id': None,
             'is_enabled': False,
-            'real_time_sync': False,
             'updated_at': datetime.now().isoformat(),
-            'sync_settings': None
+            'credentials': {
+                'oauth_connected': False,
+                'disconnected_at': datetime.now().isoformat()
+            }
         }
 
         result = supabase.table('calendar_sync_configs').update(update_data).eq('user_id', user_id).eq('platform', 'google').execute()
@@ -339,20 +340,20 @@ def get_calendar_platform_status():
 
         # 모든 플랫폼 연동 상태 조회
         result = supabase.table('calendar_sync_configs').select('''
-            platform, calendar_id, is_enabled, real_time_sync,
-            last_sync_at, sync_settings
+            platform, is_enabled, credentials, updated_at
         ''').eq('user_id', user_id).execute()
 
         platform_status = {}
         for config in result.data:
             platform = config['platform']
+            credentials = config.get('credentials', {})
             platform_status[platform] = {
-                'connected': bool(config.get('calendar_id')),
-                'calendar_id': config.get('calendar_id'),
+                'connected': credentials.get('oauth_connected', False) or credentials.get('calendar_id') is not None,
+                'calendar_id': credentials.get('calendar_id'),
                 'enabled': config.get('is_enabled', False),
-                'real_time_sync': config.get('real_time_sync', False),
-                'last_sync_at': config.get('last_sync_at'),
-                'calendar_name': config.get('sync_settings', {}).get('calendar_name') if config.get('sync_settings') else None
+                'real_time_sync': credentials.get('real_time_sync', False),
+                'last_sync_at': config.get('updated_at'),
+                'calendar_name': credentials.get('calendar_name')
             }
 
         return jsonify({
