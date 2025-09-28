@@ -37,10 +37,18 @@ def connect_google_to_calendar():
             print(f"❌ [GOOGLE-CONNECT] Missing calendar_id")
             return jsonify({'error': 'Calendar ID is required'}), 400
 
+        # Convert user_id to the format used in database (with hyphens)
+        if len(user_id) == 32 and '-' not in user_id:
+            # Convert from 87875eda6797f839f8c70aa90efb1352 to 87875eda-6797-f839-f8c7-0aa90efb1352
+            formatted_user_id = f"{user_id[:8]}-{user_id[8:12]}-{user_id[12:16]}-{user_id[16:20]}-{user_id[20:]}"
+            print(f"🔗 [GOOGLE-CONNECT] Converted user_id: {user_id} -> {formatted_user_id}")
+        else:
+            formatted_user_id = user_id
+
         # Check if user owns this calendar
         supabase = config.get_client_for_user(user_id)
         print(f"🔗 [GOOGLE-CONNECT] Checking calendar ownership...")
-        calendar_check = supabase.table('calendars').select('*').eq('id', calendar_id).eq('owner_id', user_id).execute()
+        calendar_check = supabase.table('calendars').select('*').eq('id', calendar_id).eq('owner_id', formatted_user_id).execute()
 
         print(f"🔗 [GOOGLE-CONNECT] Calendar check result: {calendar_check.data}")
 
