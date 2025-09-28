@@ -646,97 +646,21 @@ class GoogleManager extends PlatformManager {
         try {
             console.log('📅 [GOOGLE] Fetching calendar list...');
 
-            // Load calendars
-            const response = await fetch('/api/google-calendars');
-            console.log('📅 [GOOGLE] Calendar API response status:', response.status);
+            // Directly use dashboard modal (like Notion does)
+            console.log('📅 [GOOGLE] Using dashboard calendar selection modal');
 
-            if (!response.ok) {
-                console.error('❌ [GOOGLE] Calendar API request failed:', response.status, response.statusText);
-                throw new Error(`캘린더 목록을 불러올 수 없습니다 (${response.status})`);
-            }
-
-            const data = await response.json();
-            console.log('📅 [GOOGLE] Calendar API response data:', data);
-
-            if (!data.success) {
-                console.error('❌ [GOOGLE] Calendar API returned error:', data.error);
-
-                // OAuth 토큰 관련 오류인 경우 재인증 요청
-                if (data.error && data.error.includes('OAuth token')) {
-                    throw new Error('Google Calendar 인증이 만료되었습니다. 다시 연결해주세요.');
-                }
-
-                throw new Error(data.error || '캘린더 목록을 불러오는데 실패했습니다');
-            }
-
-            if (!data.calendars || !data.calendars.length) {
-                console.warn('⚠️ [GOOGLE] No calendars found');
-
-                // 캘린더가 없는 경우 사용자에게 안내
-                this.showNotification(
-                    'Google 계정에 캘린더가 없습니다. Google Calendar에서 캘린더를 생성한 후 다시 연결해주세요.',
-                    'warning'
-                );
-
-                // OAuth는 성공했지만 캘린더가 없으므로 logged_in 상태로 변경
-                this.updateStatus('logged_in');
-                return;
-            }
-
-            console.log(`✅ [GOOGLE] Found ${data.calendars.length} calendars`);
-
-            
-            // Enhanced modal display with fallback strategy
-            console.log('📅 [GOOGLE] Attempting to show calendar selection modal...');
-
-            // Strategy 1: Try existing modal function
-            let modalShown = false;
             if (typeof showCalendarSelectionModal === 'function') {
-                try {
-                    console.log('📅 [GOOGLE] Using existing showCalendarSelectionModal function');
-                    showCalendarSelectionModal('google');
-
-                    // Verify modal is actually visible after a short delay
-                    setTimeout(() => {
-                        const modal = document.getElementById('calendar-selection-modal');
-                        if (!modal || modal.style.display === 'none' || getComputedStyle(modal).display === 'none') {
-                            console.log('📋 [GOOGLE] Using fallback modal (original modal not available)');
-                            this.createFallbackCalendarModal(data.calendars);
-                        } else {
-                            console.log('✅ [GOOGLE] Original modal is visible');
-                            modalShown = true;
-                        }
-                    }, 300);
-
-                } catch (modalError) {
-                    console.error('❌ [GOOGLE] Error with existing modal function:', modalError);
-                    this.createFallbackCalendarModal(data.calendars);
-                }
+                showCalendarSelectionModal('google');
+                console.log('✅ [GOOGLE] Dashboard modal called successfully');
+                return; // Exit early, modal handles the rest
             } else if (typeof window.showCalendarSelectionModal === 'function') {
-                try {
-                    console.log('📅 [GOOGLE] Using window scope modal function');
-                    window.showCalendarSelectionModal('google');
-
-                    // Verify modal visibility
-                    setTimeout(() => {
-                        const modal = document.getElementById('calendar-selection-modal');
-                        if (!modal || modal.style.display === 'none' || getComputedStyle(modal).display === 'none') {
-                            console.log('📋 [GOOGLE] Using fallback modal (window modal not available)');
-                            this.createFallbackCalendarModal(data.calendars);
-                        } else {
-                            console.log('✅ [GOOGLE] Window modal is visible');
-                            modalShown = true;
-                        }
-                    }, 300);
-                } catch (modalError) {
-                    console.error('❌ [GOOGLE] Error with window modal function:', modalError);
-                    this.createFallbackCalendarModal(data.calendars);
-                }
+                window.showCalendarSelectionModal('google');
+                console.log('✅ [GOOGLE] Window dashboard modal called successfully');
+                return; // Exit early, modal handles the rest
             } else {
-                // No modal function found, create fallback immediately
-                console.log('📅 [GOOGLE] No modal function found, creating fallback...');
-                this.createFallbackCalendarModal(data.calendars);
+                throw new Error('Dashboard calendar selection modal not available');
             }
+
             
         } catch (error) {
             console.error('Calendar selection error:', error);
