@@ -1464,17 +1464,25 @@
             return;
         }
 
+        // 모달 닫기 전에 값을 임시 저장
+        const notionFlowCalendarId = selectedCalendarId;
+        const googleCalendarId = window.selectedGoogleCalendarId;
+
         closeCalendarSelectionModal();
 
         // Google Calendar 연결 API 호출 (selectedCalendarId는 NotionFlow 캘린더 ID)
         try {
+            const requestData = {
+                calendar_id: notionFlowCalendarId, // NotionFlow 캘린더 ID
+                google_calendar_id: googleCalendarId // Google 캘린더 ID
+            };
+            console.log('🔍 [GOOGLE-CONNECT] Sending request data:', requestData);
+            console.log('🔍 [GOOGLE-CONNECT] JSON string:', JSON.stringify(requestData));
+
             const response = await fetch('/api/google-calendar/connect-calendar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    calendar_id: selectedCalendarId, // NotionFlow 캘린더 ID
-                    google_calendar_id: window.selectedGoogleCalendarId // Google 캘린더 ID
-                })
+                body: JSON.stringify(requestData)
             });
 
             const result = await response.json();
