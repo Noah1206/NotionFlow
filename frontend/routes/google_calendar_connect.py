@@ -84,7 +84,6 @@ def connect_google_to_calendar():
             'user_id': user_id,
             'platform': 'google',
             'calendar_id': calendar_id,
-            'is_active': True,
             'sync_status': 'active',
             'synced_at': datetime.now().isoformat(),
             'created_at': datetime.now().isoformat(),
@@ -97,7 +96,6 @@ def connect_google_to_calendar():
         if existing_sync.data:
             # Update existing
             supabase.table('calendar_sync').update({
-                'is_active': True,
                 'sync_status': 'active',
                 'synced_at': datetime.now().isoformat(),
                 'updated_at': datetime.now().isoformat()
@@ -186,7 +184,6 @@ def disconnect_google_from_calendar():
         # Deactivate calendar_sync entry
         if calendar_id:
             supabase.table('calendar_sync').update({
-                'is_active': False,
                 'sync_status': 'inactive',
                 'updated_at': datetime.now().isoformat()
             }).eq('user_id', user_id).eq('platform', 'google').eq('calendar_id', calendar_id).execute()
