@@ -2073,15 +2073,40 @@
                         if (event.data.type === 'oauth_success') {
                             cleanup();
 
-                            // Mark platform OAuth completed but calendar not connected yet
-                            markPlatformConnected(event.data.platform);
-
-                            // 올바른 디자인 적용 - 연결 완료 상태로 변경 (one-click-disconnect-btn 디자인 사용)
-                            updatePlatformStatus(event.data.platform, 'connected');
-                            showNotification(`${getKoreanPlatformName(event.data.platform)} 연결이 완료되었습니다!`, 'success');
-                            updateConnectionStats();
-                            updatePlatformStatus();
-                            resolve(event.data);
+                            // Google의 경우 캘린더 선택 팝업을 표시
+                            if (event.data.platform === 'google') {
+                                // Google Calendar 선택 팝업 표시
+                                try {
+                                    const googleManager = new GoogleManager();
+                                    googleManager.showCalendarSelection().then(() => {
+                                        updatePlatformStatus('google', 'connected');
+                                        showNotification('Google Calendar 연결이 완료되었습니다!', 'success');
+                                        updateConnectionStats();
+                                        updatePlatformStatus();
+                                        resolve(event.data);
+                                    }).catch((error) => {
+                                        console.error('Google Calendar 선택 오류:', error);
+                                        showNotification('Google Calendar 선택 중 오류가 발생했습니다.', 'error');
+                                        resolve(event.data);
+                                    });
+                                } catch (error) {
+                                    console.error('GoogleManager 초기화 오류:', error);
+                                    markPlatformConnected(event.data.platform);
+                                    updatePlatformStatus(event.data.platform, 'connected');
+                                    showNotification(`${getKoreanPlatformName(event.data.platform)} 연결이 완료되었습니다!`, 'success');
+                                    updateConnectionStats();
+                                    updatePlatformStatus();
+                                    resolve(event.data);
+                                }
+                            } else {
+                                // 다른 플랫폼의 경우 기존 로직 유지
+                                markPlatformConnected(event.data.platform);
+                                updatePlatformStatus(event.data.platform, 'connected');
+                                showNotification(`${getKoreanPlatformName(event.data.platform)} 연결이 완료되었습니다!`, 'success');
+                                updateConnectionStats();
+                                updatePlatformStatus();
+                                resolve(event.data);
+                            }
                         } else if (event.data.type === 'oauth_error') {
                             cleanup();
                             console.error(`OAuth Error for ${platform}:`, event.data);
