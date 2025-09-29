@@ -2190,17 +2190,10 @@
             // 원클릭 버튼을 연결해제 버튼으로 변경
             const oneClickBtn = card.querySelector('.one-click-btn-small');
             if (oneClickBtn) {
-                // Google Calendar의 경우 캘린더 변경 + 연결해제 버튼 둘 다 표시
+                // Google Calendar의 경우 작은 버튼 숨기고 연결해제 버튼만 추가
                 if (platform === 'google') {
-                    // 캘린더 변경 버튼으로 변경
-                    oneClickBtn.className = 'one-click-change-btn';
-                    oneClickBtn.setAttribute('onclick', `changeGoogleCalendar('${platform}')`);
-                    oneClickBtn.innerHTML = `
-                        <span class="btn-text">캘린더 변경</span>
-                        <div class="btn-loader" style="display: none;">
-                            <div class="loader-spinner"></div>
-                        </div>
-                    `;
+                    // 작은 버튼 숨기기 (큰 캘린더 변경 버튼만 사용)
+                    oneClickBtn.style.display = 'none';
 
                     // 연결해제 버튼을 별도로 추가
                     const actionContainer = oneClickBtn.parentElement;
@@ -2258,16 +2251,10 @@
 
             // Google Calendar의 경우 추가 버튼들 정리
             if (platform === 'google') {
-                // 캘린더 변경 버튼을 원클릭 연결 버튼으로 변경
-                if (oneClickChangeBtn) {
-                    oneClickChangeBtn.className = 'one-click-btn-small';
-                    oneClickChangeBtn.setAttribute('onclick', `oneClickConnect('${platform}')`);
-                    oneClickChangeBtn.innerHTML = `
-                        <span class="btn-text">원클릭</span>
-                        <div class="btn-loader" style="display: none;">
-                            <div class="loader-spinner"></div>
-                        </div>
-                    `;
+                // 숨겨진 원클릭 버튼을 다시 표시
+                const oneClickBtn = card.querySelector('.one-click-btn-small');
+                if (oneClickBtn) {
+                    oneClickBtn.style.display = 'inline-flex';
                 }
 
                 // Google 전용 연결해제 버튼 제거
@@ -3975,36 +3962,6 @@
         transform: none;
     }
 
-    /* Google Calendar 캘린더 변경 버튼 스타일 */
-    .one-click-change-btn {
-        background: linear-gradient(45deg, #4285f4 0%, #3367d6 100%);
-        color: white;
-        border: none;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 4px rgba(66, 133, 244, 0.3);
-        margin-right: 8px;
-    }
-
-    .one-click-change-btn:hover {
-        background: linear-gradient(45deg, #3367d6 0%, #1a73e8 100%);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(66, 133, 244, 0.4);
-    }
-
-    .one-click-change-btn:active {
-        transform: translateY(0);
-    }
-
-    .one-click-change-btn:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
-    }
 
     /* Google Calendar 전용 연결해제 버튼 스타일 */
     .google-disconnect-btn {
