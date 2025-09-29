@@ -91,10 +91,18 @@ def register_platform():
     
     try:
         data = request.get_json()
+        if not data:
+            print(f"❌ No JSON data received")
+            return jsonify({'error': 'No data provided'}), 400
+
         platform = data.get('platform', '').strip().lower()
         credentials_data = data.get('credentials', {})
-        
+
+        print(f"🔍 [REGISTER] Platform: {platform}")
+        print(f"🔍 [REGISTER] Credentials keys: {list(credentials_data.keys()) if credentials_data else 'None'}")
+
         if not platform or platform not in PLATFORM_CONFIGS:
+            print(f"❌ Invalid platform: {platform}")
             return jsonify({'error': 'Invalid platform'}), 400
         
         if not isinstance(credentials_data, dict):
@@ -102,13 +110,20 @@ def register_platform():
         
         # Validate required fields
         platform_config = PLATFORM_CONFIGS[platform]
+        print(f"🔍 [REGISTER] Required fields for {platform}: {platform_config['required_fields']}")
+
         for field in platform_config['required_fields']:
             if field not in credentials_data:
+                print(f"❌ Missing required field: {field}")
                 return jsonify({'error': f'Missing required field: {field}'}), 400
-        
+
         # Test connection
+        print(f"🔍 [REGISTER] Testing connection for {platform}...")
         test_result = test_platform_connection(platform, credentials_data)
+        print(f"🔍 [REGISTER] Test result: {test_result}")
+
         if not test_result.get('success'):
+            print(f"❌ Connection test failed: {test_result.get('error')}")
             return jsonify({
                 'error': 'Connection test failed',
                 'details': test_result.get('error')
@@ -119,9 +134,17 @@ def register_platform():
         
         # Get Supabase client
         supabase = config.get_client_for_user(user_id)
-        
+        if not supabase:
+            print(f"❌ Failed to get Supabase client for user: {user_id}")
+            return jsonify({'error': 'Database connection failed'}), 500
+
         # Check if already registered
-        existing = supabase.table('registered_platforms').select('*').eq('user_id', user_id).eq('platform', platform).execute()
+        print(f"🔍 [REGISTER] Checking if {platform} already registered for user {user_id}")
+        try:
+            existing = supabase.table('registered_platforms').select('*').eq('user_id', user_id).eq('platform', platform).execute()
+        except Exception as db_error:
+            print(f"❌ Database query error: {db_error}")
+            return jsonify({'error': f'Database query failed: {str(db_error)}'}), 500
         
         platform_data = {
             'user_id': user_id,
@@ -138,13 +161,23 @@ def register_platform():
         
         if existing.data:
             # Update existing registration
-            result = supabase.table('registered_platforms').update(platform_data).eq('user_id', user_id).eq('platform', platform).execute()
-            message = f'{platform_config["name"]} registration updated successfully'
+            print(f"🔍 [REGISTER] Updating existing {platform} registration")
+            try:
+                result = supabase.table('registered_platforms').update(platform_data).eq('user_id', user_id).eq('platform', platform).execute()
+                message = f'{platform_config["name"]} registration updated successfully'
+            except Exception as update_error:
+                print(f"❌ Failed to update registration: {update_error}")
+                return jsonify({'error': f'Failed to update registration: {str(update_error)}'}), 500
         else:
             # Create new registration
+            print(f"🔍 [REGISTER] Creating new {platform} registration")
             platform_data['created_at'] = datetime.now().isoformat()
-            result = supabase.table('registered_platforms').insert(platform_data).execute()
-            message = f'{platform_config["name"]} registered successfully'
+            try:
+                result = supabase.table('registered_platforms').insert(platform_data).execute()
+                message = f'{platform_config["name"]} registered successfully'
+            except Exception as insert_error:
+                print(f"❌ Failed to create registration: {insert_error}")
+                return jsonify({'error': f'Failed to create registration: {str(insert_error)}'}), 500
         
         if result.data:
             # Track event
@@ -168,9 +201,13 @@ def register_platform():
                 'connection_test': test_result
             })
         else:
+            print(f"❌ Registration failed - no data returned")
             return jsonify({'error': 'Failed to register platform'}), 500
-            
+
     except Exception as e:
+        print(f"❌ Registration exception: {str(e)}")
+        import traceback
+        print(f"❌ Full traceback: {traceback.format_exc()}")
         return jsonify({'error': f'Registration failed: {str(e)}'}), 500
 
 @platform_reg_bp.route('/list', methods=['GET'])
@@ -487,33 +524,43 @@ def test_outlook_connection(credentials):
 def test_apple_connection(credentials):
     """Test Apple Calendar CalDAV connection"""
     try:
+        print(f"🔍 [APPLE TEST] Starting Apple connection test")
+        print(f"🔍 [APPLE TEST] Credentials keys: {list(credentials.keys())}")
+
         # Check if OAuth token exists (from OAuth flow)
         access_token = credentials.get('access_token')
-        
+
         if access_token:
             # Apple Sign In OAuth flow
+            print(f"🔍 [APPLE TEST] Using OAuth token")
             return {
                 'success': True,
                 'message': 'Apple Sign In connected successfully',
                 'connection_type': 'oauth'
             }
-        
+
         # CalDAV direct connection
         server_url = credentials.get('server_url', 'https://caldav.icloud.com')
         username = credentials.get('username')
         password = credentials.get('password')
-        
+
+        print(f"🔍 [APPLE TEST] Server: {server_url}")
+        print(f"🔍 [APPLE TEST] Username: {username}")
+        print(f"🔍 [APPLE TEST] Password length: {len(password) if password else 0}")
+
         if not all([username, password]):
+            print(f"❌ Missing credentials - username: {bool(username)}, password: {bool(password)}")
             return {'success': False, 'error': 'Apple ID and app-specific password required'}
         
         # Test CalDAV connection
+        print(f"🔍 [APPLE TEST] Testing CalDAV connection...")
         try:
             # Basic CalDAV PROPFIND request to test authentication
             headers = {
                 'Content-Type': 'text/xml; charset=utf-8',
                 'Depth': '0'
             }
-            
+
             # Simple PROPFIND to test connection
             propfind_body = '''<?xml version="1.0" encoding="utf-8" ?>
             <D:propfind xmlns:D="DAV:">
@@ -522,17 +569,25 @@ def test_apple_connection(credentials):
                     <D:displayname/>
                 </D:prop>
             </D:propfind>'''
-            
+
+            test_url = f'{server_url}/principals/'
+            print(f"🔍 [APPLE TEST] Making PROPFIND request to: {test_url}")
+
             response = requests.request(
                 'PROPFIND',
-                f'{server_url}/principals/',
+                test_url,
                 auth=HTTPBasicAuth(username, password),
                 headers=headers,
                 data=propfind_body,
                 timeout=15
             )
+
+            print(f"🔍 [APPLE TEST] Response status: {response.status_code}")
+            print(f"🔍 [APPLE TEST] Response headers: {dict(response.headers)}")
+            print(f"🔍 [APPLE TEST] Response body: {response.text[:500]}...")
             
             if response.status_code in [207, 200]:  # Multi-Status or OK
+                print(f"✅ [APPLE TEST] Connection successful!")
                 return {
                     'success': True,
                     'message': 'Apple CalDAV connection successful',
@@ -540,28 +595,41 @@ def test_apple_connection(credentials):
                     'server': server_url
                 }
             elif response.status_code == 401:
+                print(f"❌ [APPLE TEST] Authentication failed")
                 return {
                     'success': False,
                     'error': 'Authentication failed - check Apple ID and app-specific password'
                 }
             else:
+                print(f"❌ [APPLE TEST] Unexpected status code: {response.status_code}")
                 return {
                     'success': False,
                     'error': f'CalDAV connection failed: HTTP {response.status_code}'
                 }
-                
-        except requests.exceptions.Timeout:
+
+        except requests.exceptions.Timeout as timeout_error:
+            print(f"❌ [APPLE TEST] Connection timeout: {timeout_error}")
             return {
                 'success': False,
                 'error': 'Connection timeout - check server URL and network'
             }
-        except requests.exceptions.ConnectionError:
+        except requests.exceptions.ConnectionError as conn_error:
+            print(f"❌ [APPLE TEST] Connection error: {conn_error}")
             return {
                 'success': False,
                 'error': 'Connection failed - check server URL'
             }
+        except requests.exceptions.RequestException as req_error:
+            print(f"❌ [APPLE TEST] Request error: {req_error}")
+            return {
+                'success': False,
+                'error': f'Request failed: {str(req_error)}'
+            }
         
     except Exception as e:
+        print(f"❌ [APPLE TEST] Unexpected error: {str(e)}")
+        import traceback
+        print(f"❌ [APPLE TEST] Full traceback: {traceback.format_exc()}")
         return {'success': False, 'error': f'Apple test failed: {str(e)}'}
 
 # Error handlers
