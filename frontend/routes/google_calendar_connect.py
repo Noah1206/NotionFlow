@@ -30,7 +30,7 @@ def connect_google_to_calendar():
         google_calendar_id = data.get('google_calendar_id')
 
         print(f"🔗 [GOOGLE-CONNECT] User: {user_id}")
-        print(f"🔗 [GOOGLE-CONNECT] NotionFlow calendar_id: {calendar_id}")
+        print(f"🔗 [GOOGLE-CONNECT] Received calendar_id: {calendar_id}")
         print(f"🔗 [GOOGLE-CONNECT] Google calendar_id: {google_calendar_id}")
 
         if not calendar_id:
@@ -45,23 +45,42 @@ def connect_google_to_calendar():
         else:
             formatted_user_id = user_id
 
-        # Check if user owns this calendar
         supabase = config.get_client_for_user(user_id)
-        print(f"🔗 [GOOGLE-CONNECT] Checking calendar ownership...")
-        calendar_check = supabase.table('calendars').select('*').eq('id', calendar_id).eq('owner_id', formatted_user_id).execute()
 
-        print(f"🔗 [GOOGLE-CONNECT] Calendar check result: {calendar_check.data}")
+        # Check if calendar_id looks like a Google Calendar ID (contains @ or very long)
+        if '@' in calendar_id or len(calendar_id) > 36:
+            print(f"🔗 [GOOGLE-CONNECT] Detected Google Calendar ID, finding user's calendar...")
 
-        if not calendar_check.data:
-            print(f"❌ [GOOGLE-CONNECT] Calendar not found - calendar_id: {calendar_id}, user_id: {user_id}")
-            return jsonify({'error': 'Calendar not found or access denied'}), 404
+            # This is a Google Calendar ID, find the user's first available calendar
+            calendar_check = supabase.table('calendars').select('*').eq('owner_id', formatted_user_id).eq('is_active', True).execute()
+
+            if calendar_check.data:
+                # Use the first available calendar
+                user_calendar = calendar_check.data[0]
+                actual_calendar_id = user_calendar['id']
+                google_calendar_id = calendar_id  # Store the Google Calendar ID
+                print(f"🔗 [GOOGLE-CONNECT] Using user calendar: {actual_calendar_id} for Google Calendar: {google_calendar_id}")
+            else:
+                print(f"❌ [GOOGLE-CONNECT] No calendars found for user {user_id}")
+                return jsonify({'error': 'No calendars found for user. Please create a calendar first.'}), 404
+        else:
+            # This is a NotionFlow calendar ID
+            actual_calendar_id = calendar_id
+            print(f"🔗 [GOOGLE-CONNECT] Checking calendar ownership...")
+            calendar_check = supabase.table('calendars').select('*').eq('id', actual_calendar_id).eq('owner_id', formatted_user_id).execute()
+
+            print(f"🔗 [GOOGLE-CONNECT] Calendar check result: {calendar_check.data}")
+
+            if not calendar_check.data:
+                print(f"❌ [GOOGLE-CONNECT] Calendar not found - calendar_id: {actual_calendar_id}, user_id: {user_id}")
+                return jsonify({'error': 'Calendar not found or access denied'}), 404
 
         print(f"✅ [GOOGLE-CONNECT] Calendar ownership verified")
 
         # Update calendar_sync_configs with the selected calendar_id and enable sync
         credentials_data = {
             'oauth_connected': True,
-            'calendar_id': calendar_id,
+            'calendar_id': actual_calendar_id,
             'connected_at': datetime.now().isoformat(),
             'real_time_sync': True
         }
@@ -83,7 +102,7 @@ def connect_google_to_calendar():
         sync_data = {
             'user_id': user_id,
             'platform': 'google',
-            'calendar_id': calendar_id,
+            'calendar_id': actual_calendar_id,
             'sync_status': 'active',
             'synced_at': datetime.now().isoformat(),
             'created_at': datetime.now().isoformat(),
@@ -91,7 +110,7 @@ def connect_google_to_calendar():
         }
 
         # Check if sync entry exists
-        existing_sync = supabase.table('calendar_sync').select('*').eq('user_id', user_id).eq('platform', 'google').eq('calendar_id', calendar_id).execute()
+        existing_sync = supabase.table('calendar_sync').select('*').eq('user_id', user_id).eq('platform', 'google').eq('calendar_id', actual_calendar_id).execute()
 
         if existing_sync.data:
             # Update existing
@@ -112,7 +131,7 @@ def connect_google_to_calendar():
         from services.google_calendar_sync import sync_google_calendar_for_user
 
         try:
-            print(f"🚀 [GOOGLE CONNECT] Starting immediate Google Calendar sync for calendar {calendar_id}")
+            print(f"🚀 [GOOGLE CONNECT] Starting immediate Google Calendar sync for calendar {actual_calendar_id}")
 
             # Trigger immediate Google Calendar sync
             sync_result = sync_google_calendar_for_user(user_id)
@@ -124,7 +143,8 @@ def connect_google_to_calendar():
                 return jsonify({
                     'success': True,
                     'message': f'Google Calendar connected successfully. {synced_count} events synced to calendar.',
-                    'calendar_id': calendar_id,
+                    'calendar_id': actual_calendar_id,
+                    'google_calendar_id': google_calendar_id,
                     'synced_count': synced_count,
                     'trigger_calendar_refresh': True,  # 프론트엔드에서 캘린더 새로고침 트리거
                     'clear_disconnected_flag': True
@@ -135,7 +155,8 @@ def connect_google_to_calendar():
                 return jsonify({
                     'success': True,
                     'message': f'Google Calendar connected successfully, but sync had issues: {sync_result.get("error", "Unknown error")}',
-                    'calendar_id': calendar_id,
+                    'calendar_id': actual_calendar_id,
+                    'google_calendar_id': google_calendar_id,
                     'sync_warning': sync_result.get('error'),
                     'trigger_calendar_refresh': True,
                     'clear_disconnected_flag': True
@@ -147,7 +168,8 @@ def connect_google_to_calendar():
             return jsonify({
                 'success': True,
                 'message': f'Google Calendar connected successfully, but immediate sync failed: {str(sync_error)}',
-                'calendar_id': calendar_id,
+                'calendar_id': actual_calendar_id,
+                'google_calendar_id': google_calendar_id,
                 'sync_error': str(sync_error),
                 'trigger_calendar_refresh': True,
                 'clear_disconnected_flag': True
