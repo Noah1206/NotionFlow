@@ -53,8 +53,13 @@ class GoogleCalendarAPI:
             # 기본 시간 범위 설정 (지난 1개월 ~ 앞으로 6개월)
             if not time_min:
                 time_min = datetime.now(timezone.utc) - timedelta(days=30)
+            elif time_min.tzinfo is None:
+                time_min = time_min.replace(tzinfo=timezone.utc)
+
             if not time_max:
                 time_max = datetime.now(timezone.utc) + timedelta(days=180)
+            elif time_max.tzinfo is None:
+                time_max = time_max.replace(tzinfo=timezone.utc)
             
             print(f"📡 [GOOGLE API] Fetching events from {calendar_id}")
             print(f"📅 [GOOGLE API] Time range: {time_min.isoformat()} - {time_max.isoformat()}")
@@ -149,8 +154,24 @@ class GoogleCalendarSyncService:
             
             # 토큰 만료시간 설정
             if token_data.get('expires_at'):
-                expires_at = datetime.fromisoformat(token_data.get('expires_at').replace('Z', '+00:00'))
-                credentials.expiry = expires_at
+                expires_at_str = token_data.get('expires_at')
+                # Handle different datetime formats and ensure timezone awareness
+                if expires_at_str.endswith('Z'):
+                    expires_at_str = expires_at_str.replace('Z', '+00:00')
+                elif not expires_at_str.endswith('+00:00') and 'T' in expires_at_str:
+                    # If no timezone info, assume UTC
+                    expires_at_str = expires_at_str + '+00:00'
+
+                try:
+                    expires_at = datetime.fromisoformat(expires_at_str)
+                    # Ensure the datetime is timezone-aware
+                    if expires_at.tzinfo is None:
+                        expires_at = expires_at.replace(tzinfo=timezone.utc)
+                    credentials.expiry = expires_at
+                    print(f"✅ [GOOGLE SYNC] Token expires at: {expires_at}")
+                except Exception as e:
+                    print(f"⚠️ [GOOGLE SYNC] Error parsing expires_at: {e}, skipping expiry setting")
+                    # Don't set expiry if we can't parse it properly
             
             return credentials
             
