@@ -710,11 +710,14 @@ function handleGridMouseDown(e) {
     isCreatingEvent = true;
     createStartY = relativeY;
     createStartX = relativeX;
-    
+
     // Calculate day from X position
     const dayIndex = Math.floor((relativeX / rect.width) * 7);
     const dayColumnWidth = rect.width / 7;
     const leftPosition = (dayIndex * dayColumnWidth / rect.width) * 100;
+
+    // Store starting day for multi-day support
+    window.createStartDayIndex = dayIndex;
     
     // Snap to grid
     const snappedY = Math.round(relativeY / (TIME_GRID_CONFIG.hourHeight / 4)) * (TIME_GRID_CONFIG.hourHeight / 4);
@@ -777,22 +780,41 @@ function handleMouseMove(e) {
         const eventsGrid = document.getElementById('events-grid');
         const rect = eventsGrid.getBoundingClientRect();
         const currentY = e.clientY - rect.top - 10;
-        
+        const currentX = e.clientX - rect.left;
+
         // Calculate height based on drag distance
         const startY = Math.min(createStartY, currentY);
         const endY = Math.max(createStartY, currentY);
         const height = endY - startY;
-        
+
+        // Calculate multi-day selection
+        const currentDayIndex = Math.floor((currentX / rect.width) * 7);
+        const startDayIndex = window.createStartDayIndex || 0;
+        const endDayIndex = Math.max(startDayIndex, currentDayIndex);
+        const daySpan = endDayIndex - startDayIndex + 1;
+
         // Snap to grid
         const snappedStartY = Math.round(startY / (TIME_GRID_CONFIG.hourHeight / 4)) * (TIME_GRID_CONFIG.hourHeight / 4);
         const snappedHeight = Math.max(
             TIME_GRID_CONFIG.hourHeight / 4, // Minimum 15 minutes
             Math.round(height / (TIME_GRID_CONFIG.hourHeight / 4)) * (TIME_GRID_CONFIG.hourHeight / 4)
         );
-        
-        // Update preview block
+
+        // Calculate multi-day positioning
+        const dayColumnWidth = rect.width / 7;
+        const leftPosition = (startDayIndex * dayColumnWidth / rect.width) * 100;
+        const width = (daySpan * 100) / 7;
+
+        // Update preview block for multi-day
         newEventPreview.style.top = `${snappedStartY}px`;
         newEventPreview.style.height = `${snappedHeight}px`;
+        newEventPreview.style.left = `${leftPosition}%`;
+        newEventPreview.style.width = `${width}%`;
+
+        // Store multi-day info for event creation
+        window.currentDaySpan = daySpan;
+        window.currentStartDayIndex = startDayIndex;
+        window.currentEndDayIndex = endDayIndex;
         
         // Update time display in preview
         const startHour = (snappedStartY / TIME_GRID_CONFIG.hourHeight) + TIME_GRID_CONFIG.startHour;
@@ -801,7 +823,17 @@ function handleMouseMove(e) {
         
         const startTime = formatTime(startHour);
         const endTime = formatTime(endHour);
-        newEventPreview.innerHTML = `<div style="padding: 4px; font-size: 12px; color: white;">새 일정<br>${startTime} - ${endTime}</div>`;
+
+        // Multi-day display
+        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+        let dayText = '';
+        if (daySpan > 1) {
+            const startDayName = dayNames[startDayIndex % 7];
+            const endDayName = dayNames[endDayIndex % 7];
+            dayText = `<br>${startDayName}~${endDayName} (${daySpan}일)`;
+        }
+
+        newEventPreview.innerHTML = `<div style="padding: 4px; font-size: 12px; color: white;">새 일정${dayText}<br>${startTime} - ${endTime}</div>`;
         
     } else if (isDragging && selectedEvent) {
         const deltaY = e.clientY - dragStartY;
@@ -842,29 +874,49 @@ async function handleMouseUp(e) {
         const duration = height / TIME_GRID_CONFIG.hourHeight;
         const endHour = startHour + duration;
         
-        // Calculate day index
-        const dayIndex = Math.floor(leftPercent / (100 / 7));
-        
-        // Create event date
-        const eventDate = new Date(currentWeekStart);
-        eventDate.setDate(eventDate.getDate() + dayIndex);
-        
+        // Get multi-day information from stored values
+        const startDayIndex = window.currentStartDayIndex || 0;
+        const endDayIndex = window.currentEndDayIndex || startDayIndex;
+        const daySpan = window.currentDaySpan || 1;
+
+        // Create start date
+        const startDate = new Date(currentWeekStart);
+        startDate.setDate(startDate.getDate() + startDayIndex);
+
+        // Create end date
+        const endDate = new Date(currentWeekStart);
+        endDate.setDate(endDate.getDate() + endDayIndex);
+
         // Set start time
-        const startTime = new Date(eventDate);
+        const startTime = new Date(startDate);
         const startMinutes = (startHour % 1) * 60;
         startTime.setHours(Math.floor(startHour), Math.floor(startMinutes), 0, 0);
-        
-        // Set end time  
-        const endTime = new Date(eventDate);
+
+        // Set end time
+        const endTime = new Date(endDate);
         const endMinutes = (endHour % 1) * 60;
         endTime.setHours(Math.floor(endHour), Math.floor(endMinutes), 0, 0);
-        
+
         // Remove preview
         newEventPreview.remove();
         newEventPreview = null;
-        
-        // Open event creation modal with pre-filled times
-        openEventModalWithTime(startTime, endTime);
+
+        // Clean up stored values
+        delete window.currentDaySpan;
+        delete window.currentStartDayIndex;
+        delete window.currentEndDayIndex;
+        delete window.createStartDayIndex;
+
+        // Open event creation modal with multi-day support
+        console.log(`🗓️ Creating ${daySpan > 1 ? 'multi-day' : 'single-day'} event: ${daySpan} days from ${startTime.toDateString()} to ${endTime.toDateString()}`);
+
+        // Use existing modal function but with multi-day times
+        openEventModalWithTime(startTime, endTime, {
+            isMultiDay: daySpan > 1,
+            daySpan: daySpan,
+            startDayIndex: startDayIndex,
+            endDayIndex: endDayIndex
+        });
         
     } else if (selectedEvent) {
         selectedEvent.classList.remove('dragging', 'selected');
