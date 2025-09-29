@@ -36,15 +36,37 @@ class GoogleCalendarService:
     def get_google_credentials(self, user_id: str) -> Optional[Credentials]:
         """사용자의 Google OAuth 토큰으로 Credentials 객체 생성"""
         try:
-            # Supabase에서 OAuth 토큰 가져오기
+            # 먼저 oauth_tokens 테이블에서 찾기
             response = self.supabase.table('oauth_tokens').select('*').eq('user_id', user_id).eq('platform', 'google').execute()
-            
-            if not response.data:
-                print(f"No Google OAuth token found for user {user_id}")
+
+            token_data = None
+            if response.data:
+                token_data = response.data[0]
+                print(f"✅ Found Google OAuth token in oauth_tokens for user {user_id}")
+            else:
+                # oauth_tokens에 없으면 calendar_sync_configs에서 찾기
+                print(f"⚠️ No OAuth token in oauth_tokens, checking calendar_sync_configs for user {user_id}")
+                sync_response = self.supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', 'google').eq('is_enabled', True).execute()
+
+                if sync_response.data:
+                    sync_data = sync_response.data[0]
+                    credentials_data = sync_data.get('credentials', {})
+                    if credentials_data.get('access_token'):
+                        token_data = {
+                            'access_token': credentials_data.get('access_token'),
+                            'refresh_token': credentials_data.get('refresh_token'),
+                            'expires_at': credentials_data.get('expires_at')
+                        }
+                        print(f"✅ Found Google credentials in calendar_sync_configs for user {user_id}")
+                    else:
+                        print(f"❌ No valid access_token in calendar_sync_configs for user {user_id}")
+                else:
+                    print(f"❌ No Google sync config found for user {user_id}")
+
+            if not token_data:
+                print(f"❌ No Google credentials found for user {user_id} in any table")
                 return None
-            
-            token_data = response.data[0]
-            
+
             # Google Credentials 객체 생성 (만료 시간 없이 먼저 생성)
             credentials = Credentials(
                 token=token_data.get('access_token'),
@@ -54,16 +76,18 @@ class GoogleCalendarService:
                 client_secret=os.environ.get('GOOGLE_CLIENT_SECRET'),
                 scopes=['https://www.googleapis.com/auth/calendar']
             )
-            
+
             # 토큰 만료 시간 설정은 일시적으로 비활성화 (datetime 비교 에러 방지)
             # Google API 라이브러리가 자동으로 토큰 갱신을 처리할 것임
             # if token_data.get('expires_at'):
             #     ... (비활성화됨)
-            
+
             return credentials
-            
+
         except Exception as e:
-            print(f"Error getting Google credentials for user {user_id}: {e}")
+            print(f"❌ Error getting Google credentials for user {user_id}: {e}")
+            import traceback
+            traceback.print_exc()
             return None
     
     def get_calendar_service(self, user_id: str):
