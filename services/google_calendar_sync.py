@@ -101,7 +101,7 @@ class GoogleCalendarSyncService:
         print("✅ [GOOGLE SYNC] SupaBase initialized")
 
     def get_selected_calendars(self, user_id: str) -> List[str]:
-        """사용자가 선택한 캘린더 ID 목록을 조회"""
+        """사용자가 선택한 Google Calendar ID 목록을 조회"""
         try:
             # calendar_sync_configs 테이블에서 Google 연동 정보 조회
             config_result = self.supabase.table('calendar_sync_configs').select('credentials').eq('user_id', user_id).eq('platform', 'google').execute()
@@ -110,18 +110,22 @@ class GoogleCalendarSyncService:
                 print(f"⚠️ [GOOGLE SYNC] No Google Calendar config found for user {user_id}")
                 return []
 
-            # credentials JSON에서 calendar_id 가져오기 (이메일 주소)
+            # credentials JSON에서 google_calendar_id 가져오기
             credentials = config_result.data[0].get('credentials', {})
-            calendar_id = credentials.get('calendar_id')
+            google_calendar_id = credentials.get('google_calendar_id')
 
-            if calendar_id:
-                # 현재는 하나의 캘린더만 저장하므로 리스트로 반환
-                selected_calendar_ids = [calendar_id]
-                print(f"✅ [GOOGLE SYNC] Found calendar for user {user_id}: {calendar_id}")
+            print(f"🔍 [GOOGLE SYNC] Debug credentials: {credentials}")
+
+            if google_calendar_id:
+                # Google Calendar ID가 있으면 해당 캘린더를 동기화
+                selected_calendar_ids = [google_calendar_id]
+                print(f"✅ [GOOGLE SYNC] Found Google calendar for user {user_id}: {google_calendar_id}")
                 return selected_calendar_ids
             else:
-                print(f"⚠️ [GOOGLE SYNC] No calendar_id in credentials for user {user_id}")
-                return []
+                # Google Calendar ID가 없으면 모든 캘린더를 동기화 (기본 동작)
+                print(f"⚠️ [GOOGLE SYNC] No google_calendar_id found, syncing all calendars for user {user_id}")
+                # 사용자의 모든 Google Calendar를 동기화하기 위해 특별한 마커 반환
+                return ['*']  # 모든 캘린더를 의미하는 특별한 마커
 
         except Exception as e:
             print(f"❌ [GOOGLE SYNC] Error getting selected calendars for user {user_id}: {e}")
@@ -131,18 +135,18 @@ class GoogleCalendarSyncService:
         """사용자의 Google OAuth 토큰으로 Credentials 생성"""
         try:
             from google.oauth2.credentials import Credentials
-            
+
             # SupaBase에서 OAuth 토큰 조회
             response = self.supabase.table('oauth_tokens').select('*').eq('user_id', user_id).eq('platform', 'google').execute()
-            
+
             if not response.data:
                 print(f"❌ [GOOGLE SYNC] No Google OAuth token found for user {user_id}")
                 return None
-            
+
             token_data = response.data[0]
             print(f"✅ [GOOGLE SYNC] Found OAuth token for user {user_id}")
-            
-            # Google Credentials 객체 생성
+
+            # Google Credentials 객체 생성 (만료시간 없이 생성하여 자동 갱신 사용)
             credentials = Credentials(
                 token=token_data.get('access_token'),
                 refresh_token=token_data.get('refresh_token'),
@@ -151,30 +155,13 @@ class GoogleCalendarSyncService:
                 client_secret=os.environ.get('GOOGLE_CLIENT_SECRET'),
                 scopes=['https://www.googleapis.com/auth/calendar']
             )
-            
-            # 토큰 만료시간 설정
-            if token_data.get('expires_at'):
-                expires_at_str = token_data.get('expires_at')
-                # Handle different datetime formats and ensure timezone awareness
-                if expires_at_str.endswith('Z'):
-                    expires_at_str = expires_at_str.replace('Z', '+00:00')
-                elif not expires_at_str.endswith('+00:00') and 'T' in expires_at_str:
-                    # If no timezone info, assume UTC
-                    expires_at_str = expires_at_str + '+00:00'
 
-                try:
-                    expires_at = datetime.fromisoformat(expires_at_str)
-                    # Ensure the datetime is timezone-aware
-                    if expires_at.tzinfo is None:
-                        expires_at = expires_at.replace(tzinfo=timezone.utc)
-                    credentials.expiry = expires_at
-                    print(f"✅ [GOOGLE SYNC] Token expires at: {expires_at}")
-                except Exception as e:
-                    print(f"⚠️ [GOOGLE SYNC] Error parsing expires_at: {e}, skipping expiry setting")
-                    # Don't set expiry if we can't parse it properly
-            
+            # 토큰 만료시간을 설정하지 않고 Google 라이브러리의 자동 갱신에 의존
+            # 이렇게 하면 timezone 비교 에러를 방지할 수 있음
+            print(f"✅ [GOOGLE SYNC] Credentials created without expiry (auto-refresh enabled)")
+
             return credentials
-            
+
         except Exception as e:
             print(f"❌ [GOOGLE SYNC] Error getting credentials for user {user_id}: {e}")
             return None
@@ -223,12 +210,12 @@ class GoogleCalendarSyncService:
                 calendar_id = calendar.get('id', 'primary')
                 calendar_name = calendar.get('summary', 'Unknown Calendar')
 
-                # 선택된 캘린더인지 확인
-                if calendar_id not in selected_calendar_ids:
+                # '*' 마커가 있으면 모든 캘린더를 동기화, 그렇지 않으면 선택된 캘린더만
+                if '*' not in selected_calendar_ids and calendar_id not in selected_calendar_ids:
                     print(f"⏭️ [GOOGLE SYNC] Skipping unselected calendar: {calendar_name} ({calendar_id})")
                     continue
 
-                print(f"📅 [GOOGLE SYNC] Processing selected calendar: {calendar_name} ({calendar_id})")
+                print(f"📅 [GOOGLE SYNC] Processing calendar: {calendar_name} ({calendar_id})")
                 
                 try:
                     # 이벤트 조회
