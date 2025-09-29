@@ -1223,18 +1223,57 @@ def get_google_calendars():
         google_calendars = google_service.get_calendar_list(user_id)
         print(f"📅 [GOOGLE-CALENDARS] Retrieved {len(google_calendars)} calendars")
 
-        # 빈 배열 반환 시 구체적인 디버깅 정보 제공
+        # 빈 배열 반환 시 fallback 로직 시도
         if not google_calendars:
-            print(f"⚠️ [GOOGLE-CALENDARS] No calendars found for user {user_id}")
-            # OAuth 토큰 상태 확인
-            service = google_service.get_calendar_service(user_id)
-            if not service:
-                print(f"❌ [GOOGLE-CALENDARS] No calendar service available for user {user_id} - OAuth token may be missing")
-                return jsonify({
-                    'success': False,
-                    'error': 'Google Calendar OAuth token not found. Please re-authenticate.',
-                    'calendars': []
-                })
+            print(f"⚠️ [GOOGLE-CALENDARS] No calendars found via Google API for user {user_id}")
+
+            # Fallback: user_calendars 테이블에서 기존 캘린더 조회
+            try:
+                print(f"🔄 [GOOGLE-CALENDARS] Trying fallback from user_calendars table for user {user_id}")
+
+                # Supabase client 가져오기 (이미 위에서 초기화됨)
+                import os as os_module
+                from supabase import create_client
+
+                supabase_url = os_module.environ.get('SUPABASE_URL')
+                service_role_key = os_module.environ.get('SUPABASE_SERVICE_ROLE_KEY')
+
+                if supabase_url and service_role_key:
+                    supabase_client = create_client(supabase_url, service_role_key)
+
+                    # user_calendars 테이블에서 Google Calendar 가져오기
+                    calendars_result = supabase_client.table('user_calendars').select('id, name, platform, is_active').eq('owner_id', user_id).eq('platform', 'google').eq('is_active', True).execute()
+
+                    if calendars_result.data:
+                        google_calendars = []
+                        for cal in calendars_result.data:
+                            calendar_data = {
+                                'id': cal['id'],
+                                'summary': cal['name'],
+                                'name': cal['name'],
+                                'platform': 'google',
+                                'selected': True,  # 이미 생성된 캘린더는 선택된 상태
+                                'primary': True
+                            }
+                            google_calendars.append(calendar_data)
+
+                        print(f"✅ [GOOGLE-CALENDARS] Found {len(google_calendars)} calendars from fallback table")
+                    else:
+                        print(f"⚠️ [GOOGLE-CALENDARS] No calendars found in fallback table either")
+
+            except Exception as fallback_error:
+                print(f"❌ [GOOGLE-CALENDARS] Fallback failed: {str(fallback_error)}")
+
+            # OAuth 토큰 상태 확인 (여전히 캘린더가 없을 때만)
+            if not google_calendars:
+                service = google_service.get_calendar_service(user_id)
+                if not service:
+                    print(f"❌ [GOOGLE-CALENDARS] No calendar service available for user {user_id} - OAuth token may be missing")
+                    return jsonify({
+                        'success': False,
+                        'error': 'Google Calendar OAuth token not found. Please re-authenticate.',
+                        'calendars': []
+                    })
 
         return jsonify({
             'success': True,
