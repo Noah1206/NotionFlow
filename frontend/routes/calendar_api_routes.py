@@ -1269,12 +1269,19 @@ def get_google_calendars():
                             print(f"💡 [GOOGLE-CALENDARS] Found {len(personal_calendars.data)} personal calendars and valid Google OAuth token")
                             print(f"🔄 [GOOGLE-CALENDARS] Converting first personal calendar to Google type...")
 
-                            # 첫 번째 개인 캘린더를 Google 타입으로 변환
+                            # 첫 번째 개인 캘린더를 Google 타입으로 변환하지 않고 그대로 사용
                             first_calendar = personal_calendars.data[0]
-                            update_result = supabase_client.table('calendars').update({
-                                'type': 'google',
-                                'description': f"Converted to Google Calendar - {first_calendar['name']}"
-                            }).eq('id', first_calendar['id']).execute()
+                            # type을 변경하지 않고 캘린더 정보만 반환
+                            calendar_data = {
+                                'id': first_calendar['id'],
+                                'summary': first_calendar['name'],
+                                'name': first_calendar['name'],
+                                'platform': 'google',
+                                'selected': True,
+                                'primary': True
+                            }
+                            google_calendars = [calendar_data]
+                            print(f"✅ [GOOGLE-CALENDARS] Using personal calendar '{first_calendar['name']}' as fallback")
 
                             if update_result.data:
                                 calendar_data = {

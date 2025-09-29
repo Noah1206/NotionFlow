@@ -192,6 +192,7 @@ class GoogleCalendarService:
         """사용자의 Google Calendar 목록 가져오기"""
         service = self.get_calendar_service(user_id)
         if not service:
+            print(f"[Google Calendar] No service available for user {user_id}")
             return []
 
         try:
