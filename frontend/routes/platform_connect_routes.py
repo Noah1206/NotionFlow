@@ -183,15 +183,17 @@ def await_import_existing_events(platform: str, user_id: str, calendar_id: str) 
             # Google Calendar 동기화 로직 (향후 구현)
             return 0
         elif platform == 'apple':
-            # Apple Calendar 동기화 로직 (향후 구현)
-            return 0
+            # Apple Calendar 동기화 로직 구현됨
+            from services.apple_calendar_service import apple_calendar_sync
+            result = apple_calendar_sync.sync_to_calendar(user_id, calendar_id)
+            return result.get('synced_events', 0)
         elif platform == 'outlook':
             # Outlook 동기화 로직 (향후 구현)
             return 0
         else:
             print(f"⚠️ Unsupported platform for import: {platform}")
             return 0
-            
+
     except Exception as e:
         print(f"❌ Error importing events from {platform}: {e}")
         return 0

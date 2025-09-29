@@ -4122,6 +4122,15 @@ except ImportError as e:
     print(f"[WARNING] Google Calendar API routes not available: {e}")
     pass
 
+# 🍎 Register Apple Calendar Sync Routes
+try:
+    from routes.apple_calendar_routes import apple_calendar_bp
+    app.register_blueprint(apple_calendar_bp)
+    print("[SUCCESS] Apple Calendar sync routes registered")
+except ImportError as e:
+    print(f"[WARNING] Apple Calendar sync routes not available: {e}")
+    pass
+
 # 📋 Register Calendar Selection Routes (optional)
 try:
     from routes.calendar_selection_routes import calendar_selection_bp
