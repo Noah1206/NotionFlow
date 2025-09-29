@@ -440,8 +440,8 @@
     let currentYear = currentDate.getFullYear();
     let currentMonth = currentDate.getMonth();
 
-    // 컨텍스트 메뉴 변수
-    let contextMenu = document.getElementById('contextMenu');
+    // 컨텍스트 메뉴 변수 (DOM 로드 후 초기화)
+    let contextMenu = null;
     let selectedEvent = null;
 
     // 멀티데이 이벤트 데이터 구조
@@ -596,7 +596,9 @@
 
                 // 우클릭 컨텍스트 메뉴 이벤트
                 eventElement.addEventListener('contextmenu', (e) => {
+                    console.log('우클릭 이벤트 감지됨:', event.title); // 디버그용
                     e.preventDefault();
+                    e.stopPropagation();
                     selectedEvent = event;
                     showContextMenu(e.pageX, e.pageY);
                 });
@@ -682,13 +684,25 @@
 
     // 컨텍스트 메뉴 관련 함수들
     function showContextMenu(x, y) {
-        contextMenu.style.left = x + 'px';
-        contextMenu.style.top = y + 'px';
-        contextMenu.style.display = 'block';
+        // DOM 로드 확인
+        if (!contextMenu) {
+            contextMenu = document.getElementById('contextMenu');
+        }
+
+        if (contextMenu) {
+            console.log('컨텍스트 메뉴 표시:', x, y); // 디버그용
+            contextMenu.style.left = x + 'px';
+            contextMenu.style.top = y + 'px';
+            contextMenu.style.display = 'block';
+        } else {
+            console.error('컨텍스트 메뉴 엘리먼트를 찾을 수 없습니다');
+        }
     }
 
     function hideContextMenu() {
-        contextMenu.style.display = 'none';
+        if (contextMenu) {
+            contextMenu.style.display = 'none';
+        }
         selectedEvent = null;
     }
 
@@ -745,7 +759,7 @@
 
     // 전역 클릭 이벤트로 컨텍스트 메뉴 숨기기
     document.addEventListener('click', (e) => {
-        if (!contextMenu.contains(e.target)) {
+        if (contextMenu && !contextMenu.contains(e.target)) {
             hideContextMenu();
         }
     });
