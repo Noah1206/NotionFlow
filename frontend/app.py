@@ -3366,6 +3366,7 @@ def google_oauth_login():
         authorization_url, _ = flow.authorization_url(
             access_type='offline',
             include_granted_scopes='true',
+            prompt='consent',  # refresh_token을 받기 위해 사용자 재동의 필요
             state=encoded_state  # 인코딩된 state 전달
         )
         
