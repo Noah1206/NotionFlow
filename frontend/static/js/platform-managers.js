@@ -736,6 +736,222 @@ class GoogleManager extends PlatformManager {
         }
     }
 
+    async showUserCalendarSelection(googleCalendarId) {
+        try {
+            console.log('📅 [GOOGLE] Step 2: Showing user calendars for Google calendar:', googleCalendarId);
+
+            // Fetch user's NotionFlow calendars
+            const response = await fetch('/api/calendars');
+            if (!response.ok) {
+                throw new Error(`Failed to fetch user calendars: ${response.status}`);
+            }
+
+            const userCalendars = await response.json();
+            console.log('📅 [GOOGLE] User calendars:', userCalendars);
+
+            // Close the first modal and show the second step
+            const existingModal = document.getElementById('google-calendar-modal-ultimate');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Create step 2 modal for user calendar selection
+            this.createUserCalendarSelectionModal(userCalendars, googleCalendarId);
+
+        } catch (error) {
+            console.error('Error in showUserCalendarSelection:', error);
+            alert(`사용자 캘린더 목록을 가져오는 중 오류가 발생했습니다: ${error.message}`);
+        }
+    }
+
+    createUserCalendarSelectionModal(userCalendars, googleCalendarId) {
+        console.log('🚀 [GOOGLE] Creating Step 2 Modal - User Calendar Selection');
+
+        // Create modal for step 2
+        const modal = document.createElement('div');
+        modal.id = 'user-calendar-selection-modal';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(8px);
+        `;
+
+        modal.innerHTML = `
+            <div style="
+                background: white;
+                border-radius: 16px;
+                padding: 32px;
+                max-width: 500px;
+                width: 90%;
+                max-height: 80vh;
+                overflow-y: auto;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+                border: 1px solid #e5e7eb;
+            ">
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <h2 style="
+                        font-size: 24px;
+                        font-weight: 700;
+                        color: #1f2937;
+                        margin: 0 0 8px 0;
+                    ">내 캘린더 선택</h2>
+                    <p style="
+                        color: #6b7280;
+                        margin: 0;
+                        font-size: 16px;
+                    ">Google Calendar를 연결할 캘린더를 선택하세요</p>
+                </div>
+                <div style="margin-bottom: 24px;">
+                    ${userCalendars.map(cal => `
+                        <div onclick="selectUserCalendar('${cal.id}', this)" style="
+                            border: 2px solid #e5e7eb;
+                            border-radius: 12px;
+                            padding: 16px;
+                            margin-bottom: 12px;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                            background: white;
+                        " onmouseover="this.style.backgroundColor='#f9fafb'"
+                           onmouseout="if (!this.classList.contains('selected')) this.style.backgroundColor='white'">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="
+                                    width: 16px;
+                                    height: 16px;
+                                    background: ${cal.color || '#3b82f6'};
+                                    border-radius: 50%;
+                                    flex-shrink: 0;
+                                "></div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; font-size: 16px; color: #1f2937; margin-bottom: 4px;">
+                                        ${cal.name || 'Untitled Calendar'}
+                                    </div>
+                                    <div style="font-size: 14px; color: #6b7280;">
+                                        ${cal.description || '설명 없음'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button onclick="document.getElementById('user-calendar-selection-modal').remove()" style="
+                        padding: 12px 24px;
+                        background: #f3f4f6;
+                        color: #374151;
+                        border: none;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-weight: 500;
+                        font-size: 14px;
+                    " onmouseover="this.style.backgroundColor='#e5e7eb'"
+                       onmouseout="this.style.backgroundColor='#f3f4f6'">취소</button>
+                    <button id="connect-user-calendar-btn" onclick="connectToUserCalendar()" disabled style="
+                        padding: 12px 24px;
+                        background: #3b82f6;
+                        color: white;
+                        border: none;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-weight: 500;
+                        font-size: 14px;
+                        opacity: 0.5;
+                    ">연결하기</button>
+                </div>
+            </div>
+        `;
+
+        // Add global functions for user calendar selection
+        window.selectedUserCalendarId = null;
+        window.selectedGoogleCalendarId = googleCalendarId;
+
+        window.selectUserCalendar = function(calendarId, element) {
+            console.log('📅 [GOOGLE] User calendar selected:', calendarId);
+            // Remove previous selection
+            document.querySelectorAll('#user-calendar-selection-modal [onclick*="selectUserCalendar"]').forEach(el => {
+                el.style.borderColor = '#e5e7eb';
+                el.style.backgroundColor = 'white';
+                el.classList.remove('selected');
+            });
+            // Add selection to clicked element
+            element.style.borderColor = '#3b82f6';
+            element.style.backgroundColor = '#eff6ff';
+            element.classList.add('selected');
+            window.selectedUserCalendarId = calendarId;
+            // Enable connect button
+            const connectBtn = document.getElementById('connect-user-calendar-btn');
+            connectBtn.disabled = false;
+            connectBtn.style.opacity = '1';
+            connectBtn.style.cursor = 'pointer';
+        };
+
+        window.connectToUserCalendar = async function() {
+            if (window.selectedUserCalendarId && window.selectedGoogleCalendarId) {
+                console.log('🔗 [GOOGLE] Connecting Google calendar to user calendar:',
+                           window.selectedGoogleCalendarId, '->', window.selectedUserCalendarId);
+                try {
+                    const googleManager = PlatformManagerFactory.get('google');
+                    if (googleManager) {
+                        // Store the Google calendar ID for the connection
+                        const requestData = {
+                            calendar_id: window.selectedUserCalendarId,
+                            google_calendar_id: window.selectedGoogleCalendarId
+                        };
+
+                        const response = await fetch('/api/google-calendar/connect-calendar', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(requestData)
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok && result.success) {
+                            // Store connection state
+                            localStorage.setItem('google_calendar_connected', 'true');
+                            localStorage.setItem('google_calendar_id', window.selectedUserCalendarId);
+                            localStorage.setItem('google_last_connected', new Date().toISOString());
+                            localStorage.removeItem('google_manually_disconnected');
+
+                            console.log('✅ [GOOGLE] Calendar connection completed:', result);
+                            googleManager.updateStatus('connected');
+
+                            const message = result.synced_count !== undefined ?
+                                `Google Calendar 연결 완료! ${result.synced_count}개 이벤트 동기화됨` :
+                                'Google Calendar 연결 완료!';
+                            googleManager.showNotification(message, 'success');
+
+                            // Close modal
+                            const modal = document.getElementById('user-calendar-selection-modal');
+                            if (modal) {
+                                modal.remove();
+                            }
+
+                            // Trigger calendar refresh if needed
+                            if (result.trigger_calendar_refresh && typeof window.refreshCalendar === 'function') {
+                                window.refreshCalendar();
+                            }
+                        } else {
+                            throw new Error(result.error || `연결 실패: ${response.status}`);
+                        }
+                    }
+                } catch (error) {
+                    console.error('User calendar connection error:', error);
+                    alert('캘린더 연결 중 오류가 발생했습니다: ' + error.message);
+                }
+            }
+        };
+
+        document.body.appendChild(modal);
+    }
+
     createFallbackCalendarModal(calendars) {
         console.log('🚀 [GOOGLE] Creating Ultimate Google Calendar Modal with calendars:', calendars);
 
@@ -1067,22 +1283,17 @@ class GoogleManager extends PlatformManager {
 
         window.connectSelectedCalendar = async function() {
             if (window.selectedCalendarId) {
-                console.log('🔗 [GOOGLE] Connecting calendar:', window.selectedCalendarId);
+                console.log('🔗 [GOOGLE] Moving to step 2 - showing user calendars for Google calendar:', window.selectedCalendarId);
 
                 try {
                     const googleManager = PlatformManagerFactory.get('google');
                     if (googleManager) {
-                        await googleManager.connectCalendar(window.selectedCalendarId);
-
-                        // Close modal safely
-                        const modal = document.getElementById('google-calendar-modal-ultimate');
-                        if (modal) {
-                            modal.remove();
-                        }
+                        // Step 2: Show user's NotionFlow calendars
+                        await googleManager.showUserCalendarSelection(window.selectedCalendarId);
                     }
                 } catch (error) {
-                    console.error('Connection error:', error);
-                    alert('캘린더 연결 중 오류가 발생했습니다: ' + error.message);
+                    console.error('Step 2 error:', error);
+                    alert('캘린더 목록을 가져오는 중 오류가 발생했습니다: ' + error.message);
                 }
             }
         };
