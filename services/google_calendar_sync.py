@@ -6,8 +6,13 @@ Notion 동기화 패턴과 동일한 구조로 구현
 import os
 import json
 import logging
+import sys
 from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional, Any
+
+# Add utils path for retry helper
+sys.path.append(os.path.join(os.path.dirname(__file__), '../utils'))
+from db_retry_helper import retry_db_operation, safe_db_call
 
 # Google Calendar API 클래스
 class GoogleCalendarAPI:
@@ -100,10 +105,11 @@ class GoogleCalendarSyncService:
         self.supabase = create_client(self.supabase_url, self.supabase_key)
         print("✅ [GOOGLE SYNC] SupaBase initialized")
 
+    @retry_db_operation(max_retries=3, delay=0.1)
     def get_selected_calendars(self, user_id: str) -> List[str]:
         """사용자가 선택한 Google Calendar ID 목록을 조회"""
         try:
-            # calendar_sync_configs 테이블에서 Google 연동 정보 조회
+            # calendar_sync_configs 테이블에서 Google 연동 정보 조회 (retry로 보호)
             config_result = self.supabase.table('calendar_sync_configs').select('credentials').eq('user_id', user_id).eq('platform', 'google').execute()
 
             if not config_result.data:
@@ -131,12 +137,13 @@ class GoogleCalendarSyncService:
             print(f"❌ [GOOGLE SYNC] Error getting selected calendars for user {user_id}: {e}")
             return []
     
+    @retry_db_operation(max_retries=3, delay=0.1)
     def get_user_credentials(self, user_id: str):
         """사용자의 Google OAuth 토큰으로 Credentials 생성"""
         try:
             from google.oauth2.credentials import Credentials
 
-            # SupaBase에서 OAuth 토큰 조회
+            # SupaBase에서 OAuth 토큰 조회 (retry로 보호)
             response = self.supabase.table('oauth_tokens').select('*').eq('user_id', user_id).eq('platform', 'google').execute()
 
             if not response.data:
@@ -231,6 +238,10 @@ class GoogleCalendarSyncService:
                             error_msg = f"Event save error in {calendar_name}: {str(e)}"
                             errors.append(error_msg)
                             print(f"❌ [GOOGLE SYNC] {error_msg}")
+                            # 중복 키 에러는 정상적인 상황이므로 계속 진행
+                            if 'duplicate key value violates unique constraint' in str(e):
+                                print(f"ℹ️ [GOOGLE SYNC] Event already exists, skipping: {event.get('summary', 'Unknown')}")
+                                continue
                     
                 except Exception as e:
                     error_msg = f"Calendar processing error for {calendar_name}: {str(e)}"
@@ -271,18 +282,26 @@ class GoogleCalendarSyncService:
             if not event_data:
                 return
 
-            # 기존 이벤트 확인 (중복 방지)
-            existing = self.supabase.table('calendar_events').select('*').eq('user_id', user_id).eq('external_id', event.get('id')).execute()
+            # 기존 이벤트 확인 (중복 방지) - retry로 보호
+            def check_existing():
+                return self.supabase.table('calendar_events').select('*').eq('user_id', user_id).eq('external_id', event.get('id')).eq('source_platform', 'google').execute()
 
-            if existing.data:
+            existing = safe_db_call(check_existing)
+
+            if existing and existing.data:
                 # 기존 이벤트 업데이트
                 update_data = {
                     **event_data,
                     'updated_at': datetime.now(timezone.utc).isoformat()
                 }
 
-                result = self.supabase.table('calendar_events').update(update_data).eq('user_id', user_id).eq('external_id', event.get('id')).execute()
-                print(f"📝 [GOOGLE SYNC] Updated event: {event_data['title']}")
+                # 업데이트 작업 retry로 보호
+                def update_event():
+                    return self.supabase.table('calendar_events').update(update_data).eq('user_id', user_id).eq('external_id', event.get('id')).eq('source_platform', 'google').execute()
+
+                result = safe_db_call(update_event)
+                if result:
+                    print(f"📝 [GOOGLE SYNC] Updated event: {event_data['title']}")
 
             else:
                 # 새 이벤트 삽입
@@ -297,8 +316,13 @@ class GoogleCalendarSyncService:
                     'updated_at': datetime.now(timezone.utc).isoformat()
                 }
 
-                result = self.supabase.table('calendar_events').insert(insert_data).execute()
-                print(f"➕ [GOOGLE SYNC] Inserted new event: {event_data['title']}")
+                # 삽입 작업 retry로 보호
+                def insert_event():
+                    return self.supabase.table('calendar_events').insert(insert_data).execute()
+
+                result = safe_db_call(insert_event)
+                if result:
+                    print(f"➕ [GOOGLE SYNC] Inserted new event: {event_data['title']}")
         
         except Exception as e:
             print(f"❌ [GOOGLE SYNC] Error saving event '{event.get('summary', 'Unknown')}': {e}")

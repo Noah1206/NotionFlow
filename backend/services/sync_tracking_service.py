@@ -67,8 +67,19 @@ class SyncTrackingService:
             # Check if user exists to avoid foreign key errors
             user_check = self.supabase.table('users').select('id').eq('id', user_id).execute()
             if not user_check.data:
-                print(f"User {user_id} not found in users table, skipping sync event tracking")
-                return None
+                # Create user entry if not exists to prevent foreign key errors
+                try:
+                    user_data = {
+                        'id': user_id,
+                        'email': f'{user_id}@example.com',  # placeholder email
+                        'created_at': datetime.now(timezone.utc).isoformat(),
+                        'updated_at': datetime.now(timezone.utc).isoformat()
+                    }
+                    self.supabase.table('users').insert(user_data).execute()
+                    print(f"✅ Created user entry for {user_id}")
+                except Exception as e:
+                    print(f"⚠️ Could not create user entry for {user_id}: {e}, skipping sync event tracking")
+                    return None
             
             event_data = {
                 "user_id": user_id,
