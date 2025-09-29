@@ -393,9 +393,21 @@ def get_google_calendar_state():
             return error_response, status_code
 
         supabase = config.get_client_for_user(user_id)
+        if not supabase:
+            return jsonify({
+                'success': False,
+                'error': 'Database connection failed'
+            }), 500
 
         # Google Calendar 연동 상태 확인
-        result = supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', 'google').execute()
+        try:
+            result = supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', 'google').execute()
+        except Exception as db_error:
+            print(f"❌ Database query error in calendar-state: {db_error}")
+            return jsonify({
+                'success': False,
+                'error': f'Database query failed: {str(db_error)}'
+            }), 500
 
         if not result.data:
             return jsonify({
