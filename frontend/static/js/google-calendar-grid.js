@@ -3081,13 +3081,8 @@ class GoogleCalendarGrid {
                             // DOM에서 즉시 제거 (여러 방법 시도)
                             this.removeEventFromDOM(removedEvent.id, removedEvent.title);
                             
-                            // 강제 그리드 새로고침
-                            this.clearRenderedEvents();
-                            this.events.forEach(event => {
-                                if (event && event.id && event.date) {
-                                    this.renderEvent(event);
-                                }
-                            });
+                            // 선택적 업데이트 (전체 새로고침 대신)
+                            console.log('🎯 Selective update after immediate removal');
                             this.updateEventList();
                             console.log('🔄 Grid forcefully refreshed after trash move');
                         } else {
@@ -3123,13 +3118,8 @@ class GoogleCalendarGrid {
                                 
                                 this.events.splice(relaxedIndex, 1);
                                 this.saveToLocalStorage();
-                                this.clearRenderedEvents();
-                                this.events.forEach(event => {
-                                    if (event && event.id && event.date) {
-                                        this.renderEvent(event);
-                                    }
-                                });
                                 this.updateEventList();
+                                console.log('🎯 Relaxed search removal completed without full refresh');
                             } else {
                                 console.log('🚨 최후 수단: DOM제거 + 배열에서 강제 검색/제거');
                                 
@@ -3176,15 +3166,10 @@ class GoogleCalendarGrid {
                                         this.moveEventToTrash(fakeEvent);
                                     }
                                     
-                                    // 배열 저장 및 그리드 새로고침
+                                    // 배열 저장 및 선택적 업데이트 (전체 새로고침 대신)
                                     this.saveToLocalStorage();
-                                    this.clearRenderedEvents();
-                                    this.events.forEach(event => {
-                                        if (event && event.id && event.date) {
-                                            this.renderEvent(event);
-                                        }
-                                    });
                                     this.updateEventList();
+                                    console.log('🎯 Last resort completed without full refresh');
                                     console.log('🔄 최후수단 완료 - 배열 길이:', this.events.length);
                                 }
                             }
@@ -3543,18 +3528,31 @@ class GoogleCalendarGrid {
             });
         });
         
-        // 2. 제목 기반 제거
+        // 2. 제목 기반 제거 (더 구체적인 셀렉터 사용)
         if (eventTitle) {
-            document.querySelectorAll('*').forEach(el => {
-                const text = el.textContent || el.innerText || '';
-                if (text.includes(eventTitle) && 
-                    (el.className.includes('event') || 
-                     el.className.includes('calendar-event') ||
-                     el.style.position === 'absolute')) {
-                    el.remove();
-                    removedCount++;
-                    console.log('🗑️ Removed by title match:', eventTitle);
-                }
+            // 캘린더 이벤트 요소만 대상으로 검색
+            const eventSelectors = [
+                '.calendar-event',
+                '.event',
+                '[class*="event"]',
+                '.grid-event'
+            ];
+
+            eventSelectors.forEach(selector => {
+                document.querySelectorAll(selector).forEach(el => {
+                    const text = el.textContent || el.innerText || '';
+                    const title = el.getAttribute('title') || '';
+                    const dataTitle = el.getAttribute('data-title') || '';
+
+                    // 정확한 매칭만 허용 (부분 매칭 방지)
+                    if ((text.trim() === eventTitle.trim()) ||
+                        (title === eventTitle) ||
+                        (dataTitle === eventTitle)) {
+                        el.remove();
+                        removedCount++;
+                        console.log('🎯 Removed by exact title match:', eventTitle, 'using selector:', selector);
+                    }
+                });
             });
         }
         
