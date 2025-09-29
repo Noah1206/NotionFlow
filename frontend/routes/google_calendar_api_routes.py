@@ -13,6 +13,19 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../backend'))
 
 from backend.services.google_calendar_service import get_google_calendar_service
 
+# Import Supabase for fallback data
+try:
+    from supabase import create_client
+    import os
+
+    # Initialize Supabase client for fallback queries
+    SUPABASE_URL = os.getenv('SUPABASE_URL')
+    SUPABASE_KEY = os.getenv('SUPABASE_ANON_KEY')
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
+except ImportError:
+    supabase = None
+    print("⚠️ [GOOGLE-CALENDARS API] Supabase not available for fallback")
+
 google_calendar_api_bp = Blueprint('google_calendar_api', __name__)
 
 def get_current_user_id():
@@ -36,11 +49,42 @@ def get_google_calendars_list():
 
         print(f"📅 [GOOGLE-CALENDARS API] Loading calendars for user: {user_id}")
 
-        # Google Calendar 서비스 사용
-        calendar_service = get_google_calendar_service()
+        # Try Google Calendar 서비스 first
+        calendars = []
+        try:
+            calendar_service = get_google_calendar_service()
+            calendars = calendar_service.get_calendar_list(user_id)
+        except Exception as google_error:
+            print(f"⚠️ [GOOGLE-CALENDARS API] Google service failed: {str(google_error)}")
+            calendars = []
 
-        # 캘린더 목록 조회
-        calendars = calendar_service.get_calendar_list(user_id)
+        # Fallback: 기존 캘린더가 있으면 user_calendars 테이블에서 가져오기
+        if not calendars and supabase:
+            try:
+                print(f"🔄 [GOOGLE-CALENDARS API] Trying fallback from user_calendars table for user {user_id}")
+
+                # user_calendars 테이블에서 Google Calendar 가져오기
+                calendars_result = supabase.table('user_calendars').select('id, name, platform, is_active').eq('owner_id', user_id).eq('platform', 'google').eq('is_active', True).execute()
+
+                if calendars_result.data:
+                    calendars = []
+                    for cal in calendars_result.data:
+                        calendar_data = {
+                            'id': cal['id'],
+                            'summary': cal['name'],
+                            'name': cal['name'],
+                            'platform': 'google',
+                            'selected': True,  # 이미 생성된 캘린더는 선택된 상태
+                            'primary': True
+                        }
+                        calendars.append(calendar_data)
+
+                    print(f"✅ [GOOGLE-CALENDARS API] Found {len(calendars)} calendars from fallback table")
+                else:
+                    print(f"⚠️ [GOOGLE-CALENDARS API] No calendars found in fallback table")
+
+            except Exception as fallback_error:
+                print(f"❌ [GOOGLE-CALENDARS API] Fallback failed: {str(fallback_error)}")
 
         if not calendars:
             print(f"⚠️ [GOOGLE-CALENDARS API] No calendars found for user {user_id}")
