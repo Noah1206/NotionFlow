@@ -4275,20 +4275,35 @@
             console.log('📅 [CHANGE-CALENDAR] Google Calendar 목록 가져오는 중...');
 
             const response = await fetch('/api/google-calendars');
+            console.log('📅 [CHANGE-CALENDAR] Response status:', response.status);
+
             if (!response.ok) {
-                throw new Error(`Failed to fetch Google calendars: ${response.status}`);
+                const errorData = await response.json();
+                console.log('📅 [CHANGE-CALENDAR] Error response:', errorData);
+
+                if (errorData.reconnect_required) {
+                    showNotification(errorData.error + ' 먼저 Google Calendar를 연결 해제하고 다시 연결해주세요.', 'error');
+                } else {
+                    showNotification(errorData.error || `Google Calendar 조회 실패: ${response.status}`, 'error');
+                }
+                return;
             }
 
             const googleCalendars = await response.json();
-            console.log('📅 [CHANGE-CALENDAR] Google Calendar 목록:', googleCalendars);
+            console.log('📅 [CHANGE-CALENDAR] Google Calendar 응답:', googleCalendars);
 
-            if (!googleCalendars || googleCalendars.length === 0) {
+            if (!googleCalendars.success) {
+                showNotification(googleCalendars.error || 'Google Calendar 조회에 실패했습니다.', 'error');
+                return;
+            }
+
+            if (!googleCalendars.calendars || googleCalendars.calendars.length === 0) {
                 showNotification('Google Calendar에서 캘린더를 찾을 수 없습니다.', 'error');
                 return;
             }
 
             // Google Calendar 선택 모달 표시
-            await showGoogleCalendarSelectionModal(googleCalendars);
+            await showGoogleCalendarSelectionModal(googleCalendars.calendars);
 
         } catch (error) {
             console.error('캘린더 변경 중 오류:', error);
