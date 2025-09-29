@@ -138,24 +138,21 @@ def register_platform():
             print(f"❌ Failed to get Supabase client for user: {user_id}")
             return jsonify({'error': 'Database connection failed'}), 500
 
-        # Check if already registered
+        # Check if already registered in calendar_sync_configs
         print(f"🔍 [REGISTER] Checking if {platform} already registered for user {user_id}")
         try:
-            existing = supabase.table('registered_platforms').select('*').eq('user_id', user_id).eq('platform', platform).execute()
+            existing = supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', platform).execute()
         except Exception as db_error:
             print(f"❌ Database query error: {db_error}")
             return jsonify({'error': f'Database query failed: {str(db_error)}'}), 500
         
+        # Prepare data for calendar_sync_configs table
         platform_data = {
             'user_id': user_id,
             'platform': platform,
-            'platform_name': platform_config['name'],
-            'credential_type': platform_config['credential_type'],
             'credentials': credentials_data,
-            'encrypted_credentials': encrypted_credentials,
-            'is_registered': True,
-            'health_status': 'healthy',
-            'last_test_at': datetime.now().isoformat(),
+            'is_enabled': True,
+            'last_sync_at': datetime.now().isoformat(),
             'updated_at': datetime.now().isoformat()
         }
         
@@ -163,7 +160,7 @@ def register_platform():
             # Update existing registration
             print(f"🔍 [REGISTER] Updating existing {platform} registration")
             try:
-                result = supabase.table('registered_platforms').update(platform_data).eq('user_id', user_id).eq('platform', platform).execute()
+                result = supabase.table('calendar_sync_configs').update(platform_data).eq('user_id', user_id).eq('platform', platform).execute()
                 message = f'{platform_config["name"]} registration updated successfully'
             except Exception as update_error:
                 print(f"❌ Failed to update registration: {update_error}")
@@ -173,7 +170,7 @@ def register_platform():
             print(f"🔍 [REGISTER] Creating new {platform} registration")
             platform_data['created_at'] = datetime.now().isoformat()
             try:
-                result = supabase.table('registered_platforms').insert(platform_data).execute()
+                result = supabase.table('calendar_sync_configs').insert(platform_data).execute()
                 message = f'{platform_config["name"]} registered successfully'
             except Exception as insert_error:
                 print(f"❌ Failed to create registration: {insert_error}")
@@ -198,7 +195,8 @@ def register_platform():
                 'message': message,
                 'platform': platform,
                 'platform_name': platform_config['name'],
-                'connection_test': test_result
+                'connection_test': test_result,
+                'credentials': credentials_data  # Apple wizard needs this for success confirmation
             })
         else:
             print(f"❌ Registration failed - no data returned")
@@ -220,21 +218,21 @@ def list_registered_platforms():
     try:
         supabase = config.get_client_for_user(user_id)
         
-        # Get registered platforms
-        result = supabase.table('registered_platforms').select('''
-            platform, platform_name, credential_type, is_registered,
-            health_status, last_test_at, created_at
-        ''').eq('user_id', user_id).eq('is_registered', True).execute()
+        # Get registered platforms from calendar_sync_configs
+        result = supabase.table('calendar_sync_configs').select('''
+            platform, credentials, is_enabled, last_sync_at, created_at
+        ''').eq('user_id', user_id).eq('is_enabled', True).execute()
         
         registered_platforms = {}
         for platform in result.data:
             platform_id = platform['platform']
+            platform_config = PLATFORM_CONFIGS.get(platform_id, {})
             registered_platforms[platform_id] = {
-                'name': platform['platform_name'],
+                'name': platform_config.get('name', platform_id.title()),
                 'registered': True,
-                'credential_type': platform['credential_type'],
-                'health_status': platform['health_status'],
-                'last_test_at': platform['last_test_at'],
+                'credential_type': platform_config.get('credential_type', 'unknown'),
+                'health_status': 'healthy',  # Assume healthy if enabled
+                'last_test_at': platform['last_sync_at'],
                 'created_at': platform['created_at']
             }
         
@@ -272,11 +270,8 @@ def unregister_platform(platform):
     try:
         supabase = config.get_client_for_user(user_id)
         
-        # Remove from platform connections
-        platform_result = supabase.table('platform_connections').delete().eq('user_id', user_id).eq('platform', platform).execute()
-        
-        # OAuth tokens are already deleted in the disconnect function above
-        # No need for additional calendar sync table cleanup
+        # Remove from calendar_sync_configs
+        register_result = supabase.table('calendar_sync_configs').delete().eq('user_id', user_id).eq('platform', platform).execute()
         
         # Track event
         sync_tracker.track_sync_event(
@@ -308,10 +303,10 @@ def test_platform_connection_endpoint(platform):
         
         supabase = config.get_client_for_user(user_id)
         
-        # If no credentials provided, get from registered platforms
+        # If no credentials provided, get from calendar_sync_configs
         if not credentials_data:
-            result = supabase.table('registered_platforms').select('credentials').eq('user_id', user_id).eq('platform', platform).execute()
-            
+            result = supabase.table('calendar_sync_configs').select('credentials').eq('user_id', user_id).eq('platform', platform).execute()
+
             if result.data:
                 credentials_data = result.data[0]['credentials']
             else:
@@ -326,12 +321,11 @@ def test_platform_connection_endpoint(platform):
         else:
             health_status = 'error'
         
-        # Update the registered platform's health status
+        # Update the platform's health status in calendar_sync_configs
         try:
-            update_result = supabase.table('registered_platforms').update({
-                'health_status': health_status,
-                'last_test_at': datetime.now().isoformat(),
-                'last_error': test_result.get('error') if not test_result.get('success') else None
+            update_result = supabase.table('calendar_sync_configs').update({
+                'last_sync_at': datetime.now().isoformat(),
+                'updated_at': datetime.now().isoformat()
             }).eq('user_id', user_id).eq('platform', platform).execute()
         except:
             pass  # Don't fail the test if status update fails
