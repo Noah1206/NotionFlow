@@ -17,7 +17,16 @@ import pytz
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../utils'))
 from utils.config import config
-from services.sync_tracking_service import sync_tracker, EventType
+
+# Optional import for sync tracking
+try:
+    from services.sync_tracking_service import sync_tracker, EventType
+    SYNC_TRACKING_AVAILABLE = True
+except Exception as e:
+    print(f"⚠️ [APPLE SYNC] Sync tracking not available: {e}")
+    sync_tracker = None
+    EventType = None
+    SYNC_TRACKING_AVAILABLE = False
 
 class AppleCalendarSync:
     """Apple Calendar synchronization service using CalDAV protocol"""
@@ -75,18 +84,19 @@ class AppleCalendarSync:
 
             print(f"✅ [APPLE SYNC] Successfully synced {synced_count} events")
 
-            # Track sync event
-            sync_tracker.track_sync_event(
-                user_id=user_id,
-                event_type=EventType.SYNC_SUCCESS,
-                platform='apple',
-                status='success',
-                metadata={
-                    'calendar_id': calendar_id,
-                    'events_synced': synced_count,
-                    'total_events': len(apple_events)
-                }
-            )
+            # Track sync event (if available)
+            if SYNC_TRACKING_AVAILABLE and sync_tracker and EventType:
+                sync_tracker.track_sync_event(
+                    user_id=user_id,
+                    event_type=EventType.SYNC_SUCCESS,
+                    platform='apple',
+                    status='success',
+                    metadata={
+                        'calendar_id': calendar_id,
+                        'events_synced': synced_count,
+                        'total_events': len(apple_events)
+                    }
+                )
 
             return {
                 'success': True,
@@ -97,13 +107,14 @@ class AppleCalendarSync:
 
         except Exception as e:
             print(f"❌ [APPLE SYNC] Error: {str(e)}")
-            sync_tracker.track_sync_event(
-                user_id=user_id,
-                event_type=EventType.SYNC_ERROR,
-                platform='apple',
-                status='error',
-                error=str(e)
-            )
+            if SYNC_TRACKING_AVAILABLE and sync_tracker and EventType:
+                sync_tracker.track_sync_event(
+                    user_id=user_id,
+                    event_type=EventType.SYNC_ERROR,
+                    platform='apple',
+                    status='error',
+                    error=str(e)
+                )
             return {
                 'success': False,
                 'error': str(e),

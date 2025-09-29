@@ -54,75 +54,27 @@ def get_google_calendars_list():
         try:
             calendar_service = get_google_calendar_service()
             calendars = calendar_service.get_calendar_list(user_id)
+            print(f"✅ [GOOGLE-CALENDARS API] Retrieved {len(calendars)} Google calendars")
         except Exception as google_error:
             print(f"⚠️ [GOOGLE-CALENDARS API] Google service failed: {str(google_error)}")
-            calendars = []
-
-        # Fallback: 기존 캘린더가 있으면 calendars 테이블에서 가져오기
-        if not calendars and supabase:
-            try:
-                print(f"🔄 [GOOGLE-CALENDARS API] Trying fallback from calendars table for user {user_id}")
-
-                # calendars 테이블에서 Google 타입 캘린더 가져오기
-                calendars_result = supabase.table('calendars').select('id, name, type, is_active').eq('owner_id', user_id).eq('type', 'google').eq('is_active', True).execute()
-
-                if calendars_result.data:
-                    calendars = []
-                    for cal in calendars_result.data:
-                        calendar_data = {
-                            'id': cal['id'],
-                            'summary': cal['name'],
-                            'name': cal['name'],
-                            'platform': 'google',
-                            'selected': True,  # 이미 생성된 캘린더는 선택된 상태
-                            'primary': True
-                        }
-                        calendars.append(calendar_data)
-
-                    print(f"✅ [GOOGLE-CALENDARS API] Found {len(calendars)} calendars from fallback table")
-                else:
-                    print(f"⚠️ [GOOGLE-CALENDARS API] No Google-type calendars found in fallback table")
-
-                    # 2차 fallback: 기존 개인 캘린더가 있고 Google OAuth 토큰이 있으면 변환
-                    personal_calendars = supabase.table('calendars').select('id, name, type, is_active').eq('owner_id', user_id).eq('is_active', True).execute()
-                    oauth_tokens = supabase.table('oauth_tokens').select('*').eq('user_id', user_id).eq('platform', 'google').execute()
-
-                    if personal_calendars.data and oauth_tokens.data:
-                        print(f"💡 [GOOGLE-CALENDARS API] Found {len(personal_calendars.data)} personal calendars and valid Google OAuth token")
-                        print(f"🔄 [GOOGLE-CALENDARS API] Converting first personal calendar to Google type...")
-
-                        # 첫 번째 개인 캘린더를 Google 타입으로 변환
-                        first_calendar = personal_calendars.data[0]
-                        update_result = supabase.table('calendars').update({
-                            'type': 'google',
-                            'description': f"Converted to Google Calendar - {first_calendar['name']}"
-                        }).eq('id', first_calendar['id']).execute()
-
-                        if update_result.data:
-                            calendar_data = {
-                                'id': first_calendar['id'],
-                                'summary': first_calendar['name'],
-                                'name': first_calendar['name'],
-                                'platform': 'google',
-                                'selected': True,
-                                'primary': True
-                            }
-                            calendars = [calendar_data]
-                            print(f"✅ [GOOGLE-CALENDARS API] Successfully converted calendar '{first_calendar['name']}' to Google type")
-                        else:
-                            print(f"❌ [GOOGLE-CALENDARS API] Failed to convert calendar to Google type")
-
-            except Exception as fallback_error:
-                print(f"❌ [GOOGLE-CALENDARS API] Fallback failed: {str(fallback_error)}")
-
-        if not calendars:
-            print(f"⚠️ [GOOGLE-CALENDARS API] No calendars found for user {user_id}")
+            # Don't use fallback - return error instead
             return jsonify({
                 'success': False,
-                'error': 'Google 계정에 캘린더가 없습니다',
+                'error': 'Google Calendar에 연결할 수 없습니다. Google 계정 연결을 다시 시도해주세요.',
+                'calendars': []
+            }), 400
+
+        # Check if we got actual Google calendars
+        if not calendars:
+            print(f"⚠️ [GOOGLE-CALENDARS API] No Google calendars found for user {user_id}")
+            return jsonify({
+                'success': False,
+                'error': 'Google Calendar에서 캘린더를 찾을 수 없습니다. Google 계정에 캘린더가 있는지 확인해주세요.',
                 'calendars': []
             }), 404
 
+
+        # Return successful Google calendars
         print(f"✅ [GOOGLE-CALENDARS API] Found {len(calendars)} calendars for user {user_id}")
 
         return jsonify({
