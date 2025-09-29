@@ -1033,38 +1033,20 @@ class GoogleCalendarGrid {
             // Update event list and refresh display
             this.updateEventList();
             
-            // 🔄 강제 그리드 새로고침 - 모든 이벤트 다시 그리기
+            // 🎯 선택적 이벤트 업데이트 (전체 새로고침 대신 최소한의 업데이트)
             setTimeout(() => {
-                console.log('🔄 Force refresh: clearing all rendered events and re-rendering...');
-                
-                // 1. 모든 렌더된 이벤트 완전히 제거
-                this.clearRenderedEvents();
-                
-                // 2. 추가로 모든 calendar-event 클래스 요소 강제 제거
-                document.querySelectorAll('.calendar-event').forEach(element => {
+                console.log('🎯 Selective update: removing only the deleted event');
+
+                // 1. 삭제된 이벤트만 DOM에서 제거 (다른 이벤트는 그대로 유지)
+                document.querySelectorAll(`[data-event-id="${eventData.id}"]`).forEach(element => {
                     element.remove();
+                    console.log(`🗑️ Removed specific event element with ID: ${eventData.id}`);
                 });
-                
-                // 3. 현재 남은 이벤트들만 다시 렌더링 (삭제된 이벤트 제외)
-                const validEvents = this.events.filter(event => {
-                    return event && 
-                           event.id && 
-                           event.date && 
-                           event.title !== eventData.title && // 삭제된 이벤트 제목 제외
-                           String(event.id) !== String(eventData.id); // 삭제된 이벤트 ID 제외
-                });
-                
-                console.log(`🔄 Rendering ${validEvents.length} remaining events (excluding deleted event)`);
-                
-                validEvents.forEach(event => {
-                    this.renderEvent(event);
-                    console.log('✅ Re-rendered event:', event.title);
-                });
-                
-                // 4. 이벤트 목록도 업데이트
+
+                // 2. 이벤트 목록만 업데이트
                 this.updateEventList();
-                
-                console.log('✅ Force refresh completed');
+
+                console.log('✅ Selective update completed - other events preserved');
             }, 50);
             
             // Close any open popup
