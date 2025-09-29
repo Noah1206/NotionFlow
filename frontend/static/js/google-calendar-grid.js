@@ -3487,12 +3487,15 @@ class GoogleCalendarGrid {
                 console.log('📱 Client-only event, no server deletion needed:', eventTitle);
             }
             
+            // 영구 삭제 목록에 추가 (동기화 시 재가져오기 방지)
+            this.addToPermanentlyDeleted(eventId);
+
             // 휴지통에서 완전 제거
             trashedEvents.splice(eventIndex, 1);
             localStorage.setItem('trashedEvents', JSON.stringify(trashedEvents));
-            
-            console.log('🗑️ Event permanently deleted:', eventTitle);
-            
+
+            console.log('🗑️ Event permanently deleted and added to blacklist:', eventTitle);
+
             if (window.updateTrashUI) {
                 window.updateTrashUI();
             }
