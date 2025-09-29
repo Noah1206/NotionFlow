@@ -397,7 +397,24 @@ class GoogleManager extends PlatformManager {
             this.hideLoading(this.oneClickBtn);
         }
     }
-    
+
+    // Override showConnectedState to add calendar selection button
+    showConnectedState() {
+        // Call parent method first
+        super.showConnectedState();
+
+        // Show calendar selection button for Google Calendar
+        if (this.syncBtn) {
+            this.syncBtn.style.display = 'inline-flex';
+            this.syncBtn.style.visibility = 'visible';
+            this.syncBtn.innerHTML = `
+                <span class="sync-text">캘린더 선택</span>
+                <span class="sync-status"></span>
+            `;
+            this.syncBtn.onclick = () => this.showCalendarSelection();
+        }
+    }
+
     async disconnect() {
         if (!confirm(`${this.getKoreanName()} 연결을 해제하시겠습니까?`)) {
             return;
