@@ -1079,7 +1079,7 @@ class GoogleManager extends PlatformManager {
 
         modalContent.innerHTML = `
             <h2 style="margin: 0 0 16px 0;">📅 Google Calendar 선택</h2>
-            <p style="color: #666; margin-bottom: 20px;">동기화할 Google Calendar를 선택해주세요:</p>
+            <p style="color: #666; margin-bottom: 20px;">가져올 Google Calendar를 선택해주세요:</p>
             <div id="calendar-list" style="margin-bottom: 20px;">
                 ${calendars.map((cal, index) => `
                     <div style="
@@ -1210,7 +1210,7 @@ class GoogleManager extends PlatformManager {
                             justify-content: center;
                         ">×</button>
                     </div>
-                    <p style="color: #6b7280; margin-bottom: 24px; font-size: 16px;">동기화할 Google Calendar를 선택해주세요:</p>
+                    <p style="color: #6b7280; margin-bottom: 24px; font-size: 16px;">가져올 Google Calendar를 선택해주세요:</p>
                     <div style="margin-bottom: 24px; max-height: 400px; overflow-y: auto;">
                         ${calendars.map((cal, index) => `
                             <div onclick="selectGoogleCalendar('${cal.id}', this)" style="
