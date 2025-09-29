@@ -1261,41 +1261,21 @@ def get_google_calendars():
                     else:
                         print(f"⚠️ [GOOGLE-CALENDARS] No Google-type calendars found in fallback table")
 
-                        # 2차 fallback: 기존 개인 캘린더가 있고 Google OAuth 토큰이 있으면 변환 제안
-                        personal_calendars = supabase_client.table('calendars').select('id, name, type, is_active').eq('owner_id', user_id).eq('is_active', True).execute()
-                        oauth_tokens = supabase_client.table('oauth_tokens').select('*').eq('user_id', user_id).eq('platform', 'google').execute()
-
-                        if personal_calendars.data and oauth_tokens.data:
-                            print(f"💡 [GOOGLE-CALENDARS] Found {len(personal_calendars.data)} personal calendars and valid Google OAuth token")
-                            print(f"🔄 [GOOGLE-CALENDARS] Converting first personal calendar to Google type...")
-
-                            # 첫 번째 개인 캘린더를 Google 타입으로 변환하지 않고 그대로 사용
-                            first_calendar = personal_calendars.data[0]
-                            # type을 변경하지 않고 캘린더 정보만 반환
-                            calendar_data = {
-                                'id': first_calendar['id'],
-                                'summary': first_calendar['name'],
-                                'name': first_calendar['name'],
-                                'platform': 'google',
-                                'selected': True,
-                                'primary': True
-                            }
-                            google_calendars = [calendar_data]
-                            print(f"✅ [GOOGLE-CALENDARS] Using personal calendar '{first_calendar['name']}' as fallback")
+                        # fallback은 더 이상 사용하지 않음 - OAuth 재연결 필요
+                        print(f"❌ [GOOGLE-CALENDARS] OAuth 토큰 문제로 인해 Google Calendar 접근 불가")
 
             except Exception as fallback_error:
                 print(f"❌ [GOOGLE-CALENDARS] Fallback failed: {str(fallback_error)}")
 
             # OAuth 토큰 상태 확인 (여전히 캘린더가 없을 때만)
             if not google_calendars:
-                service = google_service.get_calendar_service(user_id)
-                if not service:
-                    print(f"❌ [GOOGLE-CALENDARS] No calendar service available for user {user_id} - OAuth token may be missing")
-                    return jsonify({
-                        'success': False,
-                        'error': 'Google Calendar OAuth token not found. Please re-authenticate.',
-                        'calendars': []
-                    })
+                print(f"❌ [GOOGLE-CALENDARS] Google Calendar 접근 실패 - OAuth 재연결 필요")
+                return jsonify({
+                    'success': False,
+                    'error': 'Google 인증이 만료되었습니다. Google Calendar 연결을 해제한 후 다시 연결해주세요.',
+                    'calendars': [],
+                    'reconnect_required': True
+                })
 
         return jsonify({
             'success': True,
