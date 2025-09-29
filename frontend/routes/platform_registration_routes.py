@@ -147,10 +147,28 @@ def register_platform():
             return jsonify({'error': f'Database query failed: {str(db_error)}'}), 500
         
         # Prepare data for calendar_sync_configs table
+        # Enhance credentials with connection status and test results
+        enhanced_credentials = {
+            **credentials_data,
+            'connected': test_result.get('success', False),
+            'connection_test_result': test_result,
+            'last_test_at': datetime.now().isoformat(),
+            'connection_type': test_result.get('connection_type', 'unknown')
+        }
+
+        # Add server info for CalDAV connections
+        if test_result.get('connection_type') == 'caldav' and test_result.get('server'):
+            enhanced_credentials['server_url'] = test_result['server']
+
+        # Add discovered calendars
+        if test_result.get('calendars'):
+            enhanced_credentials['calendars'] = test_result['calendars']
+            enhanced_credentials['calendar_count'] = test_result.get('calendar_count', len(test_result['calendars']))
+
         platform_data = {
             'user_id': user_id,
             'platform': platform,
-            'credentials': credentials_data,
+            'credentials': enhanced_credentials,
             'is_enabled': True,
             'last_sync_at': datetime.now().isoformat(),
             'updated_at': datetime.now().isoformat()
@@ -582,11 +600,40 @@ def test_apple_connection(credentials):
             
             if response.status_code in [207, 200]:  # Multi-Status or OK
                 print(f"✅ [APPLE TEST] Connection successful!")
+
+                # Try to discover calendars
+                calendars = []
+                try:
+                    print(f"🔍 [APPLE TEST] Discovering calendars...")
+                    # CalDAV calendar discovery
+                    calendar_home_url = f'{server_url}/{username}/calendars/'
+                    calendar_response = requests.request(
+                        'PROPFIND',
+                        calendar_home_url,
+                        auth=HTTPBasicAuth(username, password),
+                        headers={'Content-Type': 'text/xml; charset=utf-8', 'Depth': '1'},
+                        data=propfind_body,
+                        timeout=10
+                    )
+
+                    if calendar_response.status_code in [207, 200]:
+                        print(f"✅ [APPLE TEST] Calendar discovery successful")
+                        # Parse calendar response (simplified - just count)
+                        calendar_count = len([line for line in calendar_response.text.split('\n') if 'calendar' in line.lower()])
+                        calendars = [{'name': f'Calendar {i+1}', 'id': f'cal_{i+1}'} for i in range(min(calendar_count, 5))]
+                        print(f"🔍 [APPLE TEST] Found {len(calendars)} calendars")
+                    else:
+                        print(f"⚠️ [APPLE TEST] Calendar discovery failed: {calendar_response.status_code}")
+                except Exception as cal_error:
+                    print(f"⚠️ [APPLE TEST] Calendar discovery error: {cal_error}")
+
                 return {
                     'success': True,
                     'message': 'Apple CalDAV connection successful',
                     'connection_type': 'caldav',
-                    'server': server_url
+                    'server': server_url,
+                    'calendars': calendars,
+                    'calendar_count': len(calendars)
                 }
             elif response.status_code == 401:
                 print(f"❌ [APPLE TEST] Authentication failed")

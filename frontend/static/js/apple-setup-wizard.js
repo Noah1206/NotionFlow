@@ -361,13 +361,25 @@ class AppleSetupWizard {
                 // 성공
                 document.getElementById('connected-email').textContent = this.userEmail;
                 this.moveToStep(3);
-                
-                // 플랫폼 카드 업데이트
-                if (window.platformCard) {
-                    window.platformCard.loadRegisteredPlatforms();
-                    window.platformCard.render();
+
+                // 플랫폼 카드 업데이트 (API 키 페이지의 함수 사용)
+                if (window.updatePlatformStatus) {
+                    window.updatePlatformStatus('apple', 'connected');
+                    console.log('✅ [APPLE WIZARD] Platform status updated to connected');
                 }
-                
+
+                // 플랫폼 상태 새로고침
+                if (window.loadAllPlatformStatus) {
+                    window.loadAllPlatformStatus();
+                    console.log('✅ [APPLE WIZARD] All platform statuses refreshed');
+                }
+
+                // 연동된 캘린더 정보 새로고침
+                if (window.loadSyncedCalendars) {
+                    window.loadSyncedCalendars();
+                    console.log('✅ [APPLE WIZARD] Synced calendars refreshed');
+                }
+
                 // 성공 알림
                 this.showNotification('Apple 캘린더가 성공적으로 연결되었습니다!', 'success');
             } else {

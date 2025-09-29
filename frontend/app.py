@@ -7316,7 +7316,7 @@ def mark_platform_disconnected(platform):
 
 @app.route('/api/platforms/status', methods=['GET'])
 def get_all_platform_status():
-    """모든 플랫폼의 연결 상태 조회"""
+    """모든 플랫폼의 연결 상태 조회 (Enhanced with database lookup)"""
     try:
         user_id = session.get('user_id')
         if not user_id:
@@ -7324,24 +7324,52 @@ def get_all_platform_status():
                 'success': False,
                 'error': 'User not authenticated'
             }), 401
-        
+
         platforms = ['notion', 'google', 'apple', 'outlook', 'slack']
         platform_statuses = {}
-        
+
+        # Get database connection
+        supabase = config.get_client_for_user(user_id)
+        if supabase:
+            # Query all platform configurations from database
+            try:
+                result = supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).execute()
+                db_platforms = {p['platform']: p for p in result.data} if result.data else {}
+            except Exception as db_error:
+                print(f"⚠️ Database query error in platform status: {db_error}")
+                db_platforms = {}
+        else:
+            db_platforms = {}
+
         for platform in platforms:
-            # Google Calendar 전용 연결 상태 확인 로직
-            if platform == 'google':
-                # Check database tokens AND session state
-                db_connected = check_google_calendar_connection(user_id)
-                session_connected = session.get(f'platform_{platform}_connected', False)
-                # Connected if either database has tokens OR session says connected
-                connected = db_connected or session_connected
-                print(f"[PLATFORM-STATUS] Google connection - DB: {db_connected}, Session: {session_connected}, Final: {connected}")
+            # Enhanced platform status checking
+            if platform in db_platforms:
+                # Platform is registered in database
+                platform_config = db_platforms[platform]
+                credentials = platform_config.get('credentials', {})
+
+                # Check multiple connection indicators
+                connected = (
+                    credentials.get('connected', False) or  # New enhanced connection status
+                    credentials.get('oauth_connected', False) or  # OAuth connection
+                    credentials.get('calendar_id') is not None or  # Calendar selected
+                    platform_config.get('is_enabled', False)  # Platform enabled
+                )
+
+                print(f"[PLATFORM-STATUS] {platform} - DB connected: {connected}, enabled: {platform_config.get('is_enabled', False)}")
             else:
-                # 다른 플랫폼은 기존 세션 기반 확인
-                session_key = f'platform_{platform}_connected'
-                connected = session.get(session_key, False)
-            
+                # Fallback to session-based checking for platforms not in database
+                if platform == 'google':
+                    # Special handling for Google Calendar
+                    db_connected = check_google_calendar_connection(user_id)
+                    session_connected = session.get(f'platform_{platform}_connected', False)
+                    connected = db_connected or session_connected
+                    print(f"[PLATFORM-STATUS] Google fallback - DB: {db_connected}, Session: {session_connected}, Final: {connected}")
+                else:
+                    session_key = f'platform_{platform}_connected'
+                    connected = session.get(session_key, False)
+                    print(f"[PLATFORM-STATUS] {platform} fallback - Session: {connected}")
+
             platform_statuses[platform] = {
                 'connected': connected,
                 'last_sync': session.get(f'platform_{platform}_last_sync'),
