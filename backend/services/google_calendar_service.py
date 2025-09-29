@@ -67,6 +67,21 @@ class GoogleCalendarService:
                 print(f"❌ No Google credentials found for user {user_id} in any table")
                 return None
 
+            # 디버깅: 토큰 데이터와 환경변수 확인
+            print(f"🔍 [DEBUG] Token data keys: {list(token_data.keys())}")
+            print(f"🔍 [DEBUG] Has access_token: {bool(token_data.get('access_token'))}")
+            print(f"🔍 [DEBUG] Has refresh_token: {bool(token_data.get('refresh_token'))}")
+            print(f"🔍 [DEBUG] Has GOOGLE_CLIENT_ID: {bool(os.environ.get('GOOGLE_CLIENT_ID'))}")
+            print(f"🔍 [DEBUG] Has GOOGLE_CLIENT_SECRET: {bool(os.environ.get('GOOGLE_CLIENT_SECRET'))}")
+
+            if not token_data.get('refresh_token'):
+                print(f"❌ Missing refresh_token for user {user_id}")
+                return None
+
+            if not os.environ.get('GOOGLE_CLIENT_ID') or not os.environ.get('GOOGLE_CLIENT_SECRET'):
+                print(f"❌ Missing Google OAuth environment variables")
+                return None
+
             # Google Credentials 객체 생성 (만료 시간 없이 먼저 생성)
             credentials = Credentials(
                 token=token_data.get('access_token'),
