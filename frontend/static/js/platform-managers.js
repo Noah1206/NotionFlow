@@ -659,22 +659,26 @@ class GoogleManager extends PlatformManager {
         try {
             console.log('📅 [GOOGLE] Starting calendar selection...');
 
-            // Simply use dashboard modal (like Notion does)
-            if (typeof showCalendarSelectionModal === 'function') {
-                await showCalendarSelectionModal('google');
-            } else if (typeof window.showCalendarSelectionModal === 'function') {
-                await window.showCalendarSelectionModal('google');
-            } else {
-                throw new Error('Calendar selection modal not available');
+            // Fetch Google Calendars using the API
+            const response = await fetch('/api/google-calendars');
+            if (!response.ok) {
+                throw new Error(`Failed to fetch calendars: ${response.status}`);
             }
 
-            
+            const data = await response.json();
+            if (!data.success || !data.calendars || data.calendars.length === 0) {
+                throw new Error('Google 계정에 캘린더가 없습니다');
+            }
+
+            // Use the Ultimate Google Calendar Modal
+            this.createFallbackCalendarModal(data.calendars);
+
         } catch (error) {
             console.error('Calendar selection error:', error);
 
             // 에러 타입에 따라 다른 알림 표시
             if (error.message.includes('캘린더가 없습니다')) {
-                // 캘린더 없음 에러는 이미 처리됨
+                this.showNotification('Google 계정에 사용 가능한 캘린더가 없습니다.', 'warning');
                 return;
             } else if (error.message.includes('인증이 만료')) {
                 this.showNotification('Google 인증이 만료되었습니다. 다시 연결해주세요.', 'warning');
@@ -733,9 +737,7 @@ class GoogleManager extends PlatformManager {
     }
 
     createFallbackCalendarModal(calendars) {
-        // Removed - using dashboard modal instead
-        console.log('⚠️ [GOOGLE] Fallback modal removed - using dashboard modal');
-        return;
+        console.log('🚀 [GOOGLE] Creating Ultimate Google Calendar Modal with calendars:', calendars);
 
         // Remove any existing modals more aggressively
         const existingModals = [
