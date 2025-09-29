@@ -1092,6 +1092,19 @@
 
     // 개별 플랫폼 연동 기능 - 캘린더 선택 후 연결
     async function connectPlatform(platformName) {
+        // Apple의 경우 스마트 마법사 실행
+        if (platformName === 'apple') {
+            if (window.appleWizard) {
+                window.appleWizard.start(platformName);
+            } else {
+                console.error('Apple Setup Wizard not loaded');
+                showNotification('Apple 설정 마법사를 불러오는 중 오류가 발생했습니다.', 'error');
+                // 폴백으로 수동 설정 폼 표시
+                togglePlatformDetails(platformName);
+            }
+            return;
+        }
+
         // OAuth 지원 플랫폼 체크
         const oauthPlatforms = ['google', 'notion', 'slack', 'outlook'];
 
@@ -1942,6 +1955,25 @@
     async function oneClickConnect(platform) {
         // Apple의 경우 스마트 마법사 실행
         if (platform === 'apple') {
+            const button = document.querySelector(`[data-platform="${platform}"] .one-click-btn-small`);
+
+            if (button) {
+                const loader = button.querySelector('.btn-loader');
+                const buttonText = button.querySelector('.btn-text');
+
+                // 버튼 상태 변경
+                button.disabled = true;
+                if (buttonText) buttonText.style.display = 'none';
+                if (loader) loader.style.display = 'flex';
+
+                // 잠깐 로딩 표시 후 마법사 실행
+                setTimeout(() => {
+                    button.disabled = false;
+                    if (buttonText) buttonText.style.display = 'inline';
+                    if (loader) loader.style.display = 'none';
+                }, 500);
+            }
+
             if (window.appleWizard) {
                 window.appleWizard.start(platform);
             } else {
