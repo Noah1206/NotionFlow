@@ -662,11 +662,19 @@ class GoogleManager extends PlatformManager {
             // Fetch Google Calendars using the API
             const response = await fetch('/api/google-calendars');
             if (!response.ok) {
-                throw new Error(`Failed to fetch calendars: ${response.status}`);
+                const errorData = await response.json();
+                console.error('Google Calendar API error:', errorData);
+                throw new Error(errorData.error || `Google Calendar 조회 실패: ${response.status}`);
             }
 
             const data = await response.json();
-            if (!data.success || !data.calendars || data.calendars.length === 0) {
+            console.log('Google Calendar API response:', data);
+
+            if (!data.success) {
+                throw new Error(data.error || 'Google Calendar 조회에 실패했습니다');
+            }
+
+            if (!data.calendars || data.calendars.length === 0) {
                 throw new Error('Google 계정에 캘린더가 없습니다');
             }
 
@@ -677,11 +685,12 @@ class GoogleManager extends PlatformManager {
             console.error('Calendar selection error:', error);
 
             // 에러 타입에 따라 다른 알림 표시
-            if (error.message.includes('캘린더가 없습니다')) {
-                this.showNotification('Google 계정에 사용 가능한 캘린더가 없습니다.', 'warning');
+            if (error.message.includes('인증이 만료되었습니다') || error.message.includes('연결을 해제한 후 다시 연결')) {
+                this.showNotification(error.message, 'warning');
                 return;
-            } else if (error.message.includes('인증이 만료')) {
-                this.showNotification('Google 인증이 만료되었습니다. 다시 연결해주세요.', 'warning');
+            } else if (error.message.includes('캘린더를 찾을 수 없습니다') || error.message.includes('네트워크를 확인')) {
+                this.showNotification(error.message, 'warning');
+                return;
             } else {
                 this.showNotification(`캘린더 연결 중 오류: ${error.message}`, 'error');
             }
