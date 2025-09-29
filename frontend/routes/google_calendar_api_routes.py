@@ -58,13 +58,13 @@ def get_google_calendars_list():
             print(f"⚠️ [GOOGLE-CALENDARS API] Google service failed: {str(google_error)}")
             calendars = []
 
-        # Fallback: 기존 캘린더가 있으면 user_calendars 테이블에서 가져오기
+        # Fallback: 기존 캘린더가 있으면 calendars 테이블에서 가져오기
         if not calendars and supabase:
             try:
-                print(f"🔄 [GOOGLE-CALENDARS API] Trying fallback from user_calendars table for user {user_id}")
+                print(f"🔄 [GOOGLE-CALENDARS API] Trying fallback from calendars table for user {user_id}")
 
-                # user_calendars 테이블에서 Google Calendar 가져오기
-                calendars_result = supabase.table('user_calendars').select('id, name, platform, is_active').eq('owner_id', user_id).eq('platform', 'google').eq('is_active', True).execute()
+                # calendars 테이블에서 Google 타입 캘린더 가져오기
+                calendars_result = supabase.table('calendars').select('id, name, type, is_active').eq('owner_id', user_id).eq('type', 'google').eq('is_active', True).execute()
 
                 if calendars_result.data:
                     calendars = []
@@ -81,7 +81,36 @@ def get_google_calendars_list():
 
                     print(f"✅ [GOOGLE-CALENDARS API] Found {len(calendars)} calendars from fallback table")
                 else:
-                    print(f"⚠️ [GOOGLE-CALENDARS API] No calendars found in fallback table")
+                    print(f"⚠️ [GOOGLE-CALENDARS API] No Google-type calendars found in fallback table")
+
+                    # 2차 fallback: 기존 개인 캘린더가 있고 Google OAuth 토큰이 있으면 변환
+                    personal_calendars = supabase.table('calendars').select('id, name, type, is_active').eq('owner_id', user_id).eq('is_active', True).execute()
+                    oauth_tokens = supabase.table('oauth_tokens').select('*').eq('user_id', user_id).eq('platform', 'google').execute()
+
+                    if personal_calendars.data and oauth_tokens.data:
+                        print(f"💡 [GOOGLE-CALENDARS API] Found {len(personal_calendars.data)} personal calendars and valid Google OAuth token")
+                        print(f"🔄 [GOOGLE-CALENDARS API] Converting first personal calendar to Google type...")
+
+                        # 첫 번째 개인 캘린더를 Google 타입으로 변환
+                        first_calendar = personal_calendars.data[0]
+                        update_result = supabase.table('calendars').update({
+                            'type': 'google',
+                            'description': f"Converted to Google Calendar - {first_calendar['name']}"
+                        }).eq('id', first_calendar['id']).execute()
+
+                        if update_result.data:
+                            calendar_data = {
+                                'id': first_calendar['id'],
+                                'summary': first_calendar['name'],
+                                'name': first_calendar['name'],
+                                'platform': 'google',
+                                'selected': True,
+                                'primary': True
+                            }
+                            calendars = [calendar_data]
+                            print(f"✅ [GOOGLE-CALENDARS API] Successfully converted calendar '{first_calendar['name']}' to Google type")
+                        else:
+                            print(f"❌ [GOOGLE-CALENDARS API] Failed to convert calendar to Google type")
 
             except Exception as fallback_error:
                 print(f"❌ [GOOGLE-CALENDARS API] Fallback failed: {str(fallback_error)}")
