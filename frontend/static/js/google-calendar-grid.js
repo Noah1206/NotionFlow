@@ -2094,6 +2094,7 @@ class GoogleCalendarGrid {
         
         const eventElement = document.createElement('div');
         eventElement.className = 'calendar-event';
+        eventElement.dataset.eventId = eventData.id;
         
         // Apply color based on event source
         if (eventData.source === 'google_calendar') {
@@ -2497,6 +2498,7 @@ class GoogleCalendarGrid {
             
             const eventElement = document.createElement('div');
             eventElement.className = 'calendar-event multi-day-event';
+            eventElement.dataset.eventId = eventData.id;
             
             // Apply color as inline style
             if (eventData.color && eventData.color.startsWith('#')) {
@@ -3000,6 +3002,14 @@ class GoogleCalendarGrid {
         // Convert eventId to string for consistent comparison
         const eventIdStr = String(eventId);
         console.log('🗑️ Attempting to delete event with ID:', eventIdStr);
+
+        // First try: Find event by exact ID match
+        let eventIndex = this.events.findIndex(e => String(e.id) === eventIdStr);
+        if (eventIndex !== -1) {
+            console.log('✅ Found event by exact ID match');
+            await this.deleteEvent(this.events[eventIndex]);
+            return true;
+        }
         
         // Clean events array of null values first
         this.events = this.events.filter(e => e && e.id);
@@ -3204,8 +3214,34 @@ class GoogleCalendarGrid {
                 }
             }
             
+            // Last resort: find by DOM element data attributes
+            const eventElements = document.querySelectorAll('.event, .calendar-event, [data-event-id]');
+            for (const element of eventElements) {
+                const elementEventId = element.getAttribute('data-event-id') ||
+                                     element.getAttribute('data-id') ||
+                                     element.id;
+
+                if (elementEventId === eventId) {
+                    // Try to find event in array by title or other attributes
+                    const titleElement = element.querySelector('.event-title, .title, .event-name');
+                    if (titleElement) {
+                        const title = titleElement.textContent.trim();
+                        const foundEvent = this.events.find(e => e.title === title);
+                        if (foundEvent) {
+                            console.log('🔍 Found event by DOM title matching:', foundEvent.id);
+                            // Delete via DOM element
+                            element.remove();
+                            // Remove from events array
+                            this.events = this.events.filter(e => e.id !== foundEvent.id);
+                            return true;
+                        }
+                    }
+                }
+            }
+
             console.log('⚠️ Could not find clicked event with ID:', eventId);
             console.log('🔍 Available events:', this.events.map(e => ({id: e.id, title: e.title})));
+            console.log('🔍 DOM event elements found:', eventElements.length);
             return false;
         }
         
