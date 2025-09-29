@@ -3628,51 +3628,34 @@ class GoogleCalendarGrid {
 
         if (!grid || !header || !body) return;
 
-        // Get the actual container and parent container widths
-        const parentContainer = this.container.parentElement;
+        // Remove all inline styles to let CSS handle everything
+        this.container.style.width = '';
+        this.container.style.maxWidth = '';
+        this.container.style.minWidth = '';
+
+        grid.style.width = '';
+        grid.style.maxWidth = '';
+        grid.style.minWidth = '';
+
+        header.style.width = '';
+        header.style.maxWidth = '';
+        header.style.minWidth = '';
+        header.style.gridTemplateColumns = '75px repeat(7, 215px)';
+
+        body.style.width = '';
+        body.style.maxWidth = '';
+        body.style.minWidth = '';
+        body.style.gridTemplateColumns = '75px repeat(7, 215px)';
+
+        // Just log for debugging
         const viewportWidth = window.innerWidth;
         const sidebarWidth = this.getSidebarWidth();
-        const availableContainerWidth = viewportWidth - sidebarWidth;
+        const availableWidth = viewportWidth - sidebarWidth;
 
-        // Force container to use full available width
-        this.container.style.width = '100%';
-        this.container.style.maxWidth = '100%';
-        this.container.style.minWidth = '100%';
-
-        // Force grid to use full available width
-        grid.style.width = '100%';
-        grid.style.maxWidth = '100%';
-        grid.style.minWidth = '100%';
-
-        // Ensure header spans full width
-        header.style.width = '100%';
-        header.style.maxWidth = '100%';
-        header.style.minWidth = '100%';
-
-        // Ensure body spans full width
-        body.style.width = '100%';
-        body.style.maxWidth = '100%';
-        body.style.minWidth = '100%';
-
-        // Calculate column widths
-        const timeColumnWidth = 80; // Fixed time column width
-        const remainingWidth = availableContainerWidth - timeColumnWidth;
-        const dayColumnWidth = Math.floor(remainingWidth / 7);
-
-        // Remove any inline grid-template-columns to let CSS handle it
-        header.style.gridTemplateColumns = '';
-        body.style.gridTemplateColumns = '';
-
-        // Ensure CSS classes are applied properly
-        header.classList.add('calendar-header');
-        body.classList.add('calendar-grid-body');
-
-        console.log('📏 Adjusted grid layout:', {
+        console.log('📏 Grid layout (CSS controlled):', {
             viewportWidth,
             sidebarWidth,
-            availableContainerWidth,
-            timeColumnWidth,
-            dayColumnWidth
+            availableWidth
         });
     }
 
