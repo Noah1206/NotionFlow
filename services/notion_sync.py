@@ -352,25 +352,19 @@ class NotionCalendarSync:
                 print(f"❌ [CALENDAR_ID] No Supabase client for user {user_id}")
                 return None
             
-            # Look up selected calendars from selected_calendars table
-            selected_result = supabase.table('selected_calendars').select('''
-                calendar_id,
-                user_calendars (
-                    id,
-                    name
-                )
-            ''').eq('user_id', normalized_user_id).eq('is_selected', True).execute()
-
-            if selected_result.data:
-                # Use the first selected calendar
-                calendar_id = selected_result.data[0]['calendar_id']
-                calendar_data = selected_result.data[0].get('user_calendars', {})
-                calendar_name = calendar_data.get('name', 'Unknown') if calendar_data else 'Unknown'
-                print(f"✅ [CALENDAR_ID] Found selected calendar for user {user_id}: {calendar_name} ({calendar_id})")
-                return calendar_id
-            else:
-                print(f"⚠️ [CALENDAR_ID] No selected calendars found for user {user_id}")
-                print(f"❌ [NOTION SYNC] 동기화할 캘린더가 선택되지 않았습니다. API 키 연결 페이지에서 캘린더를 선택해주세요.")
+            # Fallback: Use first available calendar for the user
+            try:
+                calendars_result = supabase.table('user_calendars').select('id, name').eq('owner_id', user_id).eq('is_active', True).limit(1).execute()
+                if calendars_result.data:
+                    calendar_id = calendars_result.data[0]['id']
+                    calendar_name = calendars_result.data[0]['name']
+                    print(f"✅ [CALENDAR_ID] Using first available calendar for user {user_id}: {calendar_name} ({calendar_id})")
+                    return calendar_id
+                else:
+                    print(f"⚠️ [CALENDAR_ID] No active calendars found for user {user_id}")
+                    return None
+            except Exception as calendar_error:
+                print(f"❌ [CALENDAR_ID] Error querying user_calendars: {calendar_error}")
                 return None
                 
         except Exception as e:

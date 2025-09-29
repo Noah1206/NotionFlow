@@ -333,9 +333,14 @@ class GoogleCalendarGrid {
         this.loadExistingEvents(); // Load existing events from backend
         this.updateCurrentTimeIndicator();
         
-        // Add comprehensive resize listener for dynamic sizing
+        // Add debounced resize listener for dynamic sizing
         window.addEventListener('resize', () => {
-            this.handleResize();
+            if (this.resizeTimeout) {
+                clearTimeout(this.resizeTimeout);
+            }
+            this.resizeTimeout = setTimeout(() => {
+                this.handleResize();
+            }, 150); // 150ms debounce
         });
 
         // Initial resize to set proper dimensions
@@ -3199,7 +3204,8 @@ class GoogleCalendarGrid {
                 }
             }
             
-            console.log('⚠️ Could not find clicked event');
+            console.log('⚠️ Could not find clicked event with ID:', eventId);
+            console.log('🔍 Available events:', this.events.map(e => ({id: e.id, title: e.title})));
             return false;
         }
         
