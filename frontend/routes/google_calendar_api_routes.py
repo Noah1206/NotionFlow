@@ -56,13 +56,23 @@ def get_google_calendars_list():
             calendars = calendar_service.get_calendar_list(user_id)
             print(f"✅ [GOOGLE-CALENDARS API] Retrieved {len(calendars)} Google calendars")
         except Exception as google_error:
-            print(f"⚠️ [GOOGLE-CALENDARS API] Google service failed: {str(google_error)}")
-            # Don't use fallback - return error instead
-            return jsonify({
-                'success': False,
-                'error': 'Google Calendar에 연결할 수 없습니다. Google 계정 연결을 다시 시도해주세요.',
-                'calendars': []
-            }), 400
+            error_str = str(google_error)
+            print(f"⚠️ [GOOGLE-CALENDARS API] Google service failed: {error_str}")
+
+            # OAuth refresh 에러인 경우 더 구체적인 메시지
+            if 'refresh the access token' in error_str or 'credentials do not contain' in error_str:
+                return jsonify({
+                    'success': False,
+                    'error': 'Google 인증이 만료되었습니다. Google Calendar 연결을 해제한 후 다시 연결해주세요.',
+                    'calendars': [],
+                    'reconnect_required': True
+                }), 400
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': 'Google Calendar에 연결할 수 없습니다. 네트워크를 확인하거나 잠시 후 다시 시도해주세요.',
+                    'calendars': []
+                }), 400
 
         # Check if we got actual Google calendars
         if not calendars:

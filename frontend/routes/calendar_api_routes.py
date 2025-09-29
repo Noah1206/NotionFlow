@@ -1283,20 +1283,6 @@ def get_google_calendars():
                             google_calendars = [calendar_data]
                             print(f"✅ [GOOGLE-CALENDARS] Using personal calendar '{first_calendar['name']}' as fallback")
 
-                            if update_result.data:
-                                calendar_data = {
-                                    'id': first_calendar['id'],
-                                    'summary': first_calendar['name'],
-                                    'name': first_calendar['name'],
-                                    'platform': 'google',
-                                    'selected': True,
-                                    'primary': True
-                                }
-                                google_calendars = [calendar_data]
-                                print(f"✅ [GOOGLE-CALENDARS] Successfully converted calendar '{first_calendar['name']}' to Google type")
-                            else:
-                                print(f"❌ [GOOGLE-CALENDARS] Failed to convert calendar to Google type")
-
             except Exception as fallback_error:
                 print(f"❌ [GOOGLE-CALENDARS] Fallback failed: {str(fallback_error)}")
 
