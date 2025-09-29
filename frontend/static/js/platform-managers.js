@@ -1073,7 +1073,12 @@ class GoogleManager extends PlatformManager {
                     const googleManager = PlatformManagerFactory.get('google');
                     if (googleManager) {
                         await googleManager.connectCalendar(window.selectedCalendarId);
-                        document.getElementById('google-calendar-modal-ultimate').remove();
+
+                        // Close modal safely
+                        const modal = document.getElementById('google-calendar-modal-ultimate');
+                        if (modal) {
+                            modal.remove();
+                        }
                     }
                 } catch (error) {
                     console.error('Connection error:', error);
