@@ -82,11 +82,11 @@ def register_platform():
     # Rate limiting
     last_register_time = session.get(f'last_platform_register_{user_id}')
     if last_register_time:
-        from datetime import datetime, timedelta
+        from datetime import timedelta
         time_diff = datetime.now() - datetime.fromisoformat(last_register_time)
         if time_diff < timedelta(seconds=5):
             return jsonify({'error': 'Rate limit exceeded'}), 429
-    
+
     session[f'last_platform_register_{user_id}'] = datetime.now().isoformat()
     
     try:
