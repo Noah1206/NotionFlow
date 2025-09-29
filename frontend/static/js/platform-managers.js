@@ -746,8 +746,16 @@ class GoogleManager extends PlatformManager {
                 throw new Error(`Failed to fetch user calendars: ${response.status}`);
             }
 
-            const userCalendars = await response.json();
-            console.log('📅 [GOOGLE] User calendars:', userCalendars);
+            const calendarData = await response.json();
+            console.log('📅 [GOOGLE] Calendar data:', calendarData);
+
+            // Extract all calendars from the response (personal + shared)
+            const allCalendars = [
+                ...(calendarData.personal_calendars || []),
+                ...(calendarData.shared_calendars || [])
+            ];
+
+            console.log('📅 [GOOGLE] All user calendars:', allCalendars);
 
             // Close the first modal and show the second step
             const existingModal = document.getElementById('google-calendar-modal-ultimate');
@@ -756,7 +764,7 @@ class GoogleManager extends PlatformManager {
             }
 
             // Create step 2 modal for user calendar selection
-            this.createUserCalendarSelectionModal(userCalendars, googleCalendarId);
+            this.createUserCalendarSelectionModal(allCalendars, googleCalendarId);
 
         } catch (error) {
             console.error('Error in showUserCalendarSelection:', error);
@@ -766,6 +774,14 @@ class GoogleManager extends PlatformManager {
 
     createUserCalendarSelectionModal(userCalendars, googleCalendarId) {
         console.log('🚀 [GOOGLE] Creating Step 2 Modal - User Calendar Selection');
+        console.log('📅 [GOOGLE] User calendars for modal:', userCalendars);
+
+        // Check if userCalendars is empty or not an array
+        if (!userCalendars || !Array.isArray(userCalendars) || userCalendars.length === 0) {
+            console.log('⚠️ [GOOGLE] No user calendars available');
+            alert('연결할 캘린더가 없습니다. 먼저 캘린더를 생성해주세요.');
+            return;
+        }
 
         // Create modal for step 2
         const modal = document.createElement('div');
