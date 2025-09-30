@@ -2217,11 +2217,10 @@
             if (oneClickBtn) {
                 // Google Calendar의 경우 작은 버튼 숨기고 연결해제 버튼만 추가
                 if (platform === 'google') {
-                    // 작은 버튼 숨기기 (큰 캘린더 변경 버튼만 사용)
-                    oneClickBtn.style.display = 'none';
-
-                    // 연결해제 버튼을 별도로 추가 (캘린더 변경 버튼 앞에)
+                    // Google Calendar의 경우 연결해제 버튼을 먼저 추가하고, 캘린더 변경 버튼을 뒤에 배치
                     const actionContainer = oneClickBtn.parentElement;
+
+                    // 연결해제 버튼을 먼저 추가
                     if (actionContainer && !actionContainer.querySelector('.google-disconnect-btn')) {
                         const disconnectBtn = document.createElement('button');
                         disconnectBtn.className = 'google-disconnect-btn';
@@ -2232,9 +2231,12 @@
                                 <div class="loader-spinner"></div>
                             </div>
                         `;
-                        // oneClickBtn 앞에 연결해제 버튼 삽입 (순서 변경)
+                        // 원클릭 버튼 앞에 연결해제 버튼 삽입
                         actionContainer.insertBefore(disconnectBtn, oneClickBtn);
                     }
+
+                    // 캘린더 변경 버튼은 그대로 유지 (숨기지 않음)
+                    oneClickBtn.style.display = 'inline-flex';
                 } else {
                     // 다른 플랫폼은 기존 로직 유지
                     oneClickBtn.className = 'one-click-disconnect-btn';
