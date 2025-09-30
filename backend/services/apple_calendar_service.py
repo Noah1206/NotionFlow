@@ -361,13 +361,25 @@ class AppleCalendarSync:
                         root = ET.fromstring(calendar_discovery_response.text)
 
                         calendar_urls = []
-                        for response_elem in root.findall('.//{DAV:}response'):
+                        print(f"🔍 [APPLE SYNC] Parsing calendar discovery response...")
+
+                        all_responses = root.findall('.//{DAV:}response')
+                        print(f"🔍 [APPLE SYNC] Found {len(all_responses)} response elements")
+
+                        for i, response_elem in enumerate(all_responses):
                             href_elem = response_elem.find('.//{DAV:}href')
                             resourcetype_elem = response_elem.find('.//{DAV:}resourcetype')
+                            displayname_elem = response_elem.find('.//{DAV:}displayname')
+
+                            href_text = href_elem.text if href_elem is not None else "None"
+                            display_name = displayname_elem.text if displayname_elem is not None else "No name"
+
+                            print(f"📋 [APPLE SYNC] Response {i+1}: href='{href_text}', name='{display_name}'")
 
                             if href_elem is not None and resourcetype_elem is not None:
                                 # Check if it's a calendar resource
-                                if resourcetype_elem.find('.//{urn:ietf:params:xml:ns:caldav}calendar') is not None:
+                                calendar_elem = resourcetype_elem.find('.//{urn:ietf:params:xml:ns:caldav}calendar')
+                                if calendar_elem is not None:
                                     href = href_elem.text
                                     if href and not href.endswith('/'):
                                         href += '/'
@@ -378,7 +390,13 @@ class AppleCalendarSync:
                                         full_url = href
 
                                     calendar_urls.append(full_url)
-                                    print(f"📅 [APPLE SYNC] Found calendar: {full_url}")
+                                    print(f"📅 [APPLE SYNC] Found calendar: {full_url} (Name: {display_name})")
+                                else:
+                                    print(f"⚠️ [APPLE SYNC] Not a calendar: {href_text}")
+                            else:
+                                print(f"⚠️ [APPLE SYNC] Missing href or resourcetype in response {i+1}")
+
+                        print(f"📊 [APPLE SYNC] Total calendars discovered: {len(calendar_urls)}")
 
                         # Try to fetch events from each calendar
                         all_events = []
@@ -440,66 +458,127 @@ class AppleCalendarSync:
     def _parse_caldav_events(self, xml_response: str) -> List[Dict]:
         """Parse CalDAV XML response to extract events"""
         events = []
+        print(f"📥 [APPLE SYNC] Starting to parse CalDAV XML response ({len(xml_response)} chars)")
 
         try:
             # Parse XML response
             root = ET.fromstring(xml_response)
+            print(f"✅ [APPLE SYNC] Successfully parsed XML root element")
 
             # Find all response elements (each contains an event)
-            for response in root.findall('.//{DAV:}response'):
+            response_elements = root.findall('.//{DAV:}response')
+            print(f"🔍 [APPLE SYNC] Found {len(response_elements)} response elements in CalDAV XML")
+
+            for i, response in enumerate(response_elements):
+                print(f"📋 [APPLE SYNC] Processing response element {i+1}/{len(response_elements)}")
+
                 calendar_data = response.find('.//{urn:ietf:params:xml:ns:caldav}calendar-data')
 
-                if calendar_data is not None and calendar_data.text:
-                    # Parse iCalendar data
-                    event = self._parse_icalendar_event(calendar_data.text)
-                    if event:
-                        events.append(event)
+                if calendar_data is not None:
+                    if calendar_data.text:
+                        print(f"📅 [APPLE SYNC] Found calendar-data in response {i+1} ({len(calendar_data.text)} chars)")
+                        # Parse iCalendar data
+                        event = self._parse_icalendar_event(calendar_data.text)
+                        if event:
+                            events.append(event)
+                            print(f"✅ [APPLE SYNC] Successfully parsed event: '{event.get('title', 'No title')}'")
+                        else:
+                            print(f"⚠️ [APPLE SYNC] Failed to parse iCalendar event in response {i+1}")
+                    else:
+                        print(f"⚠️ [APPLE SYNC] Empty calendar-data text in response {i+1}")
+                else:
+                    print(f"⚠️ [APPLE SYNC] No calendar-data element found in response {i+1}")
+                    # Let's check what's actually in this response
+                    href_elem = response.find('.//{DAV:}href')
+                    href_text = href_elem.text if href_elem is not None else "No href"
+                    print(f"🔍 [APPLE SYNC] Response {i+1} href: {href_text}")
+
+            print(f"📊 [APPLE SYNC] Finished parsing: {len(events)} valid events extracted")
 
         except Exception as e:
             print(f"❌ [APPLE SYNC] Error parsing CalDAV response: {e}")
+            print(f"📋 [APPLE SYNC] XML response preview: {xml_response[:500]}...")
 
         return events
 
     def _parse_icalendar_event(self, ical_text: str) -> Optional[Dict]:
         """Parse iCalendar format event to dictionary"""
+        print(f"📅 [APPLE SYNC] Parsing iCalendar event ({len(ical_text)} chars)")
+        print(f"📋 [APPLE SYNC] iCal preview: {ical_text[:200]}...")
+
         try:
             event = {}
             lines = ical_text.strip().split('\n')
+            print(f"🔍 [APPLE SYNC] Processing {len(lines)} lines in iCalendar data")
 
-            for line in lines:
+            vevent_started = False
+            for i, line in enumerate(lines):
+                line = line.strip()
+
+                # Check if we're in a VEVENT block
+                if line == 'BEGIN:VEVENT':
+                    vevent_started = True
+                    print(f"📍 [APPLE SYNC] Found VEVENT start at line {i+1}")
+                    continue
+                elif line == 'END:VEVENT':
+                    print(f"📍 [APPLE SYNC] Found VEVENT end at line {i+1}")
+                    break
+
+                if not vevent_started:
+                    continue
+
                 if line.startswith('SUMMARY:'):
                     event['title'] = line.replace('SUMMARY:', '').strip()
+                    print(f"📝 [APPLE SYNC] Found title: '{event['title']}'")
                 elif line.startswith('DTSTART'):
                     # Parse start time
                     dt_value = line.split(':')[-1].strip()
                     event['start_datetime'] = self._parse_ical_datetime(dt_value)
+                    print(f"⏰ [APPLE SYNC] Found start time: {event['start_datetime']}")
                 elif line.startswith('DTEND'):
                     # Parse end time
                     dt_value = line.split(':')[-1].strip()
                     event['end_datetime'] = self._parse_ical_datetime(dt_value)
+                    print(f"⏰ [APPLE SYNC] Found end time: {event['end_datetime']}")
                 elif line.startswith('DESCRIPTION:'):
                     event['description'] = line.replace('DESCRIPTION:', '').strip()
+                    print(f"📖 [APPLE SYNC] Found description: '{event['description'][:50]}...'")
                 elif line.startswith('LOCATION:'):
                     event['location'] = line.replace('LOCATION:', '').strip()
+                    print(f"📍 [APPLE SYNC] Found location: '{event['location']}'")
                 elif line.startswith('UID:'):
                     event['external_id'] = 'apple_' + line.replace('UID:', '').strip()
+                    print(f"🆔 [APPLE SYNC] Found UID: {event['external_id']}")
+
+            print(f"📊 [APPLE SYNC] Extracted fields: {list(event.keys())}")
 
             # Only return if we have at least title and start time
             if event.get('title') and event.get('start_datetime'):
+                print(f"✅ [APPLE SYNC] Event validation passed: has title and start time")
+
                 # Set default values
                 if not event.get('end_datetime'):
                     # Default to 1 hour duration
                     start_dt = parser.parse(event['start_datetime'])
                     end_dt = start_dt + timedelta(hours=1)
                     event['end_datetime'] = end_dt.isoformat()
+                    print(f"⏰ [APPLE SYNC] Set default end time: {event['end_datetime']}")
 
                 event['platform'] = 'apple'
                 event['all_day'] = 'T' not in event['start_datetime']
+                print(f"📋 [APPLE SYNC] Final event: title='{event['title']}', all_day={event['all_day']}")
 
                 return event
+            else:
+                print(f"❌ [APPLE SYNC] Event validation failed: title={bool(event.get('title'))}, start_datetime={bool(event.get('start_datetime'))}")
+                if not event.get('title'):
+                    print(f"⚠️ [APPLE SYNC] Missing SUMMARY field")
+                if not event.get('start_datetime'):
+                    print(f"⚠️ [APPLE SYNC] Missing DTSTART field")
 
         except Exception as e:
-            print(f"⚠️ [APPLE SYNC] Error parsing iCalendar event: {e}")
+            print(f"❌ [APPLE SYNC] Error parsing iCalendar event: {e}")
+            print(f"📋 [APPLE SYNC] Failed iCal data: {ical_text}")
 
         return None
 
