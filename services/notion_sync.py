@@ -407,7 +407,7 @@ class NotionCalendarSync:
             return None
 
     def sync_to_calendar(self, user_id: str, calendar_id: str = None) -> Dict[str, Any]:
-        """Notion 데이터를 NotionFlow 캘린더로 동기화"""
+        """Notion 데이터를 NotionFlow 캘린더로 동기화 - 배치 처리 최적화"""
         try:
             # If no calendar_id provided, get it from database
             if not calendar_id:
@@ -418,13 +418,13 @@ class NotionCalendarSync:
                         'error': '동기화할 캘린더가 선택되지 않았습니다. API 키 연결 페이지에서 캘린더를 선택해주세요.',
                         'synced_events': 0
                     }
-            
-            print(f"Starting Notion sync for user {user_id}")
-            
+
+            print(f"🚀 [BATCH SYNC] Starting optimized Notion sync for user {user_id}, calendar {calendar_id}")
+
             # 1. Notion 토큰 확인
             token = self.get_user_notion_token(user_id)
             # Token validation complete
-            
+
             if not token:
                 print(f"❌ [NOTION] No token found for user {user_id}")
                 return {
@@ -432,16 +432,16 @@ class NotionCalendarSync:
                     'error': 'No Notion token found',
                     'synced_events': 0
                 }
-            
+
             # 2. Notion API 초기화
             # Initializing Notion API
             notion_api = NotionAPI(token)
-            
+
             # 3. 캘린더 데이터베이스 찾기
             # Searching calendar databases
             calendar_dbs = self.find_calendar_databases(notion_api)
             print(f"📚 [NOTION] Found {len(calendar_dbs)} calendar databases")
-            
+
             if not calendar_dbs:
                 print(f"⚠️ [NOTION] No calendar databases found in Notion workspace")
                 return {
@@ -449,82 +449,87 @@ class NotionCalendarSync:
                     'message': 'No calendar databases found in Notion',
                     'synced_events': 0
                 }
-            
-            # 4. 각 데이터베이스에서 이벤트 추출 및 동기화
+
+            # 4. 배치 처리로 이벤트 추출 및 동기화
             total_synced = 0
-            max_initial_load = 30  # 초기 로드 시 최대 이벤트 수 제한 (worker timeout 방지)
-            
+            max_initial_load = 50  # 배치 처리로 처리량 증가
+            batch_size = 10  # 배치 크기
+            batch_events = []  # 배치 저장용 임시 리스트
+
             for db in calendar_dbs:
                 db_id = db['id']
                 db_title = self._get_db_title(db)
-                
-                # Processing database
-                
+
+                # Processing database in batches
+
                 # 페이지네이션으로 페이지들 조회
                 start_cursor = None
                 db_synced = 0
-                
+
                 while True:
-                    # 한 번에 15개씩 처리 (API 부하 및 worker timeout 방지)
-                    result = notion_api.query_database_safe(db_id, page_size=15, start_cursor=start_cursor)
+                    # 한 번에 25개씩 처리 (배치 처리로 효율성 증가)
+                    result = notion_api.query_database_safe(db_id, page_size=25, start_cursor=start_cursor)
                     pages = result.get('results', [])
-                    
+
                     if not pages:
                         break
-                    
+
                     print(f"📄 Processing {len(pages)} pages from {db_title}")
-                    
-                    # 즉시 처리 방식으로 메모리 사용량 최소화
+
+                    # 배치 처리 방식으로 메모리 효율성 및 DB 연결 최적화
                     for page in pages:
-                        # Notion 페이지를 캘린더 이벤트로 변환 및 즉시 저장
+                        # Notion 페이지를 캘린더 이벤트로 변환
                         event = self._convert_page_to_event(page, calendar_id, user_id)
                         if event:
-                            if self._save_event_to_calendar(event):
-                                total_synced += 1
-                                db_synced += 1
-                                print(f"✅ Synced: {event['title']}")
-                            else:
-                                print(f"❌ Failed to save: {event['title']}")
-                        
-                        # 초기 로드 제한 확인 (더 빨리 체크)
+                            batch_events.append(event)
+
+                        # 배치가 찼거나 마지막 페이지면 저장
+                        if len(batch_events) >= batch_size:
+                            saved_count = self._save_events_batch(batch_events)
+                            total_synced += saved_count
+                            db_synced += saved_count
+                            print(f"💾 [BATCH] Saved {saved_count}/{len(batch_events)} events")
+                            batch_events.clear()  # 배치 초기화
+
+                        # 초기 로드 제한 확인
                         if total_synced >= max_initial_load:
                             print(f"⚡ Initial load limit reached ({max_initial_load} events). Breaking early.")
                             break
-                    
-                    # Worker 안정성을 위한 짧은 휴식
-                    import time
-                    time.sleep(0.1)
-                    
+
                     # 초기 로드 제한 확인
                     if total_synced >= max_initial_load:
                         print(f"⚡ Initial load limit reached ({max_initial_load} events). Remaining data will be synced in background.")
                         break
-                    
+
                     # 다음 페이지가 있는지 확인
                     if not result.get('has_more', False):
                         break
-                    
+
                     start_cursor = result.get('next_cursor')
-                    
-                    # CPU 부하 방지를 위한 짧은 대기
-                    import time
-                    time.sleep(0.1)
-                
+
+                # 남은 배치 이벤트들 저장
+                if batch_events:
+                    saved_count = self._save_events_batch(batch_events)
+                    total_synced += saved_count
+                    db_synced += saved_count
+                    print(f"💾 [BATCH FINAL] Saved final {saved_count}/{len(batch_events)} events")
+                    batch_events.clear()
+
                 print(f"📊 Database {db_title}: {db_synced} events synced")
-                
+
                 # 초기 로드 제한에 도달했으면 중단
                 if total_synced >= max_initial_load:
                     break
-            
+
             result = {
                 'success': True,
                 'synced_events': total_synced,
                 'databases_processed': len(calendar_dbs),
                 'limited_initial_load': total_synced >= max_initial_load,
-                'message': f"Successfully synced {total_synced} events" + 
+                'message': f"Successfully synced {total_synced} events" +
                           (f" (limited to {max_initial_load} for initial load)" if total_synced >= max_initial_load else "")
             }
-            
+
             # 초기 로드 제한에 도달한 경우 백그라운드에서 나머지 동기화 예약
             if total_synced >= max_initial_load:
                 try:
@@ -533,9 +538,9 @@ class NotionCalendarSync:
                 except Exception as bg_error:
                     print(f"⚠️ Failed to schedule background sync: {bg_error}")
                     result['background_sync_scheduled'] = False
-            
+
             return result
-            
+
         except Exception as e:
             print(f"❌ Sync failed: {e}")
             return {
@@ -1044,6 +1049,123 @@ class NotionCalendarSync:
             import traceback
             traceback.print_exc()
             return False
+
+    def _save_events_batch(self, events: List[Dict]) -> int:
+        """배치로 이벤트들을 NotionFlow 캘린더에 저장 - DB 연결 최적화"""
+        if not events:
+            return 0
+
+        try:
+            from utils.config import config
+            from datetime import datetime, timezone
+
+            # Use admin client to bypass RLS policies
+            supabase = config.supabase_admin if hasattr(config, 'supabase_admin') and config.supabase_admin else config.get_client_for_user(events[0]['user_id'])
+
+            if not supabase:
+                print("❌ [BATCH] Supabase client not available")
+                return 0
+
+            saved_count = 0
+            batch_data = []
+            update_data = []
+
+            print(f"💾 [BATCH] Processing {len(events)} events")
+
+            # 1. 중복 체크를 위한 기존 이벤트 조회 (한 번의 쿼리로)
+            user_id = self._normalize_uuid(events[0]['user_id'])
+            external_ids = [event['external_id'] for event in events]
+
+            existing_result = supabase.table('calendar_events').select('id, external_id').eq(
+                'user_id', user_id
+            ).eq('source_platform', 'notion').in_('external_id', external_ids).execute()
+
+            existing_external_ids = {item['external_id']: item['id'] for item in existing_result.data} if existing_result.data else {}
+
+            print(f"🔍 [BATCH] Found {len(existing_external_ids)} existing events to update")
+
+            # 2. 이벤트별로 처리 (새로 생성할 것과 업데이트할 것 분리)
+            for event in events:
+                try:
+                    # UUID 정규화
+                    user_id = self._normalize_uuid(event['user_id'])
+                    event['user_id'] = user_id
+
+                    # CRITICAL FIX: calendar_id 반드시 설정
+                    if not event.get('calendar_id'):
+                        primary_calendar_id = self._get_user_primary_calendar_id(user_id)
+                        if primary_calendar_id:
+                            event['calendar_id'] = primary_calendar_id
+                            print(f"🎯 [BATCH] Auto-assigned calendar_id: {primary_calendar_id}")
+                        else:
+                            print(f"⚠️ [BATCH] No calendar found for user {user_id}, skipping event")
+                            continue
+
+                    # 실제 데이터베이스 스키마에 맞게 이벤트 데이터 변환
+                    db_event = {
+                        'user_id': event['user_id'],
+                        'calendar_id': event['calendar_id'],  # CRITICAL: 항상 설정
+                        'title': event['title'],
+                        'description': event.get('description', ''),
+                        'start_datetime': event['start_datetime'],
+                        'end_datetime': event['end_datetime'],
+                        'is_all_day': event.get('all_day', False),
+                        'category': 'notion',
+                        'priority': 1,
+                        'status': 'confirmed',
+                        'source_platform': 'notion',
+                        'external_id': event['external_id']
+                    }
+
+                    # 기존 이벤트인지 확인
+                    if event['external_id'] in existing_external_ids:
+                        # 업데이트용 데이터 준비
+                        db_event['updated_at'] = datetime.now().isoformat()
+                        update_data.append({
+                            'id': existing_external_ids[event['external_id']],
+                            'data': db_event
+                        })
+                    else:
+                        # 새 이벤트용 데이터 준비
+                        batch_data.append(db_event)
+
+                except Exception as event_error:
+                    print(f"❌ [BATCH] Error processing event {event.get('title', 'Unknown')}: {event_error}")
+                    continue
+
+            # 3. 배치 삽입 (새 이벤트들)
+            if batch_data:
+                try:
+                    insert_result = supabase.table('calendar_events').insert(batch_data).execute()
+                    inserted_count = len(insert_result.data) if insert_result.data else 0
+                    saved_count += inserted_count
+                    print(f"✅ [BATCH INSERT] Created {inserted_count} new events")
+                except Exception as insert_error:
+                    print(f"❌ [BATCH INSERT] Failed: {insert_error}")
+
+            # 4. 배치 업데이트 (기존 이벤트들) - 개별적으로 처리
+            updated_count = 0
+            for update_item in update_data:
+                try:
+                    # Remove id and updated_at from data for update
+                    update_data_clean = {k: v for k, v in update_item['data'].items() if k not in ['id', 'created_at']}
+                    update_result = supabase.table('calendar_events').update(update_data_clean).eq('id', update_item['id']).execute()
+                    if update_result.data:
+                        updated_count += 1
+                except Exception as update_error:
+                    print(f"❌ [BATCH UPDATE] Failed for event {update_item['id']}: {update_error}")
+
+            saved_count += updated_count
+            print(f"✅ [BATCH UPDATE] Updated {updated_count} existing events")
+
+            print(f"💾 [BATCH COMPLETE] Total saved: {saved_count}/{len(events)} events")
+            return saved_count
+
+        except Exception as e:
+            print(f"❌ [BATCH] Error saving batch: {e}")
+            import traceback
+            traceback.print_exc()
+            return 0
 
     def _schedule_background_sync(self, user_id: str, calendar_id: str, access_token: str):
         """백그라운드에서 나머지 데이터 동기화 예약"""
