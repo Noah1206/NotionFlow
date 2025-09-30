@@ -2356,6 +2356,19 @@ function goToToday() {
     renderMiniCalendar();
 }
 
+// PERFORMANCE OPTIMIZATION: 이벤트 캐시 시스템
+let eventCache = new Map();
+const CACHE_DURATION = 5 * 60 * 1000; // 5분 캐시
+
+function getCacheKey(calendarId) {
+    return `events_${calendarId}`;
+}
+
+function isValidCache(cacheEntry) {
+    if (!cacheEntry) return false;
+    return (Date.now() - cacheEntry.timestamp) < CACHE_DURATION;
+}
+
 // Event management
 async function loadEvents() {
     console.log('🔄 loadEvents called');
@@ -2372,82 +2385,257 @@ async function loadEvents() {
 
         console.log('📅 Loading events for calendar:', calendarId);
 
+        // PERFORMANCE: 캐시된 이벤트가 있으면 즉시 사용
+        const cacheKey = getCacheKey(calendarId);
+        const cachedEvents = eventCache.get(cacheKey);
+
+        if (isValidCache(cachedEvents)) {
+            console.log('⚡ Using cached events for faster loading');
+            processEventsData(cachedEvents.data);
+
+            // 백그라운드에서 최신 데이터 업데이트 (선택적)
+            setTimeout(() => {
+                fetchAndCacheEvents(calendarId, true); // silent update
+            }, 1000);
+            return;
+        }
+
+        // 캐시가 없거나 만료된 경우 새로 가져오기
+        await fetchAndCacheEvents(calendarId, false);
+
+    } catch (error) {
+        console.error('Error loading events:', error);
+        // Load demo events as fallback
+        loadDemoEvents();
+    }
+}
+
+// PERFORMANCE: 이벤트 가져오기 및 캐싱 함수
+async function fetchAndCacheEvents(calendarId, silent = false) {
+    try {
+        if (!silent) {
+            console.log('📡 Fetching events from API...');
+        }
+
         // Fetch events from API
         const response = await fetch(`/api/calendars/${calendarId}/events`);
-        
-        console.log(`📡 API Response status: ${response.status}`);
-        
+
+        if (!silent) {
+            console.log(`📡 API Response status: ${response.status}`);
+        }
+
         if (response.ok) {
             const data = await response.json();
-            
-            // Handle both array and object responses
-            let events = [];
-            if (!data) {
-                console.warn('⚠️ API returned null or undefined');
-                events = [];
-            } else if (Array.isArray(data)) {
-                events = data;
-            } else if (typeof data === 'object') {
-                // Check for common response patterns
-                events = data.events || data.data || data.items || [];
-                
-                // If data has an error property, log it
-                if (data.error) {
-                    console.error('❌ API returned error:', data.error);
-                }
+
+            // 캐시에 저장
+            const cacheKey = getCacheKey(calendarId);
+            eventCache.set(cacheKey, {
+                data: data,
+                timestamp: Date.now()
+            });
+
+            if (!silent) {
+                console.log('💾 Events cached for future faster access');
             }
-            
-            // Transform API events to calendar format (no debug logs for performance)
-            calendarEvents = events.map(event => ({
-                id: event.id,
-                title: event.title || 'Untitled Event',
-                date: new Date(event.start_datetime || event.start_date),
-                time: new Date(event.start_datetime || event.start_date).toTimeString().slice(0, 5),
-                color: event.color || '#dbeafe',
-                description: event.description || '',
-                start_datetime: event.start_datetime,
-                end_datetime: event.end_datetime,
-                is_all_day: event.is_all_day || false,
-                location: event.location,
-                attendees: event.attendees
-            }));
-            
-            // If no events, keep empty (don't show demo events)
-            if (calendarEvents.length === 0) {
-                calendarEvents = [];
-            }
-            
-            // Pass events to GoogleCalendarGrid if it exists
-            if (window.googleCalendarGrid && typeof window.googleCalendarGrid.loadEvents === 'function') {
-                window.googleCalendarGrid.loadEvents(events);
-            } else {
-                window.pendingCalendarEvents = events;
-            }
-            
-            // Render the calendar with loaded events (optimized - only render current view)
-            if (currentView === 'month') {
-                renderMonthView();
-            } else if (currentView === 'week') {
-                renderWeekView();
-            }
-            
-            // Update sidebar event list
-            updateSidebarEventList(calendarEvents);
-            
+
+            // 이벤트 데이터 처리
+            processEventsData(data);
+
         } else {
             console.error('Failed to load events:', response.status);
             // Load demo events as fallback
             loadDemoEvents();
         }
     } catch (error) {
-        console.error('Error loading events:', error);
-        // Load demo events as fallback
-        loadDemoEvents();
+        console.error('Error fetching events:', error);
+        if (!silent) {
+            // Load demo events as fallback
+            loadDemoEvents();
+        }
     }
-    
-    // Update search events after loading calendar events
-    if (typeof loadAllEvents === 'function') {
-        loadAllEvents();
+}
+
+// PERFORMANCE: 이벤트 데이터 처리 함수 (캐시와 API 응답 공통 처리)
+function processEventsData(data) {
+    try {
+        // Handle both array and object responses
+        let events = [];
+        if (!data) {
+            console.warn('⚠️ API returned null or undefined');
+            events = [];
+        } else if (Array.isArray(data)) {
+            events = data;
+        } else if (typeof data === 'object') {
+            // Check for common response patterns
+            events = data.events || data.data || data.items || [];
+
+            // If data has an error property, log it
+            if (data.error) {
+                console.error('❌ API returned error:', data.error);
+            }
+        }
+
+        // Transform API events to calendar format (no debug logs for performance)
+        calendarEvents = events.map(event => ({
+            id: event.id,
+            title: event.title || 'Untitled Event',
+            date: new Date(event.start_datetime || event.start_date),
+            time: new Date(event.start_datetime || event.start_date).toTimeString().slice(0, 5),
+            color: event.color || '#dbeafe',
+            description: event.description || '',
+            start_datetime: event.start_datetime,
+            end_datetime: event.end_datetime,
+            is_all_day: event.is_all_day || false,
+            location: event.location,
+            attendees: event.attendees
+        }));
+
+        // If no events, keep empty (don't show demo events)
+        if (calendarEvents.length === 0) {
+            calendarEvents = [];
+        }
+
+        // Pass events to GoogleCalendarGrid if it exists
+        if (window.googleCalendarGrid && typeof window.googleCalendarGrid.loadEvents === 'function') {
+            window.googleCalendarGrid.loadEvents(events);
+        } else {
+            window.pendingCalendarEvents = events;
+        }
+
+        // Render the calendar with loaded events (optimized - only render current view)
+        if (currentView === 'month') {
+            renderMonthView();
+        } else if (currentView === 'week') {
+            renderWeekView();
+        }
+
+        // Update sidebar event list
+        updateSidebarEventList(calendarEvents);
+
+        // CRITICAL FIX: 할 일 섹션 버튼 표시 문제 해결
+        // 노션 이벤트가 로드된 후 할 일 관리 버튼들을 다시 표시
+        setTimeout(() => {
+            ensureTodoButtonsVisible();
+        }, 100); // 렌더링 완료 후 실행
+
+        // Update search events after loading calendar events
+        if (typeof loadAllEvents === 'function') {
+            loadAllEvents();
+        }
+
+    } catch (error) {
+        console.error('Error processing events data:', error);
+    }
+}
+
+// CRITICAL FIX: 할 일 섹션 버튼 표시 문제 해결 함수
+function ensureTodoButtonsVisible() {
+    try {
+        // 할 일 섹션 컨테이너 찾기
+        const todoSection = document.querySelector('.todo-section');
+        if (!todoSection) {
+            return;
+        }
+
+        // 기존 버튼들이 있는지 확인
+        let todoControls = todoSection.querySelector('.todo-controls');
+
+        if (!todoControls) {
+            // 할 일 제목 요소 찾기
+            const todoTitle = todoSection.querySelector('h3');
+            if (!todoTitle) {
+                return;
+            }
+
+            // 버튼 컨테이너 생성
+            todoControls = document.createElement('div');
+            todoControls.className = 'todo-controls';
+            todoControls.style.cssText = `
+                display: flex;
+                gap: 8px;
+                margin-top: 8px;
+                align-items: center;
+            `;
+
+            // 전체선택 버튼 생성
+            const selectAllBtn = document.createElement('button');
+            selectAllBtn.className = 'btn-select-all';
+            selectAllBtn.textContent = '전체선택';
+            selectAllBtn.style.cssText = `
+                padding: 4px 8px;
+                font-size: 12px;
+                background: #f3f4f6;
+                border: 1px solid #d1d5db;
+                border-radius: 4px;
+                cursor: pointer;
+                color: #374151;
+            `;
+
+            // 삭제 버튼 생성
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn-delete-selected';
+            deleteBtn.textContent = '삭제';
+            deleteBtn.style.cssText = `
+                padding: 4px 8px;
+                font-size: 12px;
+                background: #fef2f2;
+                border: 1px solid #fecaca;
+                border-radius: 4px;
+                cursor: pointer;
+                color: #dc2626;
+            `;
+
+            // 이벤트 리스너 추가
+            selectAllBtn.addEventListener('click', function() {
+                const checkboxes = todoSection.querySelectorAll('input[type="checkbox"]');
+                const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                checkboxes.forEach(cb => cb.checked = !allChecked);
+                console.log('📋 Todo select all toggled');
+            });
+
+            deleteBtn.addEventListener('click', function() {
+                const checkedItems = todoSection.querySelectorAll('input[type="checkbox"]:checked');
+                if (checkedItems.length === 0) {
+                    alert('삭제할 항목을 선택해주세요.');
+                    return;
+                }
+
+                if (confirm(`선택된 ${checkedItems.length}개 항목을 삭제하시겠습니까?`)) {
+                    checkedItems.forEach(item => {
+                        const todoItem = item.closest('.todo-item, li');
+                        if (todoItem) {
+                            todoItem.remove();
+                        }
+                    });
+                    saveTodos(); // 기존 함수 호출
+                    console.log('🗑️ Selected todos deleted');
+                }
+            });
+
+            // 버튼들을 컨테이너에 추가
+            todoControls.appendChild(selectAllBtn);
+            todoControls.appendChild(deleteBtn);
+
+            // 제목 요소 다음에 컨트롤 추가
+            todoTitle.parentNode.insertBefore(todoControls, todoTitle.nextSibling);
+
+            console.log('✅ Todo control buttons restored');
+        }
+
+        // 버튼들이 보이도록 강제 표시
+        if (todoControls) {
+            todoControls.style.display = 'flex';
+
+            // 개별 버튼들도 보이도록 설정
+            const buttons = todoControls.querySelectorAll('button');
+            buttons.forEach(btn => {
+                btn.style.display = 'inline-block';
+                btn.style.visibility = 'visible';
+            });
+        }
+
+    } catch (error) {
+        console.error('Error ensuring todo buttons visible:', error);
     }
 }
 

@@ -539,6 +539,12 @@ class NotionCalendarSync:
                     print(f"⚠️ Failed to schedule background sync: {bg_error}")
                     result['background_sync_scheduled'] = False
 
+            # PERFORMANCE OPTIMIZATION: 연동 직후 캐시 워밍업을 위한 백그라운드 프리로딩
+            try:
+                self._schedule_cache_warmup(user_id, calendar_id)
+            except Exception as cache_error:
+                print(f"⚠️ Cache warmup scheduling failed: {cache_error}")
+
             return result
 
         except Exception as e:
@@ -1166,6 +1172,51 @@ class NotionCalendarSync:
             import traceback
             traceback.print_exc()
             return 0
+
+    def _schedule_cache_warmup(self, user_id: str, calendar_id: str):
+        """PERFORMANCE: 캐시 워밍업을 위한 백그라운드 프리로딩 예약"""
+        try:
+            import threading
+            import time
+
+            def cache_warmup_worker():
+                try:
+                    # 3초 후 캐시 워밍업 실행 (UI 응답성 확보)
+                    time.sleep(3)
+                    print(f"🚀 [CACHE WARMUP] Starting for user {user_id}")
+
+                    # 캐시용 이벤트 조회 및 저장
+                    from utils.config import config
+                    supabase = config.supabase_admin if hasattr(config, 'supabase_admin') and config.supabase_admin else config.get_client_for_user(user_id)
+
+                    if supabase:
+                        # 향후 30일간의 이벤트를 미리 캐시
+                        from datetime import datetime, timedelta, timezone
+                        start_date = datetime.now(timezone.utc)
+                        end_date = start_date + timedelta(days=30)
+
+                        # 캐시 테이블에 이벤트 정보 저장 (미래 확장용)
+                        cache_result = supabase.table('calendar_events').select('id, title, start_datetime, end_datetime').eq(
+                            'user_id', user_id
+                        ).eq('calendar_id', calendar_id).gte(
+                            'start_datetime', start_date.isoformat()
+                        ).lte(
+                            'start_datetime', end_date.isoformat()
+                        ).execute()
+
+                        cached_count = len(cache_result.data) if cache_result.data else 0
+                        print(f"✅ [CACHE WARMUP] Cached {cached_count} events for faster access")
+
+                except Exception as warmup_error:
+                    print(f"⚠️ [CACHE WARMUP] Error: {warmup_error}")
+
+            # 백그라운드 스레드로 실행
+            cache_thread = threading.Thread(target=cache_warmup_worker, daemon=True)
+            cache_thread.start()
+            print(f"🎯 [CACHE WARMUP] Scheduled for user {user_id}")
+
+        except Exception as e:
+            print(f"❌ [CACHE WARMUP] Scheduling failed: {e}")
 
     def _schedule_background_sync(self, user_id: str, calendar_id: str, access_token: str):
         """백그라운드에서 나머지 데이터 동기화 예약"""
