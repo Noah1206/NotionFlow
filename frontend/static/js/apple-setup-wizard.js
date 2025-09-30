@@ -380,8 +380,8 @@ class AppleSetupWizard {
                     console.log('✅ [APPLE WIZARD] Synced calendars refreshed');
                 }
 
-                // 성공 알림
-                this.showNotification('Apple 캘린더가 성공적으로 연결되었습니다!', 'success');
+                // Apple Calendar 연결 성공 후 NotionFlow 캘린더 선택 팝업 표시
+                this.showCalendarSelectionModal();
             } else {
                 throw new Error(data.error || '연결 실패');
             }
@@ -855,6 +855,202 @@ class AppleSetupWizard {
                 to { transform: rotate(360deg); }
             }
         `;
+    }
+    /**
+     * NotionFlow 캘린더 선택 모달 표시
+     */
+    async showCalendarSelectionModal() {
+        try {
+            // 기존 모달 닫기
+            if (this.wizardModal) {
+                this.wizardModal.remove();
+            }
+
+            // NotionFlow 캘린더 목록 가져오기
+            const response = await fetch('/api/user/calendars');
+            if (!response.ok) {
+                throw new Error('캘린더 목록을 가져올 수 없습니다.');
+            }
+
+            const data = await response.json();
+            const calendars = data.personal_calendars || [];
+
+            if (calendars.length === 0) {
+                this.showNotification('연동할 캘린더가 없습니다. 먼저 캘린더를 만들어주세요.', 'warning');
+                return;
+            }
+
+            // 캘린더 선택 모달 HTML 생성
+            const modalHTML = `
+                <div class="calendar-selection-modal" id="apple-calendar-selection">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>연동할 캘린더 선택</h2>
+                            <button class="close-btn" onclick="document.getElementById('apple-calendar-selection').remove()">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Apple Calendar와 연동할 NotionFlow 캘린더를 선택하세요:</p>
+                            <div class="calendar-list">
+                                ${calendars.map(cal => `
+                                    <div class="calendar-item" data-calendar-id="${cal.id}">
+                                        <div class="calendar-color" style="background: ${cal.color}"></div>
+                                        <div class="calendar-info">
+                                            <div class="calendar-name">${cal.name}</div>
+                                            <div class="calendar-events">${cal.event_count || 0}개 일정</div>
+                                        </div>
+                                        <button class="select-btn" onclick="window.appleWizard.selectCalendarForSync('${cal.id}')">선택</button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // 스타일 추가
+            const styles = `
+                <style>
+                    .calendar-selection-modal {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(0, 0, 0, 0.5);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 10000;
+                    }
+                    .calendar-selection-modal .modal-content {
+                        background: white;
+                        border-radius: 12px;
+                        width: 90%;
+                        max-width: 500px;
+                        max-height: 80vh;
+                        overflow: auto;
+                    }
+                    .calendar-selection-modal .modal-header {
+                        padding: 20px;
+                        border-bottom: 1px solid #e0e0e0;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                    }
+                    .calendar-selection-modal .close-btn {
+                        background: none;
+                        border: none;
+                        font-size: 24px;
+                        cursor: pointer;
+                        color: #666;
+                    }
+                    .calendar-selection-modal .modal-body {
+                        padding: 20px;
+                    }
+                    .calendar-selection-modal .calendar-list {
+                        margin-top: 15px;
+                    }
+                    .calendar-selection-modal .calendar-item {
+                        display: flex;
+                        align-items: center;
+                        padding: 12px;
+                        border: 1px solid #e0e0e0;
+                        border-radius: 8px;
+                        margin-bottom: 10px;
+                    }
+                    .calendar-selection-modal .calendar-color {
+                        width: 20px;
+                        height: 20px;
+                        border-radius: 50%;
+                        margin-right: 12px;
+                    }
+                    .calendar-selection-modal .calendar-info {
+                        flex: 1;
+                    }
+                    .calendar-selection-modal .calendar-name {
+                        font-weight: 600;
+                        margin-bottom: 4px;
+                    }
+                    .calendar-selection-modal .calendar-events {
+                        font-size: 12px;
+                        color: #666;
+                    }
+                    .calendar-selection-modal .select-btn {
+                        padding: 6px 16px;
+                        background: #007AFF;
+                        color: white;
+                        border: none;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 14px;
+                    }
+                    .calendar-selection-modal .select-btn:hover {
+                        background: #0051D5;
+                    }
+                </style>
+            `;
+
+            // 스타일과 모달을 DOM에 추가
+            if (!document.getElementById('apple-calendar-selection-styles')) {
+                const styleElement = document.createElement('style');
+                styleElement.id = 'apple-calendar-selection-styles';
+                styleElement.innerHTML = styles;
+                document.head.appendChild(styleElement);
+            }
+
+            const modalContainer = document.createElement('div');
+            modalContainer.innerHTML = modalHTML;
+            document.body.appendChild(modalContainer.firstElementChild);
+
+        } catch (error) {
+            console.error('Failed to show calendar selection:', error);
+            this.showNotification('캘린더 목록을 불러오는데 실패했습니다.', 'error');
+        }
+    }
+
+    /**
+     * 캘린더 선택 및 Apple Calendar 동기화
+     */
+    async selectCalendarForSync(calendarId) {
+        try {
+            // 선택 버튼 비활성화
+            const modal = document.getElementById('apple-calendar-selection');
+            const selectBtn = modal.querySelector(`[data-calendar-id="${calendarId}"] .select-btn`);
+            selectBtn.disabled = true;
+            selectBtn.textContent = '연동 중...';
+
+            // Apple Calendar 동기화 API 호출
+            const response = await fetch('/api/apple-calendar/sync', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    calendar_id: calendarId
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('동기화 실패');
+            }
+
+            const data = await response.json();
+
+            // 모달 닫기
+            modal.remove();
+
+            // 성공 알림
+            this.showNotification(`Apple Calendar가 성공적으로 연결되었습니다! ${data.synced_events || 0}개의 일정이 동기화되었습니다.`, 'success');
+
+            // 페이지 새로고침 또는 캘린더 목록 업데이트
+            if (window.loadSyncedCalendars) {
+                window.loadSyncedCalendars();
+            }
+
+        } catch (error) {
+            console.error('Apple Calendar sync failed:', error);
+            this.showNotification('Apple Calendar 동기화에 실패했습니다.', 'error');
+        }
     }
 }
 
