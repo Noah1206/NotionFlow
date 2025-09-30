@@ -402,7 +402,7 @@
     <div class="modal-overlay" onclick="closeCalendarSelectionModal()"></div>
     <div class="modal-content">
         <div class="modal-header">
-            <h3 class="modal-title">캘린더 선택</h3>
+            <h3 class="modal-title">캘린더 변경</h3>
             <button class="modal-close-btn" onclick="closeCalendarSelectionModal()">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M18 6l-12 12M6 6l12 12" />
@@ -1137,7 +1137,7 @@
                 <div class="modal-overlay" onclick="closeCalendarSelectionModal()"></div>
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h3 class="modal-title">캘린더 선택</h3>
+                        <h3 class="modal-title">캘린더 변경</h3>
                         <button class="modal-close-btn" onclick="closeCalendarSelectionModal()">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M18 6l-12 12M6 6l12 12" />
@@ -2220,7 +2220,7 @@
                     // 작은 버튼 숨기기 (큰 캘린더 변경 버튼만 사용)
                     oneClickBtn.style.display = 'none';
 
-                    // 연결해제 버튼을 별도로 추가
+                    // 연결해제 버튼을 별도로 추가 (캘린더 변경 버튼 앞에)
                     const actionContainer = oneClickBtn.parentElement;
                     if (actionContainer && !actionContainer.querySelector('.google-disconnect-btn')) {
                         const disconnectBtn = document.createElement('button');
@@ -2232,7 +2232,8 @@
                                 <div class="loader-spinner"></div>
                             </div>
                         `;
-                        actionContainer.appendChild(disconnectBtn);
+                        // oneClickBtn 앞에 연결해제 버튼 삽입 (순서 변경)
+                        actionContainer.insertBefore(disconnectBtn, oneClickBtn);
                     }
                 } else {
                     // 다른 플랫폼은 기존 로직 유지
@@ -2374,7 +2375,7 @@
                         <div class="sync-steps">
                             <div class="step active" data-step="1">
                                 <span class="step-number">1</span>
-                                <span class="step-label">캘린더 선택</span>
+                                <span class="step-label">캘린더 변경</span>
                             </div>
                             <div class="step" data-step="2">
                                 <span class="step-number">2</span>
@@ -2789,7 +2790,7 @@
                         <div class="sync-step-indicator">
                             <div class="step active">
                                 <div class="step-number">1</div>
-                                <span>캘린더 선택</span>
+                                <span>캘린더 변경</span>
                             </div>
                             <div class="step">
                                 <div class="step-number">2</div>
@@ -4360,7 +4361,7 @@
                                         if (syncBtn) {
                                             syncBtn.style.display = 'block';
                                             const syncText = syncBtn.querySelector('.sync-text');
-                                            if (syncText) syncText.textContent = '캘린더 선택';
+                                            if (syncText) syncText.textContent = '캘린더 변경';
                                         }
                                     }
                                     return; // 캘린더 선택 버튼을 보여준 후 종료
@@ -4396,7 +4397,7 @@
                             syncBtn.style.setProperty('display', 'inline-flex', 'important');
                             const syncText = syncBtn.querySelector('.sync-text');
                             if (syncText) {
-                                if (syncText) syncText.textContent = '캘린더 선택';
+                                if (syncText) syncText.textContent = '캘린더 변경';
                             }
                         }
                     }

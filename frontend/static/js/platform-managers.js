@@ -408,7 +408,7 @@ class GoogleManager extends PlatformManager {
             this.syncBtn.style.display = 'inline-flex';
             this.syncBtn.style.visibility = 'visible';
             this.syncBtn.innerHTML = `
-                <span class="sync-text">캘린더 선택</span>
+                <span class="sync-text">캘린더 변경</span>
                 <span class="sync-status"></span>
             `;
             this.syncBtn.onclick = () => this.showCalendarSelection();
