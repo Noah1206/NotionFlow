@@ -32,7 +32,7 @@ def get_user_calendars_with_selection(user_id):
         supabase = get_supabase_admin()
 
         # 사용자의 모든 캘린더 조회
-        calendars_result = supabase.table('user_calendars').select('*').eq('user_id', user_id).execute()
+        calendars_result = supabase.table('calendars').select('*').eq('owner_id', user_id).execute()
 
         if not calendars_result.data:
             return jsonify({
@@ -97,7 +97,7 @@ def select_calendars(user_id):
             selection_data = []
             for calendar_id in calendar_ids:
                 # 캘린더가 실제로 존재하는지 확인
-                calendar_check = supabase.table('user_calendars').select('id').eq('user_id', user_id).eq('id', calendar_id).execute()
+                calendar_check = supabase.table('calendars').select('id').eq('owner_id', user_id).eq('id', calendar_id).execute()
 
                 if calendar_check.data:
                     selection_data.append({
@@ -146,7 +146,7 @@ def toggle_calendar_selection(user_id, calendar_id):
         supabase = get_supabase_admin()
 
         # 캘린더 존재 확인
-        calendar_check = supabase.table('user_calendars').select('*').eq('user_id', user_id).eq('id', calendar_id).execute()
+        calendar_check = supabase.table('calendars').select('*').eq('owner_id', user_id).eq('id', calendar_id).execute()
 
         if not calendar_check.data:
             return jsonify({'error': 'Calendar not found'}), 404

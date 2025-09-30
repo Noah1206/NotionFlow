@@ -90,7 +90,7 @@ def connect_platform_to_calendar(calendar_id):
             return jsonify({'error': 'Platform not authenticated. Please complete OAuth authentication first.'}), 400
         
         # Check if calendar exists
-        calendar_result = supabase.table('user_calendars').select('*').eq('user_id', user_id).eq('calendar_id', calendar_id).execute()
+        calendar_result = supabase.table('calendars').select('*').eq('owner_id', user_id).eq('calendar_id', calendar_id).execute()
         
         if not calendar_result.data:
             return jsonify({'error': 'Calendar not found'}), 404
@@ -263,7 +263,7 @@ def get_calendar_connections(calendar_id):
         supabase = config.get_client_for_user(user_id)
         
         # Get calendar info
-        calendar_result = supabase.table('user_calendars').select('*').eq('user_id', user_id).eq('calendar_id', calendar_id).execute()
+        calendar_result = supabase.table('calendars').select('*').eq('owner_id', user_id).eq('calendar_id', calendar_id).execute()
         
         if not calendar_result.data:
             return jsonify({'error': 'Calendar not found'}), 404
@@ -399,7 +399,7 @@ def get_connections_summary():
         platforms_result = supabase.table('oauth_tokens').select('platform').eq('user_id', user_id).execute()
         
         # Get calendars count
-        calendars_result = supabase.table('user_calendars').select('calendar_id').eq('user_id', user_id).execute()
+        calendars_result = supabase.table('calendars').select('calendar_id').eq('owner_id', user_id).execute()
         
         connections_by_calendar = {}
         connections_by_platform = {}

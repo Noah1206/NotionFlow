@@ -115,7 +115,7 @@ class GoogleCalendarService:
         """선택된 캘린더 정보 확인"""
         try:
             # 먼저 user_calendars 테이블에서 선택된 캘린더인지 확인
-            response = self.supabase.table('user_calendars').select('*').eq('id', calendar_id).eq('user_id', user_id).execute()
+            response = self.supabase.table('calendars').select('*').eq('id', calendar_id).eq('owner_id', user_id).execute()
 
             if not response.data:
                 print(f"캘린더 {calendar_id}를 찾을 수 없습니다.")

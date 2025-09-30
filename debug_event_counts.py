@@ -54,7 +54,7 @@ try:
     
     # Method 2: Calendar List Page Logic (Per Calendar Sum)
     print("\n2️⃣ Calendar List Page Method:")
-    calendars = supabase.table('user_calendars').select('id, name').eq('user_id', user_id).execute()
+    calendars = supabase.table('calendars').select('id, name').eq('owner_id', user_id).execute()
     calendar_total = 0
     
     for cal in calendars.data:

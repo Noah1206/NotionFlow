@@ -354,7 +354,7 @@ class NotionCalendarSync:
             
             # Fallback: Use first available calendar for the user
             try:
-                calendars_result = supabase.table('user_calendars').select('id, name').eq('owner_id', user_id).eq('is_active', True).limit(1).execute()
+                calendars_result = supabase.table('calendars').select('id, name').eq('owner_id', user_id).eq('is_active', True).limit(1).execute()
                 if calendars_result.data:
                     calendar_id = calendars_result.data[0]['id']
                     calendar_name = calendars_result.data[0]['name']

@@ -775,7 +775,7 @@ def update_media_filename(calendar_id):
             }), 400
         
         # 캘린더 소유권 확인
-        calendar_result = supabase.table('calendars').select('*').eq('id', calendar_id).eq('user_id', user_id).execute()
+        calendar_result = supabase.table('calendars').select('*').eq('id', calendar_id).eq('owner_id', user_id).execute()
         
         if not calendar_result.data:
             return jsonify({
@@ -829,7 +829,7 @@ def serve_media_file(calendar_id, filename):
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
         
         # 캘린더 및 미디어 파일 정보 확인
-        calendar_result = supabase.table('calendars').select('*').eq('id', calendar_id).eq('user_id', user_id).execute()
+        calendar_result = supabase.table('calendars').select('*').eq('id', calendar_id).eq('owner_id', user_id).execute()
         
         if not calendar_result.data:
             return jsonify({
