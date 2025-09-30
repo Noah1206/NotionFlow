@@ -21,6 +21,22 @@ let sharedUsers = []; // Store shared users list
 // Event search functionality
 let allEvents = []; // Store all events for searching
 
+// CRITICAL FIX: Initialize calendar ID globally for access across all functions
+function initializeCalendarId() {
+    const workspace = document.querySelector('.calendar-workspace[data-calendar-id]');
+    if (workspace) {
+        window.calendarId = workspace.getAttribute('data-calendar-id');
+        console.log('🎯 Calendar ID initialized:', window.calendarId);
+    } else {
+        // Fallback: extract from URL
+        const pathMatch = window.location.pathname.match(/\/calendar\/([^\/]+)/);
+        if (pathMatch && pathMatch[1]) {
+            window.calendarId = pathMatch[1];
+            console.log('🎯 Calendar ID from URL:', window.calendarId);
+        }
+    }
+}
+
 // Hobby categories and options
 const hobbyCategories = {
     sports: {
@@ -137,13 +153,16 @@ const hobbyCategories = {
 // Calendar initialization
 document.addEventListener('DOMContentLoaded', async function() {
     // DOM loaded, initializing calendar detail page
-    
+
+    // CRITICAL FIX: Initialize calendar ID FIRST before any other operations
+    initializeCalendarId();
+
     // 캘린더 존재 여부 확인 비활성화 (팝업 방지)
     // const calendarExists = await checkCalendarExists();
     // if (!calendarExists) {
     //     return; // 캘린더가 삭제되었으면 초기화 중단
     // }
-    
+
     initializeCalendar();
     loadEvents();
     setupEventListeners();
@@ -2341,11 +2360,18 @@ function goToToday() {
 async function loadEvents() {
     console.log('🔄 loadEvents called');
     console.log('📍 loadEvents stack trace:', new Error().stack);
-    
+
     try {
-        // Get calendar ID from the page
-        const calendarId = window.location.pathname.split('/').pop();
-        
+        // Use global calendar ID (initialized in initializeCalendarId)
+        const calendarId = window.calendarId || getCurrentCalendarId();
+
+        if (!calendarId) {
+            console.error('❌ No calendar ID available for loading events');
+            return;
+        }
+
+        console.log('📅 Loading events for calendar:', calendarId);
+
         // Fetch events from API
         const response = await fetch(`/api/calendars/${calendarId}/events`);
         
