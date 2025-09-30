@@ -185,14 +185,23 @@ class AppleCalendarSync:
                     print(f"⚠️ [APPLE SYNC] active_syncs table does not exist, using calendar_sync_configs instead")
                     # Fallback to using calendar_sync_configs table
                     try:
-                        # Update the existing config to include calendar selection
-                        result = supabase.table('calendar_sync_configs').update({
-                            'selected_calendar_id': calendar_id,
-                            'sync_enabled': True,
-                            'updated_at': datetime.now().isoformat()
-                        }).eq('user_id', user_id).eq('platform', 'apple').execute()
-                        print(f"✅ [APPLE SYNC] Updated calendar selection in sync config for calendar {calendar_id}")
-                        return bool(result.data)
+                        # Update the existing config to include calendar selection using credentials field
+                        existing_config = supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', 'apple').execute()
+                        if existing_config.data:
+                            current_credentials = existing_config.data[0].get('credentials', {})
+                            # Add calendar_id to credentials
+                            current_credentials['selected_calendar_id'] = calendar_id
+
+                            result = supabase.table('calendar_sync_configs').update({
+                                'credentials': current_credentials,
+                                'is_enabled': True,
+                                'updated_at': datetime.now().isoformat()
+                            }).eq('user_id', user_id).eq('platform', 'apple').execute()
+                            print(f"✅ [APPLE SYNC] Updated calendar selection in sync config for calendar {calendar_id}")
+                            return bool(result.data)
+                        else:
+                            print(f"⚠️ [APPLE SYNC] No existing sync config found")
+                            return False
                     except Exception as fallback_error:
                         print(f"❌ [APPLE SYNC] Failed to update sync config: {fallback_error}")
                         return False
@@ -322,24 +331,106 @@ class AppleCalendarSync:
                 'Depth': '1'
             }
 
-            print(f"🔍 [APPLE SYNC] Fetching events from {calendar_url}")
+            # For iCloud, we need to discover individual calendars first
+            if 'icloud.com' in server_url:
+                print(f"🔍 [APPLE SYNC] Discovering individual calendars from {calendar_url}")
 
-            response = requests.request(
-                'REPORT',
-                calendar_url,
-                auth=HTTPBasicAuth(username, password),
-                headers=headers,
-                data=report_body,
-                timeout=30
-            )
+                # PROPFIND to discover calendars
+                calendar_propfind_body = '''<?xml version="1.0" encoding="utf-8" ?>
+                <D:propfind xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav">
+                    <D:prop>
+                        <D:resourcetype/>
+                        <D:displayname/>
+                        <C:supported-calendar-component-set/>
+                    </D:prop>
+                </D:propfind>'''
 
-            if response.status_code in [207, 200]:  # Multi-Status or OK
-                # Parse CalDAV XML response
-                events = self._parse_caldav_events(response.text)
-                print(f"✅ [APPLE SYNC] Parsed {len(events)} events from CalDAV response")
+                calendar_discovery_response = requests.request(
+                    'PROPFIND',
+                    calendar_url,
+                    auth=HTTPBasicAuth(username, password),
+                    headers={'Content-Type': 'text/xml; charset=utf-8', 'Depth': '1'},
+                    data=calendar_propfind_body,
+                    timeout=30
+                )
+
+                if calendar_discovery_response.status_code in [207, 200]:
+                    # Parse to find individual calendar URLs
+                    try:
+                        import xml.etree.ElementTree as ET
+                        root = ET.fromstring(calendar_discovery_response.text)
+
+                        calendar_urls = []
+                        for response_elem in root.findall('.//{DAV:}response'):
+                            href_elem = response_elem.find('.//{DAV:}href')
+                            resourcetype_elem = response_elem.find('.//{DAV:}resourcetype')
+
+                            if href_elem is not None and resourcetype_elem is not None:
+                                # Check if it's a calendar resource
+                                if resourcetype_elem.find('.//{urn:ietf:params:xml:ns:caldav}calendar') is not None:
+                                    href = href_elem.text
+                                    if href and not href.endswith('/'):
+                                        href += '/'
+
+                                    if href.startswith('/'):
+                                        full_url = f"https://p25-caldav.icloud.com:443{href}"
+                                    else:
+                                        full_url = href
+
+                                    calendar_urls.append(full_url)
+                                    print(f"📅 [APPLE SYNC] Found calendar: {full_url}")
+
+                        # Try to fetch events from each calendar
+                        all_events = []
+                        for cal_url in calendar_urls[:3]:  # Limit to first 3 calendars
+                            print(f"🔍 [APPLE SYNC] Fetching events from calendar: {cal_url}")
+
+                            response = requests.request(
+                                'REPORT',
+                                cal_url,
+                                auth=HTTPBasicAuth(username, password),
+                                headers=headers,
+                                data=report_body,
+                                timeout=30
+                            )
+
+                            if response.status_code in [207, 200]:
+                                cal_events = self._parse_caldav_events(response.text)
+                                all_events.extend(cal_events)
+                                print(f"✅ [APPLE SYNC] Found {len(cal_events)} events in calendar")
+                            else:
+                                print(f"⚠️ [APPLE SYNC] Calendar {cal_url} returned {response.status_code}")
+
+                        events = all_events
+                        print(f"✅ [APPLE SYNC] Total events found: {len(events)}")
+
+                    except Exception as parse_error:
+                        print(f"❌ [APPLE SYNC] Failed to parse calendar discovery: {parse_error}")
+                        events = []
+                else:
+                    print(f"❌ [APPLE SYNC] Calendar discovery failed: {calendar_discovery_response.status_code}")
+                    events = []
             else:
-                print(f"❌ [APPLE SYNC] Failed to fetch events: {response.status_code}")
-                print(f"Response: {response.text[:500]}")
+                # For non-iCloud servers, try direct access
+                print(f"🔍 [APPLE SYNC] Fetching events from {calendar_url}")
+
+                response = requests.request(
+                    'REPORT',
+                    calendar_url,
+                    auth=HTTPBasicAuth(username, password),
+                    headers=headers,
+                    data=report_body,
+                    timeout=30
+                )
+
+                if response.status_code in [207, 200]:  # Multi-Status or OK
+                    # Parse CalDAV XML response
+                    events = self._parse_caldav_events(response.text)
+                    print(f"✅ [APPLE SYNC] Parsed {len(events)} events from CalDAV response")
+                else:
+                    print(f"❌ [APPLE SYNC] Failed to fetch events: {response.status_code}")
+                    print(f"Response: {response.text[:500]}")
+                    events = []
 
         except Exception as e:
             print(f"❌ [APPLE SYNC] Error fetching events: {e}")
