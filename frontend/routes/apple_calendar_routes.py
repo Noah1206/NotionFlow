@@ -42,8 +42,11 @@ def sync_apple_calendar():
     try:
         data = request.get_json() or {}
         calendar_id = data.get('calendar_id')
+        date_range = data.get('date_range', {})
 
         print(f"🍎 [APPLE ROUTE] Starting sync for user {user_id}, calendar {calendar_id}")
+        if date_range:
+            print(f"🍎 [APPLE ROUTE] Date range: {date_range.get('start_date')} to {date_range.get('end_date')}")
 
         # Check if service is available
         if apple_calendar_sync is None:
@@ -54,7 +57,7 @@ def sync_apple_calendar():
             }), 500
 
         # Trigger sync
-        result = apple_calendar_sync.sync_to_calendar(user_id, calendar_id)
+        result = apple_calendar_sync.sync_to_calendar(user_id, calendar_id, date_range)
 
         if result.get('success'):
             print(f"✅ [APPLE ROUTE] Sync completed: {result.get('synced_events')} events")

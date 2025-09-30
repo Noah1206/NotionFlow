@@ -1009,24 +1009,329 @@ class AppleSetupWizard {
     }
 
     /**
-     * 캘린더 선택 및 Apple Calendar 동기화
+     * 캘린더 선택 후 날짜 범위 설정
      */
     async selectCalendarForSync(calendarId) {
         try {
-            // 선택 버튼 비활성화
+            // 기존 캘린더 선택 모달 닫기
             const modal = document.getElementById('apple-calendar-selection');
-            const selectBtn = modal.querySelector(`[data-calendar-id="${calendarId}"] .select-btn`);
-            selectBtn.disabled = true;
-            selectBtn.textContent = '연동 중...';
+            if (modal) modal.remove();
 
-            // Apple Calendar 동기화 API 호출
+            // 날짜 범위 선택 모달 표시
+            this.showDateRangeModal(calendarId);
+
+        } catch (error) {
+            console.error('Calendar selection failed:', error);
+            this.showNotification('캘린더 선택에 실패했습니다.', 'error');
+        }
+    }
+
+    /**
+     * 날짜 범위 선택 모달 표시
+     */
+    showDateRangeModal(calendarId) {
+        const today = new Date();
+        const defaultStart = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+        const defaultEnd = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+
+        const modalHTML = `
+            <div class="apple-date-range-modal" id="apple-date-range-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>🍎 Apple Calendar 동기화 설정</h3>
+                        <button class="close-btn" onclick="document.getElementById('apple-date-range-modal').remove()">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="step-description">
+                            <h4>동기화할 기간을 선택하세요</h4>
+                            <p>Apple Calendar에서 가져올 일정의 기간을 설정해주세요.</p>
+                        </div>
+
+                        <div class="date-range-picker">
+                            <div class="date-range-row">
+                                <div class="date-input-group">
+                                    <label class="date-label">시작 날짜</label>
+                                    <input type="date" id="apple-sync-start-date" class="date-input" value="${defaultStart.toISOString().split('T')[0]}">
+                                </div>
+                                <div class="date-range-separator">~</div>
+                                <div class="date-input-group">
+                                    <label class="date-label">종료 날짜</label>
+                                    <input type="date" id="apple-sync-end-date" class="date-input" value="${defaultEnd.toISOString().split('T')[0]}">
+                                </div>
+                            </div>
+
+                            <div class="date-range-presets">
+                                <button type="button" class="preset-btn" onclick="window.appleWizard.setAppleDateRange('last3months')">최근 3개월</button>
+                                <button type="button" class="preset-btn" onclick="window.appleWizard.setAppleDateRange('last6months')">최근 6개월</button>
+                                <button type="button" class="preset-btn active" onclick="window.appleWizard.setAppleDateRange('last1year')">최근 1년</button>
+                                <button type="button" class="preset-btn" onclick="window.appleWizard.setAppleDateRange('all')">전체 기간</button>
+                            </div>
+
+                            <div class="date-range-preview">
+                                <span class="preview-text" id="apple-date-range-preview">최근 1년간의 일정을 가져옵니다</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn-secondary" onclick="document.getElementById('apple-date-range-modal').remove()">취소</button>
+                        <button class="btn-primary" onclick="window.appleWizard.proceedWithSync('${calendarId}')">동기화 시작</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // 기존 스타일에 날짜 범위 모달 스타일 추가
+        const additionalStyles = `
+            <style>
+                .apple-date-range-modal {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.5);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 10001;
+                }
+                .apple-date-range-modal .modal-content {
+                    background: white;
+                    border-radius: 12px;
+                    width: 90%;
+                    max-width: 500px;
+                    max-height: 80vh;
+                    overflow: auto;
+                }
+                .apple-date-range-modal .modal-header {
+                    padding: 20px;
+                    border-bottom: 1px solid #e0e0e0;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+                .apple-date-range-modal .modal-body {
+                    padding: 20px;
+                }
+                .apple-date-range-modal .modal-footer {
+                    padding: 20px;
+                    border-top: 1px solid #e0e0e0;
+                    display: flex;
+                    gap: 10px;
+                    justify-content: flex-end;
+                }
+                .apple-date-range-modal .step-description h4 {
+                    margin-bottom: 8px;
+                    color: #333;
+                }
+                .apple-date-range-modal .step-description p {
+                    color: #666;
+                    margin-bottom: 20px;
+                }
+                .apple-date-range-modal .date-range-picker {
+                    background: #f9fafb;
+                    border: 1px solid #e5e7eb;
+                    border-radius: 8px;
+                    padding: 16px;
+                }
+                .apple-date-range-modal .date-range-row {
+                    display: flex;
+                    align-items: end;
+                    gap: 16px;
+                    margin-bottom: 16px;
+                }
+                .apple-date-range-modal .date-input-group {
+                    flex: 1;
+                }
+                .apple-date-range-modal .date-label {
+                    display: block;
+                    font-size: 12px;
+                    font-weight: 500;
+                    color: #6b7280;
+                    margin-bottom: 6px;
+                }
+                .apple-date-range-modal .date-input {
+                    width: 100%;
+                    padding: 8px 12px;
+                    border: 1px solid #d1d5db;
+                    border-radius: 6px;
+                    font-size: 14px;
+                    color: #374151;
+                    background: white;
+                }
+                .apple-date-range-modal .date-range-separator {
+                    color: #6b7280;
+                    font-weight: 500;
+                    margin-bottom: 8px;
+                }
+                .apple-date-range-modal .date-range-presets {
+                    display: flex;
+                    gap: 8px;
+                    margin-bottom: 12px;
+                    flex-wrap: wrap;
+                }
+                .apple-date-range-modal .preset-btn {
+                    padding: 6px 12px;
+                    border: 1px solid #d1d5db;
+                    border-radius: 6px;
+                    background: white;
+                    color: #6b7280;
+                    font-size: 12px;
+                    cursor: pointer;
+                }
+                .apple-date-range-modal .preset-btn.active {
+                    background: #007AFF;
+                    border-color: #007AFF;
+                    color: white;
+                }
+                .apple-date-range-modal .date-range-preview {
+                    background: #eff6ff;
+                    border: 1px solid #bfdbfe;
+                    border-radius: 6px;
+                    padding: 8px 12px;
+                }
+                .apple-date-range-modal .preview-text {
+                    font-size: 12px;
+                    color: #1e40af;
+                    font-weight: 500;
+                }
+                .apple-date-range-modal .btn-secondary,
+                .apple-date-range-modal .btn-primary {
+                    padding: 10px 20px;
+                    border-radius: 6px;
+                    border: none;
+                    cursor: pointer;
+                    font-weight: 500;
+                }
+                .apple-date-range-modal .btn-secondary {
+                    background: #f3f4f6;
+                    color: #374151;
+                }
+                .apple-date-range-modal .btn-primary {
+                    background: #007AFF;
+                    color: white;
+                }
+            </style>
+        `;
+
+        // 스타일 추가
+        if (!document.getElementById('apple-date-range-styles')) {
+            const styleElement = document.createElement('style');
+            styleElement.id = 'apple-date-range-styles';
+            styleElement.innerHTML = additionalStyles;
+            document.head.appendChild(styleElement);
+        }
+
+        // 모달 추가
+        const modalContainer = document.createElement('div');
+        modalContainer.innerHTML = modalHTML;
+        document.body.appendChild(modalContainer.firstElementChild);
+
+        // 이벤트 리스너 추가
+        setTimeout(() => {
+            const startInput = document.getElementById('apple-sync-start-date');
+            const endInput = document.getElementById('apple-sync-end-date');
+            if (startInput && endInput) {
+                startInput.addEventListener('change', () => this.updateAppleDateRangePreview());
+                endInput.addEventListener('change', () => this.updateAppleDateRangePreview());
+            }
+        }, 100);
+    }
+
+    /**
+     * Apple Calendar 날짜 범위 프리셋 설정
+     */
+    setAppleDateRange(preset) {
+        const startDateInput = document.getElementById('apple-sync-start-date');
+        const endDateInput = document.getElementById('apple-sync-end-date');
+        const today = new Date();
+        let startDate, endDate;
+
+        // 기존 active 제거
+        document.querySelectorAll('.apple-date-range-modal .preset-btn').forEach(btn => btn.classList.remove('active'));
+
+        switch (preset) {
+            case 'last3months':
+                startDate = new Date(today.getFullYear(), today.getMonth() - 3, today.getDate());
+                endDate = new Date(today.getFullYear(), today.getMonth() + 3, today.getDate());
+                document.querySelector('[onclick="window.appleWizard.setAppleDateRange(\'last3months\')"]').classList.add('active');
+                break;
+            case 'last6months':
+                startDate = new Date(today.getFullYear(), today.getMonth() - 6, today.getDate());
+                endDate = new Date(today.getFullYear(), today.getMonth() + 6, today.getDate());
+                document.querySelector('[onclick="window.appleWizard.setAppleDateRange(\'last6months\')"]').classList.add('active');
+                break;
+            case 'last1year':
+                startDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+                endDate = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+                document.querySelector('[onclick="window.appleWizard.setAppleDateRange(\'last1year\')"]').classList.add('active');
+                break;
+            case 'all':
+                startDate = new Date(2020, 0, 1);
+                endDate = new Date(today.getFullYear() + 2, 11, 31);
+                document.querySelector('[onclick="window.appleWizard.setAppleDateRange(\'all\')"]').classList.add('active');
+                break;
+        }
+
+        if (startDateInput && endDateInput) {
+            startDateInput.value = startDate.toISOString().split('T')[0];
+            endDateInput.value = endDate.toISOString().split('T')[0];
+        }
+
+        this.updateAppleDateRangePreview();
+    }
+
+    /**
+     * Apple Calendar 날짜 범위 프리뷰 업데이트
+     */
+    updateAppleDateRangePreview() {
+        const startDate = document.getElementById('apple-sync-start-date').value;
+        const endDate = document.getElementById('apple-sync-end-date').value;
+        const previewElement = document.getElementById('apple-date-range-preview');
+
+        if (startDate && endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const startString = start.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+            const endString = end.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+
+            previewElement.textContent = `${startString} ~ ${endString} 기간의 일정을 가져옵니다`;
+        } else {
+            previewElement.textContent = '날짜 범위를 선택해주세요';
+        }
+    }
+
+    /**
+     * 날짜 범위와 함께 실제 동기화 수행
+     */
+    async proceedWithSync(calendarId) {
+        try {
+            const startDate = document.getElementById('apple-sync-start-date').value;
+            const endDate = document.getElementById('apple-sync-end-date').value;
+
+            if (!startDate || !endDate) {
+                this.showNotification('날짜 범위를 선택해주세요.', 'error');
+                return;
+            }
+
+            // 로딩 상태
+            const syncBtn = document.querySelector('.apple-date-range-modal .btn-primary');
+            const originalText = syncBtn.textContent;
+            syncBtn.disabled = true;
+            syncBtn.textContent = '연동 중...';
+
+            // Apple Calendar 동기화 API 호출 (날짜 범위 포함)
             const response = await fetch('/api/apple-calendar/sync', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    calendar_id: calendarId
+                    calendar_id: calendarId,
+                    date_range: {
+                        start_date: startDate,
+                        end_date: endDate
+                    }
                 })
             });
 
@@ -1037,7 +1342,8 @@ class AppleSetupWizard {
             const data = await response.json();
 
             // 모달 닫기
-            modal.remove();
+            const modal = document.getElementById('apple-date-range-modal');
+            if (modal) modal.remove();
 
             // 성공 알림
             this.showNotification(`Apple Calendar가 성공적으로 연결되었습니다! ${data.synced_events || 0}개의 일정이 동기화되었습니다.`, 'success');
@@ -1050,6 +1356,13 @@ class AppleSetupWizard {
         } catch (error) {
             console.error('Apple Calendar sync failed:', error);
             this.showNotification('Apple Calendar 동기화에 실패했습니다.', 'error');
+
+            // 버튼 복원
+            const syncBtn = document.querySelector('.apple-date-range-modal .btn-primary');
+            if (syncBtn) {
+                syncBtn.disabled = false;
+                syncBtn.textContent = '동기화 시작';
+            }
         }
     }
 }

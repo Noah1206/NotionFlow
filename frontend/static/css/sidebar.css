@@ -265,8 +265,8 @@ body .left-sidebar {
     height: 100vh !important;
     max-height: 100vh !important;
     min-height: 100vh !important;
-    background: #1a1a1a !important;
-    background-color: #1a1a1a !important;
+    background: #FFFFFF !important;
+    background-color: #FFFFFF !important;
     border: none !important;
     border-top: none !important;
     border-left: none !important;
@@ -280,7 +280,7 @@ body .left-sidebar {
     flex-shrink: 0;
     z-index: 100 !important;
     box-shadow: none !important;
-    color: #1e293b !important;
+    color: #000000 !important;
     opacity: 1 !important;
     visibility: visible !important;
     margin: 0 !important;
@@ -408,7 +408,7 @@ body .left-sidebar {
 .logo-text {
     font-size: 1.25rem !important;
     font-weight: 700 !important;
-    color: #ffffff !important;
+    color: #000000 !important;
     letter-spacing: -0.025em !important;
     display: block !important;
     visibility: visible !important;
@@ -468,7 +468,7 @@ body .left-sidebar {
     gap: 14px;
     padding: 14px 20px;
     border-radius: 0;
-    color: #e5e7eb;
+    color: #000000;
     text-decoration: none;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -485,20 +485,20 @@ body .left-sidebar {
 }
 
 .nav-item:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #ffffff;
+    background-color: rgba(0, 0, 0, 0.1);
+    color: #000000;
     border-left: 3px solid #6b7280;
 }
 
 .nav-item.active {
-    background-color: rgba(255, 255, 255, 0.15);
-    color: #ffffff;
+    background-color: rgba(0, 0, 0, 0.15);
+    color: #000000;
     font-weight: 500;
     border-left: 3px solid #3b82f6;
 }
 
 .nav-item.active .nav-icon svg {
-    stroke: #ffffff;
+    stroke: #000000;
 }
 
 /* 네비게이션 아이콘 */
@@ -561,7 +561,7 @@ body .left-sidebar {
 /* 배지 스타일 */
 .count-badge {
     background: #e5e7eb;
-    color: #e5e7eb;
+    color: #000000;
     font-size: 11px;
     font-weight: 600;
     padding: 2px 6px;
@@ -807,7 +807,7 @@ body.calendar-detail-page .left-sidebar.collapsed, .sidebar.collapsed .calendar-
     display: none !important;
 }
 
-/* 🌙 강력한 다크 테마 적용 - 사이드바 전체 */
+/* 🌙 강력한 라이트 테마 적용 - 사이드바 전체 */
 .sidebar,
 .sidebar *,
 .sidebar div,
@@ -822,49 +822,49 @@ body.calendar-detail-page .left-sidebar.collapsed, .sidebar.collapsed .calendar-
 body .sidebar,
 html .sidebar,
 div.sidebar {
-    background-color: #1a1a1a !important;
-    background: #1a1a1a !important;
+    background-color: #FFFFFF !important;
+    background: #FFFFFF !important;
 }
 
-/* 사이드바 내 모든 텍스트를 밝은 색으로 */
+/* 사이드바 내 모든 텍스트를 검은 색으로 */
 .sidebar,
 .sidebar *,
 .sidebar div,
 .sidebar span,
 .sidebar p,
 .sidebar h1, .sidebar h2, .sidebar h3, .sidebar h4, .sidebar h5, .sidebar h6 {
-    color: #e5e7eb !important;
+    color: #000000 !important;
 }
 
 /* 네비게이션 아이템 색상 */
 .sidebar .nav-item {
-    color: #e5e7eb !important;
+    color: #000000 !important;
     background-color: transparent !important;
 }
 
 .sidebar .nav-item:hover {
-    background-color: rgba(255, 255, 255, 0.1) !important;
-    color: #ffffff !important;
+    background-color: rgba(0, 0, 0, 0.1) !important;
+    color: #000000 !important;
 }
 
 .sidebar .nav-item.active {
-    background-color: rgba(255, 255, 255, 0.15) !important;
-    color: #ffffff !important;
+    background-color: rgba(0, 0, 0, 0.15) !important;
+    color: #000000 !important;
 }
 
-/* 프로필 섹션도 다크 테마 */
+/* 프로필 섹션도 라이트 테마 */
 .sidebar .profile-section,
 .sidebar .profile-nav-item,
 .sidebar .sidebar-profile {
-    background-color: #1a1a1a !important;
-    background: #1a1a1a !important;
+    background-color: #FFFFFF !important;
+    background: #FFFFFF !important;
 }
 
-/* 위젯들도 다크 테마 */
+/* 위젯들도 라이트 테마 */
 .sidebar .sidebar-widget,
 .sidebar .widget-section,
 .sidebar .compact-media-player {
-    background-color: #2a2a2a !important;
-    background: #2a2a2a !important;
-    border: 1px solid #404040 !important;
+    background-color: #f9f9f9 !important;
+    background: #f9f9f9 !important;
+    border: 1px solid #e5e7eb !important;
 }

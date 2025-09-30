@@ -35,7 +35,7 @@ class AppleCalendarSync:
         """Initialize Apple Calendar sync service"""
         self.default_server = 'https://caldav.icloud.com'
 
-    def sync_to_calendar(self, user_id: str, calendar_id: Optional[str] = None) -> Dict[str, Any]:
+    def sync_to_calendar(self, user_id: str, calendar_id: Optional[str] = None, date_range: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
         """
         Sync Apple Calendar events to NotionFlow calendar
 
@@ -76,7 +76,7 @@ class AppleCalendarSync:
             print(f"📅 [APPLE SYNC] Using calendar {calendar_id}")
 
             # Fetch events from Apple Calendar
-            apple_events = self._fetch_apple_events(credentials)
+            apple_events = self._fetch_apple_events(credentials, date_range)
             print(f"📥 [APPLE SYNC] Fetched {len(apple_events)} events from Apple Calendar")
 
             # Sync events to NotionFlow calendar
@@ -236,8 +236,8 @@ class AppleCalendarSync:
             print(f"❌ [APPLE SYNC] Failed to create active sync: {e}")
             return False
 
-    def _fetch_apple_events(self, credentials: Dict) -> List[Dict]:
-        """Fetch events from Apple Calendar using CalDAV"""
+    def _fetch_apple_events(self, credentials: Dict, date_range: Optional[Dict[str, str]] = None) -> List[Dict]:
+        """Fetch events from Apple Calendar using CalDAV with optional date range filtering"""
         events = []
 
         try:
@@ -307,9 +307,19 @@ class AppleCalendarSync:
                 calendar_url = f"{server_url}/{username.split('@')[0]}/calendars/home/"
 
             # CalDAV REPORT request to get events
-            # Get events from last 30 days to next 90 days
-            start_date = (datetime.now() - timedelta(days=30)).strftime('%Y%m%dT000000Z')
-            end_date = (datetime.now() + timedelta(days=90)).strftime('%Y%m%dT235959Z')
+            # Set date range for event fetching
+            if date_range and date_range.get('start_date') and date_range.get('end_date'):
+                # Parse user-provided date range
+                start_dt = datetime.strptime(date_range['start_date'], '%Y-%m-%d')
+                end_dt = datetime.strptime(date_range['end_date'], '%Y-%m-%d')
+                start_date = start_dt.strftime('%Y%m%dT000000Z')
+                end_date = end_dt.strftime('%Y%m%dT235959Z')
+                print(f"📅 [APPLE SYNC] Using user-specified date range: {date_range['start_date']} to {date_range['end_date']}")
+            else:
+                # Default: Get events from last 30 days to next 90 days
+                start_date = (datetime.now() - timedelta(days=30)).strftime('%Y%m%dT000000Z')
+                end_date = (datetime.now() + timedelta(days=90)).strftime('%Y%m%dT235959Z')
+                print(f"📅 [APPLE SYNC] Using default date range: last 30 days to next 90 days")
 
             report_body = f'''<?xml version="1.0" encoding="utf-8" ?>
             <C:calendar-query xmlns:C="urn:ietf:params:xml:ns:caldav" xmlns:D="DAV:">

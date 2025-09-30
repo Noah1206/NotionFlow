@@ -2844,6 +2844,38 @@
                                     </label>
                                     <p class="setting-description">일정 알림도 함께 동기화합니다.</p>
                                 </div>
+
+                                <div class="setting-group">
+                                    <label class="setting-label-text">
+                                        📅 동기화 기간 설정
+                                    </label>
+                                    <p class="setting-description">가져올 일정의 기간을 선택하세요.</p>
+
+                                    <div class="date-range-picker">
+                                        <div class="date-range-row">
+                                            <div class="date-input-group">
+                                                <label class="date-label">시작 날짜</label>
+                                                <input type="date" id="sync-start-date" class="date-input">
+                                            </div>
+                                            <div class="date-range-separator">~</div>
+                                            <div class="date-input-group">
+                                                <label class="date-label">종료 날짜</label>
+                                                <input type="date" id="sync-end-date" class="date-input">
+                                            </div>
+                                        </div>
+
+                                        <div class="date-range-presets">
+                                            <button type="button" class="preset-btn" onclick="setDateRange('last3months')">최근 3개월</button>
+                                            <button type="button" class="preset-btn" onclick="setDateRange('last6months')">최근 6개월</button>
+                                            <button type="button" class="preset-btn active" onclick="setDateRange('last1year')">최근 1년</button>
+                                            <button type="button" class="preset-btn" onclick="setDateRange('all')">전체 기간</button>
+                                        </div>
+
+                                        <div class="date-range-preview">
+                                            <span class="preview-text" id="date-range-preview">최근 1년간의 일정을 가져옵니다</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             
                             <div class="selected-calendar-preview">
@@ -3023,6 +3055,11 @@
         // 버튼 업데이트
         const nextBtn = document.getElementById('next-step-btn');
         if (nextBtn) nextBtn.textContent = '설정 완료';
+
+        // 날짜 범위 초기화
+        setTimeout(() => {
+            initializeDateRange();
+        }, 100);
     }
 
     // 연동 버튼 표시
@@ -3060,7 +3097,11 @@
                     settings: {
                         bidirectional: document.getElementById('bidirectional-sync').checked,
                         realTime: document.getElementById('real-time-sync').checked,
-                        notifications: document.getElementById('notification-sync').checked
+                        notifications: document.getElementById('notification-sync').checked,
+                        dateRange: {
+                            startDate: document.getElementById('sync-start-date').value,
+                            endDate: document.getElementById('sync-end-date').value
+                        }
                     }
                 })
             });
@@ -3146,6 +3187,80 @@
         setTimeout(() => {
             errorDiv.remove();
         }, 3000);
+    }
+
+    // Date Range 관련 함수들
+    function setDateRange(preset) {
+        const startDateInput = document.getElementById('sync-start-date');
+        const endDateInput = document.getElementById('sync-end-date');
+        const today = new Date();
+        let startDate, endDate;
+
+        // 기존 active 제거
+        document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+
+        switch (preset) {
+            case 'last3months':
+                startDate = new Date(today.getFullYear(), today.getMonth() - 3, today.getDate());
+                endDate = new Date(today.getFullYear(), today.getMonth() + 3, today.getDate());
+                document.querySelector('[onclick="setDateRange(\'last3months\')"]').classList.add('active');
+                break;
+            case 'last6months':
+                startDate = new Date(today.getFullYear(), today.getMonth() - 6, today.getDate());
+                endDate = new Date(today.getFullYear(), today.getMonth() + 6, today.getDate());
+                document.querySelector('[onclick="setDateRange(\'last6months\')"]').classList.add('active');
+                break;
+            case 'last1year':
+                startDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+                endDate = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+                document.querySelector('[onclick="setDateRange(\'last1year\')"]').classList.add('active');
+                break;
+            case 'all':
+                startDate = new Date(2020, 0, 1); // 2020년 1월 1일부터
+                endDate = new Date(today.getFullYear() + 2, 11, 31); // 2년 후까지
+                document.querySelector('[onclick="setDateRange(\'all\')"]').classList.add('active');
+                break;
+        }
+
+        // 날짜 입력 필드 업데이트
+        if (startDateInput && endDateInput) {
+            startDateInput.value = startDate.toISOString().split('T')[0];
+            endDateInput.value = endDate.toISOString().split('T')[0];
+        }
+
+        updateDateRangePreview();
+    }
+
+    function updateDateRangePreview() {
+        const startDate = document.getElementById('sync-start-date').value;
+        const endDate = document.getElementById('sync-end-date').value;
+        const previewElement = document.getElementById('date-range-preview');
+
+        if (startDate && endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const startString = start.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+            const endString = end.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+
+            previewElement.textContent = `${startString} ~ ${endString} 기간의 일정을 가져옵니다`;
+        } else {
+            previewElement.textContent = '날짜 범위를 선택해주세요';
+        }
+    }
+
+    // 모달이 열릴 때 기본 날짜 범위 설정
+    function initializeDateRange() {
+        // 기본값: 최근 1년
+        setDateRange('last1year');
+
+        // 날짜 변경 이벤트 리스너 추가
+        const startDateInput = document.getElementById('sync-start-date');
+        const endDateInput = document.getElementById('sync-end-date');
+
+        if (startDateInput && endDateInput) {
+            startDateInput.addEventListener('change', updateDateRangePreview);
+            endDateInput.addEventListener('change', updateDateRangePreview);
+        }
     }
 
     // 캘린더가 없을 때 표시할 모달
@@ -3894,6 +4009,109 @@
     .sync-error .error-message {
         color: #dc2626;
         font-size: 14px;
+    }
+
+    /* Date Range Picker Styles */
+    .setting-label-text {
+        display: block;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .date-range-picker {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 16px;
+        margin-top: 12px;
+    }
+
+    .date-range-row {
+        display: flex;
+        align-items: end;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .date-input-group {
+        flex: 1;
+    }
+
+    .date-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 500;
+        color: #6b7280;
+        margin-bottom: 6px;
+    }
+
+    .date-input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 14px;
+        color: #374151;
+        background: white;
+        transition: border-color 0.2s;
+    }
+
+    .date-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .date-range-separator {
+        color: #6b7280;
+        font-weight: 500;
+        margin: 0 8px;
+        margin-bottom: 8px;
+    }
+
+    .date-range-presets {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+    }
+
+    .preset-btn {
+        padding: 6px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        background: white;
+        color: #6b7280;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .preset-btn:hover {
+        border-color: #3b82f6;
+        color: #3b82f6;
+    }
+
+    .preset-btn.active {
+        background: #3b82f6;
+        border-color: #3b82f6;
+        color: white;
+    }
+
+    .date-range-preview {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 6px;
+        padding: 8px 12px;
+    }
+
+    .preview-text {
+        font-size: 12px;
+        color: #1e40af;
+        font-weight: 500;
     }
     
     /* No Calendars Modal */
