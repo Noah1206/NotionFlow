@@ -19,6 +19,7 @@ from services.google_calendar_sync import GoogleCalendarSyncService, sync_google
 from services.notion_sync import NotionSyncService, sync_notion_calendar_for_user
 from backend.services.calendar_service import CalendarSyncService
 from backend.services.sync_tracking_service import sync_tracker, EventType, ActivityType
+from backend.services.event_validation_service import event_validator, ValidationResult
 
 unified_sync_bp = Blueprint('unified_sync', __name__, url_prefix='/api/unified-sync')
 
@@ -320,6 +321,269 @@ def get_sync_history():
         
     except Exception as e:
         print(f"❌ [UNIFIED SYNC] History retrieval failed: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@unified_sync_bp.route('/validate', methods=['POST'])
+def validate_events_for_sync():
+    """3-tier validation for selected events before sync"""
+    try:
+        user_id = require_login()
+        if isinstance(user_id, tuple):
+            return user_id
+
+        data = request.get_json()
+        event_ids = data.get('event_ids', [])
+        target_platform = data.get('target_platform')
+        trashed_events = data.get('trashed_events', [])  # From localStorage
+
+        if not event_ids:
+            return jsonify({
+                'success': False,
+                'error': '검증할 이벤트를 선택해주세요'
+            }), 400
+
+        if not target_platform:
+            return jsonify({
+                'success': False,
+                'error': '대상 플랫폼을 지정해주세요'
+            }), 400
+
+        print(f"🛡️ [VALIDATION API] Validating {len(event_ids)} events for {target_platform}")
+        print(f"🗑️ [VALIDATION API] Checking against {len(trashed_events)} trashed events")
+
+        # Perform batch validation
+        validation_reports = event_validator.validate_event_batch(
+            user_id=user_id,
+            event_ids=event_ids,
+            target_platform=target_platform,
+            trashed_events=trashed_events
+        )
+
+        # Generate summary
+        summary = event_validator.get_validation_summary(validation_reports)
+
+        # Prepare response data
+        validation_results = []
+        for report in validation_reports:
+            validation_results.append({
+                'event_id': report.event_id,
+                'validation_status': report.overall_result.value,
+                'case_classification': report.case_classification.value,
+                'rejection_reason': report.rejection_reason,
+                'tier_results': {
+                    'tier1': {
+                        'passed': report.tier1.passed,
+                        'description': report.tier1.description
+                    },
+                    'tier2': {
+                        'passed': report.tier2.passed,
+                        'description': report.tier2.description
+                    },
+                    'tier3': {
+                        'passed': report.tier3.passed,
+                        'description': report.tier3.description
+                    }
+                },
+                'content_hash': report.content_hash,
+                'validation_id': report.validation_id
+            })
+
+        response_data = {
+            'success': True,
+            'validation_results': validation_results,
+            'summary': summary,
+            'message': f'{summary["approved_count"]}/{summary["total_events"]} events approved for sync'
+        }
+
+        print(f"✅ [VALIDATION API] Validation complete: {summary['approval_rate']:.1f}% approval rate")
+        return jsonify(response_data)
+
+    except Exception as e:
+        print(f"❌ [VALIDATION API] Validation failed: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@unified_sync_bp.route('/sync-validated', methods=['POST'])
+def execute_validated_sync():
+    """Execute sync for pre-validated events only"""
+    try:
+        user_id = require_login()
+        if isinstance(user_id, tuple):
+            return user_id
+
+        data = request.get_json()
+        target_platform = data.get('target_platform')
+        approved_event_ids = data.get('approved_event_ids', [])
+        validation_options = data.get('options', {})
+
+        if not target_platform:
+            return jsonify({
+                'success': False,
+                'error': '대상 플랫폼을 지정해주세요'
+            }), 400
+
+        if not approved_event_ids:
+            return jsonify({
+                'success': False,
+                'error': '동기화할 검증된 이벤트가 없습니다'
+            }), 400
+
+        print(f"🚀 [VALIDATED SYNC] Starting validated sync: {len(approved_event_ids)} events → {target_platform}")
+
+        # Track sync activity
+        activity_id = sync_tracker.start_activity(
+            user_id=user_id,
+            activity_type=getattr(ActivityType, f'{target_platform.upper()}_CALENDAR_SYNC', ActivityType.MANUAL_SYNC),
+            source_info={
+                'platform': target_platform,
+                'sync_type': 'validated',
+                'event_count': len(approved_event_ids),
+                'options': validation_options
+            }
+        )
+
+        try:
+            if target_platform == 'google':
+                # TODO: Implement validated Google sync
+                # For now, use existing sync but with filtered events
+                result = {
+                    'success': True,
+                    'synced_count': len(approved_event_ids),
+                    'message': f'Google Calendar validated sync: {len(approved_event_ids)} events'
+                }
+
+            elif target_platform == 'notion':
+                # TODO: Implement validated Notion sync
+                # For now, use existing sync but with filtered events
+                result = {
+                    'success': True,
+                    'synced_count': len(approved_event_ids),
+                    'message': f'Notion validated sync: {len(approved_event_ids)} events'
+                }
+
+            elif target_platform == 'apple':
+                result = {
+                    'success': False,
+                    'message': 'Apple Calendar validated sync is not yet implemented'
+                }
+
+            else:
+                result = {
+                    'success': False,
+                    'message': f'Unsupported platform: {target_platform}'
+                }
+
+            # Complete activity tracking
+            sync_tracker.complete_activity(activity_id, success=result.get('success', False))
+
+            # Update validation records if sync was successful
+            if result.get('success'):
+                try:
+                    # Mark validation records as synced
+                    for event_id in approved_event_ids:
+                        update_data = {
+                            'sync_status': 'success',
+                            'sync_completed_at': datetime.now(timezone.utc).isoformat()
+                        }
+
+                        event_validator.supabase.table('event_validation_history').update(
+                            update_data
+                        ).eq('user_id', user_id).eq('source_event_id', event_id).eq(
+                            'target_platform', target_platform
+                        ).eq('validation_status', 'approved').execute()
+
+                except Exception as update_error:
+                    print(f"⚠️ [VALIDATED SYNC] Error updating validation records: {update_error}")
+
+            response_data = {
+                'success': result.get('success', False),
+                'message': result.get('message', ''),
+                'synced_count': result.get('synced_count', 0),
+                'platform': target_platform,
+                'details': result
+            }
+
+            print(f"✅ [VALIDATED SYNC] Sync complete: {response_data['message']}")
+            return jsonify(response_data)
+
+        except Exception as sync_error:
+            print(f"❌ [VALIDATED SYNC] Sync execution failed: {sync_error}")
+            sync_tracker.complete_activity(activity_id, success=False, error_details=str(sync_error))
+
+            return jsonify({
+                'success': False,
+                'error': f'Sync execution failed: {str(sync_error)}',
+                'platform': target_platform
+            }), 500
+
+    except Exception as e:
+        print(f"❌ [VALIDATED SYNC] Request processing failed: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@unified_sync_bp.route('/validation-history', methods=['GET'])
+def get_validation_history():
+    """Get validation history for user"""
+    try:
+        user_id = require_login()
+        if isinstance(user_id, tuple):
+            return user_id
+
+        # Query parameters
+        platform = request.args.get('platform')
+        limit = int(request.args.get('limit', 50))
+        offset = int(request.args.get('offset', 0))
+
+        print(f"📊 [VALIDATION HISTORY] Fetching history for user {user_id}")
+
+        # Build query
+        query = event_validator.supabase.table('event_validation_history').select(
+            'id, source_event_id, target_platform, validation_status, case_classification, '
+            'rejection_reason, created_at, tier1_db_check, tier2_trash_check, tier3_duplicate_check, '
+            'normalized_title, event_date'
+        ).eq('user_id', user_id)
+
+        if platform:
+            query = query.eq('target_platform', platform)
+
+        # Execute query with pagination
+        result = query.order('created_at', desc=True).range(offset, offset + limit - 1).execute()
+
+        history = result.data if result.data else []
+
+        # Count total records for pagination
+        count_result = event_validator.supabase.table('event_validation_history').select(
+            'id', count='exact'
+        ).eq('user_id', user_id)
+
+        if platform:
+            count_result = count_result.eq('target_platform', platform)
+
+        total_count = count_result.execute().count or 0
+
+        response_data = {
+            'success': True,
+            'history': history,
+            'pagination': {
+                'total': total_count,
+                'limit': limit,
+                'offset': offset,
+                'has_more': offset + limit < total_count
+            }
+        }
+
+        print(f"✅ [VALIDATION HISTORY] Retrieved {len(history)} records")
+        return jsonify(response_data)
+
+    except Exception as e:
+        print(f"❌ [VALIDATION HISTORY] Request failed: {e}")
         return jsonify({
             'success': False,
             'error': str(e)

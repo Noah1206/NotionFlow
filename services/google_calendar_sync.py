@@ -229,19 +229,9 @@ class GoogleCalendarSyncService:
                     events = google_api.get_events(calendar_id)
                     total_events += len(events)
                     
-                    # 이벤트를 SupaBase에 저장
-                    for event in events:
-                        try:
-                            self._save_event_to_database(event, user_id, calendar_id, calendar_name)
-                            processed_events += 1
-                        except Exception as e:
-                            error_msg = f"Event save error in {calendar_name}: {str(e)}"
-                            errors.append(error_msg)
-                            print(f"❌ [GOOGLE SYNC] {error_msg}")
-                            # 중복 키 에러는 정상적인 상황이므로 계속 진행
-                            if 'duplicate key value violates unique constraint' in str(e):
-                                print(f"ℹ️ [GOOGLE SYNC] Event already exists, skipping: {event.get('summary', 'Unknown')}")
-                                continue
+                    # 이벤트를 SupaBase에 저장 - 배치 처리로 최적화
+                    self._save_events_batch_google(events, user_id, calendar_id, calendar_name)
+                    processed_events += len(events)
                     
                 except Exception as e:
                     error_msg = f"Calendar processing error for {calendar_name}: {str(e)}"
@@ -327,7 +317,102 @@ class GoogleCalendarSyncService:
         except Exception as e:
             print(f"❌ [GOOGLE SYNC] Error saving event '{event.get('summary', 'Unknown')}': {e}")
             raise
-    
+
+    def _save_events_batch_google(self, events: List[Dict], user_id: str, calendar_id: str, calendar_name: str):
+        """Google Calendar 이벤트들을 배치로 처리하여 중복 에러 방지"""
+        if not events:
+            return
+
+        try:
+            print(f"💾 [GOOGLE BATCH] Processing {len(events)} events from {calendar_name}")
+
+            # 1. 기존 이벤트들의 external_id 조회 (한 번의 쿼리로)
+            event_ids = [event.get('id') for event in events if event.get('id')]
+            if not event_ids:
+                return
+
+            def get_existing_events():
+                return self.supabase.table('calendar_events').select('external_id').eq(
+                    'user_id', user_id
+                ).eq('source_platform', 'google').in_('external_id', event_ids).execute()
+
+            existing_result = safe_db_call(get_existing_events)
+            existing_external_ids = set()
+            if existing_result and existing_result.data:
+                existing_external_ids = {item['external_id'] for item in existing_result.data}
+
+            print(f"🔍 [GOOGLE BATCH] Found {len(existing_external_ids)} existing events")
+
+            # 2. 새 이벤트와 업데이트 대상 분리
+            new_events = []
+            update_events = []
+
+            for event in events:
+                event_id = event.get('id')
+                if not event_id:
+                    continue
+
+                event_data = self._parse_google_event(event, calendar_id, calendar_name)
+                if not event_data:
+                    continue
+
+                if event_id in existing_external_ids:
+                    # 기존 이벤트 업데이트 대상
+                    update_events.append({
+                        'external_id': event_id,
+                        'data': event_data
+                    })
+                else:
+                    # 새 이벤트 삽입 대상
+                    insert_data = {
+                        **event_data,
+                        'user_id': user_id,
+                        'source_platform': 'google',
+                        'external_id': event_id,
+                        'source_calendar_id': calendar_id,
+                        'source_calendar_name': calendar_name,
+                        'created_at': datetime.now(timezone.utc).isoformat(),
+                        'updated_at': datetime.now(timezone.utc).isoformat()
+                    }
+                    new_events.append(insert_data)
+
+            # 3. 배치 삽입 (새 이벤트들)
+            if new_events:
+                try:
+                    def insert_batch():
+                        return self.supabase.table('calendar_events').insert(new_events).execute()
+
+                    insert_result = safe_db_call(insert_batch)
+                    if insert_result and insert_result.data:
+                        print(f"✅ [GOOGLE BATCH] Created {len(insert_result.data)} new events")
+                except Exception as insert_error:
+                    print(f"❌ [GOOGLE BATCH] Insert failed: {insert_error}")
+
+            # 4. 개별 업데이트 (기존 이벤트들)
+            updated_count = 0
+            for update_item in update_events:
+                try:
+                    def update_single():
+                        return self.supabase.table('calendar_events').update(
+                            update_item['data']
+                        ).eq('user_id', user_id).eq(
+                            'external_id', update_item['external_id']
+                        ).eq('source_platform', 'google').execute()
+
+                    update_result = safe_db_call(update_single)
+                    if update_result and update_result.data:
+                        updated_count += 1
+                except Exception as update_error:
+                    print(f"❌ [GOOGLE BATCH] Update failed for {update_item['external_id']}: {update_error}")
+
+            if updated_count > 0:
+                print(f"✅ [GOOGLE BATCH] Updated {updated_count} existing events")
+
+            print(f"💾 [GOOGLE BATCH] Completed processing {calendar_name}")
+
+        except Exception as e:
+            print(f"❌ [GOOGLE BATCH] Error processing batch: {e}")
+
     def _parse_google_event(self, event: Dict, calendar_id: str, calendar_name: str) -> Optional[Dict]:
         """Google Calendar 이벤트를 SupaBase 형식으로 변환"""
         try:

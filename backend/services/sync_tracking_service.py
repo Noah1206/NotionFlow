@@ -118,6 +118,26 @@ class SyncTrackingService:
     ) -> Optional[str]:
         """Track user activity"""
         try:
+            # CRITICAL FIX: Check if user exists to avoid foreign key errors
+            user_check = self.supabase.table('users').select('id').eq('id', user_id).execute()
+            if not user_check.data:
+                # Create user entry if not exists to prevent foreign key errors
+                try:
+                    from utils.uuid_helper import normalize_uuid
+                    normalized_user_id = normalize_uuid(user_id)
+
+                    user_data = {
+                        'id': normalized_user_id,
+                        'email': f'{normalized_user_id[:8]}@notionflow.app',  # better placeholder
+                        'created_at': datetime.now(timezone.utc).isoformat(),
+                        'updated_at': datetime.now(timezone.utc).isoformat()
+                    }
+                    self.supabase.table('users').insert(user_data).execute()
+                    print(f"✅ [USER ACTIVITY] Created user entry for {user_id}")
+                except Exception as user_create_error:
+                    print(f"⚠️ [USER ACTIVITY] Could not create user entry for {user_id}: {user_create_error}, skipping activity tracking")
+                    return None
+
             # Use the database function for consistency
             result = self.supabase.rpc('record_activity', {
                 'p_user_id': user_id,
@@ -127,9 +147,9 @@ class SyncTrackingService:
                 'p_ip_address': ip_address,
                 'p_user_agent': user_agent
             }).execute()
-            
+
             return result.data if result.data else None
-            
+
         except Exception as e:
             print(f"Error tracking user activity: {e}")
             return None

@@ -79,11 +79,8 @@ class AppleCalendarSync:
             apple_events = self._fetch_apple_events(credentials, date_range)
             print(f"📥 [APPLE SYNC] Fetched {len(apple_events)} events from Apple Calendar")
 
-            # Sync events to NotionFlow calendar
-            synced_count = 0
-            for event in apple_events:
-                if self._sync_event_to_notionflow(user_id, calendar_id, event):
-                    synced_count += 1
+            # Sync events to NotionFlow calendar using batch processing
+            synced_count = self._sync_events_batch_apple(apple_events, user_id, calendar_id)
 
             print(f"✅ [APPLE SYNC] Successfully synced {synced_count} events")
 
@@ -667,6 +664,109 @@ class AppleCalendarSync:
             import traceback
             traceback.print_exc()
             return False
+
+    def _sync_events_batch_apple(self, events: List[Dict], user_id: str, calendar_id: str) -> int:
+        """Apple Calendar 이벤트들을 배치로 처리하여 중복 에러 방지"""
+        if not events:
+            return 0
+
+        try:
+            print(f"💾 [APPLE BATCH] Processing {len(events)} Apple Calendar events")
+
+            # 1. 기존 이벤트들의 external_id 조회 (한 번의 쿼리로)
+            event_ids = [event.get('external_id') for event in events if event.get('external_id')]
+            if not event_ids:
+                return 0
+
+            supabase = config.get_client_for_user(user_id)
+            existing_result = supabase.table('calendar_events').select('external_id').eq(
+                'user_id', user_id
+            ).eq('source_platform', 'apple').in_('external_id', event_ids).execute()
+
+            existing_external_ids = set()
+            if existing_result and existing_result.data:
+                existing_external_ids = {item['external_id'] for item in existing_result.data}
+
+            print(f"🔍 [APPLE BATCH] Found {len(existing_external_ids)} existing events")
+
+            # 2. 새 이벤트와 업데이트 대상 분리
+            new_events = []
+            update_events = []
+
+            for event in events:
+                external_id = event.get('external_id')
+                if not external_id:
+                    continue
+
+                if external_id in existing_external_ids:
+                    # 기존 이벤트 업데이트 대상
+                    update_events.append({
+                        'external_id': external_id,
+                        'data': {
+                            'title': event.get('title'),
+                            'description': event.get('description', ''),
+                            'start_datetime': event.get('start_datetime'),
+                            'end_datetime': event.get('end_datetime'),
+                            'location': event.get('location', ''),
+                            'is_all_day': event.get('all_day', False),
+                            'updated_at': datetime.now().isoformat()
+                        }
+                    })
+                else:
+                    # 새 이벤트 삽입 대상
+                    event_data = {
+                        'user_id': user_id,
+                        'calendar_id': calendar_id,
+                        'title': event.get('title', 'Untitled Event'),
+                        'description': event.get('description', ''),
+                        'start_datetime': event.get('start_datetime'),
+                        'end_datetime': event.get('end_datetime'),
+                        'location': event.get('location', ''),
+                        'is_all_day': event.get('all_day', False),
+                        'external_id': external_id,
+                        'source_platform': 'apple',
+                        'created_at': datetime.now().isoformat(),
+                        'updated_at': datetime.now().isoformat()
+                    }
+                    new_events.append(event_data)
+
+            synced_count = 0
+
+            # 3. 배치 삽입 (새 이벤트들)
+            if new_events:
+                try:
+                    insert_result = supabase.table('calendar_events').insert(new_events).execute()
+                    if insert_result and insert_result.data:
+                        synced_count += len(insert_result.data)
+                        print(f"✅ [APPLE BATCH] Created {len(insert_result.data)} new events")
+                except Exception as insert_error:
+                    print(f"❌ [APPLE BATCH] Insert failed: {insert_error}")
+
+            # 4. 개별 업데이트 (기존 이벤트들)
+            updated_count = 0
+            for update_item in update_events:
+                try:
+                    update_result = supabase.table('calendar_events').update(
+                        update_item['data']
+                    ).eq('user_id', user_id).eq(
+                        'external_id', update_item['external_id']
+                    ).eq('source_platform', 'apple').execute()
+
+                    if update_result and update_result.data:
+                        updated_count += 1
+                        synced_count += 1
+                except Exception as update_error:
+                    print(f"❌ [APPLE BATCH] Update failed for {update_item['external_id']}: {update_error}")
+
+            if updated_count > 0:
+                print(f"✅ [APPLE BATCH] Updated {updated_count} existing events")
+
+            print(f"💾 [APPLE BATCH] Completed processing Apple Calendar events")
+            return synced_count
+
+        except Exception as e:
+            print(f"❌ [APPLE BATCH] Error processing batch: {e}")
+            return 0
 
 # Create singleton instance
 apple_calendar_sync = AppleCalendarSync()

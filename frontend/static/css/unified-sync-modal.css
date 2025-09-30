@@ -435,3 +435,105 @@
     background: #fef3c7;
     color: #d97706;
 }
+
+/* 이벤트 목록 스타일 */
+.event-list-container {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.event-list-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.event-list-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.event-list-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.event-list-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+.event-date-group {
+    margin-bottom: 15px;
+}
+
+.event-date-group > div:first-child {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 8px;
+    padding: 5px 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.event-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    margin-bottom: 4px;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.event-item:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+}
+
+.event-item input[type="checkbox"] {
+    margin-right: 10px;
+    width: 16px;
+    height: 16px;
+    accent-color: #10b981;
+}
+
+.event-item input[type="checkbox"]:checked {
+    accent-color: #10b981;
+}
+
+.event-item:has(input:checked) {
+    background: #ecfdf5;
+    border-color: #10b981;
+}
+
+.event-selection-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    align-items: center;
+}
+
+.event-selection-controls button {
+    padding: 6px 12px;
+    font-size: 14px;
+    border: 1px solid #d1d5db;
+    background: white;
+    color: #374151;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.event-selection-controls button:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+}
+
+.event-selection-controls span {
+    margin-left: auto;
+    color: #6b7280;
+    font-size: 14px;
+    font-weight: 500;
+}
