@@ -156,17 +156,17 @@
                     </div>
                 </div>
                 <div class="platform-actions">
+                    <button class="one-click-btn-small" onclick="oneClickConnect('google')" data-platform="google">
+                        <span class="btn-text">원클릭</span>
+                        <div class="btn-loader" style="display: none;">
+                            <div class="loader-spinner"></div>
+                        </div>
+                    </button>
                     <button class="platform-sync-btn" onclick="syncGoogleCalendar()" data-platform="google"
                         style="display: none;">
                         <span class="sync-text">캘린더 동기화</span>
                         <div class="sync-loader" style="display: none;">
                             <div class="loader-dot"></div>
-                        </div>
-                    </button>
-                    <button class="one-click-btn-small" onclick="oneClickConnect('google')" data-platform="google">
-                        <span class="btn-text">원클릭</span>
-                        <div class="btn-loader" style="display: none;">
-                            <div class="loader-spinner"></div>
                         </div>
                     </button>
                     <button class="platform-connect-btn" onclick="connectPlatform('google')" data-platform="google">
@@ -2217,10 +2217,11 @@
             if (oneClickBtn) {
                 // Google Calendar의 경우 작은 버튼 숨기고 연결해제 버튼만 추가
                 if (platform === 'google') {
-                    // Google Calendar의 경우 연결해제 버튼을 먼저 추가하고, 캘린더 변경 버튼을 뒤에 배치
+                    // Google Calendar의 경우 연결해제 버튼을 추가
                     const actionContainer = oneClickBtn.parentElement;
+                    const syncBtn = card.querySelector('.platform-sync-btn');
 
-                    // 연결해제 버튼을 먼저 추가
+                    // 연결해제 버튼을 추가 (sync 버튼 앞에 배치)
                     if (actionContainer && !actionContainer.querySelector('.google-disconnect-btn')) {
                         const disconnectBtn = document.createElement('button');
                         disconnectBtn.className = 'google-disconnect-btn';
@@ -2231,12 +2232,16 @@
                                 <div class="loader-spinner"></div>
                             </div>
                         `;
-                        // 원클릭 버튼 앞에 연결해제 버튼 삽입
-                        actionContainer.insertBefore(disconnectBtn, oneClickBtn);
+                        // sync 버튼(캘린더 변경) 앞에 연결해제 버튼 삽입
+                        if (syncBtn) {
+                            actionContainer.insertBefore(disconnectBtn, syncBtn);
+                        } else {
+                            actionContainer.appendChild(disconnectBtn);
+                        }
                     }
 
-                    // 캘린더 변경 버튼은 그대로 유지 (숨기지 않음)
-                    oneClickBtn.style.display = 'inline-flex';
+                    // 원클릭 버튼은 숨기기
+                    oneClickBtn.style.display = 'none';
                 } else {
                     // 다른 플랫폼은 기존 로직 유지
                     oneClickBtn.className = 'one-click-disconnect-btn';
