@@ -89,17 +89,20 @@ class AppleCalendarSync:
 
             # Track sync event (if available)
             if SYNC_TRACKING_AVAILABLE and sync_tracker and EventType:
-                sync_tracker.track_sync_event(
-                    user_id=user_id,
-                    event_type=EventType.SYNC_SUCCESS,
-                    platform='apple',
-                    status='success',
-                    metadata={
-                        'calendar_id': calendar_id,
-                        'events_synced': synced_count,
-                        'total_events': len(apple_events)
-                    }
-                )
+                try:
+                    sync_tracker.track_sync_event(
+                        user_id=user_id,
+                        event_type=EventType.SYNC_SUCCESS,
+                        platform='apple',
+                        status='success',
+                        metadata={
+                            'calendar_id': calendar_id,
+                            'events_synced': synced_count,
+                            'total_events': len(apple_events)
+                        }
+                    )
+                except Exception as tracking_error:
+                    print(f"⚠️ [APPLE SYNC] Sync tracking failed: {tracking_error}")
 
             return {
                 'success': True,
@@ -111,13 +114,16 @@ class AppleCalendarSync:
         except Exception as e:
             print(f"❌ [APPLE SYNC] Error: {str(e)}")
             if SYNC_TRACKING_AVAILABLE and sync_tracker and EventType:
-                sync_tracker.track_sync_event(
-                    user_id=user_id,
-                    event_type=EventType.SYNC_ERROR,
-                    platform='apple',
-                    status='error',
-                    error=str(e)
-                )
+                try:
+                    sync_tracker.track_sync_event(
+                        user_id=user_id,
+                        event_type=EventType.SYNC_ERROR,
+                        platform='apple',
+                        status='error',
+                        error=str(e)
+                    )
+                except Exception as tracking_error:
+                    print(f"⚠️ [APPLE SYNC] Error tracking failed: {tracking_error}")
             return {
                 'success': False,
                 'error': str(e),
@@ -171,8 +177,27 @@ class AppleCalendarSync:
         try:
             supabase = config.get_client_for_user(user_id)
 
-            # Check if active sync already exists
-            existing_result = supabase.table('active_syncs').select('*').eq('user_id', user_id).eq('platform', 'apple').execute()
+            # Check if active_syncs table exists
+            try:
+                existing_result = supabase.table('active_syncs').select('*').eq('user_id', user_id).eq('platform', 'apple').execute()
+            except Exception as table_error:
+                if 'does not exist' in str(table_error):
+                    print(f"⚠️ [APPLE SYNC] active_syncs table does not exist, using calendar_sync_configs instead")
+                    # Fallback to using calendar_sync_configs table
+                    try:
+                        # Update the existing config to include calendar selection
+                        result = supabase.table('calendar_sync_configs').update({
+                            'selected_calendar_id': calendar_id,
+                            'sync_enabled': True,
+                            'updated_at': datetime.now().isoformat()
+                        }).eq('user_id', user_id).eq('platform', 'apple').execute()
+                        print(f"✅ [APPLE SYNC] Updated calendar selection in sync config for calendar {calendar_id}")
+                        return bool(result.data)
+                    except Exception as fallback_error:
+                        print(f"❌ [APPLE SYNC] Failed to update sync config: {fallback_error}")
+                        return False
+                else:
+                    raise table_error
 
             sync_data = {
                 'user_id': user_id,
@@ -212,11 +237,65 @@ class AppleCalendarSync:
             password = credentials['password']
 
             # Build CalDAV calendar URL - Apple uses a specific format
-            # First, we need to get the principal URL
-            principal_url = f"{server_url}/principals/users/{username}/"
+            # For iCloud, we need to discover the correct calendar URLs first
+            if 'icloud.com' in server_url:
+                # First, discover the user's calendar home
+                principal_url = f"{server_url}/principals/"
 
-            # Then get the calendar home URL (typically the user's default calendar)
-            calendar_url = f"{server_url}/{username.split('@')[0]}/calendars/home/"
+                # Make a PROPFIND request to discover calendar home
+                propfind_body = '''<?xml version="1.0" encoding="utf-8" ?>
+                <D:propfind xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav">
+                    <D:prop>
+                        <C:calendar-home-set/>
+                    </D:prop>
+                </D:propfind>'''
+
+                headers = {
+                    'Content-Type': 'text/xml; charset=utf-8',
+                    'Depth': '0'
+                }
+
+                print(f"🔍 [APPLE SYNC] Discovering calendar home from {principal_url}")
+
+                discovery_response = requests.request(
+                    'PROPFIND',
+                    principal_url,
+                    auth=HTTPBasicAuth(username, password),
+                    headers=headers,
+                    data=propfind_body,
+                    timeout=30
+                )
+
+                if discovery_response.status_code in [207, 200]:
+                    # Try to extract calendar home from response
+                    try:
+                        import xml.etree.ElementTree as ET
+                        root = ET.fromstring(discovery_response.text)
+                        calendar_home_elements = root.findall('.//{urn:ietf:params:xml:ns:caldav}calendar-home-set/{DAV:}href')
+
+                        if calendar_home_elements:
+                            calendar_home = calendar_home_elements[0].text
+                            if calendar_home.startswith('/'):
+                                calendar_url = f"{server_url}{calendar_home}"
+                            else:
+                                calendar_url = calendar_home
+                            print(f"✅ [APPLE SYNC] Discovered calendar home: {calendar_url}")
+                        else:
+                            # Fallback to common iCloud structure
+                            calendar_url = f"{server_url}/{username.split('@')[0]}/calendars/"
+                            print(f"⚠️ [APPLE SYNC] Using fallback calendar URL: {calendar_url}")
+                    except Exception as parse_error:
+                        # Fallback to common iCloud structure
+                        calendar_url = f"{server_url}/{username.split('@')[0]}/calendars/"
+                        print(f"⚠️ [APPLE SYNC] Calendar discovery parsing failed, using fallback: {calendar_url}")
+                else:
+                    # Fallback to common iCloud structure
+                    calendar_url = f"{server_url}/{username.split('@')[0]}/calendars/"
+                    print(f"⚠️ [APPLE SYNC] Calendar discovery failed ({discovery_response.status_code}), using fallback: {calendar_url}")
+            else:
+                # Generic CalDAV structure
+                principal_url = f"{server_url}/principals/users/{username}/"
+                calendar_url = f"{server_url}/{username.split('@')[0]}/calendars/home/"
 
             # CalDAV REPORT request to get events
             # Get events from last 30 days to next 90 days
