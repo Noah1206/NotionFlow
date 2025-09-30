@@ -373,11 +373,13 @@ class UnifiedSyncModal {
             }
 
             const events = await response.json();
-            this.calendarEvents = events;
+
+            // API는 직접 배열을 반환함
+            this.calendarEvents = Array.isArray(events) ? events : [];
             this.selectedEvents = new Set();
 
             // 이벤트 목록 렌더링
-            this.renderEventList(events);
+            this.renderEventList(this.calendarEvents);
         } catch (error) {
             console.error('Error loading calendar events:', error);
             document.getElementById('event-list-content').innerHTML = `
@@ -393,7 +395,8 @@ class UnifiedSyncModal {
         const container = document.getElementById('event-list-content');
         if (!container) return;
 
-        if (!events || events.length === 0) {
+        // 데이터 타입 검증 및 안전한 처리
+        if (!events || !Array.isArray(events) || events.length === 0) {
             container.innerHTML = `
                 <div style="text-align: center; padding: 20px; color: #666;">
                     이벤트가 없습니다.
