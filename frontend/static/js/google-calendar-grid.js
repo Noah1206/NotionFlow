@@ -260,24 +260,33 @@ class GoogleCalendarGrid {
         try {
             const calendarId = document.querySelector('.calendar-workspace')?.dataset.calendarId || 'e3b088c5-58550';
             
-            // Delete events from backend if they have backendId
-            const eventsWithBackendId = this.trashedEvents.filter(event => event.backendId);
-            
-            if (eventsWithBackendId.length > 0) {
-                for (const eventData of eventsWithBackendId) {
+            // Delete events from backend - check both backendId and id
+            const eventsToDelete = this.trashedEvents.filter(event =>
+                event.backendId || (event.id && !/^\d{13,}$/.test(String(event.id)))
+            );
+
+            if (eventsToDelete.length > 0) {
+                for (const eventData of eventsToDelete) {
                     try {
-                        const response = await fetch(`/api/calendar/${calendarId}/events/${eventData.backendId}`, {
+                        // Use backendId if available, otherwise use id
+                        const dbEventId = eventData.backendId || eventData.id;
+
+                        console.log(`🗑️ Deleting event from DB: ${dbEventId} (${eventData.title})`);
+
+                        const response = await fetch(`/api/calendars/${calendarId}/events/${dbEventId}`, {
                             method: 'DELETE',
                             headers: {
                                 'Content-Type': 'application/json'
                             }
                         });
-                        
-                        if (!response.ok) {
-                            console.warn(`Failed to delete event ${eventData.backendId} from backend`);
+
+                        if (response.ok) {
+                            console.log(`✅ Successfully deleted event ${dbEventId} from DB`);
+                        } else {
+                            console.warn(`⚠️ Failed to delete event ${dbEventId} from backend: ${response.status}`);
                         }
                     } catch (error) {
-                        console.error(`Failed to delete event ${eventData.backendId}:`, error);
+                        console.error(`❌ Failed to delete event ${eventData.backendId || eventData.id}:`, error);
                     }
                 }
             }
@@ -3515,11 +3524,19 @@ class GoogleCalendarGrid {
             // 타임스탬프 기반 ID는 클라이언트 전용이므로 서버 호출 안 함
             const isClientOnlyEvent = /^\d{13,}$/.test(String(eventId));
             
-            if (!isClientOnlyEvent) {
+            // Check if this event needs DB deletion
+            const needsDBDeletion = !isClientOnlyEvent || event.backendId;
+
+            if (needsDBDeletion) {
                 // 서버에 삭제 요청 (실제 서버 이벤트인 경우만)
                 try {
                     const calendarId = event.calendarId || window.location.pathname.split('/').pop();
-                    const response = await fetch(`/api/calendar/${calendarId}/events/${eventId}`, {
+                    // Use backendId if available, otherwise use eventId
+                    const dbEventId = event.backendId || eventId;
+
+                    console.log(`🗑️ Permanently deleting event from DB: ${dbEventId} (${eventTitle})`);
+
+                    const response = await fetch(`/api/calendars/${calendarId}/events/${dbEventId}`, {
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json'

@@ -5561,11 +5561,30 @@ def delete_calendar_event(calendar_id, event_id):
             return jsonify({'error': 'Not authenticated'}), 401
         
         print(f"[DELETE] Deleting event {event_id} from calendar {calendar_id}")
-        
-        # TODO: Delete from database
-        print(f"[SUCCESS] Event deleted: {event_id}")
-        
-        return jsonify({'success': True, 'message': 'Event deleted'})
+
+        # Get Supabase client
+        supabase_client = config.get_client_for_user(user_id)
+        if not supabase_client:
+            print(f"[ERROR] Could not get Supabase client for user {user_id}")
+            return jsonify({'error': 'Database connection failed'}), 500
+
+        # Delete from database
+        delete_result = supabase_client.table('calendar_events').delete().eq('id', event_id).eq('user_id', user_id).execute()
+
+        if delete_result.data is not None:  # Successful deletion
+            print(f"[SUCCESS] Event {event_id} deleted from database")
+
+            # Also delete from validation history if exists
+            try:
+                validation_delete = supabase_client.table('event_validation_history').delete().eq('source_event_id', event_id).execute()
+                print(f"[CLEANUP] Validation history cleaned up for event {event_id}")
+            except Exception as cleanup_error:
+                print(f"[WARNING] Could not clean up validation history: {cleanup_error}")
+
+            return jsonify({'success': True, 'message': 'Event permanently deleted'})
+        else:
+            print(f"[WARNING] Event {event_id} not found or already deleted")
+            return jsonify({'success': True, 'message': 'Event not found or already deleted'})
         
     except Exception as e:
         print(f"[ERROR] Error deleting calendar event: {e}")
