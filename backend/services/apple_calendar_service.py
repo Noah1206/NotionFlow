@@ -632,7 +632,7 @@ class AppleCalendarSync:
                     print(f"✅ [APPLE SYNC] Updated existing event: {event.get('title')}")
                     return bool(result.data)
 
-            # Create new event (following the same schema as Notion)
+            # Create new event (following the same schema as Google Calendar)
             event_data = {
                 'user_id': user_id,
                 'calendar_id': calendar_id,
@@ -643,13 +643,9 @@ class AppleCalendarSync:
                 'location': event.get('location', ''),
                 'is_all_day': event.get('all_day', False),
                 'external_id': external_id,
-                'source_platform': 'apple',  # Using source_platform instead of platform
+                'source_platform': 'apple',
                 'created_at': datetime.now().isoformat(),
-                'updated_at': datetime.now().isoformat(),
-                'platform_metadata': {
-                    'source': 'apple_caldav',
-                    'synced_at': datetime.now().isoformat()
-                }
+                'updated_at': datetime.now().isoformat()
             }
 
             result = supabase.table('calendar_events').insert(event_data).execute()
