@@ -69,6 +69,9 @@ class AppleCalendarSync:
                         'error': 'No calendar selected for Apple sync',
                         'synced_events': 0
                     }
+            else:
+                # If calendar_id is provided, create/update the active sync record
+                self._create_active_sync(user_id, calendar_id)
 
             print(f"📅 [APPLE SYNC] Using calendar {calendar_id}")
 
@@ -162,6 +165,42 @@ class AppleCalendarSync:
         except Exception as e:
             print(f"❌ [APPLE SYNC] Failed to get sync calendar: {e}")
             return None
+
+    def _create_active_sync(self, user_id: str, calendar_id: str) -> bool:
+        """Create or update active sync record for Apple Calendar"""
+        try:
+            supabase = config.get_client_for_user(user_id)
+
+            # Check if active sync already exists
+            existing_result = supabase.table('active_syncs').select('*').eq('user_id', user_id).eq('platform', 'apple').execute()
+
+            sync_data = {
+                'user_id': user_id,
+                'platform': 'apple',
+                'calendar_id': calendar_id,
+                'sync_status': 'active',
+                'created_at': datetime.now().isoformat(),
+                'updated_at': datetime.now().isoformat()
+            }
+
+            if existing_result.data:
+                # Update existing sync
+                result = supabase.table('active_syncs').update({
+                    'calendar_id': calendar_id,
+                    'sync_status': 'active',
+                    'updated_at': datetime.now().isoformat()
+                }).eq('user_id', user_id).eq('platform', 'apple').execute()
+                print(f"✅ [APPLE SYNC] Updated active sync for calendar {calendar_id}")
+            else:
+                # Create new sync
+                result = supabase.table('active_syncs').insert(sync_data).execute()
+                print(f"✅ [APPLE SYNC] Created active sync for calendar {calendar_id}")
+
+            return bool(result.data)
+
+        except Exception as e:
+            print(f"❌ [APPLE SYNC] Failed to create active sync: {e}")
+            return False
 
     def _fetch_apple_events(self, credentials: Dict) -> List[Dict]:
         """Fetch events from Apple Calendar using CalDAV"""

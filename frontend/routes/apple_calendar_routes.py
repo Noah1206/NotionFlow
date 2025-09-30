@@ -9,8 +9,20 @@ import sys
 import os
 
 # Add parent directory to path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../backend'))
-from services.apple_calendar_service import apple_calendar_sync
+try:
+    from backend.services.apple_calendar_service import apple_calendar_sync
+    print("✅ [APPLE ROUTE] Apple calendar service imported successfully")
+except ImportError as e:
+    print(f"❌ [APPLE ROUTE] Failed to import apple_calendar_service: {e}")
+    try:
+        from services.apple_calendar_service import apple_calendar_sync
+        print("✅ [APPLE ROUTE] Apple calendar service imported (fallback)")
+    except ImportError as e2:
+        print(f"❌ [APPLE ROUTE] Fallback import also failed: {e2}")
+        apple_calendar_sync = None
+
 from utils.auth_manager import AuthManager
 from utils.config import config
 
@@ -32,6 +44,14 @@ def sync_apple_calendar():
         calendar_id = data.get('calendar_id')
 
         print(f"🍎 [APPLE ROUTE] Starting sync for user {user_id}, calendar {calendar_id}")
+
+        # Check if service is available
+        if apple_calendar_sync is None:
+            print(f"❌ [APPLE ROUTE] Apple calendar sync service not available")
+            return jsonify({
+                'success': False,
+                'error': 'Apple Calendar sync service not available'
+            }), 500
 
         # Trigger sync
         result = apple_calendar_sync.sync_to_calendar(user_id, calendar_id)
