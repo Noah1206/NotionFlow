@@ -281,7 +281,7 @@ body #sidebar,
     border-top: none !important;
     border-left: none !important;
     border-bottom: none !important;
-    border-right: 3px solid #000000 !important;
+    border-right: none !important;
     border-radius: 0 !important;
     outline: none !important;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -932,6 +932,11 @@ body[data-theme="dark"] .left-sidebar {
     background: #FFFFFF !important;
     background-color: #FFFFFF !important;
     background-image: none !important;
+    border: none !important;
+    border-right: none !important;
+    border-left: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
 }
 
 /* 모든 자식 요소 배경 흰색 강제 */
