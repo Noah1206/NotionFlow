@@ -575,9 +575,23 @@ class GoogleCalendarGrid {
         // Click events for quick event creation
         gridBody.addEventListener('click', (e) => this.handleCellClick(e));
         
-        // Drag and drop events for event time editing
+        // Drag and drop events for event time editing (calendar events only)
         gridBody.addEventListener('dragover', (e) => {
-            e.preventDefault(); // Allow drop
+            // 🛡️ 파일 드래그 차단
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                e.dataTransfer.dropEffect = 'none';
+                return;
+            }
+
+            // 🛡️ 유효한 캘린더 이벤트만 허용
+            const types = e.dataTransfer.types;
+            if (!types.includes('text/plain')) {
+                e.dataTransfer.dropEffect = 'none';
+                return;
+            }
+
+            e.preventDefault(); // Allow valid calendar event drops only
+            e.dataTransfer.dropEffect = 'move';
         });
         
         gridBody.addEventListener('drop', (e) => this.handleEventDrop(e));
@@ -586,6 +600,28 @@ class GoogleCalendarGrid {
         document.addEventListener('mouseup', () => {
             if (this.isSelecting) {
                 this.finishSelection();
+            }
+        });
+
+        // 🛡️ 전역 파일 드롭 방지 (캘린더 전체)
+        document.addEventListener('dragover', (e) => {
+            if (e.target.closest('.calendar-grid-container')) {
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'none';
+                }
+            }
+        });
+
+        document.addEventListener('drop', (e) => {
+            if (e.target.closest('.calendar-grid-container')) {
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    e.preventDefault();
+                    console.log('🚫 File drop blocked on calendar area');
+                    if (window.showNotification) {
+                        showNotification('캘린더 영역에는 파일을 드롭할 수 없습니다', 'warning');
+                    }
+                }
             }
         });
     }
@@ -2553,11 +2589,30 @@ class GoogleCalendarGrid {
     
     handleEventDrop(e) {
         e.preventDefault();
-        
+
+        // 🛡️ 파일 드롭 완전 차단
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            console.log('🚫 File drop blocked - calendar only accepts calendar events');
+            if (window.showNotification) {
+                showNotification('파일은 캘린더에 드롭할 수 없습니다', 'error');
+            }
+            return;
+        }
+
         const eventId = e.dataTransfer.getData('text/plain');
         const targetCell = e.target.closest('.time-cell');
-        
-        if (!targetCell || !eventId) return;
+
+        // 🛡️ 파일 경로나 잘못된 데이터 차단
+        if (!targetCell || !eventId ||
+            eventId.includes('/Users/') ||
+            eventId.includes('.png') ||
+            eventId.includes('.jpg') ||
+            eventId.includes('.jpeg') ||
+            eventId.includes('file://') ||
+            eventId.length > 100) {
+            console.log('🚫 Invalid data drop blocked:', eventId);
+            return;
+        }
         
         const newDay = parseInt(targetCell.dataset.day);
         const newHour = parseInt(targetCell.dataset.hour);
