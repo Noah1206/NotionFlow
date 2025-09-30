@@ -2,7 +2,9 @@
 /* 재사용 가능한 사이드바 컴포넌트 스타일 */
 
 /* 🎵 Compact Media Player Styles */
-.compact-media-player {
+body .sidebar .compact-media-player,
+#sidebar .compact-media-player,
+.sidebar .compact-media-player {
     background: white;
     border-radius: 12px;
     padding: 16px;
@@ -253,11 +255,19 @@
 }
 
 /* ✨ 사이드바 기본 구조 - 전체 화면 세로 레이아웃 */
-.sidebar,
-.sidebar-container,
-.left-sidebar,
 body .sidebar,
-body .left-sidebar {
+body .sidebar-container,
+body .left-sidebar,
+body div.sidebar,
+body div.left-sidebar,
+html body .sidebar,
+html body .left-sidebar,
+#sidebar,
+body #sidebar,
+.dashboard-layout .sidebar,
+.dashboard-layout .left-sidebar,
+.sidebar:not(.dummy),
+.left-sidebar:not(.dummy) {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
@@ -807,47 +817,84 @@ body.calendar-detail-page .left-sidebar.collapsed, .sidebar.collapsed .calendar-
     display: none !important;
 }
 
-/* 🌙 강력한 라이트 테마 적용 - 사이드바 전체 */
-.sidebar,
-.sidebar *,
-.sidebar div,
-.sidebar section,
-.sidebar header,
-.sidebar .profile-section,
-.sidebar .nav-section,
-.sidebar .widgets-section,
-.sidebar .sidebar-header,
-.sidebar .sidebar-content,
-.sidebar .sidebar-footer,
+/* 🌙 강력한 라이트 테마 적용 - 사이드바 전체 - 최고 우선순위 */
 body .sidebar,
-html .sidebar,
-div.sidebar {
+body .sidebar *,
+body .sidebar div,
+body .sidebar section,
+body .sidebar header,
+body .sidebar .profile-section,
+body .sidebar .nav-section,
+body .sidebar .widgets-section,
+body .sidebar .sidebar-header,
+body .sidebar .sidebar-content,
+body .sidebar .sidebar-footer,
+html body .sidebar,
+html body .sidebar *,
+html body div.sidebar,
+html body div.sidebar *,
+#sidebar,
+#sidebar *,
+body #sidebar,
+body #sidebar *,
+[data-theme="light"] .sidebar,
+[data-theme="light"] .sidebar *,
+[data-theme="dark"] .sidebar,
+[data-theme="dark"] .sidebar * {
     background-color: #FFFFFF !important;
     background: #FFFFFF !important;
 }
 
-/* 사이드바 내 모든 텍스트를 검은 색으로 */
-.sidebar,
-.sidebar *,
-.sidebar div,
-.sidebar span,
-.sidebar p,
-.sidebar h1, .sidebar h2, .sidebar h3, .sidebar h4, .sidebar h5, .sidebar h6 {
+/* 사이드바 내 모든 텍스트를 검은 색으로 - 최고 우선순위 */
+body .sidebar,
+body .sidebar *,
+body .sidebar div,
+body .sidebar span,
+body .sidebar p,
+body .sidebar a,
+body .sidebar h1,
+body .sidebar h2,
+body .sidebar h3,
+body .sidebar h4,
+body .sidebar h5,
+body .sidebar h6,
+html body .sidebar,
+html body .sidebar *,
+#sidebar,
+#sidebar *,
+body #sidebar *,
+[data-theme="light"] .sidebar *,
+[data-theme="dark"] .sidebar * {
     color: #000000 !important;
 }
 
-/* 네비게이션 아이템 색상 */
-.sidebar .nav-item {
+/* 네비게이션 아이템 색상 - 최고 우선순위 */
+body .sidebar .nav-item,
+html body .sidebar .nav-item,
+#sidebar .nav-item,
+body #sidebar .nav-item,
+[data-theme="light"] .sidebar .nav-item,
+[data-theme="dark"] .sidebar .nav-item {
     color: #000000 !important;
     background-color: transparent !important;
 }
 
-.sidebar .nav-item:hover {
+body .sidebar .nav-item:hover,
+html body .sidebar .nav-item:hover,
+#sidebar .nav-item:hover,
+body #sidebar .nav-item:hover,
+[data-theme="light"] .sidebar .nav-item:hover,
+[data-theme="dark"] .sidebar .nav-item:hover {
     background-color: rgba(0, 0, 0, 0.1) !important;
     color: #000000 !important;
 }
 
-.sidebar .nav-item.active {
+body .sidebar .nav-item.active,
+html body .sidebar .nav-item.active,
+#sidebar .nav-item.active,
+body #sidebar .nav-item.active,
+[data-theme="light"] .sidebar .nav-item.active,
+[data-theme="dark"] .sidebar .nav-item.active {
     background-color: rgba(0, 0, 0, 0.15) !important;
     color: #000000 !important;
 }
@@ -867,4 +914,59 @@ div.sidebar {
     background-color: #f9f9f9 !important;
     background: #f9f9f9 !important;
     border: 1px solid #e5e7eb !important;
+}
+
+/* 🚨🚨🚨 최고 우선순위 오버라이드 - 무조건 적용 🚨🚨🚨 */
+html body #sidebar,
+html body div#sidebar,
+html body .sidebar,
+html body div.sidebar,
+html body .left-sidebar,
+html body div.left-sidebar,
+body[data-theme="light"] #sidebar,
+body[data-theme="light"] .sidebar,
+body[data-theme="light"] .left-sidebar,
+body[data-theme="dark"] #sidebar,
+body[data-theme="dark"] .sidebar,
+body[data-theme="dark"] .left-sidebar {
+    background: #FFFFFF !important;
+    background-color: #FFFFFF !important;
+    background-image: none !important;
+}
+
+/* 모든 자식 요소 배경 흰색 강제 */
+html body #sidebar *:not(.nav-item):not(.nav-item:hover):not(.nav-item.active),
+html body .sidebar *:not(.nav-item):not(.nav-item:hover):not(.nav-item.active),
+html body .left-sidebar *:not(.nav-item):not(.nav-item:hover):not(.nav-item.active) {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+/* 모든 텍스트 검은색 강제 */
+html body #sidebar *,
+html body .sidebar *,
+html body .left-sidebar *,
+html body #sidebar .nav-item,
+html body .sidebar .nav-item,
+html body .left-sidebar .nav-item,
+html body #sidebar .nav-label,
+html body .sidebar .nav-label,
+html body .left-sidebar .nav-label {
+    color: #000000 !important;
+}
+
+/* nav-item hover 상태 강제 */
+html body #sidebar .nav-item:hover,
+html body .sidebar .nav-item:hover,
+html body .left-sidebar .nav-item:hover {
+    background: rgba(0, 0, 0, 0.05) !important;
+    background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+/* nav-item active 상태 강제 */
+html body #sidebar .nav-item.active,
+html body .sidebar .nav-item.active,
+html body .left-sidebar .nav-item.active {
+    background: rgba(0, 0, 0, 0.1) !important;
+    background-color: rgba(0, 0, 0, 0.1) !important;
 }
