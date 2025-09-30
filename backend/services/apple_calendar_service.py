@@ -646,7 +646,6 @@ class AppleCalendarSync:
                 'source_platform': 'apple',  # Using source_platform instead of platform
                 'created_at': datetime.now().isoformat(),
                 'updated_at': datetime.now().isoformat(),
-                'is_recurring': False,
                 'platform_metadata': {
                     'source': 'apple_caldav',
                     'synced_at': datetime.now().isoformat()
