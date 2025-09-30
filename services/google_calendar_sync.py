@@ -382,14 +382,11 @@ class GoogleCalendarSyncService:
                     'is_all_day': False
                 }
             
-            # 추가 메타데이터
+            # 추가 메타데이터 (기존 테이블 구조에 맞게)
             event_data.update({
                 'location': event.get('location', ''),
-                'attendees_count': len(event.get('attendees', [])),
-                'event_status': event.get('status', 'confirmed'),
-                'google_link': event.get('htmlLink', ''),
-                'google_meet_link': self._extract_meet_link(event),
-                'recurring': 'recurringEventId' in event
+                'url': event.get('htmlLink', ''),  # google_link → url
+                'source_platform': 'google'
             })
             
             return event_data
