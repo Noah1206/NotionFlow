@@ -1489,7 +1489,11 @@
         const notionFlowCalendarId = selectedCalendarId;
         const googleCalendarId = window.selectedGoogleCalendarId;
 
-        closeCalendarSelectionModal();
+        // 연결 중 상태 표시 (모달은 아직 닫지 않음)
+        const confirmBtn = document.getElementById('confirm-calendar-selection');
+        const originalText = confirmBtn.textContent;
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = '연결 중...';
 
         // Google Calendar 연결 API 호출 (selectedCalendarId는 NotionFlow 캘린더 ID)
         try {
@@ -1509,15 +1513,27 @@
             const result = await response.json();
 
             if (response.ok && result.success) {
-                showNotification('Google Calendar 연결이 완료되었습니다!', 'success');
+                // 성공 시 모달 닫기
+                closeCalendarSelectionModal();
+
+                // 동기화 결과 표시
+                const syncedCount = result.synced_count || 0;
+                showNotification(`Google Calendar 연결 완료! ${syncedCount}개 일정이 동기화되었습니다.`, 'success');
+
+                console.log('✅ [GOOGLE-CONNECT] 연결 성공:', result);
+
                 // 페이지 새로고침하여 상태 업데이트
-                setTimeout(() => location.reload(), 1000);
+                setTimeout(() => location.reload(), 1500);
             } else {
                 throw new Error(result.error || 'Google Calendar 연결 실패');
             }
         } catch (error) {
             console.error('Google Calendar connection error:', error);
             showNotification(`연결 실패: ${error.message}`, 'error');
+
+            // 실패 시 버튼 상태 복원
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = originalText;
         }
     }
 
@@ -2223,29 +2239,27 @@
 
                             // Google의 경우 캘린더 선택 팝업을 표시
                             if (event.data.platform === 'google') {
+                                console.log('📅 Google OAuth 성공 처리 중...');
+
+                                // 먼저 플랫폼을 연결된 상태로 표시 (연결해제 버튼 생성)
+                                markPlatformConnected(event.data.platform);
+                                updatePlatformStatus(event.data.platform, 'connected');
+                                updateConnectionStats();
+                                updatePlatformStatus();
+
                                 // Google Calendar 선택 팝업 표시
-                                try {
-                                    const googleManager = new GoogleManager();
-                                    googleManager.showCalendarSelection().then(() => {
-                                        updatePlatformStatus('google', 'connected');
+                                setTimeout(async () => {
+                                    try {
+                                        console.log('📅 Google 캘린더 선택 모달 표시...');
+                                        await showCalendarSelectionModal('google');
                                         showNotification('Google Calendar 연결이 완료되었습니다!', 'success');
-                                        updateConnectionStats();
-                                        updatePlatformStatus();
-                                        resolve(event.data);
-                                    }).catch((error) => {
+                                    } catch (error) {
                                         console.error('Google Calendar 선택 오류:', error);
                                         showNotification('Google Calendar 선택 중 오류가 발생했습니다.', 'error');
-                                        resolve(event.data);
-                                    });
-                                } catch (error) {
-                                    console.error('GoogleManager 초기화 오류:', error);
-                                    markPlatformConnected(event.data.platform);
-                                    updatePlatformStatus(event.data.platform, 'connected');
-                                    showNotification(`${getKoreanPlatformName(event.data.platform)} 연결이 완료되었습니다!`, 'success');
-                                    updateConnectionStats();
-                                    updatePlatformStatus();
-                                    resolve(event.data);
-                                }
+                                    }
+                                }, 500);
+
+                                resolve(event.data);
                             } else if (event.data.platform === 'notion') {
                                 // Notion의 경우 실제 동기화 실행
                                 console.log('📅 Notion OAuth 성공 처리 중...');
