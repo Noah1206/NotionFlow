@@ -1685,28 +1685,11 @@
 
                             const syncBtn = platformCard.querySelector('.platform-sync-btn');
 
-                            if (statusElement && platform.configured && platform.enabled) {
-                                // 완전 연결된 상태 (OAuth + 캘린더 연결)
-                                statusElement.className = 'platform-status connected';
-                                statusElement.innerHTML = '<span class="status-dot"></span>연결됨';
+                            // OAuth 연결됨 또는 설정 완료됨
+                            if (statusElement && (platform.configured || platform.oauth_connected)) {
+                                console.log(`✅ ${platformName} 연결 상태 복원:`, platform);
 
-                                if (connectBtn) {
-                                    connectBtn.className = 'platform-disconnect-btn';
-                                    connectBtn.setAttribute('onclick', `disconnectPlatform('${platformName}')`);
-                                    connectBtn.innerHTML = `
-                                        <span class="disconnect-text">연결 해제</span>
-                                        <div class="disconnect-loader" style="display: none;">
-                                            <div class="loader-dot"></div>
-                                        </div>
-                                    `;
-                                }
-
-                                // 캘린더 연동 버튼 숨기기 (이미 연결됨)
-                                if (syncBtn) {
-                                    syncBtn.style.display = 'none';
-                                }
-                            } else if (statusElement && platform.configured && !platform.calendar_connected) {
-                                // OAuth 완료 상태도 연결됨으로 표시 (단일 디자인)
+                                // 연결된 상태로 표시
                                 statusElement.className = 'platform-status connected';
                                 statusElement.innerHTML = '<span class="status-dot"></span>연결됨';
 
@@ -1715,24 +1698,72 @@
                                     connectBtn.style.display = 'none';
                                 }
 
+                                // 원클릭 버튼 처리
+                                const oneClickBtn = platformCard.querySelector('.one-click-btn-small');
+                                if (oneClickBtn) {
+                                    const buttonText = oneClickBtn.querySelector('.btn-text');
+                                    if (buttonText) {
+                                        buttonText.textContent = '연결해제';
+                                    }
+                                    oneClickBtn.setAttribute('onclick', `oneClickDisconnect('${platformName}')`);
+
+                                    // Google의 경우 특별 처리
+                                    if (platformName === 'google') {
+                                        oneClickBtn.style.display = 'none';
+                                        const actionContainer = oneClickBtn.parentElement;
+                                        if (actionContainer && !actionContainer.querySelector('.google-disconnect-btn')) {
+                                            const disconnectBtn = document.createElement('button');
+                                            disconnectBtn.className = 'google-disconnect-btn';
+                                            disconnectBtn.setAttribute('onclick', `oneClickDisconnect('${platformName}')`);
+                                            disconnectBtn.innerHTML = `
+                                                <span class="btn-text">연결해제</span>
+                                                <div class="btn-loader" style="display: none;">
+                                                    <div class="loader-spinner"></div>
+                                                </div>
+                                            `;
+                                            if (syncBtn) {
+                                                actionContainer.insertBefore(disconnectBtn, syncBtn);
+                                            } else {
+                                                actionContainer.appendChild(disconnectBtn);
+                                            }
+                                        }
+                                    }
+                                }
+
                                 // 캘린더 연동 버튼 표시
                                 if (syncBtn) {
                                     syncBtn.style.display = 'inline-flex';
                                 }
                             } else {
                                 // 연결되지 않은 상태
+                                console.log(`❌ ${platformName} 연결되지 않음:`, platform);
+
                                 statusElement.className = 'platform-status disconnected';
                                 statusElement.innerHTML = '<span class="status-dot"></span>연결되지 않음';
 
-                                if (connectBtn && connectBtn.className !== 'platform-connect-btn') {
+                                // 연결 버튼 복원
+                                if (connectBtn) {
+                                    connectBtn.style.display = 'inline-block';
                                     connectBtn.className = 'platform-connect-btn';
                                     connectBtn.setAttribute('onclick', `connectPlatform('${platformName}')`);
-                                    connectBtn.innerHTML = `
-                                        <span class="connect-text">연결하기</span>
-                                        <div class="connect-loader" style="display: none;">
-                                            <div class="loader-dot"></div>
-                                        </div>
-                                    `;
+                                }
+
+                                // 원클릭 버튼 복원
+                                const oneClickBtn = platformCard.querySelector('.one-click-btn-small');
+                                if (oneClickBtn && platformName !== 'apple') { // Apple은 원클릭 버튼 없음
+                                    const buttonText = oneClickBtn.querySelector('.btn-text');
+                                    if (buttonText) {
+                                        buttonText.textContent = '원클릭';
+                                    }
+                                    oneClickBtn.setAttribute('onclick', `oneClickConnect('${platformName}')`);
+                                    oneClickBtn.className = 'one-click-btn-small';
+                                    oneClickBtn.style.display = 'inline-block';
+                                }
+
+                                // Google 연결해제 버튼 제거
+                                const googleDisconnectBtn = platformCard.querySelector('.google-disconnect-btn');
+                                if (googleDisconnectBtn) {
+                                    googleDisconnectBtn.remove();
                                 }
 
                                 // 캘린더 연동 버튼 숨기기
@@ -2535,14 +2566,48 @@
 
     // 캘린더 동기화 모달 열기
     function openCalendarSyncModal(platform) {
-        // UnifiedSyncModal 직접 실행
+        console.log('🔧 openCalendarSyncModal 호출됨, platform:', platform);
+        console.log('🔧 window.UnifiedSyncModal 존재:', !!window.UnifiedSyncModal);
+
+        // 1. UnifiedSyncModal 시도
         if (window.UnifiedSyncModal) {
-            new window.UnifiedSyncModal().show();
-        } else {
-            // 대안: 기존 모달 표시
-            const modal = document.querySelector('.unified-sync-modal');
-            if (modal) modal.style.display = 'flex';
+            try {
+                console.log('🔧 UnifiedSyncModal 생성 시도');
+                const modal = new window.UnifiedSyncModal();
+                console.log('🔧 UnifiedSyncModal 생성됨:', modal);
+                console.log('🔧 show 메서드 존재:', typeof modal.show);
+                modal.show();
+                return;
+            } catch (error) {
+                console.error('🔧 UnifiedSyncModal 오류:', error);
+            }
         }
+
+        // 2. 기존 모달 DOM 찾기
+        const modal = document.querySelector('.unified-sync-modal');
+        console.log('🔧 기존 모달 DOM 찾기:', !!modal);
+        if (modal) {
+            modal.style.display = 'flex';
+            return;
+        }
+
+        // 3. 강제로 모달 생성
+        console.log('🔧 강제 모달 생성 시도');
+        createSimpleModal();
+    }
+
+    // 간단한 모달 강제 생성
+    function createSimpleModal() {
+        const modalHtml = `
+            <div class="unified-sync-modal" style="display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+                <div style="background: white; padding: 20px; border-radius: 8px; max-width: 500px; width: 90%;">
+                    <h3>캘린더 동기화</h3>
+                    <p>캘린더 동기화 기능이 준비 중입니다.</p>
+                    <button onclick="this.closest('.unified-sync-modal').remove()" style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">닫기</button>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
     }
 
     // 플랫폼 연결 표시 함수 (markPlatformConnected)
