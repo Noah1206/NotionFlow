@@ -115,26 +115,22 @@ class CalendarSyncService:
                 return {'error': 'Unknown provider type'}
             
             # Save events to database
-            created = 0
-            updated = 0
+            saved = 0
             failed = 0
-            
+
             for event in events:
                 result = self._save_event_to_db(event, platform_name)
-                if result == 'created':
-                    created += 1
-                elif result == 'updated':
-                    updated += 1
+                if result in ['created', 'updated', 'saved']:
+                    saved += 1
                 else:
                     failed += 1
             
-            logger.info(f"Sync completed for {platform_name}: {created} created, {updated} updated, {failed} failed")
-            
+            logger.info(f"Sync completed for {platform_name}: {saved} saved, {failed} failed")
+
             return {
                 'success': True,
                 'total_events': len(events),
-                'created': created,
-                'updated': updated,
+                'saved': saved,
                 'failed': failed
             }
             
@@ -379,20 +375,62 @@ class CalendarSyncService:
             return None
     
     def _save_event_to_db(self, event: Dict, platform: str) -> str:
-        """Save or update event in database"""
+        """Save or update event in database using UPSERT to prevent duplicates"""
         try:
-            # Check if event already exists
-            existing = self.supabase.table('calendar_events').select('id').eq('user_id', self.user_id).eq('external_id', event['external_id']).eq('source_platform', platform).execute()
-            
-            if existing.data:
-                # Update existing event
-                result = self.supabase.table('calendar_events').update(event).eq('id', existing.data[0]['id']).execute()
-                return 'updated' if result.data else 'failed'
+            # Ensure user exists to prevent foreign key violations
+            self._ensure_user_exists()
+
+            # Use UPSERT (on_conflict='user_id,external_id,source_platform') to handle duplicates
+            # This will either insert new record or update existing one atomically
+            result = self.supabase.table('calendar_events').upsert(
+                event,
+                on_conflict='user_id,external_id,source_platform'  # Composite unique constraint
+            ).execute()
+
+            if result.data:
+                # Check if this was an insert or update by looking at the returned data
+                # Since upsert always returns data, we need to determine if it was created or updated
+                # We can't easily tell from upsert result, so we'll return a generic 'saved' status
+                return 'saved'
             else:
-                # Create new event
-                result = self.supabase.table('calendar_events').insert(event).execute()
-                return 'created' if result.data else 'failed'
-                
+                return 'failed'
+
         except Exception as e:
             logger.error(f"Error saving event to database: {e}")
-            return 'failed'
+            # If upsert fails, try the old method as fallback
+            try:
+                logger.info("Attempting fallback insert/update method")
+                existing = self.supabase.table('calendar_events').select('id').eq('user_id', self.user_id).eq('external_id', event['external_id']).eq('source_platform', platform).execute()
+
+                if existing.data:
+                    # Update existing event
+                    result = self.supabase.table('calendar_events').update(event).eq('id', existing.data[0]['id']).execute()
+                    return 'updated' if result.data else 'failed'
+                else:
+                    # Create new event
+                    result = self.supabase.table('calendar_events').insert(event).execute()
+                    return 'created' if result.data else 'failed'
+            except Exception as fallback_e:
+                logger.error(f"Fallback method also failed: {fallback_e}")
+                return 'failed'
+
+    def _ensure_user_exists(self):
+        """Ensure user exists in users table to prevent foreign key violations"""
+        try:
+            # Check if user exists
+            user_check = self.supabase.table('users').select('id').eq('id', self.user_id).execute()
+            if not user_check.data:
+                # Create user entry if not exists
+                try:
+                    user_data = {
+                        'id': self.user_id,
+                        'email': f'{self.user_id[:8]}@notionflow.app',  # placeholder email
+                        'created_at': datetime.now().isoformat(),
+                        'updated_at': datetime.now().isoformat()
+                    }
+                    self.supabase.table('users').insert(user_data).execute()
+                    logger.info(f"✅ Created user entry for {self.user_id}")
+                except Exception as e:
+                    logger.warning(f"⚠️ Could not create user entry for {self.user_id}: {e}")
+        except Exception as e:
+            logger.warning(f"Error checking user existence: {e}")
