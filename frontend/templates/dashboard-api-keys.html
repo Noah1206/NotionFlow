@@ -2125,6 +2125,9 @@
                                 // Notion의 경우 팝업 표시 후 캘린더 선택 모달
                                 console.log('📅 Notion OAuth 성공 처리 중...');
 
+                                // 확실하게 블러 제거
+                                removeAnyBlurEffects();
+
                                 markPlatformConnected(event.data.platform);
                                 updatePlatformStatus(event.data.platform, 'connected');
                                 showNotification('Notion 연결이 완료되었습니다!', 'success');
@@ -2133,6 +2136,9 @@
 
                                 // 팝업으로 알림 후 캘린더 선택 모달 표시
                                 setTimeout(() => {
+                                    // 다시 한번 블러 제거 (안전장치)
+                                    removeAnyBlurEffects();
+
                                     const shouldOpenSync = confirm('🎉 Notion 연동이 완료되었습니다!\n\n캘린더를 선택하여 동기화를 시작하시겠습니까?');
                                     if (shouldOpenSync) {
                                         // 기존 캘린더 선택 모달 사용
@@ -2209,6 +2215,11 @@
                 }, checkInterval);
 
                 const cleanup = () => {
+                    console.log('🧹 OAuth 팝업 cleanup 시작...');
+
+                    // 블러 효과 제거
+                    removeAnyBlurEffects();
+
                     window.removeEventListener('message', messageHandler);
                     clearInterval(checkClosed);
                     try {
