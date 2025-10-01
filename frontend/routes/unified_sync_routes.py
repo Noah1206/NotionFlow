@@ -165,9 +165,12 @@ def execute_unified_sync():
                     # 기존 Notion Sync 함수 재활용 (에러 처리 추가)
                     try:
                         result = sync_notion_calendar_for_user(user_id)
+                        synced_count = result.get("synced_count", 0) or result.get("synced_events", 0)
                         results[platform] = {
                             'success': True,
-                            'message': f'Notion 동기화 완료: {result.get("synced_count", 0)}개 이벤트',
+                            'message': f'Notion 동기화 완료: {synced_count}개 이벤트',
+                            'synced_events': synced_count,
+                            'synced_count': synced_count,
                             'details': result
                         }
                     except Exception as sync_error:

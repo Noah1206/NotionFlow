@@ -1746,11 +1746,16 @@
 
     // 개별 플랫폼 연결 해제 기능
     async function disconnectPlatform(platformName) {
-        const button = document.querySelector(`[data-platform="${platformName}"]`);
-        const loader = button.querySelector('.disconnect-loader');
-        const buttonText = button.querySelector('.disconnect-text');
-        const card = document.querySelector('[data-platform="' + platformName + '"]');
-        const status = card.querySelector('.platform-status');
+        const card = document.querySelector(`[data-platform="${platformName}"]`);
+        const button = card?.querySelector('.platform-disconnect-btn');
+        const loader = button?.querySelector('.disconnect-loader');
+        const buttonText = button?.querySelector('.disconnect-text');
+        const status = card?.querySelector('.platform-status');
+
+        if (!card || !button) {
+            console.error(`Cannot find disconnect button for platform: ${platformName}`);
+            return;
+        }
 
         if (!confirm(getKoreanPlatformName(platformName) + ' 연결을 해제하시겠습니까?')) {
             return;
@@ -1759,7 +1764,7 @@
         // 버튼 상태 변경
         button.disabled = true;
         if (buttonText) buttonText.textContent = '해제 중...';
-        loader.style.display = 'flex';
+        if (loader) loader.style.display = 'flex';
 
         try {
             // 백엔드에 연결 해제 표시
@@ -1791,9 +1796,9 @@
         setTimeout(() => {
             button.disabled = false;
             if (button.className === 'platform-disconnect-btn') {
-                buttonText.textContent = '연결 해제';
+                if (buttonText) buttonText.textContent = '연결 해제';
             }
-            loader.style.display = 'none';
+            if (loader) loader.style.display = 'none';
         }, 500);
     }
 
@@ -2296,7 +2301,8 @@
                                             if (syncResult.success) {
                                                 const notionResult = syncResult.results?.notion;
                                                 if (notionResult?.success) {
-                                                    showNotification(`🎉 Notion 동기화 완료! ${notionResult.details?.synced_events || 0}개 이벤트가 가져와졌습니다.`, 'success');
+                                                    const eventCount = notionResult.synced_events || notionResult.synced_count || 0;
+                                                    showNotification(`🎉 Notion 동기화 완료! ${eventCount}개 이벤트가 가져와졌습니다.`, 'success');
                                                 } else {
                                                     showNotification(`⚠️ Notion 동기화 중 문제가 발생했습니다: ${notionResult?.message || '알 수 없는 오류'}`, 'warning');
                                                 }
