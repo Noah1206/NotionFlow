@@ -971,6 +971,9 @@ class UnifiedSyncModal {
     }
 }
 
+// 클래스를 전역 스코프에 노출
+window.UnifiedSyncModal = UnifiedSyncModal;
+
 // 전역 인스턴스 생성 (기존 패턴 재활용)
 window.addEventListener('DOMContentLoaded', () => {
     window.unifiedSync = new UnifiedSyncModal();

@@ -282,7 +282,12 @@ class PlatformCard {
             
             if (result.success) {
                 this.showNotification(`${platform.toUpperCase()} 연결 성공!`, 'success');
-                
+
+                // Notion 연동 성공 시에만 모달 표시
+                if (platform === 'notion') {
+                    this.showNotionSuccessModal();
+                }
+
                 if (this.options.onRegister) {
                     this.options.onRegister({
                         id: platform,
@@ -766,9 +771,48 @@ class PlatformCard {
         if (window.NotificationUtils) {
             return window.NotificationUtils.show(message, type);
         }
-        
+
         // Fallback for backward compatibility
         return window.showNotification ? window.showNotification(message, type) : console.log(message);
+    }
+
+    showNotionSuccessModal() {
+        // UnifiedSyncModal이 있으면 사용, 없으면 기본 알림만 표시
+        if (window.UnifiedSyncModal) {
+            try {
+                // 모달 인스턴스가 있으면 재사용, 없으면 새로 생성
+                if (!window.unifiedSyncModalInstance) {
+                    window.unifiedSyncModalInstance = new window.UnifiedSyncModal();
+                }
+
+                // 모달 열기
+                if (window.unifiedSyncModalInstance.openModal) {
+                    window.unifiedSyncModalInstance.openModal();
+                } else {
+                    console.warn('UnifiedSyncModal openModal method not found');
+                }
+            } catch (error) {
+                console.error('Failed to show UnifiedSyncModal:', error);
+                this.showNotionFallbackModal();
+            }
+        } else {
+            this.showNotionFallbackModal();
+        }
+    }
+
+    showNotionFallbackModal() {
+        // 간단한 확인 모달 표시
+        const shouldOpenSync = confirm('Notion 연동이 완료되었습니다!\n\n캘린더와 동기화를 시작하시겠습니까?');
+
+        if (shouldOpenSync) {
+            // 캘린더 페이지가 있으면 이동
+            if (window.location.pathname.includes('dashboard')) {
+                window.location.href = '/calendar';
+            } else {
+                // 현재 페이지에서 동기화 기능이 있으면 실행
+                this.showNotification('캘린더 페이지로 이동하여 동기화를 설정해주세요.', 'info');
+            }
+        }
     }
 }
 

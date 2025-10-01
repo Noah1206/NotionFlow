@@ -482,14 +482,30 @@ def get_platform_status():
                     'sync_settings': config.get('sync_settings')
                 }
 
-        # Check for Google OAuth token as well (for OAuth-only connection)
-        google_oauth_result = supabase.table('google_tokens').select('id').eq('user_id', user_id).execute()
-        if google_oauth_result.data:
-            # If Google OAuth exists but no calendar selected yet
-            if not platform_status['google']['configured']:
-                platform_status['google']['oauth_connected'] = True
-                # Even if no calendar is selected, OAuth connection means it's configured
-                platform_status['google']['configured'] = True
+        # Check for OAuth tokens for all platforms in oauth_tokens table
+        oauth_platforms = ['google', 'notion', 'slack', 'outlook']
+        for platform in oauth_platforms:
+            if platform in platform_status:
+                oauth_result = supabase.table('oauth_tokens').select('id').eq('user_id', user_id).eq('platform', platform).execute()
+                if oauth_result.data:
+                    # If OAuth token exists but no calendar selected yet
+                    if not platform_status[platform]['configured']:
+                        platform_status[platform]['oauth_connected'] = True
+                        # OAuth connection means it's configured
+                        platform_status[platform]['configured'] = True
+                        print(f"✅ Found {platform} OAuth token, marking as configured")
+
+        # Check for Apple API keys in api_keys table
+        if 'apple' in platform_status:
+            apple_api_result = supabase.table('api_keys').select('id, api_key').eq('user_id', user_id).eq('platform', 'apple').execute()
+            if apple_api_result.data:
+                api_key_data = apple_api_result.data[0]
+                # Check if API key is not empty
+                if api_key_data.get('api_key') and api_key_data.get('api_key').strip():
+                    if not platform_status['apple']['configured']:
+                        platform_status['apple']['api_key_connected'] = True
+                        platform_status['apple']['configured'] = True
+                        print(f"✅ Found Apple API key, marking as configured")
 
         return jsonify({
             'success': True,
