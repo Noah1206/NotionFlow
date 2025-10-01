@@ -2533,47 +2533,15 @@
         }
     }
 
-    // 캘린더 이벤트 내보내기 모달 열기 (통합 동기화 모달 사용)
-    async function openCalendarSyncModal(platform) {
-        try {
-            // 플랫폼별 이름 매핑
-            const platformNames = {
-                notion: 'Notion',
-                google: 'Google Calendar',
-                apple: 'Apple Calendar',
-                outlook: 'Outlook',
-                slack: 'Slack'
-            };
-
-            const platformDisplayName = platformNames[platform] || platform;
-
-            console.log(`📅 Opening export modal for ${platformDisplayName}`);
-
-            // 통합 동기화 모달 열기 (기존 이벤트 선택해서 내보내기)
-            if (window.UnifiedSyncModal) {
-                const syncModal = new window.UnifiedSyncModal();
-                syncModal.show();
-                return;
-            }
-
-            // 대안: 기존 통합 동기화 모달 스크립트가 로드되지 않은 경우
-            if (typeof openUnifiedSyncModal === 'function') {
-                openUnifiedSyncModal();
-                return;
-            }
-
-            // 최후 방법: 페이지 리로드로 통합 모달 스크립트 로드
-            console.warn('UnifiedSyncModal not found, reloading to ensure scripts are loaded');
-
-        } catch (error) {
-            console.error('📅 Error opening export modal:', error);
-
-            // 에러 시 알림 표시
-            if (window.showNotification) {
-                showNotification('이벤트 내보내기 모달을 열 수 없습니다. 페이지를 새로고침해주세요.', 'error');
-            } else {
-                alert('이벤트 내보내기 모달을 열 수 없습니다. 페이지를 새로고침해주세요.');
-            }
+    // 캘린더 동기화 모달 열기
+    function openCalendarSyncModal(platform) {
+        // UnifiedSyncModal 직접 실행
+        if (window.UnifiedSyncModal) {
+            new window.UnifiedSyncModal().show();
+        } else {
+            // 대안: 기존 모달 표시
+            const modal = document.querySelector('.unified-sync-modal');
+            if (modal) modal.style.display = 'flex';
         }
     }
 
