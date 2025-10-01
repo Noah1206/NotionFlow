@@ -2564,50 +2564,12 @@
         }
     }
 
-    // 캘린더 동기화 모달 열기
-    function openCalendarSyncModal(platform) {
-        console.log('🔧 openCalendarSyncModal 호출됨, platform:', platform);
-        console.log('🔧 window.UnifiedSyncModal 존재:', !!window.UnifiedSyncModal);
+    // 캘린더 동기화 모달 열기 (기존 캘린더 선택 모달 사용)
+    async function openCalendarSyncModal(platform) {
+        console.log('📅 캘린더 변경 모달 열기, platform:', platform);
 
-        // 1. UnifiedSyncModal 시도
-        if (window.UnifiedSyncModal) {
-            try {
-                console.log('🔧 UnifiedSyncModal 생성 시도');
-                const modal = new window.UnifiedSyncModal();
-                console.log('🔧 UnifiedSyncModal 생성됨:', modal);
-                console.log('🔧 show 메서드 존재:', typeof modal.show);
-                modal.show();
-                return;
-            } catch (error) {
-                console.error('🔧 UnifiedSyncModal 오류:', error);
-            }
-        }
-
-        // 2. 기존 모달 DOM 찾기
-        const modal = document.querySelector('.unified-sync-modal');
-        console.log('🔧 기존 모달 DOM 찾기:', !!modal);
-        if (modal) {
-            modal.style.display = 'flex';
-            return;
-        }
-
-        // 3. 강제로 모달 생성
-        console.log('🔧 강제 모달 생성 시도');
-        createSimpleModal();
-    }
-
-    // 간단한 모달 강제 생성
-    function createSimpleModal() {
-        const modalHtml = `
-            <div class="unified-sync-modal" style="display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
-                <div style="background: white; padding: 20px; border-radius: 8px; max-width: 500px; width: 90%;">
-                    <h3>캘린더 동기화</h3>
-                    <p>캘린더 동기화 기능이 준비 중입니다.</p>
-                    <button onclick="this.closest('.unified-sync-modal').remove()" style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">닫기</button>
-                </div>
-            </div>
-        `;
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        // 기존 캘린더 선택 모달 사용
+        await showCalendarSelectionModal(platform);
     }
 
     // 플랫폼 연결 표시 함수 (markPlatformConnected)
