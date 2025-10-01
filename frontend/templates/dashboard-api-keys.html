@@ -1562,10 +1562,39 @@
             console.log(`✅ ${platformName} OAuth 완료, 기존 연동 로직 활용`);
 
             // OAuth가 이미 완료된 상태이므로 바로 연결 처리
-            // 기존에 만들어둔 DB 이벤트 가져오기 및 캘린더 연동 로직 활용
+            // 기존에 만들어둔 통합 동기화 API 호출
 
-            // 연결 처리 시뮬레이션
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            console.log(`🔄 ${platformName} 동기화 시작...`);
+
+            // 기존 통합 동기화 API 호출
+            const syncResponse = await fetch('/api/unified-sync/sync', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    platforms: [platformName],
+                    options: {
+                        target_calendar_id: calendarId,
+                        direction: 'bidirectional',
+                        scope: 'all'
+                    }
+                })
+            });
+
+            if (syncResponse.ok) {
+                const syncResult = await syncResponse.json();
+                console.log(`✅ ${platformName} 동기화 성공:`, syncResult);
+
+                if (syncResult.success && syncResult.results && syncResult.results[platformName]?.success) {
+                    const platformResult = syncResult.results[platformName];
+                    console.log(`📊 ${platformName} 동기화 결과: ${platformResult.message}`);
+                } else {
+                    console.warn(`⚠️ ${platformName} 동기화 부분 실패:`, syncResult);
+                }
+            } else {
+                console.warn(`⚠️ ${platformName} 동기화 API 호출 실패:`, syncResponse.status);
+            }
 
             // 연결 성공 처리
             if (status) {
@@ -1586,10 +1615,18 @@
             updateConnectionStats();
             updatePlatformStatus();
 
-            showNotification(getKoreanPlatformName(platformName) + ' 연결 완료!', 'success');
-
-            // 기존에 만들어둔 이벤트 동기화 로직을 호출할 수 있음
-            // 예: await syncEventsToCalendar(platformName, calendarId);
+            // 동기화 결과에 따른 알림
+            if (syncResponse && syncResponse.ok) {
+                const syncResult = await syncResponse.json();
+                if (syncResult.success && syncResult.results && syncResult.results[platformName]?.success) {
+                    const platformResult = syncResult.results[platformName];
+                    showNotification(platformResult.message || `${getKoreanPlatformName(platformName)} 연결 및 동기화 완료!`, 'success');
+                } else {
+                    showNotification(`${getKoreanPlatformName(platformName)} 연결 완료! (일부 동기화 실패)`, 'warning');
+                }
+            } else {
+                showNotification(`${getKoreanPlatformName(platformName)} 연결 완료!`, 'success');
+            }
         } catch (error) {
             console.error('연결 중 오류:', error);
             showNotification('연결 중 오류가 발생했습니다.', 'error');
@@ -1622,13 +1659,43 @@
         console.log(`🚀 performDirectPlatformConnection 시작: ${platformName}, ${calendarId}`);
 
         try {
-            console.log(`✅ ${platformName} OAuth 이미 완료됨, 상태 업데이트 진행`);
+            console.log(`✅ ${platformName} OAuth 이미 완료됨, 동기화 실행`);
 
-            // OAuth가 이미 완료된 상태이므로 바로 상태 업데이트
-            // (OAuth 콜백에서 이미 토큰이 저장되었음)
+            // OAuth가 이미 완료된 상태이므로 바로 동기화 진행
+            console.log(`🔄 ${platformName} 동기화 시작...`);
 
-            // 짧은 딜레이 후 플랫폼 상태 업데이트
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // 기존 통합 동기화 API 호출
+            const syncResponse = await fetch('/api/unified-sync/sync', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    platforms: [platformName],
+                    options: {
+                        target_calendar_id: calendarId,
+                        direction: 'bidirectional',
+                        scope: 'all'
+                    }
+                })
+            });
+
+            let syncMessage = '';
+            if (syncResponse.ok) {
+                const syncResult = await syncResponse.json();
+                console.log(`✅ ${platformName} 동기화 성공:`, syncResult);
+
+                if (syncResult.success && syncResult.results && syncResult.results[platformName]?.success) {
+                    const platformResult = syncResult.results[platformName];
+                    syncMessage = platformResult.message || '';
+                    console.log(`📊 ${platformName} 동기화 결과: ${syncMessage}`);
+                } else {
+                    console.warn(`⚠️ ${platformName} 동기화 부분 실패:`, syncResult);
+                    syncMessage = ' (일부 동기화 실패)';
+                }
+            } else {
+                console.warn(`⚠️ ${platformName} 동기화 API 호출 실패:`, syncResponse.status);
+            }
 
             // 플랫폼 상태 업데이트 (DOM 요소 찾기 후)
             setTimeout(() => {
@@ -1638,8 +1705,10 @@
                 updatePlatformStatus();
             }, 100);
 
-            showNotification(getKoreanPlatformName(platformName) + ' 연결 완료!', 'success');
-            return { success: true, message: '연결 완료' };
+            // 동기화 결과에 따른 알림
+            const finalMessage = syncMessage || `${getKoreanPlatformName(platformName)} 연결 및 동기화 완료!`;
+            showNotification(finalMessage, syncMessage.includes('실패') ? 'warning' : 'success');
+            return { success: true, message: finalMessage };
         } catch (error) {
             console.error(`❌ ${platformName} 연결 중 오류:`, error);
             showNotification('연결 중 오류가 발생했습니다.', 'error');
