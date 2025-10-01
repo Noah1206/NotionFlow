@@ -2254,7 +2254,7 @@
                                     resolve(event.data);
                                 }
                             } else if (event.data.platform === 'notion') {
-                                // Notion의 경우 팝업 표시 후 캘린더 선택 모달
+                                // Notion의 경우 실제 동기화 실행
                                 console.log('📅 Notion OAuth 성공 처리 중...');
 
                                 // 확실하게 블러 제거
@@ -2262,21 +2262,59 @@
 
                                 markPlatformConnected(event.data.platform);
                                 updatePlatformStatus(event.data.platform, 'connected');
-                                showNotification('Notion 연결이 완료되었습니다!', 'success');
+                                showNotification('Notion 연결이 완료되었습니다! 동기화를 시작합니다...', 'success');
                                 updateConnectionStats();
                                 updatePlatformStatus();
 
-                                // 팝업으로 알림 후 캘린더 선택 모달 표시
-                                setTimeout(() => {
-                                    // 다시 한번 블러 제거 (안전장치)
-                                    removeAnyBlurEffects();
+                                // 실제 동기화 실행
+                                setTimeout(async () => {
+                                    try {
+                                        // 다시 한번 블러 제거 (안전장치)
+                                        removeAnyBlurEffects();
 
-                                    const shouldOpenSync = confirm('🎉 Notion 연동이 완료되었습니다!\n\n캘린더를 선택하여 동기화를 시작하시겠습니까?');
-                                    if (shouldOpenSync) {
-                                        // 기존 캘린더 선택 모달 사용
-                                        showCalendarSelectionModal('notion');
+                                        console.log('🔄 Notion 실제 동기화 시작...');
+
+                                        // 기존 통합 동기화 API 호출
+                                        const syncResponse = await fetch('/api/unified-sync/sync', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({
+                                                platforms: ['notion'],
+                                                options: {
+                                                    direction: 'import',
+                                                    scope: 'recent'
+                                                }
+                                            })
+                                        });
+
+                                        if (syncResponse.ok) {
+                                            const syncResult = await syncResponse.json();
+                                            if (syncResult.success) {
+                                                const notionResult = syncResult.results?.notion;
+                                                if (notionResult?.success) {
+                                                    showNotification(`🎉 Notion 동기화 완료! ${notionResult.details?.synced_events || 0}개 이벤트가 가져와졌습니다.`, 'success');
+                                                } else {
+                                                    showNotification(`⚠️ Notion 동기화 중 문제가 발생했습니다: ${notionResult?.message || '알 수 없는 오류'}`, 'warning');
+                                                }
+                                            } else {
+                                                showNotification('Notion 동기화에 실패했습니다.', 'error');
+                                            }
+                                        } else {
+                                            console.warn('Notion 동기화 API 호출 실패:', syncResponse.status);
+                                            showNotification('Notion 동기화 API 호출에 실패했습니다.', 'error');
+                                        }
+
+                                        // DB에서 최신 상태를 다시 가져와서 확실히 반영
+                                        setTimeout(async () => {
+                                            await updatePlatformStatus();
+                                            console.log('🔄 Notion 상태 재확인 완료');
+                                        }, 1000);
+
+                                    } catch (syncError) {
+                                        console.error('Notion 동기화 오류:', syncError);
+                                        showNotification('Notion 동기화 중 오류가 발생했습니다.', 'error');
                                     }
-                                }, 500);
+                                }, 1000);
 
                                 resolve(event.data);
                             } else {

@@ -1324,3 +1324,56 @@ class NotionCalendarSync:
 
 # 싱글톤 인스턴스
 notion_sync = NotionCalendarSync()
+
+# 사용자별 Notion 동기화 함수 (unified_sync_routes.py에서 호출)
+def sync_notion_calendar_for_user(user_id: str, calendar_id: str = None) -> dict:
+    """
+    사용자의 Notion 캘린더를 동기화하는 메인 함수
+    unified_sync_routes.py에서 호출됨
+    """
+    try:
+        print(f"🚀 [SYNC] Starting Notion sync for user: {user_id}")
+
+        # 싱글톤 인스턴스 사용
+        result = notion_sync.sync_to_calendar(user_id, calendar_id)
+
+        # 결과 포맷 통일
+        if result.get('success'):
+            return {
+                'success': True,
+                'synced_count': result.get('synced_events', 0),
+                'synced_events': result.get('synced_events', 0),
+                'message': result.get('message', 'Notion 동기화 완료'),
+                'databases_processed': result.get('databases_processed', 0),
+                'limited_initial_load': result.get('limited_initial_load', False),
+                'background_sync_scheduled': result.get('background_sync_scheduled', False)
+            }
+        else:
+            return {
+                'success': False,
+                'error': result.get('error', 'Unknown error'),
+                'synced_count': 0,
+                'synced_events': 0
+            }
+
+    except Exception as e:
+        print(f"❌ [SYNC] Notion sync failed for user {user_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        return {
+            'success': False,
+            'error': str(e),
+            'synced_count': 0,
+            'synced_events': 0
+        }
+
+# NotionSyncService 클래스 정의 (backward compatibility)
+class NotionSyncService:
+    """Backward compatibility wrapper"""
+
+    def __init__(self):
+        self.sync_instance = notion_sync
+
+    def sync_for_user(self, user_id: str, calendar_id: str = None) -> dict:
+        """사용자별 동기화 실행"""
+        return sync_notion_calendar_for_user(user_id, calendar_id)

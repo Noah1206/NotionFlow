@@ -292,40 +292,108 @@ def create_calendar_event():
 
 @dashboard_api_bp.route('/platforms', methods=['GET'])
 def get_platform_status():
-    """Get user's platform connection status"""
+    """Get user's platform connection status - Enhanced with OAuth support"""
     auth_error = require_auth()
     if auth_error:
         return auth_error
-    
+
     user_id = get_current_user_id()
-    
+
     try:
-        platforms = dashboard_data.get_user_api_keys(user_id)
-        platform_stats = dashboard_data.get_platform_coverage(user_id)
-        
-        # Combine platform configs with stats
-        for platform_id, platform_info in platforms.items():
-            if platform_id in platform_stats:
-                stats = platform_stats[platform_id]
-                platform_info.update({
-                    'total_synced_items': stats.get('total_synced_items', 0),
-                    'sync_success_rate': stats.get('sync_success_rate', 0),
-                    'avg_sync_duration_ms': stats.get('avg_sync_duration_ms', 0),
-                    'feature_coverage': stats.get('feature_coverage', {})
+        print(f"🔍 [PLATFORM STATUS] Checking status for user: {user_id}")
+
+        # Get actual OAuth connection status from calendar_sync_configs
+        from utils.config import config
+        supabase = config.get_client_for_user(user_id)
+
+        # Query actual database for OAuth connections
+        sync_configs_result = supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).execute()
+
+        # Initialize platform status
+        platforms = {
+            'google': {
+                'name': 'Google Calendar',
+                'configured': False,
+                'oauth_connected': False,
+                'enabled': False,
+                'has_credentials': False
+            },
+            'notion': {
+                'name': 'Notion',
+                'configured': False,
+                'oauth_connected': False,
+                'enabled': False,
+                'has_credentials': False
+            },
+            'apple': {
+                'name': 'Apple Calendar',
+                'configured': False,
+                'oauth_connected': False,
+                'enabled': False,
+                'has_credentials': False
+            }
+        }
+
+        # Update with actual database data
+        for config_row in sync_configs_result.data:
+            platform = config_row['platform']
+            if platform in platforms:
+                credentials = config_row.get('credentials', {})
+                has_access_token = bool(credentials.get('access_token'))
+
+                platforms[platform].update({
+                    'configured': True,
+                    'oauth_connected': has_access_token,
+                    'enabled': config_row.get('is_enabled', False),
+                    'has_credentials': has_access_token,
+                    'last_sync': config_row.get('updated_at'),
+                    'credentials': {
+                        'has_token': has_access_token,
+                        'token_preview': credentials.get('access_token', '')[:20] + '...' if has_access_token else None
+                    }
                 })
-        
-        return jsonify({
+                print(f"✅ [PLATFORM STATUS] {platform}: OAuth={has_access_token}, Enabled={config_row.get('is_enabled', False)}")
+
+        # Get platform coverage stats
+        try:
+            platform_stats = dashboard_data.get_platform_coverage(user_id)
+
+            # Combine with stats if available
+            for platform_id, platform_info in platforms.items():
+                if platform_id in platform_stats:
+                    stats = platform_stats[platform_id]
+                    platform_info.update({
+                        'total_synced_items': stats.get('total_synced_items', 0),
+                        'sync_success_rate': stats.get('sync_success_rate', 0),
+                        'avg_sync_duration_ms': stats.get('avg_sync_duration_ms', 0),
+                        'feature_coverage': stats.get('feature_coverage', {})
+                    })
+        except Exception as stats_error:
+            print(f"⚠️ [PLATFORM STATUS] Stats error (non-critical): {stats_error}")
+
+        configured_count = len([p for p in platforms.values() if p['configured']])
+        enabled_count = len([p for p in platforms.values() if p['enabled']])
+        oauth_connected_count = len([p for p in platforms.values() if p['oauth_connected']])
+
+        result = {
             'success': True,
             'platforms': platforms,
             'summary': {
                 'total_platforms': len(platforms),
-                'configured_platforms': len([p for p in platforms.values() if p['configured']]),
-                'enabled_platforms': len([p for p in platforms.values() if p['enabled']])
+                'configured_platforms': configured_count,
+                'enabled_platforms': enabled_count,
+                'oauth_connected_platforms': oauth_connected_count
             }
-        })
-        
+        }
+
+        print(f"🔍 [PLATFORM STATUS] Result: {oauth_connected_count} OAuth connected, {configured_count} configured, {enabled_count} enabled")
+
+        return jsonify(result)
+
     except Exception as e:
-        print(f"Error getting platform status: {e}")
+        print(f"❌ [PLATFORM STATUS] Error getting platform status: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
             'success': False,
             'error': 'Failed to load platform status'
@@ -445,86 +513,7 @@ def get_user_activity():
             'error': 'Failed to load activity'
         }), 500
 
-@dashboard_api_bp.route('/platforms', methods=['GET'])
-def get_platform_status():
-    """Get all platform connection statuses for the dashboard"""
-    auth_error = require_auth()
-    if auth_error:
-        return auth_error
-
-    user_id = get_current_user_id()
-
-    try:
-        supabase = config.get_client_for_user(user_id)
-
-        # Get all platform connection statuses from calendar_sync_configs
-        result = supabase.table('calendar_sync_configs').select(
-            'platform, calendar_id, is_enabled, real_time_sync, last_sync_at, sync_settings'
-        ).eq('user_id', user_id).execute()
-
-        platform_status = {
-            'notion': {'configured': False, 'enabled': False},
-            'google': {'configured': False, 'enabled': False},
-            'apple': {'configured': False, 'enabled': False},
-            'outlook': {'configured': False, 'enabled': False},
-            'slack': {'configured': False, 'enabled': False}
-        }
-
-        # Update status for connected platforms
-        for config in result.data:
-            platform = config['platform']
-            if platform in platform_status:
-                platform_status[platform] = {
-                    'configured': bool(config.get('calendar_id')),
-                    'enabled': config.get('is_enabled', False),
-                    'calendar_id': config.get('calendar_id'),
-                    'last_sync_at': config.get('last_sync_at'),
-                    'sync_settings': config.get('sync_settings')
-                }
-
-        # Check for OAuth tokens for all platforms in oauth_tokens table
-        oauth_platforms = ['google', 'notion', 'slack', 'outlook']
-        for platform in oauth_platforms:
-            if platform in platform_status:
-                oauth_result = supabase.table('oauth_tokens').select('id').eq('user_id', user_id).eq('platform', platform).execute()
-                if oauth_result.data:
-                    # If OAuth token exists but no calendar selected yet
-                    if not platform_status[platform]['configured']:
-                        platform_status[platform]['oauth_connected'] = True
-                        # OAuth connection means it's configured
-                        platform_status[platform]['configured'] = True
-                        print(f"✅ Found {platform} OAuth token, marking as configured")
-
-        # Check for Apple API keys in api_keys table
-        if 'apple' in platform_status:
-            apple_api_result = supabase.table('api_keys').select('id, api_key').eq('user_id', user_id).eq('platform', 'apple').execute()
-            if apple_api_result.data:
-                api_key_data = apple_api_result.data[0]
-                # Check if API key is not empty
-                if api_key_data.get('api_key') and api_key_data.get('api_key').strip():
-                    if not platform_status['apple']['configured']:
-                        platform_status['apple']['api_key_connected'] = True
-                        platform_status['apple']['configured'] = True
-                        print(f"✅ Found Apple API key, marking as configured")
-
-        return jsonify({
-            'success': True,
-            'platforms': platform_status
-        })
-
-    except Exception as e:
-        print(f"Error getting platform status: {e}")
-        return jsonify({
-            'success': False,
-            'error': 'Failed to load platform status',
-            'platforms': {
-                'notion': {'configured': False, 'enabled': False},
-                'google': {'configured': False, 'enabled': False},
-                'apple': {'configured': False, 'enabled': False},
-                'outlook': {'configured': False, 'enabled': False},
-                'slack': {'configured': False, 'enabled': False}
-            }
-        }), 500
+# Duplicate function removed - using enhanced version above
 
 # Error handlers
 @dashboard_api_bp.errorhandler(404)
