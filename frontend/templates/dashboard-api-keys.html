@@ -869,6 +869,31 @@
         box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
     }
 
+    /* One-click 연결해제 버튼 (Google Calendar용) */
+    .one-click-disconnect-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 12px;
+        position: relative;
+        min-width: 110px;
+        justify-content: center;
+        background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%) !important;
+        color: white !important;
+        border: none !important;
+    }
+
+    .one-click-disconnect-btn:hover {
+        background: linear-gradient(135deg, #ff5252 0%, #ff6b6b 100%) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+    }
+
     /* 연결하기 버튼 로딩 상태 */
     .platform-connect-btn.loading {
         pointer-events: none;
