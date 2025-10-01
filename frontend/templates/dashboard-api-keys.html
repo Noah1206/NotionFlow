@@ -2696,18 +2696,8 @@
                 syncBtn.title = `${calendarName}과 연동됨`;
             }
 
-            // 연동 해제 X 버튼 추가
-            let disconnectBtn = syncBtn.querySelector('.sync-disconnect-btn');
-            if (!disconnectBtn) {
-                disconnectBtn = document.createElement('button');
-                disconnectBtn.className = 'sync-disconnect-btn';
-                disconnectBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    disconnectPlatformSync(platform);
-                };
-                disconnectBtn.innerHTML = '×';
-                syncBtn.appendChild(disconnectBtn);
-            }
+            // X 버튼 추가 제거 - 연결해제 버튼이 이미 별도로 있음
+            // 중복 버튼 생성 방지
         }
     }
 

@@ -1333,6 +1333,7 @@ def sync_notion_calendar_for_user(user_id: str, calendar_id: str = None) -> dict
     """
     try:
         print(f"🚀 [SYNC] Starting Notion sync for user: {user_id}")
+        print(f"📋 [SYNC] Calendar ID: {calendar_id}")
 
         # 싱글톤 인스턴스 사용
         result = notion_sync.sync_to_calendar(user_id, calendar_id)
