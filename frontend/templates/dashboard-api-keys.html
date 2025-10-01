@@ -2662,12 +2662,57 @@
         await checkCalendarsAndUpdatePlatforms();
     }
 
+    // 블러 효과 제거 함수
+    function removeAnyBlurEffects() {
+        console.log('🔧 블러 효과 제거 중...');
+
+        // 숨겨진 오버레이들 찾아서 제거
+        const overlays = [
+            '#sync-modal-overlay',
+            '.calendar-overlay-form',
+            '.modal-overlay',
+            '.popup-overlay',
+            '.event-creation-popup'
+        ];
+
+        overlays.forEach(selector => {
+            const elements = document.querySelectorAll(selector);
+            elements.forEach(element => {
+                if (element.style.display === 'block' || element.style.display === 'flex') {
+                    console.log(`🔧 숨겨진 오버레이 제거: ${selector}`);
+                    element.style.display = 'none';
+                }
+            });
+        });
+
+        // body에 블러 클래스가 있으면 제거
+        if (document.body.classList.contains('modal-open')) {
+            document.body.classList.remove('modal-open');
+        }
+
+        // 전체 페이지에서 블러 스타일 제거
+        document.body.style.filter = '';
+        document.body.style.backdropFilter = '';
+        document.documentElement.style.filter = '';
+
+        console.log('✅ 블러 효과 제거 완료');
+    }
+
     // 페이지 로드 완료 후 연동 정보 불러오기
     document.addEventListener('DOMContentLoaded', async function () {
+        // 블러 효과 제거
+        removeAnyBlurEffects();
+
         // 먼저 플랫폼 연결 상태를 로드하고 UI를 초기화
         await loadAllPlatformStatus(); // Load platform connection states first
         // 그 다음에 캘린더 동기화 정보를 로드 (실제 연동된 경우에만 업데이트)
         await loadSyncedCalendars();
+    });
+
+    // 페이지 클릭 시 블러 효과 제거 (안전장치)
+    document.addEventListener('click', function() {
+        // 3초 후에 블러 효과 제거 (딜레이를 두어 의도치 않은 제거 방지)
+        setTimeout(removeAnyBlurEffects, 3000);
     });
 
 </script>
