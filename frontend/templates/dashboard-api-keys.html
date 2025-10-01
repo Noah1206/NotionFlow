@@ -1424,9 +1424,15 @@
         // 다른 플랫폼의 경우 기존 로직
         try {
             console.log(`🔗 플랫폼 연결 시작: ${currentConnectingPlatform} → ${selectedCalendarId}`);
+
+            // 모달 닫기 전에 변수 저장 (closeCalendarSelectionModal이 값을 null로 초기화하기 때문)
+            const platformName = currentConnectingPlatform;
+            const calendarId = selectedCalendarId;
+
             closeCalendarSelectionModal();
-            await performPlatformConnection(currentConnectingPlatform, selectedCalendarId);
-            console.log(`✅ 플랫폼 연결 완료: ${currentConnectingPlatform}`);
+
+            await performPlatformConnection(platformName, calendarId);
+            console.log(`✅ 플랫폼 연결 완료: ${platformName}`);
         } catch (error) {
             console.error(`❌ 플랫폼 연결 실패: ${currentConnectingPlatform}`, error);
             showNotification(`연결 중 오류가 발생했습니다: ${error.message}`, 'error');
@@ -1651,60 +1657,24 @@
         console.log(`🚀 performDirectPlatformConnection 시작: ${platformName}, ${calendarId}`);
 
         try {
-            // 실제 연결 API 호출
-            const response = await fetch('/api/platform/connect', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    platform: platformName,
-                    calendar_id: calendarId
-                })
-            });
+            console.log(`✅ ${platformName} OAuth 이미 완료됨, 상태 업데이트 진행`);
 
-            if (response.ok) {
-                const result = await response.json();
+            // OAuth가 이미 완료된 상태이므로 바로 상태 업데이트
+            // (OAuth 콜백에서 이미 토큰이 저장되었음)
 
-                if (result.success) {
-                    console.log(`✅ ${platformName} 연결 성공`);
+            // 짧은 딜레이 후 플랫폼 상태 업데이트
+            await new Promise(resolve => setTimeout(resolve, 500));
 
-                    // 플랫폼 상태 업데이트 (DOM 요소 찾기 후)
-                    setTimeout(() => {
-                        markPlatformConnected(platformName);
-                        updatePlatformStatus(platformName, 'connected');
-                        updateConnectionStats();
-                        updatePlatformStatus();
-                    }, 100);
+            // 플랫폼 상태 업데이트 (DOM 요소 찾기 후)
+            setTimeout(() => {
+                markPlatformConnected(platformName);
+                updatePlatformStatus(platformName, 'connected');
+                updateConnectionStats();
+                updatePlatformStatus();
+            }, 100);
 
-                    showNotification(getKoreanPlatformName(platformName) + ' 연결 완료!', 'success');
-                    return { success: true, message: '연결 완료' };
-                } else {
-                    console.error(`❌ ${platformName} 연결 실패:`, result.message);
-                    showNotification(result.message || '연결에 실패했습니다.', 'error');
-                    return { success: false, message: result.message };
-                }
-            } else {
-                // 연결 API가 없는 경우 시뮬레이션
-                console.log(`🔄 ${platformName} 연결 시뮬레이션 실행`);
-                await new Promise(resolve => setTimeout(resolve, 1000));
-
-                // 80% 성공률로 시뮬레이션
-                if (Math.random() > 0.2) {
-                    setTimeout(() => {
-                        markPlatformConnected(platformName);
-                        updatePlatformStatus(platformName, 'connected');
-                        updateConnectionStats();
-                        updatePlatformStatus();
-                    }, 100);
-
-                    showNotification(getKoreanPlatformName(platformName) + ' 연결 완료!', 'success');
-                    return { success: true, message: '연결 완료' };
-                } else {
-                    showNotification('연결에 실패했습니다. 다시 시도해주세요.', 'error');
-                    return { success: false, message: '연결 실패' };
-                }
-            }
+            showNotification(getKoreanPlatformName(platformName) + ' 연결 완료!', 'success');
+            return { success: true, message: '연결 완료' };
         } catch (error) {
             console.error(`❌ ${platformName} 연결 중 오류:`, error);
             showNotification('연결 중 오류가 발생했습니다.', 'error');
