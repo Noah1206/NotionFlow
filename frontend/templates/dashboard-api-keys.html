@@ -2533,6 +2533,16 @@
         }
     }
 
+    // loadAllPlatformStatus 함수 정의 (updatePlatformStatus를 사용)
+    async function loadAllPlatformStatus() {
+        await updatePlatformStatus();
+    }
+
+    // loadSyncedCalendars 함수 정의 (checkCalendarsAndUpdatePlatforms를 사용)
+    async function loadSyncedCalendars() {
+        await checkCalendarsAndUpdatePlatforms();
+    }
+
     // 페이지 로드 완료 후 연동 정보 불러오기
     document.addEventListener('DOMContentLoaded', async function () {
         // 먼저 플랫폼 연결 상태를 로드하고 UI를 초기화
