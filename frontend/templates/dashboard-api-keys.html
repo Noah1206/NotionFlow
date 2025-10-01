@@ -844,6 +844,31 @@
         box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
     }
 
+    /* Google Calendar 연결해제 버튼 (platform-disconnect-btn과 동일한 스타일) */
+    .google-disconnect-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 12px;
+        position: relative;
+        min-width: 110px;
+        justify-content: center;
+        background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%);
+        color: white;
+        border: none;
+    }
+
+    .google-disconnect-btn:hover {
+        background: linear-gradient(135deg, #ff5252 0%, #ff6b6b 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+    }
+
     /* 연결하기 버튼 로딩 상태 */
     .platform-connect-btn.loading {
         pointer-events: none;
