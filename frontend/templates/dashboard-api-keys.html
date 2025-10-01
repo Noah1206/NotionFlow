@@ -2583,6 +2583,37 @@
         }
     }
 
+    // 플랫폼 연결 표시 함수 (markPlatformConnected)
+    function markPlatformConnected(platform) {
+        const card = document.querySelector(`[data-platform="${platform}"]`);
+        if (!card) return;
+
+        // 플랫폼 상태를 연결됨으로 표시
+        const statusElement = card.querySelector('.platform-status');
+        if (statusElement) {
+            statusElement.className = 'platform-status connected';
+            statusElement.innerHTML = '<span class="status-dot"></span>연결됨';
+        }
+
+        // 연결 버튼 처리
+        const connectBtn = card.querySelector('.platform-connect-btn');
+        const oneClickBtn = card.querySelector('.one-click-btn-small');
+
+        if (connectBtn) {
+            connectBtn.style.display = 'none';
+        }
+
+        // 원클릭 버튼을 연결해제 버튼으로 변경
+        if (oneClickBtn) {
+            const buttonText = oneClickBtn.querySelector('.btn-text');
+            if (buttonText) {
+                buttonText.textContent = '연결해제';
+            }
+            oneClickBtn.setAttribute('onclick', `oneClickDisconnect('${platform}')`);
+            oneClickBtn.className = 'google-disconnect-btn';
+        }
+    }
+
     // loadAllPlatformStatus 함수 정의 (updatePlatformStatus를 사용)
     async function loadAllPlatformStatus() {
         await updatePlatformStatus();
