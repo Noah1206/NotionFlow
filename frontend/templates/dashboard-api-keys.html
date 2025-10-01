@@ -1530,9 +1530,10 @@
             return await performDirectPlatformConnection(platformName, calendarId);
         }
 
-        const loader = button.querySelector('.connect-loader');
-        const buttonText = button.querySelector('.connect-text');
-        const status = card.querySelector('.platform-status');
+        // DOM 요소들을 안전하게 찾기 (null 체크 포함)
+        const loader = button ? button.querySelector('.connect-loader') : null;
+        const buttonText = button ? button.querySelector('.connect-text') : null;
+        const status = card ? card.querySelector('.platform-status') : null;
 
         // 버튼 상태 변경 (요소가 있을 때만)
         if (button) {
@@ -1545,9 +1546,11 @@
             loader.style.display = 'flex';
         }
 
-        // 카드 애니메이션
-        card.style.transform = 'scale(1.02)';
-        card.style.boxShadow = 'var(--shadow-lg)';
+        // 카드 애니메이션 (카드가 있을 때만)
+        if (card) {
+            card.style.transform = 'scale(1.02)';
+            card.style.boxShadow = 'var(--shadow-lg)';
+        }
 
         try {
             // 실제 연결 API 호출
@@ -1567,13 +1570,19 @@
 
                 if (result.success) {
                     // 연결 성공
-                    status.className = 'platform-status connected';
-                    status.innerHTML = '<span class="status-dot"></span>연결됨';
+                    if (status) {
+                        status.className = 'platform-status connected';
+                        status.innerHTML = '<span class="status-dot"></span>연결됨';
+                    }
 
                     // 버튼을 연결해제 버튼으로 변경
-                    button.className = 'platform-disconnect-btn';
-                    button.setAttribute('onclick', 'disconnectPlatform(\'' + platformName + '\')');
-                    if (buttonText) buttonText.textContent = '연결 해제';
+                    if (button) {
+                        button.className = 'platform-disconnect-btn';
+                        button.setAttribute('onclick', 'disconnectPlatform(\'' + platformName + '\')');
+                    }
+                    if (buttonText) {
+                        buttonText.textContent = '연결 해제';
+                    }
 
                     // 통계 및 플랫폼 상태 업데이트
                     updateConnectionStats();
@@ -1589,12 +1598,18 @@
 
                 // 80% 성공률로 시뮬레이션
                 if (Math.random() > 0.2) {
-                    status.className = 'platform-status connected';
-                    status.innerHTML = '<span class="status-dot"></span>연결됨';
+                    if (status) {
+                        status.className = 'platform-status connected';
+                        status.innerHTML = '<span class="status-dot"></span>연결됨';
+                    }
 
-                    button.className = 'platform-disconnect-btn';
-                    button.setAttribute('onclick', 'disconnectPlatform(\'' + platformName + '\')');
-                    if (buttonText) buttonText.textContent = '연결 해제';
+                    if (button) {
+                        button.className = 'platform-disconnect-btn';
+                        button.setAttribute('onclick', 'disconnectPlatform(\'' + platformName + '\')');
+                    }
+                    if (buttonText) {
+                        buttonText.textContent = '연결 해제';
+                    }
 
                     updateConnectionStats();
                     updatePlatformStatus();
@@ -1611,13 +1626,19 @@
 
         // 애니메이션 및 상태 복원
         setTimeout(() => {
-            button.disabled = false;
-            if (button.className === 'platform-connect-btn') {
-                if (buttonText) buttonText.textContent = '연결하기';
+            if (button) {
+                button.disabled = false;
+                if (button.className === 'platform-connect-btn') {
+                    if (buttonText) buttonText.textContent = '연결하기';
+                }
             }
-            loader.style.display = 'none';
-            card.style.transform = '';
-            card.style.boxShadow = '';
+            if (loader) {
+                loader.style.display = 'none';
+            }
+            if (card) {
+                card.style.transform = '';
+                card.style.boxShadow = '';
+            }
         }, 500);
 
         // 선택 상태 초기화
