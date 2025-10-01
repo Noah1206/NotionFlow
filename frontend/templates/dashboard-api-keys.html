@@ -2673,40 +2673,86 @@
         await checkCalendarsAndUpdatePlatforms();
     }
 
-    // 블러 효과 제거 함수
+    // 강화된 블러 효과 제거 함수
     function removeAnyBlurEffects() {
-        console.log('🔧 블러 효과 제거 중...');
+        console.log('🔧 강화된 블러 효과 제거 중...');
 
-        // 숨겨진 오버레이들 찾아서 제거
+        // 1. 숨겨진 오버레이들 찾아서 제거
         const overlays = [
             '#sync-modal-overlay',
             '.calendar-overlay-form',
             '.modal-overlay',
             '.popup-overlay',
-            '.event-creation-popup'
+            '.event-creation-popup',
+            '[style*="backdrop-filter"]',
+            '[style*="filter: blur"]'
         ];
 
         overlays.forEach(selector => {
             const elements = document.querySelectorAll(selector);
             elements.forEach(element => {
-                if (element.style.display === 'block' || element.style.display === 'flex') {
-                    console.log(`🔧 숨겨진 오버레이 제거: ${selector}`);
-                    element.style.display = 'none';
-                }
+                console.log(`🔧 오버레이 요소 처리: ${selector}`, element);
+                element.style.display = 'none';
+                element.style.filter = '';
+                element.style.backdropFilter = '';
+                element.style.zIndex = '';
             });
         });
 
-        // body에 블러 클래스가 있으면 제거
-        if (document.body.classList.contains('modal-open')) {
-            document.body.classList.remove('modal-open');
-        }
+        // 2. 모든 가능한 블러/필터 스타일 완전 제거
+        const allElements = document.querySelectorAll('*');
+        allElements.forEach(el => {
+            if (el.style.filter && el.style.filter.includes('blur')) {
+                console.log('🔧 블러 스타일 제거:', el);
+                el.style.filter = '';
+                el.style.removeProperty('filter');
+            }
+            if (el.style.backdropFilter) {
+                el.style.backdropFilter = '';
+                el.style.removeProperty('backdrop-filter');
+            }
+        });
 
-        // 전체 페이지에서 블러 스타일 제거
+        // 3. body와 관련 클래스 완전 정리
+        document.body.classList.remove('modal-open', 'blur', 'blurred');
         document.body.style.filter = '';
         document.body.style.backdropFilter = '';
+        document.body.style.removeProperty('filter');
+        document.body.style.removeProperty('backdrop-filter');
         document.documentElement.style.filter = '';
+        document.documentElement.style.backdropFilter = '';
 
-        console.log('✅ 블러 효과 제거 완료');
+        // 4. 강제 CSS 주입으로 블러 효과 완전 차단
+        let forceStyleId = 'force-no-blur-style';
+        let existingStyle = document.getElementById(forceStyleId);
+        if (existingStyle) existingStyle.remove();
+
+        const forceStyle = document.createElement('style');
+        forceStyle.id = forceStyleId;
+        forceStyle.textContent = `
+            * {
+                filter: none !important;
+                backdrop-filter: none !important;
+            }
+            .main-content, .dashboard-content, .content-wrapper {
+                filter: none !important;
+                backdrop-filter: none !important;
+                opacity: 1 !important;
+                pointer-events: auto !important;
+            }
+            .sidebar {
+                z-index: 100;
+            }
+        `;
+        document.head.appendChild(forceStyle);
+
+        // 5. 3초 후 임시 스타일 제거
+        setTimeout(() => {
+            const tempStyle = document.getElementById(forceStyleId);
+            if (tempStyle) tempStyle.remove();
+        }, 3000);
+
+        console.log('✅ 강화된 블러 효과 제거 완료');
     }
 
     // 페이지 로드 완료 후 연동 정보 불러오기
