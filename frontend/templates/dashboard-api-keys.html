@@ -5,6 +5,8 @@
 {% block extra_css %}
 <link rel="stylesheet"
     href="{{ url_for('static', filename='css/api-keys-redesign.css') }}?v={{ range(100000, 999999) | random }}">
+<link rel="stylesheet"
+    href="{{ url_for('static', filename='css/unified-sync-modal.css') }}?v={{ range(100000, 999999) | random }}">
 {% endblock %}
 
 {% block content %}

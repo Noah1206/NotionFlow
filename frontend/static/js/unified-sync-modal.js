@@ -18,10 +18,10 @@ class UnifiedSyncModal {
                 inviteAttendees: false
             }
         };
-        
+
         // 기존 서비스 재활용 (클래스 존재 여부 확인)
         this.platformManagers = {};
-        
+
         // Platform manager 클래스들이 존재하면 사용, 없으면 fallback
         if (typeof window.GooglePlatformManager !== 'undefined') {
             this.platformManagers.google = new window.GooglePlatformManager('google');
@@ -32,7 +32,10 @@ class UnifiedSyncModal {
         if (typeof window.ApplePlatformManager !== 'undefined') {
             this.platformManagers.apple = new window.ApplePlatformManager('apple');
         }
-        
+
+        // 전역 참조 설정 (HTML 이벤트 핸들러에서 사용)
+        window.unifiedSync = this;
+
         this.init();
     }
     
@@ -134,7 +137,7 @@ class UnifiedSyncModal {
             <div class="widget-header">
                 <div class="widget-icon">🔗</div>
                 <h4>캘린더 연동하기</h4>
-                <button class="close-form-btn" onclick="window.unifiedSync.closeModal()" title="닫기">
+                <button class="close-form-btn" onclick="this.closest('#unified-sync-modal').parentElement.style.display='none'" title="닫기">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -345,14 +348,34 @@ class UnifiedSyncModal {
     }
     
     async openModal() {
+        console.log('🔍 [MODAL] Opening UnifiedSyncModal...');
+
         const overlay = document.getElementById('sync-modal-overlay');
         if (overlay) {
+            console.log('✅ [MODAL] Found overlay element, displaying modal');
             overlay.style.display = 'block';
             this.currentStep = 1;
             this.showStep(1);
+
             // 이벤트 목록 로드
+            console.log('📅 [MODAL] Loading calendar events...');
             await this.loadCalendarEvents();
             await this.checkPlatformStatus();
+            console.log('✅ [MODAL] Modal opened successfully');
+        } else {
+            console.error('❌ [MODAL] Overlay element not found! Modal was not created properly.');
+
+            // 모달이 없으면 다시 생성 시도
+            console.log('🔄 [MODAL] Attempting to recreate modal...');
+            this.createModal();
+            const newOverlay = document.getElementById('sync-modal-overlay');
+            if (newOverlay) {
+                newOverlay.style.display = 'block';
+                this.currentStep = 1;
+                this.showStep(1);
+                await this.loadCalendarEvents();
+                await this.checkPlatformStatus();
+            }
         }
     }
 
@@ -362,24 +385,29 @@ class UnifiedSyncModal {
             // 캘린더 ID 가져오기
             const calendarId = window.calendarId || document.querySelector('.calendar-workspace')?.dataset.calendarId;
             if (!calendarId) {
-                console.error('Calendar ID not found');
+                console.warn('Calendar ID not found - loading default events or showing empty state');
+
+                // 캘린더 ID가 없으면 사용자 캘린더 목록을 가져와서 첫 번째 것 사용
+                try {
+                    const response = await fetch('/api/calendars/list');
+                    const data = await response.json();
+
+                    if (data.success && data.calendars && data.calendars.length > 0) {
+                        const firstCalendar = data.calendars[0];
+                        console.log('Using first available calendar:', firstCalendar.id);
+                        await this.loadEventsForCalendar(firstCalendar.id);
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Failed to load calendar list:', error);
+                }
+
+                // 캘린더가 없으면 빈 상태 표시
+                this.showEmptyEventState();
                 return;
             }
 
-            // API에서 이벤트 가져오기
-            const response = await fetch(`/api/calendars/${calendarId}/events`);
-            if (!response.ok) {
-                throw new Error('Failed to load events');
-            }
-
-            const events = await response.json();
-
-            // API는 직접 배열을 반환함
-            this.calendarEvents = Array.isArray(events) ? events : [];
-            this.selectedEvents = new Set();
-
-            // 이벤트 목록 렌더링
-            this.renderEventList(this.calendarEvents);
+            await this.loadEventsForCalendar(calendarId);
         } catch (error) {
             console.error('Error loading calendar events:', error);
             document.getElementById('event-list-content').innerHTML = `
@@ -507,6 +535,45 @@ class UnifiedSyncModal {
         if (countElement) {
             countElement.textContent = this.selectedEvents.size;
         }
+    }
+
+    // 특정 캘린더의 이벤트 로드
+    async loadEventsForCalendar(calendarId) {
+        try {
+            const response = await fetch(`/api/calendars/${calendarId}/events`);
+            if (!response.ok) {
+                throw new Error('Failed to load events');
+            }
+
+            const events = await response.json();
+
+            // API는 직접 배열을 반환함
+            this.calendarEvents = Array.isArray(events) ? events : [];
+            this.selectedEvents = new Set();
+
+            // 이벤트 목록 렌더링
+            this.renderEventList(this.calendarEvents);
+        } catch (error) {
+            console.error('Error loading events for calendar:', calendarId, error);
+            this.showEmptyEventState();
+        }
+    }
+
+    // 빈 이벤트 상태 표시
+    showEmptyEventState() {
+        const container = document.getElementById('event-list-content');
+        if (container) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #666;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">📅</div>
+                    <h3 style="margin: 0 0 8px 0; color: #333;">이벤트가 없습니다</h3>
+                    <p style="margin: 0; font-size: 14px;">캘린더에 이벤트를 추가한 후 다시 시도해주세요.</p>
+                </div>
+            `;
+        }
+        this.calendarEvents = [];
+        this.selectedEvents = new Set();
+        this.updateSelectedCount();
     }
     
     closeModal() {
