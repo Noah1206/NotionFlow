@@ -1080,6 +1080,7 @@
     src="{{ url_for('static', filename='js/apple-setup-wizard.js') }}?v={{ range(100000, 999999) | random }}"></script>
 <script src="{{ url_for('static', filename='js/platform-health.js') }}?v={{ range(100000, 999999) | random }}"></script>
 <script src="{{ url_for('static', filename='js/platform-managers.js') }}?v={{ range(100000, 999999) | random }}"></script>
+<script src="{{ url_for('static', filename='js/platform-card.js') }}?v={{ range(100000, 999999) | random }}"></script>
 <script src="{{ url_for('static', filename='js/unified-sync-modal.js') }}?v={{ range(100000, 999999) | random }}"></script>
 <script>
     // 🚀 CALENDAR GRID REFRESH TRIGGER FUNCTION
@@ -1161,6 +1162,32 @@
         } else {
             // 수동 설정 플랫폼의 경우 캘린더 선택 모달 표시
             await showCalendarSelectionModal(platformName);
+        }
+    }
+
+    // 사용자 캘린더 목록 로드
+    async function loadUserCalendars(container) {
+        if (!container) {
+            console.error('❌ [CALENDAR] Container element is null');
+            return;
+        }
+
+        try {
+            console.log('📅 [CALENDAR] Loading user calendars...');
+            container.innerHTML = '<div class="loading-spinner">캘린더 목록을 불러오는 중...</div>';
+
+            const response = await fetch('/api/calendars/list');
+            const data = await response.json();
+
+            if (data.success && data.calendars) {
+                displayCalendarList(data.calendars, container);
+                console.log('✅ [CALENDAR] Successfully loaded calendars:', data.calendars.length);
+            } else {
+                throw new Error(data.error || 'Failed to load calendars');
+            }
+        } catch (error) {
+            console.error('❌ [CALENDAR] Failed to load calendars:', error);
+            container.innerHTML = '<div class="error-message">캘린더 목록을 불러올 수 없습니다.</div>';
         }
     }
 
@@ -2088,6 +2115,50 @@
                                     markPlatformConnected(event.data.platform);
                                     updatePlatformStatus(event.data.platform, 'connected');
                                     showNotification(`${getKoreanPlatformName(event.data.platform)} 연결이 완료되었습니다!`, 'success');
+                                    updateConnectionStats();
+                                    updatePlatformStatus();
+                                    resolve(event.data);
+                                }
+                            } else if (event.data.platform === 'notion') {
+                                // Notion의 경우 동기화 모달 표시
+                                try {
+                                    markPlatformConnected(event.data.platform);
+                                    updatePlatformStatus(event.data.platform, 'connected');
+                                    showNotification('Notion 연결이 완료되었습니다!', 'success');
+                                    updateConnectionStats();
+                                    updatePlatformStatus();
+
+                                    // 동기화 모달 표시
+                                    setTimeout(() => {
+                                        if (window.UnifiedSyncModal) {
+                                            try {
+                                                if (!window.unifiedSyncModalInstance) {
+                                                    window.unifiedSyncModalInstance = new window.UnifiedSyncModal();
+                                                }
+                                                if (window.unifiedSyncModalInstance.openModal) {
+                                                    window.unifiedSyncModalInstance.openModal();
+                                                }
+                                            } catch (modalError) {
+                                                console.error('UnifiedSyncModal 표시 실패:', modalError);
+                                                const shouldOpenSync = confirm('Notion 연동이 완료되었습니다!\n\n캘린더와 동기화를 시작하시겠습니까?');
+                                                if (shouldOpenSync) {
+                                                    window.location.href = '/calendar';
+                                                }
+                                            }
+                                        } else {
+                                            const shouldOpenSync = confirm('Notion 연동이 완료되었습니다!\n\n캘린더와 동기화를 시작하시겠습니까?');
+                                            if (shouldOpenSync) {
+                                                window.location.href = '/calendar';
+                                            }
+                                        }
+                                    }, 1000);
+
+                                    resolve(event.data);
+                                } catch (error) {
+                                    console.error('Notion 연결 후 처리 오류:', error);
+                                    markPlatformConnected(event.data.platform);
+                                    updatePlatformStatus(event.data.platform, 'connected');
+                                    showNotification('Notion 연결이 완료되었습니다!', 'success');
                                     updateConnectionStats();
                                     updatePlatformStatus();
                                     resolve(event.data);
