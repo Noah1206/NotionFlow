@@ -77,17 +77,26 @@ def connect_google_to_calendar():
 
         print(f"✅ [GOOGLE-CONNECT] Calendar ownership verified")
 
-        # Update calendar_sync_configs with the selected calendar_id and enable sync
+        # Get existing credentials to preserve OAuth tokens
+        existing_config = supabase.table('calendar_sync_configs').select('credentials').eq('user_id', user_id).eq('platform', 'google').execute()
+        existing_credentials = existing_config.data[0].get('credentials', {}) if existing_config.data else {}
+
+        # Merge with new calendar information (preserve OAuth data)
         credentials_data = {
+            **existing_credentials,  # Keep existing OAuth tokens and info
             'oauth_connected': True,
             'calendar_id': actual_calendar_id,
             'connected_at': datetime.now().isoformat(),
-            'real_time_sync': True
+            'real_time_sync': True,
+            'needs_calendar_selection': False  # Calendar has been selected
         }
 
         # Include Google calendar ID if provided
         if google_calendar_id:
             credentials_data['google_calendar_id'] = google_calendar_id
+
+        print(f"🔍 [GOOGLE-CONNECT] Preserving existing credentials: {existing_credentials.keys()}")
+        print(f"🔍 [GOOGLE-CONNECT] Updated credentials: {credentials_data.keys()}")
 
         update_result = supabase.table('calendar_sync_configs').update({
             'credentials': credentials_data,

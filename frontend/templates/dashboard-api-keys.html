@@ -1608,8 +1608,12 @@
 
                 console.log('✅ [GOOGLE-CONNECT] 연결 성공:', result);
 
-                // 페이지 새로고침하여 상태 업데이트
-                setTimeout(() => location.reload(), 1500);
+                // 수동으로 상태 업데이트 (새로고침 대신)
+                setTimeout(() => {
+                    updatePlatformStatus('google', 'connected');
+                    updateConnectionStats();
+                    updatePlatformStatus(); // 전체 플랫폼 상태 업데이트
+                }, 500);
             } else {
                 throw new Error(result.error || 'Google Calendar 연결 실패');
             }
