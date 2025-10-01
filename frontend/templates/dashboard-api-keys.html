@@ -2122,49 +2122,25 @@
                                     resolve(event.data);
                                 }
                             } else if (event.data.platform === 'notion') {
-                                // Notion의 경우 동기화 모달 표시
-                                try {
-                                    markPlatformConnected(event.data.platform);
-                                    updatePlatformStatus(event.data.platform, 'connected');
-                                    showNotification('Notion 연결이 완료되었습니다!', 'success');
-                                    updateConnectionStats();
-                                    updatePlatformStatus();
+                                // Notion의 경우 팝업 표시 후 캘린더 선택 모달
+                                console.log('📅 Notion OAuth 성공 처리 중...');
 
-                                    // 동기화 모달 표시
-                                    setTimeout(() => {
-                                        if (window.UnifiedSyncModal) {
-                                            try {
-                                                if (!window.unifiedSyncModalInstance) {
-                                                    window.unifiedSyncModalInstance = new window.UnifiedSyncModal();
-                                                }
-                                                if (window.unifiedSyncModalInstance.openModal) {
-                                                    window.unifiedSyncModalInstance.openModal();
-                                                }
-                                            } catch (modalError) {
-                                                console.error('UnifiedSyncModal 표시 실패:', modalError);
-                                                const shouldOpenSync = confirm('Notion 연동이 완료되었습니다!\n\n캘린더와 동기화를 시작하시겠습니까?');
-                                                if (shouldOpenSync) {
-                                                    window.location.href = '/calendar';
-                                                }
-                                            }
-                                        } else {
-                                            const shouldOpenSync = confirm('Notion 연동이 완료되었습니다!\n\n캘린더와 동기화를 시작하시겠습니까?');
-                                            if (shouldOpenSync) {
-                                                window.location.href = '/calendar';
-                                            }
-                                        }
-                                    }, 1000);
+                                markPlatformConnected(event.data.platform);
+                                updatePlatformStatus(event.data.platform, 'connected');
+                                showNotification('Notion 연결이 완료되었습니다!', 'success');
+                                updateConnectionStats();
+                                updatePlatformStatus();
 
-                                    resolve(event.data);
-                                } catch (error) {
-                                    console.error('Notion 연결 후 처리 오류:', error);
-                                    markPlatformConnected(event.data.platform);
-                                    updatePlatformStatus(event.data.platform, 'connected');
-                                    showNotification('Notion 연결이 완료되었습니다!', 'success');
-                                    updateConnectionStats();
-                                    updatePlatformStatus();
-                                    resolve(event.data);
-                                }
+                                // 팝업으로 알림 후 캘린더 선택 모달 표시
+                                setTimeout(() => {
+                                    const shouldOpenSync = confirm('🎉 Notion 연동이 완료되었습니다!\n\n캘린더를 선택하여 동기화를 시작하시겠습니까?');
+                                    if (shouldOpenSync) {
+                                        // 기존 캘린더 선택 모달 사용
+                                        showCalendarSelectionModal('notion');
+                                    }
+                                }, 500);
+
+                                resolve(event.data);
                             } else {
                                 // 다른 플랫폼의 경우 기존 로직 유지
                                 markPlatformConnected(event.data.platform);
