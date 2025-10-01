@@ -163,9 +163,13 @@ def execute_unified_sync():
                     
                 elif platform == 'notion':
                     # 기존 Notion Sync 함수 재활용 (에러 처리 추가)
+                    print(f"🚀 [UNIFIED SYNC] Starting Notion sync for user: {user_id}")
                     try:
+                        print(f"📞 [UNIFIED SYNC] Calling sync_notion_calendar_for_user...")
                         result = sync_notion_calendar_for_user(user_id)
+                        print(f"📊 [UNIFIED SYNC] Notion sync result: {result}")
                         synced_count = result.get("synced_count", 0) or result.get("synced_events", 0)
+                        print(f"📈 [UNIFIED SYNC] Synced count: {synced_count}")
                         results[platform] = {
                             'success': True,
                             'message': f'Notion 동기화 완료: {synced_count}개 이벤트',
@@ -174,7 +178,9 @@ def execute_unified_sync():
                             'details': result
                         }
                     except Exception as sync_error:
-                        print(f"❌ Notion sync failed: {sync_error}")
+                        print(f"❌ [UNIFIED SYNC] Notion sync failed: {sync_error}")
+                        import traceback
+                        print(f"❌ [UNIFIED SYNC] Notion sync traceback: {traceback.format_exc()}")
                         results[platform] = {
                             'success': False,
                             'message': f'Notion 동기화 실패: {str(sync_error)}'

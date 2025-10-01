@@ -1873,37 +1873,11 @@
                                     }
                                     oneClickBtn.setAttribute('onclick', `oneClickDisconnect('${platformName}')`);
 
-                                    // Google의 경우 특별 처리
-                                    if (platformName === 'google') {
-                                        oneClickBtn.style.display = 'none';
-                                        const actionContainer = oneClickBtn.parentElement;
-                                        if (actionContainer && !actionContainer.querySelector('.google-disconnect-btn')) {
-                                            const disconnectBtn = document.createElement('button');
-                                            disconnectBtn.className = 'google-disconnect-btn';
-                                            disconnectBtn.setAttribute('onclick', `oneClickDisconnect('${platformName}')`);
-                                            disconnectBtn.innerHTML = `
-                                                <span class="btn-text">연결해제</span>
-                                                <div class="btn-loader" style="display: none;">
-                                                    <div class="loader-spinner"></div>
-                                                </div>
-                                            `;
-                                            if (syncBtn) {
-                                                actionContainer.insertBefore(disconnectBtn, syncBtn);
-                                            } else {
-                                                actionContainer.appendChild(disconnectBtn);
-                                            }
-                                        }
-                                    }
+                                    // Google은 markPlatformConnected 함수에서 버튼 생성됨 (중복 방지)
                                 }
 
-                                // 캘린더 연동 버튼 표시
-                                if (syncBtn) {
-                                    syncBtn.style.display = 'inline-flex';
-                                    const syncText = syncBtn.querySelector('.sync-text');
-                                    if (syncText) {
-                                        syncText.textContent = '캘린더 변경';
-                                    }
-                                }
+                                // markPlatformConnected 함수를 호출하여 일관된 버튼 처리
+                                markPlatformConnected(platformName);
                             } else {
                                 // 연결되지 않은 상태
                                 console.log(`❌ ${platformName} 연결되지 않음:`, platform);
@@ -2455,24 +2429,7 @@
                     const actionContainer = oneClickBtn.parentElement;
                     const syncBtn = card.querySelector('.platform-sync-btn');
 
-                    // 연결해제 버튼을 추가 (sync 버튼 앞에 배치)
-                    if (actionContainer && !actionContainer.querySelector('.google-disconnect-btn')) {
-                        const disconnectBtn = document.createElement('button');
-                        disconnectBtn.className = 'google-disconnect-btn';
-                        disconnectBtn.setAttribute('onclick', `oneClickDisconnect('${platform}')`);
-                        disconnectBtn.innerHTML = `
-                            <span class="btn-text">연결해제</span>
-                            <div class="btn-loader" style="display: none;">
-                                <div class="loader-spinner"></div>
-                            </div>
-                        `;
-                        // sync 버튼(캘린더 변경) 앞에 연결해제 버튼 삽입
-                        if (syncBtn) {
-                            actionContainer.insertBefore(disconnectBtn, syncBtn);
-                        } else {
-                            actionContainer.appendChild(disconnectBtn);
-                        }
-                    }
+                    // Google 연결해제 버튼은 markPlatformConnected 함수에서만 생성 (중복 방지)
 
                     // 원클릭 버튼은 숨기기
                     oneClickBtn.style.display = 'none';
@@ -2841,11 +2798,14 @@
         const syncBtn = card.querySelector('.platform-sync-btn');
         if (syncBtn) {
             syncBtn.style.display = 'inline-flex';
+            syncBtn.style.visibility = 'visible';
             const syncText = syncBtn.querySelector('.sync-text');
             if (syncText) {
                 syncText.textContent = '캘린더 변경';
             }
-            console.log(`✅ ${platform} 캘린더 변경 버튼 표시됨`);
+            console.log(`✅ ${platform} 캘린더 변경 버튼 표시됨 (display: ${syncBtn.style.display})`);
+        } else {
+            console.error(`❌ ${platform} 캘린더 변경 버튼을 찾을 수 없음`);
         }
     }
 
