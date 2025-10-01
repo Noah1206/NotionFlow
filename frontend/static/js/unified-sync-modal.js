@@ -46,7 +46,7 @@ class UnifiedSyncModal {
     createSyncButton() {
         const topbarRight = document.querySelector('.topbar-right');
         if (!topbarRight) {
-            console.error('Header topbar-right not found');
+            // .topbar-right가 없는 페이지에서는 버튼을 생성하지 않음 (정상 동작)
             return;
         }
         
