@@ -1613,7 +1613,12 @@
 
             // 통계 및 플랫폼 상태 업데이트
             updateConnectionStats();
-            updatePlatformStatus();
+
+            // DB에서 최신 상태를 다시 가져와서 확실히 반영
+            setTimeout(async () => {
+                await updatePlatformStatus();
+                console.log(`🔄 ${platformName} 상태 재확인 완료`);
+            }, 1000);
 
             // 동기화 결과에 따른 알림
             if (syncResponse && syncResponse.ok) {
@@ -1844,9 +1849,14 @@
                                 statusElement.className = 'platform-status connected';
                                 statusElement.innerHTML = '<span class="status-dot"></span>연결됨';
 
-                                // 연결 버튼 숨기기
+                                // 연결 버튼을 연결해제 버튼으로 변경 (숨기지 말고)
                                 if (connectBtn) {
-                                    connectBtn.style.display = 'none';
+                                    connectBtn.className = 'platform-disconnect-btn';
+                                    connectBtn.setAttribute('onclick', `disconnectPlatform('${platformName}')`);
+                                    const buttonText = connectBtn.querySelector('.connect-text');
+                                    if (buttonText) {
+                                        buttonText.textContent = '연결 해제';
+                                    }
                                 }
 
                                 // 원클릭 버튼 처리
@@ -2766,12 +2776,17 @@
             statusElement.innerHTML = '<span class="status-dot"></span>연결됨';
         }
 
-        // 연결 버튼 처리
+        // 연결 버튼을 연결해제 버튼으로 변경
         const connectBtn = card.querySelector('.platform-connect-btn');
         const oneClickBtn = card.querySelector('.one-click-btn-small');
 
         if (connectBtn) {
-            connectBtn.style.display = 'none';
+            connectBtn.className = 'platform-disconnect-btn';
+            connectBtn.setAttribute('onclick', `disconnectPlatform('${platform}')`);
+            const buttonText = connectBtn.querySelector('.connect-text');
+            if (buttonText) {
+                buttonText.textContent = '연결 해제';
+            }
         }
 
         // 원클릭 버튼을 연결해제 버튼으로 변경
