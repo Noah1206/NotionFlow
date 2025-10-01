@@ -1304,12 +1304,12 @@ def handle_callback_success(platform, user_info):
                         try:
                             from utils.config import config
                             service_supabase = config.supabase_admin if hasattr(config, 'supabase_admin') and config.supabase_admin else supabase
-                            config_check = service_supabase.table('calendar_sync_configs').select('sync_status, is_enabled').eq('user_id', user_id).eq('platform', 'notion').execute()
+                            config_check = service_supabase.table('calendar_sync_configs').select('is_enabled, calendar_id').eq('user_id', user_id).eq('platform', 'notion').execute()
                         except Exception as config_e:
                             print(f"⚠️ [OAUTH] Could not check calendar_sync_configs: {config_e}")
                             config_check = None
-                        is_disconnected = (config_check and config_check.data and 
-                                         (config_check.data[0].get('sync_status') == 'needs_calendar_selection' or 
+                        is_disconnected = (config_check and config_check.data and
+                                         (config_check.data[0].get('calendar_id') is None or
                                           not config_check.data[0].get('is_enabled', True)))
                         
                         if is_disconnected:
@@ -1336,7 +1336,7 @@ def handle_callback_success(platform, user_info):
                                 update_data = {
                                     'calendar_id': calendar_id,
                                     'is_enabled': True,
-                                    'sync_status': 'active',
+                                    'last_sync_at': datetime.now().isoformat(),
                                     'updated_at': datetime.now().isoformat()
                                 }
                                 service_supabase.table('calendar_sync_configs').update(update_data).eq('user_id', user_id).eq('platform', 'notion').execute()

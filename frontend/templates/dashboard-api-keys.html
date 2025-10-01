@@ -1767,11 +1767,21 @@
         if (loader) loader.style.display = 'flex';
 
         try {
-            // 백엔드에 연결 해제 표시
-            await markPlatformDisconnected(platformName);
+            // 백엔드에 연결 해제 요청
+            const response = await fetch('/api/calendar/disconnect-platform', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ platform: platformName })
+            });
 
-            // 실제 연결 해제 로직 시뮬레이션
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            const result = await response.json();
+            if (!result.success) {
+                throw new Error(result.error || '연결 해제 실패');
+            }
+
+            console.log(`✅ ${platformName} 연결 해제 완료:`, result);
 
             // 상태 업데이트
             status.className = 'platform-status disconnected';
@@ -2245,7 +2255,7 @@
 
                                 markPlatformConnected(event.data.platform);
                                 updatePlatformStatus(event.data.platform, 'connected');
-                                showNotification('Notion 연결이 완료되었습니다! 동기화를 시작합니다...', 'success');
+                                showNotification('Notion 연결이 완료되었습니다! 캘린더를 선택해주세요.', 'success');
                                 updateConnectionStats();
                                 updatePlatformStatus();
 
@@ -2255,50 +2265,16 @@
                                         // 다시 한번 블러 제거 (안전장치)
                                         removeAnyBlurEffects();
 
-                                        console.log('🔄 Notion 실제 동기화 시작...');
+                                        console.log('📅 Notion 캘린더 선택 모달 표시...');
 
-                                        // 기존 통합 동기화 API 호출
-                                        const syncResponse = await fetch('/api/unified-sync/sync', {
-                                            method: 'POST',
-                                            headers: { 'Content-Type': 'application/json' },
-                                            body: JSON.stringify({
-                                                platforms: ['notion'],
-                                                options: {
-                                                    direction: 'import',
-                                                    scope: 'recent'
-                                                }
-                                            })
-                                        });
+                                        // 캘린더 선택 모달 표시
+                                        await showCalendarSelectionModal('notion');
 
-                                        if (syncResponse.ok) {
-                                            const syncResult = await syncResponse.json();
-                                            if (syncResult.success) {
-                                                const notionResult = syncResult.results?.notion;
-                                                if (notionResult?.success) {
-                                                    const eventCount = notionResult.synced_events || notionResult.synced_count || 0;
-                                                    showNotification(`🎉 Notion 동기화 완료! ${eventCount}개 이벤트가 가져와졌습니다.`, 'success');
-                                                } else {
-                                                    showNotification(`⚠️ Notion 동기화 중 문제가 발생했습니다: ${notionResult?.message || '알 수 없는 오류'}`, 'warning');
-                                                }
-                                            } else {
-                                                showNotification('Notion 동기화에 실패했습니다.', 'error');
-                                            }
-                                        } else {
-                                            console.warn('Notion 동기화 API 호출 실패:', syncResponse.status);
-                                            showNotification('Notion 동기화 API 호출에 실패했습니다.', 'error');
-                                        }
-
-                                        // DB에서 최신 상태를 다시 가져와서 확실히 반영
-                                        setTimeout(async () => {
-                                            await updatePlatformStatus();
-                                            console.log('🔄 Notion 상태 재확인 완료');
-                                        }, 1000);
-
-                                    } catch (syncError) {
-                                        console.error('Notion 동기화 오류:', syncError);
-                                        showNotification('Notion 동기화 중 오류가 발생했습니다.', 'error');
+                                    } catch (modalError) {
+                                        console.error('캘린더 선택 모달 오류:', modalError);
+                                        showNotification('캘린더 선택 모달을 여는 중 오류가 발생했습니다.', 'error');
                                     }
-                                }, 1000);
+                                }, 500);
 
                                 resolve(event.data);
                             } else {
@@ -2763,6 +2739,11 @@
     function markPlatformConnected(platform) {
         const card = document.querySelector(`[data-platform="${platform}"]`);
         if (!card) return;
+
+        // 기존 중복 버튼들 제거 (중복 방지)
+        const existingGoogleDisconnectBtns = card.querySelectorAll('.google-disconnect-btn');
+        existingGoogleDisconnectBtns.forEach(btn => btn.remove());
+        console.log(`🧹 ${platform} 기존 연결해제 버튼 ${existingGoogleDisconnectBtns.length}개 제거됨`);
 
         // 플랫폼 상태를 연결됨으로 표시
         const statusElement = card.querySelector('.platform-status');

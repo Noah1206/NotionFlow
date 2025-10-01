@@ -138,11 +138,14 @@ def disconnect_platform():
         
         supabase = config.get_client_for_user(user_id)
         
-        # 연동 설정 업데이트 (연동 해제)
+        # 연동 설정 업데이트 (연동 해제) - OAuth 토큰 완전 삭제
         update_data = {
             'is_enabled': False,
             'updated_at': datetime.now().isoformat(),
             'credentials': {
+                'access_token': None,
+                'refresh_token': None,
+                'oauth_connected': False,
                 'disconnected': True,
                 'disconnected_at': datetime.now().isoformat()
             }
