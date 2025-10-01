@@ -1894,6 +1894,10 @@
                                 // 캘린더 연동 버튼 표시
                                 if (syncBtn) {
                                     syncBtn.style.display = 'inline-flex';
+                                    const syncText = syncBtn.querySelector('.sync-text');
+                                    if (syncText) {
+                                        syncText.textContent = '캘린더 변경';
+                                    }
                                 }
                             } else {
                                 // 연결되지 않은 상태
@@ -2835,6 +2839,17 @@
             }
             oneClickBtn.setAttribute('onclick', `oneClickDisconnect('${platform}')`);
             oneClickBtn.className = 'google-disconnect-btn';
+        }
+
+        // 🎯 캘린더 동기화 버튼 표시 (중요!)
+        const syncBtn = card.querySelector('.platform-sync-btn');
+        if (syncBtn) {
+            syncBtn.style.display = 'inline-flex';
+            const syncText = syncBtn.querySelector('.sync-text');
+            if (syncText) {
+                syncText.textContent = '캘린더 변경';
+            }
+            console.log(`✅ ${platform} 캘린더 변경 버튼 표시됨`);
         }
     }
 
