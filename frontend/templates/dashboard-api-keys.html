@@ -1193,6 +1193,31 @@
         }
     }
 
+    // Google Calendar 목록 로딩
+    async function loadGoogleCalendars(container) {
+        if (!container) {
+            console.error('❌ [GOOGLE-CALENDAR] Container element is null');
+            return;
+        }
+        try {
+            console.log('📅 [GOOGLE-CALENDAR] Loading Google calendars...');
+            container.innerHTML = '<div class="loading-spinner">Google Calendar 목록을 불러오는 중...</div>';
+
+            const response = await fetch('/api/google-calendars');
+            const data = await response.json();
+
+            if (data.success && data.calendars) {
+                displayGoogleCalendarList(data.calendars, container);
+                console.log('✅ [GOOGLE-CALENDAR] Successfully loaded Google calendars:', data.calendars.length);
+            } else {
+                throw new Error(data.error || 'Failed to load Google calendars');
+            }
+        } catch (error) {
+            console.error('❌ [GOOGLE-CALENDAR] Failed to load Google calendars:', error);
+            container.innerHTML = '<div class="error-message">Google Calendar 목록을 불러올 수 없습니다.</div>';
+        }
+    }
+
     // 캘린더 선택 모달 표시 (일반 연결용)
     async function showCalendarSelectionModal(platformName) {
         console.log('📅 [MODAL] Showing calendar selection modal for:', platformName);
@@ -1262,8 +1287,12 @@
         modal.style.display = 'flex';
         console.log('📅 [MODAL] Modal display set to flex');
 
-        // 캘린더 목록 로딩
-        await loadUserCalendars(calendarList);
+        // 캘린더 목록 로딩 (플랫폼에 따라 다름)
+        if (platformName === 'google') {
+            await loadGoogleCalendars(calendarList);
+        } else {
+            await loadUserCalendars(calendarList);
+        }
     }
 
     // [REMOVED] Old deprecated openCalendarSyncModal function removed - using new implementation below
@@ -1291,6 +1320,63 @@
                 container.appendChild(calendarItem);
             }
         });
+    }
+
+    // Google Calendar 목록 표시
+    function displayGoogleCalendarList(calendars, container) {
+        if (!container) {
+            console.error('❌ [GOOGLE-CALENDAR] Container element is null - cannot display Google calendar list');
+            return;
+        }
+
+        console.log('📅 [GOOGLE-CALENDAR] Displaying Google calendar list:', { calendars, container });
+        container.innerHTML = '';
+
+        if (!calendars || calendars.length === 0) {
+            container.innerHTML = '<div class="no-calendars">사용 가능한 Google Calendar가 없습니다.</div>';
+            return;
+        }
+
+        calendars.forEach(calendar => {
+            const calendarItem = createGoogleCalendarItem(calendar);
+            if (calendarItem) {
+                container.appendChild(calendarItem);
+            }
+        });
+    }
+
+    // Google Calendar 아이템 생성
+    function createGoogleCalendarItem(calendar) {
+        const item = document.createElement('div');
+        item.className = 'calendar-item google-calendar-item';
+        item.dataset.calendarId = calendar.id;
+
+        item.innerHTML = `
+            <div class="calendar-info">
+                <h4 class="calendar-name">${calendar.summary || calendar.name || 'Unnamed Calendar'}</h4>
+                <p class="calendar-description">${calendar.description || calendar.summary || ''}</p>
+                <span class="calendar-type">${calendar.accessRole || 'Google Calendar'}</span>
+            </div>
+            <div class="calendar-actions">
+                <button class="btn-select" onclick="selectGoogleCalendar('${calendar.id}', '${calendar.summary || calendar.name}')">
+                    선택
+                </button>
+            </div>
+        `;
+
+        return item;
+    }
+
+    // Google Calendar 선택 처리
+    function selectGoogleCalendar(calendarId, calendarName) {
+        console.log('📅 [GOOGLE-CALENDAR] Selected:', calendarId, calendarName);
+
+        // 선택된 Google Calendar ID 저장
+        window.selectedGoogleCalendarId = calendarId;
+        window.selectedGoogleCalendarName = calendarName;
+
+        // 다음 단계: NotionFlow 캘린더 선택으로 이동
+        showNotionFlowCalendarSelection();
     }
 
     // 샘플 캘린더 데이터 표시 (API가 없는 경우)
