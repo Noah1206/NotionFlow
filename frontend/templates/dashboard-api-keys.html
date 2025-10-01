@@ -2533,17 +2533,6 @@
         }
     }
 
-                    }
-                } else {
-                    throw new Error(result.error || 'Google Calendar 동기화 실패');
-                }
-            }
-        } catch (error) {
-            console.error('Google Calendar sync error:', error);
-            showNotification(`Google Calendar 동기화 실패: ${error.message}`, 'error');
-        }
-    }
-
     // 페이지 로드 완료 후 연동 정보 불러오기
     document.addEventListener('DOMContentLoaded', async function () {
         // 먼저 플랫폼 연결 상태를 로드하고 UI를 초기화
