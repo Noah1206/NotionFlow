@@ -1208,82 +1208,77 @@
 
     // Legacy Google calendar loading functions removed - using GoogleCalendarManager instead
 
-    // 캘린더 선택 모달 표시 (일반 연결용)
+    // 새로운 Google/Notion 스타일 캘린더 선택 모달
     async function showCalendarSelectionModal(platformName) {
-        console.log('📅 [MODAL] Showing calendar selection modal for:', platformName);
+        console.log('📅 [MODAL] Showing new-style calendar selection modal for:', platformName);
 
         currentConnectingPlatform = platformName;
-        let modal = document.getElementById('calendar-selection-modal');
 
-        // DOM 요소가 없으면 동적으로 생성
-        if (!modal) {
-            console.log('📅 [MODAL] Creating modal dynamically...');
+        // Google은 새로운 GoogleCalendarManager 사용
+        if (platformName === 'google') {
+            console.log('📅 [MODAL] Redirecting to GoogleCalendarManager');
+            if (window.googleManager) {
+                await window.googleManager.connect();
+            }
+            return;
+        }
 
-            // Create modal HTML
-            modal = document.createElement('div');
-            modal.className = 'calendar-selection-modal';
-            modal.id = 'calendar-selection-modal';
-            modal.style.display = 'none';
-            modal.innerHTML = `
-                <div class="modal-overlay" onclick="closeCalendarSelectionModal()"></div>
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3 class="modal-title">캘린더 변경</h3>
-                        <button class="modal-close-btn" onclick="closeCalendarSelectionModal()">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M18 6l-12 12M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <p class="modal-description">
-                            <span id="platform-name-display"></span> 연결을 위해 동기화할 캘린더를 선택하세요.
-                        </p>
-                        <div class="calendar-list" id="calendar-list">
-                            <div class="loading-state">
-                                <div class="loading-spinner"></div>
-                                <p>캘린더 목록을 불러오는 중...</p>
+        // Notion은 새로운 NotionCalendarManager 사용
+        if (platformName === 'notion') {
+            console.log('📅 [MODAL] Redirecting to NotionCalendarManager');
+            if (window.notionManager) {
+                await window.notionManager.connect();
+            }
+            return;
+        }
+
+        // 기존 모달 제거
+        const existingModal = document.getElementById('calendar-selection-modal');
+        if (existingModal) existingModal.remove();
+
+        try {
+            // 캘린더 목록 불러오기
+            const response = await fetch('/api/calendars');
+            const data = await response.json();
+
+            if (!data.success || !data.calendars?.length) {
+                showNotification('NotionFlow 캘린더가 없습니다. 캘린더를 먼저 생성해주세요.', 'warning');
+                return;
+            }
+
+            // 캘린더 아이템 생성 (Google/Notion 스타일)
+            const calendarItems = data.calendars.map(cal => `
+                <div class="calendar-item" onclick="selectCalendarForConnection('${cal.id}', '${cal.name}', '${platformName}')">
+                    <div class="calendar-name">${cal.name}</div>
+                    <div class="calendar-description">이벤트: ${cal.event_count || 0}개</div>
+                    <div class="calendar-meta">NotionFlow Calendar</div>
+                </div>
+            `).join('');
+
+            // 새로운 모달 HTML (Google/Notion 스타일)
+            const modalHtml = `
+                <div class="modal-overlay" id="calendar-selection-modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>${getKoreanPlatformName(platformName)} 캘린더 선택</h2>
+                            <button class="modal-close" onclick="closeCalendarSelectionModal()">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <p><strong>${getKoreanPlatformName(platformName)}</strong>과 동기화할 NotionFlow 캘린더를 선택하세요:</p>
+                            <div class="calendar-list">
+                                ${calendarItems}
                             </div>
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn-secondary" onclick="closeCalendarSelectionModal()">취소</button>
-                        <button class="btn-primary" id="confirm-calendar-selection" onclick="confirmCalendarSelection()" disabled>
-                            선택한 캘린더로 연결
-                        </button>
                     </div>
                 </div>
             `;
 
-            // Append to body
-            document.body.appendChild(modal);
-            console.log('✅ [MODAL] Modal created and appended to body');
-        }
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            console.log('✅ [MODAL] New-style calendar modal shown for:', platformName);
 
-        const platformDisplay = document.getElementById('platform-name-display');
-        const calendarList = document.getElementById('calendar-list');
-
-        if (!calendarList) {
-            console.error('❌ [MODAL] calendar-list element not found');
-            return;
-        }
-
-        console.log('✅ [MODAL] Modal elements found:', { modal, platformDisplay, calendarList });
-
-        // 플랫폼 이름 표시
-        if (platformDisplay) platformDisplay.textContent = getKoreanPlatformName(platformName);
-
-        // 모달 표시
-        modal.style.display = 'flex';
-        console.log('📅 [MODAL] Modal display set to flex');
-
-        // 캘린더 목록 로딩 (플랫폼에 따라 다름)
-        if (platformName === 'google') {
-            // Google should use GoogleCalendarManager instead of this modal
-            console.warn('⚠️ Google should use GoogleCalendarManager, not showCalendarSelectionModal');
-            calendarList.innerHTML = '<div class="error-message">Google Calendar는 새로운 연결 방식을 사용합니다.</div>';
-        } else {
-            await loadUserCalendars(calendarList);
+        } catch (error) {
+            console.error('❌ [MODAL] Failed to load calendars:', error);
+            showNotification('캘린더 목록을 불러오는 중 오류가 발생했습니다.', 'error');
         }
     }
 
@@ -1667,13 +1662,54 @@
     // 캘린더 선택 모달 닫기
     function closeCalendarSelectionModal() {
         const modal = document.getElementById('calendar-selection-modal');
-        modal.style.display = 'none';
+        if (modal) {
+            modal.remove(); // Google/Notion 스타일처럼 제거
+        }
 
         // 선택 상태 초기화
         selectedCalendarId = null;
         currentConnectingPlatform = null;
-        isGoogleSecondStep = false; // Google 2단계 플래그 리셋
-        document.getElementById('confirm-calendar-selection').disabled = true;
+        isGoogleSecondStep = false;
+        console.log('🗑️ Calendar selection modal closed');
+    }
+
+    // 새로운 모달에서 캘린더 선택 및 연결 (Google/Notion 스타일)
+    async function selectCalendarForConnection(calendarId, calendarName, platformName) {
+        console.log(`📅 [MODAL] Selected calendar: ${calendarId} (${calendarName}) for platform: ${platformName}`);
+
+        try {
+            // 연결 API 호출
+            const response = await fetch(`/api/platform/${platformName}/connect`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    notionflow_calendar_id: calendarId
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                console.log(`✅ [MODAL] ${platformName} connection successful!`);
+
+                // 모달 닫기
+                closeCalendarSelectionModal();
+
+                // 성공 알림
+                showNotification(`${getKoreanPlatformName(platformName)}이 "${calendarName}" 캘린더와 성공적으로 연결되었습니다!`, 'success');
+
+                // UI 업데이트
+                markPlatformConnected(platformName);
+                updatePlatformStatus();
+
+            } else {
+                throw new Error(result.error || '연결에 실패했습니다.');
+            }
+
+        } catch (error) {
+            console.error(`❌ [MODAL] ${platformName} connection failed:`, error);
+            showNotification(`연결 실패: ${error.message}`, 'error');
+        }
     }
 
     // 캘린더 생성 페이지로 리다이렉트
