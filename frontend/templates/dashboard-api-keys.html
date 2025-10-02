@@ -1594,7 +1594,7 @@
 
             const response = await fetch('/api/google-calendar/connect-calendar', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(requestData)
             });
 
@@ -2501,7 +2501,7 @@
         try {
             const response = await fetch('/api/platform/google/connect', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ calendar_id: calendarId })
             });
 
