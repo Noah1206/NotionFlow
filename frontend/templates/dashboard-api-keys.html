@@ -1241,13 +1241,16 @@
             const response = await fetch('/api/calendars');
             const data = await response.json();
 
-            if (!data.success || !data.calendars?.length) {
+            // API 응답 구조 확인
+            const calendars = data.personal_calendars || data.calendars || [];
+
+            if (!data.success || !calendars.length) {
                 showNotification('NotionFlow 캘린더가 없습니다. 캘린더를 먼저 생성해주세요.', 'warning');
                 return;
             }
 
             // 캘린더 아이템 생성 (Google/Notion 스타일)
-            const calendarItems = data.calendars.map(cal => `
+            const calendarItems = calendars.map(cal => `
                 <div class="calendar-item" onclick="selectCalendarForConnection('${cal.id}', '${cal.name}', '${platformName}')">
                     <div class="calendar-name">${cal.name}</div>
                     <div class="calendar-description">이벤트: ${cal.event_count || 0}개</div>

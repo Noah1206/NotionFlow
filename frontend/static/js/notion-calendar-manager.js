@@ -42,15 +42,18 @@ class NotionCalendarManager {
             const response = await fetch('/api/calendars');
             const data = await response.json();
 
-            if (!data.success || !data.calendars?.length) {
+            // API 응답 구조 확인
+            const calendars = data.personal_calendars || data.calendars || [];
+
+            if (!data.success || !calendars.length) {
                 this.showNotification('NotionFlow 캘린더가 없습니다. 캘린더를 먼저 생성해주세요.', 'warning');
                 return;
             }
 
-            console.log(`📅 [NOTION-MANAGER] Found ${data.calendars.length} NotionFlow calendars`);
+            console.log(`📅 [NOTION-MANAGER] Found ${calendars.length} NotionFlow calendars`);
 
             // Show selection modal
-            this.createNotionFlowCalendarModal(data.calendars);
+            this.createNotionFlowCalendarModal(calendars);
 
         } catch (error) {
             console.error('❌ [NOTION-MANAGER] Failed to load NotionFlow calendars:', error);
