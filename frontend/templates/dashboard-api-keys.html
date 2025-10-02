@@ -2752,17 +2752,12 @@
             statusElement.innerHTML = '<span class="status-dot"></span>연결됨';
         }
 
-        // 연결 버튼을 연결해제 버튼으로 변경
+        // 일반 연결 버튼 숨기기 (중복 방지)
         const connectBtn = card.querySelector('.platform-connect-btn');
         const oneClickBtn = card.querySelector('.one-click-btn-small');
 
         if (connectBtn) {
-            connectBtn.className = 'platform-disconnect-btn';
-            connectBtn.setAttribute('onclick', `disconnectPlatform('${platform}')`);
-            const buttonText = connectBtn.querySelector('.connect-text');
-            if (buttonText) {
-                buttonText.textContent = '연결 해제';
-            }
+            connectBtn.style.display = 'none';
         }
 
         // 원클릭 버튼을 연결해제 버튼으로 변경
