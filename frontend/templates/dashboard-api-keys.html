@@ -1885,8 +1885,7 @@
     async function checkCalendarsAndUpdatePlatforms() {
         try {
             // 서버에서 렌더링된 통계 데이터 사용
-            const connectedCount = {{ (stats.connected_count if stats and stats.connected_count else 0) | tojson
-        }};
+            const connectedCount = {{ (stats.connected_count if stats and stats.connected_count else 0) | tojson }};
     const hasCalendars = connectedCount > 0;
 
     // 모든 플랫폼 카드 선택
@@ -2765,8 +2764,6 @@
         await loadAllPlatformStatus(); // Load platform connection states first
         // 그 다음에 캘린더 동기화 정보를 로드 (실제 연동된 경우에만 업데이트)
         await loadSyncedCalendars();
-    });
-
     });
 
 </script>
