@@ -1360,7 +1360,7 @@
                 <span class="calendar-type">${calendar.accessRole || 'Google Calendar'}</span>
             </div>
             <div class="calendar-actions">
-                <button class="btn-select" onclick="selectGoogleCalendar('${calendar.id}', '${calendar.summary || calendar.name}')">
+                <button class="btn-select" onclick="window.selectGoogleCalendar('${calendar.id}')">
                     선택
                 </button>
             </div>
@@ -1369,17 +1369,7 @@
         return item;
     }
 
-    // Google Calendar 선택 처리
-    function selectGoogleCalendar(calendarId, calendarName) {
-        console.log('📅 [GOOGLE-CALENDAR] Selected:', calendarId, calendarName);
-
-        // 선택된 Google Calendar ID 저장
-        window.selectedGoogleCalendarId = calendarId;
-        window.selectedGoogleCalendarName = calendarName;
-
-        // 다음 단계: NotionFlow 캘린더 선택으로 이동
-        showNotionFlowCalendarSelection();
-    }
+    // Google Calendar 선택 처리 (이 함수는 중복이므로 제거)
 
     // 샘플 캘린더 데이터 표시 (API가 없는 경우)
     function displaySampleCalendars(container) {
@@ -1497,15 +1487,9 @@
             return;
         }
 
-        // Google의 경우 2단계 프로세스: Google 캘린더 선택 → NotionFlow 캘린더 선택
+        // Google의 경우는 별도의 handleGoogleConnect() 흐름을 사용하므로 여기서는 처리하지 않음
         if (currentConnectingPlatform === 'google') {
-            console.log('📅 [GOOGLE] Selected Google calendar:', selectedCalendarId);
-
-            // Google 캘린더를 선택했으므로 이제 NotionFlow 캘린더 선택 모달 표시
-            window.selectedGoogleCalendarId = selectedCalendarId;
-
-            // 모달 내용을 NotionFlow 캘린더 선택으로 변경
-            await showNotionFlowCalendarSelection();
+            console.log('⚠️ [GOOGLE] Google Calendar should use handleGoogleConnect() flow, not confirmCalendarSelection()');
             return;
         }
 
@@ -1527,40 +1511,7 @@
         }
     }
 
-    // Google 연동을 위한 NotionFlow 캘린더 선택 단계
-    async function showNotionFlowCalendarSelection() {
-        // 2단계 플래그 설정
-        isGoogleSecondStep = true;
-
-        const modal = document.getElementById('calendar-selection-modal');
-        const platformDisplay = document.getElementById('platform-name-display');
-        const calendarList = document.getElementById('calendar-list');
-
-        // 모달 제목 변경
-        platformDisplay.textContent = 'Google Calendar';
-        const modalTitle = modal.querySelector('.modal-title');
-        if (modalTitle) modalTitle.textContent = 'NotionFlow 캘린더 선택';
-
-        const modalDescription = modal.querySelector('.modal-description');
-        if (modalDescription) {
-            modalDescription.innerHTML = `선택하신 Google Calendar를 어느 NotionFlow 캘린더와 동기화할까요?`;
-        }
-
-        // 버튼 텍스트 변경
-        const confirmBtn = document.getElementById('confirm-calendar-selection');
-        if (confirmBtn) {
-            confirmBtn.textContent = 'Google Calendar와 연결';
-            confirmBtn.onclick = () => confirmGoogleCalendarConnection();
-        }
-
-        // NotionFlow 캘린더 목록 로드 (loadUserCalendars 사용)
-        // 기존 선택 초기화
-        selectedCalendarId = null;
-        confirmBtn.disabled = true;
-
-        // 캘린더 목록 로드
-        await loadUserCalendars(calendarList);
-    }
+    // 첫 번째 showNotionFlowCalendarSelection 함수 제거됨 (중복으로 인한 충돌 방지)
 
     // Google Calendar 연결 확인
     async function confirmGoogleCalendarConnection() {
