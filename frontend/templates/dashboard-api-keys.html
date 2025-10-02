@@ -2521,7 +2521,7 @@
             console.error('❌ [GOOGLE] Calendar selection error:', error);
             showNotification(error.message || 'Google Calendar 연결에 실패했습니다.', 'error');
         }
-    }
+    };
 
     // OAuth 연결 수행
     async function performOAuthConnection(platform) {
