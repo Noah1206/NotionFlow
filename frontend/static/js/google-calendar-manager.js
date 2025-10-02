@@ -57,22 +57,18 @@ class GoogleCalendarManager {
         console.log('🔐 [GOOGLE-MANAGER] Starting OAuth flow...');
 
         try {
-            // Get OAuth URL
-            const response = await fetch('/auth/google');
-            if (response.redirected) {
-                // Open OAuth popup
-                this.oauthWindow = window.open(
-                    response.url,
-                    'GoogleOAuth',
-                    'width=500,height=600,scrollbars=yes,resizable=yes'
-                );
+            // Open OAuth popup directly (no fetch to avoid CORS)
+            this.oauthWindow = window.open(
+                '/auth/google',
+                'GoogleOAuth',
+                'width=500,height=600,scrollbars=yes,resizable=yes'
+            );
 
-                // Wait for OAuth completion
-                await this.waitForOAuthCompletion();
+            // Wait for OAuth completion
+            await this.waitForOAuthCompletion();
 
-                // After OAuth, show calendar selection
-                await this.showGoogleCalendarSelection();
-            }
+            // After OAuth, show calendar selection
+            await this.showGoogleCalendarSelection();
         } catch (error) {
             console.error('❌ [GOOGLE-MANAGER] OAuth failed:', error);
             throw error;

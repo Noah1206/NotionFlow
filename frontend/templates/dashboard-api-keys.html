@@ -2213,8 +2213,6 @@
                                 // Notion의 경우 실제 동기화 실행
                                 console.log('📅 Notion OAuth 성공 처리 중...');
 
-                                // 확실하게 블러 제거
-                                removeAnyBlurEffects();
 
                                 markPlatformConnected(event.data.platform);
                                 updatePlatformStatus(event.data.platform, 'connected');
@@ -2225,8 +2223,6 @@
                                 // 실제 동기화 실행
                                 setTimeout(async () => {
                                     try {
-                                        // 다시 한번 블러 제거 (안전장치)
-                                        removeAnyBlurEffects();
 
                                         console.log('📅 Notion 캘린더 선택 모달 표시...');
 
@@ -2310,8 +2306,6 @@
                 const cleanup = () => {
                     console.log('🧹 OAuth 팝업 cleanup 시작...');
 
-                    // 블러 효과 제거
-                    removeAnyBlurEffects();
 
                     window.removeEventListener('message', messageHandler);
                     clearInterval(checkClosed);
@@ -2763,92 +2757,9 @@
         await checkCalendarsAndUpdatePlatforms();
     }
 
-    // 강화된 블러 효과 제거 함수
-    function removeAnyBlurEffects() {
-        console.log('🔧 강화된 블러 효과 제거 중...');
-
-        // 1. 숨겨진 오버레이들 찾아서 제거
-        const overlays = [
-            '#sync-modal-overlay',
-            '.calendar-overlay-form',
-            '.modal-overlay',
-            '.popup-overlay',
-            '.event-creation-popup',
-            '[style*="backdrop-filter"]',
-            '[style*="filter: blur"]'
-        ];
-
-        overlays.forEach(selector => {
-            const elements = document.querySelectorAll(selector);
-            elements.forEach(element => {
-                console.log(`🔧 오버레이 요소 처리: ${selector}`, element);
-                element.style.display = 'none';
-                element.style.filter = '';
-                element.style.backdropFilter = '';
-                element.style.zIndex = '';
-            });
-        });
-
-        // 2. 모든 가능한 블러/필터 스타일 완전 제거
-        const allElements = document.querySelectorAll('*');
-        allElements.forEach(el => {
-            if (el.style.filter && el.style.filter.includes('blur')) {
-                console.log('🔧 블러 스타일 제거:', el);
-                el.style.filter = '';
-                el.style.removeProperty('filter');
-            }
-            if (el.style.backdropFilter) {
-                el.style.backdropFilter = '';
-                el.style.removeProperty('backdrop-filter');
-            }
-        });
-
-        // 3. body와 관련 클래스 완전 정리
-        document.body.classList.remove('modal-open', 'blur', 'blurred');
-        document.body.style.filter = '';
-        document.body.style.backdropFilter = '';
-        document.body.style.removeProperty('filter');
-        document.body.style.removeProperty('backdrop-filter');
-        document.documentElement.style.filter = '';
-        document.documentElement.style.backdropFilter = '';
-
-        // 4. 강제 CSS 주입으로 블러 효과 완전 차단
-        let forceStyleId = 'force-no-blur-style';
-        let existingStyle = document.getElementById(forceStyleId);
-        if (existingStyle) existingStyle.remove();
-
-        const forceStyle = document.createElement('style');
-        forceStyle.id = forceStyleId;
-        forceStyle.textContent = `
-            * {
-                filter: none !important;
-                backdrop-filter: none !important;
-            }
-            .main-content, .dashboard-content, .content-wrapper {
-                filter: none !important;
-                backdrop-filter: none !important;
-                opacity: 1 !important;
-                pointer-events: auto !important;
-            }
-            .sidebar {
-                z-index: 100;
-            }
-        `;
-        document.head.appendChild(forceStyle);
-
-        // 5. 3초 후 임시 스타일 제거
-        setTimeout(() => {
-            const tempStyle = document.getElementById(forceStyleId);
-            if (tempStyle) tempStyle.remove();
-        }, 3000);
-
-        console.log('✅ 강화된 블러 효과 제거 완료');
-    }
 
     // 페이지 로드 완료 후 연동 정보 불러오기
     document.addEventListener('DOMContentLoaded', async function () {
-        // 블러 효과 제거
-        removeAnyBlurEffects();
 
         // 먼저 플랫폼 연결 상태를 로드하고 UI를 초기화
         await loadAllPlatformStatus(); // Load platform connection states first
@@ -2856,10 +2767,6 @@
         await loadSyncedCalendars();
     });
 
-    // 페이지 클릭 시 블러 효과 제거 (안전장치)
-    document.addEventListener('click', function () {
-        // 3초 후에 블러 효과 제거 (딜레이를 두어 의도치 않은 제거 방지)
-        setTimeout(removeAnyBlurEffects, 3000);
     });
 
 </script>
