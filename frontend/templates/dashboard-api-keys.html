@@ -2524,6 +2524,7 @@
             const data = await response.json();
 
             if (data.success) {
+                console.log('✅ [NOTIONFLOW] Connection successful!', data);
                 showNotification(`Google Calendar가 "${calendarName}" 캘린더와 성공적으로 연결되었습니다!`, 'success');
 
                 // 모달 닫기
@@ -2533,9 +2534,37 @@
                 // 변수 정리
                 delete window.selectedGoogleCalendarId;
 
-                // 플랫폼 상태 업데이트
-                markPlatformConnected('google');
-                updatePlatformStatus('google', 'connected');
+                // 플랫폼 상태 강제 업데이트
+                console.log('🔄 [NOTIONFLOW] Updating platform status...');
+
+                // 여러 방법으로 상태 업데이트 시도
+                try {
+                    markPlatformConnected('google');
+                } catch (e) { console.log('markPlatformConnected failed:', e); }
+
+                try {
+                    updatePlatformStatus('google', 'connected');
+                } catch (e) { console.log('updatePlatformStatus failed:', e); }
+
+                // Google 플랫폼 카드 직접 업데이트
+                const googleCard = document.querySelector('[data-platform="google"]');
+                if (googleCard) {
+                    const connectBtn = googleCard.querySelector('.platform-connect-btn');
+                    const statusElement = googleCard.querySelector('.platform-status');
+
+                    if (connectBtn) {
+                        connectBtn.textContent = '연결됨';
+                        connectBtn.disabled = true;
+                        connectBtn.classList.add('connected');
+                        console.log('✅ [NOTIONFLOW] Button updated to "연결됨"');
+                    }
+
+                    if (statusElement) {
+                        statusElement.textContent = '연결됨';
+                        statusElement.className = 'platform-status connected';
+                        console.log('✅ [NOTIONFLOW] Status updated to "연결됨"');
+                    }
+                }
 
                 // 페이지 새로고침 또는 상태 업데이트
                 if (window.googleManager) {
