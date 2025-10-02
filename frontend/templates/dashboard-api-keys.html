@@ -2419,6 +2419,8 @@
     window.selectGoogleCalendar = async function(calendarId) {
         try {
             console.log('📅 [GOOGLE] Selected Google calendar:', calendarId);
+            console.log('🔍 [GOOGLE] Calendar ID type:', typeof calendarId);
+            console.log('🔍 [GOOGLE] Calendar ID value:', JSON.stringify(calendarId));
 
             // Google 캘린더 모달 닫기
             const modal = document.getElementById('google-calendar-modal');
@@ -2426,9 +2428,12 @@
 
             // Google 캘린더 ID 저장
             window.selectedGoogleCalendarId = calendarId;
+            console.log('✅ [GOOGLE] Stored selectedGoogleCalendarId:', window.selectedGoogleCalendarId);
 
-            // NotionFlow 캘린더 선택 모달 표시
-            await showNotionFlowCalendarSelection();
+            // 잠시 기다린 후 NotionFlow 캘린더 선택 모달 표시 (모달 닫힘 방지)
+            setTimeout(async () => {
+                await showNotionFlowCalendarSelection();
+            }, 300);
 
         } catch (error) {
             console.error('❌ [GOOGLE] Calendar selection error:', error);
@@ -2439,6 +2444,9 @@
     // NotionFlow 캘린더 선택 모달 표시
     async function showNotionFlowCalendarSelection() {
         try {
+            console.log('🔍 [NOTIONFLOW] Starting NotionFlow calendar selection...');
+            console.log('🔍 [NOTIONFLOW] Current selectedGoogleCalendarId:', window.selectedGoogleCalendarId);
+
             // NotionFlow 캘린더 목록 가져오기
             const response = await fetch('/api/calendars');
             const data = await response.json();
@@ -2452,6 +2460,7 @@
 
             // NotionFlow 캘린더 선택 다이얼로그 표시
             showNotionFlowCalendarSelectionDialog(data.calendars);
+            console.log('✅ [NOTIONFLOW] Dialog shown successfully');
 
         } catch (error) {
             console.error('❌ [NOTIONFLOW] Failed to load calendars:', error);
@@ -2491,19 +2500,25 @@
     window.selectNotionFlowCalendar = async function(calendarId, calendarName) {
         try {
             console.log('📅 [NOTIONFLOW] Selected NotionFlow calendar:', calendarId, calendarName);
+            console.log('🔍 [NOTIONFLOW] Current selectedGoogleCalendarId:', window.selectedGoogleCalendarId);
 
             if (!window.selectedGoogleCalendarId) {
+                console.error('❌ [NOTIONFLOW] No Google calendar selected!');
                 throw new Error('Google 캘린더가 선택되지 않았습니다.');
             }
+
+            console.log('🔗 [NOTIONFLOW] Sending connection request...');
+            const requestData = {
+                calendar_id: window.selectedGoogleCalendarId,
+                notionflow_calendar_id: calendarId
+            };
+            console.log('📤 [NOTIONFLOW] Request data:', JSON.stringify(requestData));
 
             // 최종 연결 요청
             const response = await fetch('/api/platform/google/connect', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    calendar_id: window.selectedGoogleCalendarId,
-                    notionflow_calendar_id: calendarId
-                })
+                body: JSON.stringify(requestData)
             });
 
             const data = await response.json();
