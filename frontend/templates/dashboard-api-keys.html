@@ -2468,17 +2468,25 @@
 
     // 간단한 Google 캘린더 선택 다이얼로그
     function showGoogleCalendarSelectionDialog(calendars) {
+        let calendarItems = '';
+        for (const cal of calendars) {
+            const descriptionHtml = cal.description ?
+                `<div style="font-size: 0.9em; color: #666; margin-top: 4px;">${cal.description}</div>` : '';
+
+            calendarItems += `
+                <div class="calendar-item" style="padding: 12px; margin-bottom: 8px; border: 1px solid #e0e0e0; border-radius: 8px; cursor: pointer;" onclick="window.selectGoogleCalendar('${cal.id}')">
+                    <div style="font-weight: 500;">${cal.summary}</div>
+                    ${descriptionHtml}
+                </div>
+            `;
+        }
+
         const modalHtml = `
             <div class="modal-overlay" id="google-calendar-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 10000; display: flex; align-items: center; justify-content: center;">
                 <div class="modal-content" style="background: white; border-radius: 12px; padding: 24px; max-width: 500px; width: 90%; max-height: 70vh; overflow-y: auto;">
                     <h2 style="margin-bottom: 16px;">Google 캘린더 선택</h2>
                     <div class="calendar-list">
-                        ${calendars.map(cal => `
-                            <div class="calendar-item" style="padding: 12px; margin-bottom: 8px; border: 1px solid #e0e0e0; border-radius: 8px; cursor: pointer;" onclick="window.selectGoogleCalendar('${cal.id}')">
-                                <div style="font-weight: 500;">${cal.summary}</div>
-                                ${cal.description ? `<div style="font-size: 0.9em; color: #666; margin-top: 4px;">${cal.description}</div>` : ''}
-                            </div>
-                        `).join('')}
+                        ${calendarItems}
                     </div>
                     <button onclick="document.getElementById('google-calendar-modal').remove()" style="margin-top: 16px; padding: 8px 16px; background: #f0f0f0; border: none; border-radius: 6px; cursor: pointer;">취소</button>
                 </div>
