@@ -2489,7 +2489,7 @@
     }
 
     // Google 캘린더 선택 (전역 함수로 등록)
-    window.selectGoogleCalendar = async function (calendarId) {
+    window.selectGoogleCalendar = async function(calendarId) {
         try {
             const response = await fetch('/api/platform/google/connect', {
                 method: 'POST',
