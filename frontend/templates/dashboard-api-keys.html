@@ -171,12 +171,6 @@
                             <div class="loader-dot"></div>
                         </div>
                     </button>
-                    <button class="platform-connect-btn" onclick="connectPlatform('google')" data-platform="google">
-                        <span class="connect-text">연결하기</span>
-                        <div class="connect-loader" style="display: none;">
-                            <div class="loader-dot"></div>
-                        </div>
-                    </button>
                 </div>
             </div>
         </div>
@@ -1081,9 +1075,11 @@
 <script
     src="{{ url_for('static', filename='js/apple-setup-wizard.js') }}?v={{ range(100000, 999999) | random }}"></script>
 <script src="{{ url_for('static', filename='js/platform-health.js') }}?v={{ range(100000, 999999) | random }}"></script>
-<script src="{{ url_for('static', filename='js/platform-managers.js') }}?v={{ range(100000, 999999) | random }}"></script>
+<script
+    src="{{ url_for('static', filename='js/platform-managers.js') }}?v={{ range(100000, 999999) | random }}"></script>
 <script src="{{ url_for('static', filename='js/platform-card.js') }}?v={{ range(100000, 999999) | random }}"></script>
-<script src="{{ url_for('static', filename='js/unified-sync-modal.js') }}?v={{ range(100000, 999999) | random }}"></script>
+<script
+    src="{{ url_for('static', filename='js/unified-sync-modal.js') }}?v={{ range(100000, 999999) | random }}"></script>
 <script>
     // 🚀 CALENDAR GRID REFRESH TRIGGER FUNCTION
     function triggerCalendarGridRefresh(calendarId, syncedCount = 0) {
@@ -2061,8 +2057,9 @@
     async function checkCalendarsAndUpdatePlatforms() {
         try {
             // 서버에서 렌더링된 통계 데이터 사용
-            const connectedCount = {{ (stats.connected_count if stats and stats.connected_count else 0) | tojson }};
-            const hasCalendars = connectedCount > 0;
+            const connectedCount = {{ (stats.connected_count if stats and stats.connected_count else 0) | tojson
+        }};
+    const hasCalendars = connectedCount > 0;
 
     // 모든 플랫폼 카드 선택
     const platformCards = document.querySelectorAll('.platform-card');
@@ -2143,7 +2140,7 @@
             const syncCountEl = document.getElementById('sync-count');
             const successRateEl = document.getElementById('success-rate');
             const syncSpeedEl = document.getElementById('sync-speed');
-            
+
             if (connectedCountEl) connectedCountEl.textContent = '0';
             if (syncCountEl) syncCountEl.textContent = '0';
             if (successRateEl) successRateEl.textContent = '0%';
@@ -2181,10 +2178,11 @@
         try {
             // 서버에서 렌더링된 데이터 사용 (조용히)
             const stats = {
-                connected_count: {{ (stats.connected_count if stats and stats.connected_count else 0) | tojson }},
-                synced_events: {{ (stats.synced_events if stats and stats.synced_events else 0) | tojson }},
-                success_rate: {{ (stats.success_rate if stats and stats.success_rate else "0%") | tojson }},
-                avg_sync_time: {{ (stats.avg_sync_time if stats and stats.avg_sync_time else "N/A") | tojson }}
+                connected_count: {{ (stats.connected_count if stats and stats.connected_count else 0) | tojson
+        }},
+    synced_events: { { (stats.synced_events if stats and stats.synced_events else 0) | tojson } },
+    success_rate: { { (stats.success_rate if stats and stats.success_rate else "0%") | tojson } },
+    avg_sync_time: { { (stats.avg_sync_time if stats and stats.avg_sync_time else "N/A") | tojson } }
             };
 
     // DOM 업데이트 (null 체크 포함)
@@ -2192,7 +2190,7 @@
     const syncCountEl = document.getElementById('sync-count');
     const successRateEl = document.getElementById('success-rate');
     const syncSpeedEl = document.getElementById('sync-speed');
-    
+
     if (connectedCountEl) connectedCountEl.textContent = stats.connected_count;
     if (syncCountEl) syncCountEl.textContent = stats.synced_events;
     if (successRateEl) successRateEl.textContent = stats.success_rate;
@@ -2203,7 +2201,7 @@
         const syncCountEl = document.getElementById('sync-count');
         const successRateEl = document.getElementById('success-rate');
         const syncSpeedEl = document.getElementById('sync-speed');
-        
+
         if (connectedCountEl) connectedCountEl.textContent = '0';
         if (syncCountEl) syncCountEl.textContent = '0';
         if (successRateEl) successRateEl.textContent = '0%';
@@ -2491,12 +2489,12 @@
     }
 
     // Google 캘린더 선택 (전역 함수로 등록)
-    window.selectGoogleCalendar = async function(calendarId) {
+    window.selectGoogleCalendar = async function (calendarId) {
         try {
             const response = await fetch('/api/platform/google/connect', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({calendar_id: calendarId})
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ calendar_id: calendarId })
             });
 
             const data = await response.json();
@@ -3244,7 +3242,7 @@
     });
 
     // 페이지 클릭 시 블러 효과 제거 (안전장치)
-    document.addEventListener('click', function() {
+    document.addEventListener('click', function () {
         // 3초 후에 블러 효과 제거 (딜레이를 두어 의도치 않은 제거 방지)
         setTimeout(removeAnyBlurEffects, 3000);
     });
