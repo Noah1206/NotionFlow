@@ -2412,46 +2412,63 @@
         });
     }
 
-    // Google Calendar 동기화 모달 표시
+    // Google Calendar 동기화 모달 표시 (원클릭과 동일한 스타일)
     async function syncGoogleCalendar() {
         console.log('🔍 [GOOGLE] Opening calendar selection modal');
 
         try {
-            // Google 캘린더 목록 가져오기
-            const response = await fetch('/api/google-calendars');
-            const data = await response.json();
+            // 원클릭과 동일한 방식으로 처리 - 동기화 버튼 클릭
+            const syncButton = document.querySelector('[onclick*="showUnifiedSyncModal"]');
+            if (syncButton) {
+                // 동기화 버튼을 클릭하여 모달 열기
+                syncButton.click();
 
-            if (!data.success || !data.calendars || data.calendars.length === 0) {
-                showNotification('사용 가능한 Google 캘린더가 없습니다.', 'warning');
-                return;
-            }
+                // Google 플랫폼만 선택된 상태로 설정
+                setTimeout(() => {
+                    if (window.unifiedSync) {
+                        window.unifiedSync.selectedPlatforms.clear();
+                        window.unifiedSync.selectedPlatforms.add('google');
 
-            console.log(`📅 [GOOGLE] Found ${data.calendars.length} calendars`);
+                        // Step 2로 바로 이동
+                        window.unifiedSync.currentStep = 2;
+                        window.unifiedSync.showStep(2);
+                    }
+                }, 100);
+            } else if (window.showUnifiedSyncModal && typeof window.showUnifiedSyncModal === 'function') {
+                // showUnifiedSyncModal 함수 직접 호출
+                window.showUnifiedSyncModal();
 
-            // UnifiedSyncModal 사용하여 캘린더 선택 표시
-            if (window.unifiedSync) {
-                // 모달 열기 전 Google 플랫폼 선택 상태로 설정
-                window.unifiedSync.selectedPlatforms.clear();
-                window.unifiedSync.selectedPlatforms.add('google');
+                // Google 플랫폼만 선택된 상태로 설정
+                setTimeout(() => {
+                    if (window.unifiedSync) {
+                        window.unifiedSync.selectedPlatforms.clear();
+                        window.unifiedSync.selectedPlatforms.add('google');
 
-                // 모달 열기
-                await window.unifiedSync.openModal();
-
-                // Step 2로 이동 (캘린더 선택)
-                window.unifiedSync.currentStep = 2;
-                window.unifiedSync.showStep(2);
+                        // Step 2로 바로 이동
+                        window.unifiedSync.currentStep = 2;
+                        window.unifiedSync.showStep(2);
+                    }
+                }, 100);
             } else {
                 // 폴백: 간단한 선택 다이얼로그
+                const response = await fetch('/api/google-calendars');
+                const data = await response.json();
+
+                if (!data.success || !data.calendars || data.calendars.length === 0) {
+                    showNotification('사용 가능한 Google 캘린더가 없습니다.', 'warning');
+                    return;
+                }
+
                 showGoogleCalendarSelectionDialog(data.calendars);
             }
 
         } catch (error) {
-            console.error('❌ [GOOGLE] Failed to load calendars:', error);
-            showNotification('Google 캘린더 목록을 불러오는데 실패했습니다.', 'error');
+            console.error('❌ [GOOGLE] Failed to open calendar modal:', error);
+            showNotification('Google 캘린더 선택 모달을 열 수 없습니다.', 'error');
         }
     }
 
-    // 간단한 Google 캘린더 선택 다이얼로그 (폴백)
+    // 간단한 Google 캘린더 선택 다이얼로그
     function showGoogleCalendarSelectionDialog(calendars) {
         const modalHtml = `
             <div class="modal-overlay" id="google-calendar-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 10000; display: flex; align-items: center; justify-content: center;">
@@ -2459,7 +2476,7 @@
                     <h2 style="margin-bottom: 16px;">Google 캘린더 선택</h2>
                     <div class="calendar-list">
                         ${calendars.map(cal => `
-                            <div class="calendar-item" style="padding: 12px; margin-bottom: 8px; border: 1px solid #e0e0e0; border-radius: 8px; cursor: pointer;" onclick="selectGoogleCalendar('${cal.id}')">
+                            <div class="calendar-item" style="padding: 12px; margin-bottom: 8px; border: 1px solid #e0e0e0; border-radius: 8px; cursor: pointer;" onclick="window.selectGoogleCalendar('${cal.id}')">
                                 <div style="font-weight: 500;">${cal.summary}</div>
                                 ${cal.description ? `<div style="font-size: 0.9em; color: #666; margin-top: 4px;">${cal.description}</div>` : ''}
                             </div>
@@ -2473,8 +2490,8 @@
         document.body.insertAdjacentHTML('beforeend', modalHtml);
     }
 
-    // Google 캘린더 선택
-    async function selectGoogleCalendar(calendarId) {
+    // Google 캘린더 선택 (전역 함수로 등록)
+    window.selectGoogleCalendar = async function(calendarId) {
         try {
             const response = await fetch('/api/platform/google/connect', {
                 method: 'POST',
