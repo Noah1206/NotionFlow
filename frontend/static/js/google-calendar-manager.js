@@ -80,33 +80,53 @@ class GoogleCalendarManager {
      */
     async waitForOAuthCompletion() {
         return new Promise((resolve, reject) => {
-            const checkClosed = setInterval(() => {
-                if (this.oauthWindow.closed) {
-                    clearInterval(checkClosed);
-                    window.removeEventListener('message', messageHandler);
-                    resolve();
-                }
-            }, 1000);
+            let authCompleted = false;
 
+            // Poll OAuth status using API calls instead of window.closed
+            const pollOAuthStatus = setInterval(async () => {
+                try {
+                    const response = await fetch('/api/google-calendar/calendar-state');
+                    const data = await response.json();
+
+                    if (data.oauth_connected && !authCompleted) {
+                        console.log('✅ [GOOGLE-MANAGER] OAuth completed via polling');
+                        clearInterval(pollOAuthStatus);
+                        authCompleted = true;
+                        resolve();
+                    }
+                } catch (error) {
+                    console.log('⏳ [GOOGLE-MANAGER] Still waiting for OAuth...');
+                }
+            }, 2000); // Check every 2 seconds
+
+            // Backup: Listen for postMessage
             const messageHandler = (event) => {
                 if (event.origin !== window.location.origin) return;
 
-                if (event.data.type === 'GOOGLE_OAUTH_SUCCESS') {
-                    console.log('✅ [GOOGLE-MANAGER] OAuth success');
-                    clearInterval(checkClosed);
+                if (event.data.type === 'GOOGLE_OAUTH_SUCCESS' && !authCompleted) {
+                    console.log('✅ [GOOGLE-MANAGER] OAuth success via postMessage');
+                    clearInterval(pollOAuthStatus);
                     window.removeEventListener('message', messageHandler);
-                    this.oauthWindow.close();
+                    authCompleted = true;
                     resolve();
                 } else if (event.data.type === 'GOOGLE_OAUTH_ERROR') {
                     console.error('❌ [GOOGLE-MANAGER] OAuth error:', event.data.error);
-                    clearInterval(checkClosed);
+                    clearInterval(pollOAuthStatus);
                     window.removeEventListener('message', messageHandler);
-                    this.oauthWindow.close();
                     reject(new Error(event.data.error));
                 }
             };
 
             window.addEventListener('message', messageHandler);
+
+            // Timeout after 3 minutes
+            setTimeout(() => {
+                if (!authCompleted) {
+                    clearInterval(pollOAuthStatus);
+                    window.removeEventListener('message', messageHandler);
+                    reject(new Error('OAuth timeout - please try again'));
+                }
+            }, 180000);
         });
     }
 
