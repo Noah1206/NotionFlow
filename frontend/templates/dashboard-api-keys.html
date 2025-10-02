@@ -422,6 +422,9 @@
 <!-- Google Calendar Manager -->
 <script src="{{ url_for('static', filename='js/google-calendar-manager.js') }}?v={{ range(100000, 999999) | random }}"></script>
 
+<!-- Notion Calendar Manager -->
+<script src="{{ url_for('static', filename='js/notion-calendar-manager.js') }}?v={{ range(100000, 999999) | random }}"></script>
+
 <!-- 초기 데이터 설정 스크립트 -->
 <script>
     // 서버에서 렌더링된 데이터 (캘린더가 있는지 확인)
@@ -2209,9 +2212,8 @@
 
                                 resolve(event.data);
                             } else if (event.data.platform === 'notion') {
-                                // Notion의 경우 실제 동기화 실행
+                                // Notion의 경우 새로운 NotionCalendarManager 사용
                                 console.log('📅 Notion OAuth 성공 처리 중...');
-
 
                                 markPlatformConnected(event.data.platform);
                                 updatePlatformStatus(event.data.platform, 'connected');
@@ -2219,17 +2221,20 @@
                                 updateConnectionStats();
                                 updatePlatformStatus();
 
-                                // 실제 동기화 실행
+                                // 새로운 Notion Manager 사용
                                 setTimeout(async () => {
                                     try {
+                                        console.log('📅 [NOTION] Using new NotionCalendarManager...');
 
-                                        console.log('📅 Notion 캘린더 선택 모달 표시...');
-
-                                        // 캘린더 선택 모달 표시
-                                        await showCalendarSelectionModal('notion');
+                                        if (window.notionManager) {
+                                            await window.notionManager.connect();
+                                        } else {
+                                            console.error('❌ [NOTION] NotionCalendarManager not found');
+                                            showNotification('Notion 캘린더 매니저를 찾을 수 없습니다.', 'error');
+                                        }
 
                                     } catch (modalError) {
-                                        console.error('캘린더 선택 모달 오류:', modalError);
+                                        console.error('❌ [NOTION] 캘린더 선택 모달 오류:', modalError);
                                         showNotification('캘린더 선택 모달을 여는 중 오류가 발생했습니다.', 'error');
                                     }
                                 }, 500);

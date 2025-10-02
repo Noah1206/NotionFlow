@@ -1,29 +1,19 @@
-# Use Debian slim which should be available
-FROM debian:bullseye-slim
+# Production-ready NotionFlow Docker image
+FROM python:3.11-slim
 
 # Set environment variables
-ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-
-# Install system dependencies and Python 3.9 (available in Debian bullseye)
-RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
-    python3-dev \
-    build-essential \
-    curl \
-    && rm -rf /var/lib/apt/lists/* \
-    && python3 -m pip install --upgrade pip
+ENV PORT=8080
 
 # Set working directory
 WORKDIR /app
 
-# Copy requirements and install Python packages
+# Install Python dependencies
 COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application
+# Copy application code
 COPY . .
 
 # Expose port
