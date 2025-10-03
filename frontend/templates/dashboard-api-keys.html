@@ -746,6 +746,53 @@
         z-index: 1;
     }
 
+    /* 노션 캘린더 변경 버튼 (원클릭 버튼 스타일 복사) */
+    .platform-sync-btn-small {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 18px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 12px;
+        position: relative;
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        color: white;
+        border: none;
+        text-decoration: none;
+        overflow: hidden;
+    }
+
+    .platform-sync-btn-small::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 0;
+        border-radius: 12px;
+    }
+
+    .platform-sync-btn-small:hover::before {
+        opacity: 1;
+    }
+
+    .platform-sync-btn-small:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+    }
+
+    .platform-sync-btn-small .btn-text {
+        position: relative;
+        z-index: 1;
+    }
+
     .platform-connect-btn,
     .platform-sync-btn {
         display: inline-flex;
@@ -1863,19 +1910,31 @@
                                     }
                                 }
 
-                                // 원클릭 버튼도 연결 상태에 따라 업데이트
-                                const oneClickBtn = platformCard.querySelector('.one-click-btn-small');
-                                if (oneClickBtn && platformName !== 'google') {
-                                    const buttonText = oneClickBtn.querySelector('.btn-text');
-                                    if (buttonText) {
-                                        buttonText.textContent = '연결해제';
+                                // 노션의 경우 원클릭 버튼을 캘린더 변경 버튼으로 변경
+                                if (platformName === 'notion') {
+                                    const oneClickBtn = platformCard.querySelector('.one-click-btn-small');
+                                    if (oneClickBtn) {
+                                        // 원클릭 버튼을 캘린더 변경 버튼으로 변경
+                                        oneClickBtn.className = 'platform-sync-btn-small';
+                                        const buttonText = oneClickBtn.querySelector('.btn-text');
+                                        if (buttonText) {
+                                            buttonText.textContent = '캘린더 변경';
+                                        }
+                                        oneClickBtn.setAttribute('onclick', `openCalendarSyncModal('${platformName}')`);
                                     }
-                                    oneClickBtn.setAttribute('onclick', `oneClickDisconnect('${platformName}')`);
-                                }
-
-                                // Google은 별도 처리 (markPlatformConnected 함수 사용)
-                                if (platformName === 'google') {
+                                } else if (platformName === 'google') {
+                                    // Google은 별도 처리 (markPlatformConnected 함수 사용)
                                     markPlatformConnected(platformName);
+                                } else {
+                                    // 다른 플랫폼의 원클릭 버튼 처리
+                                    const oneClickBtn = platformCard.querySelector('.one-click-btn-small');
+                                    if (oneClickBtn) {
+                                        const buttonText = oneClickBtn.querySelector('.btn-text');
+                                        if (buttonText) {
+                                            buttonText.textContent = '연결해제';
+                                        }
+                                        oneClickBtn.setAttribute('onclick', `oneClickDisconnect('${platformName}')`);
+                                    }
                                 }
                             } else {
                                 // 연결되지 않은 상태
@@ -1891,8 +1950,8 @@
                                     connectBtn.setAttribute('onclick', `connectPlatform('${platformName}')`);
                                 }
 
-                                // 원클릭 버튼 복원
-                                const oneClickBtn = platformCard.querySelector('.one-click-btn-small');
+                                // 원클릭 버튼 복원 (노션의 경우 캘린더 변경 버튼에서 원클릭 버튼으로 되돌림)
+                                const oneClickBtn = platformCard.querySelector('.one-click-btn-small, .platform-sync-btn-small');
                                 if (oneClickBtn && platformName !== 'apple') { // Apple은 원클릭 버튼 없음
                                     const buttonText = oneClickBtn.querySelector('.btn-text');
                                     if (buttonText) {
