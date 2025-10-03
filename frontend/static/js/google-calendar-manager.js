@@ -65,11 +65,14 @@ class GoogleCalendarManager {
             );
 
             // Wait for OAuth completion
+            console.log('⏳ [GOOGLE-MANAGER] Waiting for OAuth to complete...');
             await this.waitForOAuthCompletion();
+            console.log('✅ [GOOGLE-MANAGER] OAuth completed! Now showing NotionFlow calendar selection...');
 
             // Skip Google calendar selection, go directly to NotionFlow calendar selection
             // Since we already have Google calendars after OAuth
             await this.showNotionFlowCalendarSelection();
+            console.log('✅ [GOOGLE-MANAGER] NotionFlow calendar selection modal should be visible now');
         } catch (error) {
             console.error('❌ [GOOGLE-MANAGER] OAuth failed:', error);
             throw error;
@@ -80,14 +83,17 @@ class GoogleCalendarManager {
      * Wait for OAuth popup to complete
      */
     async waitForOAuthCompletion() {
+        console.log('🔄 [GOOGLE-MANAGER] waitForOAuthCompletion started');
         return new Promise((resolve, reject) => {
             let authCompleted = false;
 
             // Poll OAuth status using API calls instead of window.closed
             const pollOAuthStatus = setInterval(async () => {
                 try {
+                    console.log('🔍 [GOOGLE-MANAGER] Checking OAuth status...');
                     const response = await fetch('/api/google-calendar/calendar-state');
                     const data = await response.json();
+                    console.log('📊 [GOOGLE-MANAGER] OAuth status:', data);
 
                     if (data.oauth_connected && !authCompleted) {
                         console.log('✅ [GOOGLE-MANAGER] OAuth completed via polling');
@@ -96,7 +102,7 @@ class GoogleCalendarManager {
                         resolve();
                     }
                 } catch (error) {
-                    console.log('⏳ [GOOGLE-MANAGER] Still waiting for OAuth...');
+                    console.log('⏳ [GOOGLE-MANAGER] Still waiting for OAuth...', error);
                 }
             }, 2000); // Check every 2 seconds
 
