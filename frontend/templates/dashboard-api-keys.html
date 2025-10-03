@@ -1892,6 +1892,7 @@
                         console.log(`🔍 [DEBUG] ${platformName} 상태:`, {
                             configured: platform.configured,
                             oauth_connected: platform.oauth_connected,
+                            enabled: platform.enabled,
                             has_credentials: platform.has_credentials,
                             oauth_source: platform.oauth_source
                         });
@@ -1902,8 +1903,8 @@
 
                             const syncBtn = platformCard.querySelector('.platform-sync-btn');
 
-                            // OAuth 연결됨 또는 설정 완료됨
-                            if (statusElement && (platform.configured || platform.oauth_connected)) {
+                            // OAuth 연결됨 또는 설정 완료됨 AND 활성화됨
+                            if (statusElement && (platform.configured || platform.oauth_connected) && platform.enabled) {
                                 console.log(`✅ [DEBUG] ${platformName} 연결 상태 복원:`, platform);
 
                                 // 연결된 상태로 표시
