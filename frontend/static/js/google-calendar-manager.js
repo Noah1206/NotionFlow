@@ -357,8 +357,13 @@ class GoogleCalendarManager {
                 // Show success notification
                 this.showNotification(`Google Calendar가 "${calendarName}" 캘린더와 성공적으로 연결되었습니다!`, 'success');
 
-                // Update UI
-                this.updateConnectionStatus();
+                // Update UI using existing dashboard function
+                if (window.markPlatformConnected) {
+                    window.markPlatformConnected('google');
+                }
+                if (window.updatePlatformStatus) {
+                    window.updatePlatformStatus();
+                }
 
                 // Reset selections
                 this.selectedGoogleCalendarId = null;
@@ -374,30 +379,6 @@ class GoogleCalendarManager {
         }
     }
 
-    /**
-     * Update connection status in UI
-     */
-    updateConnectionStatus() {
-        const googleCard = document.querySelector('[data-platform="google"]');
-        if (!googleCard) return;
-
-        // Update button
-        const connectBtn = googleCard.querySelector('.platform-connect-btn');
-        if (connectBtn) {
-            connectBtn.textContent = '연결됨';
-            connectBtn.disabled = true;
-            connectBtn.classList.add('connected');
-        }
-
-        // Update status
-        const statusElement = googleCard.querySelector('.platform-status');
-        if (statusElement) {
-            statusElement.textContent = '연결됨';
-            statusElement.className = 'platform-status connected';
-        }
-
-        console.log('✅ [GOOGLE-MANAGER] UI updated to connected state');
-    }
 
     /**
      * Close modal by ID
