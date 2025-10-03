@@ -306,8 +306,11 @@ def get_platform_status():
         from utils.config import config
         supabase = config.get_client_for_user(user_id)
 
-        # Query actual database for OAuth connections
+        # Query actual database for OAuth connections from multiple sources
         sync_configs_result = supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).execute()
+        oauth_tokens_result = supabase.table('oauth_tokens').select('*').eq('user_id', user_id).execute()
+
+        print(f"📊 [PLATFORM STATUS] Found {len(sync_configs_result.data)} sync configs, {len(oauth_tokens_result.data)} oauth tokens")
 
         # Initialize platform status
         platforms = {
@@ -353,6 +356,20 @@ def get_platform_status():
                     }
                 })
                 print(f"✅ [PLATFORM STATUS] {platform}: OAuth={has_access_token}, Enabled={config_row.get('is_enabled', False)}")
+
+        # Update with oauth_tokens data (higher priority - newer OAuth system)
+        for token_row in oauth_tokens_result.data:
+            platform = token_row['platform']
+            if platform in platforms:
+                has_oauth_token = bool(token_row.get('access_token'))
+                platforms[platform].update({
+                    'configured': True,
+                    'oauth_connected': has_oauth_token,
+                    'has_credentials': has_oauth_token,
+                    'oauth_token_updated': token_row.get('updated_at'),
+                    'oauth_source': 'oauth_tokens'  # 새로운 OAuth 시스템
+                })
+                print(f"🔑 [PLATFORM STATUS] {platform} OAuth token found: {has_oauth_token}")
 
         # Get platform coverage stats
         try:

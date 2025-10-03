@@ -69,8 +69,10 @@ class GoogleCalendarManager {
             await this.waitForOAuthCompletion();
             console.log('✅ [GOOGLE-MANAGER] OAuth completed! Now showing NotionFlow calendar selection...');
 
-            // Skip Google calendar selection, go directly to NotionFlow calendar selection
-            // Since we already have Google calendars after OAuth
+            // Get primary Google calendar and then show NotionFlow calendar selection
+            await this.selectPrimaryGoogleCalendar();
+
+            // Then show NotionFlow calendar selection
             await this.showNotionFlowCalendarSelection();
             console.log('✅ [GOOGLE-MANAGER] NotionFlow calendar selection modal should be visible now');
         } catch (error) {
@@ -219,6 +221,37 @@ class GoogleCalendarManager {
         setTimeout(() => {
             this.showNotionFlowCalendarSelection();
         }, 300);
+    }
+
+    /**
+     * Select primary Google calendar automatically
+     */
+    async selectPrimaryGoogleCalendar() {
+        console.log('📅 [GOOGLE-MANAGER] Selecting primary Google calendar...');
+
+        try {
+            // Fetch Google calendars
+            const response = await fetch('/api/google-calendars');
+            const data = await response.json();
+
+            if (data.success && data.calendars && data.calendars.length > 0) {
+                // Find primary calendar or use first one
+                const primaryCalendar = data.calendars.find(cal => cal.primary) || data.calendars[0];
+
+                this.selectedGoogleCalendarId = primaryCalendar.id;
+                this.selectedGoogleCalendarName = primaryCalendar.summary;
+
+                console.log(`✅ [GOOGLE-MANAGER] Auto-selected Google calendar: ${primaryCalendar.id} (${primaryCalendar.summary})`);
+            } else {
+                throw new Error('No Google calendars found');
+            }
+        } catch (error) {
+            console.error('❌ [GOOGLE-MANAGER] Failed to select primary Google calendar:', error);
+            // 기본값 설정
+            this.selectedGoogleCalendarId = 'primary';
+            this.selectedGoogleCalendarName = 'Primary';
+            console.log('🔄 [GOOGLE-MANAGER] Using fallback primary calendar');
+        }
     }
 
     /**
