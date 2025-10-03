@@ -1606,14 +1606,14 @@
                 buttonText.textContent = '연결 해제';
             }
 
-            // 통계 및 플랫폼 상태 업데이트
+            // 통계 업데이트
             updateConnectionStats();
 
-            // DB에서 최신 상태를 다시 가져와서 확실히 반영
-            setTimeout(async () => {
-                await updatePlatformStatus();
-                console.log(`🔄 ${platformName} 상태 재확인 완료`);
-            }, 1000);
+            // 해당 플랫폼만 연결 해제 상태로 업데이트 (다른 플랫폼에 영향 주지 않음)
+            setTimeout(() => {
+                updatePlatformStatus(platformName, 'disconnected');
+                console.log(`🔄 ${platformName} 연결해제 상태 반영 완료`);
+            }, 500);
 
             // 동기화 결과에 따른 알림
             if (syncResponse && syncResponse.ok) {
@@ -1843,11 +1843,8 @@
                 buttonText.textContent = '연결하기';
             }
 
-            // 통계 및 플랫폼 상태 업데이트
+            // 통계 업데이트만 (다른 플랫폼에 영향 주지 않음)
             updateConnectionStats();
-
-            // 전체 플랫폼 상태 새로고침으로 UI 동기화
-            loadAllPlatformStatus();
 
             showNotification(`${getKoreanPlatformName(platformName)} 연결 해제 완료`, 'success');
         } catch (error) {
