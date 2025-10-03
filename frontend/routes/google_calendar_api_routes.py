@@ -102,3 +102,52 @@ def get_google_calendars_list():
             'error': error_msg,
             'calendars': []
         }), 500
+
+@google_calendar_api_bp.route('/api/google-calendar/disconnect', methods=['POST'])
+def disconnect_google_calendar():
+    """Disconnect Google Calendar - 안전한 Google 전용 연결해제"""
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Authentication required'}), 401
+
+    try:
+        from utils.config import config
+        supabase = config.get_client_for_user(user_id)
+
+        print(f"🔗 [GOOGLE DISCONNECT] 사용자 {user_id} Google Calendar 연결해제 시작")
+
+        # 1. calendar_sync_configs에서 Google 연결 비활성화
+        config_result = supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', 'google').execute()
+
+        if config_result.data:
+            # 연결 비활성화 (실제 테이블 구조에 맞게 is_enabled만 수정)
+            update_result = supabase.table('calendar_sync_configs').update({
+                'is_enabled': False
+            }).eq('user_id', user_id).eq('platform', 'google').execute()
+            print(f"✅ [GOOGLE DISCONNECT] calendar_sync_configs 비활성화 완료: {len(update_result.data)} 행 업데이트")
+
+        # 2. oauth_tokens에서 Google OAuth 토큰 제거 (선택사항)
+        oauth_result = supabase.table('oauth_tokens').select('*').eq('user_id', user_id).eq('platform', 'google').execute()
+
+        if oauth_result.data:
+            # OAuth 토큰 삭제로 완전 연결해제
+            delete_result = supabase.table('oauth_tokens').delete().eq('user_id', user_id).eq('platform', 'google').execute()
+            print(f"✅ [GOOGLE DISCONNECT] oauth_tokens 삭제 완료: {len(delete_result.data)} 행 삭제")
+        else:
+            print(f"ℹ️ [GOOGLE DISCONNECT] Google OAuth 토큰이 없습니다")
+
+        print(f"🔗 [GOOGLE DISCONNECT] 사용자 {user_id} Google Calendar 연결해제 완료")
+
+        return jsonify({
+            'success': True,
+            'message': 'Google Calendar 연결이 해제되었습니다.'
+        })
+
+    except Exception as e:
+        print(f"❌ [GOOGLE DISCONNECT] 연결해제 중 오류: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
