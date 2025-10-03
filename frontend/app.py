@@ -3716,15 +3716,26 @@ def google_oauth_callback():
         # 성공 페이지 반환 (팝업 창 닫기)
         return render_template_string('''
         <html><body>
+            <h2>Google Calendar 연결 성공!</h2>
+            <p>이 창은 자동으로 닫힙니다...</p>
             <script>
+                console.log('Google OAuth callback - sending message to parent');
                 // 부모 창에 성공 메시지 전달
                 if (window.opener) {
+                    console.log('Parent window found, sending message...');
                     window.opener.postMessage({
                         type: 'oauth_success',
                         platform: 'google'
                     }, window.location.origin);
+                    console.log('Message sent to parent window');
+                } else {
+                    console.log('No parent window found');
                 }
-                window.close();
+                // 3초 후 창 닫기
+                setTimeout(() => {
+                    console.log('Closing window...');
+                    window.close();
+                }, 3000);
             </script>
         </body></html>
         ''')

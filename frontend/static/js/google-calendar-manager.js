@@ -232,15 +232,18 @@ class GoogleCalendarManager {
             const response = await fetch('/api/calendars');
             const data = await response.json();
 
-            if (!data.success || !data.calendars?.length) {
+            // API 응답 구조 확인 (Notion 방식과 동일)
+            const calendars = data.personal_calendars || data.calendars || [];
+
+            if (!data.success || !calendars.length) {
                 this.showNotification('NotionFlow 캘린더가 없습니다. 캘린더를 먼저 생성해주세요.', 'warning');
                 return;
             }
 
-            console.log(`📅 [GOOGLE-MANAGER] Found ${data.calendars.length} NotionFlow calendars`);
+            console.log(`📅 [GOOGLE-MANAGER] Found ${calendars.length} NotionFlow calendars`);
 
             // Show selection modal
-            this.createNotionFlowCalendarModal(data.calendars);
+            this.createNotionFlowCalendarModal(calendars);
 
         } catch (error) {
             console.error('❌ [GOOGLE-MANAGER] Failed to load NotionFlow calendars:', error);
