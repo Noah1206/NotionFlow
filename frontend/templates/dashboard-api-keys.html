@@ -1863,7 +1863,20 @@
                                     }
                                 }
 
-                                // 원클릭 버튼은 그대로 유지 (중복 버튼 방지)
+                                // 원클릭 버튼도 연결 상태에 따라 업데이트
+                                const oneClickBtn = platformCard.querySelector('.one-click-btn-small');
+                                if (oneClickBtn && platformName !== 'google') {
+                                    const buttonText = oneClickBtn.querySelector('.btn-text');
+                                    if (buttonText) {
+                                        buttonText.textContent = '연결해제';
+                                    }
+                                    oneClickBtn.setAttribute('onclick', `oneClickDisconnect('${platformName}')`);
+                                }
+
+                                // Google은 별도 처리 (markPlatformConnected 함수 사용)
+                                if (platformName === 'google') {
+                                    markPlatformConnected(platformName);
+                                }
                             } else {
                                 // 연결되지 않은 상태
                                 console.log(`❌ ${platformName} 연결되지 않음:`, platform);
