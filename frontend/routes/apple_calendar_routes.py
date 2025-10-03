@@ -174,3 +174,51 @@ def get_apple_sync_status():
             'success': False,
             'error': str(e)
         }), 500
+
+@apple_calendar_bp.route('/disconnect', methods=['POST'])
+def disconnect_apple_calendar():
+    """Disconnect Apple Calendar - 안전한 Apple 전용 연결해제"""
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({'error': 'Authentication required'}), 401
+
+    try:
+        supabase = config.get_client_for_user(user_id)
+
+        print(f"🍎 [APPLE DISCONNECT] 사용자 {user_id} Apple Calendar 연결해제 시작")
+
+        # 1. calendar_sync_configs에서 Apple 연결 비활성화
+        config_result = supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', 'apple').execute()
+
+        if config_result.data:
+            # 연결 비활성화 (데이터는 보존하되 is_enabled만 False로)
+            supabase.table('calendar_sync_configs').update({
+                'is_enabled': False,
+                'updated_at': datetime.now().isoformat()
+            }).eq('user_id', user_id).eq('platform', 'apple').execute()
+            print(f"✅ [APPLE DISCONNECT] calendar_sync_configs 비활성화 완료")
+
+        # 2. active_syncs에서 Apple 동기화 중지
+        active_sync_result = supabase.table('active_syncs').select('*').eq('user_id', user_id).eq('platform', 'apple').execute()
+
+        if active_sync_result.data:
+            supabase.table('active_syncs').update({
+                'sync_status': 'stopped'
+            }).eq('user_id', user_id).eq('platform', 'apple').execute()
+            print(f"✅ [APPLE DISCONNECT] active_syncs 중지 완료")
+
+        print(f"🍎 [APPLE DISCONNECT] 사용자 {user_id} Apple Calendar 연결해제 완료")
+
+        return jsonify({
+            'success': True,
+            'message': 'Apple Calendar 연결이 해제되었습니다.'
+        })
+
+    except Exception as e:
+        print(f"❌ [APPLE DISCONNECT] 연결해제 중 오류: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
