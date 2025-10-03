@@ -1920,7 +1920,8 @@
                 }
             }
         } catch (error) {
-            console.error('Error updating platform status:', error);
+            console.error('🔍 [DEBUG] Error updating platform status:', error);
+            console.error('🔍 [DEBUG] Error details:', error.message, error.stack);
             // API 에러 시 모든 플랫폼을 연결되지 않은 상태로 설정
             const platformCards = document.querySelectorAll('.platform-card');
             platformCards.forEach(card => {

@@ -293,14 +293,17 @@ def create_calendar_event():
 @dashboard_api_bp.route('/platforms', methods=['GET'])
 def get_platform_status():
     """Get user's platform connection status - Enhanced with OAuth support"""
+    print("🔍 [PLATFORM STATUS] ===== API 호출 시작 =====")
     auth_error = require_auth()
     if auth_error:
+        print("🔍 [PLATFORM STATUS] 인증 실패")
         return auth_error
 
     user_id = get_current_user_id()
+    print(f"🔍 [PLATFORM STATUS] 사용자 ID: {user_id}")
 
     try:
-        print(f"🔍 [PLATFORM STATUS] Checking status for user: {user_id}")
+        print(f"🔍 [PLATFORM STATUS] 플랫폼 상태 확인 시작")
 
         # Get actual OAuth connection status from calendar_sync_configs
         from utils.config import config
