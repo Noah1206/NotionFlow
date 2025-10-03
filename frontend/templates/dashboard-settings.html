@@ -634,6 +634,15 @@
         } else {
             // 다른 플랫폼은 기존 로직 사용
             if (confirm(`${platformName} 연결을 해제하시겠습니까?`)) {
+                // 수동 연결 해제 플래그 설정 (자동 재연결 방지)
+                if (platformName === 'google') {
+                    localStorage.setItem('google_manually_disconnected', 'true');
+                    console.log('🚫 [DISCONNECT] Set google_manually_disconnected flag');
+                } else if (platformName === 'notion') {
+                    localStorage.setItem('notion_manually_disconnected', 'true');
+                    console.log('🚫 [DISCONNECT] Set notion_manually_disconnected flag');
+                }
+
                 // 연결해제 API 호출
                 fetch(`/oauth/disconnect/${platformName}`, {
                     method: 'POST',
