@@ -4059,7 +4059,6 @@ blueprints_to_register = [
     ('routes.platform_connect_routes', 'platform_connect_bp', '[PLATFORM] Platform Calendar Connect'),
     ('routes.health_check_routes', 'health_bp', '[SEARCH] Platform Health Check'),
     ('routes.notion_calendar_connect', 'notion_calendar_bp', '[NOTION] Notion Calendar Connect'),
-    ('routes.google_calendar_connect', 'google_calendar_connect_bp', '[GOOGLE] Google Calendar Connect'),
     ('routes.session_cleanup', 'session_cleanup_bp', '[DEBUG] Session Cleanup'),
     ('routes.friends_routes', 'friends_bp', '[FRIENDS] Friends System'),
     ('routes.unified_sync_routes_simple', 'unified_sync_bp', '[SYNC] Unified Multi-Platform Sync')
@@ -4124,23 +4123,15 @@ except ImportError as e:
     print(f"[WARNING] Slack slash commands not available: {e}")
     pass
 
-# 📅 Register Google Calendar Sync Routes (optional)
-try:
-    from routes.google_calendar_sync_routes import google_calendar_bp
-    app.register_blueprint(google_calendar_bp)
-    print("[SUCCESS] Google Calendar sync routes registered")
-except ImportError as e:
-    print(f"[WARNING] Google Calendar sync routes not available: {e}")
-    pass
-
-# 📅 Register Google Calendar API Routes (for frontend compatibility)
+# 📅 Register Google Calendar API Routes (consolidated)
 try:
     from routes.google_calendar_api_routes import google_calendar_api_bp
     app.register_blueprint(google_calendar_api_bp)
-    print("[SUCCESS] Google Calendar API routes registered")
+    print("[SUCCESS] Google Calendar API routes registered (consolidated)")
 except ImportError as e:
     print(f"[WARNING] Google Calendar API routes not available: {e}")
     pass
+
 
 # 🍎 Register Apple Calendar Sync Routes
 try:

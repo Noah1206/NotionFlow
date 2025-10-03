@@ -1058,6 +1058,17 @@
         animation: pulse-orange 2s infinite;
     }
 
+    .platform-status.warning {
+        color: #d97706;
+        background: #fef3c7;
+        border: 1px solid #f59e0b;
+    }
+
+    .platform-status.warning .status-dot {
+        background: #d97706;
+        animation: pulse-orange 2s infinite;
+    }
+
     @keyframes pulse-orange {
 
         0%,
@@ -1854,6 +1865,35 @@
         }, 500);
     }
 
+    // Google Calendar 재활성화 함수 (Google 전용)
+    async function reactivateGoogleCalendar() {
+        try {
+            console.log('🔗 [GOOGLE] Google Calendar 재활성화 시작');
+
+            const response = await fetch('/api/google-calendar/enable', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                console.log('✅ [GOOGLE] Google Calendar 재활성화 완료:', result);
+                showNotification('Google Calendar가 다시 활성화되었습니다.', 'success');
+
+                // 전체 플랫폼 상태 새로고침
+                loadAllPlatformStatus();
+            } else {
+                throw new Error(result.error || 'Google Calendar 재활성화 실패');
+            }
+        } catch (error) {
+            console.error('❌ [GOOGLE] Google Calendar 재활성화 오류:', error);
+            showNotification('Google Calendar 재활성화 중 오류가 발생했습니다.', 'error');
+        }
+    }
+
 
     // 플랫폼 이름 한국어 변환
     function getKoreanPlatformName(platform) {
@@ -1958,14 +1998,36 @@
                                 // 연결되지 않은 상태
                                 console.log(`❌ ${platformName} 연결되지 않음:`, platform);
 
-                                statusElement.className = 'platform-status disconnected';
-                                statusElement.innerHTML = '<span class="status-dot"></span>연결되지 않음';
+                                // Google Calendar 특별 처리: OAuth는 있지만 enabled가 false인 경우
+                                if (platformName === 'google' && platform.oauth_connected && !platform.enabled) {
+                                    statusElement.className = 'platform-status warning';
+                                    statusElement.innerHTML = '<span class="status-dot"></span>일시 중단됨';
+                                } else {
+                                    statusElement.className = 'platform-status disconnected';
+                                    statusElement.innerHTML = '<span class="status-dot"></span>연결되지 않음';
+                                }
 
-                                // 연결 버튼 복원
+                                // 연결 버튼 복원 (Google 특별 처리)
                                 if (connectBtn) {
                                     connectBtn.style.display = 'inline-block';
-                                    connectBtn.className = 'platform-connect-btn';
-                                    connectBtn.setAttribute('onclick', `connectPlatform('${platformName}')`);
+
+                                    if (platformName === 'google' && platform.oauth_connected && !platform.enabled) {
+                                        // Google Calendar 재활성화 버튼
+                                        connectBtn.className = 'platform-connect-btn google-reactivate';
+                                        connectBtn.setAttribute('onclick', `reactivateGoogleCalendar()`);
+                                        const buttonText = connectBtn.querySelector('.connect-text');
+                                        if (buttonText) {
+                                            buttonText.textContent = '다시 연결';
+                                        }
+                                    } else {
+                                        // 일반 연결 버튼
+                                        connectBtn.className = 'platform-connect-btn';
+                                        connectBtn.setAttribute('onclick', `connectPlatform('${platformName}')`);
+                                        const buttonText = connectBtn.querySelector('.connect-text');
+                                        if (buttonText) {
+                                            buttonText.textContent = '연결하기';
+                                        }
+                                    }
                                 }
 
                                 // 원클릭 버튼 복원 (노션의 경우 캘린더 변경 버튼에서 원클릭 버튼으로 되돌림)
