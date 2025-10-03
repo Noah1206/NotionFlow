@@ -1815,18 +1815,28 @@
     // 실제 플랫폼 연결 상태 업데이트
     async function updatePlatformStatus() {
         try {
+            console.log('🔍 [DEBUG] updatePlatformStatus 호출됨');
             const response = await fetch('/api/dashboard/platforms');
 
             if (response.ok) {
                 const data = await response.json();
+                console.log('🔍 [DEBUG] 플랫폼 상태 API 응답:', data);
 
                 if (data.success && data.platforms) {
                     const platforms = data.platforms;
+                    console.log('🔍 [DEBUG] 플랫폼 데이터:', platforms);
 
                     // 각 플랫폼별 상태 업데이트
                     Object.keys(platforms).forEach(platformName => {
                         const platform = platforms[platformName];
                         const platformCard = document.querySelector(`[data-platform="${platformName}"]`);
+
+                        console.log(`🔍 [DEBUG] ${platformName} 상태:`, {
+                            configured: platform.configured,
+                            oauth_connected: platform.oauth_connected,
+                            has_credentials: platform.has_credentials,
+                            oauth_source: platform.oauth_source
+                        });
 
                         if (platformCard) {
                             const statusElement = platformCard.querySelector('.platform-status');
@@ -1836,7 +1846,7 @@
 
                             // OAuth 연결됨 또는 설정 완료됨
                             if (statusElement && (platform.configured || platform.oauth_connected)) {
-                                console.log(`✅ ${platformName} 연결 상태 복원:`, platform);
+                                console.log(`✅ [DEBUG] ${platformName} 연결 상태 복원:`, platform);
 
                                 // 연결된 상태로 표시
                                 statusElement.className = 'platform-status connected';
