@@ -1821,6 +1821,7 @@
             if (response.ok) {
                 const data = await response.json();
                 console.log('🔍 [DEBUG] 플랫폼 상태 API 응답:', data);
+                console.log('🔍 [DEBUG] Notion 상태 상세:', data.platforms?.notion);
 
                 if (data.success && data.platforms) {
                     const platforms = data.platforms;
