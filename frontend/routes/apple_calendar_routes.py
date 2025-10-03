@@ -158,7 +158,6 @@ def get_apple_sync_status():
             'calendar_selected': bool(config_data.get('calendar_id')),
             'calendar_id': config_data.get('calendar_id'),
             'last_sync': config_data.get('last_sync_at'),
-            'sync_status': config_data.get('sync_status', 'disconnected'),
             'credentials_available': bool(credentials.get('username') and credentials.get('password'))
         })
 
@@ -185,11 +184,9 @@ def disconnect_apple_calendar():
         config_result = supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', 'apple').execute()
 
         if config_result.data:
-            # 연결 비활성화 (데이터는 보존하되 is_enabled와 sync_status 업데이트)
+            # 연결 비활성화 (실제 테이블 구조에 맞게 is_enabled만 수정)
             update_result = supabase.table('calendar_sync_configs').update({
-                'is_enabled': False,
-                'sync_status': 'disconnected',
-                'updated_at': datetime.now().isoformat()
+                'is_enabled': False
             }).eq('user_id', user_id).eq('platform', 'apple').execute()
             print(f"✅ [APPLE DISCONNECT] calendar_sync_configs 비활성화 완료: {len(update_result.data)} 행 업데이트")
         else:
