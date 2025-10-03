@@ -1812,8 +1812,8 @@
         console.log(`[${type}] ${message}`);
     }
 
-    // 실제 플랫폼 연결 상태 업데이트
-    async function updatePlatformStatus() {
+    // 실제 플랫폼 연결 상태 업데이트 (API 호출)
+    async function updateAllPlatformStatus() {
         try {
             console.log('🔍 [DEBUG] updatePlatformStatus 호출됨');
             const response = await fetch('/api/dashboard/platforms');
@@ -2797,9 +2797,9 @@
         }
     }
 
-    // loadAllPlatformStatus 함수 정의 (updatePlatformStatus를 사용)
+    // loadAllPlatformStatus 함수 정의 (updateAllPlatformStatus를 사용)
     async function loadAllPlatformStatus() {
-        await updatePlatformStatus();
+        await updateAllPlatformStatus();
     }
 
     // loadSyncedCalendars 함수 정의 (checkCalendarsAndUpdatePlatforms를 사용)
