@@ -1308,9 +1308,9 @@ def handle_callback_success(platform, user_info):
                         except Exception as config_e:
                             print(f"⚠️ [OAUTH] Could not check calendar_sync_configs: {config_e}")
                             config_check = None
+                        # Only consider disconnected if explicitly disabled, not if calendar_id is None (new connection)
                         is_disconnected = (config_check and config_check.data and
-                                         (config_check.data[0].get('calendar_id') is None or
-                                          not config_check.data[0].get('is_enabled', True)))
+                                         config_check.data[0].get('is_enabled') == False)
                         
                         if is_disconnected:
                             print(f"🚫 [OAUTH] Skipping calendar_sync creation - user disconnected Notion")
