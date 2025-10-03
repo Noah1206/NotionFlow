@@ -3623,25 +3623,34 @@ def google_oauth_callback():
         
         print(f"Saving token to Supabase for user {user_id}...")
         
-        # 사용자 존재 여부 확인 (외래키 제약 조건 방지)
+        # 사용자 존재 여부 확인을 건너뛰고 바로 저장 시도
         try:
-            # auth.users 테이블에서 사용자 확인
-            user_check = supabase_client.auth.admin.get_user_by_id(user_id)
-            if not user_check or not user_check.user:
-                print(f"User {user_id} not found in auth.users table")
-                # 세션에 토큰 저장 (데이터베이스 저장 대신)
-                session[f'oauth_token_{user_id}_google'] = {
-                    'access_token': access_token,
-                    'refresh_token': refresh_token,
-                    'expires_at': expires_at.isoformat(),
-                    'scope': token_json.get('scope', '')
-                }
-                print("Token saved to session instead of database (user not found)")
-            else:
-                print(f"User {user_id} exists in auth.users table, proceeding with database save")
-                
-                # 기존 토큰이 있으면 업데이트, 없으면 삽입
-                try:
+            # users 테이블 체크 없이 바로 oauth_tokens에 저장
+            print(f"Attempting to save token directly to oauth_tokens table...")
+
+            # 먼저 users 테이블에 사용자가 없으면 생성
+            try:
+                # users 테이블에 사용자 확인/생성
+                existing_user = supabase_client.table('users').select('*').eq('id', user_id).execute()
+                if not existing_user.data:
+                    print(f"Creating user {user_id} in users table...")
+                    from datetime import datetime
+                    user_data = {
+                        'id': user_id,
+                        'email': f'{user_id[:8]}@notionflow.app',  # 임시 이메일
+                        'created_at': datetime.now().isoformat(),
+                        'updated_at': datetime.now().isoformat()
+                    }
+                    supabase_client.table('users').insert(user_data).execute()
+                    print(f"User {user_id} created in users table")
+                else:
+                    print(f"User {user_id} already exists in users table")
+            except Exception as user_creation_error:
+                print(f"Warning: Could not create/check user: {user_creation_error}")
+                # 사용자 생성 실패해도 계속 진행
+
+            # 기존 토큰이 있으면 업데이트, 없으면 삽입
+            try:
                     print(f"Token data to save: {token_data}")
                     result = supabase_client.table('oauth_tokens').upsert(
                         token_data,
