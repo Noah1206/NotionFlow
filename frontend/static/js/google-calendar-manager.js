@@ -67,8 +67,9 @@ class GoogleCalendarManager {
             // Wait for OAuth completion
             await this.waitForOAuthCompletion();
 
-            // After OAuth, show calendar selection
-            await this.showGoogleCalendarSelection();
+            // Skip Google calendar selection, go directly to NotionFlow calendar selection
+            // Since we already have Google calendars after OAuth
+            await this.showNotionFlowCalendarSelection();
         } catch (error) {
             console.error('❌ [GOOGLE-MANAGER] OAuth failed:', error);
             throw error;
@@ -103,13 +104,13 @@ class GoogleCalendarManager {
             const messageHandler = (event) => {
                 if (event.origin !== window.location.origin) return;
 
-                if (event.data.type === 'GOOGLE_OAUTH_SUCCESS' && !authCompleted) {
+                if ((event.data.type === 'GOOGLE_OAUTH_SUCCESS' || event.data.type === 'oauth_success') && event.data.platform === 'google' && !authCompleted) {
                     console.log('✅ [GOOGLE-MANAGER] OAuth success via postMessage');
                     clearInterval(pollOAuthStatus);
                     window.removeEventListener('message', messageHandler);
                     authCompleted = true;
                     resolve();
-                } else if (event.data.type === 'GOOGLE_OAUTH_ERROR') {
+                } else if (event.data.type === 'GOOGLE_OAUTH_ERROR' || (event.data.type === 'oauth_error' && event.data.platform === 'google')) {
                     console.error('❌ [GOOGLE-MANAGER] OAuth error:', event.data.error);
                     clearInterval(pollOAuthStatus);
                     window.removeEventListener('message', messageHandler);
