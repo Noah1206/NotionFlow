@@ -2865,24 +2865,92 @@
             const result = await response.json();
 
             if (result.success) {
-                // UI 상태 되돌리기
-                const card = document.querySelector(`[data-platform="${platform}"]`);
-                const syncBtn = card?.querySelector('.platform-sync-btn');
-                if (syncBtn) {
-                    const syncText = syncBtn.querySelector('.sync-text');
-                    if (syncText) {
-                        if (syncText) syncText.textContent = '캘린더 연동';
-                    }
-                    syncBtn.classList.remove('synced');
-                    syncBtn.title = '';
+                console.log(`✅ [DISCONNECT] ${platform} 연결해제 성공 - UI 업데이트 시작`);
 
-                    const disconnectBtn = syncBtn.querySelector('.sync-disconnect-btn');
-                    if (disconnectBtn) {
-                        disconnectBtn.remove();
+                // UI를 비연결 상태로 완전히 복원
+                const card = document.querySelector(`[data-platform="${platform}"]`);
+                if (card) {
+                    // 1. 상태 표시 변경
+                    const statusElement = card.querySelector('.platform-status');
+                    if (statusElement) {
+                        statusElement.className = 'platform-status disconnected';
+                        statusElement.innerHTML = '<span class="status-dot"></span>연결되지 않음';
                     }
+
+                    // 2. 연결해제 버튼 제거
+                    const disconnectBtns = card.querySelectorAll('.google-disconnect-btn, .platform-disconnect-btn');
+                    disconnectBtns.forEach(btn => btn.remove());
+
+                    // 3. 캘린더 변경 버튼 숨기기
+                    const syncBtn = card.querySelector('.platform-sync-btn');
+                    if (syncBtn) {
+                        syncBtn.style.display = 'none';
+                        const syncText = syncBtn.querySelector('.sync-text');
+                        if (syncText) {
+                            syncText.textContent = '캘린더 연동';
+                        }
+                        syncBtn.classList.remove('synced');
+                        syncBtn.title = '';
+
+                        const syncDisconnectBtn = syncBtn.querySelector('.sync-disconnect-btn');
+                        if (syncDisconnectBtn) {
+                            syncDisconnectBtn.remove();
+                        }
+                    }
+
+                    // 4. 원래 연결 버튼 복원
+                    const connectBtn = card.querySelector('.platform-connect-btn');
+                    if (connectBtn) {
+                        connectBtn.style.display = 'inline-flex';
+                        connectBtn.className = 'platform-connect-btn';
+                        connectBtn.setAttribute('onclick', `connectPlatform('${platform}')`);
+                        const buttonText = connectBtn.querySelector('.connect-text, .disconnect-text');
+                        if (buttonText) {
+                            buttonText.className = 'connect-text';
+                            buttonText.textContent = '연결하기';
+                        }
+                    }
+
+                    // 5. 원클릭 버튼 복원 (Apple 제외)
+                    if (platform !== 'apple') {
+                        const actionsDiv = card.querySelector('.platform-actions');
+                        let oneClickBtn = card.querySelector('.one-click-btn-small');
+
+                        if (!oneClickBtn && actionsDiv && connectBtn) {
+                            // 원클릭 버튼이 없으면 생성
+                            oneClickBtn = document.createElement('button');
+                            oneClickBtn.className = 'one-click-btn-small';
+                            oneClickBtn.setAttribute('onclick', `oneClickConnect('${platform}')`);
+                            oneClickBtn.setAttribute('data-platform', platform);
+                            oneClickBtn.innerHTML = `
+                                <span class="btn-text">원클릭</span>
+                                <div class="btn-loader" style="display: none;">
+                                    <div class="loader-spinner"></div>
+                                </div>
+                            `;
+                            actionsDiv.insertBefore(oneClickBtn, connectBtn);
+                        } else if (oneClickBtn) {
+                            // 기존 원클릭 버튼 복원
+                            oneClickBtn.className = 'one-click-btn-small';
+                            oneClickBtn.setAttribute('onclick', `oneClickConnect('${platform}')`);
+                            const buttonText = oneClickBtn.querySelector('.btn-text');
+                            if (buttonText) {
+                                buttonText.textContent = '원클릭';
+                            }
+                        }
+                    }
+
+                    console.log(`✅ [DISCONNECT] ${platform} UI 상태가 비연결로 복원되었습니다.`);
                 }
 
-                showNotification(`${platform} 연동이 해제되었습니다.`, 'success');
+                showNotification(`${getKoreanPlatformName(platform)} 연동이 해제되었습니다.`, 'success');
+
+                // 전체 플랫폼 상태 새로고침
+                setTimeout(() => {
+                    if (window.loadAllPlatformStatus) {
+                        window.loadAllPlatformStatus();
+                    }
+                }, 500);
             } else {
                 throw new Error(result.error || '연동 해제 실패');
             }
