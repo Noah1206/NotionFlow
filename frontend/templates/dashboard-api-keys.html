@@ -2055,12 +2055,12 @@
                                     oneClickBtn.style.display = 'inline-block';
                                 }
 
-                                // Google 연결해제 버튼 관리 - Google이 연결된 상태라면 버튼 유지
+                                // Google 연결해제 버튼 관리 - OAuth 토큰이 있으면 일시적 비활성화 상태여도 버튼 유지 (CLAUDE.md 규칙 #9)
                                 if (platformName === 'google') {
                                     const googleDisconnectBtn = platformCard.querySelector('.google-disconnect-btn');
 
-                                    // Google이 연결된 상태라면 버튼을 유지하거나 생성
-                                    if ((platform.oauth_connected || platform.configured) && platform.enabled) {
+                                    // OAuth 토큰이 있으면 버튼을 유지하거나 생성 (enabled 상태 무관)
+                                    if (platform.oauth_connected) {
                                         // 연결해제 버튼이 없다면 다시 생성
                                         if (!googleDisconnectBtn) {
                                             const oneClickBtn = platformCard.querySelector('.one-click-btn-small');
@@ -2071,15 +2071,15 @@
                                                 }
                                                 oneClickBtn.setAttribute('onclick', `oneClickDisconnect('google')`);
                                                 oneClickBtn.className = 'google-disconnect-btn';
-                                                console.log('✅ [GOOGLE] 연결해제 버튼 복원');
+                                                console.log('✅ [GOOGLE] OAuth 토큰 확인됨 - 연결해제 버튼 유지/복원');
                                             }
                                         }
                                     }
-                                    // 완전히 비연결 상태일 때만 버튼 제거
-                                    else if (!platform.oauth_connected && !platform.configured && !platform.enabled) {
+                                    // OAuth 토큰이 없는 완전히 비연결 상태일 때만 버튼 제거
+                                    else if (!platform.oauth_connected) {
                                         if (googleDisconnectBtn) {
                                             googleDisconnectBtn.remove();
-                                            console.log('🗑️ [GOOGLE] 완전히 비연결 상태이므로 연결해제 버튼 제거');
+                                            console.log('🗑️ [GOOGLE] OAuth 토큰이 없으므로 연결해제 버튼 제거');
                                         }
                                     }
                                 }
