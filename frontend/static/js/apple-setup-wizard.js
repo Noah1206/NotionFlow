@@ -907,23 +907,60 @@ class AppleSetupWizard {
                 <div class="calendar-selection-modal" id="apple-calendar-selection">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h2>연동할 캘린더 선택</h2>
-                            <button class="close-btn" onclick="document.getElementById('apple-calendar-selection').remove()">×</button>
+                            <div class="header-content">
+                                <div class="header-icon">🍎</div>
+                                <div class="header-text">
+                                    <h2>Apple Calendar 연동</h2>
+                                    <p class="subtitle">연동할 NotionFlow 캘린더를 선택하세요</p>
+                                </div>
+                            </div>
+                            <button class="close-btn" onclick="document.getElementById('apple-calendar-selection').remove()">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
                         </div>
                         <div class="modal-body">
-                            <p>Apple Calendar와 연동할 NotionFlow 캘린더를 선택하세요:</p>
-                            <div class="calendar-list">
+                            <div class="calendar-grid">
                                 ${calendars.map(cal => `
-                                    <div class="calendar-item" data-calendar-id="${cal.id}">
-                                        <div class="calendar-color" style="background: ${cal.color}"></div>
-                                        <div class="calendar-info">
-                                            <div class="calendar-name">${cal.name}</div>
-                                            <div class="calendar-events">${cal.event_count || 0}개 일정</div>
+                                    <div class="calendar-card" data-calendar-id="${cal.id}" onclick="window.appleWizard.selectCalendarForSync('${cal.id}')">
+                                        <div class="calendar-card-header">
+                                            <div class="calendar-color-indicator" style="background: ${cal.color}"></div>
+                                            <div class="calendar-badge">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                                </svg>
+                                            </div>
                                         </div>
-                                        <button class="select-btn" onclick="window.appleWizard.selectCalendarForSync('${cal.id}')">선택</button>
+                                        <div class="calendar-card-content">
+                                            <h3 class="calendar-name">${cal.name}</h3>
+                                            <p class="calendar-stats">
+                                                <span class="event-count">${cal.event_count || 0}개 일정</span>
+                                                <span class="calendar-type">Personal</span>
+                                            </p>
+                                        </div>
+                                        <div class="calendar-card-footer">
+                                            <div class="select-indicator">
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="20,6 9,17 4,12"></polyline>
+                                                </svg>
+                                            </div>
+                                            <span class="select-text">선택하기</span>
+                                        </div>
                                     </div>
                                 `).join('')}
                             </div>
+                            ${calendars.length === 0 ? `
+                                <div class="empty-state">
+                                    <div class="empty-icon">📅</div>
+                                    <h3>생성된 캘린더가 없습니다</h3>
+                                    <p>먼저 NotionFlow에서 캘린더를 생성한 후 연동해주세요.</p>
+                                </div>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
@@ -938,76 +975,279 @@ class AppleSetupWizard {
                         left: 0;
                         width: 100%;
                         height: 100%;
-                        background: rgba(0, 0, 0, 0.5);
+                        background: rgba(0, 0, 0, 0.6);
+                        backdrop-filter: blur(4px);
                         display: flex;
                         align-items: center;
                         justify-content: center;
                         z-index: 10000;
+                        animation: fadeIn 0.2s ease-out;
                     }
+
                     .calendar-selection-modal .modal-content {
                         background: white;
-                        border-radius: 12px;
+                        border-radius: 20px;
                         width: 90%;
-                        max-width: 500px;
-                        max-height: 80vh;
-                        overflow: auto;
+                        max-width: 600px;
+                        max-height: 85vh;
+                        overflow: hidden;
+                        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+                        animation: slideUp 0.3s ease-out;
                     }
+
                     .calendar-selection-modal .modal-header {
+                        padding: 24px 28px;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: flex-start;
+                    }
+
+                    .calendar-selection-modal .header-content {
+                        display: flex;
+                        align-items: center;
+                        gap: 16px;
+                    }
+
+                    .calendar-selection-modal .header-icon {
+                        font-size: 32px;
+                        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+                    }
+
+                    .calendar-selection-modal .header-text h2 {
+                        margin: 0 0 4px 0;
+                        font-size: 24px;
+                        font-weight: 600;
+                        color: white;
+                    }
+
+                    .calendar-selection-modal .subtitle {
+                        margin: 0;
+                        font-size: 14px;
+                        color: rgba(255, 255, 255, 0.9);
+                        font-weight: 400;
+                    }
+
+                    .calendar-selection-modal .close-btn {
+                        background: rgba(255, 255, 255, 0.1);
+                        border: none;
+                        border-radius: 10px;
+                        width: 40px;
+                        height: 40px;
+                        cursor: pointer;
+                        color: white;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        transition: all 0.2s ease;
+                    }
+
+                    .calendar-selection-modal .close-btn:hover {
+                        background: rgba(255, 255, 255, 0.2);
+                        transform: scale(1.05);
+                    }
+
+                    .calendar-selection-modal .modal-body {
+                        padding: 28px;
+                        max-height: calc(85vh - 120px);
+                        overflow-y: auto;
+                    }
+
+                    .calendar-selection-modal .calendar-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                        gap: 16px;
+                    }
+
+                    .calendar-selection-modal .calendar-card {
+                        background: white;
+                        border: 2px solid #f1f3f4;
+                        border-radius: 16px;
                         padding: 20px;
-                        border-bottom: 1px solid #e0e0e0;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        position: relative;
+                        overflow: hidden;
+                    }
+
+                    .calendar-selection-modal .calendar-card:hover {
+                        border-color: #667eea;
+                        transform: translateY(-2px);
+                        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+                    }
+
+                    .calendar-selection-modal .calendar-card:active {
+                        transform: translateY(0);
+                        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+                    }
+
+                    .calendar-selection-modal .calendar-card-header {
                         display: flex;
                         justify-content: space-between;
                         align-items: center;
+                        margin-bottom: 16px;
                     }
-                    .calendar-selection-modal .close-btn {
-                        background: none;
-                        border: none;
-                        font-size: 24px;
-                        cursor: pointer;
-                        color: #666;
+
+                    .calendar-selection-modal .calendar-color-indicator {
+                        width: 12px;
+                        height: 12px;
+                        border-radius: 50%;
+                        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
                     }
-                    .calendar-selection-modal .modal-body {
-                        padding: 20px;
+
+                    .calendar-selection-modal .calendar-badge {
+                        background: #f8f9fa;
+                        border-radius: 8px;
+                        padding: 6px;
+                        color: #6c757d;
                     }
-                    .calendar-selection-modal .calendar-list {
-                        margin-top: 15px;
+
+                    .calendar-selection-modal .calendar-card-content {
+                        margin-bottom: 16px;
                     }
-                    .calendar-selection-modal .calendar-item {
+
+                    .calendar-selection-modal .calendar-name {
+                        margin: 0 0 8px 0;
+                        font-size: 18px;
+                        font-weight: 600;
+                        color: #2d3748;
+                        line-height: 1.3;
+                    }
+
+                    .calendar-selection-modal .calendar-stats {
+                        margin: 0;
+                        display: flex;
+                        gap: 12px;
+                        align-items: center;
+                    }
+
+                    .calendar-selection-modal .event-count {
+                        font-size: 13px;
+                        color: #718096;
+                        background: #f7fafc;
+                        padding: 4px 8px;
+                        border-radius: 6px;
+                        font-weight: 500;
+                    }
+
+                    .calendar-selection-modal .calendar-type {
+                        font-size: 12px;
+                        color: #a0aec0;
+                        text-transform: uppercase;
+                        font-weight: 600;
+                        letter-spacing: 0.5px;
+                    }
+
+                    .calendar-selection-modal .calendar-card-footer {
                         display: flex;
                         align-items: center;
-                        padding: 12px;
-                        border: 1px solid #e0e0e0;
-                        border-radius: 8px;
-                        margin-bottom: 10px;
+                        justify-content: center;
+                        gap: 8px;
+                        padding: 12px 0 0 0;
+                        border-top: 1px solid #f1f3f4;
+                        opacity: 0.7;
+                        transition: all 0.2s ease;
                     }
-                    .calendar-selection-modal .calendar-color {
-                        width: 20px;
-                        height: 20px;
-                        border-radius: 50%;
-                        margin-right: 12px;
+
+                    .calendar-selection-modal .calendar-card:hover .calendar-card-footer {
+                        opacity: 1;
                     }
-                    .calendar-selection-modal .calendar-info {
-                        flex: 1;
+
+                    .calendar-selection-modal .select-indicator {
+                        color: #667eea;
+                        opacity: 0;
+                        transform: scale(0.8);
+                        transition: all 0.2s ease;
                     }
-                    .calendar-selection-modal .calendar-name {
-                        font-weight: 600;
-                        margin-bottom: 4px;
+
+                    .calendar-selection-modal .calendar-card:hover .select-indicator {
+                        opacity: 1;
+                        transform: scale(1);
                     }
-                    .calendar-selection-modal .calendar-events {
-                        font-size: 12px;
-                        color: #666;
-                    }
-                    .calendar-selection-modal .select-btn {
-                        padding: 6px 16px;
-                        background: #007AFF;
-                        color: white;
-                        border: none;
-                        border-radius: 6px;
-                        cursor: pointer;
+
+                    .calendar-selection-modal .select-text {
                         font-size: 14px;
+                        font-weight: 500;
+                        color: #667eea;
                     }
-                    .calendar-selection-modal .select-btn:hover {
-                        background: #0051D5;
+
+                    .calendar-selection-modal .empty-state {
+                        text-align: center;
+                        padding: 60px 20px;
+                        color: #718096;
+                    }
+
+                    .calendar-selection-modal .empty-icon {
+                        font-size: 64px;
+                        margin-bottom: 20px;
+                        opacity: 0.7;
+                    }
+
+                    .calendar-selection-modal .empty-state h3 {
+                        margin: 0 0 12px 0;
+                        font-size: 20px;
+                        font-weight: 600;
+                        color: #4a5568;
+                    }
+
+                    .calendar-selection-modal .empty-state p {
+                        margin: 0;
+                        font-size: 14px;
+                        line-height: 1.5;
+                        max-width: 300px;
+                        margin-left: auto;
+                        margin-right: auto;
+                    }
+
+                    @keyframes fadeIn {
+                        from { opacity: 0; }
+                        to { opacity: 1; }
+                    }
+
+                    @keyframes slideUp {
+                        from {
+                            opacity: 0;
+                            transform: translateY(20px) scale(0.95);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: translateY(0) scale(1);
+                        }
+                    }
+
+                    /* 모바일 반응형 */
+                    @media (max-width: 768px) {
+                        .calendar-selection-modal .modal-content {
+                            width: 95%;
+                            max-height: 90vh;
+                            border-radius: 16px;
+                        }
+
+                        .calendar-selection-modal .modal-header {
+                            padding: 20px 24px;
+                        }
+
+                        .calendar-selection-modal .header-icon {
+                            font-size: 28px;
+                        }
+
+                        .calendar-selection-modal .header-text h2 {
+                            font-size: 20px;
+                        }
+
+                        .calendar-selection-modal .modal-body {
+                            padding: 20px;
+                        }
+
+                        .calendar-selection-modal .calendar-grid {
+                            grid-template-columns: 1fr;
+                            gap: 12px;
+                        }
+
+                        .calendar-selection-modal .calendar-card {
+                            padding: 16px;
+                        }
                     }
                 </style>
             `;
