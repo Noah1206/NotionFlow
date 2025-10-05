@@ -2349,6 +2349,12 @@
         }
     }
 
+    // oneClickDisconnect는 기존 disconnectPlatformSync 함수를 사용
+    async function oneClickDisconnect(platform) {
+        console.log(`🔌 [ONE-CLICK] ${platform} 연결해제 요청`);
+        await disconnectPlatformSync(platform);
+    }
+
     // Google Calendar 연결 처리 함수 (DEPRECATED - 새로운 Google Manager 사용)
     async function handleGoogleConnect() {
         console.log('⚠️ [GOOGLE] handleGoogleConnect is deprecated, using Google Manager instead');
