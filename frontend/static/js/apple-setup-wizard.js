@@ -362,6 +362,12 @@ class AppleSetupWizard {
                 document.getElementById('connected-email').textContent = this.userEmail;
                 this.moveToStep(3);
 
+                // 플랫폼 카드를 연결된 상태로 표시 (연결해제 버튼과 캘린더 변경 버튼 표시)
+                if (window.markPlatformConnected) {
+                    window.markPlatformConnected('apple');
+                    console.log('✅ [APPLE WIZARD] Platform marked as connected with change calendar button');
+                }
+
                 // 플랫폼 카드 업데이트 (API 키 페이지의 함수 사용)
                 if (window.updatePlatformStatus) {
                     window.updatePlatformStatus('apple', 'connected');
@@ -381,7 +387,16 @@ class AppleSetupWizard {
                 }
 
                 // Apple Calendar 연결 성공 후 NotionFlow 캘린더 선택 팝업 표시
-                this.showCalendarSelectionModal();
+                // 마법사를 닫고 캘린더 선택 모달을 표시하기 위해 타이머 설정
+                setTimeout(() => {
+                    // 마법사가 표시되어 있으면 먼저 닫기
+                    if (this.wizardModal) {
+                        this.wizardModal.style.display = 'none';
+                    }
+
+                    // 캘린더 선택 모달 표시
+                    this.showCalendarSelectionModal();
+                }, 1000);
             } else {
                 throw new Error(data.error || '연결 실패');
             }
@@ -873,7 +888,14 @@ class AppleSetupWizard {
             }
 
             const data = await response.json();
-            const calendars = data.personal_calendars || [];
+            // Notion과 동일한 API 응답 구조 처리
+            const calendars = data.personal_calendars || data.calendars || data.data || [];
+
+            if (!data.success && !calendars.length) {
+                console.error('❌ [APPLE] No calendars found in response:', data);
+                this.showNotification('연동할 캘린더가 없습니다. 먼저 캘린더를 만들어주세요.', 'warning');
+                return;
+            }
 
             if (calendars.length === 0) {
                 this.showNotification('연동할 캘린더가 없습니다. 먼저 캘린더를 만들어주세요.', 'warning');
@@ -1320,17 +1342,21 @@ class AppleSetupWizard {
             syncBtn.disabled = true;
             syncBtn.textContent = '연동 중...';
 
-            // Apple Calendar 동기화 API 호출 (날짜 범위 포함)
-            const response = await fetch('/api/apple-calendar/sync', {
+            // Apple Calendar과 NotionFlow 캘린더 연결
+            // Google과 동일한 방식으로 처리
+            const response = await fetch('/api/calendars/sync', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
+                    platform: 'apple',
                     calendar_id: calendarId,
-                    date_range: {
-                        start_date: startDate,
-                        end_date: endDate
+                    sync_settings: {
+                        date_range: {
+                            start_date: startDate,
+                            end_date: endDate
+                        }
                     }
                 })
             });

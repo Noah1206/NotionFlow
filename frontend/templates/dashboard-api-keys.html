@@ -1293,6 +1293,19 @@
             return;
         }
 
+        // Apple은 AppleSetupWizard의 캘린더 선택 기능 사용
+        if (platformName === 'apple') {
+            console.log('🍎 [MODAL] Using Apple calendar selection');
+            if (window.appleWizard) {
+                // Apple Calendar가 이미 연결되어 있다고 가정하고 캘린더 선택만 수행
+                await window.appleWizard.showCalendarSelectionModal();
+            } else {
+                console.error('❌ Apple Setup Wizard not loaded');
+                showNotification('Apple 설정 마법사를 불러올 수 없습니다.', 'error');
+            }
+            return;
+        }
+
         // 기존 모달 제거
         const existingModal = document.getElementById('calendar-selection-modal');
         if (existingModal) existingModal.remove();
@@ -2912,7 +2925,9 @@
         // 기존 중복 버튼들 제거 (해당 플랫폼 카드에서만!)
         const existingGoogleDisconnectBtns = card.querySelectorAll('.google-disconnect-btn');
         existingGoogleDisconnectBtns.forEach(btn => btn.remove());
-        console.log(`🧹 ${platform} 카드에서 기존 연결해제 버튼 ${existingGoogleDisconnectBtns.length}개 제거됨`);
+        const existingDisconnectBtns = card.querySelectorAll('.platform-disconnect-btn');
+        existingDisconnectBtns.forEach(btn => btn.remove());
+        console.log(`🧹 ${platform} 카드에서 기존 연결해제 버튼 제거됨`);
 
         // 플랫폼 상태를 연결됨으로 표시
         const statusElement = card.querySelector('.platform-status');
@@ -2929,8 +2944,32 @@
             connectBtn.style.display = 'none';
         }
 
-        // 원클릭 버튼을 연결해제 버튼으로 변경
-        if (oneClickBtn) {
+        // Apple의 경우 연결해제 버튼 추가
+        if (platform === 'apple') {
+            // 연결해제 버튼 생성
+            const disconnectBtn = document.createElement('button');
+            disconnectBtn.className = 'platform-disconnect-btn';
+            disconnectBtn.setAttribute('onclick', `disconnectPlatform('${platform}')`);
+            disconnectBtn.innerHTML = `
+                <span class="disconnect-text">연결해제</span>
+                <div class="disconnect-loader" style="display: none;">
+                    <div class="loader-dot"></div>
+                </div>
+            `;
+
+            // 연결해제 버튼을 sync 버튼 앞에 삽입
+            const syncBtn = card.querySelector('.platform-sync-btn');
+            if (syncBtn) {
+                syncBtn.parentNode.insertBefore(disconnectBtn, syncBtn);
+            } else {
+                // sync 버튼이 없으면 actions 그룹에 추가
+                const actionsDiv = card.querySelector('.platform-actions');
+                if (actionsDiv) {
+                    actionsDiv.appendChild(disconnectBtn);
+                }
+            }
+        } else if (oneClickBtn) {
+            // 다른 플랫폼은 원클릭 버튼을 연결해제 버튼으로 변경
             const buttonText = oneClickBtn.querySelector('.btn-text');
             if (buttonText) {
                 buttonText.textContent = '연결해제';
