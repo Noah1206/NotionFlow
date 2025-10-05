@@ -2042,10 +2042,12 @@
                                     oneClickBtn.style.display = 'inline-block';
                                 }
 
-                                // Google 연결해제 버튼 제거
-                                const googleDisconnectBtn = platformCard.querySelector('.google-disconnect-btn');
-                                if (googleDisconnectBtn) {
-                                    googleDisconnectBtn.remove();
+                                // Google 연결해제 버튼 제거 (해당 플랫폼이 연결되지 않은 경우에만)
+                                if (platformName === 'google') {
+                                    const googleDisconnectBtn = platformCard.querySelector('.google-disconnect-btn');
+                                    if (googleDisconnectBtn) {
+                                        googleDisconnectBtn.remove();
+                                    }
                                 }
 
                                 // 캘린더 연동 버튼 숨기기

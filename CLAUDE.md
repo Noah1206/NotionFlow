@@ -156,6 +156,23 @@
     // ❌ 금지: 캘린더 없이 플랫폼 카드 활성화
     ```
 
+12. **플랫폼별 버튼 상태 격리 (2024-10-05 추가)**
+    ```javascript
+    // ✅ 플랫폼별 버튼 제거는 해당 플랫폼일 때만
+    if (platformName === 'google') {
+        const googleDisconnectBtn = platformCard.querySelector('.google-disconnect-btn');
+        if (googleDisconnectBtn) {
+            googleDisconnectBtn.remove();
+        }
+    }
+
+    // ❌ 금지: 모든 플랫폼 업데이트 시 특정 플랫폼 버튼 무차별 제거
+    const googleDisconnectBtn = platformCard.querySelector('.google-disconnect-btn');
+    if (googleDisconnectBtn) {
+        googleDisconnectBtn.remove(); // 다른 플랫폼에도 영향
+    }
+    ```
+
 ---
 
 ## 🎯 프로젝트 컨텍스트
@@ -1306,3 +1323,12 @@ profiler = Profiler(app)
 - `frontend/templates/dashboard-api-keys.html`: 카드 비활성화 로직
 - `frontend/routes/oauth_routes.py`: 자동 생성 로직 제거
 - `frontend/app.py`: 자동 생성 로직 제거
+
+### ✅ 애플 캘린더 OAuth 시 구글 캘린더 연결해제 버튼 사라지는 문제 해결 (2024-10-05)
+**문제**: 애플 캘린더 OAuth 인증 시 구글 캘린더의 연결해제 버튼이 사라지는 현상
+**원인**: `updateAllPlatformStatus()` 함수에서 모든 플랫폼 업데이트 시 무차별적으로 구글 연결해제 버튼 제거
+**해결**:
+- 구글 연결해제 버튼 제거 로직을 해당 플랫폼(google)일 때만 실행되도록 수정
+- 다른 플랫폼 OAuth 시 구글 캘린더 상태에 영향주지 않도록 개선
+
+**수정된 파일**: `frontend/templates/dashboard-api-keys.html` (2045-2051라인)
