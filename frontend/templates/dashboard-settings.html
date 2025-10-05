@@ -968,14 +968,14 @@
     // 캘린더 선택 모달 표시 함수
     function showCalendarSelectionModal() {
         // 기존 모달이 있으면 제거
-        const existingModal = document.getElementById('calendar-selection-modal');
+        const existingModal = document.getElementById('settings-calendar-selection-modal');
         if (existingModal) {
             existingModal.remove();
         }
 
         // 모달 HTML 생성
         const modalHTML = `
-            <div id="calendar-selection-modal" style="
+            <div id="settings-calendar-selection-modal" style="
                 position: fixed;
                 top: 0;
                 left: 0;
@@ -1186,7 +1186,7 @@
 
     // 모달 닫기
     function closeCalendarModal() {
-        const modal = document.getElementById('calendar-selection-modal');
+        const modal = document.getElementById('settings-calendar-selection-modal');
         if (modal) {
             modal.remove();
         }

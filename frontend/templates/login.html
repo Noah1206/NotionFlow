@@ -379,9 +379,9 @@
 
 <body>
     <!-- Floating Controls -->
-    <button id="back-btn" style="background: var(--bg-primary); border: 2px solid var(--border-color); border-radius: 50%; color: var(--text-primary); cursor: pointer; width: 50px; height: 50px; font-size: 1.2rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; position: fixed; top: 2rem; left: 2rem; z-index: 1000; box-shadow: var(--shadow-light);">←</button>
-    <button class="theme-toggle" id="theme-toggle" title="테마 전환">
-        <span id="theme-icon">☀️</span>
+    <button id="login-back-btn" style="background: var(--bg-primary); border: 2px solid var(--border-color); border-radius: 50%; color: var(--text-primary); cursor: pointer; width: 50px; height: 50px; font-size: 1.2rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; position: fixed; top: 2rem; left: 2rem; z-index: 1000; box-shadow: var(--shadow-light);">←</button>
+    <button class="theme-toggle" id="login-theme-toggle" title="테마 전환">
+        <span id="login-theme-icon">☀️</span>
     </button>
 
     <!-- 🎨 Main Login Section -->
@@ -431,8 +431,8 @@
     <script>
         // Theme Toggle System
         function initThemeToggle() {
-            const themeToggle = document.getElementById('theme-toggle');
-            const themeIcon = document.getElementById('theme-icon');
+            const themeToggle = document.getElementById('login-theme-toggle');
+            const themeIcon = document.getElementById('login-theme-icon');
             const html = document.documentElement;
 
             // Get saved theme or default to light
@@ -457,7 +457,7 @@
         }
 
         function updateThemeIcon(theme) {
-            const themeIcon = document.getElementById('theme-icon');
+            const themeIcon = document.getElementById('login-theme-icon');
             themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
         }
 
@@ -466,7 +466,7 @@
             initThemeToggle();
             
             // 🔙 뒤로가기 버튼 이벤트
-            const backBtn = document.getElementById('back-btn');
+            const backBtn = document.getElementById('login-back-btn');
             if (backBtn) {
                 backBtn.addEventListener('click', function (e) {
                     e.preventDefault();

@@ -450,9 +450,9 @@
 
 <body>
     <!-- Floating Controls -->
-    <button id="back-btn">←</button>
-    <button class="theme-toggle" id="theme-toggle" title="테마 전환">
-        <span id="theme-icon">☀️</span>
+    <button id="signup-back-btn">←</button>
+    <button class="theme-toggle" id="signup-theme-toggle" title="테마 전환">
+        <span id="signup-theme-icon">☀️</span>
     </button>
 
     <!-- 🎨 Main Signup Section -->
@@ -477,7 +477,7 @@
                     </div>
                     <div>
                         <label for="email">이메일</label>
-                        <input type="email" id="email" name="email" placeholder="이메일 주소를 입력하세요"
+                        <input type="email" id="signup-email" name="email" placeholder="이메일 주소를 입력하세요"
                             style="text-align: left !important;" required>
                     </div>
                 </div>
@@ -514,8 +514,8 @@
     <script>
         // Theme Toggle System
         function initThemeToggle() {
-            const themeToggle = document.getElementById('theme-toggle');
-            const themeIcon = document.getElementById('theme-icon');
+            const themeToggle = document.getElementById('signup-theme-toggle');
+            const themeIcon = document.getElementById('signup-theme-icon');
             const html = document.documentElement;
 
             // Get saved theme or default to light
@@ -540,7 +540,7 @@
         }
 
         function updateThemeIcon(theme) {
-            const themeIcon = document.getElementById('theme-icon');
+            const themeIcon = document.getElementById('signup-theme-icon');
             themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
         }
 
@@ -558,7 +558,7 @@
 
         document.addEventListener('DOMContentLoaded', function () {
             // 🔙 뒤로가기 버튼 이벤트
-            const backBtn = document.getElementById('back-btn');
+            const backBtn = document.getElementById('signup-back-btn');
             if (backBtn) {
                 backBtn.addEventListener('click', function (e) {
                     e.preventDefault();
@@ -577,7 +577,7 @@
                 e.preventDefault();
 
                 const userId = document.getElementById('user_id').value.trim();
-                const email = document.getElementById('email').value.trim();
+                const email = document.getElementById('signup-email').value.trim();
                 const password = document.getElementById('password').value;
                 const passwordConfirm = document.getElementById('password_confirm').value;
                 const submitButton = signupForm.querySelector('button[type="submit"]');

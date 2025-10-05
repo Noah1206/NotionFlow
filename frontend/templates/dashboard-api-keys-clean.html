@@ -303,7 +303,7 @@
 </div>
 
 <!-- 캘린더 선택 모달 -->
-<div id="calendar-selection-modal" class="modal" style="display: none;">
+<div id="clean-calendar-selection-modal" class="modal" style="display: none;">
     <div class="modal-content">
         <div class="modal-header">
             <h2>캘린더 선택</h2>
@@ -317,7 +317,7 @@
         </div>
         <div class="modal-footer">
             <button class="btn-secondary" onclick="closeCalendarSelectionModal()">취소</button>
-            <button class="btn-primary" id="confirm-calendar-selection" onclick="confirmCalendarSelection()" disabled>
+            <button class="btn-primary" id="clean-confirm-calendar-selection" onclick="confirmCalendarSelection()" disabled>
                 선택한 캘린더로 연결
             </button>
         </div>
@@ -360,7 +360,7 @@
     // Calendar selection modal functions
     function showCalendarSelectionModal(platform) {
         currentConnectingPlatform = platform;
-        const modal = document.getElementById('calendar-selection-modal');
+        const modal = document.getElementById('clean-calendar-selection-modal');
         const calendarListContainer = document.getElementById('calendar-list-container');
 
         modal.style.display = 'flex';
@@ -371,7 +371,7 @@
     }
 
     function closeCalendarSelectionModal() {
-        const modal = document.getElementById('calendar-selection-modal');
+        const modal = document.getElementById('clean-calendar-selection-modal');
         modal.style.display = 'none';
         selectedCalendarId = null;
         currentConnectingPlatform = null;

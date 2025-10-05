@@ -1334,11 +1334,11 @@
 
             // 새로운 모달 HTML (Google/Notion 스타일)
             const modalHtml = `
-                <div class="modal-overlay" id="calendar-selection-modal">
+                <div class="modal-overlay" id="new-calendar-selection-modal">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h2>${getKoreanPlatformName(platformName)} 캘린더 선택</h2>
-                            <button class="modal-close" onclick="closeCalendarSelectionModal()">&times;</button>
+                            <button class="modal-close" onclick="closeNewCalendarSelectionModal()">&times;</button>
                         </div>
                         <div class="modal-body">
                             <p><strong>${getKoreanPlatformName(platformName)}</strong>과 동기화할 NotionFlow 캘린더를 선택하세요:</p>
@@ -1748,6 +1748,20 @@
         currentConnectingPlatform = null;
         isGoogleSecondStep = false;
         console.log('🗑️ Calendar selection modal closed');
+    }
+
+    // 새로운 스타일 모달 닫기 함수
+    function closeNewCalendarSelectionModal() {
+        const modal = document.getElementById('new-calendar-selection-modal');
+        if (modal) {
+            modal.remove();
+        }
+
+        // 선택 상태 초기화
+        selectedCalendarId = null;
+        currentConnectingPlatform = null;
+        isGoogleSecondStep = false;
+        console.log('🗑️ New calendar selection modal closed');
     }
 
     // 새로운 모달에서 캘린더 선택 및 연결 (Google/Notion 스타일)
