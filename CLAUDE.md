@@ -28,6 +28,20 @@
 2. ✅ `updated_master_schema.sql` 생성 (정확한 스키마)
 3. ✅ CLAUDE.md 업데이트 (올바른 컬럼명 반영)
 
+### ✅ Google Calendar OAuth 2단계 모달 수정 완료 (2024-10-05)
+**수정된 사항**:
+- **Google Calendar 카드 비활성화 로직 복원**: 캘린더가 없을 때 모든 플랫폼 카드 비활성화
+- **올바른 2단계 모달 플로우 구현**:
+  - 1단계: 사용자의 Google 캘린더 선택 (구글 계정에 있는 캘린더들)
+  - 2단계: NotionFlow 캘린더 선택 (연결할 대상 캘린더)
+- **캘린더 자동 생성 로직 완전 제거**: 사용자가 직접 캘린더를 생성해야 함
+
+**수정된 파일들**:
+1. `frontend/static/js/google-calendar-manager.js`: 2단계 모달 플로우 구현
+2. `frontend/templates/dashboard-api-keys.html`: 캘린더 없을 때 카드 비활성화 로직
+3. `frontend/routes/oauth_routes.py`: 자동 캘린더 생성 로직 제거 (2곳)
+4. `frontend/app.py`: 자동 캘린더 생성 로직 제거 (2곳)
+
 ## ⚠️ 최우선 규칙 - 반드시 준수!
 
 ### 절대 준수사항
@@ -105,6 +119,42 @@
    # 또는 직접 세션에서
    user_id = session.get('user_id')  # 항상 문자열
    ```
+
+9. **Google Calendar OAuth 2단계 모달 플로우 준수 (2024-10-05 추가)**
+   ```javascript
+   // ✅ 올바른 2단계 플로우
+   // 1단계: Google 캘린더 선택 (사용자 계정의 구글 캘린더들)
+   await this.showGoogleCalendarSelection();
+
+   // 2단계: NotionFlow 캘린더 선택 (연결할 대상)
+   await this.showNotionFlowCalendarSelection();
+
+   // ❌ 잘못된 플로우: 바로 NotionFlow 캘린더 선택하거나 자동 캘린더 생성
+   ```
+
+10. **캘린더 자동 생성 금지 (2024-10-05 추가)**
+    ```python
+    # ✅ 올바른 처리: 캘린더가 없으면 에러 반환
+    if not user_calendars.data:
+        print(f"⚠️ No calendars found for user {user_id} - user must create one first")
+        return jsonify({'error': 'No calendars found. Please create a calendar first.'}), 400
+
+    # ❌ 금지: 자동 캘린더 생성
+    # new_calendar = {...}
+    # supabase.table('calendars').insert(new_calendar).execute()
+    ```
+
+11. **플랫폼 카드 활성화 조건 (2024-10-05 추가)**
+    ```javascript
+    // ✅ 캘린더가 없으면 모든 플랫폼 카드 비활성화
+    if (totalCalendars === 0) {
+        disableAllPlatformCards();
+        showNoCalendarNotice();
+        return;
+    }
+
+    // ❌ 금지: 캘린더 없이 플랫폼 카드 활성화
+    ```
 
 ---
 
@@ -1240,4 +1290,19 @@ profiler = Profiler(app)
 *이 문서는 NotionFlow 프로젝트의 모든 개발 활동에 대한 절대 지침입니다.*
 *모든 코드 수정 시 이 문서의 규칙을 반드시 준수해야 합니다.*
 
-*마지막 업데이트: 2024년 10월 4일*
+*마지막 업데이트: 2024년 10월 5일*
+
+## 📝 최근 변경사항 (2024-10-05)
+
+### Google Calendar OAuth 2단계 모달 수정
+- **문제**: OAuth 성공 후 2단계 모달이 나타나지 않고, Google Calendar enabled 상태가 false로 표시됨
+- **해결**:
+  1. GoogleCalendarManager 2단계 플로우 구현 (Google 캘린더 선택 → NotionFlow 캘린더 선택)
+  2. 캘린더가 없을 때 플랫폼 카드 비활성화 로직 복원
+  3. 모든 자동 캘린더 생성 로직 제거 (사용자가 직접 생성해야 함)
+
+### 핵심 변경 파일
+- `frontend/static/js/google-calendar-manager.js`: 2단계 모달 플로우
+- `frontend/templates/dashboard-api-keys.html`: 카드 비활성화 로직
+- `frontend/routes/oauth_routes.py`: 자동 생성 로직 제거
+- `frontend/app.py`: 자동 생성 로직 제거

@@ -365,14 +365,24 @@ def get_platform_status():
             platform = token_row['platform']
             if platform in platforms:
                 has_oauth_token = bool(token_row.get('access_token'))
+
+                # OAuth 토큰이 있으면 enabled도 true로 설정 (OAuth 성공 = 활성화)
+                current_enabled = platforms[platform].get('enabled', False)
+                new_enabled = has_oauth_token or current_enabled  # OAuth 있거나 이미 enabled면 true
+
                 platforms[platform].update({
                     'configured': True,
                     'oauth_connected': has_oauth_token,
+                    'enabled': new_enabled,  # OAuth 토큰 있으면 활성화
                     'has_credentials': has_oauth_token,
                     'oauth_token_updated': token_row.get('updated_at'),
-                    'oauth_source': 'oauth_tokens'  # 새로운 OAuth 시스템
+                    'oauth_source': 'oauth_tokens',  # 새로운 OAuth 시스템
+                    'credentials': {
+                        'has_token': has_oauth_token,
+                        'token_preview': token_row.get('access_token', '')[:20] + '...' if has_oauth_token and token_row.get('access_token') else None
+                    }
                 })
-                print(f"🔑 [PLATFORM STATUS] {platform} OAuth token found: {has_oauth_token}")
+                print(f"🔑 [PLATFORM STATUS] {platform} OAuth token found: {has_oauth_token}, enabled: {new_enabled}")
 
         # Get platform coverage stats
         try:
