@@ -135,13 +135,13 @@ def get_dashboard_stats():
             for platform in platforms_result.data:
                 platform_name = platform.get('platform_name', '')
                 
-                # Check if the platform has API keys configured
-                api_key_result = supabase.table('api_keys').select('*').eq('user_id', user_id).eq('platform', platform_name).execute()
+                # Check if the platform has OAuth tokens configured
+                api_key_result = supabase.table('oauth_tokens').select('*').eq('user_id', user_id).eq('platform', platform_name).execute()
                 
                 if api_key_result.data:
-                    # Check if API key is not empty
-                    api_key_data = api_key_result.data[0]
-                    if api_key_data.get('api_key') and api_key_data.get('api_key').strip():
+                    # Check if access token is not empty
+                    token_data = api_key_result.data[0]
+                    if token_data.get('access_token') and token_data.get('access_token').strip():
                         connected_platforms_count += 1
         
         # Get sync events from sync_tracking table if it exists

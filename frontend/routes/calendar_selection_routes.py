@@ -41,10 +41,8 @@ def get_user_calendars_with_selection(user_id):
                 'message': 'No calendars found'
             })
 
-        # 선택된 캘린더 정보 조회
-        selected_result = supabase.table('selected_calendars').select('*').eq('user_id', user_id).eq('is_selected', True).execute()
-
-        selected_calendar_ids = {item['calendar_id'] for item in selected_result.data}
+        # 활성화된 캘린더 정보 조회 (is_active=true인 캘린더들)
+        selected_calendar_ids = {cal['id'] for cal in calendars_result.data if cal.get('is_active', True)}
 
         # 캘린더 목록에 선택 상태 추가
         calendars_with_selection = []
@@ -89,26 +87,20 @@ def select_calendars(user_id):
 
         supabase = get_supabase_admin()
 
-        # 기존 선택 상태 모두 삭제
-        supabase.table('selected_calendars').delete().eq('user_id', user_id).execute()
+        # 모든 캘린더를 비활성화
+        supabase.table('calendars').update({'is_active': False}).eq('owner_id', user_id).execute()
 
-        # 새로운 선택 상태 저장
+        # 선택된 캘린더들을 활성화
         if calendar_ids:
-            selection_data = []
             for calendar_id in calendar_ids:
-                # 캘린더가 실제로 존재하는지 확인
+                # 캘린더가 실제로 존재하는지 확인 후 활성화
                 calendar_check = supabase.table('calendars').select('id').eq('owner_id', user_id).eq('id', calendar_id).execute()
 
                 if calendar_check.data:
-                    selection_data.append({
-                        'user_id': user_id,
-                        'calendar_id': calendar_id,
-                        'is_selected': True,
-                        'selected_at': datetime.now().isoformat()
-                    })
-
-            if selection_data:
-                supabase.table('selected_calendars').insert(selection_data).execute()
+                    supabase.table('calendars').update({
+                        'is_active': True,
+                        'updated_at': datetime.now().isoformat()
+                    }).eq('id', calendar_id).execute()
 
         # 동기화 추적
         sync_tracker.track_user_activity(
@@ -153,22 +145,23 @@ def toggle_calendar_selection(user_id, calendar_id):
 
         calendar_info = calendar_check.data[0]
 
-        # 현재 선택 상태 확인
-        selection_check = supabase.table('selected_calendars').select('*').eq('user_id', user_id).eq('calendar_id', calendar_id).execute()
+        # 현재 활성화 상태 확인
+        current_status = calendar_info.get('is_active', True)
 
-        if selection_check.data:
-            # 이미 선택된 경우 - 선택 해제
-            supabase.table('selected_calendars').delete().eq('user_id', user_id).eq('calendar_id', calendar_id).execute()
+        if current_status:
+            # 이미 활성화된 경우 - 비활성화
+            supabase.table('calendars').update({
+                'is_active': False,
+                'updated_at': datetime.now().isoformat()
+            }).eq('id', calendar_id).execute()
             is_selected = False
             action = 'deselected'
         else:
-            # 선택되지 않은 경우 - 선택
-            supabase.table('selected_calendars').insert({
-                'user_id': user_id,
-                'calendar_id': calendar_id,
-                'is_selected': True,
-                'selected_at': datetime.now().isoformat()
-            }).execute()
+            # 비활성화된 경우 - 활성화
+            supabase.table('calendars').update({
+                'is_active': True,
+                'updated_at': datetime.now().isoformat()
+            }).eq('id', calendar_id).execute()
             is_selected = True
             action = 'selected'
 
@@ -209,31 +202,19 @@ def get_selected_calendars(user_id):
 
         supabase = get_supabase_admin()
 
-        # 선택된 캘린더 정보 조회 (JOIN 사용)
-        selected_result = supabase.table('selected_calendars').select('''
-            calendar_id,
-            selected_at,
-            user_calendars (
-                id,
-                name,
-                color,
-                google_calendar_id,
-                created_at
-            )
-        ''').eq('user_id', user_id).eq('is_selected', True).execute()
+        # 활성화된 캘린더 정보 조회
+        selected_result = supabase.table('calendars').select('*').eq('owner_id', user_id).eq('is_active', True).execute()
 
         selected_calendars = []
-        for item in selected_result.data:
-            calendar_data = item.get('user_calendars')
-            if calendar_data:
-                selected_calendars.append({
-                    'id': calendar_data['id'],
-                    'name': calendar_data['name'],
-                    'color': calendar_data.get('color', '#4285f4'),
-                    'google_calendar_id': calendar_data.get('google_calendar_id'),
-                    'selected_at': item['selected_at'],
-                    'created_at': calendar_data.get('created_at')
-                })
+        for calendar in selected_result.data:
+            selected_calendars.append({
+                'id': calendar['id'],
+                'name': calendar['name'],
+                'color': calendar.get('color', '#4285f4'),
+                'google_calendar_id': calendar.get('google_calendar_id'),
+                'selected_at': calendar.get('updated_at', calendar.get('created_at')),
+                'created_at': calendar.get('created_at')
+            })
 
         return jsonify({
             'success': True,

@@ -123,11 +123,9 @@ class GoogleCalendarService:
 
             calendar_data = response.data[0]
 
-            # 캘린더 선택 상태 확인 (selected_calendars 테이블 확인)
-            selection_response = self.supabase.table('selected_calendars').select('*').eq('user_id', user_id).eq('calendar_id', calendar_id).eq('is_selected', True).execute()
-
-            if not selection_response.data:
-                print(f"캘린더 {calendar_id}가 선택되지 않았습니다.")
+            # 캘린더가 활성화되어 있는지 확인
+            if not calendar_data.get('is_active', True):
+                print(f"캘린더 {calendar_id}가 비활성화되어 있습니다.")
                 return None
 
             return {

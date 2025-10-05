@@ -337,36 +337,36 @@ class NotionCalendarSync:
         return calendar_dbs
     
     def get_user_calendar_id(self, user_id: str) -> Optional[str]:
-        """Get the correct calendar_id for a user from selected_calendars table"""
+        """Get the correct calendar_id for a user from active calendars"""
         try:
             from utils.config import config
             from utils.uuid_helper import normalize_uuid
-            
+
             # Normalize user_id for consistency
             normalized_user_id = normalize_uuid(user_id)
-            
+
             # Use admin client to bypass RLS
             supabase = config.supabase_admin if hasattr(config, 'supabase_admin') and config.supabase_admin else config.get_client_for_user(user_id)
-            
+
             if not supabase:
                 print(f"❌ [CALENDAR_ID] No Supabase client for user {user_id}")
                 return None
-            
-            # Fallback: Use first available calendar for the user
+
+            # Use first active calendar for the user
             try:
                 calendars_result = supabase.table('calendars').select('id, name').eq('owner_id', user_id).eq('is_active', True).limit(1).execute()
                 if calendars_result.data:
                     calendar_id = calendars_result.data[0]['id']
                     calendar_name = calendars_result.data[0]['name']
-                    print(f"✅ [CALENDAR_ID] Using first available calendar for user {user_id}: {calendar_name} ({calendar_id})")
+                    print(f"✅ [CALENDAR_ID] Using first active calendar for user {user_id}: {calendar_name} ({calendar_id})")
                     return calendar_id
                 else:
                     print(f"⚠️ [CALENDAR_ID] No active calendars found for user {user_id}")
                     return None
             except Exception as calendar_error:
-                print(f"❌ [CALENDAR_ID] Error querying user_calendars: {calendar_error}")
+                print(f"❌ [CALENDAR_ID] Error querying calendars: {calendar_error}")
                 return None
-                
+
         except Exception as e:
             print(f"❌ [CALENDAR_ID] Error getting calendar_id for user {user_id}: {e}")
             return None
