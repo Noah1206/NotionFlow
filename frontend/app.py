@@ -5674,14 +5674,10 @@ def sync_calendar():
             except Exception as cal_load_error:
                 print(f"[WARNING] Failed to load user calendars: {cal_load_error}")
             
-            # 그래도 없으면 기본 캘린더 생성
+            # 캘린더가 없으면 None 반환 (자동 생성하지 않음)
             if not calendar:
-                calendar = {
-                    'id': calendar_id,
-                    'name': f'Calendar {calendar_id[:8]}',
-                    'user_id': user_id,
-                    'created_at': '2024-09-09T00:00:00Z'
-                }
+                print(f"⚠️ [SYNC] No calendar found for calendar_id: {calendar_id}")
+                calendar = None
         
         # 연동 정보는 간단히 세션에만 저장 (테이블 문제 회피)
         from datetime import datetime
@@ -6730,32 +6726,13 @@ def auto_import_google_events():
         user_calendars = supabase_client.table('calendars').select('*').eq('owner_id', user_id).execute()
         
         if not user_calendars.data:
-            # Create a default calendar for the user
-            print(f"No calendars found. Creating default calendar for user {user_id}")
-            
-            new_calendar = {
-                'owner_id': user_id,
-                'name': 'My Calendar',
-                'description': 'Default calendar for imported events',
-                'color': '#4285F4',  # Google blue
-                'platform': 'custom',
-                'is_shared': False,
-                'is_enabled': True,
-                'created_at': dt.now().isoformat(),
-                'updated_at': dt.now().isoformat()
-            }
-            
-            create_result = supabase_client.table('calendars').insert(new_calendar).execute()
-            
-            if create_result.data:
-                calendar_data = create_result.data[0]
-                print(f"Created default calendar: {calendar_data.get('id')}")
-            else:
-                return jsonify({'error': 'Failed to create default calendar'}), 500
-        else:
-            # Use the first existing calendar
-            calendar_data = user_calendars.data[0]
-            print(f"Using existing calendar: {calendar_data.get('id')} - {calendar_data.get('name')}")
+            # No calendars found - user must create one first
+            print(f"⚠️ No calendars found for user {user_id} - user must create one first")
+            return jsonify({'error': 'No calendars found. Please create a calendar first.'}), 400
+
+        # Use the first existing calendar
+        calendar_data = user_calendars.data[0]
+        print(f"Using existing calendar: {calendar_data.get('id')} - {calendar_data.get('name')}")
         
         calendar_id = calendar_data.get('id')
         

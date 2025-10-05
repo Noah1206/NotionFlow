@@ -900,22 +900,9 @@ def generic_oauth_callback(platform):
                                         calendar_id = calendars.data[0]['id']
                                         print(f"📅 [OAUTH] Found calendar for Notion sync: {calendar_id}")
                                     else:
-                                        # Create a default calendar
-                                        import uuid
-                                        calendar_id = str(uuid.uuid4())
-                                        new_calendar = {
-                                            'id': calendar_id,
-                                            'owner_id': normalized_user_id,
-                                            'name': 'My Calendar',
-                                            'description': 'Default calendar for sync',
-                                            'color': '#3B82F6',
-                                            'type': 'personal',
-                                            'is_active': True,
-                                            'created_at': datetime.now().isoformat(),
-                                            'updated_at': datetime.now().isoformat()
-                                        }
-                                        service_supabase.table('calendars').insert(new_calendar).execute()
-                                        print(f"📅 [OAUTH] Created new calendar: {calendar_id}")
+                                        # No calendar found - user must create one first
+                                        print(f"⚠️ [OAUTH] No calendar found for user {normalized_user_id} - user must create one first")
+                                        calendar_id = None
                                 except Exception as cal_e:
                                     print(f"⚠️ [OAUTH] Error getting/creating calendar: {cal_e}")
                             
@@ -1300,32 +1287,13 @@ def handle_callback_success(platform, user_info):
                         calendar_id = personal_calendars[0]['id']
                         print(f"📅 [OAUTH] Using existing calendar: {calendar_id}")
                     else:
-                        # Create a new calendar for the user
-                        import uuid
-                        calendar_id = str(uuid.uuid4())
-                        print(f"📅 [OAUTH] Created new calendar: {calendar_id}")
-                        
-                        # Create the calendar in the database
-                        try:
-                            calendar_data = {
-                                'id': calendar_id,
-                                'user_id': user_id,
-                                'name': 'My Calendar',
-                                'description': 'Default calendar for Notion sync',
-                                'color': '#3B82F6',
-                                'platform': 'notionflow',
-                                'created_at': datetime.now().isoformat(),
-                                'updated_at': datetime.now().isoformat()
-                            }
-                            supabase.table('calendars').insert(calendar_data).execute()
-                            print(f"✅ [OAUTH] Created calendar in database: {calendar_id}")
-                        except Exception as db_e:
-                            print(f"⚠️ [OAUTH] Failed to create calendar in database: {db_e}")
+                        # No calendar found - user must create one first
+                        print(f"⚠️ [OAUTH] No calendar found for user {user_id} - user must create one first")
+                        calendar_id = None
                             
                 except Exception as cal_e:
                     print(f"⚠️ [OAUTH] Calendar setup error: {cal_e}")
-                    import uuid
-                    calendar_id = str(uuid.uuid4())
+                    calendar_id = None
                 
                 # Now create proper calendar association
                 if calendar_id:

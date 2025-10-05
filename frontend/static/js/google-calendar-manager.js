@@ -30,7 +30,7 @@ class GoogleCalendarManager {
             console.log('📊 [GOOGLE-MANAGER] Current status:', status);
 
             if (status.oauth_connected && status.calendars_available) {
-                // Already authenticated, show calendar selection
+                // Already authenticated, show Google calendar selection (Step 1)
                 await this.showGoogleCalendarSelection();
             } else {
                 // Need OAuth first
@@ -67,14 +67,11 @@ class GoogleCalendarManager {
             // Wait for OAuth completion
             console.log('⏳ [GOOGLE-MANAGER] Waiting for OAuth to complete...');
             await this.waitForOAuthCompletion();
-            console.log('✅ [GOOGLE-MANAGER] OAuth completed! Now showing NotionFlow calendar selection...');
+            console.log('✅ [GOOGLE-MANAGER] OAuth completed! Now showing Google calendar selection...');
 
-            // Get primary Google calendar and then show NotionFlow calendar selection
-            await this.selectPrimaryGoogleCalendar();
-
-            // Then show NotionFlow calendar selection
-            await this.showNotionFlowCalendarSelection();
-            console.log('✅ [GOOGLE-MANAGER] NotionFlow calendar selection modal should be visible now');
+            // Show Google calendar selection first (Step 1)
+            await this.showGoogleCalendarSelection();
+            console.log('✅ [GOOGLE-MANAGER] Google calendar selection modal shown - Step 1 of 2');
         } catch (error) {
             console.error('❌ [GOOGLE-MANAGER] OAuth failed:', error);
             throw error;
@@ -140,10 +137,10 @@ class GoogleCalendarManager {
     }
 
     /**
-     * Show Google Calendar selection modal
+     * Show Google Calendar selection modal (Step 1 of 2)
      */
     async showGoogleCalendarSelection() {
-        console.log('📅 [GOOGLE-MANAGER] Loading Google calendars...');
+        console.log('📅 [GOOGLE-MANAGER] Loading Google calendars for Step 1...');
 
         try {
             // Fetch Google calendars
@@ -154,7 +151,7 @@ class GoogleCalendarManager {
                 throw new Error('Google 캘린더를 찾을 수 없습니다.');
             }
 
-            console.log(`📅 [GOOGLE-MANAGER] Found ${data.calendars.length} calendars`);
+            console.log(`📅 [GOOGLE-MANAGER] Found ${data.calendars.length} Google calendars for Step 1`);
 
             // Show selection modal
             this.createGoogleCalendarModal(data.calendars);
@@ -182,12 +179,12 @@ class GoogleCalendarManager {
             </div>
         `).join('');
 
-        // Create modal HTML
+        // Create modal HTML for Step 1
         const modalHtml = `
             <div class="modal-overlay" id="google-calendar-modal">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h2>Google 캘린더 선택</h2>
+                        <h2>Google 캘린더 선택 (1/2단계)</h2>
                         <button class="modal-close" onclick="window.googleManager.closeModal('google-calendar-modal')">&times;</button>
                     </div>
                     <div class="modal-body">
@@ -205,10 +202,10 @@ class GoogleCalendarManager {
     }
 
     /**
-     * Handle Google calendar selection
+     * Handle Google calendar selection (Step 1 complete)
      */
     async selectGoogleCalendar(calendarId, calendarName) {
-        console.log(`📅 [GOOGLE-MANAGER] Selected Google calendar: ${calendarId} (${calendarName})`);
+        console.log(`📅 [GOOGLE-MANAGER] Step 1 complete - Selected Google calendar: ${calendarId} (${calendarName})`);
 
         // Store selection
         this.selectedGoogleCalendarId = calendarId;
@@ -217,8 +214,9 @@ class GoogleCalendarManager {
         // Close Google calendar modal
         this.closeModal('google-calendar-modal');
 
-        // Show NotionFlow calendar selection
+        // Show NotionFlow calendar selection (Step 2)
         setTimeout(() => {
+            console.log('🔄 [GOOGLE-MANAGER] Moving to Step 2 - NotionFlow calendar selection');
             this.showNotionFlowCalendarSelection();
         }, 300);
     }
@@ -255,10 +253,10 @@ class GoogleCalendarManager {
     }
 
     /**
-     * Show NotionFlow Calendar selection modal
+     * Show NotionFlow Calendar selection modal (Step 2 of 2)
      */
     async showNotionFlowCalendarSelection() {
-        console.log('📅 [GOOGLE-MANAGER] Loading NotionFlow calendars...');
+        console.log('📅 [GOOGLE-MANAGER] Step 2 - Loading NotionFlow calendars...');
 
         try {
             // Fetch NotionFlow calendars
@@ -269,23 +267,11 @@ class GoogleCalendarManager {
             const calendars = data.personal_calendars || data.calendars || [];
 
             if (!data.success || !calendars.length) {
-                // 캘린더가 없으면 새로 생성할 수 있도록 안내하고 기본 캘린더 제공
-                console.log('📅 [GOOGLE-MANAGER] No calendars found, creating default calendar option');
-
-                // 기본 캘린더 옵션 생성
-                const defaultCalendar = {
-                    id: 'create-new',
-                    name: '새 캘린더 생성',
-                    description: 'Google Calendar와 동기화할 새로운 NotionFlow 캘린더를 생성합니다.',
-                    event_count: 0,
-                    is_default: true
-                };
-
-                this.createNotionFlowCalendarModal([defaultCalendar]);
+                this.showNotification('NotionFlow 캘린더가 없습니다. 캘린더를 먼저 생성해주세요.', 'warning');
                 return;
             }
 
-            console.log(`📅 [GOOGLE-MANAGER] Found ${calendars.length} NotionFlow calendars`);
+            console.log(`📅 [GOOGLE-MANAGER] Step 2 - Found ${calendars.length} NotionFlow calendars`);
 
             // Show selection modal
             this.createNotionFlowCalendarModal(calendars);
@@ -313,12 +299,12 @@ class GoogleCalendarManager {
             </div>
         `).join('');
 
-        // Create modal HTML
+        // Create modal HTML for Step 2
         const modalHtml = `
             <div class="modal-overlay" id="notionflow-calendar-modal">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h2>NotionFlow 캘린더 선택</h2>
+                        <h2>NotionFlow 캘린더 선택 (2/2단계)</h2>
                         <button class="modal-close" onclick="window.googleManager.closeModal('notionflow-calendar-modal')">&times;</button>
                     </div>
                     <div class="modal-body">
@@ -336,10 +322,10 @@ class GoogleCalendarManager {
     }
 
     /**
-     * Handle NotionFlow calendar selection and perform final connection
+     * Handle NotionFlow calendar selection and perform final connection (Step 2 complete)
      */
     async selectNotionFlowCalendar(calendarId, calendarName) {
-        console.log(`📅 [GOOGLE-MANAGER] Selected NotionFlow calendar: ${calendarId} (${calendarName})`);
+        console.log(`📅 [GOOGLE-MANAGER] Step 2 complete - Selected NotionFlow calendar: ${calendarId} (${calendarName})`);
 
         if (!this.selectedGoogleCalendarId) {
             console.error('❌ [GOOGLE-MANAGER] No Google calendar selected!');
@@ -348,32 +334,7 @@ class GoogleCalendarManager {
         }
 
         try {
-            let finalCalendarId = calendarId;
-
-            // 새 캘린더 생성이 필요한 경우
-            if (calendarId === 'create-new') {
-                console.log('📅 [GOOGLE-MANAGER] Creating new NotionFlow calendar...');
-
-                // 새 캘린더 생성 API 호출
-                const createResponse = await fetch('/api/calendars', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name: 'Google Calendar 동기화',
-                        description: 'Google Calendar와 동기화되는 캘린더',
-                        color: '#4285F4' // Google 브랜드 컬러
-                    })
-                });
-
-                const createResult = await createResponse.json();
-
-                if (!createResult.success) {
-                    throw new Error(createResult.error || '새 캘린더 생성에 실패했습니다.');
-                }
-
-                finalCalendarId = createResult.calendar.id;
-                console.log(`✅ [GOOGLE-MANAGER] Created new calendar: ${finalCalendarId}`);
-            }
+            console.log(`🔗 [GOOGLE-MANAGER] Final connection: ${this.selectedGoogleCalendarName} → ${calendarName}`);
 
             // Perform connection
             const response = await fetch('/api/platform/google/connect', {
@@ -381,20 +342,20 @@ class GoogleCalendarManager {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     calendar_id: this.selectedGoogleCalendarId,
-                    notionflow_calendar_id: finalCalendarId
+                    notionflow_calendar_id: calendarId
                 })
             });
 
             const result = await response.json();
 
             if (result.success) {
-                console.log('✅ [GOOGLE-MANAGER] Connection successful!');
+                console.log('✅ [GOOGLE-MANAGER] 2-step connection completed successfully!');
 
                 // Close modal
                 this.closeModal('notionflow-calendar-modal');
 
                 // Show success notification
-                this.showNotification(`Google Calendar가 "${calendarName}" 캘린더와 성공적으로 연결되었습니다!`, 'success');
+                this.showNotification(`Google Calendar "${this.selectedGoogleCalendarName}"가 "${calendarName}" 캘린더와 성공적으로 연결되었습니다!`, 'success');
 
                 // Update UI using existing dashboard function
                 if (window.markPlatformConnected) {
