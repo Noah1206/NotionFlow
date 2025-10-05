@@ -998,6 +998,52 @@ def generic_oauth_callback(platform):
             traceback.print_exc()
             # Continue with OAuth flow even if platform storage fails
         
+        # Create calendar_sync_configs entry for enabled status
+        try:
+            calendar_sync_config_data = {
+                'user_id': normalized_user_id,
+                'platform': platform,
+                'is_enabled': True,  # Google Calendar는 OAuth 성공 시 자동으로 활성화
+                'sync_frequency': 30,  # 기본 30분 간격
+                'created_at': datetime.now().isoformat(),
+                'updated_at': datetime.now().isoformat(),
+                'credentials': {
+                    'access_token': token_data.get('access_token', ''),
+                    'refresh_token': token_data.get('refresh_token', ''),
+                    'expires_at': (datetime.now() + timedelta(seconds=int(token_data.get('expires_in', 3600)))).isoformat() if token_data.get('expires_in') else None
+                }
+            }
+
+            # Check if sync config already exists
+            existing_sync_config = supabase.table('calendar_sync_configs').select('*').eq('user_id', normalized_user_id).eq('platform', platform).execute()
+
+            if existing_sync_config.data:
+                # Update existing config
+                update_data = {
+                    'is_enabled': True,
+                    'updated_at': datetime.now().isoformat(),
+                    'credentials': calendar_sync_config_data['credentials']
+                }
+                supabase.table('calendar_sync_configs').update(update_data).eq('user_id', normalized_user_id).eq('platform', platform).execute()
+                print(f"✅ Updated existing {platform} calendar_sync_configs for user {normalized_user_id}")
+            else:
+                # Create new config
+                try:
+                    supabase.table('calendar_sync_configs').insert(calendar_sync_config_data).execute()
+                    print(f"✅ Created new {platform} calendar_sync_configs for user {normalized_user_id}")
+                except Exception as rls_error:
+                    # RLS 정책 오류 시 서비스 역할로 재시도
+                    print(f"⚠️ RLS policy blocked, retrying calendar_sync_configs with service role: {rls_error}")
+                    if config.supabase_admin:
+                        config.supabase_admin.table('calendar_sync_configs').insert(calendar_sync_config_data).execute()
+                        print(f"✅ Created new {platform} calendar_sync_configs with admin client")
+
+        except Exception as sync_config_error:
+            print(f"Failed to store calendar_sync_configs: {sync_config_error}")
+            import traceback
+            traceback.print_exc()
+            # Continue with OAuth flow even if sync config storage fails
+
         # Track the connection event
         sync_tracker.track_sync_event(
             user_id=actual_user_id,

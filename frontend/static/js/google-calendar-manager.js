@@ -269,7 +269,19 @@ class GoogleCalendarManager {
             const calendars = data.personal_calendars || data.calendars || [];
 
             if (!data.success || !calendars.length) {
-                this.showNotification('NotionFlow 캘린더가 없습니다. 캘린더를 먼저 생성해주세요.', 'warning');
+                // 캘린더가 없으면 새로 생성할 수 있도록 안내하고 기본 캘린더 제공
+                console.log('📅 [GOOGLE-MANAGER] No calendars found, creating default calendar option');
+
+                // 기본 캘린더 옵션 생성
+                const defaultCalendar = {
+                    id: 'create-new',
+                    name: '새 캘린더 생성',
+                    description: 'Google Calendar와 동기화할 새로운 NotionFlow 캘린더를 생성합니다.',
+                    event_count: 0,
+                    is_default: true
+                };
+
+                this.createNotionFlowCalendarModal([defaultCalendar]);
                 return;
             }
 
@@ -336,13 +348,40 @@ class GoogleCalendarManager {
         }
 
         try {
+            let finalCalendarId = calendarId;
+
+            // 새 캘린더 생성이 필요한 경우
+            if (calendarId === 'create-new') {
+                console.log('📅 [GOOGLE-MANAGER] Creating new NotionFlow calendar...');
+
+                // 새 캘린더 생성 API 호출
+                const createResponse = await fetch('/api/calendars', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: 'Google Calendar 동기화',
+                        description: 'Google Calendar와 동기화되는 캘린더',
+                        color: '#4285F4' // Google 브랜드 컬러
+                    })
+                });
+
+                const createResult = await createResponse.json();
+
+                if (!createResult.success) {
+                    throw new Error(createResult.error || '새 캘린더 생성에 실패했습니다.');
+                }
+
+                finalCalendarId = createResult.calendar.id;
+                console.log(`✅ [GOOGLE-MANAGER] Created new calendar: ${finalCalendarId}`);
+            }
+
             // Perform connection
             const response = await fetch('/api/platform/google/connect', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     calendar_id: this.selectedGoogleCalendarId,
-                    notionflow_calendar_id: calendarId
+                    notionflow_calendar_id: finalCalendarId
                 })
             });
 
@@ -517,4 +556,7 @@ const styles = `
 // Add styles to document
 document.head.insertAdjacentHTML('beforeend', styles);
 
-console.log('✅ [GOOGLE-MANAGER] Loaded successfully');
+// Initialize Google Calendar Manager
+window.googleManager = new GoogleCalendarManager();
+
+console.log('✅ [GOOGLE-MANAGER] Loaded and initialized successfully');

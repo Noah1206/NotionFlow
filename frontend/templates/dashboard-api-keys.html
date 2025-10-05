@@ -2082,26 +2082,47 @@
     const platformCards = document.querySelectorAll('.platform-card');
 
     platformCards.forEach(card => {
+        const platform = card.dataset.platform;
+
         if (!hasCalendars) {
-            // 캘린더가 없으면 카드 비활성화
-            card.classList.add('disabled');
+            // Google Calendar와 Notion은 캘린더가 없어도 연결 가능 (새 캘린더 생성 가능)
+            if (platform === 'google' || platform === 'notion') {
+                // 이러한 플랫폼들은 비활성화하지 않음
+                card.classList.remove('disabled');
 
-            // 안내 메시지 추가 (아직 없으면)
-            if (!card.querySelector('.no-calendar-notice')) {
-                const notice = document.createElement('div');
-                notice.className = 'no-calendar-notice';
-                notice.innerHTML = '<div class="no-calendar-notice-text">📅 먼저 캘린더를 생성해주세요</div>';
-                card.appendChild(notice);
+                // 안내 메시지 제거
+                const notice = card.querySelector('.no-calendar-notice');
+                if (notice) {
+                    notice.remove();
+                }
+
+                // 버튼들 활성화
+                const buttons = card.querySelectorAll('button');
+                buttons.forEach(btn => {
+                    btn.disabled = false;
+                    btn.style.pointerEvents = '';
+                });
+            } else {
+                // 다른 플랫폼들은 기존 캘린더가 필요함
+                card.classList.add('disabled');
+
+                // 안내 메시지 추가 (아직 없으면)
+                if (!card.querySelector('.no-calendar-notice')) {
+                    const notice = document.createElement('div');
+                    notice.className = 'no-calendar-notice';
+                    notice.innerHTML = '<div class="no-calendar-notice-text">📅 먼저 캘린더를 생성해주세요</div>';
+                    card.appendChild(notice);
+                }
+
+                // 버튼들 비활성화
+                const buttons = card.querySelectorAll('button');
+                buttons.forEach(btn => {
+                    btn.disabled = true;
+                    btn.style.pointerEvents = 'none';
+                });
             }
-
-            // 버튼들 비활성화
-            const buttons = card.querySelectorAll('button');
-            buttons.forEach(btn => {
-                btn.disabled = true;
-                btn.style.pointerEvents = 'none';
-            });
         } else {
-            // 캘린더가 있으면 카드 활성화
+            // 캘린더가 있으면 모든 카드 활성화
             card.classList.remove('disabled');
 
             // 안내 메시지 제거
