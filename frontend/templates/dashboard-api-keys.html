@@ -2042,11 +2042,13 @@
                                     oneClickBtn.style.display = 'inline-block';
                                 }
 
-                                // Google 연결해제 버튼 제거 (해당 플랫폼이 연결되지 않은 경우에만)
-                                if (platformName === 'google') {
+                                // Google 연결해제 버튼 제거 (해당 플랫폼이 완전히 연결되지 않은 경우에만)
+                                // OAuth 토큰이 있는 경우는 제거하지 않음 (일시적인 상태일 수 있음)
+                                if (platformName === 'google' && !platform.oauth_connected) {
                                     const googleDisconnectBtn = platformCard.querySelector('.google-disconnect-btn');
                                     if (googleDisconnectBtn) {
                                         googleDisconnectBtn.remove();
+                                        console.log('🗑️ [GOOGLE] OAuth 토큰이 없으므로 연결해제 버튼 제거');
                                     }
                                 }
 
@@ -2907,10 +2909,10 @@
         const card = document.querySelector(`[data-platform="${platform}"]`);
         if (!card) return;
 
-        // 기존 중복 버튼들 제거 (중복 방지)
+        // 기존 중복 버튼들 제거 (해당 플랫폼 카드에서만!)
         const existingGoogleDisconnectBtns = card.querySelectorAll('.google-disconnect-btn');
         existingGoogleDisconnectBtns.forEach(btn => btn.remove());
-        console.log(`🧹 ${platform} 기존 연결해제 버튼 ${existingGoogleDisconnectBtns.length}개 제거됨`);
+        console.log(`🧹 ${platform} 카드에서 기존 연결해제 버튼 ${existingGoogleDisconnectBtns.length}개 제거됨`);
 
         // 플랫폼 상태를 연결됨으로 표시
         const statusElement = card.querySelector('.platform-status');

@@ -120,7 +120,31 @@
    user_id = session.get('user_id')  # 항상 문자열
    ```
 
-9. **Google Calendar OAuth 2단계 모달 플로우 준수 (2024-10-05 추가)**
+9. **✅ 크로스 플랫폼 버튼 상태 격리 원칙 (2024-10-05 수정)**
+   ```javascript
+   // ✅ GOOD: 플랫폼별 버튼 제거 시 OAuth 상태 확인
+   if (platformName === 'google' && !platform.oauth_connected) {
+       const googleDisconnectBtn = platformCard.querySelector('.google-disconnect-btn');
+       if (googleDisconnectBtn) {
+           googleDisconnectBtn.remove();
+           console.log('🗑️ [GOOGLE] OAuth 토큰이 없으므로 연결해제 버튼 제거');
+       }
+   }
+
+   // ❌ BAD: 다른 플랫폼 상태 업데이트 시 무조건 제거
+   if (platformName === 'google') {
+       const googleDisconnectBtn = platformCard.querySelector('.google-disconnect-btn');
+       if (googleDisconnectBtn) {
+           googleDisconnectBtn.remove(); // OAuth 상태 확인 없이 제거
+       }
+   }
+   ```
+
+   **문제**: Apple Calendar OAuth 시 `updateAllPlatformStatus()` 호출 → Google Calendar 상태 검사 → `enabled: false` 확인 → Google 연결해제 버튼 제거
+
+   **해결**: OAuth 토큰(`oauth_connected`)이 있으면 일시적 비활성화 상태여도 버튼 유지
+
+10. **Google Calendar OAuth 2단계 모달 플로우 준수 (2024-10-05 추가)**
    ```javascript
    // ✅ 올바른 2단계 플로우
    // 1단계: Google 캘린더 선택 (사용자 계정의 구글 캘린더들)
