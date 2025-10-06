@@ -374,10 +374,16 @@ class AppleSetupWizard {
                     console.log('✅ [APPLE WIZARD] Platform status updated to connected');
                 }
 
-                // 플랫폼 상태 새로고침
+                // 플랫폼 상태 새로고침 (모든 플랫폼 상태 업데이트)
                 if (window.loadAllPlatformStatus) {
                     window.loadAllPlatformStatus();
                     console.log('✅ [APPLE WIZARD] All platform statuses refreshed');
+                }
+
+                // ✅ 모든 플랫폼 상태 재검사 (크로스 플랫폼 버튼 상태 격리 보장)
+                if (window.updateAllPlatformStatus) {
+                    window.updateAllPlatformStatus();
+                    console.log('✅ [APPLE WIZARD] Cross-platform button states updated');
                 }
 
                 // 연동된 캘린더 정보 새로고침

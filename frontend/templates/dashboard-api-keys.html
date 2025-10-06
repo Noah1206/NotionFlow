@@ -2664,10 +2664,9 @@
                     oneClickBtn.style.display = 'inline-flex';
                 }
 
-                // Google 전용 연결해제 버튼 제거
-                if (googleDisconnectBtn) {
-                    googleDisconnectBtn.remove();
-                }
+                // ✅ Google 연결해제 버튼 제거 로직 삭제 - updateAllPlatformStatus()에서만 처리
+                // OAuth 토큰 상태를 알 수 없으므로 여기서는 제거하지 않음
+                console.log('🔧 [GOOGLE] updatePlatformStatus에서는 연결해제 버튼 상태 변경 안함');
             } else {
                 // 다른 플랫폼은 기존 로직 유지
                 if (oneClickDisconnectBtn) {
