@@ -6404,9 +6404,6 @@ document.addEventListener('click', function(e) {
 
 // ===== VIEW TOGGLE FUNCTIONALITY =====
 
-// 현재 뷰 상태
-let currentView = 'week';
-
 // 뷰 토글 초기화
 function initViewToggle() {
     const viewOptions = document.querySelectorAll('.view-option');
