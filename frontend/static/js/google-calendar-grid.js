@@ -2075,6 +2075,13 @@ class GoogleCalendarGrid {
         if (this.isEventInTrash(eventData.id)) {
             return;
         }
+
+        // 🚫 중복 방지: 기존 이벤트 요소가 있으면 제거
+        const existingEvent = this.container.querySelector(`[data-event-id="${eventData.id}"]`);
+        if (existingEvent) {
+            console.log(`🔄 Removing existing event element: ${eventData.title}`);
+            existingEvent.remove();
+        }
         
         // Fix null date issue
         if (!eventData.date || eventData.date === null || eventData.date === undefined) {
@@ -2101,21 +2108,14 @@ class GoogleCalendarGrid {
         // Calculate day index more precisely
         const timeDiff = eventDate.getTime() - weekStart.getTime();
         const dayIndex = Math.round(timeDiff / (24 * 60 * 60 * 1000));
-        
-        // Date calculation complete
-        
-        // Allow events from multiple weeks (expand range significantly)
-        if (dayIndex < -7 || dayIndex > 14) { // Allow previous and next weeks
-            // Silently skip events that are too far out instead of logging
+
+        // 🎯 날짜 계산 정확성 개선: 현재 주 범위만 허용 (0-6)
+        if (dayIndex < 0 || dayIndex > 6) {
+            console.log(`⚠️ Event "${eventData.title}" is outside current week (dayIndex: ${dayIndex}), skipping render`);
             return;
         }
-        
-        // Adjust dayIndex if it's negative (previous week) or > 6 (next week)
-        if (dayIndex < 0) {
-            // console.log('⚠️ Event from previous week, adjusting...');
-        } else if (dayIndex > 6) {
-            // console.log('⚠️ Event from next week, adjusting...');
-        }
+
+        console.log(`📅 Event "${eventData.title}" positioned at dayIndex: ${dayIndex} (${eventDateStr})`)
         
         // Check if this is a multi-day event - skip individual rendering
         if (eventData.isMultiDay) {
@@ -2146,12 +2146,9 @@ class GoogleCalendarGrid {
         const endPosition = endHour + endMin / 60;
         const duration = endPosition - startPosition;
         
-        // Ensure dayIndex is within valid range (0-6 for day columns)
-        const validDayIndex = Math.max(0, Math.min(6, dayIndex));
-        // console.log('🔍 Original dayIndex:', dayIndex, 'Adjusted to:', validDayIndex);
-        
-        const dayColumn = this.container.querySelector(`.day-column[data-day="${validDayIndex}"]`);
-        // console.log('🔍 Looking for day column with dayIndex:', validDayIndex, 'Found:', dayColumn);
+        // dayIndex는 이미 0-6 범위로 검증됨
+        const dayColumn = this.container.querySelector(`.day-column[data-day="${dayIndex}"]`);
+        console.log(`🔍 Looking for day column with dayIndex: ${dayIndex}, Found:`, dayColumn);
         
         if (!dayColumn) {
             // console.log('❌ Day column not found! Available columns:', 
@@ -2250,18 +2247,29 @@ class GoogleCalendarGrid {
     
     renderAllDayEvent(eventData, dayIndex) {
         // console.log('🎯 renderAllDayEvent called with data:', eventData, 'dayIndex:', dayIndex);
-        
+
         // Check if this is a multi-day event - skip all-day rendering
         if (eventData.isMultiDay) {
             // console.log('🔄 Skipping all-day render for multi-day event:', eventData.title);
             // console.log('   Multi-day events should be rendered via renderMultiDayEvent only');
             return;
         }
-        
-        // Ensure dayIndex is within valid range (0-6 for day columns)
-        const validDayIndex = Math.max(0, Math.min(6, dayIndex));
-        
-        const dayColumn = this.container.querySelector(`.day-column[data-day="${validDayIndex}"]`);
+
+        // 🚫 중복 방지: 기존 all-day 이벤트 요소가 있으면 제거
+        const existingAllDayEvent = this.container.querySelector(`[data-event-id="${eventData.id}"].all-day-event`);
+        if (existingAllDayEvent) {
+            console.log(`🔄 Removing existing all-day event element: ${eventData.title}`);
+            existingAllDayEvent.remove();
+        }
+
+        // 🎯 날짜 범위 검증: dayIndex가 0-6 범위 내에 있는지 확인
+        if (dayIndex < 0 || dayIndex > 6) {
+            console.log(`⚠️ All-day event "${eventData.title}" is outside current week (dayIndex: ${dayIndex}), skipping render`);
+            return;
+        }
+
+        const dayColumn = this.container.querySelector(`.day-column[data-day="${dayIndex}"]`);
+        console.log(`🔍 All-day event - Looking for day column ${dayIndex}, Found:`, dayColumn);
         
         if (!dayColumn) {
             // console.log('❌ Day column not found for all-day event! DayIndex:', validDayIndex);
@@ -2274,17 +2282,21 @@ class GoogleCalendarGrid {
             allDayContainer = document.createElement('div');
             allDayContainer.className = 'all-day-events-container';
             allDayContainer.style.cssText = `
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
+                position: relative;
+                width: 100%;
                 min-height: 30px;
-                background: rgba(59, 130, 246, 0.1);
-                border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+                max-height: 120px;
+                overflow-y: auto;
+                background: rgba(59, 130, 246, 0.05);
+                border-bottom: 1px solid rgba(59, 130, 246, 0.2);
                 padding: 4px;
                 z-index: 10;
+                margin-bottom: 4px;
+                border-radius: 4px;
             `;
+            // All-day 컨테이너를 그리드 내 상단에 안전하게 배치
             dayColumn.insertBefore(allDayContainer, dayColumn.firstChild);
+            console.log(`✅ Created all-day container for day ${dayIndex}`);
         }
         
         const eventElement = document.createElement('div');
