@@ -2493,6 +2493,22 @@
                 }
 
         /* ===== EVENT DETAIL POPUP STYLES ===== */
+        /* Modal overlay should not cover sidebar */
+        #event-detail-modal.modal-overlay {
+            position: fixed !important;
+            top: 0 !important;
+            left: var(--sidebar-width, 250px) !important; /* Start after sidebar */
+            right: 0 !important;
+            bottom: 0 !important;
+            width: auto !important; /* Remove width to use left/right positioning */
+            height: 100vh !important;
+            background: rgba(0, 0, 0, 0.5) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            z-index: 1000 !important;
+        }
+
         .event-detail-modal {
             max-width: 500px !important;
             width: 90vw !important;
