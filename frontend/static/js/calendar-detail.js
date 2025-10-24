@@ -6245,8 +6245,7 @@ function showEventDetails(event) {
     // 현재 이벤트를 전역 변수에 저장 (수정/삭제 시 사용)
     window.currentEventDetail = event;
 
-    // 모달 표시
-    modal.style.display = 'flex';
+    // 모달 표시 (CSS에서 .show 클래스로 display: flex 적용)
     modal.classList.add('show');
 
     // 애니메이션을 위한 약간의 지연
@@ -6262,8 +6261,7 @@ function showEventDetails(event) {
 function closeEventDetailModal() {
     const modal = document.getElementById('event-detail-modal');
     if (modal) {
-        modal.style.display = 'none';
-        modal.classList.remove('show');
+        modal.classList.remove('show'); // CSS에서 display: none 적용됨
 
         const modalContent = modal.querySelector('.modal-content');
         if (modalContent) {
