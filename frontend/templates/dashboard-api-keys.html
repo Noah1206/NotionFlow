@@ -2025,35 +2025,18 @@
                                 // 연결되지 않은 상태
                                 console.log(`❌ ${platformName} 연결되지 않음:`, platform);
 
-                                // Google Calendar 특별 처리: OAuth는 있지만 enabled가 false인 경우
-                                if (platformName === 'google' && platform.oauth_connected && !platform.enabled) {
-                                    statusElement.className = 'platform-status warning';
-                                    statusElement.innerHTML = '<span class="status-dot"></span>일시 중단됨';
-                                } else {
-                                    statusElement.className = 'platform-status disconnected';
-                                    statusElement.innerHTML = '<span class="status-dot"></span>연결되지 않음';
-                                }
+                                // 연결되지 않은 상태 - 단순화
+                                statusElement.className = 'platform-status disconnected';
+                                statusElement.innerHTML = '<span class="status-dot"></span>연결되지 않음';
 
-                                // 연결 버튼 복원 (Google 특별 처리)
+                                // 연결 버튼 복원 - 항상 일반 연결 버튼
                                 if (connectBtn) {
                                     connectBtn.style.display = 'inline-block';
-
-                                    if (platformName === 'google' && platform.oauth_connected && !platform.enabled) {
-                                        // Google Calendar 재활성화 버튼
-                                        connectBtn.className = 'platform-connect-btn google-reactivate';
-                                        connectBtn.setAttribute('onclick', `reactivateGoogleCalendar()`);
-                                        const buttonText = connectBtn.querySelector('.connect-text');
-                                        if (buttonText) {
-                                            buttonText.textContent = '다시 연결';
-                                        }
-                                    } else {
-                                        // 일반 연결 버튼
-                                        connectBtn.className = 'platform-connect-btn';
-                                        connectBtn.setAttribute('onclick', `connectPlatform('${platformName}')`);
-                                        const buttonText = connectBtn.querySelector('.connect-text');
-                                        if (buttonText) {
-                                            buttonText.textContent = '연결하기';
-                                        }
+                                    connectBtn.className = 'platform-connect-btn';
+                                    connectBtn.setAttribute('onclick', `connectPlatform('${platformName}')`);
+                                    const buttonText = connectBtn.querySelector('.connect-text');
+                                    if (buttonText) {
+                                        buttonText.textContent = '연결하기';
                                     }
                                 }
 
@@ -2069,32 +2052,13 @@
                                     oneClickBtn.style.display = 'inline-block';
                                 }
 
-                                // Google 연결해제 버튼 관리 - OAuth 토큰이 있으면 일시적 비활성화 상태여도 버튼 유지 (CLAUDE.md 규칙 #9)
+                                // Google 연결해제 버튼 관리 - 연결되지 않은 경우 버튼 제거
                                 if (platformName === 'google') {
                                     const googleDisconnectBtn = platformCard.querySelector('.google-disconnect-btn');
-
-                                    // OAuth 토큰이 있으면 버튼을 유지하거나 생성 (enabled 상태 무관)
-                                    if (platform.oauth_connected) {
-                                        // 연결해제 버튼이 없다면 다시 생성
-                                        if (!googleDisconnectBtn) {
-                                            const oneClickBtn = platformCard.querySelector('.one-click-btn-small');
-                                            if (oneClickBtn) {
-                                                const buttonText = oneClickBtn.querySelector('.btn-text');
-                                                if (buttonText) {
-                                                    buttonText.textContent = '연결해제';
-                                                }
-                                                oneClickBtn.setAttribute('onclick', `oneClickDisconnect('google')`);
-                                                oneClickBtn.className = 'google-disconnect-btn';
-                                                console.log('✅ [GOOGLE] OAuth 토큰 확인됨 - 연결해제 버튼 유지/복원');
-                                            }
-                                        }
-                                    }
-                                    // OAuth 토큰이 없는 완전히 비연결 상태일 때만 버튼 제거
-                                    else if (!platform.oauth_connected) {
-                                        if (googleDisconnectBtn) {
-                                            googleDisconnectBtn.remove();
-                                            console.log('🗑️ [GOOGLE] OAuth 토큰이 없으므로 연결해제 버튼 제거');
-                                        }
+                                    // 연결되지 않은 상태에서는 연결해제 버튼 제거
+                                    if (googleDisconnectBtn) {
+                                        googleDisconnectBtn.remove();
+                                        console.log('🗑️ [GOOGLE] 연결되지 않음 - 연결해제 버튼 제거');
                                     }
                                 }
 

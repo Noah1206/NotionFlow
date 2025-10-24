@@ -6162,60 +6162,10 @@
             }
 
             if (confirm(`휴지통의 ${currentCalendarTrashedEvents.length}개 일정을 완전히 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`)) {
-                // 로딩 애니메이션 시작
-                showTrashLoadingAnimation();
-                updateTrashProgress(0, currentCalendarTrashedEvents.length);
-                // 서버에서 각 이벤트 삭제
-                let deletedCount = 0;
-                let failedCount = 0;
-                let processedCount = 0;
+                // 1. 즉시 UI에서 제거 (사용자 경험 개선)
+                const eventCountToDelete = currentCalendarTrashedEvents.length;
 
-                for (const event of currentCalendarTrashedEvents) {
-                    // 타임스탬프 기반 ID는 클라이언트 전용이므로 서버 호출 안 함
-                    const isClientOnlyEvent = /^\d{13,}$/.test(String(event.id));
-
-                    if (!isClientOnlyEvent) {
-                        try {
-                            // 서버에 삭제 요청 (실제 서버 이벤트인 경우만)
-                            const response = await fetch(`/api/calendar/${currentCalendarId}/events/${event.id}`, {
-                                method: 'DELETE',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                }
-                            });
-
-                            if (response.ok || response.status === 404 || response.status === 500) {
-                                deletedCount++;
-                                if (response.status === 404) {
-                                    console.log(`✅ Event already deleted or not found on server: ${event.title}`);
-                                } else if (response.status === 500) {
-                                    console.log(`✅ Server error ignored, treating as deleted: ${event.title}`);
-                                } else {
-                                    console.log(`✅ Permanently deleted from server: ${event.title}`);
-                                }
-                            } else {
-                                failedCount++;
-                                console.error(`❌ Failed to delete from server: ${event.title} (Status: ${response.status})`);
-                            }
-                        } catch (error) {
-                            failedCount++;
-                            console.error('Error deleting event from server:', error);
-                        }
-                    } else {
-                        // 클라이언트 전용 이벤트는 바로 성공으로 처리
-                        deletedCount++;
-                        console.log(`📱 Client-only event deleted: ${event.title}`);
-                    }
-
-                    // 진행 상황 업데이트
-                    processedCount++;
-                    updateTrashProgress(processedCount, currentCalendarTrashedEvents.length);
-
-                    // 약간의 지연으로 애니메이션 효과 향상
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                }
-
-                // 영구 삭제된 이벤트 목록에 추가 (서버 삭제 실패에도 숨김 유지)
+                // 영구 삭제된 이벤트 목록에 추가 (UI 즉시 숨김)
                 currentCalendarTrashedEvents.forEach(event => {
                     if (window.googleCalendarGrid && window.googleCalendarGrid.addToPermanentlyDeleted) {
                         window.googleCalendarGrid.addToPermanentlyDeleted(event.id);
@@ -6225,27 +6175,87 @@
                         if (!permanentlyDeleted.includes(event.id)) {
                             permanentlyDeleted.push(event.id);
                             localStorage.setItem('permanentlyDeletedEvents', JSON.stringify(permanentlyDeleted));
-                            console.log('🗑️ Event added to permanently deleted list (direct):', event.id);
                         }
                     }
                 });
 
-                // localStorage에서도 제거
+                // localStorage에서 즉시 제거
                 trashedEvents = trashedEvents.filter(event => event.calendarId !== currentCalendarId);
                 localStorage.setItem('trashedEvents', JSON.stringify(trashedEvents));
 
+                // UI 즉시 업데이트
                 updateTrashUI();
 
-                // 로딩 애니메이션 종료
-                hideTrashLoadingAnimation();
+                // 성공 메시지 즉시 표시
+                alert(`${eventCountToDelete}개 일정이 휴지통에서 제거되었습니다.`);
+                console.log(`🗑️ ${eventCountToDelete} events removed from trash UI`);
 
-                if (failedCount > 0) {
-                    alert(`${deletedCount}개 일정이 삭제되었고, ${failedCount}개 일정 삭제에 실패했습니다.`);
+                // 2. 비동기로 서버에서 삭제 (백그라운드 처리)
+                deleteEventsFromServerAsync(currentCalendarTrashedEvents, currentCalendarId);
+            }
+        }
+
+        // 비동기 서버 삭제 처리 함수
+        async function deleteEventsFromServerAsync(events, calendarId) {
+            console.log(`🔄 Starting async deletion of ${events.length} events from server...`);
+
+            let deletedCount = 0;
+            let failedCount = 0;
+            const deletePromises = [];
+
+            for (const event of events) {
+                // 타임스탬프 기반 ID는 클라이언트 전용이므로 서버 호출 안 함
+                const isClientOnlyEvent = /^\d{13,}$/.test(String(event.id));
+
+                if (!isClientOnlyEvent) {
+                    // 각 삭제 요청을 Promise로 처리
+                    const deletePromise = fetch(`/api/calendar/${calendarId}/events/${event.id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => {
+                        if (response.ok || response.status === 404 || response.status === 500) {
+                            deletedCount++;
+                            if (response.status === 404) {
+                                console.log(`✅ Event already deleted or not found on server: ${event.title}`);
+                            } else if (response.status === 500) {
+                                console.log(`✅ Server error ignored, treating as deleted: ${event.title}`);
+                            } else {
+                                console.log(`✅ Permanently deleted from server: ${event.title}`);
+                            }
+                        } else {
+                            failedCount++;
+                            console.error(`❌ Failed to delete from server: ${event.title} (Status: ${response.status})`);
+                        }
+                    })
+                    .catch(error => {
+                        failedCount++;
+                        console.error(`Error deleting event ${event.title} from server:`, error);
+                    });
+
+                    deletePromises.push(deletePromise);
                 } else {
-                    alert(`${deletedCount}개 일정이 완전히 삭제되었습니다.`);
+                    // 클라이언트 전용 이벤트는 카운트만 증가
+                    deletedCount++;
+                    console.log(`📱 Client-only event: ${event.title}`);
                 }
+            }
 
-                console.log(`🗑️ ${deletedCount} events permanently deleted, ${failedCount} failed`);
+            // 모든 삭제 요청이 완료될 때까지 대기
+            if (deletePromises.length > 0) {
+                try {
+                    await Promise.allSettled(deletePromises);
+                    console.log(`✅ Async deletion completed: ${deletedCount} succeeded, ${failedCount} failed`);
+
+                    // 실패한 항목이 있으면 콘솔에만 로그 (사용자 경험을 방해하지 않음)
+                    if (failedCount > 0) {
+                        console.warn(`⚠️ ${failedCount} events failed to delete from server, but already hidden from UI`);
+                    }
+                } catch (error) {
+                    console.error('Error during async deletion:', error);
+                }
             }
         }
 

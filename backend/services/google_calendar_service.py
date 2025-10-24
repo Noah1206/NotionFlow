@@ -36,17 +36,26 @@ class GoogleCalendarService:
     def get_google_credentials(self, user_id: str) -> Optional[Credentials]:
         """사용자의 Google OAuth 토큰으로 Credentials 객체 생성"""
         try:
+            # UUID 정규화 (하이픈 포함 형식으로 통일)
+            try:
+                from utils.uuid_helper import normalize_uuid
+                normalized_user_id = normalize_uuid(user_id)
+                print(f"🔍 [GOOGLE-CREDS] Original user_id: {user_id}, Normalized: {normalized_user_id}")
+            except Exception as e:
+                print(f"⚠️ [GOOGLE-CREDS] UUID normalization failed, using original: {e}")
+                normalized_user_id = user_id
+
             # 먼저 oauth_tokens 테이블에서 찾기
-            response = self.supabase.table('oauth_tokens').select('*').eq('user_id', user_id).eq('platform', 'google').execute()
+            response = self.supabase.table('oauth_tokens').select('*').eq('user_id', normalized_user_id).eq('platform', 'google').execute()
 
             token_data = None
             if response.data:
                 token_data = response.data[0]
-                print(f"✅ Found Google OAuth token in oauth_tokens for user {user_id}")
+                print(f"✅ Found Google OAuth token in oauth_tokens for user {normalized_user_id}")
             else:
                 # oauth_tokens에 없으면 calendar_sync_configs에서 찾기
-                print(f"⚠️ No OAuth token in oauth_tokens, checking calendar_sync_configs for user {user_id}")
-                sync_response = self.supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', 'google').eq('is_enabled', True).execute()
+                print(f"⚠️ No OAuth token in oauth_tokens, checking calendar_sync_configs for user {normalized_user_id}")
+                sync_response = self.supabase.table('calendar_sync_configs').select('*').eq('user_id', normalized_user_id).eq('platform', 'google').eq('is_enabled', True).execute()
 
                 if sync_response.data:
                     sync_data = sync_response.data[0]
@@ -57,18 +66,18 @@ class GoogleCalendarService:
                             'refresh_token': credentials_data.get('refresh_token'),
                             'expires_at': credentials_data.get('expires_at')
                         }
-                        print(f"✅ Found Google credentials in calendar_sync_configs for user {user_id}")
+                        print(f"✅ Found Google credentials in calendar_sync_configs for user {normalized_user_id}")
                     else:
-                        print(f"❌ No valid access_token in calendar_sync_configs for user {user_id}")
+                        print(f"❌ No valid access_token in calendar_sync_configs for user {normalized_user_id}")
                 else:
-                    print(f"❌ No Google sync config found for user {user_id}")
+                    print(f"❌ No Google sync config found for user {normalized_user_id}")
 
             if not token_data:
-                print(f"❌ No Google credentials found for user {user_id} in any table")
+                print(f"❌ No Google credentials found for user {normalized_user_id} in any table")
                 return None
 
             if not token_data.get('refresh_token'):
-                print(f"❌ Missing refresh_token for user {user_id}")
+                print(f"❌ Missing refresh_token for user {normalized_user_id}")
                 return None
 
             if not os.environ.get('GOOGLE_CLIENT_ID') or not os.environ.get('GOOGLE_CLIENT_SECRET'):
@@ -93,7 +102,7 @@ class GoogleCalendarService:
             return credentials
 
         except Exception as e:
-            print(f"❌ Error getting Google credentials for user {user_id}: {e}")
+            print(f"❌ Error getting Google credentials for user {normalized_user_id if 'normalized_user_id' in locals() else user_id}: {e}")
             import traceback
             traceback.print_exc()
             return None
@@ -114,8 +123,16 @@ class GoogleCalendarService:
     def get_selected_calendar(self, user_id: str, calendar_id: str) -> Optional[Dict]:
         """선택된 캘린더 정보 확인"""
         try:
-            # 먼저 user_calendars 테이블에서 선택된 캘린더인지 확인
-            response = self.supabase.table('calendars').select('*').eq('id', calendar_id).eq('owner_id', user_id).execute()
+            # UUID 정규화
+            try:
+                from utils.uuid_helper import normalize_uuid
+                normalized_user_id = normalize_uuid(user_id)
+            except Exception as e:
+                print(f"⚠️ UUID normalization failed, using original: {e}")
+                normalized_user_id = user_id
+
+            # 먼저 user_calendars 테이블에서 선택된 캘린더인지 확인 (calendars 테이블은 owner_id 사용)
+            response = self.supabase.table('calendars').select('*').eq('id', calendar_id).eq('owner_id', normalized_user_id).execute()
 
             if not response.data:
                 print(f"캘린더 {calendar_id}를 찾을 수 없습니다.")

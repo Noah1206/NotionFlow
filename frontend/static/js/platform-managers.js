@@ -416,29 +416,39 @@ class GoogleManager extends PlatformManager {
     }
 
     async disconnect() {
-        if (!confirm(`${this.getKoreanName()} 연결을 해제하시겠습니까?`)) {
+        if (!confirm(`${this.getKoreanName()} 연결을 해제하시겠습니까?\n\n기존에 동기화된 이벤트는 그대로 유지됩니다.`)) {
             return;
         }
 
         this.showLoading(this.oneClickBtn);
 
         try {
+            // OAuth 토큰 완전 삭제 요청 (clean disconnect)
             const response = await fetch(`/api/platform/google/disconnect`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    clean_disconnect: true  // OAuth 토큰 완전 삭제 플래그
+                })
             });
 
             if (response.ok) {
-                // Clear connection state from localStorage (like Notion)
-                localStorage.setItem('google_manually_disconnected', 'true');
+                // localStorage 완전 초기화
+                localStorage.removeItem('google_manually_disconnected');
                 localStorage.removeItem('google_calendar_connected');
                 localStorage.removeItem('google_calendar_id');
                 localStorage.removeItem('google_last_connected');
+                localStorage.removeItem('google_oauth_connected');  // OAuth 상태도 제거
 
-                console.log('🔓 [GOOGLE] Calendar disconnection saved to localStorage');
+                console.log('🔓 [GOOGLE] 완전 연결 해제 - OAuth 토큰 및 모든 연결 정보 삭제됨');
 
                 this.updateStatus('disconnected');
-                this.showNotification(`${this.getKoreanName()} 연결이 해제되었습니다.`, 'success');
+                this.showNotification(`${this.getKoreanName()} 연결이 완전히 해제되었습니다.`, 'success');
+
+                // 페이지 새로고침으로 UI 완전 초기화
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
             } else {
                 const error = await response.json();
                 throw new Error(error.error || '연결 해제 실패');

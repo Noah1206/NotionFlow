@@ -98,7 +98,13 @@ class GoogleCalendarManager {
                         console.log('✅ [GOOGLE-MANAGER] OAuth completed via polling');
                         clearInterval(pollOAuthStatus);
                         authCompleted = true;
-                        resolve();
+
+                        // OAuth 완료 후 잠깐 대기하여 토큰이 완전히 저장되도록 함 (2초로 증가)
+                        console.log('⏳ [GOOGLE-MANAGER] Waiting 2 seconds for OAuth tokens to be fully saved...');
+                        setTimeout(() => {
+                            console.log('✅ [GOOGLE-MANAGER] OAuth delay completed, proceeding with calendar loading');
+                            resolve();
+                        }, 2000);
                     }
                 } catch (error) {
                     console.log('⏳ [GOOGLE-MANAGER] Still waiting for OAuth...', error);
@@ -114,7 +120,13 @@ class GoogleCalendarManager {
                     clearInterval(pollOAuthStatus);
                     window.removeEventListener('message', messageHandler);
                     authCompleted = true;
-                    resolve();
+
+                    // OAuth 완료 후 잠깐 대기하여 토큰이 완전히 저장되도록 함 (2초로 증가)
+                    console.log('⏳ [GOOGLE-MANAGER] Waiting 2 seconds for OAuth tokens to be fully saved...');
+                    setTimeout(() => {
+                        console.log('✅ [GOOGLE-MANAGER] OAuth delay completed, proceeding with calendar loading');
+                        resolve();
+                    }, 2000);
                 } else if (event.data.type === 'GOOGLE_OAUTH_ERROR' || (event.data.type === 'oauth_error' && event.data.platform === 'google')) {
                     console.error('❌ [GOOGLE-MANAGER] OAuth error:', event.data.error);
                     clearInterval(pollOAuthStatus);

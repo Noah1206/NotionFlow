@@ -315,32 +315,72 @@ def connect_google_calendar():
 
 @platform_connect_bp.route('/api/platform/google/disconnect', methods=['POST'])
 def disconnect_google_calendar():
-    """Google Calendar 연결 해제"""
+    """Google Calendar 연결 완전 해제 - OAuth 토큰 포함 모든 정보 삭제"""
     user_id, error_response, status_code = check_auth()
     if error_response:
         return error_response, status_code
 
     try:
+        from utils.uuid_helper import normalize_uuid
+        normalized_user_id = normalize_uuid(user_id)
         supabase = config.get_client_for_user(user_id)
 
-        # Google Calendar 연결 정보 삭제 또는 비활성화
-        update_data = {
-            'is_enabled': False,
-            'updated_at': datetime.now().isoformat(),
-            'credentials': {
-                'oauth_connected': False,
-                'disconnected_at': datetime.now().isoformat()
+        # 요청 데이터 확인 (clean_disconnect 플래그)
+        data = request.get_json() or {}
+        clean_disconnect = data.get('clean_disconnect', False)
+
+        if clean_disconnect:
+            print(f"🧹 [GOOGLE] 완전 연결 해제 요청 - OAuth 토큰 및 모든 연결 정보 삭제")
+
+            # 1. OAuth 토큰 완전 삭제
+            try:
+                oauth_result = supabase.table('oauth_tokens').delete().eq('user_id', normalized_user_id).eq('platform', 'google').execute()
+                print(f"✅ [GOOGLE] OAuth 토큰 삭제됨: {len(oauth_result.data) if oauth_result.data else 0}개")
+            except Exception as e:
+                print(f"⚠️ [GOOGLE] OAuth 토큰 삭제 중 오류 (계속 진행): {e}")
+
+            # 2. 캘린더 동기화 설정 완전 삭제 (비활성화가 아닌 삭제)
+            try:
+                sync_result = supabase.table('calendar_sync_configs').delete().eq('user_id', normalized_user_id).eq('platform', 'google').execute()
+                print(f"✅ [GOOGLE] 동기화 설정 삭제됨: {len(sync_result.data) if sync_result.data else 0}개")
+            except Exception as e:
+                print(f"⚠️ [GOOGLE] 동기화 설정 삭제 중 오류 (계속 진행): {e}")
+
+            # 3. 플랫폼 연결 정보 삭제
+            try:
+                platform_result = supabase.table('platform_connections').delete().eq('user_id', normalized_user_id).eq('platform', 'google').execute()
+                print(f"✅ [GOOGLE] 플랫폼 연결 정보 삭제됨: {len(platform_result.data) if platform_result.data else 0}개")
+            except Exception as e:
+                print(f"⚠️ [GOOGLE] 플랫폼 연결 정보 삭제 중 오류 (계속 진행): {e}")
+
+            print(f"✅ [GOOGLE] 사용자 {user_id}의 모든 Google 연결 정보가 완전히 삭제됨")
+            print(f"📝 [GOOGLE] 기존 동기화된 이벤트는 그대로 유지됨")
+
+            return jsonify({
+                'success': True,
+                'message': 'Google Calendar 연결이 완전히 해제되었습니다. 기존 이벤트는 유지됩니다.',
+                'clean_disconnect': True
+            })
+
+        else:
+            # 기존 비활성화 로직 (하위 호환성)
+            update_data = {
+                'is_enabled': False,
+                'updated_at': datetime.now().isoformat(),
+                'credentials': {
+                    'oauth_connected': False,
+                    'disconnected_at': datetime.now().isoformat()
+                }
             }
-        }
 
-        result = supabase.table('calendar_sync_configs').update(update_data).eq('user_id', user_id).eq('platform', 'google').execute()
+            result = supabase.table('calendar_sync_configs').update(update_data).eq('user_id', normalized_user_id).eq('platform', 'google').execute()
 
-        print(f"✅ Google Calendar disconnected for user {user_id}")
+            print(f"✅ Google Calendar disconnected (legacy mode) for user {user_id}")
 
-        return jsonify({
-            'success': True,
-            'message': 'Google Calendar disconnected successfully'
-        })
+            return jsonify({
+                'success': True,
+                'message': 'Google Calendar disconnected successfully'
+            })
 
     except Exception as e:
         print(f"❌ Error disconnecting Google Calendar: {e}")

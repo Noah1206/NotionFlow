@@ -252,64 +252,104 @@ class GoogleCalendarGrid {
             }
             return;
         }
-        
+
         const confirmed = confirm(`휴지통에 있는 ${this.trashedEvents.length}개의 일정을 영구적으로 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`);
-        
+
         if (!confirmed) return;
-        
+
         try {
             const calendarId = document.querySelector('.calendar-workspace')?.dataset.calendarId || 'e3b088c5-58550';
-            
-            // Delete events from backend - check both backendId and id
-            const eventsToDelete = this.trashedEvents.filter(event =>
+            const eventsToDeleteCount = this.trashedEvents.length;
+
+            // 1. 즉시 UI에서 제거 (사용자 경험 개선)
+            const eventsToDeleteOnServer = this.trashedEvents.filter(event =>
                 event.backendId || (event.id && !/^\d{13,}$/.test(String(event.id)))
             );
 
-            if (eventsToDelete.length > 0) {
-                for (const eventData of eventsToDelete) {
-                    try {
-                        // Use backendId if available, otherwise use id
-                        const dbEventId = eventData.backendId || eventData.id;
+            // 영구 삭제 목록에 추가 (UI에서 숨김)
+            this.trashedEvents.forEach(event => {
+                this.addToPermanentlyDeleted(event.id);
+            });
 
-                        console.log(`🗑️ Deleting event from DB: ${dbEventId} (${eventData.title})`);
-
-                        const response = await fetch(`/api/calendars/${calendarId}/events/${dbEventId}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            }
-                        });
-
-                        if (response.ok) {
-                            console.log(`✅ Successfully deleted event ${dbEventId} from DB`);
-                        } else {
-                            console.warn(`⚠️ Failed to delete event ${dbEventId} from backend: ${response.status}`);
-                        }
-                    } catch (error) {
-                        console.error(`❌ Failed to delete event ${eventData.backendId || eventData.id}:`, error);
-                    }
-                }
-            }
-            
-            // Clear all trashed events
+            // Clear all trashed events from memory and localStorage
             this.trashedEvents = [];
             this.saveTrashedEvents();
-            
-            // Update trash popup
+
+            // Update trash popup immediately
             this.populateTrashPopup();
-            
-            // Show success notification
+
+            // Show success notification immediately
             if (window.showNotification) {
                 showNotification('휴지통이 비워졌습니다', 'success');
             }
-            
-            console.log('Trash emptied successfully');
-            
+
+            console.log(`🗑️ ${eventsToDeleteCount} events removed from trash UI`);
+
+            // 2. 비동기로 서버에서 삭제 (백그라운드 처리)
+            this.deleteEventsFromServerAsync(eventsToDeleteOnServer, calendarId);
+
         } catch (error) {
             console.error('Failed to empty trash:', error);
             if (window.showNotification) {
                 showNotification('휴지통 비우기에 실패했습니다', 'error');
             }
+        }
+    }
+
+    // 비동기 서버 삭제 처리 메서드
+    async deleteEventsFromServerAsync(eventsToDelete, calendarId) {
+        if (eventsToDelete.length === 0) {
+            console.log('No server events to delete');
+            return;
+        }
+
+        console.log(`🔄 Starting async deletion of ${eventsToDelete.length} events from server...`);
+
+        let deletedCount = 0;
+        let failedCount = 0;
+        const deletePromises = [];
+
+        for (const eventData of eventsToDelete) {
+            // Use backendId if available, otherwise use id
+            const dbEventId = eventData.backendId || eventData.id;
+
+            const deletePromise = fetch(`/api/calendars/${calendarId}/events/${dbEventId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    deletedCount++;
+                    console.log(`✅ Successfully deleted event ${dbEventId} (${eventData.title}) from DB`);
+                } else if (response.status === 404) {
+                    deletedCount++;
+                    console.log(`✅ Event ${dbEventId} (${eventData.title}) already deleted or not found`);
+                } else {
+                    failedCount++;
+                    console.warn(`⚠️ Failed to delete event ${dbEventId} (${eventData.title}) from backend: ${response.status}`);
+                }
+            })
+            .catch(error => {
+                failedCount++;
+                console.error(`❌ Failed to delete event ${dbEventId} (${eventData.title}):`, error);
+            });
+
+            deletePromises.push(deletePromise);
+        }
+
+        // 모든 삭제 요청이 완료될 때까지 대기
+        try {
+            await Promise.allSettled(deletePromises);
+            console.log(`✅ Async deletion completed: ${deletedCount} succeeded, ${failedCount} failed`);
+
+            // 실패한 항목이 있으면 콘솔에만 로그 (사용자 경험을 방해하지 않음)
+            if (failedCount > 0) {
+                console.warn(`⚠️ ${failedCount} events failed to delete from server, but already hidden from UI`);
+            }
+        } catch (error) {
+            console.error('Error during async deletion:', error);
         }
     }
     
