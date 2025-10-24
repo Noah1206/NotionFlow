@@ -2514,167 +2514,187 @@
         }
 
         /* ===== MONTH VIEW STYLES ===== */
-        .month-view-container {
-            padding: 20px;
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        #month-view-container {
+            position: relative !important;
+            padding: 20px !important;
+            background: #ffffff !important;
+            border-radius: 12px !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+            height: 100% !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            overflow: auto !important;
         }
 
         .month-calendar-grid {
-            height: 100%;
-            display: flex;
-            flex-direction: column;
+            height: calc(100% - 40px) !important;
+            min-height: 600px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            background: #ffffff !important;
         }
 
         .month-header {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            background: #f8fafc;
-            border-radius: 8px 8px 0 0;
-            border: 1px solid #e2e8f0;
-            border-bottom: none;
+            display: grid !important;
+            grid-template-columns: repeat(7, 1fr) !important;
+            background: #f8fafc !important;
+            border-radius: 8px 8px 0 0 !important;
+            border: 1px solid #e2e8f0 !important;
+            border-bottom: none !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
         }
 
-        .day-name {
-            padding: 16px 8px;
-            text-align: center;
-            font-weight: 600;
-            font-size: 14px;
-            color: #64748b;
-            background: #f8fafc;
+        .month-header .day-name {
+            padding: 16px 8px !important;
+            text-align: center !important;
+            font-weight: 600 !important;
+            font-size: 14px !important;
+            color: #64748b !important;
+            background: #f8fafc !important;
+            border: none !important;
+            margin: 0 !important;
         }
 
-        .day-name:first-child {
-            color: #dc2626; /* 일요일 빨간색 */
+        .month-header .day-name:first-child {
+            color: #dc2626 !important; /* 일요일 빨간색 */
         }
 
-        .day-name:last-child {
-            color: #2563eb; /* 토요일 파란색 */
+        .month-header .day-name:last-child {
+            color: #2563eb !important; /* 토요일 파란색 */
         }
 
         .month-body {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            grid-template-rows: repeat(6, 1fr);
-            border: 1px solid #e2e8f0;
-            border-top: none;
-            flex: 1;
-            background: #ffffff;
+            display: grid !important;
+            grid-template-columns: repeat(7, 1fr) !important;
+            grid-template-rows: repeat(6, 1fr) !important;
+            border: 1px solid #e2e8f0 !important;
+            border-top: none !important;
+            flex: 1 !important;
+            background: #ffffff !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
         }
 
-        .day-cell {
-            border: 1px solid #e2e8f0;
-            border-top: none;
-            border-left: none;
-            padding: 8px;
-            min-height: 100px;
-            background: #ffffff;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-            position: relative;
-            overflow: hidden;
+        .month-body .day-cell {
+            border: 1px solid #e2e8f0 !important;
+            border-top: none !important;
+            border-left: none !important;
+            padding: 8px !important;
+            min-height: 100px !important;
+            background: #ffffff !important;
+            cursor: pointer !important;
+            transition: background-color 0.2s ease !important;
+            position: relative !important;
+            overflow: hidden !important;
+            box-sizing: border-box !important;
         }
 
-        .day-cell:hover {
-            background: #f8fafc;
+        .month-body .day-cell:hover {
+            background: #f8fafc !important;
         }
 
-        .day-cell:first-child {
-            border-left: 1px solid #e2e8f0;
+        .month-body .day-cell:first-child {
+            border-left: 1px solid #e2e8f0 !important;
         }
 
-        .day-cell.other-month {
-            background: #f8fafc;
-            color: #94a3b8;
+        .month-body .day-cell.other-month {
+            background: #f8fafc !important;
+            color: #94a3b8 !important;
         }
 
-        .day-cell.today {
-            background: #eff6ff;
-            border-color: #3b82f6;
+        .month-body .day-cell.today {
+            background: #eff6ff !important;
+            border-color: #3b82f6 !important;
         }
 
-        .day-cell.selected {
-            background: #dbeafe;
-            border-color: #2563eb;
+        .month-body .day-cell.selected {
+            background: #dbeafe !important;
+            border-color: #2563eb !important;
         }
 
-        .day-number {
-            font-size: 14px;
-            font-weight: 500;
-            color: #374151;
-            margin-bottom: 4px;
+        .month-body .day-number {
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            color: #374151 !important;
+            margin-bottom: 4px !important;
+            margin: 0 0 4px 0 !important;
+            padding: 0 !important;
         }
 
-        .day-cell.other-month .day-number {
-            color: #94a3b8;
+        .month-body .day-cell.other-month .day-number {
+            color: #94a3b8 !important;
         }
 
-        .day-cell.today .day-number {
-            color: #1d4ed8;
-            font-weight: 600;
+        .month-body .day-cell.today .day-number {
+            color: #1d4ed8 !important;
+            font-weight: 600 !important;
         }
 
-        .day-events {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            max-height: 70px;
-            overflow: hidden;
+        .month-body .day-events {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 2px !important;
+            max-height: 70px !important;
+            overflow: hidden !important;
         }
 
-        .month-event {
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 11px;
-            line-height: 1.2;
-            color: white;
-            background: #3b82f6;
-            cursor: pointer;
-            transition: opacity 0.2s ease;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .month-body .month-event {
+            padding: 2px 6px !important;
+            border-radius: 3px !important;
+            font-size: 11px !important;
+            line-height: 1.2 !important;
+            color: white !important;
+            background: #3b82f6 !important;
+            cursor: pointer !important;
+            transition: opacity 0.2s ease !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            margin: 0 !important;
+            border: none !important;
         }
 
-        .month-event:hover {
-            opacity: 0.8;
+        .month-body .month-event:hover {
+            opacity: 0.8 !important;
         }
 
-        .more-events {
-            font-size: 10px;
-            color: #6b7280;
-            padding: 2px 6px;
-            cursor: pointer;
+        .month-body .more-events {
+            font-size: 10px !important;
+            color: #6b7280 !important;
+            padding: 2px 6px !important;
+            cursor: pointer !important;
+            margin: 0 !important;
+            border: none !important;
         }
 
-        .more-events:hover {
-            color: #374151;
+        .month-body .more-events:hover {
+            color: #374151 !important;
         }
 
         /* 반응형 디자인 */
         @media (max-width: 768px) {
-            .month-view-container {
-                padding: 12px;
+            #month-view-container {
+                padding: 12px !important;
             }
 
-            .day-cell {
-                min-height: 80px;
-                padding: 6px;
+            .month-body .day-cell {
+                min-height: 80px !important;
+                padding: 6px !important;
             }
 
-            .day-name {
-                padding: 12px 4px;
-                font-size: 12px;
+            .month-header .day-name {
+                padding: 12px 4px !important;
+                font-size: 12px !important;
             }
 
-            .day-number {
-                font-size: 12px;
+            .month-body .day-number {
+                font-size: 12px !important;
             }
 
-            .month-event {
-                font-size: 10px;
-                padding: 1px 4px;
+            .month-body .month-event {
+                font-size: 10px !important;
+                padding: 1px 4px !important;
             }
         }
 
