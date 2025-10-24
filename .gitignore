@@ -1,20 +1,71 @@
+# Environment variables - all files containing .env
+*.env*
+.env*
+*env*
+.environment*
+*.environment*
+env.*
+*.env
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+.env.staging
+.env.example
+.env.sample
+.env.template
+.env.backup
+.env.bak
+.env.orig
+.env.save
+env.js
+env.json
+env.yaml
+env.yml
+env.ini
+env.conf
+env.config
+.envrc
+.env-example
+.env-sample
+.env-template
+environment.js
+environment.json
+environment.yaml
+environment.yml
+environment.ini
+environment.conf
+environment.config
+
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-env/
-venv/
-.venv/
-ENV/
-env.bak/
-venv.bak/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-# Environment files
-.env
-.env.*
-*.env
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
 
 # IDE
 .vscode/
@@ -25,62 +76,36 @@ venv.bak/
 
 # OS
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-.nox/
-
-# Build
-build/
-dist/
-*.egg-info/
-.eggs/
 
 # Logs
 *.log
 logs/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Node modules (if any)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Database
 *.db
 *.sqlite
 *.sqlite3
 
-# Uploads (keep folders but not contents)
-uploads/media/*
-!uploads/media/.gitkeep
-
-# Test/Mock media files
-test_video.*
-test_audio.*
-mock_*.*
-sample_*.*
-frontend/static/uploads/avatars/*
-!frontend/static/uploads/avatars/.gitkeep
-frontend/data/calendars/*
-!frontend/data/calendars/.gitkeep
-
-# Deployment
-.vercel/
-.render/
-
-# Temporary
+# Temporary files
 *.tmp
 *.temp
-.tmp/
-.cache/
-.env.railway
-
-# Security - Cookie files
-cookies.txt
-**/cookies.txt
-
-# Test files
-test_*.py
-fix_*.py
-*_test.py
-*_old.py
-*_backup.py
+temp/
+tmp/

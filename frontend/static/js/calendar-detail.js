@@ -6439,35 +6439,79 @@ function switchView(viewType) {
     const weekView = document.getElementById('calendar-grid-container');
     const agendaView = document.getElementById('agenda-view-container');
 
-    // 모든 뷰 숨기기
-    if (monthView) monthView.style.display = 'none';
-    if (weekView) weekView.style.display = 'none';
-    if (agendaView) agendaView.style.display = 'none';
+    // 추가로 숨겨야 할 다른 뷰 요소들 확인
+    const calendarMainContent = document.querySelector('.calendar-main-content');
+    const centerCalendarArea = document.querySelector('.center-calendar-area');
+
+    console.log('🔍 Found view containers:', {
+        monthView: !!monthView,
+        weekView: !!weekView,
+        agendaView: !!agendaView,
+        calendarMainContent: !!calendarMainContent,
+        centerCalendarArea: !!centerCalendarArea
+    });
+
+    // 모든 뷰 관련 요소들 찾기 및 숨기기
+    const allCalendarElements = [
+        'month-view-container',
+        'calendar-grid-container',
+        'agenda-view-container',
+        'google-calendar-grid-container'
+    ];
+
+    // 기존 방식으로 모든 뷰 숨기기
+    allCalendarElements.forEach(elementId => {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.style.display = 'none';
+            element.style.visibility = 'hidden';
+            console.log(`🔒 Hiding ${elementId}`);
+        }
+    });
+
+    // 추가로 클래스 기반 요소들도 숨기기
+    const additionalElements = document.querySelectorAll('.google-calendar-grid, .calendar-time-grid, .agenda-container');
+    additionalElements.forEach(element => {
+        element.style.display = 'none';
+        element.style.visibility = 'hidden';
+    });
 
     // 선택된 뷰 표시
     switch (viewType) {
         case 'month':
             if (monthView) {
                 monthView.style.display = 'block';
+                monthView.style.visibility = 'visible';
+                console.log('📅 Showing month view');
                 renderMonthView();
+            } else {
+                console.error('❌ Month view container not found!');
             }
             break;
         case 'week':
             if (weekView) {
                 weekView.style.display = 'block';
+                weekView.style.visibility = 'visible';
+                console.log('📊 Showing week view');
                 // 기존 주 뷰 렌더링 함수가 있다면 호출
                 if (typeof renderWeekView === 'function') {
                     renderWeekView();
                 }
+            } else {
+                console.error('❌ Week view container not found!');
             }
             break;
         case 'agenda':
             if (agendaView) {
                 agendaView.style.display = 'block';
+                agendaView.style.visibility = 'visible';
+                console.log('📋 Showing agenda view');
                 // 기존 일정 뷰 렌더링 함수가 있다면 호출
                 if (typeof renderAgendaView === 'function') {
                     renderAgendaView();
                 }
+            } else {
+                console.error('❌ Agenda view container not found!');
             }
             break;
         default:
