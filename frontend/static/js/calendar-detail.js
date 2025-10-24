@@ -6401,3 +6401,229 @@ document.addEventListener('click', function(e) {
         closeEventDetailModal();
     }
 });
+
+// ===== VIEW TOGGLE FUNCTIONALITY =====
+
+// 현재 뷰 상태
+let currentView = 'week';
+
+// 뷰 토글 초기화
+function initViewToggle() {
+    const viewOptions = document.querySelectorAll('.view-option');
+
+    viewOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            const viewType = this.getAttribute('data-view');
+            switchView(viewType);
+        });
+    });
+
+    console.log('📋 View toggle initialized');
+}
+
+// 뷰 전환 함수
+function switchView(viewType) {
+    console.log(`🔄 Switching to ${viewType} view`);
+
+    // 현재 뷰 업데이트
+    currentView = viewType;
+
+    // 버튼 활성화 상태 업데이트
+    const viewOptions = document.querySelectorAll('.view-option');
+    viewOptions.forEach(option => {
+        option.classList.remove('active');
+        if (option.getAttribute('data-view') === viewType) {
+            option.classList.add('active');
+        }
+    });
+
+    // 뷰 컨테이너 숨기기/표시
+    const monthView = document.getElementById('month-view-container');
+    const weekView = document.getElementById('calendar-grid-container');
+    const agendaView = document.getElementById('agenda-view-container');
+
+    // 모든 뷰 숨기기
+    if (monthView) monthView.style.display = 'none';
+    if (weekView) weekView.style.display = 'none';
+    if (agendaView) agendaView.style.display = 'none';
+
+    // 선택된 뷰 표시
+    switch (viewType) {
+        case 'month':
+            if (monthView) {
+                monthView.style.display = 'block';
+                renderMonthView();
+            }
+            break;
+        case 'week':
+            if (weekView) {
+                weekView.style.display = 'block';
+                // 기존 주 뷰 렌더링 함수가 있다면 호출
+                if (typeof renderWeekView === 'function') {
+                    renderWeekView();
+                }
+            }
+            break;
+        case 'agenda':
+            if (agendaView) {
+                agendaView.style.display = 'block';
+                // 기존 일정 뷰 렌더링 함수가 있다면 호출
+                if (typeof renderAgendaView === 'function') {
+                    renderAgendaView();
+                }
+            }
+            break;
+        default:
+            console.error('Unknown view type:', viewType);
+    }
+}
+
+// 월 뷰 렌더링 함수
+function renderMonthView() {
+    const monthBody = document.getElementById('month-calendar-body');
+    if (!monthBody) {
+        console.error('Month calendar body not found');
+        return;
+    }
+
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+
+    // 월의 첫 번째 날과 마지막 날
+    const firstDay = new Date(currentYear, currentMonth, 1);
+    const lastDay = new Date(currentYear, currentMonth + 1, 0);
+
+    // 달력 시작 날짜 (이전 달의 일요일부터)
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+    // 달력 끝 날짜 (다음 달의 토요일까지)
+    const endDate = new Date(lastDay);
+    endDate.setDate(endDate.getDate() + (6 - lastDay.getDay()));
+
+    // 달력 생성
+    monthBody.innerHTML = '';
+
+    const current = new Date(startDate);
+    while (current <= endDate) {
+        const dayCell = createDayCell(current, currentMonth);
+        monthBody.appendChild(dayCell);
+        current.setDate(current.getDate() + 1);
+    }
+
+    // 이벤트 로드
+    loadMonthEvents(currentYear, currentMonth);
+
+    console.log(`📅 Month view rendered for ${currentYear}-${currentMonth + 1}`);
+}
+
+// 날짜 셀 생성
+function createDayCell(date, currentMonth) {
+    const cell = document.createElement('div');
+    cell.className = 'day-cell';
+    cell.setAttribute('data-date', date.toISOString().split('T')[0]);
+
+    const today = new Date();
+    const isToday = date.toDateString() === today.toDateString();
+    const isCurrentMonth = date.getMonth() === currentMonth;
+
+    if (!isCurrentMonth) {
+        cell.classList.add('other-month');
+    }
+
+    if (isToday) {
+        cell.classList.add('today');
+    }
+
+    const dayNumber = document.createElement('div');
+    dayNumber.className = 'day-number';
+    dayNumber.textContent = date.getDate();
+
+    const dayEvents = document.createElement('div');
+    dayEvents.className = 'day-events';
+
+    cell.appendChild(dayNumber);
+    cell.appendChild(dayEvents);
+
+    // 클릭 이벤트 추가
+    cell.addEventListener('click', function() {
+        selectDate(date);
+    });
+
+    return cell;
+}
+
+// 날짜 선택 함수
+function selectDate(date) {
+    // 기존 선택 제거
+    document.querySelectorAll('.day-cell.selected').forEach(cell => {
+        cell.classList.remove('selected');
+    });
+
+    // 새로운 날짜 선택
+    const dateString = date.toISOString().split('T')[0];
+    const cell = document.querySelector(`[data-date="${dateString}"]`);
+    if (cell) {
+        cell.classList.add('selected');
+    }
+
+    console.log('📅 Selected date:', dateString);
+}
+
+// 월 뷰 이벤트 로드
+function loadMonthEvents(year, month) {
+    // 기존 이벤트 데이터가 있다면 활용
+    if (window.eventsData && Array.isArray(window.eventsData)) {
+        displayMonthEvents(window.eventsData);
+    } else {
+        console.log('📅 Loading events for month view...');
+        // 이벤트를 로드하는 기존 함수가 있다면 호출
+        if (typeof loadEvents === 'function') {
+            loadEvents().then(() => {
+                if (window.eventsData) {
+                    displayMonthEvents(window.eventsData);
+                }
+            });
+        }
+    }
+}
+
+// 월 뷰에 이벤트 표시
+function displayMonthEvents(events) {
+    // 각 날짜의 이벤트 초기화
+    document.querySelectorAll('.day-events').forEach(container => {
+        container.innerHTML = '';
+    });
+
+    events.forEach(event => {
+        const eventDate = new Date(event.start_datetime || event.date);
+        const dateString = eventDate.toISOString().split('T')[0];
+        const dayEventsContainer = document.querySelector(`[data-date="${dateString}"] .day-events`);
+
+        if (dayEventsContainer) {
+            const eventElement = document.createElement('div');
+            eventElement.className = 'month-event';
+            eventElement.textContent = event.title || '제목 없음';
+            eventElement.style.backgroundColor = event.color || '#3b82f6';
+
+            // 이벤트 클릭 시 상세 보기
+            eventElement.addEventListener('click', function(e) {
+                e.stopPropagation();
+                showEventDetails(event);
+            });
+
+            dayEventsContainer.appendChild(eventElement);
+        }
+    });
+
+    console.log(`📅 Displayed ${events.length} events in month view`);
+}
+
+// 페이지 로드 시 뷰 토글 초기화
+document.addEventListener('DOMContentLoaded', function() {
+    // 다른 초기화가 완료된 후 실행
+    setTimeout(() => {
+        initViewToggle();
+    }, 100);
+});

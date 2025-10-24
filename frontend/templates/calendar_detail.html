@@ -2513,6 +2513,171 @@
             display: flex !important; /* Show when .show class is added */
         }
 
+        /* ===== MONTH VIEW STYLES ===== */
+        .month-view-container {
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .month-calendar-grid {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .month-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            background: #f8fafc;
+            border-radius: 8px 8px 0 0;
+            border: 1px solid #e2e8f0;
+            border-bottom: none;
+        }
+
+        .day-name {
+            padding: 16px 8px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: #64748b;
+            background: #f8fafc;
+        }
+
+        .day-name:first-child {
+            color: #dc2626; /* 일요일 빨간색 */
+        }
+
+        .day-name:last-child {
+            color: #2563eb; /* 토요일 파란색 */
+        }
+
+        .month-body {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-template-rows: repeat(6, 1fr);
+            border: 1px solid #e2e8f0;
+            border-top: none;
+            flex: 1;
+            background: #ffffff;
+        }
+
+        .day-cell {
+            border: 1px solid #e2e8f0;
+            border-top: none;
+            border-left: none;
+            padding: 8px;
+            min-height: 100px;
+            background: #ffffff;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .day-cell:hover {
+            background: #f8fafc;
+        }
+
+        .day-cell:first-child {
+            border-left: 1px solid #e2e8f0;
+        }
+
+        .day-cell.other-month {
+            background: #f8fafc;
+            color: #94a3b8;
+        }
+
+        .day-cell.today {
+            background: #eff6ff;
+            border-color: #3b82f6;
+        }
+
+        .day-cell.selected {
+            background: #dbeafe;
+            border-color: #2563eb;
+        }
+
+        .day-number {
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+
+        .day-cell.other-month .day-number {
+            color: #94a3b8;
+        }
+
+        .day-cell.today .day-number {
+            color: #1d4ed8;
+            font-weight: 600;
+        }
+
+        .day-events {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            max-height: 70px;
+            overflow: hidden;
+        }
+
+        .month-event {
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            line-height: 1.2;
+            color: white;
+            background: #3b82f6;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .month-event:hover {
+            opacity: 0.8;
+        }
+
+        .more-events {
+            font-size: 10px;
+            color: #6b7280;
+            padding: 2px 6px;
+            cursor: pointer;
+        }
+
+        .more-events:hover {
+            color: #374151;
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .month-view-container {
+                padding: 12px;
+            }
+
+            .day-cell {
+                min-height: 80px;
+                padding: 6px;
+            }
+
+            .day-name {
+                padding: 12px 4px;
+                font-size: 12px;
+            }
+
+            .day-number {
+                font-size: 12px;
+            }
+
+            .month-event {
+                font-size: 10px;
+                padding: 1px 4px;
+            }
+        }
+
         .event-detail-modal {
             max-width: 500px !important;
             width: 90vw !important;
@@ -2898,6 +3063,7 @@
 
             <div class="topbar-right">
                 <div class="view-toggle">
+                    <button class="view-option" data-view="month">월</button>
                     <button class="view-option active" data-view="week">주</button>
                     <button class="view-option" data-view="agenda">일정</button>
                 </div>
@@ -3184,7 +3350,27 @@
 
             <!-- Center Calendar Area - Google Calendar Style Grid -->
             <div class="center-calendar-area">
-                <!-- Google Calendar Style Grid Container -->
+                <!-- Month View Container -->
+                <div id="month-view-container" class="month-view-container" style="display: none; height: 100%; width: 100%;">
+                    <div class="month-calendar-grid">
+                        <!-- Month calendar header -->
+                        <div class="month-header">
+                            <div class="day-name">일</div>
+                            <div class="day-name">월</div>
+                            <div class="day-name">화</div>
+                            <div class="day-name">수</div>
+                            <div class="day-name">목</div>
+                            <div class="day-name">금</div>
+                            <div class="day-name">토</div>
+                        </div>
+                        <!-- Month calendar body -->
+                        <div class="month-body" id="month-calendar-body">
+                            <!-- Calendar days will be generated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Google Calendar Style Grid Container (Week View) -->
                 <div id="calendar-grid-container" class="calendar-grid-container" style="height: 100%; width: 100%;">
                     <!-- Google Calendar Grid will be rendered here -->
                 </div>
