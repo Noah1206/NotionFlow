@@ -2512,11 +2512,7 @@ function processEventsData(data) {
         // Update sidebar event list
         updateSidebarEventList(calendarEvents);
 
-        // CRITICAL FIX: 할 일 섹션 버튼 표시 문제 해결
-        // 노션 이벤트가 로드된 후 할 일 관리 버튼들을 다시 표시
-        setTimeout(() => {
-            ensureTodoButtonsVisible();
-        }, 100); // 렌더링 완료 후 실행
+        // 이벤트 리스트 버튼은 이제 HTML에 고정으로 있음 - 동적 생성 불필요
 
         // Update search events after loading calendar events
         if (typeof loadAllEvents === 'function') {
@@ -2528,116 +2524,7 @@ function processEventsData(data) {
     }
 }
 
-// CRITICAL FIX: 할 일 섹션 버튼 표시 문제 해결 함수
-function ensureTodoButtonsVisible() {
-    try {
-        // 할 일 섹션 컨테이너 찾기
-        const todoSection = document.querySelector('.todo-section');
-        if (!todoSection) {
-            return;
-        }
-
-        // 기존 버튼들이 있는지 확인
-        let todoControls = todoSection.querySelector('.todo-controls');
-
-        if (!todoControls) {
-            // 할 일 제목 요소 찾기
-            const todoTitle = todoSection.querySelector('h3');
-            if (!todoTitle) {
-                return;
-            }
-
-            // 버튼 컨테이너 생성
-            todoControls = document.createElement('div');
-            todoControls.className = 'todo-controls';
-            todoControls.style.cssText = `
-                display: flex;
-                gap: 8px;
-                margin-top: 8px;
-                align-items: center;
-            `;
-
-            // 전체선택 버튼 생성
-            const selectAllBtn = document.createElement('button');
-            selectAllBtn.className = 'btn-select-all';
-            selectAllBtn.textContent = '전체선택';
-            selectAllBtn.style.cssText = `
-                padding: 4px 8px;
-                font-size: 12px;
-                background: #f3f4f6;
-                border: 1px solid #d1d5db;
-                border-radius: 4px;
-                cursor: pointer;
-                color: #374151;
-            `;
-
-            // 삭제 버튼 생성
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'btn-delete-selected';
-            deleteBtn.textContent = '삭제';
-            deleteBtn.style.cssText = `
-                padding: 4px 8px;
-                font-size: 12px;
-                background: #fef2f2;
-                border: 1px solid #fecaca;
-                border-radius: 4px;
-                cursor: pointer;
-                color: #dc2626;
-            `;
-
-            // 이벤트 리스너 추가
-            selectAllBtn.addEventListener('click', function() {
-                const checkboxes = todoSection.querySelectorAll('input[type="checkbox"]');
-                const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-                checkboxes.forEach(cb => cb.checked = !allChecked);
-                console.log('📋 Todo select all toggled');
-            });
-
-            deleteBtn.addEventListener('click', function() {
-                const checkedItems = todoSection.querySelectorAll('input[type="checkbox"]:checked');
-                if (checkedItems.length === 0) {
-                    alert('삭제할 항목을 선택해주세요.');
-                    return;
-                }
-
-                if (confirm(`선택된 ${checkedItems.length}개 항목을 삭제하시겠습니까?`)) {
-                    checkedItems.forEach(item => {
-                        const todoItem = item.closest('.todo-item, li');
-                        if (todoItem) {
-                            todoItem.remove();
-                        }
-                    });
-                    saveTodos(); // 기존 함수 호출
-                    console.log('🗑️ Selected todos deleted');
-                }
-            });
-
-            // 버튼들을 컨테이너에 추가
-            todoControls.appendChild(selectAllBtn);
-            todoControls.appendChild(deleteBtn);
-
-            // 제목 요소 다음에 컨트롤 추가
-            todoTitle.parentNode.insertBefore(todoControls, todoTitle.nextSibling);
-
-            console.log('✅ Todo control buttons restored');
-        }
-
-        // 버튼들이 보이도록 강제 표시
-        if (todoControls) {
-            todoControls.style.display = 'flex';
-
-            // 개별 버튼들도 보이도록 설정
-            const buttons = todoControls.querySelectorAll('button');
-            buttons.forEach(btn => {
-                btn.style.display = 'inline-block';
-                btn.style.visibility = 'visible';
-            });
-        }
-
-    } catch (error) {
-        console.error('Error ensuring todo buttons visible:', error);
-    }
-}
+// 동적 버튼 생성 함수 제거됨 - HTML에 고정 버튼으로 대체
 
 function loadDemoEvents() {
     // Demo events disabled - show empty calendar instead
@@ -6087,17 +5974,31 @@ function updateSidebarEventList(events) {
     // 최근 15개 이벤트만 표시 (성능 최적화)
     const recentEvents = sortedEvents.slice(0, 15);
 
-    // 이벤트 HTML 생성
+    // 이벤트 HTML 생성 (체크박스 포함)
     const eventsHTML = recentEvents.map(event => {
         const eventDate = new Date(event.start_datetime || event.date);
         const formattedDate = formatEventDate(eventDate);
         const formattedTime = event.is_all_day ? '종일' : formatEventTime(eventDate);
-        
+
         return `
-            <div class="event-list-item" data-event-id="${event.id}">
-                <div class="event-list-item-title">${event.title}</div>
-                <div class="event-list-item-time">
-                    ${formattedDate} ${formattedTime !== '종일' ? '• ' + formattedTime : ''}
+            <div class="event-list-item" data-event-id="${event.id}" style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 8px;
+                border-radius: 6px;
+                cursor: pointer;
+                transition: background-color 0.2s ease;
+            ">
+                <input type="checkbox" class="event-checkbox" data-event-id="${event.id}" style="
+                    margin: 0;
+                    cursor: pointer;
+                " onclick="event.stopPropagation()">
+                <div class="event-content" style="flex: 1;">
+                    <div class="event-list-item-title" style="font-weight: 500; color: #374151;">${event.title}</div>
+                    <div class="event-list-item-time" style="font-size: 12px; color: #6b7280;">
+                        ${formattedDate} ${formattedTime !== '종일' ? '• ' + formattedTime : ''}
+                    </div>
                 </div>
             </div>
         `;
@@ -6105,16 +6006,30 @@ function updateSidebarEventList(events) {
 
     eventListContainer.innerHTML = eventsHTML;
 
-    // 이벤트 클릭 리스너 추가
+    // 이벤트 클릭 리스너 추가 (체크박스 제외)
     eventListContainer.querySelectorAll('.event-list-item').forEach(item => {
         item.addEventListener('click', (e) => {
+            // 체크박스 클릭시에는 이벤트 상세 표시 안함
+            if (e.target.type === 'checkbox') return;
+
             const eventId = e.currentTarget.dataset.eventId;
             const event = events.find(ev => ev.id === eventId);
             if (event) {
                 showEventDetails(event);
             }
         });
+
+        // 호버 효과 추가
+        item.addEventListener('mouseenter', () => {
+            item.style.backgroundColor = '#f3f4f6';
+        });
+        item.addEventListener('mouseleave', () => {
+            item.style.backgroundColor = 'transparent';
+        });
     });
+
+    // 고정 버튼에 이벤트 리스너 연결
+    setupEventListButtons();
 }
 
 // 날짜 포맷팅 함수
@@ -6152,6 +6067,88 @@ function formatEventTime(date) {
         minute: '2-digit',
         hour12: false
     });
+}
+
+// 이벤트 리스트 버튼 기능 설정
+function setupEventListButtons() {
+    // 전체선택 버튼
+    const selectAllBtn = document.querySelector('.btn-select-all-events');
+    if (selectAllBtn) {
+        // 기존 리스너 제거 후 새로 추가
+        selectAllBtn.replaceWith(selectAllBtn.cloneNode(true));
+        const newSelectAllBtn = document.querySelector('.btn-select-all-events');
+
+        newSelectAllBtn.addEventListener('click', function() {
+            const checkboxes = document.querySelectorAll('#event-list .event-checkbox');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+
+            // 전체선택/해제 토글
+            checkboxes.forEach(cb => cb.checked = !allChecked);
+
+            console.log(`📅 Event ${allChecked ? 'deselect' : 'select'} all: ${checkboxes.length} items`);
+        });
+    }
+
+    // 삭제 버튼
+    const deleteBtn = document.querySelector('.btn-delete-selected-events');
+    if (deleteBtn) {
+        // 기존 리스너 제거 후 새로 추가
+        deleteBtn.replaceWith(deleteBtn.cloneNode(true));
+        const newDeleteBtn = document.querySelector('.btn-delete-selected-events');
+
+        newDeleteBtn.addEventListener('click', function() {
+            const checkedCheckboxes = document.querySelectorAll('#event-list .event-checkbox:checked');
+
+            if (checkedCheckboxes.length === 0) {
+                alert('삭제할 일정을 선택해주세요.');
+                return;
+            }
+
+            if (confirm(`선택된 ${checkedCheckboxes.length}개 일정을 삭제하시겠습니까?`)) {
+                const eventIds = Array.from(checkedCheckboxes).map(cb => cb.dataset.eventId);
+
+                // 선택된 이벤트들 삭제
+                deleteSelectedEvents(eventIds);
+
+                console.log(`🗑️ Deleting ${eventIds.length} selected events:`, eventIds);
+            }
+        });
+    }
+}
+
+// 선택된 이벤트 삭제 함수
+async function deleteSelectedEvents(eventIds) {
+    try {
+        const calendarId = window.calendarId || getCurrentCalendarId();
+
+        for (const eventId of eventIds) {
+            const response = await fetch(`/api/calendars/${calendarId}/events/${eventId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                console.error(`Failed to delete event ${eventId}`);
+            }
+        }
+
+        // 성공 알림
+        if (window.showNotification) {
+            showNotification(`${eventIds.length}개 일정이 삭제되었습니다.`, 'success');
+        }
+
+        // 이벤트 목록 새로고침
+        await loadEvents();
+
+    } catch (error) {
+        console.error('Error deleting events:', error);
+        if (window.showNotification) {
+            showNotification('일정 삭제 중 오류가 발생했습니다.', 'error');
+        }
+    }
 }
 
 // 이벤트 상세 표시 함수
