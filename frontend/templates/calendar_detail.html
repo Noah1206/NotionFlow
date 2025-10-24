@@ -2491,6 +2491,273 @@
                     font-weight: 600;
                     box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
                 }
+
+        /* ===== EVENT DETAIL POPUP STYLES ===== */
+        .event-detail-modal {
+            max-width: 500px !important;
+            width: 90vw !important;
+            max-height: 80vh !important;
+            margin: 0 !important;
+        }
+
+        .event-detail-modal .modal-header {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: flex-start !important;
+            padding: 24px 24px 16px 24px !important;
+            border-bottom: 1px solid #f0f0f0 !important;
+            gap: 16px !important;
+        }
+
+        .event-detail-header {
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            flex: 1 !important;
+            min-width: 0 !important;
+        }
+
+        .event-color-indicator {
+            width: 4px !important;
+            height: 24px !important;
+            border-radius: 2px !important;
+            background: #3b82f6 !important;
+            flex-shrink: 0 !important;
+        }
+
+        .event-detail-modal .modal-title {
+            font-size: 20px !important;
+            font-weight: 600 !important;
+            color: #1f2937 !important;
+            margin: 0 !important;
+            line-height: 1.3 !important;
+            word-break: break-word !important;
+        }
+
+        .modal-actions {
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            flex-shrink: 0 !important;
+        }
+
+        .btn-edit, .btn-delete {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 36px !important;
+            height: 36px !important;
+            border: none !important;
+            border-radius: 8px !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            background: #f8fafc !important;
+            color: #64748b !important;
+        }
+
+        .btn-edit:hover {
+            background: #e2e8f0 !important;
+            color: #3b82f6 !important;
+        }
+
+        .btn-delete:hover {
+            background: #fef2f2 !important;
+            color: #dc2626 !important;
+        }
+
+        .event-detail-modal .modal-body {
+            padding: 0 24px 24px 24px !important;
+            overflow-y: auto !important;
+        }
+
+        .event-detail-section {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 20px !important;
+            margin-bottom: 32px !important;
+        }
+
+        .detail-row {
+            display: flex !important;
+            align-items: flex-start !important;
+            gap: 12px !important;
+        }
+
+        .detail-icon {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 40px !important;
+            height: 40px !important;
+            background: #f8fafc !important;
+            border-radius: 10px !important;
+            flex-shrink: 0 !important;
+            color: #64748b !important;
+        }
+
+        .detail-content {
+            flex: 1 !important;
+            min-width: 0 !important;
+            padding-top: 2px !important;
+        }
+
+        .detail-label {
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            color: #6b7280 !important;
+            margin-bottom: 4px !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+        }
+
+        .detail-value {
+            font-size: 15px !important;
+            font-weight: 400 !important;
+            color: #1f2937 !important;
+            line-height: 1.5 !important;
+            word-break: break-word !important;
+        }
+
+        .platform-badge {
+            display: inline-flex !important;
+            align-items: center !important;
+            padding: 4px 8px !important;
+            background: #f0f9ff !important;
+            color: #0369a1 !important;
+            border-radius: 6px !important;
+            font-size: 12px !important;
+            font-weight: 500 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+        }
+
+        .platform-badge.google {
+            background: #fef3c7 !important;
+            color: #d97706 !important;
+        }
+
+        .platform-badge.notion {
+            background: #f3f4f6 !important;
+            color: #374151 !important;
+        }
+
+        .platform-badge.apple {
+            background: #f0f0f0 !important;
+            color: #1f2937 !important;
+        }
+
+        .event-detail-actions {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            gap: 12px !important;
+            padding-top: 20px !important;
+            border-top: 1px solid #f0f0f0 !important;
+        }
+
+        .action-buttons {
+            display: flex !important;
+            gap: 8px !important;
+        }
+
+        .btn-edit-full, .btn-danger {
+            display: flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+            padding: 10px 16px !important;
+            border: none !important;
+            border-radius: 8px !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .btn-edit-full {
+            background: #f8fafc !important;
+            color: #374151 !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+
+        .btn-edit-full:hover {
+            background: #f1f5f9 !important;
+            color: #1f2937 !important;
+            border-color: #cbd5e1 !important;
+        }
+
+        .btn-danger {
+            background: #fef2f2 !important;
+            color: #dc2626 !important;
+            border: 1px solid #fecaca !important;
+        }
+
+        .btn-danger:hover {
+            background: #fee2e2 !important;
+            color: #b91c1c !important;
+            border-color: #fca5a5 !important;
+        }
+
+        .btn-secondary {
+            padding: 10px 16px !important;
+            background: transparent !important;
+            color: #6b7280 !important;
+            border: none !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            cursor: pointer !important;
+            transition: color 0.2s ease !important;
+        }
+
+        .btn-secondary:hover {
+            color: #374151 !important;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 640px) {
+            .event-detail-modal {
+                max-width: 95vw !important;
+                max-height: 85vh !important;
+            }
+
+            .event-detail-modal .modal-header {
+                padding: 20px 20px 12px 20px !important;
+            }
+
+            .event-detail-modal .modal-body {
+                padding: 0 20px 20px 20px !important;
+            }
+
+            .event-detail-actions {
+                flex-direction: column !important;
+                gap: 16px !important;
+            }
+
+            .action-buttons {
+                width: 100% !important;
+                justify-content: stretch !important;
+            }
+
+            .btn-edit-full, .btn-danger {
+                flex: 1 !important;
+                justify-content: center !important;
+            }
+        }
+
+        /* Animation */
+        @keyframes eventDetailPopup {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .event-detail-modal.show {
+            animation: eventDetailPopup 0.2s ease-out !important;
+        }
     </style>
     <!-- <link rel=" stylesheet"
         href="{{ url_for('static', filename='css/calendar-detail-new.css') }}?v={{ range(100000, 999999) | random }}">
@@ -3644,6 +3911,134 @@
                             </svg>
                             Notion API 설정
                         </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Detail Popup -->
+    <div class="modal-overlay" id="event-detail-modal" style="display: none;">
+        <div class="modal-content event-detail-modal">
+            <div class="modal-header">
+                <div class="event-detail-header">
+                    <div class="event-color-indicator" id="event-detail-color"></div>
+                    <h2 class="modal-title" id="event-detail-title">이벤트 제목</h2>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-edit" id="event-edit-btn" title="수정">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 20h9"></path>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                        </svg>
+                    </button>
+                    <button class="btn-delete" id="event-delete-btn" title="삭제">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3,6 5,6 21,6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                    </button>
+                    <button class="modal-close" onclick="closeEventDetailModal()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-body">
+                <div class="event-detail-section">
+                    <div class="detail-row">
+                        <div class="detail-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12,6 12,12 16,14"></polyline>
+                            </svg>
+                        </div>
+                        <div class="detail-content">
+                            <div class="detail-label">시간</div>
+                            <div class="detail-value" id="event-detail-time">2024년 10월 25일 오전 9:00 - 오전 10:00</div>
+                        </div>
+                    </div>
+
+                    <div class="detail-row" id="event-detail-description-row" style="display: none;">
+                        <div class="detail-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14,2 14,8 20,8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10,9 9,9 8,9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="detail-content">
+                            <div class="detail-label">설명</div>
+                            <div class="detail-value" id="event-detail-description"></div>
+                        </div>
+                    </div>
+
+                    <div class="detail-row" id="event-detail-location-row" style="display: none;">
+                        <div class="detail-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                        </div>
+                        <div class="detail-content">
+                            <div class="detail-label">위치</div>
+                            <div class="detail-value" id="event-detail-location"></div>
+                        </div>
+                    </div>
+
+                    <div class="detail-row" id="event-detail-attendees-row" style="display: none;">
+                        <div class="detail-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                        </div>
+                        <div class="detail-content">
+                            <div class="detail-label">참석자</div>
+                            <div class="detail-value" id="event-detail-attendees"></div>
+                        </div>
+                    </div>
+
+                    <div class="detail-row">
+                        <div class="detail-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 11H5a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"></path>
+                                <circle cx="9" cy="9" r="2"></circle>
+                                <path d="M21 15.5A3.5 3.5 0 0 0 17.5 12H14l2-3h5v6.5z"></path>
+                            </svg>
+                        </div>
+                        <div class="detail-content">
+                            <div class="detail-label">플랫폼</div>
+                            <div class="detail-value">
+                                <span class="platform-badge" id="event-detail-platform">Manual</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="event-detail-actions">
+                    <button class="btn-secondary" onclick="closeEventDetailModal()">닫기</button>
+                    <div class="action-buttons">
+                        <button class="btn-edit-full" onclick="editEventFromDetail()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 20h9"></path>
+                                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                            </svg>
+                            수정
+                        </button>
+                        <button class="btn-danger" onclick="deleteEventFromDetail()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3,6 5,6 21,6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                            삭제
+                        </button>
                     </div>
                 </div>
             </div>

@@ -6153,7 +6153,253 @@ async function deleteSelectedEvents(eventIds) {
 
 // 이벤트 상세 표시 함수
 function showEventDetails(event) {
-    console.log('Showing event details:', event);
-    // 여기에 이벤트 상세 모달을 표시하는 로직 추가
-    // 기존의 이벤트 모달 함수가 있다면 그것을 사용
+    console.log('📅 Showing event details:', event);
+
+    // 모달 요소들 가져오기
+    const modal = document.getElementById('event-detail-modal');
+    const title = document.getElementById('event-detail-title');
+    const time = document.getElementById('event-detail-time');
+    const description = document.getElementById('event-detail-description');
+    const location = document.getElementById('event-detail-location');
+    const attendees = document.getElementById('event-detail-attendees');
+    const platform = document.getElementById('event-detail-platform');
+    const colorIndicator = document.getElementById('event-detail-color');
+
+    // 관련 행들
+    const descriptionRow = document.getElementById('event-detail-description-row');
+    const locationRow = document.getElementById('event-detail-location-row');
+    const attendeesRow = document.getElementById('event-detail-attendees-row');
+
+    if (!modal) {
+        console.error('Event detail modal not found');
+        return;
+    }
+
+    // 이벤트 데이터로 모달 채우기
+    title.textContent = event.title || '제목 없음';
+
+    // 시간 포맷팅
+    const startDate = new Date(event.start_datetime || event.date);
+    const endDate = new Date(event.end_datetime || event.start_datetime || event.date);
+
+    let timeText = '';
+    if (event.is_all_day) {
+        timeText = formatEventDate(startDate);
+        if (startDate.toDateString() !== endDate.toDateString()) {
+            timeText += ' - ' + formatEventDate(endDate);
+        }
+        timeText += ' (종일)';
+    } else {
+        timeText = `${formatEventDate(startDate)} ${formatEventTime(startDate)}`;
+        if (startDate.toDateString() === endDate.toDateString()) {
+            timeText += ` - ${formatEventTime(endDate)}`;
+        } else {
+            timeText += ` - ${formatEventDate(endDate)} ${formatEventTime(endDate)}`;
+        }
+    }
+    time.textContent = timeText;
+
+    // 설명
+    if (event.description && event.description.trim()) {
+        description.textContent = event.description;
+        descriptionRow.style.display = 'flex';
+    } else {
+        descriptionRow.style.display = 'none';
+    }
+
+    // 위치
+    if (event.location && event.location.trim()) {
+        location.textContent = event.location;
+        locationRow.style.display = 'flex';
+    } else {
+        locationRow.style.display = 'none';
+    }
+
+    // 참석자
+    if (event.attendees && event.attendees.length > 0) {
+        const attendeesList = Array.isArray(event.attendees)
+            ? event.attendees.map(a => a.email || a.name || a).join(', ')
+            : event.attendees;
+        attendees.textContent = attendeesList;
+        attendeesRow.style.display = 'flex';
+    } else {
+        attendeesRow.style.display = 'none';
+    }
+
+    // 플랫폼 배지
+    const platformText = event.source_platform || 'manual';
+    platform.textContent = platformText.charAt(0).toUpperCase() + platformText.slice(1);
+    platform.className = `platform-badge ${platformText.toLowerCase()}`;
+
+    // 색상 인디케이터
+    const eventColor = event.color || '#3b82f6';
+    colorIndicator.style.backgroundColor = eventColor;
+
+    // 버튼에 이벤트 ID 저장
+    const editBtn = document.getElementById('event-edit-btn');
+    const deleteBtn = document.getElementById('event-delete-btn');
+
+    if (editBtn) editBtn.dataset.eventId = event.id;
+    if (deleteBtn) deleteBtn.dataset.eventId = event.id;
+
+    // 현재 이벤트를 전역 변수에 저장 (수정/삭제 시 사용)
+    window.currentEventDetail = event;
+
+    // 모달 표시
+    modal.style.display = 'flex';
+    modal.classList.add('show');
+
+    // 애니메이션을 위한 약간의 지연
+    setTimeout(() => {
+        const modalContent = modal.querySelector('.modal-content');
+        if (modalContent) {
+            modalContent.classList.add('show');
+        }
+    }, 10);
 }
+
+// 이벤트 상세 모달 닫기
+function closeEventDetailModal() {
+    const modal = document.getElementById('event-detail-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('show');
+
+        const modalContent = modal.querySelector('.modal-content');
+        if (modalContent) {
+            modalContent.classList.remove('show');
+        }
+    }
+
+    // 전역 변수 정리
+    window.currentEventDetail = null;
+}
+
+// 이벤트 상세에서 수정 버튼 클릭
+function editEventFromDetail() {
+    const event = window.currentEventDetail;
+    if (!event) {
+        console.error('No event selected for editing');
+        return;
+    }
+
+    // 상세 모달 닫기
+    closeEventDetailModal();
+
+    // 기존 이벤트 수정 폼 열기 (기존 함수 활용)
+    if (typeof openEventModalForEdit === 'function') {
+        openEventModalForEdit(event);
+    } else {
+        console.log('Opening edit modal for event:', event.id);
+        // 기본 수정 모달이나 폼 열기
+        if (typeof openEventModal === 'function') {
+            openEventModal();
+            // 폼에 이벤트 데이터 채우기
+            populateEventForm(event);
+        }
+    }
+}
+
+// 이벤트 상세에서 삭제 버튼 클릭
+async function deleteEventFromDetail() {
+    const event = window.currentEventDetail;
+    if (!event) {
+        console.error('No event selected for deletion');
+        return;
+    }
+
+    const confirmMessage = `"${event.title}" 일정을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`;
+
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+
+    try {
+        const calendarId = window.calendarId || getCurrentCalendarId();
+
+        const response = await fetch(`/api/calendars/${calendarId}/events/${event.id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            // 성공 알림
+            if (window.showNotification) {
+                showNotification('일정이 삭제되었습니다.', 'success');
+            }
+
+            // 모달 닫기
+            closeEventDetailModal();
+
+            // 이벤트 목록 새로고침
+            await loadEvents();
+
+            console.log('✅ Event deleted successfully:', event.id);
+        } else {
+            throw new Error(`Failed to delete event: ${response.status}`);
+        }
+
+    } catch (error) {
+        console.error('Error deleting event:', error);
+        if (window.showNotification) {
+            showNotification('일정 삭제 중 오류가 발생했습니다.', 'error');
+        }
+    }
+}
+
+// 이벤트 폼에 데이터 채우기 (수정 시 사용)
+function populateEventForm(event) {
+    try {
+        // 기본 필드들
+        const titleInput = document.getElementById('overlay-event-title') || document.getElementById('event-title');
+        const descriptionInput = document.getElementById('overlay-event-description') || document.getElementById('event-description');
+        const dateInput = document.getElementById('overlay-event-date') || document.getElementById('event-date');
+        const startTimeInput = document.getElementById('overlay-start-time') || document.getElementById('event-start-time');
+        const endTimeInput = document.getElementById('overlay-end-time') || document.getElementById('event-end-time');
+
+        if (titleInput) titleInput.value = event.title || '';
+        if (descriptionInput) descriptionInput.value = event.description || '';
+
+        // 날짜와 시간 설정
+        const startDate = new Date(event.start_datetime || event.date);
+        const endDate = new Date(event.end_datetime || event.start_datetime || event.date);
+
+        if (dateInput) {
+            dateInput.value = startDate.toISOString().split('T')[0];
+        }
+
+        if (startTimeInput) {
+            startTimeInput.value = startDate.toTimeString().slice(0, 5);
+        }
+
+        if (endTimeInput) {
+            endTimeInput.value = endDate.toTimeString().slice(0, 5);
+        }
+
+        console.log('✅ Event form populated with data');
+
+    } catch (error) {
+        console.error('Error populating event form:', error);
+    }
+}
+
+// ESC 키로 모달 닫기
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('event-detail-modal');
+        if (modal && modal.style.display === 'flex') {
+            closeEventDetailModal();
+        }
+    }
+});
+
+// 모달 외부 클릭으로 닫기
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('event-detail-modal');
+    if (e.target === modal) {
+        closeEventDetailModal();
+    }
+});
