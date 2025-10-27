@@ -2596,29 +2596,38 @@
             color: #3182ce; /* 토요일 */
         }
 
-        .month-days-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            grid-template-rows: repeat(6, 1fr);
-            gap: 1px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            flex-grow: 1;
-            min-height: 500px;
+        /* 월 뷰 그리드 스타일 - 강제 적용 */
+        #month-days-grid,
+        .month-days-grid,
+        div.month-days-grid {
+            display: grid !important;
+            grid-template-columns: repeat(7, 1fr) !important;
+            grid-template-rows: repeat(6, 1fr) !important;
+            gap: 1px !important;
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            border-radius: 10px !important;
+            overflow: hidden !important;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1) !important;
+            flex-grow: 1 !important;
+            min-height: 500px !important;
+            width: 100% !important;
+            height: 100% !important;
         }
 
         .month-day-cell {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 12px;
-            min-height: 100px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            background: rgba(255, 255, 255, 0.95) !important;
+            padding: 12px !important;
+            min-height: 100px !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+            position: relative !important;
+            overflow: hidden !important;
+            display: flex !important;
+            flex-direction: column !important;
+            width: auto !important;
+            height: auto !important;
+            border: none !important;
+            margin: 0 !important;
         }
 
         .month-day-cell:last-child {
@@ -8048,6 +8057,29 @@
                 case 'month':
                     if (monthContainer) {
                         monthContainer.classList.add('active');
+
+                        // 월 뷰 활성화 후 강제로 스타일 적용
+                        setTimeout(() => {
+                            const monthGrid = document.getElementById('month-days-grid');
+                            if (monthGrid) {
+                                monthGrid.style.cssText = `
+                                    display: grid !important;
+                                    grid-template-columns: repeat(7, 1fr) !important;
+                                    grid-template-rows: repeat(6, 1fr) !important;
+                                    gap: 1px !important;
+                                    background-color: rgba(255, 255, 255, 0.1) !important;
+                                    border-radius: 10px !important;
+                                    overflow: hidden !important;
+                                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1) !important;
+                                    flex-grow: 1 !important;
+                                    min-height: 500px !important;
+                                    width: 100% !important;
+                                    height: 100% !important;
+                                `;
+                                console.log('🔧 월 뷰 활성화 후 그리드 스타일 재적용 완료');
+                            }
+                        }, 100);
+
                         generateMonthCalendar();
                         loadMonthViewEvents();
                     }
@@ -8070,7 +8102,31 @@
             const monthGrid = document.getElementById('month-days-grid');
             const monthTitle = document.getElementById('month-title');
 
-            if (!monthGrid || !monthTitle) return;
+            if (!monthGrid || !monthTitle) {
+                console.error('월 달력 요소를 찾을 수 없습니다:', {
+                    monthGrid: !!monthGrid,
+                    monthTitle: !!monthTitle
+                });
+                return;
+            }
+
+            // 강제로 그리드 스타일 적용
+            monthGrid.style.cssText = `
+                display: grid !important;
+                grid-template-columns: repeat(7, 1fr) !important;
+                grid-template-rows: repeat(6, 1fr) !important;
+                gap: 1px !important;
+                background-color: rgba(255, 255, 255, 0.1) !important;
+                border-radius: 10px !important;
+                overflow: hidden !important;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1) !important;
+                flex-grow: 1 !important;
+                min-height: 500px !important;
+                width: 100% !important;
+                height: 100% !important;
+            `;
+
+            console.log('🎨 월 달력 그리드 스타일 강제 적용 완료');
 
             // Update month title
             const year = currentMonthDate.getFullYear();
@@ -8095,6 +8151,8 @@
                 const dayCell = createDayCell(cellDate, month);
                 monthGrid.appendChild(dayCell);
             }
+
+            console.log(`📅 월 달력 생성 완료: ${year}년 ${monthNames[month]} (42개 셀)`);
         }
 
         // Create individual day cell
@@ -8102,21 +8160,64 @@
             const dayCell = document.createElement('div');
             dayCell.className = 'month-day-cell';
 
+            // 강제로 day cell 스타일 적용
+            dayCell.style.cssText = `
+                background: rgba(255, 255, 255, 0.95) !important;
+                padding: 12px !important;
+                min-height: 100px !important;
+                cursor: pointer !important;
+                transition: all 0.3s ease !important;
+                position: relative !important;
+                overflow: hidden !important;
+                display: flex !important;
+                flex-direction: column !important;
+                width: auto !important;
+                height: auto !important;
+                border: none !important;
+                margin: 0 !important;
+            `;
+
             const isOtherMonth = date.getMonth() !== currentMonth;
             const isToday = isDateToday(date);
 
-            if (isOtherMonth) dayCell.classList.add('other-month');
-            if (isToday) dayCell.classList.add('today');
+            if (isOtherMonth) {
+                dayCell.classList.add('other-month');
+                dayCell.style.background = 'rgba(255, 255, 255, 0.4) !important';
+                dayCell.style.color = 'rgba(255, 255, 255, 0.6) !important';
+            }
+
+            if (isToday) {
+                dayCell.classList.add('today');
+                dayCell.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important';
+                dayCell.style.color = 'white !important';
+                dayCell.style.transform = 'scale(1.05) !important';
+                dayCell.style.boxShadow = '0 10px 30px rgba(102, 126, 234, 0.4) !important';
+            }
 
             // Day number
             const dayNumber = document.createElement('div');
             dayNumber.className = 'day-number';
             dayNumber.textContent = date.getDate();
+            dayNumber.style.cssText = `
+                font-size: 16px !important;
+                font-weight: 600 !important;
+                color: ${isToday ? 'white' : (isOtherMonth ? 'rgba(255, 255, 255, 0.5)' : '#2d3748')} !important;
+                margin-bottom: 6px !important;
+                text-align: left !important;
+                flex-shrink: 0 !important;
+            `;
             dayCell.appendChild(dayNumber);
 
             // Events container
             const eventsContainer = document.createElement('div');
             eventsContainer.className = 'day-events-list';
+            eventsContainer.style.cssText = `
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 2px !important;
+                flex-grow: 1 !important;
+                overflow: hidden !important;
+            `;
             dayCell.appendChild(eventsContainer);
 
             // Add click event
