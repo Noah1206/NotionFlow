@@ -2472,43 +2472,272 @@
             display: flex !important; /* Show when .show class is added */
         }
 
-        /* ===== MONTH VIEW STYLES ===== */
+        /* ===== MODERN MONTH VIEW STYLES ===== */
         .month-view-container {
-            padding: 20px;
-            height: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 999;
+            display: none;
+            overflow: hidden;
+        }
+
+        .month-view-container.active {
+            display: block;
+        }
+
+        .month-view-header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .month-navigation {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .month-nav-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .month-nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .month-title {
+            color: white;
+            font-size: 28px;
+            font-weight: 700;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .month-close-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 12px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .month-close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .month-calendar-container {
+            padding: 40px;
+            height: calc(100vh - 100px);
+            overflow: auto;
         }
 
         .month-calendar-grid {
-            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            overflow: hidden;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
-        .month-header {
+        .month-weekdays {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
+            background: rgba(102, 126, 234, 0.1);
         }
 
-        .day-name {
-            padding: 10px;
+        .weekday-header {
+            padding: 20px;
             text-align: center;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 14px;
+            color: #4a5568;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-right: 1px solid rgba(0, 0, 0, 0.05);
         }
 
-        .month-body {
+        .weekday-header:last-child {
+            border-right: none;
+        }
+
+        .weekday-header:first-child {
+            color: #e53e3e; /* 일요일 */
+        }
+
+        .weekday-header:last-child {
+            color: #3182ce; /* 토요일 */
+        }
+
+        .month-days-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             grid-template-rows: repeat(6, 1fr);
-            height: 400px;
         }
 
-        .day-cell {
-            border: 1px solid #ddd;
-            padding: 8px;
-            min-height: 60px;
+        .month-day-cell {
+            border-right: 1px solid rgba(0, 0, 0, 0.05);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 15px;
+            min-height: 120px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .month-day-cell:last-child {
+            border-right: none;
+        }
+
+        .month-day-cell:hover {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .month-day-cell.other-month {
+            background: #f8f9fa;
+            color: #adb5bd;
+        }
+
+        .month-day-cell.today {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .month-day-cell.today .day-number {
+            color: white;
+            font-weight: 800;
         }
 
         .day-number {
-            font-size: 14px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .month-day-cell.other-month .day-number {
+            color: #cbd5e0;
+        }
+
+        .day-events-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            max-height: 80px;
+            overflow: hidden;
+        }
+
+        .month-event-item {
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 11px;
             font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            box-shadow: 0 4px 15px rgba(66, 153, 225, 0.3);
+        }
+
+        .month-event-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(66, 153, 225, 0.4);
+        }
+
+        .month-event-item.google {
+            background: linear-gradient(135deg, #34a853 0%, #137333 100%);
+        }
+
+        .month-event-item.notion {
+            background: linear-gradient(135deg, #000000 0%, #434343 100%);
+        }
+
+        .month-event-item.outlook {
+            background: linear-gradient(135deg, #0078d4 0%, #106ebe 100%);
+        }
+
+        .more-events-indicator {
+            color: #718096;
+            font-size: 10px;
+            text-align: center;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        /* 애니메이션 효과 */
+        @keyframes monthSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .month-view-container.active .month-calendar-grid {
+            animation: monthSlideIn 0.6s ease-out;
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .month-view-header {
+                padding: 15px 20px;
+            }
+
+            .month-title {
+                font-size: 20px;
+            }
+
+            .month-calendar-container {
+                padding: 20px;
+            }
+
+            .month-day-cell {
+                min-height: 80px;
+                padding: 10px;
+            }
+
+            .day-number {
+                font-size: 14px;
+            }
+
+            .month-event-item {
+                font-size: 9px;
+                padding: 4px 8px;
+            }
         }
 
         .event-detail-modal {
@@ -3183,22 +3412,44 @@
 
             <!-- Center Calendar Area - Google Calendar Style Grid -->
             <div class="center-calendar-area">
-                <!-- Month View Container -->
-                <div id="month-view-container" class="month-view-container" style="display: none; height: 100%; width: 100%;">
-                    <div class="month-calendar-grid">
-                        <!-- Month calendar header -->
-                        <div class="month-header">
-                            <div class="day-name">일</div>
-                            <div class="day-name">월</div>
-                            <div class="day-name">화</div>
-                            <div class="day-name">수</div>
-                            <div class="day-name">목</div>
-                            <div class="day-name">금</div>
-                            <div class="day-name">토</div>
+                <!-- Modern Month View Container -->
+                <div id="month-view-container" class="month-view-container">
+                    <!-- Month View Header -->
+                    <div class="month-view-header">
+                        <div class="month-navigation">
+                            <button class="month-nav-btn" id="prev-month-btn" onclick="navigateMonth(-1)">
+                                ← 이전
+                            </button>
+                            <h1 class="month-title" id="month-title">2024년 10월</h1>
+                            <button class="month-nav-btn" id="next-month-btn" onclick="navigateMonth(1)">
+                                다음 →
+                            </button>
                         </div>
-                        <!-- Month calendar body -->
-                        <div class="month-body" id="month-calendar-body">
-                            <!-- Calendar days will be generated here -->
+                        <button class="month-close-btn" onclick="exitMonthView()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 6L6 18M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Month Calendar Container -->
+                    <div class="month-calendar-container">
+                        <div class="month-calendar-grid">
+                            <!-- Weekdays Header -->
+                            <div class="month-weekdays">
+                                <div class="weekday-header">일</div>
+                                <div class="weekday-header">월</div>
+                                <div class="weekday-header">화</div>
+                                <div class="weekday-header">수</div>
+                                <div class="weekday-header">목</div>
+                                <div class="weekday-header">금</div>
+                                <div class="weekday-header">토</div>
+                            </div>
+
+                            <!-- Month Days Grid -->
+                            <div class="month-days-grid" id="month-days-grid">
+                                <!-- Days will be generated dynamically by JavaScript -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -7719,6 +7970,282 @@
                 }
             }, 200); // 1초 → 0.2초로 단축
         });
+    </script>
+
+    <!-- Modern Month View JavaScript -->
+    <script>
+        // Month view state
+        let currentMonthDate = new Date();
+        let monthViewEvents = [];
+
+        // Initialize month view functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeViewToggle();
+            generateMonthCalendar();
+        });
+
+        // Initialize view toggle functionality
+        function initializeViewToggle() {
+            const viewOptions = document.querySelectorAll('.view-option');
+
+            viewOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const viewType = this.getAttribute('data-view');
+
+                    // Update active state
+                    viewOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Switch view
+                    switchToView(viewType);
+                });
+            });
+        }
+
+        // Switch to different view types
+        function switchToView(viewType) {
+            console.log(`🔄 Switching to ${viewType} view`);
+
+            const monthContainer = document.getElementById('month-view-container');
+            const weekContainer = document.getElementById('calendar-grid-container');
+            const agendaContainer = document.getElementById('agenda-view-container');
+
+            // Hide all views
+            if (monthContainer) monthContainer.classList.remove('active');
+            if (weekContainer) weekContainer.style.display = 'none';
+            if (agendaContainer) agendaContainer.style.display = 'none';
+
+            // Show selected view
+            switch(viewType) {
+                case 'month':
+                    if (monthContainer) {
+                        monthContainer.classList.add('active');
+                        generateMonthCalendar();
+                        loadMonthViewEvents();
+                    }
+                    break;
+                case 'week':
+                    if (weekContainer) {
+                        weekContainer.style.display = 'block';
+                    }
+                    break;
+                case 'agenda':
+                    if (agendaContainer) {
+                        agendaContainer.style.display = 'block';
+                    }
+                    break;
+            }
+        }
+
+        // Generate month calendar grid
+        function generateMonthCalendar() {
+            const monthGrid = document.getElementById('month-days-grid');
+            const monthTitle = document.getElementById('month-title');
+
+            if (!monthGrid || !monthTitle) return;
+
+            // Update month title
+            const year = currentMonthDate.getFullYear();
+            const month = currentMonthDate.getMonth();
+            const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+            monthTitle.textContent = `${year}년 ${monthNames[month]}`;
+
+            // Clear existing days
+            monthGrid.innerHTML = '';
+
+            // Get first day of month and last day
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay()); // Start from Sunday
+
+            // Generate 42 days (6 weeks x 7 days)
+            for (let i = 0; i < 42; i++) {
+                const cellDate = new Date(startDate);
+                cellDate.setDate(startDate.getDate() + i);
+
+                const dayCell = createDayCell(cellDate, month);
+                monthGrid.appendChild(dayCell);
+            }
+        }
+
+        // Create individual day cell
+        function createDayCell(date, currentMonth) {
+            const dayCell = document.createElement('div');
+            dayCell.className = 'month-day-cell';
+
+            const isOtherMonth = date.getMonth() !== currentMonth;
+            const isToday = isDateToday(date);
+
+            if (isOtherMonth) dayCell.classList.add('other-month');
+            if (isToday) dayCell.classList.add('today');
+
+            // Day number
+            const dayNumber = document.createElement('div');
+            dayNumber.className = 'day-number';
+            dayNumber.textContent = date.getDate();
+            dayCell.appendChild(dayNumber);
+
+            // Events container
+            const eventsContainer = document.createElement('div');
+            eventsContainer.className = 'day-events-list';
+            dayCell.appendChild(eventsContainer);
+
+            // Add click event
+            dayCell.addEventListener('click', () => {
+                onDayClick(date);
+            });
+
+            return dayCell;
+        }
+
+        // Check if date is today
+        function isDateToday(date) {
+            const today = new Date();
+            return date.getDate() === today.getDate() &&
+                   date.getMonth() === today.getMonth() &&
+                   date.getFullYear() === today.getFullYear();
+        }
+
+        // Handle day click
+        function onDayClick(date) {
+            console.log('📅 Day clicked:', date);
+            // Remove selection from all cells
+            document.querySelectorAll('.month-day-cell').forEach(cell => {
+                cell.classList.remove('selected');
+            });
+
+            // Add selection to clicked cell
+            event.currentTarget.classList.add('selected');
+
+            // Show events for this day (if any)
+            showDayEvents(date);
+        }
+
+        // Show events for selected day
+        function showDayEvents(date) {
+            const dayEvents = monthViewEvents.filter(event => {
+                const eventDate = new Date(event.date);
+                return eventDate.toDateString() === date.toDateString();
+            });
+
+            if (dayEvents.length > 0) {
+                console.log(`📅 Found ${dayEvents.length} events for ${date.toDateString()}`);
+                // Could show event details in a modal or sidebar
+            }
+        }
+
+        // Navigate to previous/next month
+        function navigateMonth(direction) {
+            currentMonthDate.setMonth(currentMonthDate.getMonth() + direction);
+            generateMonthCalendar();
+            loadMonthViewEvents();
+        }
+
+        // Exit month view
+        function exitMonthView() {
+            const monthContainer = document.getElementById('month-view-container');
+            const weekContainer = document.getElementById('calendar-grid-container');
+
+            if (monthContainer) monthContainer.classList.remove('active');
+            if (weekContainer) weekContainer.style.display = 'block';
+
+            // Update view toggle to week
+            const viewOptions = document.querySelectorAll('.view-option');
+            viewOptions.forEach(opt => opt.classList.remove('active'));
+            document.querySelector('.view-option[data-view="week"]').classList.add('active');
+        }
+
+        // Load events for month view
+        async function loadMonthViewEvents() {
+            try {
+                const calendarId = '{{ calendar.id }}';
+                const year = currentMonthDate.getFullYear();
+                const month = currentMonthDate.getMonth();
+
+                // Get month range
+                const startDate = new Date(year, month, 1);
+                const endDate = new Date(year, month + 1, 0);
+
+                const response = await fetch(`/api/calendars/${calendarId}/events?start=${startDate.toISOString()}&end=${endDate.toISOString()}`);
+
+                if (response.ok) {
+                    const events = await response.json();
+                    monthViewEvents = events;
+                    renderMonthEvents();
+                }
+            } catch (error) {
+                console.error('Failed to load month events:', error);
+            }
+        }
+
+        // Render events in month view
+        function renderMonthEvents() {
+            monthViewEvents.forEach(event => {
+                const eventDate = new Date(event.start_datetime || event.date);
+                const dayCell = findDayCell(eventDate);
+
+                if (dayCell) {
+                    const eventsContainer = dayCell.querySelector('.day-events-list');
+                    const eventElement = createMonthEventElement(event);
+                    eventsContainer.appendChild(eventElement);
+                }
+            });
+        }
+
+        // Find day cell for specific date
+        function findDayCell(date) {
+            const dayCells = document.querySelectorAll('.month-day-cell');
+            const dayNumber = date.getDate();
+
+            for (let cell of dayCells) {
+                const cellDayNumber = cell.querySelector('.day-number');
+                if (cellDayNumber && parseInt(cellDayNumber.textContent) === dayNumber) {
+                    // Additional check to ensure it's the right month
+                    if (!cell.classList.contains('other-month') ||
+                        date.getMonth() === currentMonthDate.getMonth()) {
+                        return cell;
+                    }
+                }
+            }
+            return null;
+        }
+
+        // Create month event element
+        function createMonthEventElement(event) {
+            const eventEl = document.createElement('div');
+            eventEl.className = 'month-event-item';
+
+            // Add platform-specific class
+            if (event.source_platform) {
+                eventEl.classList.add(event.source_platform);
+            }
+
+            eventEl.textContent = event.title;
+            eventEl.title = `${event.title} - ${event.start_datetime}`;
+
+            // Add click handler
+            eventEl.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showEventDetails(event);
+            });
+
+            return eventEl;
+        }
+
+        // Show event details (reuse existing event detail modal)
+        function showEventDetails(event) {
+            if (typeof openEventDetailModal === 'function') {
+                openEventDetailModal(event);
+            } else {
+                console.log('Event details:', event);
+            }
+        }
+
+        // Expose functions globally
+        window.navigateMonth = navigateMonth;
+        window.exitMonthView = exitMonthView;
+        window.switchToView = switchToView;
     </script>
 
     <!-- 통합 동기화 모달 스타일 및 스크립트 -->
