@@ -6521,9 +6521,9 @@ function switchView(viewType) {
 
 // 월 뷰 렌더링 함수
 function renderMonthView() {
-    const monthBody = document.getElementById('month-calendar-body');
+    const monthBody = document.getElementById('month-days-grid');
     if (!monthBody) {
-        console.error('Month calendar body not found');
+        console.warn('Month calendar grid not found - month view may not be active');
         return;
     }
 

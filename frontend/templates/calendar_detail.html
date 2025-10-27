@@ -2547,9 +2547,11 @@
         }
 
         .month-calendar-container {
-            padding: 40px;
+            padding: 20px 40px 40px 40px;
             height: calc(100vh - 100px);
             overflow: auto;
+            display: flex;
+            flex-direction: column;
         }
 
         .month-calendar-grid {
@@ -2560,23 +2562,26 @@
             overflow: hidden;
             max-width: 1200px;
             margin: 0 auto;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
         }
 
         .month-weekdays {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             background: rgba(102, 126, 234, 0.1);
+            flex-shrink: 0;
         }
 
         .weekday-header {
-            padding: 20px;
+            padding: 15px;
             text-align: center;
             font-weight: 700;
             font-size: 14px;
             color: #4a5568;
             text-transform: uppercase;
             letter-spacing: 1px;
-            border-right: 1px solid rgba(0, 0, 0, 0.05);
         }
 
         .weekday-header:last-child {
@@ -2595,18 +2600,25 @@
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             grid-template-rows: repeat(6, 1fr);
+            gap: 1px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            flex-grow: 1;
+            min-height: 500px;
         }
 
         .month-day-cell {
-            border-right: 1px solid rgba(0, 0, 0, 0.05);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            padding: 15px;
-            min-height: 120px;
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px;
+            min-height: 100px;
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         .month-day-cell:last-child {
@@ -2614,20 +2626,29 @@
         }
 
         .month-day-cell:hover {
-            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            z-index: 10;
         }
 
         .month-day-cell.other-month {
-            background: #f8f9fa;
-            color: #adb5bd;
+            background: rgba(255, 255, 255, 0.4);
+            color: rgba(255, 255, 255, 0.6);
         }
 
         .month-day-cell.today {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            transform: scale(1.05);
+        }
+
+        .month-day-cell.selected {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            box-shadow: 0 10px 30px rgba(72, 187, 120, 0.4);
+            transform: scale(1.03);
         }
 
         .month-day-cell.today .day-number {
@@ -2636,22 +2657,29 @@
         }
 
         .day-number {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
             color: #2d3748;
-            margin-bottom: 8px;
-            text-align: center;
+            margin-bottom: 6px;
+            text-align: left;
+            flex-shrink: 0;
         }
 
         .month-day-cell.other-month .day-number {
-            color: #cbd5e0;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .month-day-cell.today .day-number,
+        .month-day-cell.selected .day-number {
+            color: white;
+            font-weight: 700;
         }
 
         .day-events-list {
             display: flex;
             flex-direction: column;
-            gap: 4px;
-            max-height: 80px;
+            gap: 2px;
+            flex-grow: 1;
             overflow: hidden;
         }
 
@@ -8167,30 +8195,82 @@
                 const startDate = new Date(year, month, 1);
                 const endDate = new Date(year, month + 1, 0);
 
+                console.log(`📅 Loading month events for: ${startDate.toISOString()} to ${endDate.toISOString()}`);
+
                 const response = await fetch(`/api/calendars/${calendarId}/events?start=${startDate.toISOString()}&end=${endDate.toISOString()}`);
 
                 if (response.ok) {
-                    const events = await response.json();
-                    monthViewEvents = events;
+                    const result = await response.json();
+                    console.log('📊 Month events API response:', result);
+
+                    // API 응답이 배열인지 확인
+                    if (Array.isArray(result)) {
+                        monthViewEvents = result;
+                    } else if (result && Array.isArray(result.events)) {
+                        monthViewEvents = result.events;
+                    } else if (result && Array.isArray(result.data)) {
+                        monthViewEvents = result.data;
+                    } else {
+                        console.warn('⚠️ Invalid events data format:', result);
+                        monthViewEvents = [];
+                    }
+
+                    console.log(`✅ Loaded ${monthViewEvents.length} events for month view`);
                     renderMonthEvents();
+                } else {
+                    console.error('❌ Failed to fetch month events:', response.status, response.statusText);
+                    monthViewEvents = [];
                 }
             } catch (error) {
-                console.error('Failed to load month events:', error);
+                console.error('💥 Failed to load month events:', error);
+                monthViewEvents = [];
             }
         }
 
         // Render events in month view
         function renderMonthEvents() {
-            monthViewEvents.forEach(event => {
-                const eventDate = new Date(event.start_datetime || event.date);
-                const dayCell = findDayCell(eventDate);
+            console.log('🎨 Rendering month events:', monthViewEvents);
 
-                if (dayCell) {
-                    const eventsContainer = dayCell.querySelector('.day-events-list');
-                    const eventElement = createMonthEventElement(event);
-                    eventsContainer.appendChild(eventElement);
+            // 먼저 기존 이벤트들을 모두 제거
+            document.querySelectorAll('.month-event').forEach(el => el.remove());
+
+            // 배열인지 다시 한번 확인
+            if (!Array.isArray(monthViewEvents)) {
+                console.warn('⚠️ monthViewEvents is not an array:', monthViewEvents);
+                return;
+            }
+
+            monthViewEvents.forEach((event, index) => {
+                try {
+                    console.log(`📅 Processing event ${index + 1}:`, event);
+
+                    const eventDate = new Date(event.start_datetime || event.date);
+                    if (isNaN(eventDate.getTime())) {
+                        console.warn('⚠️ Invalid event date:', event);
+                        return;
+                    }
+
+                    const dayCell = findDayCell(eventDate);
+                    if (dayCell) {
+                        const eventsContainer = dayCell.querySelector('.day-events-list');
+                        if (eventsContainer) {
+                            const eventElement = createMonthEventElement(event);
+                            if (eventElement) {
+                                eventsContainer.appendChild(eventElement);
+                                console.log(`✅ Added event to day ${eventDate.getDate()}`);
+                            }
+                        } else {
+                            console.warn('⚠️ No events container found in day cell');
+                        }
+                    } else {
+                        console.warn(`⚠️ No day cell found for date: ${eventDate.toDateString()}`);
+                    }
+                } catch (error) {
+                    console.error(`💥 Error processing event ${index + 1}:`, error, event);
                 }
             });
+
+            console.log(`✅ Finished rendering ${monthViewEvents.length} events`);
         }
 
         // Find day cell for specific date
@@ -8213,24 +8293,62 @@
 
         // Create month event element
         function createMonthEventElement(event) {
-            const eventEl = document.createElement('div');
-            eventEl.className = 'month-event-item';
+            try {
+                if (!event || !event.title) {
+                    console.warn('⚠️ Invalid event data for month element:', event);
+                    return null;
+                }
 
-            // Add platform-specific class
-            if (event.source_platform) {
-                eventEl.classList.add(event.source_platform);
+                const eventEl = document.createElement('div');
+                eventEl.className = 'month-event month-event-item';
+
+                // Add platform-specific class
+                if (event.source_platform) {
+                    eventEl.classList.add(`platform-${event.source_platform}`);
+                }
+
+                // 제목 설정 (길면 자르기)
+                const title = event.title || 'Untitled Event';
+                eventEl.textContent = title.length > 20 ? title.substring(0, 17) + '...' : title;
+
+                // 툴팁 설정
+                const startTime = event.start_datetime || event.date || 'No date';
+                eventEl.title = `${title}\n시간: ${startTime}`;
+
+                // 스타일 설정
+                eventEl.style.cssText = `
+                    font-size: 11px;
+                    padding: 2px 4px;
+                    margin: 1px 0;
+                    background: #e3f2fd;
+                    border-left: 3px solid #1976d2;
+                    border-radius: 2px;
+                    cursor: pointer;
+                    overflow: hidden;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                `;
+
+                // 플랫폼별 색상
+                if (event.source_platform === 'google') {
+                    eventEl.style.background = '#e8f5e8';
+                    eventEl.style.borderLeftColor = '#4caf50';
+                } else if (event.source_platform === 'notion') {
+                    eventEl.style.background = '#f3f4f6';
+                    eventEl.style.borderLeftColor = '#6b7280';
+                }
+
+                // Add click handler
+                eventEl.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showEventDetails(event);
+                });
+
+                return eventEl;
+            } catch (error) {
+                console.error('💥 Error creating month event element:', error, event);
+                return null;
             }
-
-            eventEl.textContent = event.title;
-            eventEl.title = `${event.title} - ${event.start_datetime}`;
-
-            // Add click handler
-            eventEl.addEventListener('click', (e) => {
-                e.stopPropagation();
-                showEventDetails(event);
-            });
-
-            return eventEl;
         }
 
         // Show event details (reuse existing event detail modal)
