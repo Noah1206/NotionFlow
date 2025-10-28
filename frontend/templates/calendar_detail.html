@@ -8027,11 +8027,8 @@
             const container = document.getElementById('calendar-grid-container');
             if (container && typeof GoogleCalendarGrid !== 'undefined') {
                 window.googleCalendarGrid = new GoogleCalendarGrid(container);
-                // Console log removed
             } else {
-                    container: container,
-                    GoogleCalendarGridClass: typeof GoogleCalendarGrid
-                });
+                // GoogleCalendarGrid not available
             }
 
             // Set up refresh listeners first
