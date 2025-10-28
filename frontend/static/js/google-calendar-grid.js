@@ -3792,11 +3792,6 @@ class GoogleCalendarGrid {
         const viewportWidth = window.innerWidth;
         const sidebarWidth = this.getSidebarWidth();
         const availableWidth = viewportWidth - sidebarWidth;
-
-            viewportWidth,
-            sidebarWidth,
-            availableWidth
-        });
     }
 
     // Get sidebar width

@@ -3136,8 +3136,8 @@
             originalError.apply(console, args);
         };
 
-            // Also catch and suppress window errors from YouTube widget API
-            window.addEventListener('error', function (e) {
+        // Also catch and suppress window errors from YouTube widget API
+        window.addEventListener('error', function (e) {
                 if (e.message && (
                     e.message.includes("Failed to execute 'postMessage'") ||
                     e.message.includes("The target origin provided") ||
@@ -6449,12 +6449,6 @@
 
                     if (response.ok) {
                         const result = await response.json();
-                        // Console log removed
-                            id: result.id,
-                            event_id: result.event_id,
-                            backendId: result.backendId,
-                            uuid: result.uuid
-                        });
 
                         // Add the new event directly to the calendar without page refresh
                         if (window.googleCalendarGrid) {

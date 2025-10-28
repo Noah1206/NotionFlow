@@ -6442,13 +6442,6 @@ function switchView(viewType) {
     const calendarMainContent = document.querySelector('.calendar-main-content');
     const centerCalendarArea = document.querySelector('.center-calendar-area');
 
-        monthView: !!monthView,
-        weekView: !!weekView,
-        agendaView: !!agendaView,
-        calendarMainContent: !!calendarMainContent,
-        centerCalendarArea: !!centerCalendarArea
-    });
-
     // 모든 뷰 관련 요소들 찾기 및 숨기기
     const allCalendarElements = [
         'month-view-container',
