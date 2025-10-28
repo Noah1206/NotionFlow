@@ -213,45 +213,13 @@ def get_single_calendar_events(calendar_id):
                 # print(f"❌ [NOTION SYNC] Error checking connection: {e}")
                 pass
         
+        # 🚫 NOTION AUTO-SYNC DISABLED - Use manual sync only
+        # Auto-sync has been disabled to prevent unwanted event restoration
+        # Users can manually sync via the manual sync button
         if notion_sync_enabled and calendar_id:
-            print(f"🔄 [NOTION SYNC] Will sync to calendar: {calendar_id}")
-            
-            try:
-                import sys
-                sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
-                from services.notion_sync import NotionCalendarSync
-                
-                notion_sync = NotionCalendarSync()
-                
-                # Store user email in session for user creation if needed
-                if 'user_email' not in session:
-                    try:
-                        from utils.config import config
-                        if config.supabase:
-                            user = config.supabase.auth.get_user()
-                            if user and user.user:
-                                session['user_email'] = user.user.email
-                    except:
-                        pass
-                
-                print(f"🔄 [NOTION SYNC] Starting auto-sync for user {user_id}")
-                # Let the sync service determine the correct calendar_id from database
-                result = notion_sync.sync_to_calendar(user_id)
-                print(f"📋 [NOTION SYNC] Sync result: {result}")
-                
-                if result['success']:
-                    # print(f"✅ [NOTION SYNC] Successfully synced {result.get('synced_events', 0)} events from {result.get('databases_processed', 0)} databases")
-                    pass
-                else:
-                    # print(f"❌ [NOTION SYNC] Failed: {result.get('error', 'Unknown error')}")
-                    pass
-                    
-            except Exception as e:
-                print(f"⚠️ [NOTION SYNC] Auto-sync error: {e}")
-                import traceback
-                traceback.print_exc()
+            print(f"⏭️ [NOTION SYNC] Auto-sync disabled - use manual sync button instead")
         else:
-            print(f"⏭️ [NOTION SYNC] Skipping auto-sync: notion_enabled={notion_sync_enabled}, calendar_id={bool(calendar_id)}")
+            print(f"⏭️ [NOTION SYNC] Skipping sync: notion_enabled={notion_sync_enabled}, calendar_id={bool(calendar_id)}")
         
         if not dashboard_data:
             return jsonify({'error': 'Dashboard data manager not available'}), 500
@@ -323,46 +291,13 @@ def get_calendar_events():
                 # print(f"❌ [NOTION SYNC] Error checking connection: {e}")
                 pass
         
+        # 🚫 NOTION AUTO-SYNC DISABLED - Use manual sync only
+        # Auto-sync has been disabled to prevent unwanted event restoration
+        # Users can manually sync via the manual sync button
         if notion_sync_enabled and calendar_ids and len(calendar_ids) > 0:
-            calendar_to_sync = calendar_ids[0]
-            print(f"🔄 [NOTION SYNC] Will sync to calendar: {calendar_to_sync}")
-            
-            try:
-                import sys
-                sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
-                from services.notion_sync import NotionCalendarSync
-                
-                notion_sync = NotionCalendarSync()
-                
-                # Store user email in session for user creation if needed
-                if 'user_email' not in session:
-                    try:
-                        from utils.config import config
-                        if config.supabase:
-                            user = config.supabase.auth.get_user()
-                            if user and user.user:
-                                session['user_email'] = user.user.email
-                    except:
-                        pass
-                
-                print(f"🔄 [NOTION SYNC] Starting auto-sync for user {user_id}")
-                # Let the sync service determine the correct calendar_id from database
-                result = notion_sync.sync_to_calendar(user_id)
-                print(f"📋 [NOTION SYNC] Sync result: {result}")
-                
-                if result['success']:
-                    # print(f"✅ [NOTION SYNC] Successfully synced {result.get('synced_events', 0)} events from {result.get('databases_processed', 0)} databases")
-                    pass
-                else:
-                    # print(f"❌ [NOTION SYNC] Failed: {result.get('error', 'Unknown error')}")
-                    pass
-                    
-            except Exception as e:
-                print(f"⚠️ [NOTION SYNC] Auto-sync error: {e}")
-                import traceback
-                traceback.print_exc()
+            print(f"⏭️ [NOTION SYNC] Auto-sync disabled - use manual sync button instead")
         else:
-            print(f"⏭️ [NOTION SYNC] Skipping auto-sync: notion_enabled={notion_sync_enabled}, calendars={bool(calendar_ids)}")
+            print(f"⏭️ [NOTION SYNC] Skipping sync: notion_enabled={notion_sync_enabled}, calendars={bool(calendar_ids)}")
         
         if not dashboard_data:
             return jsonify({'error': 'Dashboard data manager not available'}), 500
