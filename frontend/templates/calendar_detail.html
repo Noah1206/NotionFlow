@@ -365,29 +365,58 @@
             background: #ffffff;
             margin: 0;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
+        /* 캘린더 그리드 컨테이너 */
         .calendar-grid-container {
             flex: 1;
-            height: 100%;
-            width: 100%;
-            display: grid !important;
-            grid-template-columns: 80px repeat(7, 1fr) !important;
-            grid-template-rows: 40px repeat(24, 1fr) !important;
-            gap: 1px !important;
-            background: #f8f9fa !important;
-            border: 1px solid #e9ecef !important;
+            overflow: visible !important;
+            padding: 0;
+            width: 100% !important;
+            height: 100% !important;
+            min-width: 100% !important;
+            /* 모든 컬럼이 보이도록 */
+            display: flex;
+            justify-content: flex-start;
+            /* 캘린더를 약간 오른쪽으로 이동 */
+            padding-left: 0;
+            /* 패딩 완전히 제거 */
+            padding-right: 0;
+            /* 패딩 완전히 제거 */
         }
 
+        /* Center Calendar Area 강제 전체 크기 */
+        .center-calendar-area {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100% !important;
+            min-width: 100% !important;
+            box-sizing: border-box !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: visible !important;
+            /* 모든 컬럼이 보이도록 */
+            padding: 0 !important;
+            margin: 0 !important;
+            /* 모든 여백 제거 */
+        }
+
+        /* Google Calendar 그리드 스타일 */
         #calendar-grid-container {
-            height: 100%;
-            width: 100%;
-            display: grid !important;
-            grid-template-columns: 80px repeat(7, 1fr) !important;
-            grid-template-rows: 40px repeat(24, 1fr) !important;
-            gap: 1px !important;
-            background: #f8f9fa !important;
-            border: 1px solid #e9ecef !important;
+            height: 100% !important;
+            width: 100% !important;
+            /* 전체 너비 사용 */
+            max-width: 100% !important;
+            min-width: 100% !important;
+            /* 최대 너비 제한 */
+            box-sizing: border-box !important;
+            /* 패딩/보더 포함 계산 */
+            overflow: visible !important;
+            /* 모든 컬럼이 보이도록 */
+            display: block !important;
+            flex: 1 !important;
         }
 
         /* 🎨 CLEAN SIDEBAR DESIGN - Larger Sections */
@@ -2462,655 +2491,6 @@
                     font-weight: 600;
                     box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
                 }
-
-        /* ===== EVENT DETAIL POPUP STYLES ===== */
-        /* Modal overlay should not cover sidebar - completely override default modal behavior */
-        #event-detail-modal {
-            position: fixed !important;
-            top: 0 !important;
-            left: var(--sidebar-width, 250px) !important; /* Start after sidebar */
-            right: 0 !important;
-            bottom: 0 !important;
-            width: auto !important; /* Remove width to use left/right positioning */
-            height: 100vh !important;
-            background: rgba(0, 0, 0, 0.5) !important;
-            display: none !important; /* Hidden by default */
-            align-items: center !important;
-            justify-content: center !important;
-            z-index: 1000 !important;
-        }
-
-        #event-detail-modal.show {
-            display: flex !important; /* Show when .show class is added */
-        }
-
-        /* ===== MODERN MONTH VIEW STYLES ===== */
-        .month-view-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            z-index: 999;
-            display: none;
-            overflow: hidden;
-        }
-
-        .month-view-container.active {
-            display: block;
-        }
-
-        .month-view-header {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 20px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .month-navigation {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .month-nav-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            padding: 12px 16px;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .month-nav-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .month-title {
-            color: white;
-            font-size: 28px;
-            font-weight: 700;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        .month-close-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            padding: 12px;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .month-close-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: rotate(90deg);
-        }
-
-        .month-calendar-container {
-            padding: 20px 40px 40px 40px;
-            height: calc(100vh - 100px);
-            overflow: auto;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .month-calendar-grid {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(20px);
-            overflow: hidden;
-            max-width: 1200px;
-            margin: 0 auto;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .month-weekdays {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            background: rgba(102, 126, 234, 0.1);
-            flex-shrink: 0;
-        }
-
-        .weekday-header {
-            padding: 15px;
-            text-align: center;
-            font-weight: 700;
-            font-size: 14px;
-            color: #4a5568;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .weekday-header:last-child {
-            border-right: none;
-        }
-
-        .weekday-header:first-child {
-            color: #e53e3e; /* 일요일 */
-        }
-
-        .weekday-header:last-child {
-            color: #3182ce; /* 토요일 */
-        }
-
-        /* 월 뷰 그리드 스타일 - 강화된 CSS */
-        .month-days-grid {
-            display: grid !important;
-            grid-template-columns: repeat(7, 1fr) !important;
-            grid-template-rows: repeat(6, 1fr) !important;
-            gap: 1px !important;
-            background-color: rgba(255, 255, 255, 0.1) !important;
-            border-radius: 10px !important;
-            overflow: hidden !important;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1) !important;
-            flex-grow: 1 !important;
-            min-height: 500px !important;
-            width: 100% !important;
-            height: 100% !important;
-        }
-
-        .month-day-cell {
-            background: rgba(255, 255, 255, 0.95) !important;
-            padding: 12px !important;
-            min-height: 100px !important;
-            cursor: pointer !important;
-            transition: all 0.3s ease !important;
-            position: relative !important;
-            overflow: hidden !important;
-            display: flex !important;
-            flex-direction: column !important;
-            border: none !important;
-            margin: 0 !important;
-        }
-
-        .month-day-cell:last-child {
-            border-right: none;
-        }
-
-        .month-day-cell:hover {
-            background: rgba(255, 255, 255, 1);
-            transform: scale(1.02);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            z-index: 10;
-        }
-
-        .month-day-cell.other-month {
-            background: rgba(255, 255, 255, 0.4);
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .month-day-cell.today {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-            transform: scale(1.05);
-        }
-
-        .month-day-cell.selected {
-            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-            color: white;
-            box-shadow: 0 10px 30px rgba(72, 187, 120, 0.4);
-            transform: scale(1.03);
-        }
-
-        .month-day-cell.today .day-number {
-            color: white;
-            font-weight: 800;
-        }
-
-        .day-number {
-            font-size: 16px;
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 6px;
-            text-align: left;
-            flex-shrink: 0;
-        }
-
-        .month-day-cell.other-month .day-number {
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        .month-day-cell.today .day-number,
-        .month-day-cell.selected .day-number {
-            color: white;
-            font-weight: 700;
-        }
-
-        .day-events-list {
-            display: flex !important;
-            flex-direction: column;
-            gap: 2px;
-            flex-grow: 1;
-            overflow: hidden;
-        }
-
-        /* API 생성 이벤트 스타일 */
-        .month-event,
-        .month-event-item {
-            font-size: 11px;
-            padding: 2px 4px;
-            margin: 1px 0;
-            border-radius: 2px;
-            cursor: pointer;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            transition: all 0.2s ease;
-            line-height: 1.2;
-            background: #e3f2fd;
-            border-left: 3px solid #1976d2;
-            color: #1565c0;
-        }
-
-        .month-event:hover,
-        .month-event-item:hover {
-            transform: scale(1.05);
-            z-index: 10;
-        }
-
-        /* 플랫폼별 색상 */
-        .month-event.platform-google,
-        .month-event-item.google,
-        .month-event-item.platform-google {
-            background: #e8f5e8;
-            border-left-color: #4caf50;
-            color: #2e7d32;
-        }
-
-        .month-event.platform-notion,
-        .month-event-item.notion,
-        .month-event-item.platform-notion {
-            background: #f3f4f6;
-            border-left-color: #6b7280;
-            color: #374151;
-        }
-
-        .month-event.platform-manual,
-        .month-event-item.manual,
-        .month-event-item.platform-manual {
-            background: #e3f2fd;
-            border-left-color: #1976d2;
-            color: #1565c0;
-        }
-
-        .month-event-more {
-            font-size: 10px;
-            color: #666;
-            font-style: italic;
-            padding: 2px 4px;
-        }
-
-        /* 로딩 및 에러 상태 */
-        .loading-calendar {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 200px;
-            color: white;
-            font-size: 16px;
-            grid-column: 1 / -1;
-        }
-
-        .calendar-error {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 200px;
-            color: white;
-            text-align: center;
-            grid-column: 1 / -1;
-        }
-
-        .retry-btn {
-            margin-top: 10px;
-            padding: 8px 16px;
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .retry-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .more-events-indicator {
-            color: #718096;
-            font-size: 10px;
-            text-align: center;
-            margin-top: 4px;
-            font-weight: 500;
-        }
-
-        /* 애니메이션 효과 */
-        @keyframes monthSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .month-view-container.active .month-calendar-grid {
-            animation: monthSlideIn 0.6s ease-out;
-        }
-
-        /* 반응형 디자인 */
-        @media (max-width: 768px) {
-            .month-view-header {
-                padding: 15px 20px;
-            }
-
-            .month-title {
-                font-size: 20px;
-            }
-
-            .month-calendar-container {
-                padding: 20px;
-            }
-
-            .month-day-cell {
-                min-height: 80px;
-                padding: 10px;
-            }
-
-            .day-number {
-                font-size: 14px;
-            }
-
-            .month-event-item {
-                font-size: 9px;
-                padding: 4px 8px;
-            }
-        }
-
-        .event-detail-modal {
-            max-width: 500px !important;
-            width: 90vw !important;
-            max-height: 80vh !important;
-            margin: 0 !important;
-        }
-
-        .event-detail-modal .modal-header {
-            display: flex !important;
-            justify-content: space-between !important;
-            align-items: flex-start !important;
-            padding: 24px 24px 16px 24px !important;
-            border-bottom: 1px solid #f0f0f0 !important;
-            gap: 16px !important;
-        }
-
-        .event-detail-header {
-            display: flex !important;
-            align-items: center !important;
-            gap: 12px !important;
-            flex: 1 !important;
-            min-width: 0 !important;
-        }
-
-        .event-color-indicator {
-            width: 4px !important;
-            height: 24px !important;
-            border-radius: 2px !important;
-            background: #3b82f6 !important;
-            flex-shrink: 0 !important;
-        }
-
-        .event-detail-modal .modal-title {
-            font-size: 20px !important;
-            font-weight: 600 !important;
-            color: #1f2937 !important;
-            margin: 0 !important;
-            line-height: 1.3 !important;
-            word-break: break-word !important;
-        }
-
-        .modal-actions {
-            display: flex !important;
-            align-items: center !important;
-            gap: 8px !important;
-            flex-shrink: 0 !important;
-        }
-
-        .btn-edit, .btn-delete {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            width: 36px !important;
-            height: 36px !important;
-            border: none !important;
-            border-radius: 8px !important;
-            cursor: pointer !important;
-            transition: all 0.2s ease !important;
-            background: #f8fafc !important;
-            color: #64748b !important;
-        }
-
-        .btn-edit:hover {
-            background: #e2e8f0 !important;
-            color: #3b82f6 !important;
-        }
-
-        .btn-delete:hover {
-            background: #fef2f2 !important;
-            color: #dc2626 !important;
-        }
-
-        .event-detail-modal .modal-body {
-            padding: 0 24px 24px 24px !important;
-            overflow-y: auto !important;
-        }
-
-        .event-detail-section {
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 20px !important;
-            margin-bottom: 32px !important;
-        }
-
-        .detail-row {
-            display: flex !important;
-            align-items: flex-start !important;
-            gap: 12px !important;
-        }
-
-        .detail-icon {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            width: 40px !important;
-            height: 40px !important;
-            background: #f8fafc !important;
-            border-radius: 10px !important;
-            flex-shrink: 0 !important;
-            color: #64748b !important;
-        }
-
-        .detail-content {
-            flex: 1 !important;
-            min-width: 0 !important;
-            padding-top: 2px !important;
-        }
-
-        .detail-label {
-            font-size: 13px !important;
-            font-weight: 500 !important;
-            color: #6b7280 !important;
-            margin-bottom: 4px !important;
-            text-transform: uppercase !important;
-            letter-spacing: 0.5px !important;
-        }
-
-        .detail-value {
-            font-size: 15px !important;
-            font-weight: 400 !important;
-            color: #1f2937 !important;
-            line-height: 1.5 !important;
-            word-break: break-word !important;
-        }
-
-        .platform-badge {
-            display: inline-flex !important;
-            align-items: center !important;
-            padding: 4px 8px !important;
-            background: #f0f9ff !important;
-            color: #0369a1 !important;
-            border-radius: 6px !important;
-            font-size: 12px !important;
-            font-weight: 500 !important;
-            text-transform: uppercase !important;
-            letter-spacing: 0.5px !important;
-        }
-
-        .platform-badge.google {
-            background: #fef3c7 !important;
-            color: #d97706 !important;
-        }
-
-        .platform-badge.notion {
-            background: #f3f4f6 !important;
-            color: #374151 !important;
-        }
-
-        .platform-badge.apple {
-            background: #f0f0f0 !important;
-            color: #1f2937 !important;
-        }
-
-        .event-detail-actions {
-            display: flex !important;
-            justify-content: space-between !important;
-            align-items: center !important;
-            gap: 12px !important;
-            padding-top: 20px !important;
-            border-top: 1px solid #f0f0f0 !important;
-        }
-
-        .action-buttons {
-            display: flex !important;
-            gap: 8px !important;
-        }
-
-        .btn-edit-full, .btn-danger {
-            display: flex !important;
-            align-items: center !important;
-            gap: 6px !important;
-            padding: 10px 16px !important;
-            border: none !important;
-            border-radius: 8px !important;
-            font-size: 14px !important;
-            font-weight: 500 !important;
-            cursor: pointer !important;
-            transition: all 0.2s ease !important;
-        }
-
-        .btn-edit-full {
-            background: #f8fafc !important;
-            color: #374151 !important;
-            border: 1px solid #e2e8f0 !important;
-        }
-
-        .btn-edit-full:hover {
-            background: #f1f5f9 !important;
-            color: #1f2937 !important;
-            border-color: #cbd5e1 !important;
-        }
-
-        .btn-danger {
-            background: #fef2f2 !important;
-            color: #dc2626 !important;
-            border: 1px solid #fecaca !important;
-        }
-
-        .btn-danger:hover {
-            background: #fee2e2 !important;
-            color: #b91c1c !important;
-            border-color: #fca5a5 !important;
-        }
-
-        .btn-secondary {
-            padding: 10px 16px !important;
-            background: transparent !important;
-            color: #6b7280 !important;
-            border: none !important;
-            font-size: 14px !important;
-            font-weight: 500 !important;
-            cursor: pointer !important;
-            transition: color 0.2s ease !important;
-        }
-
-        .btn-secondary:hover {
-            color: #374151 !important;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 640px) {
-            .event-detail-modal {
-                max-width: 95vw !important;
-                max-height: 85vh !important;
-            }
-
-            .event-detail-modal .modal-header {
-                padding: 20px 20px 12px 20px !important;
-            }
-
-            .event-detail-modal .modal-body {
-                padding: 0 20px 20px 20px !important;
-            }
-
-            .event-detail-actions {
-                flex-direction: column !important;
-                gap: 16px !important;
-            }
-
-            .action-buttons {
-                width: 100% !important;
-                justify-content: stretch !important;
-            }
-
-            .btn-edit-full, .btn-danger {
-                flex: 1 !important;
-                justify-content: center !important;
-            }
-        }
-
-        /* Animation */
-        @keyframes eventDetailPopup {
-            from {
-                opacity: 0;
-                transform: scale(0.95) translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
-        }
-
-        .event-detail-modal.show {
-            animation: eventDetailPopup 0.2s ease-out !important;
-        }
     </style>
     <!-- <link rel=" stylesheet"
         href="{{ url_for('static', filename='css/calendar-detail-new.css') }}?v={{ range(100000, 999999) | random }}">
@@ -3132,24 +2512,25 @@
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
         // YouTube API debugging
-        // Console log removed
+        console.log('🎵 YouTube API script loaded');
 
-        // Suppress YouTube postMessage cross-origin errors
-        const originalError = console.error;
-        console.error = function (...args) {
-            const message = args.join(' ');
-            // Filter out YouTube postMessage cross-origin errors
-            if (message.includes("Failed to execute 'postMessage'") ||
-                message.includes("postMessage") && message.includes("origin") ||
-                message.includes("The target origin provided") && message.includes("does not match")) {
-                // Completely suppress - no console output at all
-                return;
-            }
-            originalError.apply(console, args);
-        };
+        // Suppress YouTube postMessage cross-origin errors in development
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            const originalError = console.error;
+            console.error = function (...args) {
+                const message = args.join(' ');
+                // Filter out YouTube postMessage cross-origin errors (more comprehensive)
+                if (message.includes("Failed to execute 'postMessage'") ||
+                    message.includes("postMessage") && message.includes("origin") ||
+                    message.includes("The target origin provided") && message.includes("does not match")) {
+                    // Completely suppress - no console output at all
+                    return;
+                }
+                originalError.apply(console, args);
+            };
 
-        // Also catch and suppress window errors from YouTube widget API
-        window.addEventListener('error', function (e) {
+            // Also catch and suppress window errors from YouTube widget API
+            window.addEventListener('error', function (e) {
                 if (e.message && (
                     e.message.includes("Failed to execute 'postMessage'") ||
                     e.message.includes("The target origin provided") ||
@@ -3170,18 +2551,19 @@
                     return false;
                 }
             });
+        }
 
         window.addEventListener('load', function () {
-            // Console log removed
-            // Console log removed
+            console.log('🎵 Page loaded, checking YouTube API...');
+            console.log('🎵 window.YT available:', !!window.YT);
 
             // Wait a bit for YouTube API to load
             setTimeout(function () {
-                // Console log removed
+                console.log('🎵 YouTube API check after 2s:', !!window.YT);
                 if (window.YT && window.YT.Player) {
-                    // Console log removed
+                    console.log('✅ YouTube Player API is ready!');
                 } else {
-                    // Console log removed
+                    console.log('❌ YouTube Player API not loaded');
                 }
             }, 2000);
         });
@@ -3229,7 +2611,6 @@
 
             <div class="topbar-right">
                 <div class="view-toggle">
-                    <button class="view-option" data-view="month">월</button>
                     <button class="view-option active" data-view="week">주</button>
                     <button class="view-option" data-view="agenda">일정</button>
                 </div>
@@ -3516,49 +2897,7 @@
 
             <!-- Center Calendar Area - Google Calendar Style Grid -->
             <div class="center-calendar-area">
-                <!-- Modern Month View Container -->
-                <div id="month-view-container" class="month-view-container">
-                    <!-- Month View Header -->
-                    <div class="month-view-header">
-                        <div class="month-navigation">
-                            <button class="month-nav-btn" id="prev-month-btn" onclick="navigateMonth(-1)">
-                                ← 이전
-                            </button>
-                            <h1 class="month-title" id="month-title">2024년 10월</h1>
-                            <button class="month-nav-btn" id="next-month-btn" onclick="navigateMonth(1)">
-                                다음 →
-                            </button>
-                        </div>
-                        <button class="month-close-btn" onclick="exitMonthView()">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M18 6L6 18M6 6l12 12"/>
-                            </svg>
-                        </button>
-                    </div>
-
-                    <!-- Month Calendar Container -->
-                    <div class="month-calendar-container">
-                        <div class="month-calendar-grid">
-                            <!-- Weekdays Header -->
-                            <div class="month-weekdays">
-                                <div class="weekday-header">일</div>
-                                <div class="weekday-header">월</div>
-                                <div class="weekday-header">화</div>
-                                <div class="weekday-header">수</div>
-                                <div class="weekday-header">목</div>
-                                <div class="weekday-header">금</div>
-                                <div class="weekday-header">토</div>
-                            </div>
-
-                            <!-- Month Days Grid -->
-                            <div class="month-days-grid" id="month-days-grid">
-                                <!-- Days will be generated dynamically by JavaScript -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Google Calendar Style Grid Container (Week View) -->
+                <!-- Google Calendar Style Grid Container -->
                 <div id="calendar-grid-container" class="calendar-grid-container" style="height: 100%; width: 100%;">
                     <!-- Google Calendar Grid will be rendered here -->
                 </div>
@@ -4305,134 +3644,6 @@
                             </svg>
                             Notion API 설정
                         </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Event Detail Popup -->
-    <div class="modal-overlay" id="event-detail-modal" style="display: none;">
-        <div class="modal-content event-detail-modal">
-            <div class="modal-header">
-                <div class="event-detail-header">
-                    <div class="event-color-indicator" id="event-detail-color"></div>
-                    <h2 class="modal-title" id="event-detail-title">이벤트 제목</h2>
-                </div>
-                <div class="modal-actions">
-                    <button class="btn-edit" id="event-edit-btn" title="수정">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 20h9"></path>
-                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-                        </svg>
-                    </button>
-                    <button class="btn-delete" id="event-delete-btn" title="삭제">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="3,6 5,6 21,6"></polyline>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                        </svg>
-                    </button>
-                    <button class="modal-close" onclick="closeEventDetailModal()">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
-
-            <div class="modal-body">
-                <div class="event-detail-section">
-                    <div class="detail-row">
-                        <div class="detail-icon">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12,6 12,12 16,14"></polyline>
-                            </svg>
-                        </div>
-                        <div class="detail-content">
-                            <div class="detail-label">시간</div>
-                            <div class="detail-value" id="event-detail-time">2024년 10월 25일 오전 9:00 - 오전 10:00</div>
-                        </div>
-                    </div>
-
-                    <div class="detail-row" id="event-detail-description-row" style="display: none;">
-                        <div class="detail-icon">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14,2 14,8 20,8"></polyline>
-                                <line x1="16" y1="13" x2="8" y2="13"></line>
-                                <line x1="16" y1="17" x2="8" y2="17"></line>
-                                <polyline points="10,9 9,9 8,9"></polyline>
-                            </svg>
-                        </div>
-                        <div class="detail-content">
-                            <div class="detail-label">설명</div>
-                            <div class="detail-value" id="event-detail-description"></div>
-                        </div>
-                    </div>
-
-                    <div class="detail-row" id="event-detail-location-row" style="display: none;">
-                        <div class="detail-icon">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                                <circle cx="12" cy="10" r="3"></circle>
-                            </svg>
-                        </div>
-                        <div class="detail-content">
-                            <div class="detail-label">위치</div>
-                            <div class="detail-value" id="event-detail-location"></div>
-                        </div>
-                    </div>
-
-                    <div class="detail-row" id="event-detail-attendees-row" style="display: none;">
-                        <div class="detail-icon">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="9" cy="7" r="4"></circle>
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                            </svg>
-                        </div>
-                        <div class="detail-content">
-                            <div class="detail-label">참석자</div>
-                            <div class="detail-value" id="event-detail-attendees"></div>
-                        </div>
-                    </div>
-
-                    <div class="detail-row">
-                        <div class="detail-icon">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M9 11H5a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"></path>
-                                <circle cx="9" cy="9" r="2"></circle>
-                                <path d="M21 15.5A3.5 3.5 0 0 0 17.5 12H14l2-3h5v6.5z"></path>
-                            </svg>
-                        </div>
-                        <div class="detail-content">
-                            <div class="detail-label">플랫폼</div>
-                            <div class="detail-value">
-                                <span class="platform-badge" id="event-detail-platform">Manual</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="event-detail-actions">
-                    <button class="btn-secondary" onclick="closeEventDetailModal()">닫기</button>
-                    <div class="action-buttons">
-                        <button class="btn-edit-full" onclick="editEventFromDetail()">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 20h9"></path>
-                                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-                            </svg>
-                            수정
-                        </button>
-                        <button class="btn-danger" onclick="deleteEventFromDetail()">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="3,6 5,6 21,6"></polyline>
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                            </svg>
-                            삭제
-                        </button>
                     </div>
                 </div>
             </div>
@@ -5966,7 +5177,7 @@
             // Initialize calendar selector
             calendarSelector.init('calendar-selector-widget', {
                 onSelectionChange: function (events, calendarIds) {
-                    // Console log removed
+                    console.log('📅 Calendar selection changed:', calendarIds, 'events:', events?.length);
 
                     // Update GoogleCalendarGrid with filtered events
                     if (window.googleCalendarGrid) {
@@ -5997,7 +5208,7 @@
                     const checkbox = document.querySelector(`#calendar-selector-widget input[value="${currentCalendarId}"]`);
                     if (checkbox) {
                         checkbox.checked = true;
-                        // Console log removed
+                        console.log('📅 Manually selected current calendar checkbox');
                     }
                 }
             }, 1500); // 캘린더 선택기가 완전히 로드된 후
@@ -6404,7 +5615,7 @@
                                     backendId: result.id
                                 };
 
-                                // Console log removed
+                                console.log('📅 Adding multi-day event to grid:', newEventForGrid);
 
                                 // Add to events array
                                 window.googleCalendarGrid.events.push(newEventForGrid);
@@ -6414,7 +5625,7 @@
                                     window.googleCalendarGrid.renderMultiDayEvent(newEventForGrid);
                                 } else {
                                     // Fallback: render on each day if multi-day render doesn't exist
-                                    // Console warn removed
+                                    console.warn('⚠️ renderMultiDayEvent not found, using fallback');
                                     window.googleCalendarGrid.renderEvent(newEventForGrid);
                                 }
 
@@ -6428,10 +5639,10 @@
                             }
                         } else {
                             const errorData = await response.json();
-                            // Console error removed
+                            console.error('❌ Failed to create multi-day event:', response.status, errorData);
                         }
                     } catch (error) {
-                        // Console error removed
+                        console.error('❌ Network error creating multi-day event:', error);
                     }
 
                     return;
@@ -6448,7 +5659,7 @@
                         color: '#3b82f6' // Default blue color
                     };
 
-                    // Console log removed
+                    console.log('📤 Sending single-day event to backend:', apiData);
 
                     const response = await fetch(`/api/calendars/${calendarId}/events`, {
                         method: 'POST',
@@ -6460,12 +5671,19 @@
 
                     if (response.ok) {
                         const result = await response.json();
+                        console.log('✅ Single-day event saved to backend successfully:', result);
+                        console.log('🔍 Result ID fields:', {
+                            id: result.id,
+                            event_id: result.event_id,
+                            backendId: result.backendId,
+                            uuid: result.uuid
+                        });
 
                         // Add the new event directly to the calendar without page refresh
                         if (window.googleCalendarGrid) {
                             // 서버에서 온 실제 ID 사용
                             const actualId = result.id || result.event_id || result.backendId || result.uuid;
-                            // Console log removed
+                            console.log('🆔 Using actual ID for new event:', actualId);
 
                             const newEventForGrid = {
                                 id: actualId,
@@ -6481,7 +5699,7 @@
                                 backendId: result.id
                             };
 
-                            // Console log removed
+                            console.log('📅 Adding new single-day event to grid:', newEventForGrid);
 
                             // Add to events array
                             window.googleCalendarGrid.events.push(newEventForGrid);
@@ -6497,18 +5715,18 @@
                             // Save to localStorage for persistence
                             window.googleCalendarGrid.saveToLocalStorage();
 
-                            // Console log removed
+                            console.log('🎉 Single-day event successfully added to calendar without refresh!');
                         } else {
-                            // Console warn removed
+                            console.warn('⚠️ Google Calendar Grid not available');
                         }
                     } else {
                         const errorData = await response.json();
-                        // Console error removed
+                        console.error('❌ Failed to save single-day event:', response.status, errorData);
                         showNotification('일정 저장에 실패했습니다.');
                     }
                 }
             } catch (error) {
-                // Console error removed
+                console.error('❌ Error saving event to backend:', error);
                 showNotification('일정 저장 중 오류가 발생했습니다.');
             }
         }
@@ -6993,7 +6211,7 @@
 
                 // 성공 메시지 즉시 표시
                 alert(`${eventCountToDelete}개 일정이 휴지통에서 제거되었습니다.`);
-                // Console log removed
+                console.log(`🗑️ ${eventCountToDelete} events removed from trash UI`);
 
                 // 2. 비동기로 서버에서 삭제 (백그라운드 처리)
                 deleteEventsFromServerAsync(currentCalendarTrashedEvents, currentCalendarId);
@@ -7002,7 +6220,7 @@
 
         // 비동기 서버 삭제 처리 함수
         async function deleteEventsFromServerAsync(events, calendarId) {
-            // Console log removed
+            console.log(`🔄 Starting async deletion of ${events.length} events from server...`);
 
             let deletedCount = 0;
             let failedCount = 0;
@@ -7024,27 +6242,27 @@
                         if (response.ok || response.status === 404 || response.status === 500) {
                             deletedCount++;
                             if (response.status === 404) {
-                                // Console log removed
+                                console.log(`✅ Event already deleted or not found on server: ${event.title}`);
                             } else if (response.status === 500) {
-                                // Console log removed
+                                console.log(`✅ Server error ignored, treating as deleted: ${event.title}`);
                             } else {
-                                // Console log removed
+                                console.log(`✅ Permanently deleted from server: ${event.title}`);
                             }
                         } else {
                             failedCount++;
-                            // Console error removed
+                            console.error(`❌ Failed to delete from server: ${event.title} (Status: ${response.status})`);
                         }
                     })
                     .catch(error => {
                         failedCount++;
-                        // Console error removed
+                        console.error(`Error deleting event ${event.title} from server:`, error);
                     });
 
                     deletePromises.push(deletePromise);
                 } else {
                     // 클라이언트 전용 이벤트는 카운트만 증가
                     deletedCount++;
-                    // Console log removed
+                    console.log(`📱 Client-only event: ${event.title}`);
                 }
             }
 
@@ -7052,14 +6270,14 @@
             if (deletePromises.length > 0) {
                 try {
                     await Promise.allSettled(deletePromises);
-                    // Console log removed
+                    console.log(`✅ Async deletion completed: ${deletedCount} succeeded, ${failedCount} failed`);
 
                     // 실패한 항목이 있으면 콘솔에만 로그 (사용자 경험을 방해하지 않음)
                     if (failedCount > 0) {
-                        // Console warn removed
+                        console.warn(`⚠️ ${failedCount} events failed to delete from server, but already hidden from UI`);
                     }
                 } catch (error) {
-                    // Console error removed
+                    console.error('Error during async deletion:', error);
                 }
             }
         }
@@ -7308,7 +6526,7 @@
         async function checkPlatformStatus(platform) {
 
             if (!PLATFORM_CONFIG[platform]) {
-                // Console error removed
+                console.error('Unsupported platform:', platform);
                 showNotification(`지원하지 않는 플랫폼입니다: ${platform}`, 'error');
                 return;
             }
@@ -7337,12 +6555,12 @@
                         showPlatformSetupModal(platform, config);
                     }
                 } else {
-                    // Console error removed
+                    console.error('Failed to fetch platform status:', statusResult.error);
                     showPlatformSetupModal(platform, config); // 오류 시 설정 모달 표시
                 }
 
             } catch (error) {
-                // Console error removed
+                console.error('Platform status check failed:', error);
                 showNotification(`${config.name} 상태 확인 중 오류가 발생했습니다.`, 'error');
             }
         }
@@ -7360,7 +6578,7 @@
                     return null;
                 }
             } catch (error) {
-                // Console error removed
+                console.error('Failed to get current user ID:', error);
                 return null;
             }
         }
@@ -7384,7 +6602,7 @@
                     throw new Error(`HTTP ${response.status}`);
                 }
             } catch (error) {
-                // Console error removed
+                console.error('Failed to fetch platform status:', error);
                 return { success: false, error: error.message };
             }
         }
@@ -7821,10 +7039,10 @@
                     } else {
                     }
                 } else {
-                    // Console error removed
+                    console.error('❌ [POWERFUL] Failed to load calendar events:', response.status);
                 }
             } catch (error) {
-                // Console error removed
+                console.error('❌ [POWERFUL] Error loading calendar events:', error);
             }
         }
 
@@ -7834,13 +7052,13 @@
             // 🚀 ULTRA-FAST GRID DETECTION (0.5초 최대 대기)
             let attempts = 0;
             while (!window.googleCalendarGrid && attempts < 5) {
-                // Console log removed
+                console.log('⚡ [FAST] Quick grid check... attempt', attempts + 1);
                 await new Promise(resolve => setTimeout(resolve, 100)); // 100ms씩만 기다림
                 attempts++;
             }
 
             if (!window.googleCalendarGrid) {
-                // Console log removed
+                console.log('⚡ [FAST] Grid not ready yet, using fallback instant creation');
                 // 그리드가 없어도 강제로 생성
                 createEventsDirectly(events);
                 return;
@@ -7874,11 +7092,11 @@
                         window.googleCalendarGrid.renderEvent(frontendEvent);
                         successCount++;
                     } else {
-                        // Console error removed
+                        console.error(`❌ [FORCE] renderEvent method not found`);
                         errorCount++;
                     }
                 } catch (error) {
-                    // Console error removed
+                    console.error(`❌ [FORCE] Failed to generate block for event ${index + 1}:`, error);
                     errorCount++;
                 }
             });
@@ -7929,7 +7147,7 @@
                     eventElement.title = `${frontendEvent.title} (${frontendEvent.startTime})`;
 
                     calendarContainer.appendChild(eventElement);
-                    // Console log removed
+                    console.log(`⚡ [INSTANT] Added instant event: ${frontendEvent.title}`);
                 });
             }
 
@@ -7937,7 +7155,7 @@
             let retryCount = 0;
             const retryInterval = setInterval(() => {
                 if (window.googleCalendarGrid && window.instantEventsCache) {
-                    // Console log removed
+                    console.log('⚡ [INSTANT] Grid now available, converting instant events to proper blocks');
 
                     // Remove instant blocks
                     document.querySelectorAll('.instant-event-block').forEach(el => el.remove());
@@ -7954,11 +7172,11 @@
 
                     window.instantEventsCache = null;
                     clearInterval(retryInterval);
-                    // Console log removed
+                    console.log('✅ [INSTANT] Successfully converted to proper grid events');
 
                 } else if (retryCount > 30) { // 3초 후 포기
                     clearInterval(retryInterval);
-                    // Console log removed
+                    console.log('⚠️ [INSTANT] Grid still not available after 3 seconds, keeping instant events');
                 }
                 retryCount++;
             }, 100);
@@ -7988,6 +7206,11 @@
                 backendId: dbEvent.id
             };
 
+            console.log('🔄 [CONVERT] Database event converted:', {
+                original: { title: dbEvent.title, start: dbEvent.start_datetime },
+                converted: { title: frontendEvent.title, date: frontendEvent.date, time: frontendEvent.startTime }
+            });
+
             return frontendEvent;
         }
 
@@ -8004,7 +7227,7 @@
                             loadCalendarEvents();
                         }
                     } catch (error) {
-                        // Console error removed
+                        console.error('❌ [LISTENER] Error parsing localStorage refresh data:', error);
                     }
                 }
             });
@@ -8032,50 +7255,6 @@
 
         }
 
-        // Fallback calendar grid when GoogleCalendarGrid is not available
-        function createFallbackCalendarGrid(container) {
-            if (!container) return;
-
-            // Clear container
-            container.innerHTML = '';
-
-            // Create time column header
-            const timeHeader = document.createElement('div');
-            timeHeader.style.cssText = 'grid-column: 1; grid-row: 1; background: #f8f9fa; border: 1px solid #dee2e6; padding: 8px; text-align: center; font-weight: bold;';
-            timeHeader.textContent = '시간';
-            container.appendChild(timeHeader);
-
-            // Create day headers
-            const days = ['일', '월', '화', '수', '목', '금', '토'];
-            days.forEach((day, index) => {
-                const dayHeader = document.createElement('div');
-                dayHeader.style.cssText = `grid-column: ${index + 2}; grid-row: 1; background: #f8f9fa; border: 1px solid #dee2e6; padding: 8px; text-align: center; font-weight: bold;`;
-                dayHeader.textContent = day;
-                container.appendChild(dayHeader);
-            });
-
-            // Create time slots and day cells
-            for (let hour = 0; hour < 24; hour++) {
-                // Time label
-                const timeLabel = document.createElement('div');
-                timeLabel.style.cssText = `grid-column: 1; grid-row: ${hour + 2}; background: #fff; border: 1px solid #dee2e6; padding: 8px; text-align: center; font-size: 12px;`;
-                timeLabel.textContent = `${hour.toString().padStart(2, '0')}:00`;
-                container.appendChild(timeLabel);
-
-                // Day cells
-                for (let day = 0; day < 7; day++) {
-                    const dayCell = document.createElement('div');
-                    dayCell.style.cssText = `grid-column: ${day + 2}; grid-row: ${hour + 2}; background: #fff; border: 1px solid #dee2e6; min-height: 40px; position: relative;`;
-                    dayCell.className = 'calendar-time-slot';
-                    dayCell.dataset.hour = hour;
-                    dayCell.dataset.day = day;
-                    container.appendChild(dayCell);
-                }
-            }
-
-            console.log('Fallback calendar grid created successfully');
-        }
-
         // Load events when page is ready
         document.addEventListener('DOMContentLoaded', function () {
 
@@ -8083,10 +7262,12 @@
             const container = document.getElementById('calendar-grid-container');
             if (container && typeof GoogleCalendarGrid !== 'undefined') {
                 window.googleCalendarGrid = new GoogleCalendarGrid(container);
+                console.log('✅ GoogleCalendarGrid initialized successfully');
             } else {
-                // GoogleCalendarGrid not available - create fallback grid
-                console.log('GoogleCalendarGrid not available, creating fallback');
-                createFallbackCalendarGrid(container);
+                console.error('❌ Could not initialize GoogleCalendarGrid:', {
+                    container: container,
+                    GoogleCalendarGridClass: typeof GoogleCalendarGrid
+                });
             }
 
             // Set up refresh listeners first
@@ -8104,400 +7285,6 @@
                 }
             }, 200); // 1초 → 0.2초로 단축
         });
-    </script>
-
-    <!-- Modern Month View JavaScript -->
-    <script>
-        // Month view state
-        let currentMonthDate = new Date();
-        let monthViewEvents = [];
-
-        // Initialize month view functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeViewToggle();
-            generateMonthCalendar();
-        });
-
-        // Initialize view toggle functionality
-        function initializeViewToggle() {
-            const viewOptions = document.querySelectorAll('.view-option');
-
-            viewOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    const viewType = this.getAttribute('data-view');
-
-                    // Update active state
-                    viewOptions.forEach(opt => opt.classList.remove('active'));
-                    this.classList.add('active');
-
-                    // Switch view
-                    switchToView(viewType);
-                });
-            });
-        }
-
-        // Switch to different view types
-        function switchToView(viewType) {
-            // Console log removed
-
-            const monthContainer = document.getElementById('month-view-container');
-            const weekContainer = document.getElementById('calendar-grid-container');
-            const agendaContainer = document.getElementById('agenda-view-container');
-
-            // Hide all views
-            if (monthContainer) monthContainer.classList.remove('active');
-            if (weekContainer) weekContainer.style.display = 'none';
-            if (agendaContainer) agendaContainer.style.display = 'none';
-
-            // Show selected view
-            switch(viewType) {
-                case 'month':
-                    if (monthContainer) {
-                        monthContainer.classList.add('active');
-
-                        // 월 뷰 활성화 후 강제로 스타일 적용
-                        setTimeout(() => {
-                            const monthGrid = document.getElementById('month-days-grid');
-                            if (monthGrid) {
-                                monthGrid.style.cssText = `
-                                    display: grid !important;
-                                    grid-template-columns: repeat(7, 1fr) !important;
-                                    grid-template-rows: repeat(6, 1fr) !important;
-                                    gap: 1px !important;
-                                    background-color: rgba(255, 255, 255, 0.1) !important;
-                                    border-radius: 10px !important;
-                                    overflow: hidden !important;
-                                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1) !important;
-                                    flex-grow: 1 !important;
-                                    min-height: 500px !important;
-                                    width: 100% !important;
-                                    height: 100% !important;
-                                `;
-                                // Console log removed
-                            }
-                        }, 100);
-
-                        generateMonthCalendar();
-                        loadMonthViewEvents();
-                    }
-                    break;
-                case 'week':
-                    if (weekContainer) {
-                        weekContainer.style.display = 'block';
-                    }
-                    break;
-                case 'agenda':
-                    if (agendaContainer) {
-                        agendaContainer.style.display = 'block';
-                    }
-                    break;
-            }
-        }
-
-        // Generate month calendar grid using API
-        async function generateMonthCalendar() {
-            const monthGrid = document.getElementById('month-days-grid');
-            const monthTitle = document.getElementById('month-title');
-            const monthCalendarContainer = document.querySelector('.month-calendar-grid');
-
-            if (!monthGrid || !monthTitle) {
-                // 월 달력 요소를 찾을 수 없음
-                return;
-            }
-
-            try {
-                // Show loading state
-                monthGrid.innerHTML = '<div class="loading-calendar">달력을 불러오는 중...</div>';
-
-                // Update month title
-                const year = currentMonthDate.getFullYear();
-                const month = currentMonthDate.getMonth() + 1; // API expects 1-based month
-                const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
-                monthTitle.textContent = `${year}년 ${monthNames[month - 1]}`;
-
-                // Console log removed
-
-                // Call API to generate calendar
-                const calendarId = '{{ calendar.id }}';
-                const response = await fetch(`/api/calendars/${calendarId}/month-view?year=${year}&month=${month}`);
-
-                if (!response.ok) {
-                    throw new Error(`API 호출 실패: ${response.status}`);
-                }
-
-                const result = await response.json();
-
-                if (result.success) {
-                    // Replace only the calendar grid content, keeping the container structure
-                    monthCalendarContainer.innerHTML = result.html;
-
-                    // Console log removed
-
-                    // Add click handlers to the new calendar cells
-                    addCalendarEventHandlers();
-                } else {
-                    throw new Error(result.error || 'Unknown API error');
-                }
-
-            } catch (error) {
-                // Console error removed
-                monthGrid.innerHTML = `
-                    <div class="calendar-error">
-                        <p>달력을 불러올 수 없습니다.</p>
-                        <p>오류: ${error.message}</p>
-                        <button onclick="generateMonthCalendar()" class="retry-btn">다시 시도</button>
-                    </div>
-                `;
-            }
-        }
-
-        // Add event handlers to calendar cells
-        function addCalendarEventHandlers() {
-            const dayCells = document.querySelectorAll('.month-day-cell');
-            dayCells.forEach(cell => {
-                cell.addEventListener('click', () => {
-                    const dateStr = cell.getAttribute('data-date');
-                    if (dateStr) {
-                        onDayClick(new Date(dateStr));
-                    }
-                });
-            });
-        }
-
-        // Create individual day cell
-        function createDayCell(date, currentMonth) {
-            const dayCell = document.createElement('div');
-            dayCell.className = 'month-day-cell';
-
-            // 강제로 day cell 스타일 적용
-            dayCell.style.cssText = `
-                background: rgba(255, 255, 255, 0.95) !important;
-                padding: 12px !important;
-                min-height: 100px !important;
-                cursor: pointer !important;
-                transition: all 0.3s ease !important;
-                position: relative !important;
-                overflow: hidden !important;
-                display: flex !important;
-                flex-direction: column !important;
-                width: auto !important;
-                height: auto !important;
-                border: none !important;
-                margin: 0 !important;
-            `;
-
-            const isOtherMonth = date.getMonth() !== currentMonth;
-            const isToday = isDateToday(date);
-
-            if (isOtherMonth) {
-                dayCell.classList.add('other-month');
-                dayCell.style.background = 'rgba(255, 255, 255, 0.4) !important';
-                dayCell.style.color = 'rgba(255, 255, 255, 0.6) !important';
-            }
-
-            if (isToday) {
-                dayCell.classList.add('today');
-                dayCell.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important';
-                dayCell.style.color = 'white !important';
-                dayCell.style.transform = 'scale(1.05) !important';
-                dayCell.style.boxShadow = '0 10px 30px rgba(102, 126, 234, 0.4) !important';
-            }
-
-            // Day number
-            const dayNumber = document.createElement('div');
-            dayNumber.className = 'day-number';
-            dayNumber.textContent = date.getDate();
-            dayNumber.style.cssText = `
-                font-size: 16px !important;
-                font-weight: 600 !important;
-                color: ${isToday ? 'white' : (isOtherMonth ? 'rgba(255, 255, 255, 0.5)' : '#2d3748')} !important;
-                margin-bottom: 6px !important;
-                text-align: left !important;
-                flex-shrink: 0 !important;
-            `;
-            dayCell.appendChild(dayNumber);
-
-            // Events container
-            const eventsContainer = document.createElement('div');
-            eventsContainer.className = 'day-events-list';
-            eventsContainer.style.cssText = `
-                display: flex !important;
-                flex-direction: column !important;
-                gap: 2px !important;
-                flex-grow: 1 !important;
-                overflow: hidden !important;
-            `;
-            dayCell.appendChild(eventsContainer);
-
-            // Add click event
-            dayCell.addEventListener('click', () => {
-                onDayClick(date);
-            });
-
-            return dayCell;
-        }
-
-        // Check if date is today
-        function isDateToday(date) {
-            const today = new Date();
-            return date.getDate() === today.getDate() &&
-                   date.getMonth() === today.getMonth() &&
-                   date.getFullYear() === today.getFullYear();
-        }
-
-        // Handle day click
-        function onDayClick(date) {
-            // Console log removed
-            // Remove selection from all cells
-            document.querySelectorAll('.month-day-cell').forEach(cell => {
-                cell.classList.remove('selected');
-            });
-
-            // Add selection to clicked cell
-            event.currentTarget.classList.add('selected');
-
-            // Show events for this day (if any)
-            showDayEvents(date);
-        }
-
-        // Show events for selected day
-        function showDayEvents(date) {
-            const dayEvents = monthViewEvents.filter(event => {
-                const eventDate = new Date(event.date);
-                return eventDate.toDateString() === date.toDateString();
-            });
-
-            if (dayEvents.length > 0) {
-                // Console log removed
-                // Could show event details in a modal or sidebar
-            }
-        }
-
-        // Navigate to previous/next month
-        function navigateMonth(direction) {
-            currentMonthDate.setMonth(currentMonthDate.getMonth() + direction);
-            generateMonthCalendar();
-            loadMonthViewEvents();
-        }
-
-        // Exit month view
-        function exitMonthView() {
-            const monthContainer = document.getElementById('month-view-container');
-            const weekContainer = document.getElementById('calendar-grid-container');
-
-            if (monthContainer) monthContainer.classList.remove('active');
-            if (weekContainer) weekContainer.style.display = 'block';
-
-            // Update view toggle to week
-            const viewOptions = document.querySelectorAll('.view-option');
-            viewOptions.forEach(opt => opt.classList.remove('active'));
-            document.querySelector('.view-option[data-view="week"]').classList.add('active');
-        }
-
-        // Load events for month view (now handled by API)
-        async function loadMonthViewEvents() {
-            // Events are now loaded together with the calendar HTML from the API
-            // This function is kept for compatibility but no longer needed
-            // Console log removed
-        }
-
-        // Render events in month view (deprecated - now handled by API)
-        function renderMonthEvents() {
-            // This function is no longer needed as events are rendered by the API
-            // Console log removed
-        }
-
-        // Find day cell for specific date
-        function findDayCell(date) {
-            const dayCells = document.querySelectorAll('.month-day-cell');
-            const dayNumber = date.getDate();
-
-            for (let cell of dayCells) {
-                const cellDayNumber = cell.querySelector('.day-number');
-                if (cellDayNumber && parseInt(cellDayNumber.textContent) === dayNumber) {
-                    // Additional check to ensure it's the right month
-                    if (!cell.classList.contains('other-month') ||
-                        date.getMonth() === currentMonthDate.getMonth()) {
-                        return cell;
-                    }
-                }
-            }
-            return null;
-        }
-
-        // Create month event element
-        function createMonthEventElement(event) {
-            try {
-                if (!event || !event.title) {
-                    // Console warn removed
-                    return null;
-                }
-
-                const eventEl = document.createElement('div');
-                eventEl.className = 'month-event month-event-item';
-
-                // Add platform-specific class
-                if (event.source_platform) {
-                    eventEl.classList.add(`platform-${event.source_platform}`);
-                }
-
-                // 제목 설정 (길면 자르기)
-                const title = event.title || 'Untitled Event';
-                eventEl.textContent = title.length > 20 ? title.substring(0, 17) + '...' : title;
-
-                // 툴팁 설정
-                const startTime = event.start_datetime || event.date || 'No date';
-                eventEl.title = `${title}\n시간: ${startTime}`;
-
-                // 스타일 설정
-                eventEl.style.cssText = `
-                    font-size: 11px;
-                    padding: 2px 4px;
-                    margin: 1px 0;
-                    background: #e3f2fd;
-                    border-left: 3px solid #1976d2;
-                    border-radius: 2px;
-                    cursor: pointer;
-                    overflow: hidden;
-                    white-space: nowrap;
-                    text-overflow: ellipsis;
-                `;
-
-                // 플랫폼별 색상
-                if (event.source_platform === 'google') {
-                    eventEl.style.background = '#e8f5e8';
-                    eventEl.style.borderLeftColor = '#4caf50';
-                } else if (event.source_platform === 'notion') {
-                    eventEl.style.background = '#f3f4f6';
-                    eventEl.style.borderLeftColor = '#6b7280';
-                }
-
-                // Add click handler
-                eventEl.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    showEventDetails(event);
-                });
-
-                return eventEl;
-            } catch (error) {
-                // Console error removed
-                return null;
-            }
-        }
-
-        // Show event details (reuse existing event detail modal)
-        function showEventDetails(event) {
-            if (typeof openEventDetailModal === 'function') {
-                openEventDetailModal(event);
-            } else {
-                // Console log removed
-            }
-        }
-
-        // Expose functions globally
-        window.navigateMonth = navigateMonth;
-        window.exitMonthView = exitMonthView;
-        window.switchToView = switchToView;
     </script>
 
     <!-- 통합 동기화 모달 스타일 및 스크립트 -->
