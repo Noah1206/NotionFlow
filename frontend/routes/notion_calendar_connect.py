@@ -35,11 +35,11 @@ def connect_notion_to_calendar():
         if not calendar_check.data:
             return jsonify({'error': 'Calendar not found or access denied'}), 404
             
-        # Update calendar_sync_configs with the selected calendar_id and enable sync
+        # Update calendar_sync_configs with the selected calendar_id but keep auto-sync disabled
         update_result = supabase.table('calendar_sync_configs').update({
             'calendar_id': calendar_id,
             'sync_status': 'active',
-            'is_enabled': True,
+            'is_enabled': False,  # Keep auto-sync disabled for manual-only mode
             'updated_at': datetime.now().isoformat()
         }).eq('user_id', user_id).eq('platform', 'notion').execute()
         
@@ -166,3 +166,79 @@ def disconnect_notion_from_calendar():
     except Exception as e:
         print(f"Error disconnecting Notion from calendar: {e}")
         return jsonify({'error': f'Failed to disconnect: {str(e)}'}), 500
+
+@notion_calendar_bp.route('/manual-sync', methods=['POST'])
+def manual_notion_sync():
+    """Manual Notion sync - Import events from Notion to calendar"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'User not authenticated'}), 401
+
+        data = request.get_json()
+        calendar_id = data.get('calendar_id')
+
+        if not calendar_id:
+            return jsonify({'error': 'Calendar ID is required'}), 400
+
+        # Check if user owns this calendar
+        supabase = config.get_client_for_user(user_id)
+        calendar_check = supabase.table('calendars').select('*').eq('id', calendar_id).eq('owner_id', user_id).execute()
+
+        if not calendar_check.data:
+            return jsonify({'error': 'Calendar not found or access denied'}), 404
+
+        # Check if Notion is connected
+        notion_config = supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', 'notion').execute()
+
+        if not notion_config.data:
+            return jsonify({'error': 'Notion is not connected. Please connect Notion first.'}), 404
+
+        # Import here to avoid circular imports
+        import sys
+        import os
+        sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+        from services.notion_sync import sync_notion_events
+
+        try:
+            print(f"🔄 [MANUAL SYNC] Starting manual Notion sync for calendar {calendar_id}")
+
+            # Trigger manual Notion sync
+            sync_result = sync_notion_events(user_id, calendar_id)
+
+            if sync_result.get('success'):
+                synced_count = sync_result.get('synced_count', 0)
+                print(f"✅ [MANUAL SYNC] Manual sync completed: {synced_count} events synced")
+
+                # Update last sync timestamp
+                supabase.table('calendar_sync_configs').update({
+                    'last_sync_at': datetime.now().isoformat(),
+                    'updated_at': datetime.now().isoformat()
+                }).eq('user_id', user_id).eq('platform', 'notion').execute()
+
+                return jsonify({
+                    'success': True,
+                    'message': f'Manual sync completed successfully. {synced_count} events imported from Notion.',
+                    'synced_count': synced_count,
+                    'trigger_calendar_refresh': True
+                })
+            else:
+                print(f"⚠️ [MANUAL SYNC] Sync completed with issues: {sync_result.get('error', 'Unknown error')}")
+
+                return jsonify({
+                    'success': False,
+                    'error': f'Manual sync had issues: {sync_result.get("error", "Unknown error")}',
+                    'sync_warning': sync_result.get('error')
+                })
+
+        except Exception as sync_error:
+            print(f"❌ [MANUAL SYNC] Manual sync failed: {sync_error}")
+
+            return jsonify({
+                'success': False,
+                'error': f'Manual sync failed: {str(sync_error)}'
+            })
+
+    except Exception as e:
+        print(f"Error in manual Notion sync: {e}")
+        return jsonify({'error': f'Failed to sync: {str(e)}'}), 500

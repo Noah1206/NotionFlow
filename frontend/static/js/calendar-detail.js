@@ -9,7 +9,7 @@ window.addEventListener('error', function(event) {
 }, true);
 
 let currentDate = new Date();
-let currentView = 'week'; // Match HTML default active view
+let currentView = 'month'; // Initialize to month view by default
 let selectedDate = null;
 let calendarEvents = [];
 let todoList = [];

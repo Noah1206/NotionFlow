@@ -126,13 +126,13 @@ class SyncScheduler:
             time.sleep(self.sync_interval)
     
     def _run_scheduled_syncs(self):
-        """Run synchronization for all enabled configurations"""
+        """Run synchronization for all enabled configurations (excluding Notion)"""
         try:
-            # Get all enabled sync configurations
+            # Get all enabled sync configurations (excluding Notion for manual-only sync)
             result = supabase.table('calendar_sync_configs').select('''
-                user_id, platform, sync_frequency_minutes, last_sync_at, 
+                user_id, platform, sync_frequency_minutes, last_sync_at,
                 consecutive_failures, credentials, is_enabled
-            ''').eq('is_enabled', True).execute()
+            ''').eq('is_enabled', True).neq('platform', 'notion').execute()
             
             current_time = datetime.now()
             sync_tasks = []
