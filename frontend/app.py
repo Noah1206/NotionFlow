@@ -4151,6 +4151,15 @@ except ImportError as e:
     print(f"[WARNING] Calendar selection routes not available: {e}")
     pass
 
+# 📤 Register Calendar Export Routes (배치 내보내기)
+try:
+    from routes.calendar_export_routes import calendar_export_bp
+    app.register_blueprint(calendar_export_bp)
+    print("[SUCCESS] Calendar export routes registered")
+except ImportError as e:
+    print(f"[WARNING] Calendar export routes not available: {e}")
+    pass
+
 # Removed duplicate health endpoint
 
 # ====== 💳 PAYMENT SYSTEM ROUTES ======

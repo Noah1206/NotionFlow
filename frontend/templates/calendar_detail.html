@@ -2628,6 +2628,16 @@
                     <button class="view-option active" data-view="week">주</button>
                     <button class="view-option" data-view="agenda">일정</button>
                 </div>
+
+                <!-- 캘린더 공유 버튼 -->
+                <button class="share-calendar-btn" onclick="openShareModal()" title="캘린더 내보내기">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                        <polyline points="16,6 12,2 8,6"/>
+                        <line x1="12" y1="2" x2="12" y2="15"/>
+                    </svg>
+                    <span class="share-btn-text">내보내기</span>
+                </button>
             </div>
         </div>
 
@@ -7566,11 +7576,77 @@
         });
     </script>
 
+    <!-- 캘린더 내보내기 모달 -->
+    <div class="modal-overlay" id="export-modal" style="display: none;">
+        <div class="modal-content export-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">캘린더 내보내기</h2>
+                <button class="modal-close" onclick="closeExportModal()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <!-- 내보내기 설명 -->
+                <div class="export-description">
+                    <p>변경된 일정을 선택한 플랫폼으로 내보냅니다.</p>
+                    <div class="pending-changes" id="pending-changes-info">
+                        <span class="changes-count" id="changes-count">0</span>개의 변경사항이 있습니다.
+                    </div>
+                </div>
+
+                <!-- 연결된 플랫폼 목록 -->
+                <div class="connected-platforms">
+                    <h3 class="section-title">연결된 플랫폼</h3>
+                    <div class="platform-list" id="connected-platforms-list">
+                        <!-- 연결된 플랫폼들이 여기에 동적으로 로드됩니다 -->
+                        <div class="loading-spinner">플랫폼 정보를 불러오는 중...</div>
+                    </div>
+                </div>
+
+                <!-- 내보내기 옵션 -->
+                <div class="export-options">
+                    <h3 class="section-title">내보내기 옵션</h3>
+                    <div class="option-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="export-all-events" checked>
+                            <span class="checkmark"></span>
+                            모든 변경사항 내보내기
+                        </label>
+                    </div>
+                    <div class="option-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="keep-sync" checked>
+                            <span class="checkmark"></span>
+                            향후 변경사항도 자동으로 추적
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeExportModal()">취소</button>
+                <button class="btn-primary" onclick="startExport()" id="export-btn" disabled>
+                    <span class="btn-text">내보내기 시작</span>
+                    <div class="btn-spinner" style="display: none;"></div>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- 통합 동기화 모달 스타일 및 스크립트 -->
     <link rel="stylesheet"
         href="{{ url_for('static', filename='css/unified-sync-modal.css') }}?v={{ range(100000, 999999) | random }}">
     <script defer
         src="{{ url_for('static', filename='js/unified-sync-modal.js') }}?v={{ range(100000, 999999) | random }}"></script>
+
+    <!-- 캘린더 내보내기 스타일 및 스크립트 -->
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/calendar-export.css') }}?v={{ range(100000, 999999) | random }}">
+    <script defer
+        src="{{ url_for('static', filename='js/calendar-export.js') }}?v={{ range(100000, 999999) | random }}"></script>
 
 </body>
 
