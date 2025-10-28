@@ -1931,7 +1931,22 @@ function updateAgendaStats(events) {
 
 function formatEventTime(dateTime) {
     if (!dateTime) return '';
-    const date = dateTime instanceof Date ? dateTime : new Date(dateTime);
+
+    // Convert to Date object if needed
+    let date;
+    if (dateTime instanceof Date) {
+        date = dateTime;
+    } else if (typeof dateTime === 'string') {
+        date = new Date(dateTime);
+    } else {
+        return '--:--';
+    }
+
+    // Validate Date object
+    if (isNaN(date.getTime())) {
+        return '--:--';
+    }
+
     return date.toLocaleTimeString('ko-KR', {
         hour: '2-digit',
         minute: '2-digit'
@@ -6061,8 +6076,24 @@ function formatEventDate(date) {
 
 // 시간 포맷팅 함수
 function formatEventTime(date) {
-    return date.toLocaleTimeString('ko-KR', { 
-        hour: '2-digit', 
+    // date가 Date 객체가 아닌 경우 변환
+    if (!(date instanceof Date)) {
+        if (typeof date === 'string') {
+            date = new Date(date);
+        } else {
+            console.warn('Invalid date format:', date);
+            return '--:--';
+        }
+    }
+
+    // Date 객체가 유효한지 확인
+    if (isNaN(date.getTime())) {
+        console.warn('Invalid date object:', date);
+        return '--:--';
+    }
+
+    return date.toLocaleTimeString('ko-KR', {
+        hour: '2-digit',
         minute: '2-digit',
         hour12: false
     });
