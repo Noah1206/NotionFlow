@@ -353,12 +353,9 @@ function switchView(viewType) {
         // Render appropriate calendar view
         switch(viewType) {
             case 'month':
-                // 월 뷰: GoogleCalendarGrid 완전 정리 후 렌더링
+                // 월 뷰: GoogleCalendarGrid 완전 정리 후 즉시 렌더링
                 cleanupGoogleCalendarGrid();
-                // 약간의 지연을 두고 렌더링하여 DOM 정리 완료 보장
-                setTimeout(() => {
-                    renderMonthView();
-                }, 50);
+                renderMonthView();
                 break;
             case 'week':
                 // 주 뷰: 월 뷰 정리 후 GoogleCalendarGrid 초기화
@@ -1433,22 +1430,47 @@ function cleanupGoogleCalendarGrid() {
 
     // 전역 GoogleCalendarGrid 인스턴스 정리
     if (window.googleCalendarGrid) {
-        // GoogleCalendarGrid의 이벤트 리스너나 인터벌 정리
-        if (typeof window.googleCalendarGrid.destroy === 'function') {
-            window.googleCalendarGrid.destroy();
+        try {
+            // GoogleCalendarGrid의 이벤트 리스너나 인터벌 정리
+            if (typeof window.googleCalendarGrid.destroy === 'function') {
+                window.googleCalendarGrid.destroy();
+            }
+            // 추가 정리: 모든 관련 이벤트 리스너 제거
+            if (window.googleCalendarGrid.element) {
+                window.googleCalendarGrid.element.innerHTML = '';
+            }
+        } catch (error) {
+            console.warn('⚠️ Error destroying GoogleCalendarGrid:', error);
         }
         window.googleCalendarGrid = null;
         console.log('✅ GoogleCalendarGrid instance destroyed');
     }
 
-    // 컨테이너 완전 정리
+    // 컨테이너 완전 정리 - 모든 동적 생성된 요소 제거
     const mainGrid = document.getElementById('calendar-grid-container');
     if (mainGrid) {
-        mainGrid.innerHTML = '';
-        mainGrid.className = 'calendar-grid-container'; // 클래스 리셋
-        mainGrid.style.display = 'block'; // 강제로 표시
-        console.log('🧹 Calendar container completely cleared');
+        // 모든 자식 요소 제거
+        while (mainGrid.firstChild) {
+            mainGrid.removeChild(mainGrid.firstChild);
+        }
+
+        // 스타일 및 클래스 리셋
+        mainGrid.className = 'calendar-grid-container';
+        mainGrid.style.display = 'block';
+        mainGrid.style.visibility = 'visible';
+
+        // GoogleCalendarGrid가 추가했을 수 있는 추가 스타일 제거
+        mainGrid.removeAttribute('style');
+        mainGrid.style.display = 'block'; // 필수 스타일만 다시 설정
+
+        console.log('🧹 Calendar container completely cleared and reset');
     }
+
+    // 추가: GoogleCalendarGrid가 생성했을 수 있는 다른 요소들 정리
+    const gridElements = document.querySelectorAll('.google-calendar-grid, .calendar-time-grid, .time-slot');
+    gridElements.forEach(element => {
+        element.remove();
+    });
 }
 
 // 강제 월 뷰 렌더링 함수 (디버깅용)
