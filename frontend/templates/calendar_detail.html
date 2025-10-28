@@ -2596,34 +2596,34 @@
             color: #3182ce; /* 토요일 */
         }
 
-        /* 월 뷰 그리드 스타일 - 간소화 */
+        /* 월 뷰 그리드 스타일 - 강화된 CSS */
         .month-days-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            grid-template-rows: repeat(6, 1fr);
-            gap: 1px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            flex-grow: 1;
-            min-height: 500px;
-            width: 100%;
-            height: 100%;
+            display: grid !important;
+            grid-template-columns: repeat(7, 1fr) !important;
+            grid-template-rows: repeat(6, 1fr) !important;
+            gap: 1px !important;
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            border-radius: 10px !important;
+            overflow: hidden !important;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1) !important;
+            flex-grow: 1 !important;
+            min-height: 500px !important;
+            width: 100% !important;
+            height: 100% !important;
         }
 
         .month-day-cell {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 12px;
-            min-height: 100px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            border: none;
-            margin: 0;
+            background: rgba(255, 255, 255, 0.95) !important;
+            padding: 12px !important;
+            min-height: 100px !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+            position: relative !important;
+            overflow: hidden !important;
+            display: flex !important;
+            flex-direction: column !important;
+            border: none !important;
+            margin: 0 !important;
         }
 
         .month-day-cell:last-child {
@@ -2681,7 +2681,7 @@
         }
 
         .day-events-list {
-            display: flex;
+            display: flex !important;
             flex-direction: column;
             gap: 2px;
             flex-grow: 1;
@@ -8170,7 +8170,7 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    // Replace the entire calendar grid content
+                    // Replace only the calendar grid content, keeping the container structure
                     monthCalendarContainer.innerHTML = result.html;
 
                     // Console log removed
