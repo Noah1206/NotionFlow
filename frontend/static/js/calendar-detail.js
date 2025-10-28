@@ -242,6 +242,7 @@ function initializeCalendar() {
         }
 
         if (currentView === 'month') {
+            cleanupGoogleCalendarGrid(); // 초기화 시에도 GoogleCalendarGrid 정리
             renderMainCalendar(); // Call the main calendar renderer directly
             renderCompactCalendar(); // Also render mini calendar
         } else {
@@ -352,9 +353,12 @@ function switchView(viewType) {
         // Render appropriate calendar view
         switch(viewType) {
             case 'month':
+                // 월 뷰: GoogleCalendarGrid 완전 정리 후 렌더링
+                cleanupGoogleCalendarGrid();
                 renderMonthView();
                 break;
             case 'week':
+                // 주 뷰: 월 뷰 정리 후 GoogleCalendarGrid 초기화
                 renderWeekView();
                 break;
         }
@@ -1420,6 +1424,29 @@ function updateVolumeIcon() {
     }
 }
 
+// GoogleCalendarGrid 정리 함수
+function cleanupGoogleCalendarGrid() {
+    console.log('🧹 Cleaning up GoogleCalendarGrid instance');
+
+    // 전역 GoogleCalendarGrid 인스턴스 정리
+    if (window.googleCalendarGrid) {
+        // GoogleCalendarGrid의 이벤트 리스너나 인터벌 정리
+        if (typeof window.googleCalendarGrid.destroy === 'function') {
+            window.googleCalendarGrid.destroy();
+        }
+        window.googleCalendarGrid = null;
+        console.log('✅ GoogleCalendarGrid instance destroyed');
+    }
+
+    // 컨테이너 완전 정리
+    const mainGrid = document.getElementById('calendar-grid-container');
+    if (mainGrid) {
+        mainGrid.innerHTML = '';
+        mainGrid.className = 'calendar-grid-container'; // 클래스 리셋
+        console.log('🧹 Calendar container completely cleared');
+    }
+}
+
 // Month view rendering (both main and compact)
 function renderMonthView() {
     console.log('🗓️ Switching to month view - clearing container first');
@@ -1738,10 +1765,32 @@ function createDayCell(date, currentMonth) {
 }
 
 function renderWeekView() {
-    const container = document.getElementById('week-days-grid');
-    if (!container) return;
-    
-    container.innerHTML = '<div class="week-view-placeholder">주간 뷰는 개발 중입니다.</div>';
+    console.log('🗓️ Switching to week view - initializing GoogleCalendarGrid');
+
+    // 메인 캘린더 컨테이너 사용
+    const container = document.getElementById('calendar-grid-container');
+    if (!container) {
+        console.error('❌ Calendar container not found for week view');
+        return;
+    }
+
+    // 기존 월 뷰 콘텐츠 정리
+    container.innerHTML = '';
+
+    // GoogleCalendarGrid 초기화 (기존 템플릿의 로직 활용)
+    if (typeof GoogleCalendarGrid !== 'undefined') {
+        try {
+            window.googleCalendarGrid = new GoogleCalendarGrid(container);
+            console.log('✅ GoogleCalendarGrid initialized for week view');
+        } catch (error) {
+            console.error('❌ Failed to initialize GoogleCalendarGrid:', error);
+            // 실패 시 폴백 메시지
+            container.innerHTML = '<div class="week-view-placeholder" style="padding: 40px; text-align: center; color: #666;">주간 뷰를 불러오는 중 오류가 발생했습니다.</div>';
+        }
+    } else {
+        console.warn('⚠️ GoogleCalendarGrid not available, showing placeholder');
+        container.innerHTML = '<div class="week-view-placeholder" style="padding: 40px; text-align: center; color: #666;">주간 뷰는 개발 중입니다.</div>';
+    }
 }
 
 function renderDayView() {
