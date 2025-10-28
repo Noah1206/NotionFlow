@@ -1443,9 +1443,43 @@ function cleanupGoogleCalendarGrid() {
     if (mainGrid) {
         mainGrid.innerHTML = '';
         mainGrid.className = 'calendar-grid-container'; // 클래스 리셋
+        mainGrid.style.display = 'block'; // 강제로 표시
         console.log('🧹 Calendar container completely cleared');
     }
 }
+
+// 강제 월 뷰 렌더링 함수 (디버깅용)
+function forceRenderMonthView() {
+    console.log('🚀 [FORCE] Forcing month view render...');
+
+    const mainGrid = document.getElementById('calendar-grid-container');
+    if (!mainGrid) {
+        console.error('❌ [FORCE] calendar-grid-container not found!');
+        return;
+    }
+
+    console.log('📐 [FORCE] Container before cleanup:', {
+        innerHTML: mainGrid.innerHTML.length,
+        display: getComputedStyle(mainGrid).display,
+        width: mainGrid.offsetWidth,
+        height: mainGrid.offsetHeight
+    });
+
+    // 강제 정리
+    mainGrid.innerHTML = '';
+    mainGrid.style.display = 'block';
+    mainGrid.style.width = '100%';
+    mainGrid.style.height = '100%';
+
+    // 1초 후 월 뷰 렌더링
+    setTimeout(() => {
+        renderMainCalendar();
+        console.log('✅ [FORCE] Month view rendering completed');
+    }, 500);
+}
+
+// 전역 함수로 등록 (브라우저 콘솔에서 호출 가능)
+window.forceRenderMonthView = forceRenderMonthView;
 
 // Month view rendering (both main and compact)
 function renderMonthView() {
