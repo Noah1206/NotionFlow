@@ -3158,7 +3158,6 @@
                     return false;
                 }
             });
-        }
 
         window.addEventListener('load', function () {
             // Console log removed
@@ -7976,10 +7975,6 @@
                 calendar_id: dbEvent.calendar_id || '{{ calendar.id }}',
                 backendId: dbEvent.id
             };
-
-                original: { title: dbEvent.title, start: dbEvent.start_datetime },
-                converted: { title: frontendEvent.title, date: frontendEvent.date, time: frontendEvent.startTime }
-            });
 
             return frontendEvent;
         }
