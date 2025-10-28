@@ -317,14 +317,20 @@ function updateDateDisplay() {
 
 function switchView(viewType) {
     // // Console log removed
-    
+
+    // 이미 같은 뷰에 있으면 다시 렌더링하지 않음
+    if (currentView === viewType) {
+        console.log(`ℹ️ Already in ${viewType} view, skipping re-render`);
+        return;
+    }
+
     // Update active button
     document.querySelectorAll('.view-option').forEach(btn => btn.classList.remove('active'));
     const activeBtn = document.querySelector(`[data-view="${viewType}"]`);
     if (activeBtn) {
         activeBtn.classList.add('active');
     }
-    
+
     currentView = viewType;
     
     // Get main containers
@@ -1450,18 +1456,12 @@ function cleanupGoogleCalendarGrid() {
     const mainGrid = document.getElementById('calendar-grid-container');
     if (mainGrid) {
         // 모든 자식 요소 제거
-        while (mainGrid.firstChild) {
-            mainGrid.removeChild(mainGrid.firstChild);
-        }
+        mainGrid.innerHTML = '';
 
-        // 스타일 및 클래스 리셋
+        // 스타일 및 클래스 리셋 (필수 속성 유지)
         mainGrid.className = 'calendar-grid-container';
         mainGrid.style.display = 'block';
         mainGrid.style.visibility = 'visible';
-
-        // GoogleCalendarGrid가 추가했을 수 있는 추가 스타일 제거
-        mainGrid.removeAttribute('style');
-        mainGrid.style.display = 'block'; // 필수 스타일만 다시 설정
 
         console.log('🧹 Calendar container completely cleared and reset');
     }
@@ -1508,7 +1508,7 @@ window.forceRenderMonthView = forceRenderMonthView;
 
 // Month view rendering (both main and compact)
 function renderMonthView() {
-    console.log('🗓️ Switching to month view');
+    console.log('🗓️ Rendering month view');
 
     // Verify container exists and is ready
     const mainGrid = document.getElementById('calendar-grid-container');
@@ -1517,9 +1517,13 @@ function renderMonthView() {
         return;
     }
 
+    // 완전히 비우고 시작
+    mainGrid.innerHTML = '';
+
     // Ensure container is visible and styled correctly
     mainGrid.style.display = 'block';
     mainGrid.style.visibility = 'visible';
+    mainGrid.className = 'calendar-grid-container';
 
     // Render the main calendar
     renderMainCalendar();
