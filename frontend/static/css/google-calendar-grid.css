@@ -1,27 +1,26 @@
 /* Google Calendar Style Grid Layout */
 
-/* 향상된 그리드 - 가독성 중심 */
+/* 고정 크기 그리드 - 토요일까지 모든 컬럼 표시 */
 .calendar-header,
 .calendar-grid-body,
 #calendar-grid-container .calendar-header,
 #calendar-grid-container .calendar-grid-body,
 .google-calendar-grid .calendar-header,
 .google-calendar-grid .calendar-grid-body {
-    grid-template-columns: 60px repeat(7, 1fr) !important;
-    /* 시간 컬럼 확대하고 나머지는 균등 분할 */
+    grid-template-columns: 75px repeat(7, 215px) !important;
     width: auto !important;
     max-width: none !important;
     min-width: auto !important;
 }
 
 
-/* Force grid template override - 가독성 우선 */
+/* Force grid template override - 고정 크기 */
 .calendar-header[style*="grid-template-columns"] {
-    grid-template-columns: 60px repeat(7, 1fr) !important;
+    grid-template-columns: 75px repeat(7, 215px) !important;
 }
 
 .calendar-grid-body[style*="grid-template-columns"] {
-    grid-template-columns: 60px repeat(7, 1fr) !important;
+    grid-template-columns: 75px repeat(7, 215px) !important;
 }
 
 .google-calendar-grid {
@@ -42,58 +41,44 @@
     /* 여백 제거 */
 }
 
-/* Header with days - Enhanced Readability */
+/* Header with days */
 .calendar-header {
     display: grid !important;
-    grid-template-columns: 60px repeat(7, 1fr) !important;
-    /* 시간 컬럼 확대로 가독성 향상 */
-    border-bottom: 2px solid #1a73e8;
-    /* 강조된 파란색 경계선 */
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    /* 부드러운 그라데이션 배경 */
+    grid-template-columns: 50px repeat(7, 1fr) !important;
+    border-bottom: 1px solid #e0e0e0;
+    background: white;
     position: sticky;
     top: 0;
     z-index: 1000;
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
-    height: 70px;
-    min-height: 70px;
+    height: 60px;
+    min-height: 60px;
     box-sizing: border-box !important;
     overflow: visible;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    /* 헤더에 그림자 추가 */
 }
 
 .calendar-header .time-header {
-    padding: 12px 0;
+    padding: 8px 0;
     text-align: center;
-    font-size: 12px;
-    font-weight: 600;
-    color: #1a73e8;
-    border-right: 2px solid #e2e8f0;
-    background: transparent;
+    font-size: 11px;
+    color: #70757a;
+    border-right: 1px solid #e0e0e0;
+    background: white;
     box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    /* 수직 중앙 정렬 */
 }
 
 .calendar-header .day-header {
-    padding: 15px 0;
+    padding: 12px 0;
     text-align: center;
-    border-right: 1px solid #cbd5e1;
+    border-right: 1px solid #e0e0e0;
     position: relative;
-    background: transparent;
+    background: white;
     box-sizing: border-box;
     min-width: 0 !important;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    /* 중앙 정렬 개선 */
-    transition: background-color 0.2s ease;
+    box-shadow: 1px 0 0 0 #e0e0e0;
+    background-clip: padding-box;
 }
 
 .calendar-header .day-header:last-child {
@@ -104,119 +89,89 @@
 }
 
 .day-header .day-name {
-    font-size: 12px;
-    color: #64748b;
+    font-size: 11px;
+    color: #70757a;
     text-transform: uppercase;
-    font-weight: 600;
-    margin-bottom: 4px;
-    letter-spacing: 0.5px;
-    /* 글자 간격 개선 */
+    font-weight: 500;
+    margin-bottom: 2px;
 }
 
 .day-header .day-date {
-    font-size: 18px;
-    color: #1e293b;
-    font-weight: 600;
+    font-size: 16px;
+    color: #3c4043;
+    font-weight: 400;
     line-height: 1;
-    /* 날짜 숫자를 더 크고 볼드하게 */
 }
 
 .day-header.today .day-date {
-    background: linear-gradient(135deg, #1a73e8 0%, #4285f4 100%);
+    background: #1a73e8;
     color: white;
     border-radius: 50%;
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto;
-    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
-    /* 오늘 날짜 강조 */
 }
 
-.day-header.today .day-name {
-    color: #1a73e8;
-    font-weight: 700;
-    /* 오늘 요일명도 강조 */
-}
-
-/* Main grid body - Enhanced Readability */
+/* Main grid body */
 .calendar-grid-body {
     flex: 1 !important;
     display: grid !important;
-    grid-template-columns: 60px repeat(7, 1fr) !important;
-    /* 시간 컬럼 확대 */
+    grid-template-columns: 50px repeat(7, 1fr) !important;
     overflow-y: auto;
     overflow-x: hidden;
     position: relative;
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
-    background: #fafbfc;
-    /* 연한 회색 배경으로 깔끔함 */
+    background: white;
     box-sizing: border-box !important;
 }
 
-/* Time column - Enhanced */
+/* Time column */
 .time-column {
-    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-    /* 시간 컬럼 그라데이션 */
-    border-right: 2px solid #e2e8f0;
-    /* 더 두꺼운 경계선 */
+    background: white;
+    border-right: 1px solid #e0e0e0;
     border-top: none;
     border-bottom: none;
     position: relative;
-    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
-    /* 시간 컬럼에 그림자 */
 }
 
 .time-slot {
-    height: 80px;
-    /* 시간 슬롯 높이 증가로 가독성 향상 */
+    height: 60px;
     border-bottom: none;
     border-top: none;
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    padding: 4px 0 0 0;
+    padding: 2px 0 0 0;
     position: relative;
-    background: transparent;
+    background: white;
     box-sizing: border-box;
-    /* 매시간 경계선 추가 */
-    border-bottom: 1px solid #e2e8f0;
 }
 
 .time-slot .time-label {
-    font-size: 12px;
-    color: #475569;
-    font-weight: 600;
+    font-size: 11px;
+    color: #666666;
+    font-weight: 500;
     line-height: 1;
-    background: #f8fafc;
-    padding: 2px 6px;
-    border-radius: 4px;
-    transform: translateY(-50%);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    /* 시간 라벨 스타일 개선 */
+    background: white;
+    padding: 0 3px;
+    transform: translateY(-40%);
 }
 
-/* Day columns - Enhanced */
+/* Day columns */
 .day-column {
-    border-right: 1px solid #e2e8f0;
+    border-right: 1px solid #e0e0e0;
     position: relative;
     background: white;
     width: 100% !important;
     min-width: 0 !important;
     flex: 1 !important;
-    box-shadow: 1px 0 0 0 #e2e8f0;
+    box-shadow: 1px 0 0 0 #e0e0e0;
     background-clip: padding-box;
-    transition: background-color 0.2s ease;
-    /* 호버 효과를 위한 트랜지션 */
-}
-
-.day-column:hover {
-    background-color: #f8fafc;
-    /* 호버 시 연한 배경 */
 }
 
 .day-column:last-child {
@@ -226,48 +181,33 @@
     /* 마지막 컬럼은 그림자도 제거 */
 }
 
-/* Time cells - Enhanced Interaction */
+/* Time cells - clickable areas */
 .time-cell {
-    height: 80px;
-    /* 시간 셀 높이 증가 */
-    border-bottom: 1px solid #f1f5f9;
-    /* 연한 경계선 */
+    height: 60px;
+    border-bottom: 1px solid #e0e0e0;
     cursor: pointer;
     position: relative;
-    transition: all 0.2s ease;
-    background: transparent;
+    transition: background-color 0.15s ease;
+    background: white;
     box-sizing: border-box;
     padding: 0;
-    /* 매시간 경계를 더 진하게 */
-}
-
-.time-cell:nth-child(2n) {
-    border-bottom: 1px solid #e2e8f0;
-    /* 매시간 경계선 강조 */
+    box-shadow: 0 1px 0 0 #e0e0e0;
+    background-clip: padding-box;
 }
 
 .time-cell:hover {
-    background-color: #dbeafe;
-    /* 더 부드러운 호버 색상 */
-    transform: scale(1.01);
-    /* 미세한 확대 효과 */
-    box-shadow: inset 0 0 0 2px #3b82f6;
-    /* 호버 시 테두리 효과 */
+    background-color: #e3f2fd;
 }
 
 .time-cell.selected {
-    background-color: #bfdbfe;
-    border: 2px solid #3b82f6;
-    /* 선택된 셀 강조 */
+    background-color: #bbdefb;
 }
 
 .time-cell.selecting {
-    background-color: #93c5fd;
-    border: 2px dashed #3b82f6;
-    /* 선택 중인 셀 스타일 */
+    background-color: #90caf9;
 }
 
-/* Half hour divider - Enhanced */
+/* Half hour divider */
 .time-cell::after {
     content: '';
     position: absolute;
@@ -275,108 +215,89 @@
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent 0%, #e2e8f0 50%, transparent 100%);
-    /* 그라데이션 30분 구분선 */
+    background: #f0f0f0;
     pointer-events: none;
-    opacity: 0.6;
 }
 
-/* ENHANCED CELL HEIGHT - Final Override */
+/* FORCE TALLER CELLS - Final Override */
 .time-slot,
 .time-cell,
 div.time-slot,
 div.time-cell {
-    height: 80px !important;
-    min-height: 80px !important;
-    max-height: 80px !important;
-    /* 적당한 높이로 가독성과 효율성 균형 */
+    height: 100px !important;
+    min-height: 100px !important;
+    max-height: 100px !important;
 }
 
-/* Current time indicator - Enhanced */
+/* Current time indicator */
 .current-time-line {
     position: absolute;
-    left: 61px; /* 시간 컬럼 크기 변경에 맞춤 */
+    left: 79px; /* 경계선에 정확히 맞춤 (80px - 1px border) */
     right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #ea4335 0%, #ff6b6b 100%);
+    height: 2px;
+    background: #ea4335;
     z-index: 50;
     pointer-events: none;
-    border-radius: 2px;
-    box-shadow: 0 1px 4px rgba(234, 67, 53, 0.4);
-    /* 현재 시간 표시선 강조 */
 }
 
 .current-time-line::before {
     content: '';
     position: absolute;
-    left: -6px;
-    top: -6px;
-    width: 12px;
-    height: 12px;
-    background: radial-gradient(circle, #ea4335 0%, #ff6b6b 100%);
+    left: -5px; /* 점이 선의 중앙에 오도록 조정 */
+    top: -5px; /* 점이 선의 중앙에 오도록 조정 */
+    width: 10px;
+    height: 10px;
+    background: #ea4335;
     border-radius: 50%;
-    border: 3px solid white;
-    box-shadow: 0 2px 8px rgba(234, 67, 53, 0.3);
-    /* 현재 시간 점 강조 */
+    border: 2px solid white;
 }
 
-/* Weekend styling - Enhanced */
+/* Weekend styling */
 .day-column.weekend {
-    background: linear-gradient(180deg, #fef7f0 0%, #fdf4f0 100%);
-    /* 주말 오렌지 톤 배경 */
-}
-
-.day-column.weekend .time-cell {
-    background: rgba(251, 146, 60, 0.05);
-    /* 주말 셀에 연한 오렌지 톤 */
+    background-color: #fafafa;
 }
 
 .day-column.weekend .time-cell:hover {
-    background-color: #fed7aa;
-    /* 주말 호버 색상 - 오렌지 톤 */
-    box-shadow: inset 0 0 0 2px #f97316;
-    /* 주말 호버 테두리 - 오렌지 */
+    background-color: #e3f2fd;
 }
 
-/* Events - Enhanced Readability */
+/* Events - Google Calendar Style */
 .calendar-event {
     position: absolute;
-    background: linear-gradient(135deg, #1a73e8 0%, #4285f4 100%);
+    background: #1a73e8;
     color: white;
-    border-radius: 8px;
-    padding: 6px 12px;
-    font-size: 13px;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 11px;
     font-weight: 500;
-    line-height: 1.3;
+    line-height: 1.2;
     cursor: pointer;
     z-index: 10;
-    box-shadow: 0 2px 8px rgba(26, 115, 232, 0.25);
-    overflow: visible;
-    min-height: 28px;
+    box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+    overflow: hidden;
+    min-height: 16px;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.2s ease;
-    /* 그라데이션과 더 큰 폰트로 가독성 향상 */
+    align-items: flex-start;
+    transition: all 0.15s ease;
+    border-left: 3px solid rgba(255, 255, 255, 0.5);
+    /* 구글 캘린더 스타일 왼쪽 보더 */
 }
 
 .calendar-event:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 4px 16px rgba(26, 115, 232, 0.4);
-    border-color: rgba(255, 255, 255, 0.4);
-    /* 호버 시 입체감 추가 */
+    box-shadow: 0 2px 4px rgba(60, 64, 67, 0.4), 0 2px 6px 2px rgba(60, 64, 67, 0.2);
+    filter: brightness(1.1);
+    /* 구글 스타일 호버 - 미세한 밝기 증가 */
 }
 
-/* Event Content - Enhanced */
+/* Event Content - Google Style */
 .calendar-event-content {
     flex: 1;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
     font-weight: 500;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    /* 텍스트 가독성을 위한 그림자 */
+    padding: 1px 0;
+    /* 구글 스타일 - 간단하고 깨끗하게 */
 }
 
 /* Event Actions Container */
@@ -460,28 +381,28 @@ div.time-cell {
 }
 
 .calendar-event.green {
-    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-    /* 초록색 그라데이션 */
+    background: #0d8043;
+    border-left-color: rgba(255, 255, 255, 0.6);
 }
 
 .calendar-event.red {
-    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
-    /* 빨간색 그라데이션 */
+    background: #d50000;
+    border-left-color: rgba(255, 255, 255, 0.6);
 }
 
 .calendar-event.orange {
-    background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
-    /* 오렌지색 그라데이션 */
+    background: #f57c00;
+    border-left-color: rgba(255, 255, 255, 0.6);
 }
 
 .calendar-event.purple {
-    background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
-    /* 보라색 그라데이션 */
+    background: #8e24aa;
+    border-left-color: rgba(255, 255, 255, 0.6);
 }
 
 .calendar-event.teal {
-    background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
-    /* 청록색 그라데이션 */
+    background: #00695c;
+    border-left-color: rgba(255, 255, 255, 0.6);
 }
 
 /* Event creation popup - Compact Modern Design */
