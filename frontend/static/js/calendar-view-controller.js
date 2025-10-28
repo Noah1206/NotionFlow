@@ -75,9 +75,13 @@ class CalendarViewController {
     }
     
     showGoogleCalendarGrid() {
-        // Console log removed
-        
-        // Hide other views
+        // Hide main calendar view
+        const mainCalendar = document.getElementById('main-calendar');
+        if (mainCalendar) {
+            mainCalendar.style.display = 'none';
+        }
+
+        // Hide fallback time grid completely
         const fallbackGrid = document.getElementById('fallback-time-grid');
         if (fallbackGrid) {
             fallbackGrid.style.display = 'none';
@@ -106,27 +110,24 @@ class CalendarViewController {
     }
     
     showMonthView() {
-        // Console log removed
-        
         // Hide Google Calendar Grid
         const container = document.getElementById('google-calendar-container');
         if (container) {
             container.style.display = 'none';
         }
-        
-        // Show fallback time grid or create month view
+
+        // Hide fallback time grid completely (never show it)
         const fallbackGrid = document.getElementById('fallback-time-grid');
         if (fallbackGrid) {
-            fallbackGrid.style.display = 'block';
-            
-            // Initialize original time grid if needed
-            if (typeof initializeTimeGrid === 'function') {
-                initializeTimeGrid();
-            }
+            fallbackGrid.style.display = 'none';
         }
-        
-        // TODO: Implement proper month view
-        showNotification('월 보기는 곧 추가될 예정입니다', 'info');
+
+        // Call proper month view from calendar-detail.js
+        if (typeof switchView === 'function') {
+            switchView('month');
+        } else if (typeof renderMainCalendar === 'function') {
+            renderMainCalendar();
+        }
     }
     
     showAgendaView() {
