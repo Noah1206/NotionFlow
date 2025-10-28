@@ -2771,11 +2771,18 @@ function loadDemoEvents() {
 }
 
 function getEventsForDate(date) {
-    return calendarEvents.filter(event => 
+    const filteredEvents = calendarEvents.filter(event =>
         event.date.getDate() === date.getDate() &&
         event.date.getMonth() === date.getMonth() &&
         event.date.getFullYear() === date.getFullYear()
     );
+
+    // Debug: 특정 날짜의 이벤트만 로그 (성능을 위해 조건부)
+    if (filteredEvents.length > 0) {
+        console.log('🐛 DEBUG: getEventsForDate found events for', date.toDateString(), ':', filteredEvents.length, 'events');
+    }
+
+    return filteredEvents;
 }
 
 function isDateToday(date) {
@@ -6187,7 +6194,13 @@ function updateSidebarEventList(events) {
         return;
     }
 
-    // Remove debug log for performance
+    // Debug: 실제 이벤트 데이터 확인
+    console.log('🐛 DEBUG: updateSidebarEventList called with:', {
+        eventsExists: !!events,
+        eventsLength: events ? events.length : 0,
+        calendarEventsLength: calendarEvents ? calendarEvents.length : 0,
+        eventsData: events ? events.slice(0, 3) : 'No events'
+    });
 
     // 이벤트가 없는 경우
     if (!events || events.length === 0) {
