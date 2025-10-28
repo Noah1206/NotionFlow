@@ -2596,38 +2596,34 @@
             color: #3182ce; /* 토요일 */
         }
 
-        /* 월 뷰 그리드 스타일 - 강제 적용 */
-        #month-days-grid,
-        .month-days-grid,
-        div.month-days-grid {
-            display: grid !important;
-            grid-template-columns: repeat(7, 1fr) !important;
-            grid-template-rows: repeat(6, 1fr) !important;
-            gap: 1px !important;
-            background-color: rgba(255, 255, 255, 0.1) !important;
-            border-radius: 10px !important;
-            overflow: hidden !important;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1) !important;
-            flex-grow: 1 !important;
-            min-height: 500px !important;
-            width: 100% !important;
-            height: 100% !important;
+        /* 월 뷰 그리드 스타일 - 간소화 */
+        .month-days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-template-rows: repeat(6, 1fr);
+            gap: 1px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            flex-grow: 1;
+            min-height: 500px;
+            width: 100%;
+            height: 100%;
         }
 
         .month-day-cell {
-            background: rgba(255, 255, 255, 0.95) !important;
-            padding: 12px !important;
-            min-height: 100px !important;
-            cursor: pointer !important;
-            transition: all 0.3s ease !important;
-            position: relative !important;
-            overflow: hidden !important;
-            display: flex !important;
-            flex-direction: column !important;
-            width: auto !important;
-            height: auto !important;
-            border: none !important;
-            margin: 0 !important;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px;
+            min-height: 100px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: none;
+            margin: 0;
         }
 
         .month-day-cell:last-child {
@@ -2692,36 +2688,97 @@
             overflow: hidden;
         }
 
+        /* API 생성 이벤트 스타일 */
+        .month-event,
         .month-event-item {
-            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
-            color: white;
-            padding: 6px 10px;
-            border-radius: 20px;
             font-size: 11px;
-            font-weight: 500;
+            padding: 2px 4px;
+            margin: 1px 0;
+            border-radius: 2px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            white-space: nowrap;
             overflow: hidden;
+            white-space: nowrap;
             text-overflow: ellipsis;
-            box-shadow: 0 4px 15px rgba(66, 153, 225, 0.3);
+            transition: all 0.2s ease;
+            line-height: 1.2;
+            background: #e3f2fd;
+            border-left: 3px solid #1976d2;
+            color: #1565c0;
         }
 
+        .month-event:hover,
         .month-event-item:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(66, 153, 225, 0.4);
+            transform: scale(1.05);
+            z-index: 10;
         }
 
-        .month-event-item.google {
-            background: linear-gradient(135deg, #34a853 0%, #137333 100%);
+        /* 플랫폼별 색상 */
+        .month-event.platform-google,
+        .month-event-item.google,
+        .month-event-item.platform-google {
+            background: #e8f5e8;
+            border-left-color: #4caf50;
+            color: #2e7d32;
         }
 
-        .month-event-item.notion {
-            background: linear-gradient(135deg, #000000 0%, #434343 100%);
+        .month-event.platform-notion,
+        .month-event-item.notion,
+        .month-event-item.platform-notion {
+            background: #f3f4f6;
+            border-left-color: #6b7280;
+            color: #374151;
         }
 
-        .month-event-item.outlook {
-            background: linear-gradient(135deg, #0078d4 0%, #106ebe 100%);
+        .month-event.platform-manual,
+        .month-event-item.manual,
+        .month-event-item.platform-manual {
+            background: #e3f2fd;
+            border-left-color: #1976d2;
+            color: #1565c0;
+        }
+
+        .month-event-more {
+            font-size: 10px;
+            color: #666;
+            font-style: italic;
+            padding: 2px 4px;
+        }
+
+        /* 로딩 및 에러 상태 */
+        .loading-calendar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            color: white;
+            font-size: 16px;
+            grid-column: 1 / -1;
+        }
+
+        .calendar-error {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            color: white;
+            text-align: center;
+            grid-column: 1 / -1;
+        }
+
+        .retry-btn {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .retry-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
 
         .more-events-indicator {
@@ -8097,10 +8154,11 @@
             }
         }
 
-        // Generate month calendar grid
-        function generateMonthCalendar() {
+        // Generate month calendar grid using API
+        async function generateMonthCalendar() {
             const monthGrid = document.getElementById('month-days-grid');
             const monthTitle = document.getElementById('month-title');
+            const monthCalendarContainer = document.querySelector('.month-calendar-grid');
 
             if (!monthGrid || !monthTitle) {
                 console.error('월 달력 요소를 찾을 수 없습니다:', {
@@ -8110,49 +8168,63 @@
                 return;
             }
 
-            // 강제로 그리드 스타일 적용
-            monthGrid.style.cssText = `
-                display: grid !important;
-                grid-template-columns: repeat(7, 1fr) !important;
-                grid-template-rows: repeat(6, 1fr) !important;
-                gap: 1px !important;
-                background-color: rgba(255, 255, 255, 0.1) !important;
-                border-radius: 10px !important;
-                overflow: hidden !important;
-                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1) !important;
-                flex-grow: 1 !important;
-                min-height: 500px !important;
-                width: 100% !important;
-                height: 100% !important;
-            `;
+            try {
+                // Show loading state
+                monthGrid.innerHTML = '<div class="loading-calendar">달력을 불러오는 중...</div>';
 
-            console.log('🎨 월 달력 그리드 스타일 강제 적용 완료');
+                // Update month title
+                const year = currentMonthDate.getFullYear();
+                const month = currentMonthDate.getMonth() + 1; // API expects 1-based month
+                const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+                monthTitle.textContent = `${year}년 ${monthNames[month - 1]}`;
 
-            // Update month title
-            const year = currentMonthDate.getFullYear();
-            const month = currentMonthDate.getMonth();
-            const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
-            monthTitle.textContent = `${year}년 ${monthNames[month]}`;
+                console.log(`🚀 API로 월 달력 생성 중: ${year}년 ${month}월`);
 
-            // Clear existing days
-            monthGrid.innerHTML = '';
+                // Call API to generate calendar
+                const calendarId = '{{ calendar.id }}';
+                const response = await fetch(`/api/calendars/${calendarId}/month-view?year=${year}&month=${month}`);
 
-            // Get first day of month and last day
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            const startDate = new Date(firstDay);
-            startDate.setDate(startDate.getDate() - firstDay.getDay()); // Start from Sunday
+                if (!response.ok) {
+                    throw new Error(`API 호출 실패: ${response.status}`);
+                }
 
-            // Generate 42 days (6 weeks x 7 days)
-            for (let i = 0; i < 42; i++) {
-                const cellDate = new Date(startDate);
-                cellDate.setDate(startDate.getDate() + i);
+                const result = await response.json();
 
-                const dayCell = createDayCell(cellDate, month);
-                monthGrid.appendChild(dayCell);
+                if (result.success) {
+                    // Replace the entire calendar grid content
+                    monthCalendarContainer.innerHTML = result.html;
+
+                    console.log(`✅ API로 월 달력 생성 완료: ${result.events_count}개 이벤트`);
+
+                    // Add click handlers to the new calendar cells
+                    addCalendarEventHandlers();
+                } else {
+                    throw new Error(result.error || 'Unknown API error');
+                }
+
+            } catch (error) {
+                console.error('💥 월 달력 생성 실패:', error);
+                monthGrid.innerHTML = `
+                    <div class="calendar-error">
+                        <p>달력을 불러올 수 없습니다.</p>
+                        <p>오류: ${error.message}</p>
+                        <button onclick="generateMonthCalendar()" class="retry-btn">다시 시도</button>
+                    </div>
+                `;
             }
+        }
 
-            console.log(`📅 월 달력 생성 완료: ${year}년 ${monthNames[month]} (42개 셀)`);
+        // Add event handlers to calendar cells
+        function addCalendarEventHandlers() {
+            const dayCells = document.querySelectorAll('.month-day-cell');
+            dayCells.forEach(cell => {
+                cell.addEventListener('click', () => {
+                    const dateStr = cell.getAttribute('data-date');
+                    if (dateStr) {
+                        onDayClick(new Date(dateStr));
+                    }
+                });
+            });
         }
 
         // Create individual day cell
@@ -8285,93 +8357,17 @@
             document.querySelector('.view-option[data-view="week"]').classList.add('active');
         }
 
-        // Load events for month view
+        // Load events for month view (now handled by API)
         async function loadMonthViewEvents() {
-            try {
-                const calendarId = '{{ calendar.id }}';
-                const year = currentMonthDate.getFullYear();
-                const month = currentMonthDate.getMonth();
-
-                // Get month range
-                const startDate = new Date(year, month, 1);
-                const endDate = new Date(year, month + 1, 0);
-
-                console.log(`📅 Loading month events for: ${startDate.toISOString()} to ${endDate.toISOString()}`);
-
-                const response = await fetch(`/api/calendars/${calendarId}/events?start=${startDate.toISOString()}&end=${endDate.toISOString()}`);
-
-                if (response.ok) {
-                    const result = await response.json();
-                    console.log('📊 Month events API response:', result);
-
-                    // API 응답이 배열인지 확인
-                    if (Array.isArray(result)) {
-                        monthViewEvents = result;
-                    } else if (result && Array.isArray(result.events)) {
-                        monthViewEvents = result.events;
-                    } else if (result && Array.isArray(result.data)) {
-                        monthViewEvents = result.data;
-                    } else {
-                        console.warn('⚠️ Invalid events data format:', result);
-                        monthViewEvents = [];
-                    }
-
-                    console.log(`✅ Loaded ${monthViewEvents.length} events for month view`);
-                    renderMonthEvents();
-                } else {
-                    console.error('❌ Failed to fetch month events:', response.status, response.statusText);
-                    monthViewEvents = [];
-                }
-            } catch (error) {
-                console.error('💥 Failed to load month events:', error);
-                monthViewEvents = [];
-            }
+            // Events are now loaded together with the calendar HTML from the API
+            // This function is kept for compatibility but no longer needed
+            console.log('✅ 이벤트는 API에서 달력과 함께 로드됩니다.');
         }
 
-        // Render events in month view
+        // Render events in month view (deprecated - now handled by API)
         function renderMonthEvents() {
-            console.log('🎨 Rendering month events:', monthViewEvents);
-
-            // 먼저 기존 이벤트들을 모두 제거
-            document.querySelectorAll('.month-event').forEach(el => el.remove());
-
-            // 배열인지 다시 한번 확인
-            if (!Array.isArray(monthViewEvents)) {
-                console.warn('⚠️ monthViewEvents is not an array:', monthViewEvents);
-                return;
-            }
-
-            monthViewEvents.forEach((event, index) => {
-                try {
-                    console.log(`📅 Processing event ${index + 1}:`, event);
-
-                    const eventDate = new Date(event.start_datetime || event.date);
-                    if (isNaN(eventDate.getTime())) {
-                        console.warn('⚠️ Invalid event date:', event);
-                        return;
-                    }
-
-                    const dayCell = findDayCell(eventDate);
-                    if (dayCell) {
-                        const eventsContainer = dayCell.querySelector('.day-events-list');
-                        if (eventsContainer) {
-                            const eventElement = createMonthEventElement(event);
-                            if (eventElement) {
-                                eventsContainer.appendChild(eventElement);
-                                console.log(`✅ Added event to day ${eventDate.getDate()}`);
-                            }
-                        } else {
-                            console.warn('⚠️ No events container found in day cell');
-                        }
-                    } else {
-                        console.warn(`⚠️ No day cell found for date: ${eventDate.toDateString()}`);
-                    }
-                } catch (error) {
-                    console.error(`💥 Error processing event ${index + 1}:`, error, event);
-                }
-            });
-
-            console.log(`✅ Finished rendering ${monthViewEvents.length} events`);
+            // This function is no longer needed as events are rendered by the API
+            console.log('✅ 이벤트 렌더링은 API에서 처리됩니다.');
         }
 
         // Find day cell for specific date

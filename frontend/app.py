@@ -7622,3 +7622,141 @@ def sync_event_to_notion(event, settings):
     except Exception as e:
         print(f"Error syncing to Notion: {e}")
         return False
+
+# ============================================
+# [CALENDAR] Month View Calendar Generation API
+# ============================================
+
+@app.route('/api/calendars/<calendar_id>/month-view')
+def generate_month_calendar(calendar_id):
+    """월 달력 HTML 생성 API"""
+    try:
+        # Get user authentication
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'Not authenticated'}), 401
+
+        # Get query parameters for year/month
+        year = request.args.get('year', type=int)
+        month = request.args.get('month', type=int)
+
+        # Use current date if not provided
+        if not year or not month:
+            from datetime import datetime
+            now = datetime.now()
+            year = year or now.year
+            month = month or now.month
+
+        print(f"🗓️ Generating month calendar for {year}-{month}, calendar: {calendar_id}")
+
+        # Get calendar events for the month
+        from datetime import datetime, timezone
+        start_date = datetime(year, month, 1, tzinfo=timezone.utc)
+        if month == 12:
+            end_date = datetime(year + 1, 1, 1, tzinfo=timezone.utc)
+        else:
+            end_date = datetime(year, month + 1, 1, tzinfo=timezone.utc)
+
+        # Fetch events from database
+        supabase_client = get_supabase_client()
+        if supabase_client:
+            events_result = supabase_client.from_('calendar_events') \
+                .select('*') \
+                .eq('calendar_id', calendar_id) \
+                .gte('start_datetime', start_date.isoformat()) \
+                .lt('start_datetime', end_date.isoformat()) \
+                .execute()
+
+            events = events_result.data if events_result.data else []
+        else:
+            events = []
+
+        # Generate calendar HTML
+        calendar_html = generate_month_calendar_html(year, month, events)
+
+        return jsonify({
+            'success': True,
+            'html': calendar_html,
+            'year': year,
+            'month': month,
+            'events_count': len(events)
+        })
+
+    except Exception as e:
+        print(f"Error generating month calendar: {e}")
+        return jsonify({'error': str(e)}), 500
+
+def generate_month_calendar_html(year, month, events):
+    """월 달력 HTML 생성 함수"""
+    from datetime import datetime, timedelta
+
+    # Get first day of month and calculate calendar start
+    first_day = datetime(year, month, 1)
+    last_day = datetime(year, month + 1, 1) - timedelta(days=1) if month < 12 else datetime(year + 1, 1, 1) - timedelta(days=1)
+
+    # Start from the Sunday before the first day
+    start_date = first_day - timedelta(days=first_day.weekday() + 1)
+    if first_day.weekday() == 6:  # If first day is Sunday
+        start_date = first_day
+
+    # Create events lookup by date
+    events_by_date = {}
+    for event in events:
+        try:
+            event_date = datetime.fromisoformat(event['start_datetime'].replace('Z', '+00:00'))
+            date_key = event_date.strftime('%Y-%m-%d')
+            if date_key not in events_by_date:
+                events_by_date[date_key] = []
+            events_by_date[date_key].append(event)
+        except Exception as e:
+            print(f"Error processing event date: {e}")
+            continue
+
+    # Generate weekday headers
+    weekdays = ['일', '월', '화', '수', '목', '금', '토']
+    html = '<div class="month-weekdays">'
+    for weekday in weekdays:
+        html += f'<div class="weekday-header">{weekday}</div>'
+    html += '</div>'
+
+    # Generate calendar grid
+    html += '<div class="month-days-grid">'
+
+    current_date = start_date
+    today = datetime.now().date()
+
+    for week in range(6):  # 6 weeks
+        for day in range(7):  # 7 days
+            date_key = current_date.strftime('%Y-%m-%d')
+            day_events = events_by_date.get(date_key, [])
+
+            # Determine cell classes
+            cell_classes = ['month-day-cell']
+            if current_date.month != month:
+                cell_classes.append('other-month')
+            if current_date.date() == today:
+                cell_classes.append('today')
+
+            html += f'<div class="{" ".join(cell_classes)}" data-date="{date_key}">'
+            html += f'<div class="day-number">{current_date.day}</div>'
+            html += '<div class="day-events-list">'
+
+            # Add events
+            for event in day_events[:3]:  # Limit to 3 events per day
+                title = event.get('title', 'Untitled Event')
+                if len(title) > 20:
+                    title = title[:17] + '...'
+
+                platform_class = f"platform-{event.get('source_platform', 'manual')}"
+                html += f'<div class="month-event {platform_class}" title="{event.get("title", "")}">{title}</div>'
+
+            if len(day_events) > 3:
+                html += f'<div class="month-event-more">+{len(day_events) - 3} more</div>'
+
+            html += '</div>'
+            html += '</div>'
+
+            current_date += timedelta(days=1)
+
+    html += '</div>'
+    return html
