@@ -66,7 +66,6 @@ def get_connected_platforms():
             return user_id
 
         normalized_id = normalize_uuid(user_id)
-        supabase = get_supabase()
 
         # 기존 oauth_tokens 테이블 활용
         oauth_result = supabase.from_('oauth_tokens') \
@@ -130,7 +129,6 @@ def get_pending_changes(calendar_id):
             return user_id
 
         normalized_id = normalize_uuid(user_id)
-        supabase = get_supabase()
 
         # 캘린더 소유권 확인 (기존 패턴 활용)
         calendar_result = supabase.from_('calendars') \
@@ -211,7 +209,6 @@ def export_calendar(calendar_id):
                 'error': '내보낼 플랫폼을 선택해주세요.'
             }), 400
 
-        supabase = get_supabase()
 
         # 캘린더 소유권 확인
         calendar_result = supabase.from_('calendars') \
@@ -330,7 +327,6 @@ def manage_export_settings(calendar_id):
             return user_id
 
         normalized_id = normalize_uuid(user_id)
-        supabase = get_supabase()
 
         # 캘린더 소유권 확인
         calendar_result = supabase.from_('calendars') \
