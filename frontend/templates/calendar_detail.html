@@ -419,21 +419,28 @@
             flex: 1 !important;
         }
 
-        /* 🎨 CLEAN SIDEBAR DESIGN - Larger Sections */
+        /* ✨ Notion-style Sidebar Background */
+        .sidebar,
+        #sidebar {
+            background: #fafaf9 !important;
+            border-right: 1px solid rgba(227, 226, 224, 0.5) !important;
+        }
+
+        /* ✨ Notion-style Sidebar Widgets */
         .sidebar .sidebar-widget,
         #sidebar .sidebar-widget,
         div.sidebar-widget,
         div[class*="sidebar-widget"] {
-            margin: 0 0 40px 0 !important;
+            margin: 0 0 32px 0 !important;
             background: transparent !important;
             border: none !important;
             border-radius: 0 !important;
             overflow: visible !important;
             box-shadow: none !important;
             transition: none !important;
-            padding: 0 16px 0 16px !important;
+            padding: 0 20px 0 20px !important;
             display: block !important;
-            font-family: inherit !important;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif !important;
         }
 
         /* Last widget removes bottom margin for clean flow */
@@ -441,12 +448,12 @@
             margin-bottom: 0 !important;
         }
 
-        /* 🏷️ CLEAN SECTION HEADERS */
+        /* ✨ Notion-style Section Headers */
         .sidebar-widget .widget-header,
         div.sidebar-widget .widget-header,
         .sidebar .widget-header {
             background: transparent !important;
-            padding: 20px 0 12px 16px !important;
+            padding: 20px 0 16px 20px !important;
             border-bottom: none !important;
             display: flex !important;
             align-items: center !important;
@@ -459,13 +466,13 @@
         .sidebar-widget .widget-header h4,
         div.sidebar-widget .widget-header h4,
         .sidebar .widget-header h4 {
-            font-size: 16px !important;
+            font-size: 14px !important;
             font-weight: 600 !important;
-            color: #333333 !important;
+            color: rgba(55, 53, 47, 0.85) !important;
             margin: 0 !important;
             text-transform: none !important;
-            letter-spacing: normal !important;
-            font-family: inherit !important;
+            letter-spacing: 0.01em !important;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif !important;
         }
 
         .sidebar-widget .widget-icon,
@@ -3957,25 +3964,63 @@
             color: #1e40af !important;
         }
 
-        /* Platform-specific event styles */
+        /* ✨ Notion-style Platform Event Cards */
         .google-calendar-event {
-            background: #34a853 !important;
-            border-left: 4px solid #1e7e34 !important;
+            background: #ffffff !important;
+            border: 1px solid rgba(52, 168, 83, 0.15) !important;
+            border-radius: 12px !important;
+            padding: 12px 16px !important;
+            margin: 4px 0 !important;
+            box-shadow: 0 1px 3px rgba(52, 168, 83, 0.08) !important;
+            position: relative !important;
+            overflow: hidden !important;
+        }
+
+        .google-calendar-event::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(135deg, #34a853 0%, #137333 100%);
+            border-radius: 0 2px 2px 0;
         }
 
         .google-calendar-event:hover {
-            background: #2d8e47 !important;
-            box-shadow: 0 2px 8px rgba(52, 168, 83, 0.2) !important;
+            background: #f0f9f4 !important;
+            border-color: rgba(52, 168, 83, 0.25) !important;
+            box-shadow: 0 4px 12px rgba(52, 168, 83, 0.12) !important;
+            transform: translateY(-1px) !important;
         }
 
         .notion-event {
-            background: #3b82f6 !important;
-            border-left: 4px solid #1d4ed8 !important;
+            background: #ffffff !important;
+            border: 1px solid rgba(55, 53, 47, 0.15) !important;
+            border-radius: 12px !important;
+            padding: 12px 16px !important;
+            margin: 4px 0 !important;
+            box-shadow: 0 1px 3px rgba(55, 53, 47, 0.08) !important;
+            position: relative !important;
+            overflow: hidden !important;
+        }
+
+        .notion-event::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(135deg, #000000 0%, #37352f 100%);
+            border-radius: 0 2px 2px 0;
         }
 
         .notion-event:hover {
-            background: #2563eb !important;
-            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2) !important;
+            background: #fafaf9 !important;
+            border-color: rgba(55, 53, 47, 0.25) !important;
+            box-shadow: 0 4px 12px rgba(55, 53, 47, 0.12) !important;
+            transform: translateY(-1px) !important;
         }
 
         @keyframes fadeInScale {
@@ -3990,16 +4035,18 @@
             }
         }
 
-        /* Enhanced Empty State */
+        /* ✨ Notion-style Empty State */
         .event-list-empty {
             text-align: center;
-            color: #9ca3af;
-            padding: 32px 16px;
-            background: #f9fafb;
+            color: rgba(55, 53, 47, 0.45);
+            padding: 40px 20px;
+            background: #ffffff;
             border-radius: 12px;
-            border: 2px dashed #e5e7eb;
+            border: 1px solid rgba(227, 226, 224, 0.5);
             font-size: 14px;
             line-height: 1.6;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
         }
 
         /* Bottom Fixed Event Creation Bar (Compact One-Line Style) */
@@ -4873,61 +4920,113 @@
             }
         }
 
-        /* Event item styles for sidebar */
+        /* ✨ Notion-style Event Cards */
         .event-item {
-            padding: 12px 16px;
-            margin: 8px 0;
-            border-radius: 8px;
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            transition: all 0.2s ease;
+            padding: 16px 20px;
+            margin: 6px 0;
+            border-radius: 12px;
+            background: #ffffff;
+            border: 1px solid rgba(227, 226, 224, 0.5);
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+        }
+
+        .event-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 0 2px 2px 0;
+            opacity: 0.8;
         }
 
         .event-item:hover {
-            background: #e9ecef;
+            background: #fafaf9;
+            border-color: rgba(227, 226, 224, 0.8);
             transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
         }
 
         .event-item.selected {
-            background: #e3f2fd !important;
-            border-color: #2196f3 !important;
-            box-shadow: 0 2px 12px rgba(33, 150, 243, 0.2) !important;
+            background: #f7f6f3 !important;
+            border-color: rgba(55, 53, 47, 0.16) !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+        }
+
+        .event-item.selected::before {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            width: 4px;
         }
 
         .event-item .event-time {
             font-size: 12px;
-            color: #666;
+            color: rgba(55, 53, 47, 0.65);
             font-weight: 500;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
+            letter-spacing: 0.01em;
+            text-transform: uppercase;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
         }
 
         .event-item .event-title {
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 600;
-            color: #333;
-            margin-bottom: 4px;
+            color: rgb(55, 53, 47);
+            margin-bottom: 6px;
+            line-height: 1.3;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            word-break: break-word;
         }
 
         .event-item .event-date {
             font-size: 11px;
-            color: #888;
-            margin-bottom: 4px;
+            color: rgba(55, 53, 47, 0.45);
+            margin-bottom: 6px;
+            font-weight: 400;
+            letter-spacing: 0.005em;
         }
 
         .event-item .event-description {
-            font-size: 12px;
-            color: #666;
-            line-height: 1.4;
+            font-size: 13px;
+            color: rgba(55, 53, 47, 0.65);
+            line-height: 1.5;
+            font-weight: 400;
+            margin-top: 4px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .event-item.selected .event-title {
-            color: #1976d2;
+            color: rgb(55, 53, 47);
         }
 
         .event-item.selected .event-time {
-            color: #1976d2;
+            color: rgba(55, 53, 47, 0.65);
+        }
+
+        /* Platform-specific left border colors */
+        .event-item.google-event::before {
+            background: linear-gradient(135deg, #34a853 0%, #137333 100%);
+        }
+
+        .event-item.notion-event::before {
+            background: linear-gradient(135deg, #000000 0%, #37352f 100%);
+        }
+
+        .event-item.apple-event::before {
+            background: linear-gradient(135deg, #007aff 0%, #0051d0 100%);
+        }
+
+        .event-item.manual-event::before {
+            background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
         }
 
         /* 🗑️ Trash Icon Styles - Fixed at Sidebar Bottom Right */
