@@ -55,11 +55,23 @@ class CalendarExportManager {
     }
 
     async openModal() {
+        console.log('🔄 openModal() 호출됨');
+        console.log('📊 currentCalendarId:', this.currentCalendarId);
+        console.log('📊 modal element:', this.modal);
+
         if (!this.currentCalendarId) {
+            console.error('❌ 캘린더 ID를 찾을 수 없습니다.');
             this.showError('캘린더 ID를 찾을 수 없습니다.');
             return;
         }
 
+        if (!this.modal) {
+            console.error('❌ 모달 엘리먼트를 찾을 수 없습니다.');
+            this.showError('모달을 표시할 수 없습니다.');
+            return;
+        }
+
+        console.log('✅ 모달 표시 시작');
         // 모달 표시
         this.modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
@@ -428,10 +440,14 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function openShareModal() {
+    console.log('🔄 openShareModal() 호출됨');
+    console.log('📊 exportManager:', exportManager);
+
     if (exportManager) {
         exportManager.openModal();
     } else {
-        console.error('Export manager not initialized');
+        console.error('❌ Export manager not initialized');
+        alert('내보내기 시스템이 초기화되지 않았습니다. 페이지를 새로고침해주세요.');
     }
 }
 
