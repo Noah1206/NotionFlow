@@ -212,7 +212,6 @@ function scrollToTime(hour) {
     const hoursFromStart = hour - TIME_GRID_CONFIG.startHour;
     const scrollTop = hoursFromStart * TIME_GRID_CONFIG.hourHeight;
     
-    // console.log('📍 Scroll to time calculation:', {
     //     hour: hour,
     //     hoursFromStart: hoursFromStart,
     //     scrollTop: scrollTop
@@ -584,7 +583,6 @@ function createEventElement(event) {
     const startDate = new Date(startDateTime);
     const endDate = new Date(endDateTime);
     
-    // console.log('🎯 Creating event element:', {
     //     title: event.title,
     //     startDateTime: startDateTime,
     //     endDateTime: endDateTime,
@@ -610,7 +608,6 @@ function createEventElement(event) {
     const left = (dayIndex * 100) / 7;
     const width = 100 / 7;
     
-    // console.log('📐 Position calculation:', {
     //     dayIndex: dayIndex,
     //     startHour: startHour,
     //     endHour: endHour,
@@ -1261,7 +1258,6 @@ function scrollToCurrentTimeCentered() {
     // Calculate scroll position to center current time line
     const scrollTop = Math.max(0, currentTimePosition - centerOffset);
     
-    // console.log('📍 Scroll calculation:', {
     //     currentHour: currentHour,
     //     hoursFromStart: hoursFromStart,
     //     currentTimePosition: currentTimePosition,

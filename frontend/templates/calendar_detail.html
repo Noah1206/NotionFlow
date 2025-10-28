@@ -3122,20 +3122,19 @@
         // YouTube API debugging
         // Console log removed
 
-        // Suppress YouTube postMessage cross-origin errors in development
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            const originalError = // Console error removed
-            console.error = function (...args) {
-                const message = args.join(' ');
-                // Filter out YouTube postMessage cross-origin errors (more comprehensive)
-                if (message.includes("Failed to execute 'postMessage'") ||
-                    message.includes("postMessage") && message.includes("origin") ||
-                    message.includes("The target origin provided") && message.includes("does not match")) {
-                    // Completely suppress - no console output at all
-                    return;
-                }
-                originalError.apply(console, args);
-            };
+        // Suppress YouTube postMessage cross-origin errors
+        const originalError = console.error;
+        console.error = function (...args) {
+            const message = args.join(' ');
+            // Filter out YouTube postMessage cross-origin errors
+            if (message.includes("Failed to execute 'postMessage'") ||
+                message.includes("postMessage") && message.includes("origin") ||
+                message.includes("The target origin provided") && message.includes("does not match")) {
+                // Completely suppress - no console output at all
+                return;
+            }
+            originalError.apply(console, args);
+        };
 
             // Also catch and suppress window errors from YouTube widget API
             window.addEventListener('error', function (e) {
@@ -6451,7 +6450,6 @@
                     if (response.ok) {
                         const result = await response.json();
                         // Console log removed
-                        console.log('🔍 Result ID fields:', {
                             id: result.id,
                             event_id: result.event_id,
                             backendId: result.backendId,
@@ -7985,7 +7983,6 @@
                 backendId: dbEvent.id
             };
 
-            console.log('🔄 [CONVERT] Database event converted:', {
                 original: { title: dbEvent.title, start: dbEvent.start_datetime },
                 converted: { title: frontendEvent.title, date: frontendEvent.date, time: frontendEvent.startTime }
             });
@@ -8043,7 +8040,6 @@
                 window.googleCalendarGrid = new GoogleCalendarGrid(container);
                 // Console log removed
             } else {
-                console.error('❌ Could not initialize GoogleCalendarGrid:', {
                     container: container,
                     GoogleCalendarGridClass: typeof GoogleCalendarGrid
                 });
@@ -8161,10 +8157,7 @@
             const monthCalendarContainer = document.querySelector('.month-calendar-grid');
 
             if (!monthGrid || !monthTitle) {
-                console.error('월 달력 요소를 찾을 수 없습니다:', {
-                    monthGrid: !!monthGrid,
-                    monthTitle: !!monthTitle
-                });
+                // 월 달력 요소를 찾을 수 없음
                 return;
             }
 

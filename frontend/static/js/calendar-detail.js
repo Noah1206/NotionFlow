@@ -1001,7 +1001,6 @@ function handleMediaError(e) {
     if (compactArtist) compactArtist.textContent = '파일을 찾을 수 없습니다';
     
     // Keep players visible for potential user interaction
-    console.info('🎵 Media error handled gracefully');
 }
 
 function handleTrackEnd() {
@@ -6443,7 +6442,6 @@ function switchView(viewType) {
     const calendarMainContent = document.querySelector('.calendar-main-content');
     const centerCalendarArea = document.querySelector('.center-calendar-area');
 
-    console.log('🔍 Found view containers:', {
         monthView: !!monthView,
         weekView: !!weekView,
         agendaView: !!agendaView,

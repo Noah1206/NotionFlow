@@ -13,7 +13,6 @@ class GoogleCalendarGrid {
         this.cleanupPermanentlyDeleted();
 
         // 🔍 DEBUGGING: 컨테이너 크기 확인
-        // console.log('🏗️ GoogleCalendarGrid constructor:', {
         //     currentDate: this.currentDate,
         //     weekStart: this.weekStart,
         //     dayOfWeek: this.currentDate.getDay(),
@@ -477,7 +476,6 @@ class GoogleCalendarGrid {
         const timeColumnWidth = 80; // 시간 컬럼 너비 최적화
         const availableWidth = containerWidth - timeColumnWidth; // 여백 완전 제거
         const dayColumnWidth = Math.max(250, Math.floor(availableWidth / 7)); // 최소 250px 보장, 7개 요일로 나누기 
-        // console.log('🎯 Dynamic sizing:', {
         //     containerWidth,
         //     availableWidth,
         //     dayColumnWidth,
@@ -710,7 +708,6 @@ class GoogleCalendarGrid {
             return;
         }
         
-        // console.log('🖱️ Cell clicked:', cell, {
         //     day: cell.dataset.day,
         //     hour: cell.dataset.hour,
         //     rect: cell.getBoundingClientRect()
@@ -2115,7 +2112,6 @@ class GoogleCalendarGrid {
             return;
         }
 
-        console.log(`📅 Event "${eventData.title}" positioned at dayIndex: ${dayIndex} (${eventDateStr})`)
         
         // Check if this is a multi-day event - skip individual rendering
         if (eventData.isMultiDay) {
@@ -2151,7 +2147,6 @@ class GoogleCalendarGrid {
         // Console log removed
         
         if (!dayColumn) {
-            // console.log('❌ Day column not found! Available columns:', 
             //     this.container.querySelectorAll('.day-column'));
             return;
         }
@@ -2434,7 +2429,6 @@ class GoogleCalendarGrid {
         const endPosition = endHour + endMin / 60;
         const duration = endPosition - startPosition;
         
-        // console.log('🎯 Multi-day position calculation:', {
         //     startHour, startMin, endHour, endMin,
         //     startPosition, endPosition, duration,
         //     timeSlotHeight: this.timeSlotHeight,
@@ -2466,7 +2460,6 @@ class GoogleCalendarGrid {
                 const firstColRect = firstDayColumn.getBoundingClientRect();
                 const lastColRect = lastDayColumn.getBoundingClientRect();
                 totalWidth = (lastColRect.right - firstColRect.left) - 4; // Actual span minus margins
-                // console.log('📏 Spanning calculation:', {
                 //     spanDays,
                 //     firstCol: firstColRect.left,
                 //     lastCol: lastColRect.right,
@@ -3347,7 +3340,6 @@ class GoogleCalendarGrid {
             );
             
             if (altEventData) {
-                console.log('Found event with alternative search:', {
                     id: altEventData.id,
                     notion_id: altEventData.notion_id,
                     uuid: altEventData.uuid,
@@ -3801,7 +3793,6 @@ class GoogleCalendarGrid {
         const sidebarWidth = this.getSidebarWidth();
         const availableWidth = viewportWidth - sidebarWidth;
 
-        console.log('📏 Grid layout (CSS controlled):', {
             viewportWidth,
             sidebarWidth,
             availableWidth

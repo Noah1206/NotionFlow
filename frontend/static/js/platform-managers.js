@@ -508,7 +508,6 @@ class GoogleManager extends PlatformManager {
 
             // Fallback: If localStorage shows connected state, try to restore it
             if (isConnected === 'true' && calendarId && lastConnected) {
-                console.log('🔄 [GOOGLE] Attempting to restore connection from localStorage:', {
                     calendar_id: calendarId,
                     last_connected: lastConnected
                 });
@@ -929,7 +928,6 @@ class GoogleManager extends PlatformManager {
 
         window.connectToUserCalendar = async function() {
             if (window.selectedUserCalendarId && window.selectedGoogleCalendarId) {
-                console.log('🔗 [GOOGLE] Connecting Google calendar to user calendar:',
                            window.selectedGoogleCalendarId, '->', window.selectedUserCalendarId);
                 try {
                     const googleManager = PlatformManagerFactory.get('google');
