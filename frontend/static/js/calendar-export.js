@@ -24,9 +24,29 @@ class CalendarExportManager {
     }
 
     setupUI() {
-        this.modal = document.getElementById('export-modal');
-        this.currentCalendarId = this.getCurrentCalendarId();
+        console.log('🔧 setupUI() 호출됨');
 
+        // 모달 엘리먼트 찾기 (재시도 로직 추가)
+        this.modal = document.getElementById('export-modal');
+        console.log('📊 찾은 모달 엘리먼트:', this.modal);
+
+        // 모달이 없으면 다시 찾기 시도
+        if (!this.modal) {
+            console.warn('⚠️ 모달을 찾을 수 없어서 100ms 후 재시도');
+            setTimeout(() => {
+                this.modal = document.getElementById('export-modal');
+                console.log('📊 재시도 후 모달 엘리먼트:', this.modal);
+                this.setupModalEvents();
+            }, 100);
+        } else {
+            this.setupModalEvents();
+        }
+
+        this.currentCalendarId = this.getCurrentCalendarId();
+        console.log('📊 설정된 캘린더 ID:', this.currentCalendarId);
+    }
+
+    setupModalEvents() {
         // 모달 외부 클릭 시 닫기
         if (this.modal) {
             this.modal.addEventListener('click', (e) => {
@@ -34,6 +54,7 @@ class CalendarExportManager {
                     this.closeModal();
                 }
             });
+            console.log('✅ 모달 이벤트 리스너 설정 완료');
         }
     }
 
@@ -66,9 +87,14 @@ class CalendarExportManager {
         }
 
         if (!this.modal) {
-            console.error('❌ 모달 엘리먼트를 찾을 수 없습니다.');
-            this.showError('모달을 표시할 수 없습니다.');
-            return;
+            console.warn('⚠️ 모달이 없어서 다시 찾는 중...');
+            this.modal = document.getElementById('export-modal');
+
+            if (!this.modal) {
+                console.error('❌ 모달 엘리먼트를 찾을 수 없습니다.');
+                this.showError('모달을 표시할 수 없습니다.');
+                return;
+            }
         }
 
         console.log('✅ 모달 표시 시작');
