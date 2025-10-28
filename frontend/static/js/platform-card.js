@@ -38,7 +38,7 @@ class PlatformCard {
                 this.platforms = data.platforms;
             }
         } catch (error) {
-            console.error('Failed to load platforms:', error);
+            // Console error removed
         }
     }
     
@@ -51,7 +51,7 @@ class PlatformCard {
                 this.registeredPlatforms = data.platforms;
             }
         } catch (error) {
-            console.error('Failed to load registered platforms:', error);
+            // Console error removed
         }
     }
     
@@ -253,7 +253,7 @@ class PlatformCard {
                 this.showNotification(`${platform} 설정 양식을 확인하고 정보를 입력하세요`, 'info');
             }
         } catch (error) {
-            console.error('One-click registration failed:', error);
+            // Console error removed
             this.showNotification('원클릭 등록에 실패했습니다', 'error');
         }
     }
@@ -303,7 +303,7 @@ class PlatformCard {
             }
             
         } catch (error) {
-            console.error('OAuth registration failed:', error);
+            // Console error removed
             this.showNotification(error.message || 'OAuth 연결에 실패했습니다', 'error');
         } finally {
             // Restore button state
@@ -441,7 +441,7 @@ class PlatformCard {
                 this.showNotification(data.error || '등록에 실패했습니다', 'error');
             }
         } catch (error) {
-            console.error('Registration failed:', error);
+            // Console error removed
             this.showNotification('등록 중 오류가 발생했습니다', 'error');
         } finally {
             // Restore button state
@@ -491,7 +491,7 @@ class PlatformCard {
                 }
             }
         } catch (error) {
-            console.error('Connection test failed:', error);
+            // Console error removed
             this.showNotification('연결 테스트 중 오류가 발생했습니다', 'error');
             this.updatePlatformStatus(platform, 'error');
         } finally {
@@ -524,7 +524,7 @@ class PlatformCard {
                 this.showNotification(data.error || '등록 해제에 실패했습니다', 'error');
             }
         } catch (error) {
-            console.error('Unregistration failed:', error);
+            // Console error removed
             this.showNotification('등록 해제 중 오류가 발생했습니다', 'error');
         }
     }
@@ -569,10 +569,10 @@ class PlatformCard {
                     // Check if Google was manually disconnected to prevent auto-reconnection
                     const manuallyDisconnected = localStorage.getItem('google_manually_disconnected');
                     if (manuallyDisconnected === 'true') {
-                        console.log('Google Calendar was manually disconnected - skipping auto-import to prevent reconnection loop');
+                        // Console log removed
                     } else {
                         // If no auto_import data and not manually disconnected, trigger import
-                        console.log('Google Calendar connected - manually triggering import...');
+                        // Console log removed
                         this.triggerGoogleImport();
                     }
                 }
@@ -587,7 +587,7 @@ class PlatformCard {
                 this.showNotification(data.error || '캘린더 연결에 실패했습니다', 'error');
             }
         } catch (error) {
-            console.error('Calendar connection failed:', error);
+            // Console error removed
             this.showNotification('캘린더 연결 중 오류가 발생했습니다', 'error');
         }
     }
@@ -595,7 +595,7 @@ class PlatformCard {
     // Trigger Google Calendar import
     async triggerGoogleImport() {
         try {
-            console.log('Triggering Google Calendar import...');
+            // Console log removed
             
             const response = await fetch('/api/google-calendar/auto-import', {
                 method: 'POST',
@@ -609,15 +609,15 @@ class PlatformCard {
             if (response.ok && data.success) {
                 const message = `✅ Google Calendar 이벤트를 자동으로 가져왔습니다! (${data.imported_count}개 성공${data.failed_count > 0 ? `, ${data.failed_count}개 실패` : ''})`;
                 this.showNotification(message, 'success');
-                console.log('Google Calendar import success:', data);
+                // Console log removed
             } else {
-                console.error('Google Calendar import failed:', data);
+                // Console error removed
                 this.showNotification('Google Calendar 이벤트 가져오기 실패: ' + (data.error || '알 수 없는 오류'), 'warning');
             }
         } catch (error) {
-            console.error('Google Calendar import error:', error);
+            // Console error removed
             // Don't show error notification to avoid disturbing user experience
-            console.log('Google Calendar 자동 가져오기를 건너뜁니다.');
+            // Console log removed
         }
     }
     
@@ -773,7 +773,7 @@ class PlatformCard {
         }
 
         // Fallback for backward compatibility
-        return window.showNotification ? window.showNotification(message, type) : console.log(message);
+        return window.showNotification ? window.showNotification(message, type) : // Console log removed
     }
 
     showNotionSuccessModal() {
@@ -789,10 +789,10 @@ class PlatformCard {
                 if (window.unifiedSyncModalInstance.openModal) {
                     window.unifiedSyncModalInstance.openModal();
                 } else {
-                    console.warn('UnifiedSyncModal openModal method not found');
+                    // Console warn removed
                 }
             } catch (error) {
-                console.error('Failed to show UnifiedSyncModal:', error);
+                // Console error removed
                 this.showNotionFallbackModal();
             }
         } else {

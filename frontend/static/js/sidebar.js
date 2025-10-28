@@ -17,7 +17,7 @@ class SidebarManager {
      */
     init() {
         if (this.isInitialized) {
-            // console.warn('Sidebar already initialized');
+            // // Console warn removed
             return;
         }
 
@@ -29,7 +29,7 @@ class SidebarManager {
             this.overlay = document.querySelector('.sidebar-overlay');
 
             if (!this.sidebar) {
-                // console.warn('Sidebar element not found');
+                // // Console warn removed
                 return;
             }
 
@@ -45,9 +45,9 @@ class SidebarManager {
             }, 500);
 
             this.isInitialized = true;
-            // console.log('✓ Sidebar initialized successfully');
+            // // Console log removed
         } catch (error) {
-            console.error('❌ Sidebar initialization failed:', error);
+            // Console error removed
         }
     }
 
@@ -245,7 +245,7 @@ class SidebarManager {
         try {
             // 인증 서비스가 있는지 확인
             if (typeof window.authService === 'undefined') {
-                // console.log('Auth service not available, keeping default links');
+                // // Console log removed
                 return;
             }
 
@@ -253,7 +253,7 @@ class SidebarManager {
             const dashboardInfo = await window.authService.getDashboardInfo();
             
             if (dashboardInfo.success && dashboardInfo.encrypted_user_id) {
-                // console.log('🔗 Updating sidebar links with user ID:', dashboardInfo.encrypted_user_id);
+                // // Console log removed
                 
                 // 사이드바 링크들 업데이트
                 const calendarLink = document.getElementById('nav-calendar-link');
@@ -267,16 +267,16 @@ class SidebarManager {
                         if (typeof window.navigateToSection === 'function') {
                             window.navigateToSection('calendar');
                         } else {
-                            console.warn('navigateToSection not available');
+                            // Console warn removed
                         }
                     };
-                    // console.log('  📅 Calendar link updated to use navigateToSection');
+                    // // Console log removed
                 }
                 
                 if (settingsLink) {
                     const newSettingsHref = `/dashboard/settings`;
                     settingsLink.setAttribute('href', newSettingsHref);
-                    // console.log('  ⚙️ Settings link updated:', newSettingsHref);
+                    // // Console log removed
                 }
                 
                 // 활성 아이템 다시 업데이트
@@ -284,12 +284,12 @@ class SidebarManager {
                 
                 return true;
             } else {
-                // console.log('🔗 No user ID available, keeping default sidebar links');
+                // // Console log removed
                 return false;
             }
             
         } catch (error) {
-            console.error('Error updating sidebar links:', error);
+            // Console error removed
             return false;
         }
     }
@@ -437,7 +437,7 @@ window.sidebarAPI = {
 
 // 전역 toggleSidebar 함수 - HTML onclick에서 직접 호출 가능
 window.toggleSidebar = function() {
-    // console.log('toggleSidebar called'); // 디버그용
+    // // Console log removed // 디버그용
     
     if (sidebarManager) {
         sidebarManager.toggleSidebar();
@@ -458,7 +458,7 @@ window.toggleSidebar = function() {
             if (collapsedHeader) collapsedHeader.style.display = 'none';
         }
     } else {
-        // console.log('sidebarManager not found'); // 디버그용
+        // // Console log removed // 디버그용
     }
 };
 

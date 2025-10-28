@@ -15,7 +15,7 @@ class GoogleCalendarManager {
         this.selectedNotionFlowCalendarId = null;
         this.oauthWindow = null;
 
-        console.log('🔧 [GOOGLE-MANAGER] Initialized');
+        // Console log removed
     }
 
     /**
@@ -23,11 +23,11 @@ class GoogleCalendarManager {
      */
     async connect() {
         try {
-            console.log('🚀 [GOOGLE-MANAGER] Starting connection flow...');
+            // Console log removed
 
             // Check current OAuth status
             const status = await this.checkOAuthStatus();
-            console.log('📊 [GOOGLE-MANAGER] Current status:', status);
+            // Console log removed
 
             if (status.oauth_connected && status.calendars_available) {
                 // Already authenticated, show Google calendar selection (Step 1)
@@ -37,7 +37,7 @@ class GoogleCalendarManager {
                 await this.startOAuthFlow();
             }
         } catch (error) {
-            console.error('❌ [GOOGLE-MANAGER] Connection failed:', error);
+            // Console error removed
             this.showNotification('Google Calendar 연결 중 오류가 발생했습니다.', 'error');
         }
     }
@@ -54,7 +54,7 @@ class GoogleCalendarManager {
      * Start OAuth authentication flow
      */
     async startOAuthFlow() {
-        console.log('🔐 [GOOGLE-MANAGER] Starting OAuth flow...');
+        // Console log removed
 
         try {
             // Open OAuth popup directly (no fetch to avoid CORS)
@@ -65,15 +65,15 @@ class GoogleCalendarManager {
             );
 
             // Wait for OAuth completion
-            console.log('⏳ [GOOGLE-MANAGER] Waiting for OAuth to complete...');
+            // Console log removed
             await this.waitForOAuthCompletion();
-            console.log('✅ [GOOGLE-MANAGER] OAuth completed! Now showing Google calendar selection...');
+            // Console log removed
 
             // Show Google calendar selection first (Step 1)
             await this.showGoogleCalendarSelection();
-            console.log('✅ [GOOGLE-MANAGER] Google calendar selection modal shown - Step 1 of 2');
+            // Console log removed
         } catch (error) {
-            console.error('❌ [GOOGLE-MANAGER] OAuth failed:', error);
+            // Console error removed
             throw error;
         }
     }
@@ -82,32 +82,32 @@ class GoogleCalendarManager {
      * Wait for OAuth popup to complete
      */
     async waitForOAuthCompletion() {
-        console.log('🔄 [GOOGLE-MANAGER] waitForOAuthCompletion started');
+        // Console log removed
         return new Promise((resolve, reject) => {
             let authCompleted = false;
 
             // Poll OAuth status using API calls instead of window.closed
             const pollOAuthStatus = setInterval(async () => {
                 try {
-                    console.log('🔍 [GOOGLE-MANAGER] Checking OAuth status...');
+                    // Console log removed
                     const response = await fetch('/api/google-calendar/calendar-state');
                     const data = await response.json();
-                    console.log('📊 [GOOGLE-MANAGER] OAuth status:', data);
+                    // Console log removed
 
                     if (data.oauth_connected && !authCompleted) {
-                        console.log('✅ [GOOGLE-MANAGER] OAuth completed via polling');
+                        // Console log removed
                         clearInterval(pollOAuthStatus);
                         authCompleted = true;
 
                         // OAuth 완료 후 잠깐 대기하여 토큰이 완전히 저장되도록 함 (2초로 증가)
-                        console.log('⏳ [GOOGLE-MANAGER] Waiting 2 seconds for OAuth tokens to be fully saved...');
+                        // Console log removed
                         setTimeout(() => {
-                            console.log('✅ [GOOGLE-MANAGER] OAuth delay completed, proceeding with calendar loading');
+                            // Console log removed
                             resolve();
                         }, 2000);
                     }
                 } catch (error) {
-                    console.log('⏳ [GOOGLE-MANAGER] Still waiting for OAuth...', error);
+                    // Console log removed
                 }
             }, 2000); // Check every 2 seconds
 
@@ -116,19 +116,19 @@ class GoogleCalendarManager {
                 if (event.origin !== window.location.origin) return;
 
                 if ((event.data.type === 'GOOGLE_OAUTH_SUCCESS' || event.data.type === 'oauth_success') && event.data.platform === 'google' && !authCompleted) {
-                    console.log('✅ [GOOGLE-MANAGER] OAuth success via postMessage');
+                    // Console log removed
                     clearInterval(pollOAuthStatus);
                     window.removeEventListener('message', messageHandler);
                     authCompleted = true;
 
                     // OAuth 완료 후 잠깐 대기하여 토큰이 완전히 저장되도록 함 (2초로 증가)
-                    console.log('⏳ [GOOGLE-MANAGER] Waiting 2 seconds for OAuth tokens to be fully saved...');
+                    // Console log removed
                     setTimeout(() => {
-                        console.log('✅ [GOOGLE-MANAGER] OAuth delay completed, proceeding with calendar loading');
+                        // Console log removed
                         resolve();
                     }, 2000);
                 } else if (event.data.type === 'GOOGLE_OAUTH_ERROR' || (event.data.type === 'oauth_error' && event.data.platform === 'google')) {
-                    console.error('❌ [GOOGLE-MANAGER] OAuth error:', event.data.error);
+                    // Console error removed
                     clearInterval(pollOAuthStatus);
                     window.removeEventListener('message', messageHandler);
                     reject(new Error(event.data.error));
@@ -152,7 +152,7 @@ class GoogleCalendarManager {
      * Show Google Calendar selection modal (Step 1 of 2)
      */
     async showGoogleCalendarSelection() {
-        console.log('📅 [GOOGLE-MANAGER] Loading Google calendars for Step 1...');
+        // Console log removed
 
         try {
             // Fetch Google calendars
@@ -163,13 +163,13 @@ class GoogleCalendarManager {
                 throw new Error('Google 캘린더를 찾을 수 없습니다.');
             }
 
-            console.log(`📅 [GOOGLE-MANAGER] Found ${data.calendars.length} Google calendars for Step 1`);
+            // Console log removed
 
             // Show selection modal
             this.createGoogleCalendarModal(data.calendars);
 
         } catch (error) {
-            console.error('❌ [GOOGLE-MANAGER] Failed to load Google calendars:', error);
+            // Console error removed
             throw error;
         }
     }
@@ -210,14 +210,14 @@ class GoogleCalendarManager {
         `;
 
         document.body.insertAdjacentHTML('beforeend', modalHtml);
-        console.log('✅ [GOOGLE-MANAGER] Google calendar modal shown');
+        // Console log removed
     }
 
     /**
      * Handle Google calendar selection (Step 1 complete)
      */
     async selectGoogleCalendar(calendarId, calendarName) {
-        console.log(`📅 [GOOGLE-MANAGER] Step 1 complete - Selected Google calendar: ${calendarId} (${calendarName})`);
+        // Console log removed
 
         // Store selection
         this.selectedGoogleCalendarId = calendarId;
@@ -228,7 +228,7 @@ class GoogleCalendarManager {
 
         // Show NotionFlow calendar selection (Step 2)
         setTimeout(() => {
-            console.log('🔄 [GOOGLE-MANAGER] Moving to Step 2 - NotionFlow calendar selection');
+            // Console log removed
             this.showNotionFlowCalendarSelection();
         }, 300);
     }
@@ -237,7 +237,7 @@ class GoogleCalendarManager {
      * Select primary Google calendar automatically
      */
     async selectPrimaryGoogleCalendar() {
-        console.log('📅 [GOOGLE-MANAGER] Selecting primary Google calendar...');
+        // Console log removed
 
         try {
             // Fetch Google calendars
@@ -251,16 +251,16 @@ class GoogleCalendarManager {
                 this.selectedGoogleCalendarId = primaryCalendar.id;
                 this.selectedGoogleCalendarName = primaryCalendar.summary;
 
-                console.log(`✅ [GOOGLE-MANAGER] Auto-selected Google calendar: ${primaryCalendar.id} (${primaryCalendar.summary})`);
+                // Console log removed
             } else {
                 throw new Error('No Google calendars found');
             }
         } catch (error) {
-            console.error('❌ [GOOGLE-MANAGER] Failed to select primary Google calendar:', error);
+            // Console error removed
             // 기본값 설정
             this.selectedGoogleCalendarId = 'primary';
             this.selectedGoogleCalendarName = 'Primary';
-            console.log('🔄 [GOOGLE-MANAGER] Using fallback primary calendar');
+            // Console log removed
         }
     }
 
@@ -268,7 +268,7 @@ class GoogleCalendarManager {
      * Show NotionFlow Calendar selection modal (Step 2 of 2)
      */
     async showNotionFlowCalendarSelection() {
-        console.log('📅 [GOOGLE-MANAGER] Step 2 - Loading NotionFlow calendars...');
+        // Console log removed
 
         try {
             // Fetch NotionFlow calendars
@@ -283,13 +283,13 @@ class GoogleCalendarManager {
                 return;
             }
 
-            console.log(`📅 [GOOGLE-MANAGER] Step 2 - Found ${calendars.length} NotionFlow calendars`);
+            // Console log removed
 
             // Show selection modal
             this.createNotionFlowCalendarModal(calendars);
 
         } catch (error) {
-            console.error('❌ [GOOGLE-MANAGER] Failed to load NotionFlow calendars:', error);
+            // Console error removed
             throw error;
         }
     }
@@ -330,23 +330,23 @@ class GoogleCalendarManager {
         `;
 
         document.body.insertAdjacentHTML('beforeend', modalHtml);
-        console.log('✅ [GOOGLE-MANAGER] NotionFlow calendar modal shown');
+        // Console log removed
     }
 
     /**
      * Handle NotionFlow calendar selection and perform final connection (Step 2 complete)
      */
     async selectNotionFlowCalendar(calendarId, calendarName) {
-        console.log(`📅 [GOOGLE-MANAGER] Step 2 complete - Selected NotionFlow calendar: ${calendarId} (${calendarName})`);
+        // Console log removed
 
         if (!this.selectedGoogleCalendarId) {
-            console.error('❌ [GOOGLE-MANAGER] No Google calendar selected!');
+            // Console error removed
             this.showNotification('Google 캘린더가 선택되지 않았습니다.', 'error');
             return;
         }
 
         try {
-            console.log(`🔗 [GOOGLE-MANAGER] Final connection: ${this.selectedGoogleCalendarName} → ${calendarName}`);
+            // Console log removed
 
             // Perform connection
             const response = await fetch('/api/platform/google/connect', {
@@ -361,7 +361,7 @@ class GoogleCalendarManager {
             const result = await response.json();
 
             if (result.success) {
-                console.log('✅ [GOOGLE-MANAGER] 2-step connection completed successfully!');
+                // Console log removed
 
                 // Close modal
                 this.closeModal('notionflow-calendar-modal');
@@ -386,7 +386,7 @@ class GoogleCalendarManager {
             }
 
         } catch (error) {
-            console.error('❌ [GOOGLE-MANAGER] Connection failed:', error);
+            // Console error removed
             this.showNotification(`연결 실패: ${error.message}`, 'error');
         }
     }
@@ -399,7 +399,7 @@ class GoogleCalendarManager {
         const modal = document.getElementById(modalId);
         if (modal) {
             modal.remove();
-            console.log(`🗑️ [GOOGLE-MANAGER] Closed modal: ${modalId}`);
+            // Console log removed
         }
     }
 
@@ -415,7 +415,7 @@ class GoogleCalendarManager {
             alert(message);
         }
 
-        console.log(`📢 [GOOGLE-MANAGER] Notification (${type}): ${message}`);
+        // Console log removed
     }
 }
 
@@ -532,4 +532,4 @@ document.head.insertAdjacentHTML('beforeend', styles);
 // Initialize Google Calendar Manager
 window.googleManager = new GoogleCalendarManager();
 
-console.log('✅ [GOOGLE-MANAGER] Loaded and initialized successfully');
+// Console log removed

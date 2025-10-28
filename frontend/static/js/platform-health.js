@@ -357,14 +357,14 @@ class PlatformHealthMonitor {
             this.autoCheckStale();
         }, this.options.autoCheckInterval);
         
-        console.log(`Platform health auto-check started (${this.options.autoCheckInterval}ms interval)`);
+        // Console log removed
     }
     
     stopAutoCheck() {
         if (this.autoCheckTimer) {
             clearInterval(this.autoCheckTimer);
             this.autoCheckTimer = null;
-            console.log('Platform health auto-check stopped');
+            // Console log removed
         }
     }
     
@@ -375,7 +375,7 @@ class PlatformHealthMonitor {
         }
         
         // Fallback
-        return window.showNotification ? window.showNotification(message, type) : console.log(message);
+        return window.showNotification ? window.showNotification(message, type) : // Console log removed
     }
     
     destroy() {

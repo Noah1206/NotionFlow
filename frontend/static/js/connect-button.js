@@ -30,7 +30,7 @@ class ConnectButton {
     
     init() {
         if (!this.options.calendarId || !this.options.platform) {
-            console.error('ConnectButton requires calendarId and platform options');
+            // Console error removed
             return;
         }
         
@@ -166,7 +166,7 @@ class ConnectButton {
             }
             
         } catch (error) {
-            console.error('Connection failed:', error);
+            // Console error removed
             this.setState('error');
             this.showNotification(error.message || '연결 중 오류가 발생했습니다', 'error');
             
@@ -221,7 +221,7 @@ class ConnectButton {
             }
             
         } catch (error) {
-            console.error('Disconnection failed:', error);
+            // Console error removed
             this.setState('error');
             this.showNotification(error.message || '연결 해제 중 오류가 발생했습니다', 'error');
             
@@ -354,7 +354,7 @@ class ConnectButtonGroup {
     
     async init() {
         if (!this.options.calendarId) {
-            console.error('ConnectButtonGroup requires calendarId option');
+            // Console error removed
             return;
         }
         
@@ -397,7 +397,7 @@ class ConnectButtonGroup {
                 this.options.platforms = allPlatforms;
             }
         } catch (error) {
-            console.error('Failed to load connections:', error);
+            // Console error removed
         }
     }
     

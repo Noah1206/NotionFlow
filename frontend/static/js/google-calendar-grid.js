@@ -4,7 +4,7 @@ class GoogleCalendarGrid {
     constructor(container) {
         this.container = container;
         this.currentDate = new Date(); // This should be current date
-        console.log('📅 [INIT] Current date:', this.currentDate);
+        // Console log removed
         this.weekStart = this.getWeekStart(this.currentDate);
         this.events = [];
         this.trashedEvents = this.loadTrashedEvents();
@@ -52,7 +52,7 @@ class GoogleCalendarGrid {
             const saved = localStorage.getItem(storageKey);
             return saved ? JSON.parse(saved) : [];
         } catch (error) {
-            console.error('Failed to load trashed events:', error);
+            // Console error removed
             return [];
         }
     }
@@ -76,7 +76,7 @@ class GoogleCalendarGrid {
         try {
             localStorage.setItem(storageKey, JSON.stringify(this.trashedEvents));
         } catch (error) {
-            console.error('Failed to save trashed events:', error);
+            // Console error removed
         }
     }
     
@@ -90,7 +90,7 @@ class GoogleCalendarGrid {
         this.trashedEvents.push(trashedEvent);
         this.saveTrashedEvents();
         
-        console.log('Event moved to trash:', trashedEvent);
+        // Console log removed
     }
     
     restoreEventFromTrash(eventId) {
@@ -180,7 +180,7 @@ class GoogleCalendarGrid {
         item.addEventListener('dragstart', (e) => {
             e.dataTransfer.setData('text/plain', eventData.id);
             e.dataTransfer.effectAllowed = 'move';
-            console.log('Drag started for event:', eventData.id);
+            // Console log removed
         });
         
         return item;
@@ -241,7 +241,7 @@ class GoogleCalendarGrid {
             showNotification(`일정 "${restoredEvent.title}"이 복원되었습니다`, 'success');
         }
         
-        console.log('Event restored from trash:', restoredEvent);
+        // Console log removed
     }
     
     // Empty trash functionality
@@ -283,13 +283,13 @@ class GoogleCalendarGrid {
                 showNotification('휴지통이 비워졌습니다', 'success');
             }
 
-            console.log(`🗑️ ${eventsToDeleteCount} events removed from trash UI`);
+            // Console log removed
 
             // 2. 비동기로 서버에서 삭제 (백그라운드 처리)
             this.deleteEventsFromServerAsync(eventsToDeleteOnServer, calendarId);
 
         } catch (error) {
-            console.error('Failed to empty trash:', error);
+            // Console error removed
             if (window.showNotification) {
                 showNotification('휴지통 비우기에 실패했습니다', 'error');
             }
@@ -299,11 +299,11 @@ class GoogleCalendarGrid {
     // 비동기 서버 삭제 처리 메서드
     async deleteEventsFromServerAsync(eventsToDelete, calendarId) {
         if (eventsToDelete.length === 0) {
-            console.log('No server events to delete');
+            // Console log removed
             return;
         }
 
-        console.log(`🔄 Starting async deletion of ${eventsToDelete.length} events from server...`);
+        // Console log removed
 
         let deletedCount = 0;
         let failedCount = 0;
@@ -322,18 +322,18 @@ class GoogleCalendarGrid {
             .then(response => {
                 if (response.ok) {
                     deletedCount++;
-                    console.log(`✅ Successfully deleted event ${dbEventId} (${eventData.title}) from DB`);
+                    // Console log removed
                 } else if (response.status === 404) {
                     deletedCount++;
-                    console.log(`✅ Event ${dbEventId} (${eventData.title}) already deleted or not found`);
+                    // Console log removed
                 } else {
                     failedCount++;
-                    console.warn(`⚠️ Failed to delete event ${dbEventId} (${eventData.title}) from backend: ${response.status}`);
+                    // Console warn removed
                 }
             })
             .catch(error => {
                 failedCount++;
-                console.error(`❌ Failed to delete event ${dbEventId} (${eventData.title}):`, error);
+                // Console error removed
             });
 
             deletePromises.push(deletePromise);
@@ -342,14 +342,14 @@ class GoogleCalendarGrid {
         // 모든 삭제 요청이 완료될 때까지 대기
         try {
             await Promise.allSettled(deletePromises);
-            console.log(`✅ Async deletion completed: ${deletedCount} succeeded, ${failedCount} failed`);
+            // Console log removed
 
             // 실패한 항목이 있으면 콘솔에만 로그 (사용자 경험을 방해하지 않음)
             if (failedCount > 0) {
-                console.warn(`⚠️ ${failedCount} events failed to delete from server, but already hidden from UI`);
+                // Console warn removed
             }
         } catch (error) {
-            console.error('Error during async deletion:', error);
+            // Console error removed
         }
     }
     
@@ -402,7 +402,7 @@ class GoogleCalendarGrid {
             this.updateCurrentTimeIndicator();
         }, 30 * 60 * 1000); // 30분 = 30 * 60 * 1000 밀리초
         
-        // console.log('🎯 Google Calendar Grid initialized');
+        // // Console log removed
     }
     
     getWeekStart(date) {
@@ -414,7 +414,7 @@ class GoogleCalendarGrid {
         const weekStart = new Date(d.getTime() - (daysToSunday * 24 * 60 * 60 * 1000));
         weekStart.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
         
-        console.log('🗓️ Week start calculated:', weekStart, 'from date:', date, 'day:', day, 'daysToSunday:', daysToSunday);
+        // Console log removed
         return weekStart;
     }
 
@@ -515,9 +515,9 @@ class GoogleCalendarGrid {
             header.style.background = 'white';
             header.style.minHeight = '60px';
             header.style.height = '60px';
-            // console.log('🔧 Header visibility ensured:', header.getBoundingClientRect());
+            // // Console log removed
         } else {
-            console.warn('⚠️ Header not found for visibility check');
+            // Console warn removed
         }
     }
     
@@ -666,7 +666,7 @@ class GoogleCalendarGrid {
             if (e.target.closest('.calendar-grid-container')) {
                 if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
                     e.preventDefault();
-                    console.log('🚫 File drop blocked on calendar area');
+                    // Console log removed
                     if (window.showNotification) {
                         showNotification('캘린더 영역에는 파일을 드롭할 수 없습니다', 'warning');
                     }
@@ -843,15 +843,15 @@ class GoogleCalendarGrid {
     
     createEvent(startDay, startHour, endDay, endHour, clickedCell = null) {
         
-        // console.log('🎯 createEvent called:', {startDay, startHour, endDay, endHour});
+        // // Console log removed
         
         // Ensure weekStart is properly initialized
         if (!this.weekStart || !(this.weekStart instanceof Date)) {
             this.weekStart = this.getWeekStart(new Date());
-            // console.log('⚠️ weekStart was undefined, recalculated:', this.weekStart);
+            // // Console log removed
         }
         
-        // console.log('🗓️ Current weekStart:', this.weekStart);
+        // // Console log removed
         
         // Calculate dates using milliseconds to avoid timezone issues
         const millisecondsPerDay = 24 * 60 * 60 * 1000;
@@ -861,24 +861,24 @@ class GoogleCalendarGrid {
         const endDate = new Date(this.weekStart.getTime() + (endDay * millisecondsPerDay));
         endDate.setHours(endHour + 1, 0, 0, 0); // +1 for end time to include the full hour
         
-        // console.log('📅 Created dates - Start:', startDate, 'End:', endDate);
-        // console.log('📍 Expected day column:', startDay, 'Actual date:', startDate.toDateString());
-        // console.log('📍 Day of week - Start:', startDate.getDay(), 'Expected:', startDay);
+        // // Console log removed
+        // // Console log removed
+        // // Console log removed
         
         // Check if this is a multi-day event
         const isMultiDay = startDay !== endDay;
         
         if (isMultiDay) {
             // Multi-day event: create time-based events for each day
-            // console.log('🗓️ Multi-day event detected, creating time-based events');
+            // // Console log removed
             
             const startDateStr = this.formatDateForInput(startDate);
             const endDateStr = this.formatDateForInput(endDate);
             const startTimeStr = startDate.toTimeString().slice(0, 5); // HH:MM format
             const endTimeStr = endDate.toTimeString().slice(0, 5); // HH:MM format
             
-            // console.log('📅 Multi-day range - Start Date:', startDateStr, 'End Date:', endDateStr);
-            // console.log('🕐 Time range - Start:', startTimeStr, 'End:', endTimeStr);
+            // // Console log removed
+            // // Console log removed
             
             // Use special handling for multi-day events with time
             if (typeof showOverlayEventFormMultiDay !== 'undefined') {
@@ -892,19 +892,19 @@ class GoogleCalendarGrid {
             }
         } else {
             // Single-day event: use existing time-based logic
-            // console.log('📅 Single-day event, using time-based handling');
+            // // Console log removed
             
             const dateStr = this.formatDateForInput(startDate);
             const startTimeStr = startDate.toTimeString().slice(0, 5); // HH:MM format
             const endTimeStr = endDate.toTimeString().slice(0, 5); // HH:MM format
             
-            // console.log('🕐 Single-day drag times - Start:', startTimeStr, 'End:', endTimeStr);
+            // // Console log removed
             
             // Use the existing overlay form with clicked cell information
             if (typeof showOverlayEventForm !== 'undefined') {
                 // 간단한 팝업 차단 체크
                 if (window.POPUP_BLOCKED) {
-                    console.log('🚫 [Grid] Event creation blocked');
+                    // Console log removed
                     return;
                 }
                 
@@ -1029,20 +1029,20 @@ class GoogleCalendarGrid {
                     
                     if (response.ok || response.status === 404) {
                         if (response.status === 404) {
-                            console.log('✅ Event already deleted or not found on server:', eventData.title);
+                            // Console log removed
                         } else {
-                            console.log('✅ Event deleted from server:', eventData.title);
+                            // Console log removed
                         }
                     } else {
-                        console.error('❌ Failed to delete from server, status:', response.status);
+                        // Console error removed
                         // 서버 삭제 실패해도 클라이언트에서는 계속 진행
                     }
                 } catch (error) {
-                    console.error('Error deleting from server:', error);
+                    // Console error removed
                     // 네트워크 오류가 있어도 클라이언트에서는 계속 진행
                 }
             } else {
-                console.log('📱 Client-only event, skipping server deletion:', eventData.title);
+                // Console log removed
             }
             
             // Remove from events array
@@ -1053,16 +1053,16 @@ class GoogleCalendarGrid {
             localStorage.setItem(storageKey, JSON.stringify(this.events));
             
             // Remove from DOM immediately - comprehensive search
-            console.log('🗑️ Removing event from display:', eventData.title, 'ID:', eventData.id);
+            // Console log removed
             
             // 🎯 정확한 DOM 제거 - renderEvent에서 생성된 구조 기반
-            console.log('🎯 Removing event element with exact selectors...');
+            // Console log removed
             let removedCount = 0;
             
             // 1. data-event-id 속성으로 직접 제거 (가장 정확함)
             const eventElements = document.querySelectorAll(`[data-event-id="${eventData.id}"]`);
             eventElements.forEach(element => {
-                console.log(`💀 Removed by data-event-id: ${eventData.id}`);
+                // Console log removed
                 element.remove();
                 removedCount++;
             });
@@ -1071,7 +1071,7 @@ class GoogleCalendarGrid {
             const calendarEvents = document.querySelectorAll('.calendar-event');
             calendarEvents.forEach(element => {
                 if (element.textContent && element.textContent.includes(eventData.title)) {
-                    console.log(`💀 Removed by title match: "${eventData.title}"`);
+                    // Console log removed
                     element.remove();
                     removedCount++;
                 }
@@ -1083,16 +1083,16 @@ class GoogleCalendarGrid {
                 // 삭제 버튼이 속한 calendar-event 요소 찾기
                 const eventContainer = button.closest('.calendar-event');
                 if (eventContainer) {
-                    console.log(`💀 Removed via delete button: "${eventData.title}"`);
+                    // Console log removed
                     eventContainer.remove();
                     removedCount++;
                 }
             });
             
-            console.log(`✅ Removed ${removedCount} elements from display`);
+            // Console log removed
             
             // 🚨 IMMEDIATE FORCE REMOVAL - 즉시 강제 제거
-            console.log('🚨 IMMEDIATE FORCE REMOVAL...');
+            // Console log removed
             
             // 모든 .calendar-event 요소에서 해당 제목이 포함된 것들 제거
             let immediateRemovalCount = 0;
@@ -1101,7 +1101,7 @@ class GoogleCalendarGrid {
                     element.style.display = 'none'; // 즉시 숨기기
                     element.remove(); // 그리고 제거
                     immediateRemovalCount++;
-                    console.log(`💀 FORCE REMOVED: "${eventData.title}"`);
+                    // Console log removed
                 }
             });
             
@@ -1110,28 +1110,28 @@ class GoogleCalendarGrid {
                 element.style.display = 'none';
                 element.remove();
                 immediateRemovalCount++;
-                console.log(`💀 REMOVED BY ID: ${eventData.id}`);
+                // Console log removed
             });
             
-            console.log(`🗑️ IMMEDIATE REMOVAL: ${immediateRemovalCount} elements removed`);
+            // Console log removed
             
             // Update event list and refresh display
             this.updateEventList();
             
             // 🎯 선택적 이벤트 업데이트 (전체 새로고침 대신 최소한의 업데이트)
             setTimeout(() => {
-                console.log('🎯 Selective update: removing only the deleted event');
+                // Console log removed
 
                 // 1. 삭제된 이벤트만 DOM에서 제거 (다른 이벤트는 그대로 유지)
                 document.querySelectorAll(`[data-event-id="${eventData.id}"]`).forEach(element => {
                     element.remove();
-                    console.log(`🗑️ Removed specific event element with ID: ${eventData.id}`);
+                    // Console log removed
                 });
 
                 // 2. 이벤트 목록만 업데이트
                 this.updateEventList();
 
-                console.log('✅ Selective update completed - other events preserved');
+                // Console log removed
             }, 50);
             
             // Close any open popup
@@ -1186,10 +1186,10 @@ class GoogleCalendarGrid {
             });
             
             if (response.ok) {
-                // console.log('Event saved to backend successfully');
+                // // Console log removed
             }
         } catch (error) {
-            console.error('Failed to save event to backend:', error);
+            // Console error removed
         }
     }
     
@@ -1204,12 +1204,12 @@ class GoogleCalendarGrid {
         try {
             const storageKey = 'calendar_events_backup';
             localStorage.setItem(storageKey, JSON.stringify(this.events));
-            // console.log('💾 Events saved to localStorage');
+            // // Console log removed
             
             // Update event list when saving
             this.updateEventList();
         } catch (error) {
-            console.error('Failed to save to localStorage:', error);
+            // Console error removed
         }
     }
     
@@ -1293,7 +1293,7 @@ class GoogleCalendarGrid {
     updateEventList() {
         const eventListContainer = document.getElementById('event-list');
         if (!eventListContainer) {
-            console.warn('Event list container not found, retrying...');
+            // Console warn removed
             // Retry after DOM is ready
             setTimeout(() => {
                 this.updateEventList();
@@ -1482,7 +1482,7 @@ class GoogleCalendarGrid {
                 showNotification(message, 'success');
             }
             
-            console.log(`✅ ${movedCount}개의 일정이 휴지통으로 이동되었습니다`);
+            // Console log removed
         }
     }
     
@@ -1653,20 +1653,20 @@ class GoogleCalendarGrid {
         this.updateMainContentDimensions();
         
         // Position popup relative to clicked cell
-        // console.log('🎯 Positioning popup, clickedCell:', clickedCell);
+        // // Console log removed
         
         let cellToUse = clickedCell;
         
         // If no clickedCell provided, try to find the cell by day and hour
         if (!cellToUse) {
-            // console.log('⚠️ No clickedCell provided, searching for cell by day/hour:', day, hour);
+            // // Console log removed
             cellToUse = document.querySelector(`.time-cell[data-day="${day}"][data-hour="${hour}"]`);
-            // console.log('🔍 Found cell by search:', cellToUse);
+            // // Console log removed
         }
         
         if (cellToUse) {
             const cellRect = cellToUse.getBoundingClientRect();
-            // console.log('📍 Cell rect:', cellRect);
+            // // Console log removed
             
             // Calculate position
             let left = cellRect.right + 10;
@@ -1685,7 +1685,7 @@ class GoogleCalendarGrid {
                 top = window.innerHeight - popupHeight - 20; // Position above
             }
             
-            // console.log('📍 Final position:', {left, top});
+            // // Console log removed
             
             // Always use fixed positioning with consistent size
             popup.style.cssText = `
@@ -1698,7 +1698,7 @@ class GoogleCalendarGrid {
                 transform: none !important;
             `;
         } else {
-            // console.log('❌ No valid cell found, using center positioning');
+            // // Console log removed
             // Fallback to center positioning with fixed size
             popup.style.cssText = `
                 position: fixed;
@@ -1741,7 +1741,7 @@ class GoogleCalendarGrid {
     showEditEventPopup(eventId) {
         const eventData = this.events.find(event => event.id === eventId);
         if (!eventData) {
-            console.error('Event not found:', eventId);
+            // Console error removed
             return;
         }
 
@@ -1883,16 +1883,16 @@ class GoogleCalendarGrid {
     selectEventInSidebar(eventId) {
         const eventData = this.events.find(event => event.id === eventId);
         if (!eventData) {
-            console.error('Event not found:', eventId);
+            // Console error removed
             return;
         }
 
-        // console.log('🎯 Selecting event in sidebar:', eventData);
+        // // Console log removed
 
         // Show the selected event in the sidebar events section
         const dayEventsContainer = document.getElementById('day-events');
         if (!dayEventsContainer) {
-            console.error('Day events container not found');
+            // Console error removed
             return;
         }
 
@@ -2019,12 +2019,12 @@ class GoogleCalendarGrid {
                     showNotification(`일정 "${eventData.title}"이 생성되었습니다`, 'success');
                 }
                 
-                // console.log('📅 Event created and saved:', fullEventData);
+                // // Console log removed
             } else {
                 throw new Error('Failed to save event');
             }
         } catch (error) {
-            console.error('Failed to save event:', error);
+            // Console error removed
             
             // Still show the event locally for user experience
             const localEventData = {
@@ -2053,7 +2053,7 @@ class GoogleCalendarGrid {
             
             // Force re-render after a short delay
             setTimeout(() => {
-                // console.log('🔄 Force re-rendering event...');
+                // // Console log removed
                 this.renderEvent(localEventData);
             }, 100);
         }
@@ -2067,7 +2067,7 @@ class GoogleCalendarGrid {
 
         // Check for null/undefined event data
         if (!eventData || !eventData.id) {
-            console.warn('⚠️ Skipping null or invalid event data:', eventData);
+            // Console warn removed
             return;
         }
 
@@ -2079,13 +2079,13 @@ class GoogleCalendarGrid {
         // 🚫 중복 방지: 기존 이벤트 요소가 있으면 제거
         const existingEvent = this.container.querySelector(`[data-event-id="${eventData.id}"]`);
         if (existingEvent) {
-            console.log(`🔄 Removing existing event element: ${eventData.title}`);
+            // Console log removed
             existingEvent.remove();
         }
         
         // Fix null date issue
         if (!eventData.date || eventData.date === null || eventData.date === undefined) {
-            console.warn('⚠️ Event has null date, providing fallback:', eventData);
+            // Console warn removed
             const today = new Date();
             eventData.date = today.toISOString().split('T')[0];
         }
@@ -2093,7 +2093,7 @@ class GoogleCalendarGrid {
         // Ensure weekStart is properly initialized
         if (!this.weekStart || !(this.weekStart instanceof Date)) {
             this.weekStart = this.getWeekStart(new Date());
-            // console.log('⚠️ weekStart was undefined in renderEvent, recalculated:', this.weekStart);
+            // // Console log removed
         }
         
         // Parse date more carefully to avoid timezone issues
@@ -2111,7 +2111,7 @@ class GoogleCalendarGrid {
 
         // 🎯 날짜 계산 정확성 개선: 현재 주 범위만 허용 (0-6)
         if (dayIndex < 0 || dayIndex > 6) {
-            console.log(`⚠️ Event "${eventData.title}" is outside current week (dayIndex: ${dayIndex}), skipping render`);
+            // Console log removed
             return;
         }
 
@@ -2119,14 +2119,14 @@ class GoogleCalendarGrid {
         
         // Check if this is a multi-day event - skip individual rendering
         if (eventData.isMultiDay) {
-            // console.log('🔄 Skipping individual render for multi-day event:', eventData.title);
-            // console.log('   Multi-day events should be rendered via renderMultiDayEvent');
+            // // Console log removed
+            // // Console log removed
             return;
         }
         
         // Check if this is an all-day event
         if (eventData.isAllDay) {
-            // console.log('📅 Rendering all-day event:', eventData.title);
+            // // Console log removed
             // For all-day events, render them in a special all-day section or as full-day blocks
             this.renderAllDayEvent(eventData, dayIndex);
             return;
@@ -2134,7 +2134,7 @@ class GoogleCalendarGrid {
         
         // Check if startTime and endTime exist for timed events
         if (!eventData.startTime || !eventData.endTime) {
-            console.warn('⚠️ Event missing time information, treating as all-day:', eventData);
+            // Console warn removed
             this.renderAllDayEvent(eventData, dayIndex);
             return;
         }
@@ -2148,7 +2148,7 @@ class GoogleCalendarGrid {
         
         // dayIndex는 이미 0-6 범위로 검증됨
         const dayColumn = this.container.querySelector(`.day-column[data-day="${dayIndex}"]`);
-        console.log(`🔍 Looking for day column with dayIndex: ${dayIndex}, Found:`, dayColumn);
+        // Console log removed
         
         if (!dayColumn) {
             // console.log('❌ Day column not found! Available columns:', 
@@ -2203,7 +2203,7 @@ class GoogleCalendarGrid {
             </div>
         `;
         
-        // console.log('🎨 Event color:', eventData.color, 'Background:', eventElement.style.backgroundColor);
+        // // Console log removed
         
         // Position the event
         const top = (startPosition - this.startHour) * this.timeSlotHeight;
@@ -2241,38 +2241,38 @@ class GoogleCalendarGrid {
         });
         
         dayColumn.appendChild(eventElement);
-        // console.log('✅ Event element added to DOM:', eventElement, 'Parent:', dayColumn);
-        // console.log('📍 Event position - top:', eventElement.style.top, 'height:', eventElement.style.height);
+        // // Console log removed
+        // // Console log removed
     }
     
     renderAllDayEvent(eventData, dayIndex) {
-        // console.log('🎯 renderAllDayEvent called with data:', eventData, 'dayIndex:', dayIndex);
+        // // Console log removed
 
         // Check if this is a multi-day event - skip all-day rendering
         if (eventData.isMultiDay) {
-            // console.log('🔄 Skipping all-day render for multi-day event:', eventData.title);
-            // console.log('   Multi-day events should be rendered via renderMultiDayEvent only');
+            // // Console log removed
+            // // Console log removed
             return;
         }
 
         // 🚫 중복 방지: 기존 all-day 이벤트 요소가 있으면 제거
         const existingAllDayEvent = this.container.querySelector(`[data-event-id="${eventData.id}"].all-day-event`);
         if (existingAllDayEvent) {
-            console.log(`🔄 Removing existing all-day event element: ${eventData.title}`);
+            // Console log removed
             existingAllDayEvent.remove();
         }
 
         // 🎯 날짜 범위 검증: dayIndex가 0-6 범위 내에 있는지 확인
         if (dayIndex < 0 || dayIndex > 6) {
-            console.log(`⚠️ All-day event "${eventData.title}" is outside current week (dayIndex: ${dayIndex}), skipping render`);
+            // Console log removed
             return;
         }
 
         const dayColumn = this.container.querySelector(`.day-column[data-day="${dayIndex}"]`);
-        console.log(`🔍 All-day event - Looking for day column ${dayIndex}, Found:`, dayColumn);
+        // Console log removed
         
         if (!dayColumn) {
-            // console.log('❌ Day column not found for all-day event! DayIndex:', validDayIndex);
+            // // Console log removed
             return;
         }
         
@@ -2296,7 +2296,7 @@ class GoogleCalendarGrid {
             `;
             // All-day 컨테이너를 그리드 내 상단에 안전하게 배치
             dayColumn.insertBefore(allDayContainer, dayColumn.firstChild);
-            console.log(`✅ Created all-day container for day ${dayIndex}`);
+            // Console log removed
         }
         
         const eventElement = document.createElement('div');
@@ -2374,28 +2374,28 @@ class GoogleCalendarGrid {
         });
         
         allDayContainer.appendChild(eventElement);
-        // console.log('✅ All-day event element added to DOM:', eventElement);
+        // // Console log removed
     }
     
     renderMultiDayEvent(eventData) {
-        // console.log('🎯 renderMultiDayEvent called with data:', eventData);
+        // // Console log removed
         
         // Check for null/undefined event data
         if (!eventData || !eventData.id) {
-            console.warn('⚠️ Skipping null or invalid multi-day event data:', eventData);
+            // Console warn removed
             return;
         }
         
         // Ensure we have start and end dates
         if (!eventData.date || !eventData.endDate) {
-            console.warn('⚠️ Multi-day event missing start or end date:', eventData);
+            // Console warn removed
             return;
         }
         
         // Ensure weekStart is properly initialized
         if (!this.weekStart || !(this.weekStart instanceof Date)) {
             this.weekStart = this.getWeekStart(new Date());
-            // console.log('⚠️ weekStart was undefined in renderMultiDayEvent, recalculated:', this.weekStart);
+            // // Console log removed
         }
         
         // Parse start and end dates
@@ -2407,11 +2407,11 @@ class GoogleCalendarGrid {
         if (eventData.startTime && eventData.endTime) {
             [startHour, startMin] = eventData.startTime.split(':').map(Number);
             [endHour, endMin] = eventData.endTime.split(':').map(Number);
-            // console.log('🕐 Time range:', eventData.startTime, 'to', eventData.endTime);
+            // // Console log removed
         } else {
-            console.warn('⚠️ Multi-day event missing time info:', eventData);
-            console.warn('   This event should have been created with time information');
-            console.warn('   Using default 9AM-10AM as fallback');
+            // Console warn removed
+            // Console warn removed
+            // Console warn removed
         }
         
         const startDate = new Date(startYear, startMonth - 1, startDay, startHour, startMin, 0);
@@ -2427,8 +2427,8 @@ class GoogleCalendarGrid {
         const startDayIndex = Math.round(startTimeDiff / (24 * 60 * 60 * 1000));
         const endDayIndex = Math.round(endTimeDiff / (24 * 60 * 60 * 1000));
         
-        // console.log('📅 Multi-day event - Start:', startDate, 'End:', endDate);
-        // console.log('📅 Day indices - Start:', startDayIndex, 'End:', endDayIndex);
+        // // Console log removed
+        // // Console log removed
         
         const startPosition = startHour + startMin / 60;
         const endPosition = endHour + endMin / 60;
@@ -2451,7 +2451,7 @@ class GoogleCalendarGrid {
         const firstDayColumn = this.container.querySelector(`.day-column[data-day="${firstDayIndex}"]`);
         
         if (!firstDayColumn) {
-            // console.log('❌ First day column not found for dayIndex:', firstDayIndex);
+            // // Console log removed
             return;
         }
         
@@ -2475,7 +2475,7 @@ class GoogleCalendarGrid {
             } else {
                 // Fallback calculation
                 totalWidth = firstDayColumn.offsetWidth * spanDays - 4;
-                // console.log('⚠️ Using fallback width calculation');
+                // // Console log removed
             }
         }
         
@@ -2560,7 +2560,7 @@ class GoogleCalendarGrid {
         // Add to the first day column
         firstDayColumn.appendChild(eventElement);
         
-        // console.log(`✅ Multi-day spanning event "${eventData.title}" rendered across ${spanDays} days (${firstDayIndex} to ${lastDayIndex})`);
+        // // Console log removed
         
         // Remove the duplicate rendering - the spanning event already covers all days
         return;
@@ -2571,7 +2571,7 @@ class GoogleCalendarGrid {
             const dayColumn = this.container.querySelector(`.day-column[data-day="${dayIndex}"]`);
             
             if (!dayColumn) {
-                // console.log('❌ Day column not found for dayIndex:', dayIndex);
+                // // Console log removed
                 continue;
             }
             
@@ -2643,7 +2643,7 @@ class GoogleCalendarGrid {
             
             dayColumn.appendChild(eventElement);
             
-            // console.log(`✅ Multi-day event "${eventData.title}" rendered on day ${dayIndex}`);
+            // // Console log removed
         }
         */
     }
@@ -2653,7 +2653,7 @@ class GoogleCalendarGrid {
 
         // 🛡️ 파일 드롭 완전 차단
         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-            console.log('🚫 File drop blocked - calendar only accepts calendar events');
+            // Console log removed
             if (window.showNotification) {
                 showNotification('파일은 캘린더에 드롭할 수 없습니다', 'error');
             }
@@ -2671,7 +2671,7 @@ class GoogleCalendarGrid {
             eventId.includes('.jpeg') ||
             eventId.includes('file://') ||
             eventId.length > 100) {
-            console.log('🚫 Invalid data drop blocked:', eventId);
+            // Console log removed
             return;
         }
         
@@ -2720,7 +2720,7 @@ class GoogleCalendarGrid {
             newDayColumn.appendChild(eventElement);
         }
         
-        // console.log('📅 Event time updated:', eventData);
+        // // Console log removed
         
         // Show notification
         if (window.showNotification) {
@@ -2874,7 +2874,7 @@ class GoogleCalendarGrid {
             
             if (response.ok) {
                 const savedEvent = await response.json();
-                // console.log('✅ Event saved to server:', savedEvent);
+                // // Console log removed
                 
                 // Add to local events
                 this.events.push(eventData);
@@ -2900,7 +2900,7 @@ class GoogleCalendarGrid {
                 throw new Error('Failed to save event to server');
             }
         } catch (error) {
-            console.error('❌ Error saving event:', error);
+            // Console error removed
             
             // Still save locally for offline functionality
             this.events.push(eventData);
@@ -3037,7 +3037,7 @@ class GoogleCalendarGrid {
         // Find the event to update
         const eventIndex = this.events.findIndex(event => event.id === eventId);
         if (eventIndex === -1) {
-            console.error('Event not found for update:', eventId);
+            // Console error removed
             return;
         }
         
@@ -3063,12 +3063,12 @@ class GoogleCalendarGrid {
             });
             
             if (response.ok) {
-                // console.log('✅ Event updated on server');
+                // // Console log removed
             } else {
-                console.warn('⚠️ Server update failed, updating locally only');
+                // Console warn removed
             }
         } catch (error) {
-            console.error('❌ Error updating event on server:', error);
+            // Console error removed
         }
         
         // Update local event data
@@ -3099,12 +3099,12 @@ class GoogleCalendarGrid {
     async deleteEventById(eventId) {
         // Convert eventId to string for consistent comparison
         const eventIdStr = String(eventId);
-        console.log('🗑️ Attempting to delete event with ID:', eventIdStr);
+        // Console log removed
 
         // First try: Find event by exact ID match
         let eventIndex = this.events.findIndex(e => String(e.id) === eventIdStr);
         if (eventIndex !== -1) {
-            console.log('✅ Found event by exact ID match');
+            // Console log removed
             await this.deleteEvent(this.events[eventIndex]);
             return true;
         }
@@ -3114,7 +3114,7 @@ class GoogleCalendarGrid {
         
         // FIX: 숫자 ID면 클릭된 요소에서 실제 이벤트 찾기
         if (/^\d+$/.test(eventIdStr)) {
-            console.log('🚨 NUMERIC ID: Finding clicked event to delete');
+            // Console log removed
             
             // 클릭된 삭제 버튼 찾기
             const clickedButton = document.querySelector(`[onclick*="${eventIdStr}"]`);
@@ -3140,32 +3140,32 @@ class GoogleCalendarGrid {
                     }
                     
                     if (actualEvent) {
-                        console.log('✅ Found actual event to delete:', actualEvent.title);
+                        // Console log removed
                         
                         // 휴지통 확인 대화상자 표시
                         if (confirm(`"${actualEvent.title}" 일정을 휴지통으로 이동하시겠습니까?`)) {
                             return this.deleteEvent(actualEvent);
                         } else {
-                            console.log('❌ Deletion cancelled by user');
+                            // Console log removed
                             return false;
                         }
                     }
                     
                     // 이벤트를 배열에서 전혀 찾을 수 없는 경우
-                    console.log('⚠️ Event not found in array at all, DOM removal only');
-                    console.log('🔍 DEBUG - Looking for title:', `"${eventTitle.trim()}"`);
-                    console.log('🔍 DEBUG - Events in array:');
+                    // Console log removed
+                    // Console log removed
+                    // Console log removed
                     this.events.forEach((e, index) => {
-                        console.log(`  [${index}] "${e.title}" (ID: ${e.id})`);
+                        // Console log removed
                     });
                     
                     if (confirm(`"${eventTitle}" 일정을 삭제하시겠습니까?`)) {
                         eventElement.remove();
-                        console.log('🗑️ Removed from DOM only');
+                        // Console log removed
                         
                         // 🚨 강제로 배열에서도 제거 시도 (제목 기반)
-                        console.log('🔍 Searching in events array for title:', eventTitle.trim());
-                        console.log('🔍 Current events array length:', this.events.length);
+                        // Console log removed
+                        // Console log removed
                         
                         // 여러 방법으로 이벤트 찾기
                         let indexToRemove = -1;
@@ -3192,21 +3192,21 @@ class GoogleCalendarGrid {
                             // 클라이언트에서 제거
                             this.events.splice(indexToRemove, 1);
                             this.saveToLocalStorage();
-                            console.log('🗑️ Moved to trash:', removedEvent.title);
+                            // Console log removed
                             
                             // DOM에서 즉시 제거 (여러 방법 시도)
                             this.removeEventFromDOM(removedEvent.id, removedEvent.title);
                             
                             // 선택적 업데이트 (전체 새로고침 대신)
-                            console.log('🎯 Selective update after immediate removal');
+                            // Console log removed
                             this.updateEventList();
-                            console.log('🔄 Grid forcefully refreshed after trash move');
+                            // Console log removed
                         } else {
-                            console.log('❌ Could not find event to remove from array');
-                            console.log('🔍 Looking for eventId:', eventIdStr, 'eventTitle:', eventTitle);
-                            console.log('📋 Available events (first 5):');
+                            // Console log removed
+                            // Console log removed
+                            // Console log removed
                             this.events.slice(0, 5).forEach((e, i) => {
-                                console.log(`  ${i}: id="${e?.id}" title="${e?.title}" notion_id="${e?.notion_id}"`);
+                                // Console log removed
                             });
                             
                             // 더 관대한 검색 시도
@@ -3225,7 +3225,7 @@ class GoogleCalendarGrid {
                             });
                                 
                             if (relaxedIndex !== -1) {
-                                console.log('✅ Found with relaxed search, removing...');
+                                // Console log removed
                                 const removedEvent = this.events[relaxedIndex];
                                 this.moveEventToTrash(removedEvent);
                                 
@@ -3235,9 +3235,9 @@ class GoogleCalendarGrid {
                                 this.events.splice(relaxedIndex, 1);
                                 this.saveToLocalStorage();
                                 this.updateEventList();
-                                console.log('🎯 Relaxed search removal completed without full refresh');
+                                // Console log removed
                             } else {
-                                console.log('🚨 최후 수단: DOM제거 + 배열에서 강제 검색/제거');
+                                // Console log removed
                                 
                                 // DOM에서 강제 제거
                                 this.removeEventFromDOM(eventIdStr, eventTitle);
@@ -3258,7 +3258,7 @@ class GoogleCalendarGrid {
                                                        event.title.includes(eventTitle);
                                     
                                     if (matchesId || matchesTitle) {
-                                        console.log('💀 강제 제거:', event.title, 'at index', i);
+                                        // Console log removed
                                         
                                         // 휴지통으로 보내기
                                         this.moveEventToTrash(event);
@@ -3271,7 +3271,7 @@ class GoogleCalendarGrid {
                                     }
                                     
                                     if (!foundAndRemoved) {
-                                        console.log('🚨 배열에서도 못찾음 - 가짜 이벤트 생성');
+                                        // Console log removed
                                         const fakeEvent = {
                                             id: eventIdStr,
                                             title: eventTitle || `삭제된 이벤트 ${eventIdStr}`,
@@ -3285,8 +3285,8 @@ class GoogleCalendarGrid {
                                     // 배열 저장 및 선택적 업데이트 (전체 새로고침 대신)
                                     this.saveToLocalStorage();
                                     this.updateEventList();
-                                    console.log('🎯 Last resort completed without full refresh');
-                                    console.log('🔄 최후수단 완료 - 배열 길이:', this.events.length);
+                                    // Console log removed
+                                    // Console log removed
                                 }
                             }
                             
@@ -3311,7 +3311,7 @@ class GoogleCalendarGrid {
                         const title = titleElement.textContent.trim();
                         const foundEvent = this.events.find(e => e.title === title);
                         if (foundEvent) {
-                            console.log('🔍 Found event by DOM title matching:', foundEvent.id);
+                            // Console log removed
                             // Delete via DOM element
                             element.remove();
                             // Remove from events array
@@ -3322,9 +3322,9 @@ class GoogleCalendarGrid {
                 }
             }
 
-            console.log('⚠️ Could not find clicked event with ID:', eventId);
-            console.log('🔍 Available events:', this.events.map(e => ({id: e.id, title: e.title})));
-            console.log('🔍 DOM event elements found:', eventElements.length);
+            // Console log removed
+            // Console log removed
+            // Console log removed
             return false;
         }
         
@@ -3332,7 +3332,7 @@ class GoogleCalendarGrid {
         /*
         const eventData = this.events.find(event => String(event.id) === eventIdStr);
         if (!eventData) {
-            console.error('Event not found for deletion:', eventId, 'Available events:', this.events.slice(0, 5).map(e => ({id: e.id, notion_id: e.notion_id, title: e.title})));
+            // Console error removed
             
             // Try all possible ID fields
             const altEventData = this.events.find(event => 
@@ -3371,57 +3371,57 @@ class GoogleCalendarGrid {
             });
             
             if (finalAttemptEvent) {
-                console.log('✅ Found event with final attempt:', finalAttemptEvent.title);
+                // Console log removed
                 return this.deleteEvent(finalAttemptEvent);
             }
             
-            console.error('Event not found after all attempts. Searched ID:', eventIdStr);
-            console.error('Sample event structure:', this.events[0]);
+            // Console error removed
+            // Console error removed
             
             // DOM에서 강제로 제거
             const eventElements = document.querySelectorAll(`[data-event-id="${eventId}"], [data-id="${eventId}"]`);
             eventElements.forEach(el => {
                 el.remove();
-                console.log('🗑️ Force removed from DOM');
+                // Console log removed
             });
             return;
         }
         
         // Call the main delete function (휴지통 확인 포함)
-        console.log('✅ Found event to delete:', eventData.title);
+        // Console log removed
         return this.deleteEvent(eventData);
     }
     */
 
     // 필터링된 이벤트로 그리드 업데이트
     updateWithFilteredEvents(filteredEvents, selectedCalendarIds) {
-        console.log('🔍 Updating grid with filtered events:', filteredEvents?.length, 'Selected calendars:', selectedCalendarIds);
+        // Console log removed
         
         // 현재 캘린더 ID 확인 
         const currentCalendarId = window.location.pathname.split('/').pop();
         
         // 필터링이 없거나 빈 경우 - 모든 이벤트 표시 (기본 동작)
         if (!selectedCalendarIds || selectedCalendarIds.length === 0) {
-            console.log('📅 No calendar filtering - showing all events');
+            // Console log removed
             this.showAllEvents();
             return;
         }
         
         // 현재 캘린더가 선택되지 않은 경우 - 여전히 모든 이벤트 표시 (사용자가 직접 현재 캘린더 페이지를 보고 있으므로)
         if (!selectedCalendarIds.includes(currentCalendarId)) {
-            console.log('📅 Current calendar not in selection, but showing all events since user is viewing this calendar');
+            // Console log removed
             this.showAllEvents();
             return;
         }
         
         // 필터링된 이벤트가 있는 경우에만 필터링 적용
         if (filteredEvents && filteredEvents.length > 0) {
-            console.log('📅 Applying event filtering');
+            // Console log removed
             this.showFilteredEvents(filteredEvents);
             this.updateEventList(filteredEvents);
         } else {
             // 필터링 결과가 없어도 현재 캘린더 페이지에서는 모든 이벤트 표시
-            console.log('📅 No filtered events, showing all events for current calendar');
+            // Console log removed
             this.showAllEvents();
         }
     }
@@ -3444,7 +3444,7 @@ class GoogleCalendarGrid {
             // 휴지통에 있는 이벤트는 표시하지 않음
             if (eventId && this.isEventInTrash(eventId)) {
                 element.style.display = 'none';
-                console.log('🗑️ Hiding trashed event from calendar grid:', eventId);
+                // Console log removed
             } else {
                 element.style.display = 'block';
             }
@@ -3491,7 +3491,7 @@ class GoogleCalendarGrid {
         trashedEvents.push(trashedEvent);
         localStorage.setItem('trashedEvents', JSON.stringify(trashedEvents));
 
-        console.log('🗑️ Event moved to trash:', event.id, event.title);
+        // Console log removed
 
         // 휴지통 UI 업데이트 (있다면)
         if (window.updateTrashUI) {
@@ -3505,7 +3505,7 @@ class GoogleCalendarGrid {
         if (!permanentlyDeleted.includes(eventId)) {
             permanentlyDeleted.push(eventId);
             localStorage.setItem('permanentlyDeletedEvents', JSON.stringify(permanentlyDeleted));
-            console.log('🗑️ Event added to permanently deleted list:', eventId);
+            // Console log removed
         }
     }
 
@@ -3526,7 +3526,7 @@ class GoogleCalendarGrid {
         if (!lastCleanup || new Date(lastCleanup) < cutoffDate) {
             localStorage.setItem('permanentlyDeletedEvents', '[]');
             localStorage.setItem('lastPermanentDeleteCleanup', new Date().toISOString());
-            console.log('🧹 Cleaned up old permanently deleted events list');
+            // Console log removed
         }
     }
 
@@ -3550,7 +3550,7 @@ class GoogleCalendarGrid {
             this.saveToLocalStorage();
             this.renderEvent(eventToRestore);
             
-            console.log('♻️ Event restored from trash:', eventToRestore.title);
+            // Console log removed
             
             // 휴지통 UI 업데이트
             if (window.updateTrashUI) {
@@ -3586,7 +3586,7 @@ class GoogleCalendarGrid {
                     // Use backendId if available, otherwise use eventId
                     const dbEventId = event.backendId || eventId;
 
-                    console.log(`🗑️ Permanently deleting event from DB: ${dbEventId} (${eventTitle})`);
+                    // Console log removed
 
                     const response = await fetch(`/api/calendars/${calendarId}/events/${dbEventId}`, {
                         method: 'DELETE',
@@ -3597,18 +3597,18 @@ class GoogleCalendarGrid {
                     
                     if (response.ok || response.status === 404) {
                         if (response.status === 404) {
-                            console.log('✅ Event already deleted or not found on server:', eventTitle);
+                            // Console log removed
                         } else {
-                            console.log('✅ Event permanently deleted from server:', eventTitle);
+                            // Console log removed
                         }
                     } else {
-                        console.error('❌ Failed to delete from server, status:', response.status);
+                        // Console error removed
                     }
                 } catch (error) {
-                    console.error('Error deleting from server:', error);
+                    // Console error removed
                 }
             } else {
-                console.log('📱 Client-only event, no server deletion needed:', eventTitle);
+                // Console log removed
             }
             
             // 영구 삭제 목록에 추가 (동기화 시 재가져오기 방지)
@@ -3618,7 +3618,7 @@ class GoogleCalendarGrid {
             trashedEvents.splice(eventIndex, 1);
             localStorage.setItem('trashedEvents', JSON.stringify(trashedEvents));
 
-            console.log('🗑️ Event permanently deleted and added to blacklist:', eventTitle);
+            // Console log removed
 
             if (window.updateTrashUI) {
                 window.updateTrashUI();
@@ -3651,7 +3651,7 @@ class GoogleCalendarGrid {
             document.querySelectorAll(selector).forEach(el => {
                 el.remove();
                 removedCount++;
-                console.log('🗑️ Removed by ID selector:', selector);
+                // Console log removed
             });
         });
         
@@ -3677,7 +3677,7 @@ class GoogleCalendarGrid {
                         (dataTitle === eventTitle)) {
                         el.remove();
                         removedCount++;
-                        console.log('🎯 Removed by exact title match:', eventTitle, 'using selector:', selector);
+                        // Console log removed
                     }
                 });
             });
@@ -3698,12 +3698,12 @@ class GoogleCalendarGrid {
                     (eventTitle && elText.includes(eventTitle))) {
                     el.remove();
                     removedCount++;
-                    console.log('🗑️ Removed by class selector:', className);
+                    // Console log removed
                 }
             });
         });
         
-        console.log(`✅ DOM cleanup complete: ${removedCount} elements removed`);
+        // Console log removed
         return removedCount;
     }
 
@@ -3749,7 +3749,7 @@ class GoogleCalendarGrid {
         document.documentElement.style.setProperty('--sidebar-width', `${sidebarWidth}px`);
         document.documentElement.style.setProperty('--main-content-width', `${mainContentWidth}px`);
         
-        // console.log('📏 Updated dimensions - Sidebar:', sidebarWidth, 'Main content:', mainContentWidth);
+        // // Console log removed
     }
 
     // Handle window resize events for dynamic grid sizing
@@ -3766,7 +3766,7 @@ class GoogleCalendarGrid {
         // Update any open popups/modals
         this.repositionOpenPopups();
 
-        console.log('📐 Grid resized to viewport:', window.innerWidth, 'x', window.innerHeight);
+        // Console log removed
     }
 
     // Adjust grid layout for current viewport
@@ -3841,10 +3841,10 @@ class GoogleCalendarGrid {
 
     // 서버에서 받은 이벤트 데이터를 직접 로드하는 메서드
     loadEvents(events) {
-        console.log('📥 [DEBUG] loadEvents called with:', events?.length, 'events');
+        // Console log removed
         
         if (!events || !Array.isArray(events)) {
-            console.warn('⚠️ loadEvents called with invalid data:', events);
+            // Console warn removed
             return;
         }
         
@@ -3863,7 +3863,7 @@ class GoogleCalendarGrid {
                 // 렌더링
                 this.renderEvent(frontendEvent);
             } catch (error) {
-                console.error('Failed to process event:', event, error);
+                // Console error removed
             }
         });
         
@@ -3873,11 +3873,11 @@ class GoogleCalendarGrid {
         // localStorage에 백업
         this.saveToLocalStorage();
         
-        console.log('✅ [DEBUG] Loaded', this.events.length, 'events successfully');
+        // Console log removed
     }
     
     async loadExistingEvents() {
-        // console.log('📥 Loading existing events...');
+        // // Console log removed
         
         // Always load from localStorage first for immediate functionality
         this.loadBackupEvents();
@@ -3886,12 +3886,12 @@ class GoogleCalendarGrid {
         try {
             const calendarElement = document.querySelector('.calendar-workspace');
             if (!calendarElement?.dataset.calendarId) {
-                // console.log('⚠️ No calendar workspace or ID found, using localStorage only');
+                // // Console log removed
                 return;
             }
             
             const calendarId = calendarElement.dataset.calendarId;
-            // console.log('🔍 Fetching events for calendar:', calendarId);
+            // // Console log removed
             
             const response = await fetch(`/api/calendars/${calendarId}/events`);
             
@@ -3947,12 +3947,12 @@ class GoogleCalendarGrid {
                     this.loadBackupEvents();
                 }
             } else {
-                // console.log(`📝 Backend API returned ${response.status} - using localStorage`);
+                // // Console log removed
                 this.loadBackupEvents();
             }
             
         } catch (error) {
-            // console.log('📝 Backend connection failed - using localStorage:', error.message);
+            // // Console log removed
             this.loadBackupEvents();
         }
         
@@ -3961,19 +3961,19 @@ class GoogleCalendarGrid {
         try {
             const calendarElement = document.querySelector('.calendar-workspace');
             if (!calendarElement?.dataset.calendarId) {
-                // console.log('⚠️ No calendar workspace or ID found, using localStorage only');
+                // // Console log removed
                 this.loadBackupEvents();
                 return;
             }
             
             const calendarId = calendarElement.dataset.calendarId;
-            // console.log('🔍 Fetching events for calendar:', calendarId);
+            // // Console log removed
             
             const response = await fetch(`/api/calendars/${calendarId}/events`);
             
             if (response.ok) {
                 const events = await response.json();
-                // console.log('📅 Loaded events from backend:', events);
+                // // Console log removed
                 
                 // Clear existing events and render loaded ones
                 this.events = [];
@@ -3984,7 +3984,7 @@ class GoogleCalendarGrid {
                         this.events.push(frontendEvent);
                         this.renderEvent(frontendEvent);
                     });
-                    // console.log(`✅ Successfully loaded ${events.length} events from backend`);
+                    // // Console log removed
                     // Update the event list
                     this.updateEventList();
                 } else {
@@ -3992,12 +3992,12 @@ class GoogleCalendarGrid {
                     this.loadBackupEvents();
                 }
             } else {
-                // console.log(`📝 Backend API not available (${response.status}) - using localStorage`);
+                // // Console log removed
                 this.loadBackupEvents();
             }
             
         } catch (error) {
-            // console.log('📝 Backend connection failed - using localStorage:', error.message);
+            // // Console log removed
             this.loadBackupEvents();
         }
         */
@@ -4034,7 +4034,7 @@ class GoogleCalendarGrid {
                     }
                 }
             } catch (e) {
-                console.warn('Failed to parse start_datetime:', backendEvent.start_datetime);
+                // Console warn removed
             }
         }
         
@@ -4046,7 +4046,7 @@ class GoogleCalendarGrid {
                     endTime = endDateTime.toTimeString().slice(0, 5);
                 }
             } catch (e) {
-                console.warn('Failed to parse end_datetime:', backendEvent.end_datetime);
+                // Console warn removed
             }
         }
         
@@ -4079,7 +4079,7 @@ class GoogleCalendarGrid {
             color: backendEvent.color || '#3b82f6'
         };
         
-        // console.log('✅ Converted to frontend event:', convertedEvent);
+        // // Console log removed
         return convertedEvent;
     }
     
@@ -4089,9 +4089,9 @@ class GoogleCalendarGrid {
             const existing = JSON.parse(localStorage.getItem(storageKey) || '[]');
             existing.push(eventData);
             localStorage.setItem(storageKey, JSON.stringify(existing));
-            // console.log('💾 Event saved to localStorage backup');
+            // // Console log removed
         } catch (error) {
-            console.error('❌ Failed to save to localStorage:', error);
+            // Console error removed
         }
     }
     
@@ -4124,7 +4124,7 @@ class GoogleCalendarGrid {
 
             return validEvents;
         } catch (error) {
-            console.error('❌ Failed to load from localStorage:', error);
+            // Console error removed
             return [];
         }
     }
@@ -4203,7 +4203,7 @@ class GoogleCalendarGrid {
             this.preventNextCellClick = false;
         }, 1000); // Increased delay to 1 second for better prevention
         
-        // console.log('🚪 Event popup closed');
+        // // Console log removed
     }
 
     selectEventColor(color) {
@@ -4244,19 +4244,19 @@ class GoogleCalendarGrid {
 
     // Event Search and List Methods
     searchEvents(query) {
-        // console.log('🔍 Searching events for:', query);
+        // // Console log removed
         const results = this.events.filter(event => 
             event.title.toLowerCase().includes(query.toLowerCase()) ||
             (event.description && event.description.toLowerCase().includes(query.toLowerCase()))
         );
         
-        // console.log('🔍 Search results:', results);
+        // // Console log removed
         this.displaySearchResults(results, query);
         return results;
     }
     
     displaySearchResults(results, query) {
-        // console.log('📊 Displaying search results:', results.length);
+        // // Console log removed
         
         // Clear previous highlighting
         this.clearEventHighlighting();
@@ -4321,7 +4321,7 @@ class GoogleCalendarGrid {
     }
     
     initializeEventList() {
-        // console.log('📋 Initializing event list');
+        // // Console log removed
         this.updateEventList();
     }
     
@@ -4552,7 +4552,7 @@ function saveOverlayEvent(event) {
     // Get calendar instance
     const calendarInstance = window.googleCalendarGrid;
     if (!calendarInstance) {
-        console.error('Calendar instance not found');
+        // Console error removed
         return;
     }
     
@@ -4589,7 +4589,7 @@ function saveOverlayEvent(event) {
         showNotification(eventId ? '일정이 수정되었습니다' : '일정이 생성되었습니다', 'success');
     }
     
-    // console.log('📅 Event saved:', eventData);
+    // // Console log removed
 }
 
 // Override the original click handlers to use overlay form
@@ -4614,7 +4614,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // 🚨 NUCLEAR DOM REMOVAL - 강력한 즉시 제거 함수
 window.forceRemoveEventFromDOM = function(eventData) {
-    console.log('🚨 NUCLEAR DOM REMOVAL for:', eventData.title, 'ID:', eventData.id);
+    // Console log removed
     
     let removedCount = 0;
     
@@ -4631,7 +4631,7 @@ window.forceRemoveEventFromDOM = function(eventData) {
             el.style.display = 'none';
             el.remove();
             removedCount++;
-            console.log(`💀 ID removal: ${selector}`);
+            // Console log removed
         });
     });
     
@@ -4646,11 +4646,11 @@ window.forceRemoveEventFromDOM = function(eventData) {
             el.style.display = 'none';
             el.remove();
             removedCount++;
-            console.log(`💀 Title-based removal: "${eventData.title}"`);
+            // Console log removed
         }
     });
     
-    console.log(`✅ NUCLEAR REMOVAL: ${removedCount} elements removed`);
+    // Console log removed
     return removedCount;
 };
 

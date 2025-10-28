@@ -5,7 +5,7 @@
 
 // 중복 선언 방지
 if (typeof window.ThemeManager !== 'undefined') {
-    // console.log('🎨 ThemeManager already exists, skipping redefinition');
+    // // Console log removed
 } else {
 
 class ThemeManager {
@@ -36,7 +36,7 @@ class ThemeManager {
         localStorage.removeItem(this.THEME_KEY);
         localStorage.setItem(this.THEME_KEY, 'light');
         
-        console.log('🎨 Forced light mode only');
+        // Console log removed
     }
 
     /**
@@ -67,7 +67,7 @@ class ThemeManager {
         });
         
         localStorage.setItem(this.THEME_KEY, 'light');
-        console.log('🎨 Light theme applied (forced)');
+        // Console log removed
     }
 
     /**
@@ -76,7 +76,7 @@ class ThemeManager {
     toggleTheme() {
         // 다크 모드 토글 비활성화 - 항상 라이트 모드 유지
         this.forceLightMode();
-        console.log('🎨 Dark mode toggle disabled - staying in light mode');
+        // Console log removed
     }
 
     /**
@@ -111,10 +111,10 @@ class ThemeManager {
                 icon.style.display = 'none';
             });
         } catch (e) {
-            console.log('🎨 No theme icons found (this is expected)');
+            // Console log removed
         }
         
-        console.log('🎨 Dark mode toggles hidden');
+        // Console log removed
     }
 
     /**
@@ -142,7 +142,7 @@ if (!window.themeManager) {
 
 // Global utility functions - 모든 함수는 라이트 모드만 지원
 window.toggleTheme = () => {
-    console.log('🎨 Theme toggle disabled - light mode only');
+    // Console log removed
     window.themeManager.forceLightMode();
 };
 window.setTheme = (theme) => window.themeManager.forceLightMode();
@@ -171,6 +171,6 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = ThemeManager;
 }
 
-console.log('🎨 NotionFlow Theme Manager loaded - Light mode only');
+// Console log removed
 
 } // End of duplicate prevention check

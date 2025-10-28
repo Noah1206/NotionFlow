@@ -6,14 +6,14 @@ let selectedDate = '';
 
 // Initialize the calendar day page
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🗓️ Calendar Day page initialized');
+    // Console log removed
     
     // Get calendar ID and selected date from data attributes
     const workspace = document.querySelector('.calendar-day-workspace');
     if (workspace) {
         calendarId = workspace.dataset.calendarId;
         selectedDate = workspace.dataset.selectedDate;
-        console.log(`📅 Calendar ID: ${calendarId}, Selected Date: ${selectedDate}`);
+        // Console log removed
     }
     
     // Load saved data from localStorage
@@ -196,7 +196,7 @@ function loadDayEvents() {
 
 // Load tasks for the selected date
 function loadDayTasks() {
-    console.log('📋 Loading tasks for selected date');
+    // Console log removed
     // Tasks are already rendered in HTML template
     // This function can be expanded to load dynamic tasks from API
 }
@@ -257,7 +257,7 @@ function initializeExcelInteractions() {
                     this.style.transform = 'scale(1)';
                 }, 200);
                 
-                console.log('✅ Routine completed');
+                // Console log removed
                 updateProgressStats(); // Update stats when checkbox changes
             } else {
                 // Remove completed styling
@@ -275,7 +275,7 @@ function initializeExcelInteractions() {
                     activityDescription.style.color = '#6b7280';
                 }
                 
-                console.log('🔄 Routine uncompleted');
+                // Console log removed
             }
         });
     });
@@ -302,11 +302,11 @@ function initializeExcelInteractions() {
                     taskRow.style.transform = 'scale(1)';
                 }, 150);
                 
-                console.log('✅ Task completed');
+                // Console log removed
             } else {
                 // Remove completed class
                 taskRow.classList.remove('completed');
-                console.log('🔄 Task uncompleted');
+                // Console log removed
             }
         });
     });
@@ -345,7 +345,7 @@ function setupRowDragAndDrop(row, type) {
         placeholder.style.borderRadius = '8px';
         placeholder.style.margin = '4px 0';
         
-        console.log(`🔀 Started dragging ${type} row`);
+        // Console log removed
     });
     
     row.addEventListener('dragend', function(e) {
@@ -359,7 +359,7 @@ function setupRowDragAndDrop(row, type) {
         draggedElement = null;
         placeholder = null;
         
-        console.log(`✅ Finished dragging ${type} row`);
+        // Console log removed
     });
     
     row.addEventListener('dragover', function(e) {
@@ -410,7 +410,7 @@ function getDragAfterElement(container, y) {
 }
 
 function saveRowOrder(type) {
-    console.log(`💾 Saving ${type} row order`);
+    // Console log removed
     // Implement order persistence here
     // You could send the new order to your backend API
 }
@@ -644,7 +644,7 @@ function setupElementEditing(element, type) {
                     element.style.transition = '';
                 }, 300);
                 
-                console.log(`💾 Updated ${type} ${isTimeCell ? 'time' : 'text'}: "${originalValue}" → "${newValue}"`);
+                // Console log removed
                 
                 // Here you could save to server
                 saveTextChange(element, type, newValue);
@@ -700,7 +700,7 @@ function saveTextChange(element, type, newValue) {
     //     body: JSON.stringify(saveData)
     // });
     
-    console.log('📝 Text change saved:', saveData);
+    // Console log removed
 }
 
 // Modal functions
@@ -786,7 +786,7 @@ function saveEvent() {
         date: selectedDate
     };
     
-    console.log('💾 Saving event:', eventData);
+    // Console log removed
     
     // Here you would make an API call to save the event
     // For now, just show success message
@@ -880,7 +880,7 @@ function addRoutineItem() {
                 }
             });
             
-            console.log('✅ New routine item added with inline editing enabled');
+            // Console log removed
         }
     }
 }
@@ -958,7 +958,7 @@ function addTaskItem() {
                 }
             });
             
-            console.log('✅ New task item added with inline editing enabled');
+            // Console log removed
         }
     }
 }
@@ -970,7 +970,7 @@ function saveNotes() {
         const notesContent = notesTextarea.value;
         
         // Here you would save to API
-        console.log('💾 Saving notes:', notesContent);
+        // Console log removed
         
         // Show success feedback
         const saveBtn = document.querySelector('.save-notes-btn');
@@ -1059,7 +1059,7 @@ function addNoteItem() {
         }
         
         noteIdCounter++;
-        console.log('✅ New note added');
+        // Console log removed
     }
 }
 
@@ -1082,7 +1082,7 @@ function deleteNote(noteId) {
                 notesEmpty.style.display = 'flex';
             }
             
-            console.log(`🗑 Note ${noteId} deleted`);
+            // Console log removed
         }, 200);
     }
 }
@@ -1106,7 +1106,7 @@ function clearAllNotes() {
             if (notesEmpty) {
                 notesEmpty.style.display = 'flex';
             }
-            console.log('🗑 All notes cleared');
+            // Console log removed
         }, noteRows.length * 50 + 200);
     }
 }
@@ -1158,7 +1158,7 @@ function addProgressItem() {
         }
         
         progressIdCounter++;
-        console.log('✅ New progress metric added');
+        // Console log removed
     }
 }
 
@@ -1201,7 +1201,7 @@ function deleteProgress(progressId) {
                 progressEmpty.style.display = 'flex';
             }
             
-            console.log(`🗑 Progress ${progressId} deleted`);
+            // Console log removed
         }, 200);
     }
 }
@@ -1221,7 +1221,7 @@ function refreshProgress() {
         }
     });
     
-    console.log('🔄 Progress refreshed');
+    // Console log removed
 }
 
 // ===== TIME OVERVIEW SECTION =====
@@ -1266,7 +1266,7 @@ function addTimeItem() {
         }
         
         timeIdCounter++;
-        console.log('✅ New time item added');
+        // Console log removed
     }
 }
 
@@ -1289,7 +1289,7 @@ function deleteTime(timeId) {
                 timeEmpty.style.display = 'flex';
             }
             
-            console.log(`🗑 Time ${timeId} deleted`);
+            // Console log removed
         }, 200);
     }
 }
@@ -1315,7 +1315,7 @@ function syncCurrentTime() {
         }, 500);
     });
     
-    console.log('🕐 Current time synced');
+    // Console log removed
 }
 
 // ===== DAILY ROUTINE SECTION =====
@@ -1345,7 +1345,7 @@ function deleteRoutine(routineId) {
             // Save to localStorage
             saveToLocalStorage();
             
-            console.log(`🗑 Routine ${routineId} deleted`);
+            // Console log removed
         }, 200);
     }
 }
@@ -1376,7 +1376,7 @@ function clearAllRoutines() {
             // Save to localStorage
             saveToLocalStorage();
             
-            console.log('🗑 All routines cleared');
+            // Console log removed
         }, routineRows.length * 30 + 200);
     }
 }
@@ -1409,7 +1409,7 @@ function sortRoutinesByTime() {
             }, index * 50);
         });
         
-        console.log('↕ Routines sorted by time');
+        // Console log removed
     }
 }
 
@@ -1479,7 +1479,7 @@ function addRoutineItem() {
         
         // Save to localStorage
         saveToLocalStorage();
-        console.log('✅ New routine added');
+        // Console log removed
     }
 }
 
@@ -1529,7 +1529,7 @@ function saveCommitment() {
     if (textarea && saveBtn) {
         // Save to localStorage
         saveToLocalStorage();
-        console.log('💾 Saving commitment:', textarea.value);
+        // Console log removed
         
         // Visual feedback
         const originalText = saveBtn.textContent;
@@ -1552,7 +1552,7 @@ function clearCommitment() {
         
         // Save to localStorage
         saveToLocalStorage();
-        console.log('🗑 Commitment cleared');
+        // Console log removed
     }
 }
 
@@ -1650,7 +1650,7 @@ function addTaskItem() {
         
         // Save to localStorage
         saveToLocalStorage();
-        console.log('✅ New task added');
+        // Console log removed
     }
 }
 
@@ -1675,7 +1675,7 @@ function deleteTask(taskId) {
             
             // Save to localStorage
             saveToLocalStorage();
-            console.log(`🗑 Task ${taskId} deleted`);
+            // Console log removed
         }, 200);
     }
 }
@@ -1702,7 +1702,7 @@ function clearAllTasks() {
             
             // Save to localStorage
             saveToLocalStorage();
-            console.log('🗑 All tasks cleared');
+            // Console log removed
         }, taskRows.length * 30 + 200);
     }
 }
@@ -1786,7 +1786,7 @@ function saveToLocalStorage() {
     // Update weekly calendar with new commitment
     updateCurrentDayCommitment(data.commitment);
     
-    console.log('💾 Data saved to localStorage');
+    // Console log removed
 }
 
 // Update current day's commitment in weekly calendar
@@ -1811,7 +1811,7 @@ function loadSavedData() {
     if (savedData) {
         try {
             const data = JSON.parse(savedData);
-            console.log('📂 Loading saved data:', data);
+            // Console log removed
             
             // Load commitment
             if (data.commitment) {
@@ -1869,7 +1869,7 @@ function loadSavedData() {
             }
             
         } catch (e) {
-            console.error('Error loading saved data:', e);
+            // Console error removed
         }
     }
     
@@ -2092,7 +2092,7 @@ function loadWeeklyCommitments(startOfWeek) {
                     updateDayCommitment(dateString, data.commitment, variants[i % variants.length]);
                 }
             } catch (e) {
-                console.error('Error loading commitment for date:', dateString, e);
+                // Console error removed
             }
         }
     }
@@ -2125,24 +2125,24 @@ function updateWeeklyCalendar() {
 // 날씨 데이터 로드 함수
 async function loadWeatherData() {
     try {
-        console.log('🌤️ Loading weather data...');
+        // Console log removed
         
         // 서울 날씨 정보 가져오기 (기본값)
         const response = await fetch('/api/weather/Seoul');
         const data = await response.json();
         
         if (data.success) {
-            console.log('✅ Weather data loaded:', data.weather);
+            // Console log removed
             displayWeatherInCalendar(data.weather);
             
             // 날씨 데이터를 전역 변수에 저장
             window.weeklyWeatherData = data.weather;
         } else {
-            console.warn('⚠️ Failed to load weather data, using fallback');
+            // Console warn removed
             displayFallbackWeather();
         }
     } catch (error) {
-        console.error('❌ Error loading weather data:', error);
+        // Console error removed
         displayFallbackWeather();
     }
 }
@@ -2292,7 +2292,7 @@ function setupTimeClickHandlers() {
 
 // 시간대 하이라이트 함수
 function highlightTimeSlot(timeText, routineRow) {
-    console.log(`🕐 시간 선택: ${timeText}`);
+    // Console log removed
     
     // 이전 하이라이트 제거
     clearTimeHighlight();

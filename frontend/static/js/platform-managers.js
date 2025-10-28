@@ -9,7 +9,7 @@ class PlatformManager {
         this.platform = platform;
         this.card = document.querySelector(`[data-platform="${platform}"]`);
         if (!this.card) {
-            console.error(`Platform card not found for: ${platform}`);
+            // Console error removed
             return;
         }
         
@@ -150,7 +150,7 @@ class PlatformManager {
         if (typeof showNotification === 'function') {
             showNotification(message, type);
         } else {
-            console.log(`${type.toUpperCase()}: ${message}`);
+            // Console log removed
         }
     }
     
@@ -207,7 +207,7 @@ class NotionManager extends PlatformManager {
             }
             
         } catch (error) {
-            console.error('Notion connection error:', error);
+            // Console error removed
             this.showNotification(`${this.getKoreanName()} 연결 실패: ${error.message}`, 'error');
             this.updateStatus('disconnected');
         } finally {
@@ -237,7 +237,7 @@ class NotionManager extends PlatformManager {
             }
             
         } catch (error) {
-            console.error('Notion disconnection error:', error);
+            // Console error removed
             this.showNotification(`연결 해제 중 오류: ${error.message}`, 'error');
         } finally {
             this.hideLoading(this.oneClickBtn);
@@ -258,7 +258,7 @@ class NotionManager extends PlatformManager {
                 }
             }
         } catch (error) {
-            console.error('Error checking Notion status:', error);
+            // Console error removed
             this.updateStatus('disconnected');
         }
     }
@@ -334,7 +334,7 @@ class NotionManager extends PlatformManager {
                 headers: { 'Content-Type': 'application/json' }
             });
         } catch (error) {
-            console.error('Error marking Notion as connected:', error);
+            // Console error removed
         }
     }
 }
@@ -350,7 +350,7 @@ class GoogleManager extends PlatformManager {
         
         // Clear manual disconnect flag when user explicitly clicks connect
         localStorage.removeItem('google_manually_disconnected');
-        console.log('User clicked connect - cleared manual disconnect flag');
+        // Console log removed
         
         try {
             // Start OAuth process
@@ -363,7 +363,7 @@ class GoogleManager extends PlatformManager {
                 // Clear manual disconnection flag on fresh OAuth connection
                 localStorage.removeItem('google_manually_disconnected');
                 localStorage.removeItem('google_last_connected');
-                console.log('Google OAuth success - cleared disconnection flags');
+                // Console log removed
                 
                 // Show calendar selection modal for fresh connections
                 this.showNotification('Google OAuth 연결 완료 - 캘린더 선택 중...', 'success');
@@ -380,7 +380,7 @@ class GoogleManager extends PlatformManager {
                 try {
                     await this.showCalendarSelection();
                 } catch (calendarError) {
-                    console.error('Calendar selection failed:', calendarError);
+                    // Console error removed
                     // OAuth는 성공했으므로 logged_in 상태 유지
                     this.updateStatus('logged_in');
                     // 에러는 showCalendarSelection에서 이미 표시됨
@@ -390,7 +390,7 @@ class GoogleManager extends PlatformManager {
             }
             
         } catch (error) {
-            console.error('Google connection error:', error);
+            // Console error removed
             this.showNotification(`${this.getKoreanName()} 연결 실패: ${error.message}`, 'error');
             this.updateStatus('disconnected');
         } finally {
@@ -440,7 +440,7 @@ class GoogleManager extends PlatformManager {
                 localStorage.removeItem('google_last_connected');
                 localStorage.removeItem('google_oauth_connected');  // OAuth 상태도 제거
 
-                console.log('🔓 [GOOGLE] 완전 연결 해제 - OAuth 토큰 및 모든 연결 정보 삭제됨');
+                // Console log removed
 
                 this.updateStatus('disconnected');
                 this.showNotification(`${this.getKoreanName()} 연결이 완전히 해제되었습니다.`, 'success');
@@ -455,7 +455,7 @@ class GoogleManager extends PlatformManager {
             }
 
         } catch (error) {
-            console.error('Google disconnection error:', error);
+            // Console error removed
             this.showNotification(`연결 해제 중 오류: ${error.message}`, 'error');
         } finally {
             this.hideLoading(this.oneClickBtn);
@@ -472,7 +472,7 @@ class GoogleManager extends PlatformManager {
 
             // If manually disconnected, don't restore connection
             if (manuallyDisconnected === 'true') {
-                console.log('🔒 [GOOGLE] Manual disconnection detected - keeping disconnected state');
+                // Console log removed
                 this.updateStatus('disconnected');
                 return;
             }
@@ -484,7 +484,7 @@ class GoogleManager extends PlatformManager {
                 if (googleStateData.success) {
                     if (googleStateData.oauth_connected && googleStateData.calendar_connected) {
                         // Fully connected (OAuth + calendar selected)
-                        console.log('✅ [GOOGLE] Server confirms full connection - restoring connected state');
+                        // Console log removed
                         this.updateStatus('connected');
 
                         // Sync localStorage with server state
@@ -495,7 +495,7 @@ class GoogleManager extends PlatformManager {
                         return;
                     } else if (googleStateData.oauth_connected && googleStateData.needs_calendar_selection) {
                         // OAuth connected but needs calendar selection
-                        console.log('🔄 [GOOGLE] OAuth connected, calendar selection needed');
+                        // Console log removed
                         this.updateStatus('logged_in');
 
                         // Clear localStorage connection state but keep OAuth
@@ -520,11 +520,11 @@ class GoogleManager extends PlatformManager {
                     const status = data.platforms?.google;
 
                     if (status && status.configured && status.enabled) {
-                        console.log('✅ [GOOGLE] Backend confirms connection - restoring connected state');
+                        // Console log removed
                         this.updateStatus('connected');
                         return;
                     } else {
-                        console.log('⚠️ [GOOGLE] Backend connection lost - clearing localStorage');
+                        // Console log removed
                         // Clear stale localStorage data
                         localStorage.removeItem('google_calendar_connected');
                         localStorage.removeItem('google_calendar_id');
@@ -546,7 +546,7 @@ class GoogleManager extends PlatformManager {
                 }
             }
         } catch (error) {
-            console.error('Error checking Google status:', error);
+            // Console error removed
             this.updateStatus('disconnected');
         }
     }
@@ -616,7 +616,7 @@ class GoogleManager extends PlatformManager {
     }
     
     clearAllBlurOverlays() {
-        console.log('🧹 [BLUR CLEANUP] Removing ALL blur overlays from the page');
+        // Console log removed
 
         // Remove all modal-related elements
         const elementsToRemove = [
@@ -632,7 +632,7 @@ class GoogleManager extends PlatformManager {
 
         elementsToRemove.forEach(selector => {
             document.querySelectorAll(selector).forEach(el => {
-                console.log('🗑️ [BLUR CLEANUP] Removing blur element:', el.className || el.id);
+                // Console log removed
                 el.remove();
             });
         });
@@ -656,29 +656,29 @@ class GoogleManager extends PlatformManager {
             if (el.style.position === 'fixed' && (el.style.background || el.style.backgroundColor)) {
                 const bgColor = el.style.background || el.style.backgroundColor;
                 if (bgColor.includes('rgba') && el !== document.getElementById('google-calendar-modal-ultimate')) {
-                    console.log('🗑️ [BLUR CLEANUP] Removing fixed overlay:', el.className || el.id);
+                    // Console log removed
                     el.remove();
                 }
             }
         });
 
-        console.log('✅ [BLUR CLEANUP] All blur overlays removed');
+        // Console log removed
     }
 
     async showCalendarSelection() {
         try {
-            console.log('📅 [GOOGLE] Starting calendar selection...');
+            // Console log removed
 
             // Fetch Google Calendars using the API
             const response = await fetch('/api/google-calendars');
             if (!response.ok) {
                 const errorData = await response.json();
-                console.error('Google Calendar API error:', errorData);
+                // Console error removed
                 throw new Error(errorData.error || `Google Calendar 조회 실패: ${response.status}`);
             }
 
             const data = await response.json();
-            console.log('Google Calendar API response:', data);
+            // Console log removed
 
             if (!data.success) {
                 throw new Error(data.error || 'Google Calendar 조회에 실패했습니다');
@@ -692,7 +692,7 @@ class GoogleManager extends PlatformManager {
             this.createFallbackCalendarModal(data.calendars);
 
         } catch (error) {
-            console.error('Calendar selection error:', error);
+            // Console error removed
 
             // 에러 타입에 따라 다른 알림 표시
             if (error.message.includes('인증이 만료되었습니다') || error.message.includes('연결을 해제한 후 다시 연결')) {
@@ -712,7 +712,7 @@ class GoogleManager extends PlatformManager {
     
     async connectCalendar(calendarId) {
         try {
-            console.log(`🔗 [GOOGLE] Connecting user calendar: ${calendarId}`);
+            // Console log removed
 
             // Connect to user's calendar (not Google calendar ID) - similar to Notion
             const response = await fetch(`/api/google-calendar/connect-calendar`, {
@@ -730,7 +730,7 @@ class GoogleManager extends PlatformManager {
                 localStorage.setItem('google_last_connected', new Date().toISOString());
                 localStorage.removeItem('google_manually_disconnected');
 
-                console.log('✅ [GOOGLE] Calendar connection completed:', result);
+                // Console log removed
 
                 this.updateStatus('connected');
 
@@ -750,14 +750,14 @@ class GoogleManager extends PlatformManager {
             }
 
         } catch (error) {
-            console.error('Calendar connection error:', error);
+            // Console error removed
             this.showNotification(`캘린더 연결 중 오류: ${error.message}`, 'error');
         }
     }
 
     async showUserCalendarSelection(googleCalendarId) {
         try {
-            console.log('📅 [GOOGLE] Step 2: Showing user calendars for Google calendar:', googleCalendarId);
+            // Console log removed
 
             // Fetch user's NotionFlow calendars
             const response = await fetch('/api/calendars');
@@ -766,7 +766,7 @@ class GoogleManager extends PlatformManager {
             }
 
             const calendarData = await response.json();
-            console.log('📅 [GOOGLE] Calendar data:', calendarData);
+            // Console log removed
 
             // Extract all calendars from the response (personal + shared)
             const allCalendars = [
@@ -774,7 +774,7 @@ class GoogleManager extends PlatformManager {
                 ...(calendarData.shared_calendars || [])
             ];
 
-            console.log('📅 [GOOGLE] All user calendars:', allCalendars);
+            // Console log removed
 
             // Close the first modal and show the second step
             const existingModal = document.getElementById('google-calendar-modal-ultimate');
@@ -786,18 +786,18 @@ class GoogleManager extends PlatformManager {
             this.createUserCalendarSelectionModal(allCalendars, googleCalendarId);
 
         } catch (error) {
-            console.error('Error in showUserCalendarSelection:', error);
+            // Console error removed
             alert(`사용자 캘린더 목록을 가져오는 중 오류가 발생했습니다: ${error.message}`);
         }
     }
 
     createUserCalendarSelectionModal(userCalendars, googleCalendarId) {
-        console.log('🚀 [GOOGLE] Creating Step 2 Modal - User Calendar Selection');
-        console.log('📅 [GOOGLE] User calendars for modal:', userCalendars);
+        // Console log removed
+        // Console log removed
 
         // Check if userCalendars is empty or not an array
         if (!userCalendars || !Array.isArray(userCalendars) || userCalendars.length === 0) {
-            console.log('⚠️ [GOOGLE] No user calendars available');
+            // Console log removed
             alert('연결할 캘린더가 없습니다. 먼저 캘린더를 생성해주세요.');
             return;
         }
@@ -908,7 +908,7 @@ class GoogleManager extends PlatformManager {
         window.selectedGoogleCalendarId = googleCalendarId;
 
         window.selectUserCalendar = function(calendarId, element) {
-            console.log('📅 [GOOGLE] User calendar selected:', calendarId);
+            // Console log removed
             // Remove previous selection
             document.querySelectorAll('#user-calendar-selection-modal [onclick*="selectUserCalendar"]').forEach(el => {
                 el.style.borderColor = '#e5e7eb';
@@ -955,7 +955,7 @@ class GoogleManager extends PlatformManager {
                             localStorage.setItem('google_last_connected', new Date().toISOString());
                             localStorage.removeItem('google_manually_disconnected');
 
-                            console.log('✅ [GOOGLE] Calendar connection completed:', result);
+                            // Console log removed
                             googleManager.updateStatus('connected');
 
                             const message = result.synced_count !== undefined ?
@@ -978,7 +978,7 @@ class GoogleManager extends PlatformManager {
                         }
                     }
                 } catch (error) {
-                    console.error('User calendar connection error:', error);
+                    // Console error removed
                     alert('캘린더 연결 중 오류가 발생했습니다: ' + error.message);
                 }
             }
@@ -988,7 +988,7 @@ class GoogleManager extends PlatformManager {
     }
 
     createFallbackCalendarModal(calendars) {
-        console.log('🚀 [GOOGLE] Creating Ultimate Google Calendar Modal with calendars:', calendars);
+        // Console log removed
 
         // Remove any existing modals more aggressively
         const existingModals = [
@@ -1002,7 +1002,7 @@ class GoogleManager extends PlatformManager {
 
         existingModals.forEach(modal => {
             if (modal && modal.remove) {
-                console.log('🗑️ [GOOGLE] Removing existing modal:', modal.id || modal.className);
+                // Console log removed
                 modal.remove();
             }
         });
@@ -1010,13 +1010,13 @@ class GoogleManager extends PlatformManager {
         // Wait a moment for cleanup
         setTimeout(() => {
 
-        console.log('🚀 [GOOGLE] Creating ULTIMATE modal with nuclear approach...');
+        // Console log removed
 
         // Create modal HTML with COMPLETE inline styling (no CSS classes)
         const modal = document.createElement('div');
         modal.id = 'google-calendar-modal-ultimate';
         // FORCE REMOVE ALL BLUR OVERLAYS AND MODALS
-        console.log('🧹 [CLEANUP] Removing ALL blur overlays and modal elements');
+        // Console log removed
 
         // Remove all modal-related elements that could cause blur
         const elementsToRemove = [
@@ -1034,7 +1034,7 @@ class GoogleManager extends PlatformManager {
         elementsToRemove.forEach(selector => {
             document.querySelectorAll(selector).forEach(el => {
                 if (el !== modal) {
-                    console.log('🗑️ [CLEANUP] Removing element:', el.className || el.id);
+                    // Console log removed
                     el.remove();
                 }
             });
@@ -1294,7 +1294,7 @@ class GoogleManager extends PlatformManager {
         // Add global functions for calendar selection
         window.selectedCalendarId = null;
         window.selectGoogleCalendar = function(calendarId, element) {
-            console.log('📅 [GOOGLE] Calendar selected:', calendarId);
+            // Console log removed
 
             // Remove previous selection
             document.querySelectorAll('#google-calendar-modal-ultimate [onclick*="selectGoogleCalendar"]').forEach(el => {
@@ -1318,7 +1318,7 @@ class GoogleManager extends PlatformManager {
 
         window.connectSelectedCalendar = async function() {
             if (window.selectedCalendarId) {
-                console.log('🔗 [GOOGLE] Moving to step 2 - showing user calendars for Google calendar:', window.selectedCalendarId);
+                // Console log removed
 
                 try {
                     const googleManager = PlatformManagerFactory.get('google');
@@ -1327,7 +1327,7 @@ class GoogleManager extends PlatformManager {
                         await googleManager.showUserCalendarSelection(window.selectedCalendarId);
                     }
                 } catch (error) {
-                    console.error('Step 2 error:', error);
+                    // Console error removed
                     alert('캘린더 목록을 가져오는 중 오류가 발생했습니다: ' + error.message);
                 }
             }
@@ -1356,13 +1356,13 @@ class GoogleManager extends PlatformManager {
             modal.style.setProperty('opacity', '1', 'important');
             modal.style.setProperty('z-index', '2147483647', 'important');
 
-            console.log('🔥 [GOOGLE] FORCE DISPLAYED - Modal should now be visible!');
-            console.log('📅 [GOOGLE] Modal element:', modal);
-            console.log('📅 [GOOGLE] Modal computed style:', getComputedStyle(modal).display);
-            console.log('📅 [GOOGLE] Modal z-index:', getComputedStyle(modal).zIndex);
+            // Console log removed
+            // Console log removed
+            // Console log removed
+            // Console log removed
         }, 50);
 
-        console.log('✅ [GOOGLE] Fallback modal created and displayed');
+        // Console log removed
 
         // Add event listeners
         let selectedCalendarId = null;
@@ -1413,7 +1413,7 @@ class GoogleManager extends PlatformManager {
             if (e.target === modal) {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('🔒 [GOOGLE] Modal background click prevented');
+                // Console log removed
             }
         });
 
@@ -1428,14 +1428,14 @@ class GoogleManager extends PlatformManager {
     // Google Calendar 동기화 메서드 추가
     async syncCalendarEvents() {
         if (!this.syncBtn) {
-            console.error('Sync button not found');
+            // Console error removed
             return;
         }
         
         this.showLoading(this.syncBtn);
         
         try {
-            console.log('🔄 Starting Google Calendar sync...');
+            // Console log removed
             
             const response = await fetch('/api/google-calendar/sync', {
                 method: 'POST',
@@ -1453,7 +1453,7 @@ class GoogleManager extends PlatformManager {
                     await window.googleCalendarGrid.loadFromBackend();
                 }
                 
-                console.log('✅ Google Calendar sync completed:', result);
+                // Console log removed
                 
             } else {
                 const error = result.error || 'Google Calendar 동기화 실패';
@@ -1461,7 +1461,7 @@ class GoogleManager extends PlatformManager {
             }
             
         } catch (error) {
-            console.error('Google Calendar sync error:', error);
+            // Console error removed
             this.showNotification(`Google Calendar 동기화 실패: ${error.message}`, 'error');
         } finally {
             this.hideLoading(this.syncBtn);
@@ -1481,7 +1481,7 @@ class GoogleManager extends PlatformManager {
                 };
             }
         } catch (error) {
-            console.error('Error checking Google Calendar sync status:', error);
+            // Console error removed
         }
         return null;
     }
@@ -1490,11 +1490,11 @@ class GoogleManager extends PlatformManager {
         try {
             // Get the Google calendar email from localStorage (stored during OAuth)
             const googleCalendarId = localStorage.getItem('google_oauth_email') || 'unknown@gmail.com';
-            console.log('🔍 [GOOGLE-OAUTH] DEBUG googleCalendarId from localStorage:', googleCalendarId);
+            // Console log removed
 
             const requestData = { calendar_id: googleCalendarId };
-            console.log('🔍 [GOOGLE-OAUTH] DEBUG request data:', requestData);
-            console.log('🔍 [GOOGLE-OAUTH] DEBUG JSON string:', JSON.stringify(requestData));
+            // Console log removed
+            // Console log removed
 
             const response = await fetch(`/api/platform/google/connect`, {
                 method: 'POST',
@@ -1502,17 +1502,17 @@ class GoogleManager extends PlatformManager {
                 body: JSON.stringify(requestData)
             });
 
-            console.log('🔍 [GOOGLE-OAUTH] Response status:', response.status);
+            // Console log removed
             const result = await response.json();
-            console.log('🔍 [GOOGLE-OAUTH] Response data:', result);
+            // Console log removed
 
             if (response.ok) {
-                console.log('✅ [GOOGLE] OAuth marked as connected in backend');
+                // Console log removed
             } else {
-                console.error('❌ [GOOGLE] Failed to mark OAuth as connected:', result);
+                // Console error removed
             }
         } catch (error) {
-            console.error('Error marking Google OAuth as connected:', error);
+            // Console error removed
         }
     }
 }
@@ -1600,7 +1600,7 @@ class PlatformManagerFactory {
                 this.managers[platform] = new SlackManager();
                 break;
             default:
-                console.error(`Unknown platform: ${platform}`);
+                // Console error removed
                 return null;
         }
         
@@ -1629,14 +1629,14 @@ window.connectPlatform = function(platform) {
         if (manager.connectBtn) {
             manager.connect();
         } else {
-            console.error(`Connect button not found for platform: ${platform}`);
+            // Console error removed
         }
     }
 };
 
 // Global function to clear all blur overlays
 window.clearAllBlurOverlays = function() {
-    console.log('🧹 [GLOBAL BLUR CLEANUP] Removing ALL blur overlays from the page');
+    // Console log removed
 
     // Remove all modal-related elements
     const elementsToRemove = [
@@ -1653,7 +1653,7 @@ window.clearAllBlurOverlays = function() {
     let removedCount = 0;
     elementsToRemove.forEach(selector => {
         document.querySelectorAll(selector).forEach(el => {
-            console.log('🗑️ [GLOBAL BLUR CLEANUP] Removing blur element:', el.className || el.id);
+            // Console log removed
             el.remove();
             removedCount++;
         });
@@ -1678,14 +1678,14 @@ window.clearAllBlurOverlays = function() {
         if (el.style.position === 'fixed' && (el.style.background || el.style.backgroundColor)) {
             const bgColor = el.style.background || el.style.backgroundColor;
             if (bgColor.includes('rgba') && el !== document.getElementById('google-calendar-modal-ultimate')) {
-                console.log('🗑️ [GLOBAL BLUR CLEANUP] Removing fixed overlay:', el.className || el.id);
+                // Console log removed
                 el.remove();
                 removedCount++;
             }
         }
     });
 
-    console.log(`✅ [GLOBAL BLUR CLEANUP] Removed ${removedCount} blur overlay elements`);
+    // Console log removed
     return removedCount;
 };
 
@@ -1705,7 +1705,7 @@ window.oneClickDisconnect = function(platform) {
 
 // Initialize all platform managers on page load
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Initializing platform managers...');
+    // Console log removed
     
     // Check status for all platforms
     setTimeout(() => {

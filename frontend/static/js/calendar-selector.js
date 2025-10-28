@@ -17,7 +17,7 @@ class CalendarSelector {
     async init(containerId, options = {}) {
         this.container = document.getElementById(containerId);
         if (!this.container) {
-            console.error('Calendar selector container not found');
+            // Console error removed
             return;
         }
 
@@ -49,7 +49,7 @@ class CalendarSelector {
             
             return this.calendars;
         } catch (error) {
-            console.error('Error loading calendars:', error);
+            // Console error removed
             return [];
         }
     }
@@ -85,7 +85,7 @@ class CalendarSelector {
             
             return this.events;
         } catch (error) {
-            console.error('Error loading events:', error);
+            // Console error removed
             return [];
         }
     }

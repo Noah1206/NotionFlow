@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // For testing: set a test access token if none exists
     if (!localStorage.getItem('access_token')) {
         localStorage.setItem('access_token', 'test_token_12345678901234567890');
-        console.log('✅ Set test access token for development');
+        // Console log removed
     }
     
     // Immediately update avatar from localStorage for instant loading
@@ -44,7 +44,7 @@ async function loadCurrentUser() {
             updateMyStoryAvatar();
         }
     } catch (error) {
-        console.error('Error loading user:', error);
+        // Console error removed
     }
 }
 
@@ -85,7 +85,7 @@ async function loadFriends() {
             updateFilterOptions();
         }
     } catch (error) {
-        console.error('Error loading friends:', error);
+        // Console error removed
         friends = []; // Ensure friends is always an array
         showNotification('친구 목록을 불러오는데 실패했습니다.', 'error');
     }
@@ -107,7 +107,7 @@ async function loadFriendCalendars() {
             updateStats();
         }
     } catch (error) {
-        console.error('Error loading friend calendars:', error);
+        // Console error removed
         friendCalendars = []; // Ensure friendCalendars is always an array
         showNotification('캘린더 목록을 불러오는데 실패했습니다.', 'error');
     }
@@ -126,7 +126,7 @@ function renderStoryBar() {
     
     // Ensure friends is an array before using forEach
     if (!Array.isArray(friends)) {
-        console.warn('friends is not an array:', friends);
+        // Console warn removed
         return;
     }
     
@@ -209,7 +209,7 @@ function renderCalendarTable(calendars = null) {
     // Ensure we have an array to work with
     let calendarsToRender = calendars || friendCalendars;
     if (!Array.isArray(calendarsToRender)) {
-        console.warn('calendarsToRender is not an array:', calendarsToRender);
+        // Console warn removed
         calendarsToRender = [];
     }
     
@@ -296,7 +296,7 @@ async function viewCalendarDetail(calendarId) {
         // Navigate to calendar detail page
         window.location.href = `/calendar/${calendarId}`;
     } catch (error) {
-        console.error('Error viewing calendar:', error);
+        // Console error removed
         showNotification('캘린더를 불러오는데 실패했습니다.', 'error');
     }
 }
@@ -311,7 +311,7 @@ function updateFilterOptions() {
     
     // Ensure friends is an array before using forEach
     if (!Array.isArray(friends)) {
-        console.warn('friends is not an array:', friends);
+        // Console warn removed
         return;
     }
     
@@ -372,7 +372,7 @@ async function checkFriendRequests() {
             }
         }
     } catch (error) {
-        console.error('Error checking friend requests:', error);
+        // Console error removed
     }
 }
 
@@ -489,7 +489,7 @@ async function loadFriendRequests() {
             renderFriendRequests(requests);
         }
     } catch (error) {
-        console.error('Error loading friend requests:', error);
+        // Console error removed
     }
 }
 
@@ -547,7 +547,7 @@ async function searchFriend() {
             showNotification('사용자를 찾을 수 없습니다.', 'warning');
         }
     } catch (error) {
-        console.error('Error searching friend:', error);
+        // Console error removed
         showNotification('검색 중 오류가 발생했습니다.', 'error');
     }
 }
@@ -603,7 +603,7 @@ async function sendFriendRequest(userId) {
             showNotification(error.message || '요청 전송에 실패했습니다.', 'error');
         }
     } catch (error) {
-        console.error('Error sending friend request:', error);
+        // Console error removed
         showNotification('요청 전송 중 오류가 발생했습니다.', 'error');
     }
 }
@@ -625,7 +625,7 @@ async function acceptRequest(requestId) {
             checkFriendRequests();
         }
     } catch (error) {
-        console.error('Error accepting request:', error);
+        // Console error removed
         showNotification('요청 수락에 실패했습니다.', 'error');
     }
 }
@@ -646,7 +646,7 @@ async function declineRequest(requestId) {
             checkFriendRequests();
         }
     } catch (error) {
-        console.error('Error declining request:', error);
+        // Console error removed
         showNotification('요청 거절에 실패했습니다.', 'error');
     }
 }
@@ -745,7 +745,7 @@ async function loadMyCalendars() {
             emptyEl.style.display = 'block';
         }
     } catch (error) {
-        console.error('Error loading my calendars:', error);
+        // Console error removed
         emptyEl.style.display = 'block';
     } finally {
         loadingEl.style.display = 'none';
@@ -885,7 +885,7 @@ async function loadFriendsForSharing() {
             listEl.innerHTML = '<div class="empty-state">친구가 없습니다.</div>';
         }
     } catch (error) {
-        console.error('Error loading friends:', error);
+        // Console error removed
         listEl.innerHTML = '<div class="error-state">친구 목록을 불러올 수 없습니다.</div>';
     }
 }
@@ -969,7 +969,7 @@ async function shareWithSelectedFriends() {
             showNotification('캘린더 공유에 실패했습니다.', 'error');
         }
     } catch (error) {
-        console.error('Error sharing calendar:', error);
+        // Console error removed
         showNotification('캘린더 공유 중 오류가 발생했습니다.', 'error');
     } finally {
         shareBtn.textContent = originalText;
@@ -1018,7 +1018,7 @@ async function loadSharedCalendars() {
             emptyEl.style.display = 'block';
         }
     } catch (error) {
-        console.error('Error loading shared calendars:', error);
+        // Console error removed
         emptyEl.style.display = 'block';
     } finally {
         loadingEl.style.display = 'none';
@@ -1138,11 +1138,11 @@ function searchUsers(query) {
                     showSearchState('empty');
                 }
             } else {
-                console.error('Search failed:', data.error);
+                // Console error removed
                 showSearchState('empty');
             }
         } catch (error) {
-            console.error('Search error:', error);
+            // Console error removed
             showSearchState('empty');
         }
     }, 300); // 300ms debounce
@@ -1262,7 +1262,7 @@ async function sendFriendRequestToUser(userId, userName, buttonElement) {
             buttonElement.disabled = false;
         }
     } catch (error) {
-        console.error('Error sending friend request:', error);
+        // Console error removed
         showNotification('친구 요청을 보내는 중 오류가 발생했습니다.', 'error');
         
         // Restore button
@@ -1308,7 +1308,7 @@ function showNotification(message, type = 'info') {
         window.NotificationUtils.show(message, type);
     } else {
         // Fallback to console
-        console.log(`[${type.toUpperCase()}] ${message}`);
+        // Console log removed
     }
 }
 
@@ -1382,7 +1382,7 @@ async function headerSearchFriends(query) {
                 `;
             }
         } catch (error) {
-            console.error('Search error:', error);
+            // Console error removed
             resultsContainer.innerHTML = `
                 <div class="search-empty-state">
                     서버에 연결할 수 없습니다.
@@ -1564,7 +1564,7 @@ async function sendFriendRequestFromPopup(userId, userName) {
             showNotification(error.error || '친구 요청 전송에 실패했습니다.', 'error');
         }
     } catch (error) {
-        console.error('Friend request error:', error);
+        // Console error removed
         showNotification('서버 연결에 실패했습니다.', 'error');
     }
     
@@ -1606,7 +1606,7 @@ async function sendQuickFriendRequest(userId, userName, buttonElement) {
             buttonElement.disabled = false;
         }
     } catch (error) {
-        console.error('Error sending friend request:', error);
+        // Console error removed
         showNotification('요청 전송 중 오류가 발생했습니다.', 'error');
         buttonElement.textContent = originalText;
         buttonElement.disabled = false;
@@ -1658,7 +1658,7 @@ async function updateUserAvatar(avatarUrl) {
             showNotification('프로필 사진 업데이트에 실패했습니다.', 'error');
         }
     } catch (error) {
-        console.error('Error updating avatar:', error);
+        // Console error removed
         showNotification('프로필 사진 업데이트 중 오류가 발생했습니다.', 'error');
     }
 }
@@ -1731,7 +1731,7 @@ async function loadFriendRequestsForNotifications() {
             showNotificationError();
         }
     } catch (error) {
-        console.error('Failed to load friend requests:', error);
+        // Console error removed
         showNotificationError();
     }
 }
@@ -1839,7 +1839,7 @@ async function acceptFriendRequestFromNotification(requestId, buttonElement) {
             buttonElement.textContent = originalText;
         }
     } catch (error) {
-        console.error('Accept friend request error:', error);
+        // Console error removed
         showNotification('서버 연결에 실패했습니다.', 'error');
         buttonElement.disabled = false;
         buttonElement.textContent = originalText;
@@ -1885,7 +1885,7 @@ async function declineFriendRequestFromNotification(requestId, buttonElement) {
             buttonElement.textContent = originalText;
         }
     } catch (error) {
-        console.error('Decline friend request error:', error);
+        // Console error removed
         showNotification('서버 연결에 실패했습니다.', 'error');
         buttonElement.disabled = false;
         buttonElement.textContent = originalText;
@@ -1946,7 +1946,7 @@ async function updateNotificationBadge() {
             updateRequestBadge(requests.length);
         }
     } catch (error) {
-        console.error('Failed to load notification badge:', error);
+        // Console error removed
     }
 }
 

@@ -46,7 +46,7 @@ class AuthService {
                 };
             }
         } catch (error) {
-            console.error('Login error:', error);
+            // Console error removed
             return {
                 success: false,
                 message: '서버 연결 오류. 잠시 후 다시 시도해주세요.'
@@ -96,7 +96,7 @@ class AuthService {
                 };
             }
         } catch (error) {
-            console.error('Registration error:', error);
+            // Console error removed
             return {
                 success: false,
                 message: '서버 연결 오류. 잠시 후 다시 시도해주세요.'
@@ -122,7 +122,7 @@ class AuthService {
                 message: '로그아웃 되었습니다.'
             };
         } catch (error) {
-            console.error('Logout error:', error);
+            // Console error removed
             // Clear session storage even if server request fails
             sessionStorage.clear();
             return {
@@ -151,7 +151,7 @@ class AuthService {
             const result = await response.json();
             return result.authenticated || false;
         } catch (error) {
-            console.error('Auth status check error:', error);
+            // Console error removed
             return false;
         }
     }
@@ -173,7 +173,7 @@ class AuthService {
             }
             
             // Return a fallback user profile to prevent infinite loops
-            console.warn('API profile failed, using fallback');
+            // Console warn removed
             return {
                 id: sessionStorage.getItem('user_id') || 'unknown',
                 email: sessionStorage.getItem('user_email') || 'unknown@example.com',
@@ -181,7 +181,7 @@ class AuthService {
                 display_name: 'User'
             };
         } catch (error) {
-            console.error('Get current user error:', error);
+            // Console error removed
             // Return fallback profile
             return {
                 id: sessionStorage.getItem('user_id') || 'unknown',
@@ -218,7 +218,7 @@ class AuthService {
             }
             
             // If API fails, return fallback dashboard URL to prevent infinite loops
-            console.warn('Dashboard URL API failed, using fallback');
+            // Console warn removed
             return '/dashboard';
 
             // Fallback: If API fails, try to get user info and generate URL
@@ -248,7 +248,7 @@ class AuthService {
             return '/dashboard?section=calendar';
             
         } catch (error) {
-            console.error('Error getting dashboard URL:', error);
+            // Console error removed
             return '/dashboard?section=calendar';
         }
     }
@@ -277,7 +277,7 @@ class AuthService {
 
             return { success: false };
         } catch (error) {
-            console.error('Error getting dashboard info:', error);
+            // Console error removed
             return { success: false };
         }
     }
@@ -293,7 +293,7 @@ class AuthService {
                 return info;
             }
         } catch (error) {
-            console.error('Error showing dashboard URL:', error);
+            // Console error removed
         }
         
         return null;
@@ -312,7 +312,7 @@ class AuthService {
             const result = await response.json();
             return result.success || false;
         } catch (error) {
-            console.error('Session refresh error:', error);
+            // Console error removed
             return false;
         }
     }
@@ -334,7 +334,7 @@ class AuthService {
             const result = await response.json();
             return result;
         } catch (error) {
-            console.error('Username check error:', error);
+            // Console error removed
             return {
                 success: false,
                 available: false,
@@ -360,7 +360,7 @@ class AuthService {
             const result = await response.json();
             return result;
         } catch (error) {
-            console.error('Username suggestions error:', error);
+            // Console error removed
             return {
                 success: false,
                 suggestions: []
@@ -389,7 +389,7 @@ class AuthService {
             const result = await response.json();
             return result;
         } catch (error) {
-            console.error('Create profile error:', error);
+            // Console error removed
             return {
                 success: false,
                 message: '프로필 생성 중 오류가 발생했습니다.'

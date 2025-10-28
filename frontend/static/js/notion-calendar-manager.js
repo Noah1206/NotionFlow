@@ -13,7 +13,7 @@ class NotionCalendarManager {
         this.selectedNotionFlowCalendarId = null;
         this.selectedNotionFlowCalendarName = null;
 
-        console.log('🔧 [NOTION-MANAGER] Initialized');
+        // Console log removed
     }
 
     /**
@@ -21,12 +21,12 @@ class NotionCalendarManager {
      */
     async connect() {
         try {
-            console.log('🚀 [NOTION-MANAGER] Starting Notion calendar selection...');
+            // Console log removed
 
             // Show NotionFlow calendar selection
             await this.showNotionFlowCalendarSelection();
         } catch (error) {
-            console.error('❌ [NOTION-MANAGER] Connection failed:', error);
+            // Console error removed
             this.showNotification('Notion 캘린더 선택 중 오류가 발생했습니다.', 'error');
         }
     }
@@ -35,7 +35,7 @@ class NotionCalendarManager {
      * Show NotionFlow Calendar selection modal
      */
     async showNotionFlowCalendarSelection() {
-        console.log('📅 [NOTION-MANAGER] Loading NotionFlow calendars...');
+        // Console log removed
 
         try {
             // Fetch NotionFlow calendars
@@ -50,13 +50,13 @@ class NotionCalendarManager {
                 return;
             }
 
-            console.log(`📅 [NOTION-MANAGER] Found ${calendars.length} NotionFlow calendars`);
+            // Console log removed
 
             // Show selection modal
             this.createNotionFlowCalendarModal(calendars);
 
         } catch (error) {
-            console.error('❌ [NOTION-MANAGER] Failed to load NotionFlow calendars:', error);
+            // Console error removed
             throw error;
         }
     }
@@ -97,14 +97,14 @@ class NotionCalendarManager {
         `;
 
         document.body.insertAdjacentHTML('beforeend', modalHtml);
-        console.log('✅ [NOTION-MANAGER] NotionFlow calendar modal shown');
+        // Console log removed
     }
 
     /**
      * Handle NotionFlow calendar selection and perform final connection
      */
     async selectNotionFlowCalendar(calendarId, calendarName) {
-        console.log(`📅 [NOTION-MANAGER] Selected NotionFlow calendar: ${calendarId} (${calendarName})`);
+        // Console log removed
 
         try {
             // Perform connection
@@ -119,7 +119,7 @@ class NotionCalendarManager {
             const result = await response.json();
 
             if (result.success) {
-                console.log('✅ [NOTION-MANAGER] Connection successful!');
+                // Console log removed
 
                 // Close modal
                 this.closeModal('notion-calendar-modal');
@@ -138,7 +138,7 @@ class NotionCalendarManager {
             }
 
         } catch (error) {
-            console.error('❌ [NOTION-MANAGER] Connection failed:', error);
+            // Console error removed
             this.showNotification(`연결 실패: ${error.message}`, 'error');
         }
     }
@@ -165,7 +165,7 @@ class NotionCalendarManager {
             statusElement.className = 'platform-status connected';
         }
 
-        console.log('✅ [NOTION-MANAGER] UI updated to connected state');
+        // Console log removed
     }
 
     /**
@@ -175,7 +175,7 @@ class NotionCalendarManager {
         const modal = document.getElementById(modalId);
         if (modal) {
             modal.remove();
-            console.log(`🗑️ [NOTION-MANAGER] Closed modal: ${modalId}`);
+            // Console log removed
         }
     }
 
@@ -191,11 +191,11 @@ class NotionCalendarManager {
             alert(message);
         }
 
-        console.log(`📢 [NOTION-MANAGER] Notification (${type}): ${message}`);
+        // Console log removed
     }
 }
 
 // Initialize Notion Calendar Manager
 window.notionManager = new NotionCalendarManager();
 
-console.log('✅ [NOTION-MANAGER] Loaded successfully');
+// Console log removed

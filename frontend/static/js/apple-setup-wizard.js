@@ -28,7 +28,7 @@ class AppleSetupWizard {
                 this.showSmartGuide();
             }
         } catch (error) {
-            console.error('Apple setup failed:', error);
+            // Console error removed
             this.showManualSetup();
         }
     }
@@ -365,31 +365,31 @@ class AppleSetupWizard {
                 // 플랫폼 카드를 연결된 상태로 표시 (연결해제 버튼과 캘린더 변경 버튼 표시)
                 if (window.markPlatformConnected) {
                     window.markPlatformConnected('apple');
-                    console.log('✅ [APPLE WIZARD] Platform marked as connected with change calendar button');
+                    // Console log removed
                 }
 
                 // 플랫폼 카드 업데이트 (API 키 페이지의 함수 사용)
                 if (window.updatePlatformStatus) {
                     window.updatePlatformStatus('apple', 'connected');
-                    console.log('✅ [APPLE WIZARD] Platform status updated to connected');
+                    // Console log removed
                 }
 
                 // 플랫폼 상태 새로고침 (모든 플랫폼 상태 업데이트)
                 if (window.loadAllPlatformStatus) {
                     window.loadAllPlatformStatus();
-                    console.log('✅ [APPLE WIZARD] All platform statuses refreshed');
+                    // Console log removed
                 }
 
                 // ✅ 모든 플랫폼 상태 재검사 (크로스 플랫폼 버튼 상태 격리 보장)
                 if (window.updateAllPlatformStatus) {
                     window.updateAllPlatformStatus();
-                    console.log('✅ [APPLE WIZARD] Cross-platform button states updated');
+                    // Console log removed
                 }
 
                 // 연동된 캘린더 정보 새로고침
                 if (window.loadSyncedCalendars) {
                     window.loadSyncedCalendars();
-                    console.log('✅ [APPLE WIZARD] Synced calendars refreshed');
+                    // Console log removed
                 }
 
                 // Apple Calendar 연결 성공 후 NotionFlow 캘린더 선택 팝업 표시
@@ -407,7 +407,7 @@ class AppleSetupWizard {
                 throw new Error(data.error || '연결 실패');
             }
         } catch (error) {
-            console.error('CalDAV connection failed:', error);
+            // Console error removed
             this.showError(`연결 실패: ${error.message}`);
             
             // 버튼 복구
@@ -523,7 +523,7 @@ class AppleSetupWizard {
         }
         
         // Fallback
-        return window.showNotification ? window.showNotification(message, type) : console.log(message);
+        return window.showNotification ? window.showNotification(message, type) : // Console log removed
     }
     
     /**
@@ -898,7 +898,7 @@ class AppleSetupWizard {
             const calendars = data.personal_calendars || data.calendars || data.data || [];
 
             if (!data.success && !calendars.length) {
-                console.error('❌ [APPLE] No calendars found in response:', data);
+                // Console error removed
                 this.showNotification('연동할 캘린더가 없습니다. 먼저 캘린더를 만들어주세요.', 'warning');
                 return;
             }
@@ -1271,7 +1271,7 @@ class AppleSetupWizard {
             document.body.appendChild(modalContainer.firstElementChild);
 
         } catch (error) {
-            console.error('Failed to show calendar selection:', error);
+            // Console error removed
             this.showNotification('캘린더 목록을 불러오는데 실패했습니다.', 'error');
         }
     }
@@ -1289,7 +1289,7 @@ class AppleSetupWizard {
             this.showDateRangeModal(calendarId);
 
         } catch (error) {
-            console.error('Calendar selection failed:', error);
+            // Console error removed
             this.showNotification('캘린더 선택에 실패했습니다.', 'error');
         }
     }
@@ -1626,7 +1626,7 @@ class AppleSetupWizard {
             }
 
         } catch (error) {
-            console.error('Apple Calendar sync failed:', error);
+            // Console error removed
             this.showNotification('Apple Calendar 동기화에 실패했습니다.', 'error');
 
             // 버튼 복원
@@ -1644,5 +1644,5 @@ window.appleWizard = new AppleSetupWizard();
 
 // PlatformCard와 통합 (중복 방지를 위해 간소화)
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🍎 Apple Setup Wizard loaded and ready');
+    // Console log removed
 });

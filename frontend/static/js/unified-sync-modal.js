@@ -318,7 +318,7 @@ class UnifiedSyncModal {
                 }
             }
         } catch (error) {
-            console.error('Platform status check failed:', error);
+            // Console error removed
             
             // 에러 발생시 개별 플랫폼 상태 표시
             for (const platform of platforms) {
@@ -348,25 +348,25 @@ class UnifiedSyncModal {
     }
     
     async openModal() {
-        console.log('🔍 [MODAL] Opening UnifiedSyncModal...');
+        // Console log removed
 
         const overlay = document.getElementById('sync-modal-overlay');
         if (overlay) {
-            console.log('✅ [MODAL] Found overlay element, displaying modal');
+            // Console log removed
             overlay.style.display = 'block';
             this.currentStep = 1;
             this.showStep(1);
 
             // 이벤트 목록 로드
-            console.log('📅 [MODAL] Loading calendar events...');
+            // Console log removed
             await this.loadCalendarEvents();
             await this.checkPlatformStatus();
-            console.log('✅ [MODAL] Modal opened successfully');
+            // Console log removed
         } else {
-            console.error('❌ [MODAL] Overlay element not found! Modal was not created properly.');
+            // Console error removed
 
             // 모달이 없으면 다시 생성 시도
-            console.log('🔄 [MODAL] Attempting to recreate modal...');
+            // Console log removed
             this.createModal();
             const newOverlay = document.getElementById('sync-modal-overlay');
             if (newOverlay) {
@@ -385,7 +385,7 @@ class UnifiedSyncModal {
             // 캘린더 ID 가져오기
             const calendarId = window.calendarId || document.querySelector('.calendar-workspace')?.dataset.calendarId;
             if (!calendarId) {
-                console.warn('Calendar ID not found - loading default events or showing empty state');
+                // Console warn removed
 
                 // 캘린더 ID가 없으면 사용자 캘린더 목록을 가져와서 첫 번째 것 사용
                 try {
@@ -394,12 +394,12 @@ class UnifiedSyncModal {
 
                     if (data.success && data.calendars && data.calendars.length > 0) {
                         const firstCalendar = data.calendars[0];
-                        console.log('Using first available calendar:', firstCalendar.id);
+                        // Console log removed
                         await this.loadEventsForCalendar(firstCalendar.id);
                         return;
                     }
                 } catch (error) {
-                    console.error('Failed to load calendar list:', error);
+                    // Console error removed
                 }
 
                 // 캘린더가 없으면 빈 상태 표시
@@ -409,7 +409,7 @@ class UnifiedSyncModal {
 
             await this.loadEventsForCalendar(calendarId);
         } catch (error) {
-            console.error('Error loading calendar events:', error);
+            // Console error removed
             document.getElementById('event-list-content').innerHTML = `
                 <div style="text-align: center; padding: 20px; color: #dc3545;">
                     이벤트를 불러오는 중 오류가 발생했습니다.
@@ -554,7 +554,7 @@ class UnifiedSyncModal {
             // 이벤트 목록 렌더링
             this.renderEventList(this.calendarEvents);
         } catch (error) {
-            console.error('Error loading events for calendar:', calendarId, error);
+            // Console error removed
             this.showEmptyEventState();
         }
     }
@@ -673,7 +673,7 @@ class UnifiedSyncModal {
             const allValidationResults = new Map();
 
             for (const platform of this.selectedPlatforms) {
-                console.log(`🛡️ [VALIDATION] Starting validation for ${platform}`);
+                // Console log removed
 
                 // localStorage에서 휴지통 이벤트 가져오기
                 const trashedEvents = JSON.parse(localStorage.getItem('trashedEvents') || '[]');
@@ -692,14 +692,14 @@ class UnifiedSyncModal {
                 if (response.ok) {
                     const result = await response.json();
                     allValidationResults.set(platform, result);
-                    console.log(`✅ [VALIDATION] ${platform} validation complete: ${result.summary.approval_rate.toFixed(1)}% approval rate`);
+                    // Console log removed
                 } else {
                     const error = await response.json();
                     allValidationResults.set(platform, {
                         success: false,
                         error: error.message || 'Validation failed'
                     });
-                    console.error(`❌ [VALIDATION] ${platform} validation failed:`, error);
+                    // Console error removed
                 }
             }
 
@@ -707,7 +707,7 @@ class UnifiedSyncModal {
             this.displayValidationResults(allValidationResults);
 
         } catch (error) {
-            console.error('❌ [VALIDATION] Validation error:', error);
+            // Console error removed
 
             const validationResults = document.getElementById('validation-results');
             if (validationResults) {
@@ -900,7 +900,7 @@ class UnifiedSyncModal {
             }
 
         } catch (error) {
-            console.error('Sync execution failed:', error);
+            // Console error removed
             this.showResults({ error: error.message });
         } finally {
             // 버튼 상태 복원
@@ -924,7 +924,7 @@ class UnifiedSyncModal {
             
             return await response.json();
         } catch (error) {
-            console.error(`API call to ${endpoint} failed:`, error);
+            // Console error removed
             return { success: false, error: error.message };
         }
     }
@@ -945,7 +945,7 @@ class UnifiedSyncModal {
 
             return await response.json();
         } catch (error) {
-            console.error('Unified sync API call failed:', error);
+            // Console error removed
             return { success: false, error: error.message };
         }
     }
@@ -967,7 +967,7 @@ class UnifiedSyncModal {
 
             return await response.json();
         } catch (error) {
-            console.error('Validated sync API call failed:', error);
+            // Console error removed
             return { success: false, error: error.message };
         }
     }
@@ -981,11 +981,11 @@ class UnifiedSyncModal {
             if (data.success) {
                 return data.status;
             } else {
-                console.error('Platform status check failed:', data.error);
+                // Console error removed
                 return {};
             }
         } catch (error) {
-            console.error('Platform status API call failed:', error);
+            // Console error removed
             return {};
         }
     }

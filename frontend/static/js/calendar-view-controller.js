@@ -10,7 +10,7 @@ class CalendarViewController {
     init() {
         this.setupViewToggle();
         this.initializeDefaultView();
-        console.log('📋 Calendar View Controller initialized');
+        // Console log removed
     }
     
     setupViewToggle() {
@@ -26,7 +26,7 @@ class CalendarViewController {
                 
                 // data-view가 없는 버튼은 무시
                 if (!view) {
-                    console.warn('Button has no data-view attribute, skipping');
+                    // Console warn removed
                     return;
                 }
                 
@@ -38,7 +38,7 @@ class CalendarViewController {
                 // Add active to clicked button
                 button.classList.add('active');
                 
-                console.log(`🔄 Switching to ${view} view`);
+                // Console log removed
                 this.switchView(view);
             });
         });
@@ -47,13 +47,13 @@ class CalendarViewController {
     initializeDefaultView() {
         // calendar-detail.js에서 이미 초기화를 처리하므로 여기서는 중복 처리하지 않음
         // calendar-detail.js의 initializeCalendar()가 기본 뷰를 설정함
-        console.log('📋 Calendar view initialization delegated to calendar-detail.js');
+        // Console log removed
     }
     
     switchView(view) {
         // undefined나 null 체크 추가
         if (!view) {
-            console.warn('View is undefined or null, ignoring switchView call');
+            // Console warn removed
             return;
         }
         
@@ -70,12 +70,12 @@ class CalendarViewController {
                 this.showAgendaView();
                 break;
             default:
-                console.warn('Unknown view:', view);
+                // Console warn removed
         }
     }
     
     showGoogleCalendarGrid() {
-        console.log('📅 Initializing Google Calendar Grid view');
+        // Console log removed
         
         // Hide other views
         const fallbackGrid = document.getElementById('fallback-time-grid');
@@ -94,7 +94,7 @@ class CalendarViewController {
                 if (typeof GoogleCalendarGrid !== 'undefined') {
                     this.googleCalendarGrid = new GoogleCalendarGrid(container);
                 } else {
-                    console.warn('GoogleCalendarGrid class not available, trying again...');
+                    // Console warn removed
                     setTimeout(() => {
                         if (typeof GoogleCalendarGrid !== 'undefined') {
                             this.googleCalendarGrid = new GoogleCalendarGrid(container);
@@ -106,7 +106,7 @@ class CalendarViewController {
     }
     
     showMonthView() {
-        console.log('📅 Switching to month view');
+        // Console log removed
         
         // Hide Google Calendar Grid
         const container = document.getElementById('google-calendar-container');
@@ -130,7 +130,7 @@ class CalendarViewController {
     }
     
     showAgendaView() {
-        console.log('📅 Switching to agenda view');
+        // Console log removed
         
         // Hide other views
         const container = document.getElementById('google-calendar-container');

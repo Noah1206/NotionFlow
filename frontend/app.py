@@ -7647,7 +7647,7 @@ def generate_month_calendar(calendar_id):
             year = year or now.year
             month = month or now.month
 
-        print(f"🗓️ Generating month calendar for {year}-{month}, calendar: {calendar_id}")
+        # Generating month calendar
 
         # Get calendar events for the month
         from datetime import datetime, timezone
@@ -7658,7 +7658,7 @@ def generate_month_calendar(calendar_id):
             end_date = datetime(year, month + 1, 1, tzinfo=timezone.utc)
 
         # Fetch events from database
-        supabase_client = get_supabase_client()
+        supabase_client = get_supabase()
         if supabase_client:
             events_result = supabase_client.from_('calendar_events') \
                 .select('*') \
@@ -7683,8 +7683,8 @@ def generate_month_calendar(calendar_id):
         })
 
     except Exception as e:
-        print(f"Error generating month calendar: {e}")
-        return jsonify({'error': str(e)}), 500
+        # Error generating month calendar
+        return jsonify({'error': 'Failed to generate calendar'}), 500
 
 def generate_month_calendar_html(year, month, events):
     """월 달력 HTML 생성 함수"""
@@ -7708,8 +7708,8 @@ def generate_month_calendar_html(year, month, events):
             if date_key not in events_by_date:
                 events_by_date[date_key] = []
             events_by_date[date_key].append(event)
-        except Exception as e:
-            print(f"Error processing event date: {e}")
+        except Exception:
+            # Error processing event date
             continue
 
     # Generate weekday headers

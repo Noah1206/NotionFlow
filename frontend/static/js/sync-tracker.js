@@ -46,7 +46,7 @@ class SyncTracker {
                 this.emit('coverage:updated', data);
             }
         } catch (error) {
-            console.error('Error loading platform coverage:', error);
+            // Console error removed
         }
     }
 
@@ -63,7 +63,7 @@ class SyncTracker {
                 this.emit('events:updated', data.events);
             }
         } catch (error) {
-            console.error('Error loading recent events:', error);
+            // Console error removed
         }
     }
 
@@ -80,7 +80,7 @@ class SyncTracker {
                 this.emit('activities:updated', data.activities);
             }
         } catch (error) {
-            console.error('Error loading recent activities:', error);
+            // Console error removed
         }
     }
 
@@ -97,7 +97,7 @@ class SyncTracker {
                 this.emit('analytics:updated', data.analytics);
             }
         } catch (error) {
-            console.error('Error loading analytics:', error);
+            // Console error removed
         }
     }
 
@@ -107,13 +107,13 @@ class SyncTracker {
     setupRealtimeSubscriptions() {
         // Check if Supabase client is available
         if (typeof window.supabase === 'undefined') {
-            // console.warn('Supabase client not available, skipping real-time subscriptions');
+            // // Console warn removed
             return;
         }
 
         const userId = this.getCurrentUserId();
         if (!userId) {
-            // console.warn('No user ID found, skipping real-time subscriptions');
+            // // Console warn removed
             return;
         }
 
@@ -268,7 +268,7 @@ class SyncTracker {
                 try {
                     handler(data);
                 } catch (error) {
-                    console.error(`Error in event handler for ${event}:`, error);
+                    // Console error removed
                 }
             });
         }

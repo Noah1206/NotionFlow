@@ -76,14 +76,14 @@ let createStartX = 0;
 
 // Initialize time grid with enhanced features
 function initializeTimeGrid() {
-    // console.log('🕒 Initializing enhanced time grid view...');
+    // // Console log removed
     
     // Set current week start - use today if currentDate is not defined
     const baseDate = (typeof currentDate !== 'undefined') ? currentDate : new Date();
     currentWeekStart = getWeekStart(baseDate);
     
-    // console.log('📅 Base date for time grid:', baseDate.toDateString());
-    // console.log('📅 Current week start:', currentWeekStart.toDateString());
+    // // Console log removed
+    // // Console log removed
     
     // Render the time grid
     renderTimeGrid();
@@ -105,7 +105,7 @@ function initializeTimeGrid() {
         // Store interval for cleanup
         window.timeGridClockInterval = clockInterval;
         
-        // console.log('⏰ Live clock and time indicator initialized');
+        // // Console log removed
     }, 300);
     
     // Update current time indicator every minute
@@ -119,7 +119,7 @@ function initializeTimeGrid() {
     // Add dynamic time navigation buttons
     addTimeNavigationControls();
     
-    // console.log('✅ Enhanced time grid initialization complete');
+    // // Console log removed
 }
 
 // Add time navigation controls to the interface
@@ -202,11 +202,11 @@ function getWeekStart(date) {
 function scrollToTime(hour) {
     const timeGridBody = document.querySelector('.time-grid-body');
     if (!timeGridBody) {
-        // console.log('⚠️ Cannot scroll: time-grid-body element not found');
+        // // Console log removed
         return;
     }
     
-    // console.log('⏰ Scrolling to hour:', hour);
+    // // Console log removed
     
     // Calculate scroll position
     const hoursFromStart = hour - TIME_GRID_CONFIG.startHour;
@@ -226,7 +226,7 @@ function scrollToTime(hour) {
             behavior: 'smooth'
         });
         
-        // console.log('✅ Scrolled to hour', hour, 'at position:', scrollTop);
+        // // Console log removed
     });
 }
 
@@ -460,9 +460,9 @@ async function loadTimeGridEvents() {
             renderEvents(data.events || []);
         }
     } catch (error) {
-        console.error('Failed to load events:', error);
+        // Console error removed
         // Load demo events for testing
-        // console.log('⚠️ API failed, loading demo events instead');
+        // // Console log removed
         loadDemoEvents();
     }
 }
@@ -501,7 +501,7 @@ function loadDemoEvents() {
     ];
     
     renderEvents(demoEvents);
-    // console.log('📅 Demo events loaded for enhanced time grid');
+    // // Console log removed
 }
 
 // Render events on the grid
@@ -512,17 +512,17 @@ function renderEvents(events) {
     // Clear existing events
     eventsLayer.innerHTML = '';
     
-    // console.log('📅 Rendering events:', events);
+    // // Console log removed
     
     events.forEach(event => {
-        // console.log('🔍 Processing event:', event);
+        // // Console log removed
         
         // Handle different field naming patterns
         const hasStartTime = event.start_time || event.start_datetime;
         const isAllDay = event.all_day || event.is_all_day;
         
         if (!hasStartTime || isAllDay) {
-            // console.log('⏭️ Skipping event (no start time or all-day):', event.title);
+            // // Console log removed
             return; // Skip all-day events for now
         }
         
@@ -665,14 +665,14 @@ function createEventElement(event) {
 
 // Initialize drag and drop
 function initializeDragAndDrop() {
-    // console.log('🔧 Initializing drag and drop...');
+    // // Console log removed
     const eventsGrid = document.getElementById('events-grid');
     if (!eventsGrid) {
-        // console.log('❌ events-grid not found');
+        // // Console log removed
         return;
     }
     
-    // console.log('✅ events-grid found, adding event listeners');
+    // // Console log removed
     
     // Remove existing listeners to avoid duplicates
     eventsGrid.removeEventListener('mousedown', handleGridMouseDown);
@@ -686,25 +686,25 @@ function initializeDragAndDrop() {
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
     
-    // console.log('✅ Drag and drop initialized');
+    // // Console log removed
 }
 
 // Handle grid mouse down (create new event with drag)
 function handleGridMouseDown(e) {
-    // console.log('🖱️ Grid mousedown triggered', e.target);
+    // // Console log removed
     
     if (e.target.closest('.event-block')) {
-        // console.log('🚫 Clicked on event block, ignoring');
+        // // Console log removed
         return; // Ignore if clicking on event
     }
     
-    // console.log('✅ Starting event creation...');
+    // // Console log removed
     
     const rect = e.currentTarget.getBoundingClientRect();
     const relativeY = e.clientY - rect.top - 10; // Subtract padding-top
     const relativeX = e.clientX - rect.left;
     
-    // console.log('📍 Click position:', { relativeX, relativeY });
+    // // Console log removed
     
     // Start creating new event
     isCreatingEvent = true;
@@ -908,7 +908,7 @@ async function handleMouseUp(e) {
         delete window.createStartDayIndex;
 
         // Open event creation modal with multi-day support
-        console.log(`🗓️ Creating ${daySpan > 1 ? 'multi-day' : 'single-day'} event: ${daySpan} days from ${startTime.toDateString()} to ${endTime.toDateString()}`);
+        // Console log removed
 
         // Use existing modal function but with multi-day times
         openEventModalWithTime(startTime, endTime, {
@@ -994,7 +994,7 @@ async function saveEventChanges(eventBlock) {
         
         showNotification('일정이 업데이트되었습니다', 'success');
     } catch (error) {
-        console.error('Failed to save event:', error);
+        // Console error removed
         showNotification('일정 업데이트 실패', 'error');
         
         // Revert changes
@@ -1091,18 +1091,18 @@ function initializeContextMenu() {
 function updateCurrentTimeIndicator() {
     const indicator = document.getElementById('current-time-indicator');
     if (!indicator) {
-        // console.log('🚨 Current time indicator element not found');
+        // // Console log removed
         return;
     }
     
     const now = new Date();
     const currentHour = now.getHours() + now.getMinutes() / 60;
     
-    // console.log('🕐 Current time:', now.toLocaleTimeString('ko-KR'), 'Hour decimal:', currentHour);
+    // // Console log removed
     
     // Check if current time is within grid range
     if (currentHour < TIME_GRID_CONFIG.startHour || currentHour > TIME_GRID_CONFIG.endHour) {
-        // console.log('⏰ Current time outside grid range:', TIME_GRID_CONFIG.startHour, 'to', TIME_GRID_CONFIG.endHour);
+        // // Console log removed
         indicator.style.display = 'none';
         return;
     }
@@ -1112,11 +1112,11 @@ function updateCurrentTimeIndicator() {
     const weekStart = getWeekStart(today);
     const dayIndex = Math.floor((today - weekStart) / (24 * 60 * 60 * 1000));
     
-    // console.log('📅 Today:', today.toDateString());
-    // console.log('📅 Week start:', weekStart.toDateString());
-    // console.log('📅 Current week start:', currentWeekStart ? currentWeekStart.toDateString() : 'undefined');
-    // console.log('📅 Day index:', dayIndex);
-    // console.log('📅 Week comparison:', Math.abs(currentWeekStart.getTime() - weekStart.getTime()));
+    // // Console log removed
+    // // Console log removed
+    // // Console log removed
+    // // Console log removed
+    // // Console log removed
     
     // Only show if we're viewing the current week and it's today
     if (currentWeekStart && Math.abs(currentWeekStart.getTime() - weekStart.getTime()) < 24 * 60 * 60 * 1000 && dayIndex >= 0 && dayIndex < 7) {
@@ -1125,7 +1125,7 @@ function updateCurrentTimeIndicator() {
         indicator.style.top = `${top}px`;
         indicator.style.display = 'block';
         
-        // console.log('✅ Showing time indicator at position:', top + 'px');
+        // // Console log removed
         
         // Update the time indicator with current time
         const timeText = now.toLocaleTimeString('ko-KR', { 
@@ -1146,7 +1146,7 @@ function updateCurrentTimeIndicator() {
         // Highlight current time column
         highlightCurrentTimeColumn(dayIndex);
     } else {
-        // console.log('❌ Not showing time indicator - week mismatch or invalid day index');
+        // // Console log removed
         indicator.style.display = 'none';
     }
 }
@@ -1202,37 +1202,37 @@ function autoScrollToCurrentTime() {
     // Ensure DOM is ready for scrolling
     const timeGridBody = document.querySelector('.time-grid-body');
     if (!timeGridBody) {
-        // console.log('⚠️ Auto-scroll failed: time-grid-body element not found');
+        // // Console log removed
         return;
     }
     
     const now = new Date();
     const currentHour = now.getHours() + now.getMinutes() / 60; // Include minutes for precise positioning
     
-    // console.log('🔄 Auto-scroll check - Current time:', now.toLocaleTimeString('ko-KR'));
-    // console.log('🔄 Current hour decimal:', currentHour);
+    // // Console log removed
+    // // Console log removed
     
     // Check if we're viewing today for current time line display
     const today = new Date();
     const weekStart = getWeekStart(today);
     const isCurrentWeek = currentWeekStart && Math.abs(currentWeekStart.getTime() - weekStart.getTime()) < 24 * 60 * 60 * 1000;
     
-    // console.log('🔄 Today:', today.toDateString());
-    // console.log('🔄 Week start:', weekStart.toDateString());
-    // console.log('🔄 Current week start:', currentWeekStart ? currentWeekStart.toDateString() : 'undefined');
-    // console.log('🔄 Is current week:', isCurrentWeek);
-    // console.log('🔄 Hour range check:', currentHour >= TIME_GRID_CONFIG.startHour && currentHour <= TIME_GRID_CONFIG.endHour);
+    // // Console log removed
+    // // Console log removed
+    // // Console log removed
+    // // Console log removed
+    // // Console log removed
     
     // Always auto-scroll to show appropriate time range for better UX
     if (isCurrentWeek && currentHour >= TIME_GRID_CONFIG.startHour && currentHour <= TIME_GRID_CONFIG.endHour) {
         // If it's current week and current time is in range, center the current time line
-        // console.log('✅ Auto-scrolling to current time:', now.toLocaleTimeString('ko-KR'));
+        // // Console log removed
         scrollToCurrentTimeCentered();
     } else {
         // For any other case (different week or out of range), scroll to show working hours
         // Calculate optimal view position (around 9AM-10AM area like in the screenshot)
         const optimalHour = 9; // 9 AM for good visibility
-        // console.log('⏰ Auto-scrolling to optimal view around:', optimalHour + 'AM for better visibility');
+        // // Console log removed
         scrollToTime(optimalHour);
     }
 }
@@ -1241,14 +1241,14 @@ function autoScrollToCurrentTime() {
 function scrollToCurrentTimeCentered() {
     const timeGridBody = document.querySelector('.time-grid-body');
     if (!timeGridBody) {
-        // console.log('⚠️ Cannot scroll: time-grid-body element not found');
+        // // Console log removed
         return;
     }
     
     const now = new Date();
     const currentHour = now.getHours() + now.getMinutes() / 60;
     
-    // console.log('🎯 Centering current time line - Hour:', currentHour);
+    // // Console log removed
     
     // Calculate exact position of current time
     const hoursFromStart = currentHour - TIME_GRID_CONFIG.startHour;
@@ -1278,7 +1278,7 @@ function scrollToCurrentTimeCentered() {
             behavior: 'smooth'
         });
         
-        // console.log('🎯 Centered current time line in viewport at scroll position:', scrollTop);
+        // // Console log removed
     });
 }
 
@@ -1390,22 +1390,22 @@ function goToCurrentTime() {
             showNotification('현재 시간으로 이동했습니다', 'info');
         }
         
-        // console.log('🎯 Navigated to current time (centered):', now.toLocaleTimeString('ko-KR'));
+        // // Console log removed
     } else {
         if (window.showNotification) {
             showNotification('현재 시간이 표시 범위를 벗어났습니다', 'warning');
         }
-        // console.log('⚠️ Current time is outside working hours range');
+        // // Console log removed
     }
 }
 
 // Open event modal with pre-filled time
 function openEventModalWithTime(startDate, endDate = null) {
-    // console.log('🕐 Opening event modal with time:', { startDate, endDate });
+    // // Console log removed
     
     const modal = document.getElementById('calendar-overlay-form');
     if (!modal) {
-        console.error('❌ calendar-overlay-form modal not found');
+        // Console error removed
         return;
     }
     
@@ -1422,7 +1422,7 @@ function openEventModalWithTime(startDate, endDate = null) {
         return defaultEnd;
     })();
     
-    // console.log('📅 Setting form values:', { start: startDate, end: finalEndDate });
+    // // Console log removed
     
     // Set date and time values
     if (startDateInput) startDateInput.value = formatDateForInput(startDate);
@@ -1438,7 +1438,7 @@ function openEventModalWithTime(startDate, endDate = null) {
     
     // Show modal
     modal.style.display = 'flex';
-    // console.log('✅ Event modal opened');
+    // // Console log removed
 }
 
 // Helper functions for date/time formatting
@@ -1476,7 +1476,7 @@ async function editEvent(eventId) {
             openEventModalForEdit(event);
         }
     } catch (error) {
-        console.error('Failed to load event:', error);
+        // Console error removed
     }
 }
 
@@ -1494,7 +1494,7 @@ async function duplicateEvent(eventId) {
             loadTimeGridEvents();
         }
     } catch (error) {
-        console.error('Failed to duplicate event:', error);
+        // Console error removed
         showNotification('일정 복제 실패', 'error');
     }
 }
@@ -1523,7 +1523,7 @@ async function deleteEvent(eventId) {
             }
         }
     } catch (error) {
-        console.error('Failed to delete event:', error);
+        // Console error removed
         showNotification('일정 삭제 실패', 'error');
     }
 }
@@ -1594,7 +1594,7 @@ async function saveAPIKey(platform) {
             throw new Error('Failed to save API key');
         }
     } catch (error) {
-        console.error('Failed to save API key:', error);
+        // Console error removed
         showNotification('API 키 저장에 실패했습니다', 'error');
     }
 }
@@ -1616,7 +1616,7 @@ async function loadSavedAPIKeys() {
             });
         }
     } catch (error) {
-        console.error('Failed to load API keys:', error);
+        // Console error removed
     }
 }
 
@@ -1646,7 +1646,7 @@ async function importFromGoogle() {
             throw new Error('Import failed');
         }
     } catch (error) {
-        console.error('Google import failed:', error);
+        // Console error removed
         showNotification('Google Calendar 가져오기 실패', 'error');
     }
 }
@@ -1676,7 +1676,7 @@ async function importFromOutlook() {
             throw new Error('Import failed');
         }
     } catch (error) {
-        console.error('Outlook import failed:', error);
+        // Console error removed
         showNotification('Outlook 가져오기 실패', 'error');
     }
 }
@@ -1755,7 +1755,7 @@ async function getAPIKey(platform) {
             return data.api_keys?.[platform];
         }
     } catch (error) {
-        console.error('Failed to get API key:', error);
+        // Console error removed
     }
     return null;
 }
@@ -1789,7 +1789,7 @@ async function importFromICS() {
                 throw new Error('Import failed');
             }
         } catch (error) {
-            console.error('Failed to import ICS:', error);
+            // Console error removed
             showNotification('ICS 파일 가져오기 실패', 'error');
         }
     };
@@ -1800,7 +1800,7 @@ async function importFromICS() {
 // Form submission handlers
 window.saveSidebarEvent = async function(event) {
     event.preventDefault(); // Prevent page refresh
-    // console.log('💾 Saving sidebar event...');
+    // // Console log removed
     
     try {
         const form = event.target;
@@ -1852,7 +1852,7 @@ window.saveSidebarEvent = async function(event) {
             youtube_url: youtubeUrl
         };
         
-        // console.log('📤 Sending event data:', eventData);
+        // // Console log removed
         
         const response = await fetch(`/api/calendars/${calendarId}/events`, {
             method: 'POST',
@@ -1864,7 +1864,7 @@ window.saveSidebarEvent = async function(event) {
         
         if (response.ok) {
             const result = await response.json();
-            // console.log('✅ Event created successfully:', result);
+            // // Console log removed
             showNotification('일정이 생성되었습니다', 'success');
             closeEventForm();
             loadTimeGridEvents(); // Reload events
@@ -1873,14 +1873,14 @@ window.saveSidebarEvent = async function(event) {
         }
         
     } catch (error) {
-        console.error('❌ Failed to save event:', error);
+        // Console error removed
         showNotification('일정 생성 실패', 'error');
     }
 };
 
 window.saveOverlayEvent = async function(event) {
     event.preventDefault(); // Prevent page refresh
-    // console.log('💾 Saving overlay event...');
+    // // Console log removed
     
     try {
         const form = event.target;
@@ -1906,7 +1906,7 @@ window.saveOverlayEvent = async function(event) {
             is_all_day: formData.get('is_all_day') === 'on'
         };
         
-        // console.log('📤 Sending overlay event data:', eventData);
+        // // Console log removed
         
         const response = await fetch(`/api/calendars/${calendarId}/events`, {
             method: 'POST',
@@ -1918,7 +1918,7 @@ window.saveOverlayEvent = async function(event) {
         
         if (response.ok) {
             const result = await response.json();
-            // console.log('✅ Overlay event created successfully:', result);
+            // // Console log removed
             showNotification('일정이 생성되었습니다', 'success');
             closeOverlayForm();
             loadTimeGridEvents(); // Reload events
@@ -1927,7 +1927,7 @@ window.saveOverlayEvent = async function(event) {
         }
         
     } catch (error) {
-        console.error('❌ Failed to save overlay event:', error);
+        // Console error removed
         showNotification('일정 생성 실패', 'error');
     }
 };
@@ -1958,7 +1958,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             const timeGridBody = document.querySelector('.time-grid-body');
             if (timeGridBody && timeGridBody.scrollTop === 0) {
-                // console.log('🔄 Fallback auto-scroll triggered');
+                // // Console log removed
                 autoScrollToCurrentTime();
             }
         }, 1000);
