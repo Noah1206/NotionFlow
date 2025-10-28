@@ -1,0 +1,400 @@
+<!-- 🎨 NotionFlow Fixed Header Component -->
+<header class="main-header navbar">
+    <nav class="navbar">
+        <div class="nav-container container inner">
+            <a href="/" class="logo">
+                <span class="logo-text">NodeFlow</span>
+            </a>
+
+            <div class="nav-menu links">
+                <a href="#features">Features</a>
+                <a href="#pricing-preview">Pricing</a>
+                <a href="#faq">FAQ</a>
+                <a href="#contact">Contact</a>
+            </div>
+
+            <div class="nav-actions">
+                <a href="/login" class="nav-link login-link btn ghost">로그인</a>
+
+                <!-- Fixed CTA Button with Arrow -->
+                <a href="/signup" class="header-cta-button btn primary">
+                    <span>시작하기</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12H19M12 5L19 12L12 19" />
+                    </svg>
+                </a>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </button>
+        </div>
+    </nav>
+</header>
+
+<style>
+    /* 🎨 Fixed Header Component Styles */
+
+    /* Global reset for header area */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    .main-header {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 999999 !important;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        margin: 0 !important;
+        padding: 0 !important;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    [data-theme="dark"] .main-header {
+        background: rgba(0, 0, 0, 0.95);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .navbar {
+        padding: 0;
+        margin: 0;
+    }
+
+    .nav-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1.5rem 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 80px;
+    }
+
+    /* Logo */
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        text-decoration: none;
+        color: var(--text-primary, #000000);
+        font-weight: 800;
+        font-size: 1.4rem;
+        letter-spacing: -0.02em;
+        transition: opacity 0.3s ease;
+    }
+
+    [data-theme="dark"] .logo {
+        color: #ffffff;
+    }
+
+    .logo:hover {
+        opacity: 0.8;
+    }
+
+    .logo-text {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    /* Navigation Menu */
+    .nav-menu {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+    }
+
+    .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 2.5rem !important;
+    }
+
+    .nav-link {
+        color: #737373;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 1.05rem;
+        transition: color 0.3s ease;
+        position: relative;
+    }
+
+    [data-theme="dark"] .nav-link {
+        color: #cccccc;
+    }
+
+    .nav-link:hover {
+        color: #000000;
+    }
+
+    [data-theme="dark"] .nav-link:hover {
+        color: #ffffff;
+    }
+
+    .nav-link::after {
+        content: '';
+        position: absolute;
+        bottom: -4px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: #000000;
+        transition: width 0.3s ease;
+    }
+
+    [data-theme="dark"] .nav-link::after {
+        background: #ffffff;
+    }
+
+    .nav-link:hover::after {
+        width: 100%;
+    }
+
+    /* Navigation Actions */
+    .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+    }
+
+
+    /* Login Link */
+    .login-link {
+        padding: 0.75rem 1.25rem;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        color: #6b7280 !important;
+        text-decoration: none !important;
+        background: transparent !important;
+        border: none !important;
+        font-weight: 500;
+    }
+
+    .login-link:hover {
+        background: rgba(0, 0, 0, 0.05) !important;
+        color: #111827 !important;
+    }
+
+    [data-theme="dark"] .login-link {
+        color: #9ca3af !important;
+    }
+
+    [data-theme="dark"] .login-link:hover {
+        background: rgba(255, 255, 255, 0.1) !important;
+        color: #ffffff !important;
+    }
+
+    /* Fixed CTA Button with Arrow - Clean Minimal Style */
+    .header-cta-button {
+        display: inline-flex !important;
+        align-items: center;
+        gap: 0.5rem;
+        background: transparent !important;
+        color: #111827 !important;
+        text-decoration: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+        border: 2px solid #e5e7eb !important;
+    }
+
+    [data-theme="dark"] .header-cta-button {
+        background: transparent !important;
+        color: #f3f4f6 !important;
+        border: 2px solid #374151 !important;
+    }
+
+    .header-cta-button:hover {
+        background: #111827 !important;
+        color: #ffffff !important;
+        border-color: #111827 !important;
+        transform: translateY(-1px);
+    }
+
+    [data-theme="dark"] .header-cta-button:hover {
+        background: #f3f4f6 !important;
+        color: #111827 !important;
+        border-color: #f3f4f6 !important;
+    }
+
+    .header-cta-button svg {
+        transition: transform 0.3s ease;
+        flex-shrink: 0;
+    }
+
+    .header-cta-button:hover svg {
+        transform: translateX(2px);
+    }
+
+    /* Mobile Menu Toggle */
+    .mobile-menu-toggle {
+        display: none;
+        flex-direction: column;
+        gap: 4px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+    }
+
+    .hamburger-line {
+        width: 24px;
+        height: 2px;
+        background: #000000;
+        transition: all 0.3s ease;
+    }
+
+    [data-theme="dark"] .hamburger-line {
+        background: #ffffff;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .nav-container {
+            padding: 0.75rem 1rem;
+            min-height: 60px;
+        }
+
+        .nav-menu {
+            display: none;
+        }
+
+        .mobile-menu-toggle {
+            display: flex;
+        }
+
+        .logo-text {
+            font-size: 1.125rem;
+        }
+    }
+
+    /* Scrolled State */
+    .main-header.scrolled {
+        background: rgba(255, 255, 255, 0.98);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    [data-theme="dark"] .main-header.scrolled {
+        background: rgba(0, 0, 0, 0.98);
+        box-shadow: 0 2px 20px rgba(255, 255, 255, 0.05);
+    }
+
+    /* Body padding to account for fixed header */
+    body {
+        padding-top: 80px;
+        margin: 0;
+    }
+
+    [data-theme="dark"] .navbar {
+        background-color: #000 !important;
+        color: #fff !important;
+    }
+
+    [data-theme="dark"] .main-header {
+        border-bottom: 1px solid #333 !important;
+    }
+
+    .nav-container {
+        padding: 1rem 2rem !important;
+    }
+
+    .nav-link {
+        padding: 0.5rem 1rem !important;
+        font-weight: 500 !important;
+    }
+
+    .nav-actions {
+        gap: 1rem !important;
+    }
+
+    .navbar,
+    .navbar.scrolled {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    .nav-link {
+        letter-spacing: -0.01em;
+    }
+
+    [data-theme="dark"] .navbar {
+        background-color: #000000 !important;
+        border-bottom: 1px solid #333 !important;
+    }
+
+    [data-theme="dark"] .nav-link {
+        color: #cccccc !important;
+    }
+
+    .nav-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1rem 2rem !important;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 2rem !important;
+    }
+
+    /* 4. 메뉴 텍스트 스타일統一 */
+    .nav-link {
+        padding: 0.5rem 1rem !important;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        color: var(--text-secondary);
+        transition: color 0.2s;
+    }
+
+    .nav-link:hover {
+        color: var(--text-primary);
+    }
+
+    /* 5. 스크롤 상태에서도 동일한 높이 유지 */
+    .navbar,
+    .navbar.scrolled {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+</style>
+
+<script>
+    // Header scroll effect
+    window.addEventListener('scroll', function () {
+        const header = document.querySelector('.main-header');
+        if (window.scrollY > 50) {
+            header.classList.add('scrolled');
+        } else {
+            header.classList.remove('scrolled');
+        }
+    });
+
+    // Mobile menu toggle
+    document.addEventListener('DOMContentLoaded', function () {
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        if (mobileMenuToggle) {
+            mobileMenuToggle.addEventListener('click', function () {
+                console.log('Mobile menu clicked');
+            });
+        }
+    });
+</script>

@@ -1,0 +1,2175 @@
+<!-- 
+    ✅✅✅ NOTIONFLOW SIDEBAR v5.0 - FIXED VERSION ✅✅✅
+    =============================================
+    CACHE BUSTER: {{ range(500000, 999999) | random }}
+    DEPLOYED: 2025-08-07 01:20 KST - CALENDAR LIST MODE
+    STATUS: showCalendarList() FUNCTION READY
+    VERSION: 5.0 - DIRECT CALENDAR LIST UI
+    =============================================
+-->
+
+<!-- 접힌 상태 전용 햄버거 버튼 -->
+<div class="collapsed-header">
+    <button class="collapsed-toggle-btn" onclick="toggleSidebar()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+    </button>
+</div>
+
+<!-- 펼쳐진 상태 전용 헤더 - 로고와 토글 버튼 -->
+<div class="expanded-header">
+    <div class="sidebar-logo">
+        <span class="logo-text">NodeFlow</span>
+    </div>
+    <button class="expanded-toggle-btn" onclick="toggleSidebar()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+    </button>
+</div>
+
+<!-- 네비게이션 메뉴 -->
+<nav class="sidebar-nav">
+    <!-- 메인 네비게이션 wrapper - 스크롤 가능 -->
+    <div class="sidebar-main-nav">
+        <!-- 프로필 섹션 - 최상단 우선순위 -->
+        <div class="nav-section">
+            <!-- 프로필 -->
+            <div class="nav-item profile-nav-item {{ 'active' if current_page == 'profile' else '' }}"
+                data-section="profile" onclick="handleSidebarItemClick('profile')">
+                <span class="nav-icon profile-avatar-icon">
+                    <img id="sidebar-profile-avatar" src="" alt="프로필"
+                        class="sidebar-avatar">
+                </span>
+                <span class="nav-label">프로필</span>
+            </div>
+        </div>
+
+        <!-- 캘린더 섹션 -->
+        <div class="nav-section">
+            <div class="nav-item {{ 'active' if current_page == 'calendar-list' else '' }}" data-section="calendar-list"
+                onclick="handleSidebarItemClick('calendar-list')">
+                <span class="nav-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                </span>
+                <span class="nav-label">캘린더 목록</span>
+            </div>
+        </div>
+
+        <!-- Reminders Section (Calendar Detail Page Only) -->
+        <div class="nav-section reminders-section calendar-detail-only">
+            <div class="reminders-header">
+                <span class="reminders-icon">📝</span>
+                <span class="reminders-title">Reminders</span>
+            </div>
+            <div class="reminders-content">
+                <div class="reminder-item">
+                    <span class="reminder-text">리마인더가 없습니다</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Media Player Widget (Calendar Detail Page Only) -->
+        <div class="nav-section media-player-section calendar-detail-only">
+            <div class="media-player-widget">
+                <div class="media-player-header">
+                    <span class="media-player-icon">🎵</span>
+                    <span class="media-player-title">미디어 플레이어</span>
+                </div>
+                <div class="media-player-content">
+                    <div class="media-info">
+                        <div class="media-title" id="sidebar-media-title">미디어 없음</div>
+                        <div class="media-artist" id="sidebar-media-artist">캘린더</div>
+                    </div>
+                    <div class="media-controls">
+                        <button class="media-btn" id="sidebar-prev-btn" onclick="sidebarPrevTrack()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="19,20 9,12 19,4"></polygon>
+                                <line x1="5" y1="19" x2="5" y2="5"></line>
+                            </svg>
+                        </button>
+                        <button class="media-btn media-btn-play" id="sidebar-play-btn" onclick="sidebarTogglePlay()">
+                            <svg class="play-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="5,3 19,12 5,21"></polygon>
+                            </svg>
+                            <svg class="pause-icon" style="display: none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="6" y="4" width="4" height="16"></rect>
+                                <rect x="14" y="4" width="4" height="16"></rect>
+                            </svg>
+                        </button>
+                        <button class="media-btn" id="sidebar-next-btn" onclick="sidebarNextTrack()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="5,4 15,12 5,20"></polygon>
+                                <line x1="19" y1="5" x2="19" y2="19"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="media-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="sidebar-progress-fill"></div>
+                        </div>
+                        <div class="time-info">
+                            <span id="sidebar-current-time">0:00</span>
+                            <span id="sidebar-total-time">0:00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mini Calendar Widget (Calendar Detail Page Only) -->
+        <div class="nav-section mini-calendar-section calendar-detail-only">
+            <div class="mini-calendar-widget">
+                <div class="calendar-view-container active" id="month-view">
+                    <div class="compact-month-header">
+                        <div class="compact-weekday-labels">
+                            <div class="compact-weekday-label">일</div>
+                            <div class="compact-weekday-label">월</div>
+                            <div class="compact-weekday-label">화</div>
+                            <div class="compact-weekday-label">수</div>
+                            <div class="compact-weekday-label">목</div>
+                            <div class="compact-weekday-label">금</div>
+                            <div class="compact-weekday-label">토</div>
+                        </div>
+                    </div>
+                    
+                    <div class="compact-month-grid" id="month-grid">
+                        <!-- Calendar cells will be generated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 달력 페이지 섹션 -->
+        <div class="nav-section">
+            <div class="nav-item {{ 'active' if current_page == 'calendar' else '' }}" data-section="calendar"
+                onclick="handleSidebarItemClick('calendar')">
+                <span class="nav-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                        <rect x="7" y="14" width="3" height="3" />
+                    </svg>
+                </span>
+                <span class="nav-label">달력</span>
+            </div>
+        </div>
+
+        <!-- 연결 & 관리 섹션 -->
+        <div class="nav-section">
+
+            <div class="nav-item {{ 'active' if current_page == 'friends' else '' }}" data-section="friends"
+                onclick="handleSidebarItemClick('friends')">
+                <span class="nav-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="m22 21-3-3m0 0a5 5 0 1 0-7 0l3 3" />
+                    </svg>
+                </span>
+                <span class="nav-label">친구</span>
+                <span class="count-badge">0</span>
+            </div>
+
+            <div class="nav-item {{ 'active' if current_page == 'api-keys' else '' }}" data-section="api-keys"
+                onclick="handleSidebarItemClick('api-keys')">
+                <span class="nav-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="7.5" cy="15.5" r="5.5" />
+                        <path d="m21 2-9.6 9.6" />
+                        <path d="m15.5 7.5 3 3L22 7l-3-3" />
+                    </svg>
+                </span>
+                <span class="nav-label">API 키 관리</span>
+            </div>
+
+            <!-- 설정 아이콘을 연결 & 관리 섹션으로 이동 -->
+            <div class="nav-item {{ 'active' if current_page == 'settings' else '' }}"
+                onclick="handleSidebarItemClick('settings')">
+                <span class="nav-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                        <circle cx="12" cy="12" r="3" />
+                    </svg>
+                </span>
+                <span class="nav-label">설정</span>
+            </div>
+
+        </div>
+    </div>
+    <!-- 메인 네비게이션 wrapper 끝 -->
+
+    <!-- 하단 고정 섹션 제거 - 설정 아이콘이 연결 & 관리 섹션으로 이동됨 -->
+</nav>
+</div>
+
+
+<!-- 설정 모달 -->
+<div id="settings-modal" class="calendar-modal-overlay" style="display: none;">
+    <div class="calendar-modal-content settings-modal-content">
+        <div class="calendar-modal-header">
+            <h2 class="calendar-modal-title">설정</h2>
+            <button class="calendar-modal-close" onclick="closeSettingsModal()">×</button>
+        </div>
+
+        <div class="calendar-modal-body">
+            <!-- 언어 설정 -->
+            <div class="settings-section">
+                <div class="settings-section-header">
+                    <h3 class="settings-section-title">언어</h3>
+                    <p class="settings-section-desc">표시 언어를 선택하세요</p>
+                </div>
+                <div class="language-toggle">
+                    <button class="language-toggle-btn" id="settingsLanguageToggle" onclick="toggleLanguageDropdown()">
+                        <span class="lang-flag">🇰🇷</span>
+                        <span class="lang-text">한국어</span>
+                        <span class="toggle-arrow">⌄</span>
+                    </button>
+                    <div class="language-dropdown" id="settingsLanguageDropdown" style="display: none;">
+                        <div class="language-option" onclick="setLanguage('ko')">
+                            <span class="lang-flag">🇰🇷</span>
+                            <span class="lang-name">한국어</span>
+                        </div>
+                        <div class="language-option" onclick="setLanguage('en')">
+                            <span class="lang-flag">🇺🇸</span>
+                            <span class="lang-name">English</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- 플랫폼 상태 -->
+            <div class="settings-section">
+                <div class="settings-section-header">
+                    <h3 class="settings-section-title">플랫폼 상태</h3>
+                    <p class="settings-section-desc">연결된 플랫폼과 동기화 현황</p>
+                </div>
+                <div class="platform-stats-grid">
+                    <div class="platform-stat-card">
+                        <div class="platform-stat-number">1,247</div>
+                        <div class="platform-stat-label">동기화된 이벤트</div>
+                        <div class="platform-stat-desc">이번 달 모든 플랫폼에서 동기화된 총 이벤트 수</div>
+                    </div>
+                    <div class="platform-stat-card">
+                        <div class="platform-stat-number">60%</div>
+                        <div class="platform-stat-label">플랫폼 커버리지</div>
+                        <div class="platform-stat-desc">연결된 플랫폼: Notion, Google Calendar, Apple Calendar</div>
+                    </div>
+                    <div class="platform-stat-card">
+                        <div class="platform-stat-number">24.5h</div>
+                        <div class="platform-stat-label">절약된 시간</div>
+                        <div class="platform-stat-desc">이번 주 자동화를 통해 절약된 예상 시간</div>
+                    </div>
+                    <div class="platform-stat-card">
+                        <div class="platform-stat-number">92%</div>
+                        <div class="platform-stat-label">동기화 성공률</div>
+                        <div class="platform-stat-desc">지난 30일간 성공적인 동기화 비율</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 플랫폼 연결 관리 -->
+            <div class="settings-section">
+                <div class="settings-section-header">
+                    <h3 class="settings-section-title">플랫폼 연결 관리</h3>
+                    <p class="settings-section-desc">각 플랫폼의 API 키를 관리하고 연결 상태를 확인하세요</p>
+                </div>
+                <div class="platform-connections">
+                    <!-- Notion -->
+                    <div class="platform-connection-item">
+                        <div class="platform-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046 1.121-.56 1.121-1.167V6.354c0-.606-.233-.933-.747-.887l-15.177.887c-.56.047-.934.373-.934 1.027zm13.748.327c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.139c-.093-.514.28-.887.747-.933zM1.936 1.035l13.31-.98c1.634-.14 2.055-.047 3.082.7l4.249 2.986c.7.513.934.653.934 1.213v16.378c0 1.026-.373 1.634-1.68 1.726l-15.458.934c-.98.047-1.448-.093-1.962-.747l-3.129-4.06c-.56-.747-.793-1.306-.793-1.96V2.667c0-.839.374-1.54 1.447-1.632z" />
+                            </svg>
+                        </div>
+                        <div class="platform-info">
+                            <h4>Notion</h4>
+                            <p class="platform-status">연결되지 않음</p>
+                        </div>
+                        <button class="platform-connect-btn" onclick="connectPlatform('notion')">연결</button>
+                    </div>
+                    <!-- Google Calendar -->
+                    <div class="platform-connection-item">
+                        <div class="platform-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z" />
+                            </svg>
+                        </div>
+                        <div class="platform-info">
+                            <h4>Google Calendar</h4>
+                            <p class="platform-status connected">연결됨</p>
+                        </div>
+                        <button class="platform-connect-btn connected" onclick="disconnectPlatform('google')">연결
+                            해제</button>
+                    </div>
+                    <!-- 추가 플랫폼들... -->
+                </div>
+            </div>
+
+            <!-- 빠른 액션 -->
+            <div class="settings-section">
+                <div class="settings-section-header">
+                    <h3 class="settings-section-title">빠른 액션</h3>
+                </div>
+                <div class="quick-actions">
+                    <button class="quick-action-btn" onclick="navigateToApiKeys()">
+                        <span class="quick-action-icon">🔑</span>
+                        <span class="quick-action-text">API 키 관리</span>
+                    </button>
+                    <button class="quick-action-btn" onclick="logoutUser()">
+                        <span class="quick-action-icon">🚪</span>
+                        <span class="quick-action-text">로그아웃</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="calendar-modal-footer">
+            <button class="calendar-btn-cancel" onclick="closeSettingsModal()">닫기</button>
+        </div>
+    </div>
+    <style>
+        /* 캘린더 관련 스타일 삭제됨 */
+        .removed-calendar-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+            visibility: visible;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .calendar-creation-modal.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .modal-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .calendar-modal-container {
+            position: relative;
+            z-index: 10001;
+            animation: slideInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .calendar-modal-content {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+            width: 440px;
+            max-width: 90vw;
+            max-height: 85vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .calendar-creation-modal.hidden .calendar-modal-content {
+            transform: translateY(20px) scale(0.95);
+        }
+
+        /* 모달 헤더 */
+        .calendar-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid #e5e7eb;
+            position: relative;
+            background: #fafafa;
+        }
+
+        .header-icon {
+            display: none;
+            /* 아이콘 제거하여 더 깔끔하게 */
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #111827;
+            margin: 0;
+            text-align: center;
+        }
+
+        .close-button {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            color: #6b7280;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .close-button:hover {
+            background: #f3f4f6;
+            color: #111827;
+        }
+
+        /* 모달 바디 */
+        .calendar-modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        /* 동적 폼 스타일 */
+        .calendar-form {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+
+        .form-label svg {
+            opacity: 0.7;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            color: #374151;
+            background: #ffffff;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #4285f4;
+            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+        }
+
+        .form-helper {
+            font-size: 12px;
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        /* 라디오 그룹 스타일 */
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #ffffff;
+        }
+
+        .radio-option:hover {
+            border-color: #d1d5db;
+            background: #f9fafb;
+        }
+
+        .radio-option input[type="radio"] {
+            display: none;
+        }
+
+        .radio-custom {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #d1d5db;
+            border-radius: 50%;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .radio-option input[type="radio"]:checked+.radio-custom {
+            border-color: #4285f4;
+            background: #4285f4;
+        }
+
+        .radio-option input[type="radio"]:checked+.radio-custom::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .radio-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .radio-title {
+            font-size: 13px !important;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .radio-desc {
+            font-size: 11px !important;
+            color: #6b7280;
+        }
+
+        /* 색상 팔레트 스타일 */
+        .color-palette {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .color-palette input[type="radio"] {
+            display: none;
+        }
+
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .color-palette input[type="radio"]:checked+.color-option {
+            border-color: #111827;
+            transform: scale(1.1);
+            box-shadow: 0 0 0 2px #111827;
+        }
+
+        .color-palette input[type="radio"]:checked+.color-option::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 버튼 스타일 */
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 32px;
+        }
+
+        .btn-secondary,
+        .btn-primary {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 100px;
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+            position: relative;
+        }
+
+        .btn-primary:hover {
+            background: #3367d6;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+        }
+
+        .btn-primary:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-loading {
+            display: none;
+        }
+
+        .btn-primary.loading .btn-text {
+            display: none;
+        }
+
+        .btn-primary.loading .btn-loading {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* 애니메이션 키프레임 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes dots {
+
+            0%,
+            20% {
+                content: '.';
+            }
+
+            40% {
+                content: '..';
+            }
+
+            60%,
+            100% {
+                content: '...';
+            }
+        }
+
+        /* 다크 모드 지원 */
+        [data-theme="dark"] .calendar-modal-content {
+            background: #1f2937;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        [data-theme="dark"] .modal-title {
+            color: #f8fafc;
+        }
+
+        [data-theme="dark"] .modal-description {
+            color: #94a3b8;
+        }
+
+        [data-theme="dark"] .calendar-option {
+            background: #334155;
+            border-color: #475569;
+        }
+
+        [data-theme="dark"] .calendar-option:hover {
+            border-color: #64748b;
+            background: #3f4f5f;
+        }
+
+        [data-theme="dark"] .option-title {
+            color: #f8fafc;
+        }
+
+        [data-theme="dark"] .option-description {
+            color: #94a3b8;
+        }
+
+        [data-theme="dark"] .close-button {
+            background: #334155;
+            color: #94a3b8;
+        }
+
+        [data-theme="dark"] .close-button:hover {
+            background: #475569;
+            color: #f8fafc;
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 640px) {
+            .calendar-modal-content {
+                width: 95vw;
+                margin: 20px;
+            }
+
+            .calendar-modal-header {
+                padding: 20px 20px 16px 20px;
+            }
+
+            .calendar-modal-body {
+                padding: 20px;
+            }
+
+            .calendar-option {
+                padding: 16px;
+                gap: 12px;
+            }
+
+            .option-icon {
+                width: 48px;
+                height: 48px;
+            }
+
+            .option-title {
+                font-size: 16px;
+            }
+
+            .option-description {
+                font-size: 13px;
+            }
+        }
+
+        /* 확대된 설정 모달 스타일 */
+        .settings-modal-content {
+            overflow-y: auto !important;
+            max-width: 1200px !important;
+            width: 80vw !important;
+            height: 85vh !important;
+            max-height: none !important;
+        }
+
+        /* 플랫폼 상태 그리드 */
+        .platform-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .platform-stat-card {
+            background: #f5f5f5;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        [data-theme="dark"] .platform-stat-card {
+            background: #2a2a2a;
+        }
+
+        .platform-stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #3b82f6;
+            margin-bottom: 0.5rem;
+        }
+
+        .platform-stat-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .platform-stat-desc {
+            font-size: 0.8rem;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        /* 플랫폼 연결 관리 */
+        .platform-connections {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .platform-connection-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: #f5f5f5;
+            border-radius: 8px;
+            border: 1px solid #e5e5e5;
+        }
+
+        [data-theme="dark"] .platform-connection-item {
+            background: #2a2a2a;
+            border-color: #444;
+        }
+
+        .platform-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 8px;
+            color: #333;
+        }
+
+        [data-theme="dark"] .platform-icon {
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        .platform-info {
+            flex: 1;
+        }
+
+        .platform-info h4 {
+            margin: 0 0 0.25rem 0;
+            font-size: 1rem;
+        }
+
+        .platform-status {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .platform-status.connected {
+            color: #10b981;
+        }
+
+        .platform-connect-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #3b82f6;
+            background: white;
+            color: #3b82f6;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .platform-connect-btn:hover {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .platform-connect-btn.connected {
+            border-color: #dc2626;
+            color: #dc2626;
+        }
+
+        .platform-connect-btn.connected:hover {
+            background: #dc2626;
+            color: white;
+        }
+
+        /* 스크롤바 스타일 */
+        .settings-modal-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .settings-modal-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .settings-modal-content::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .settings-modal-content::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+
+        /* 언어 드롭다운 스타일 개선 */
+        .language-dropdown {
+            background: white !important;
+            border: 1px solid #ddd !important;
+            border-radius: 8px !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+            position: absolute !important;
+            top: 100% !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 1000 !important;
+            margin-top: 4px !important;
+        }
+
+        [data-theme="dark"] .language-dropdown {
+            background: #2a2a2a !important;
+            border-color: #444 !important;
+        }
+
+        .language-option {
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            padding: 12px !important;
+            cursor: pointer !important;
+            transition: background-color 0.2s !important;
+        }
+
+        .language-option:hover {
+            background-color: #f5f5f5 !important;
+        }
+
+        [data-theme="dark"] .language-option:hover {
+            background-color: #333 !important;
+        }
+
+        /* 하단 네비게이션 섹션 위치 조정 */
+        .nav-section-bottom {
+            margin-top: -12px !important;
+        }
+
+        .nav-section-bottom .nav-item {
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
+        }
+
+        /* 사이드바 프로필 아바타 스타일 */
+        .profile-avatar-icon {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 0 !important;
+            width: 32px !important;
+            height: 32px !important;
+            position: relative !important;
+        }
+
+        .sidebar-avatar {
+            width: 28px !important;
+            height: 28px !important;
+            min-width: 28px !important;
+            min-height: 28px !important;
+            max-width: 28px !important;
+            max-height: 28px !important;
+            border-radius: 50% !important;
+            object-fit: cover !important;
+            border: 2px solid rgba(255, 255, 255, 0.2) !important;
+            transition: all 0.2s ease !important;
+            display: block !important;
+            flex-shrink: 0 !important;
+        }
+
+        .profile-nav-item:hover .sidebar-avatar {
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            transform: scale(1.05) !important;
+        }
+
+        .profile-nav-item.active .sidebar-avatar {
+            border-color: rgba(255, 255, 255, 0.6) !important;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2) !important;
+        }
+
+        /* 접힌 상태에서 아바타 중앙 정렬 */
+        .sidebar.collapsed .profile-avatar-icon {
+            margin: 0 auto !important;
+            width: 36px !important;
+            height: 36px !important;
+            z-index: 10003 !important;
+            /* 헤더보다 위에 표시 */
+            position: relative !important;
+        }
+
+        .sidebar.collapsed .sidebar-avatar {
+            width: 32px !important;
+            height: 32px !important;
+            min-width: 32px !important;
+            min-height: 32px !important;
+            max-width: 32px !important;
+            max-height: 32px !important;
+            z-index: 10003 !important;
+            /* 헤더보다 위에 표시 */
+            position: relative !important;
+        }
+
+        /* 접힌 상태에서 모든 네비게이션 아이템들을 헤더 위에 표시 */
+        .sidebar.collapsed .nav-item {
+            z-index: 10003 !important;
+            position: relative !important;
+        }
+
+        /* 사이드바 헤더 컨테이너 */
+        .sidebar-header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px 8px 16px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+            margin-bottom: 8px;
+        }
+
+        /* NotionFlow 로고 텍스트 */
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.9);
+            letter-spacing: -0.02em;
+            user-select: none;
+        }
+
+        .sidebar-toggle-btn-internal {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .sidebar-toggle-btn-internal:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.9);
+            transform: scale(1.05);
+        }
+
+        .sidebar-toggle-btn-internal svg {
+            width: 16px;
+            height: 16px;
+            transition: transform 0.2s ease;
+        }
+
+        /* 접힌 상태에서는 로고 숨기고 토글 버튼 중앙 정렬 */
+        .sidebar.collapsed .sidebar-header-container {
+            justify-content: center;
+            padding: 12px 8px 8px 8px;
+        }
+
+        .sidebar.collapsed .sidebar-logo {
+            display: none;
+        }
+
+        .sidebar.collapsed .sidebar-toggle-btn-internal {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* 아이콘 표시/숨김 */
+        #sidebar-toggle-icon {
+            display: block;
+        }
+
+        #sidebar-collapsed-icon {
+            display: none;
+        }
+
+        .sidebar.collapsed #sidebar-toggle-icon {
+            display: none;
+        }
+
+        .sidebar.collapsed #sidebar-collapsed-icon {
+            display: block;
+        }
+
+        /* 다크 모드에서 토글 버튼 border 제거 */
+        [data-theme="dark"] .sidebar-toggle-btn-internal {
+            border: none !important;
+        }
+
+        /* 컨텍스트 메뉴 스타일 */
+        .context-menu {
+            position: fixed;
+            background: white;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 10001;
+            min-width: 150px;
+            padding: 4px 0;
+        }
+
+        .context-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;
+            transition: background-color 0.2s ease;
+        }
+
+        .context-menu-item:hover {
+            background-color: #f5f5f5;
+        }
+
+        .context-menu-item-danger {
+            color: #dc2626;
+        }
+
+        .context-menu-item-danger:hover {
+            background-color: #fef2f2;
+        }
+
+        .context-menu-item svg {
+            flex-shrink: 0;
+        }
+
+        /* 캘린더 아이템 우클릭 표시 */
+        .calendar-item {
+            position: relative;
+        }
+
+        .calendar-item.context-active {
+            background-color: rgba(66, 133, 244, 0.1);
+        }
+
+        /* 모달 오버레이 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .modal-container {
+            background: white;
+            border-radius: 12px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+            padding: 0.5rem;
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            padding: 1.5rem 2rem;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e5e5;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4285f4;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: #4285f4;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #3367d6;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e5e5;
+        }
+
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* 테마 강제 적용 스타일 */
+        [data-theme="light"] body,
+        [data-theme="light"] .main-content,
+        [data-theme="light"] .dashboard-section {
+            background: #ffffff !important;
+            color: #000000 !important;
+        }
+
+        [data-theme="dark"] body,
+        [data-theme="dark"] .main-content,
+        [data-theme="dark"] .dashboard-section {
+            background: #141414 !important;
+            color: #ffffff !important;
+        }
+
+        /* 사이드바 스타일은 sidebar.css에서 통일 관리 */
+
+        /* Media Player Widget 스타일 */
+        .media-player-section {
+            margin: 12px 0;
+        }
+
+        .media-player-widget {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .media-player-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .media-player-icon {
+            font-size: 16px;
+        }
+
+        .media-player-title {
+            font-size: 13px;
+        }
+
+        .media-player-content {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .media-info {
+            text-align: center;
+        }
+
+        .media-title {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .media-artist {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 11px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .media-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .media-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .media-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .media-btn-play {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+
+        .media-btn-play:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.1);
+        }
+
+        .media-progress {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+
+        .time-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* 접힌 상태에서 미디어 플레이어 숨김 */
+        .sidebar.collapsed .media-player-section {
+            display: none;
+        }
+
+        /* 다크 모드에서 미디어 플레이어 스타일 */
+        [data-theme="dark"] .media-player-widget {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* 설정 모달도 테마 적용 */
+        [data-theme="light"] .calendar-modal-content,
+        [data-theme="light"] .settings-modal-content {
+            background: #ffffff !important;
+            color: #000000 !important;
+        }
+
+        [data-theme="dark"] .calendar-modal-content,
+        [data-theme="dark"] .settings-modal-content {
+            color: #ffffff !important;
+        }
+
+        [data-theme="light"] .settings-section {
+            color: #000000 !important;
+        }
+
+        [data-theme="dark"] .settings-section {
+            color: #ffffff !important;
+        }
+
+        [data-theme="light"] .settings-section-title {
+            color: #000000 !important;
+        }
+
+        [data-theme="dark"] .settings-section-title {
+            color: #ffffff !important;
+        }
+
+        [data-theme="light"] .settings-section-desc {
+            color: #666666 !important;
+        }
+
+        [data-theme="dark"] .settings-section-desc {
+            color: #999999 !important;
+        }
+    </style>
+    <script>
+
+        // 플랫폼 연결 관련 함수들
+        function connectPlatform(platform) {
+            console.log(`Connecting to ${platform}...`);
+            // 플랫폼 연결 로직
+        }
+
+        function disconnectPlatform(platform) {
+            console.log(`Disconnecting from ${platform}...`);
+            // 플랫폼 연결 해제 로직
+        }
+
+        function logoutUser() {
+            if (confirm('정말 로그아웃하시겠습니까?')) {
+                console.log('Logging out...');
+                // 로그아웃 로직
+                window.location.href = '/logout';
+            }
+        }
+
+        // 설정 모달 관련 함수들
+        function closeSettingsModal() {
+            document.getElementById('settings-modal').style.display = 'none';
+        }
+
+        // 기타 설정 관련 함수들
+        function toggleLanguageDropdown() {
+            const dropdown = document.getElementById('settingsLanguageDropdown');
+            if (dropdown) {
+                dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+
+        function setLanguage(lang) {
+            console.log(`Setting language to: ${lang}`);
+
+            // 언어 설정 저장
+            localStorage.setItem('language', lang);
+
+            // 버튼 텍스트 업데이트
+            const toggleBtn = document.getElementById('settingsLanguageToggle');
+            if (toggleBtn) {
+                const flagSpan = toggleBtn.querySelector('.lang-flag');
+                const textSpan = toggleBtn.querySelector('.lang-text');
+
+                if (lang === 'ko') {
+                    flagSpan.textContent = '🇰🇷';
+                    textSpan.textContent = '한국어';
+                } else if (lang === 'en') {
+                    flagSpan.textContent = '🇺🇸';
+                    textSpan.textContent = 'English';
+                }
+            }
+
+            // 드롭다운 닫기
+            toggleLanguageDropdown();
+        }
+
+        function navigateToApiKeys() {
+            console.log('Navigating to API keys...');
+
+            // Try to get encrypted identifiers from various sources
+            let encryptedId = '';
+            let encryptedEmail = '';
+
+            if (window.notionFlowConfig && window.notionFlowConfig.encryptedUserId) {
+                encryptedId = window.notionFlowConfig.encryptedUserId;
+                encryptedEmail = window.notionFlowConfig.encryptedEmail;
+            } else if (window.dashboardData && window.dashboardData.encrypted_user_id) {
+                encryptedId = window.dashboardData.encrypted_user_id;
+                encryptedEmail = window.dashboardData.encrypted_email;
+            }
+
+            // Choose the appropriate URL format - encrypted ID/email after api-keys
+            let targetUrl = '/dashboard/api-keys';
+            if (encryptedId) {
+                targetUrl = `/dashboard/api-keys/${encryptedId}`;
+            } else if (encryptedEmail) {
+                targetUrl = `/dashboard/api-keys/${encryptedEmail}`;
+            }
+
+            console.log('Target URL:', targetUrl);
+
+            // 설정 모달 닫기 (if it exists)
+            if (typeof closeSettingsModal === 'function') {
+                closeSettingsModal();
+            }
+
+            // API 키 페이지로 이동
+            window.location.href = targetUrl;
+        }
+
+        // 테마 초기화 (페이지 로드 시 즉시 실행)
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            console.log('Theme initialized:', savedTheme);
+        }
+
+        // ThemeManager와 충돌하지 않도록 간단히 수정
+        function ensureThemeToggleWorks() {
+            console.log('🔧 Ensuring theme toggle works...');
+
+            // ThemeManager가 이미 처리하고 있으므로 onclick 핸들러만 확인
+            const toggle = document.getElementById('theme-toggle');
+            if (toggle) {
+                console.log('✅ Theme toggle found, ultraForceToggle ready');
+            }
+        }
+
+        // 페이지 로드 즉시 테마 적용
+        initializeTheme();
+
+
+
+
+        // 설정 모달 관련 함수들
+        function openSettingsModal() {
+            document.getElementById('settings-modal').style.display = 'flex';
+        }
+
+
+
+        // 접힌 상태에서 아이콘 클릭 시 사이드바 펼치기 또는 기본 동작
+        function handleSidebarItemClick(section) {
+            const sidebar = document.getElementById('sidebar');
+            if (!sidebar) return;
+
+            // 사이드바가 접혀있으면 펼치기만 함
+            if (sidebar.classList.contains('collapsed')) {
+                toggleSidebar();
+                return; // 다른 동작은 하지 않음
+            }
+
+            // 펼쳐져 있으면 원래 기능 실행
+            switch (section) {
+                case 'profile':
+                    if (typeof navigateToSection === 'function') {
+                        navigateToSection('profile');
+                    } else {
+                        window.location.href = '/profile';
+                    }
+                    break;
+                case 'overview':
+                    if (typeof navigateToSection === 'function') {
+                        navigateToSection('overview');
+                    }
+                    break;
+                case 'sync':
+                    if (typeof navigateToSection === 'function') {
+                        navigateToSection('sync');
+                    }
+                    break;
+                case 'calendar':
+                    window.location.href = '/dashboard/calendar-detail';
+                    break;
+                case 'friends':
+                    window.location.href = '/friends';
+                    break;
+                case 'api-keys':
+                    if (typeof navigateToApiKeys === 'function') {
+                        navigateToApiKeys();
+                    }
+                    break;
+                case 'calendar-list':
+                    window.location.href = '/dashboard/calendar-list';
+                    break;
+                case 'settings':
+                    window.location.href = '/dashboard/settings';
+                    break;
+                default:
+                    console.log('Unknown section:', section);
+            }
+        }
+
+        // 사이드바 토글 기능 - 간단하고 확실한 버전
+        function toggleSidebar() {
+            console.log('🔄 Toggle sidebar clicked');
+
+            const sidebar = document.getElementById('sidebar');
+            if (!sidebar) {
+                console.error('❌ Sidebar not found');
+                return;
+            }
+
+            // 토글 실행
+            sidebar.classList.toggle('collapsed');
+            const isCollapsed = sidebar.classList.contains('collapsed');
+
+            // console.log('✅ Sidebar toggled:', isCollapsed ? 'collapsed' : 'expanded');
+
+            // 부모 컨테이너 클래스 업데이트 (선택사항)
+            const dashboardLayout = document.querySelector('.dashboard-layout');
+            if (dashboardLayout) {
+                if (isCollapsed) {
+                    dashboardLayout.classList.add('sidebar-collapsed');
+                } else {
+                    dashboardLayout.classList.remove('sidebar-collapsed');
+                }
+            }
+
+            // 아이콘 업데이트
+            updateToggleIcons(isCollapsed);
+
+            // 페이지별 상태 저장
+            const currentPage = getCurrentPageType();
+            localStorage.setItem(`sidebar-collapsed-${currentPage}`, isCollapsed);
+        }
+
+        // 토글 아이콘 업데이트 함수
+        function updateToggleIcons(isCollapsed) {
+            const toggleIcon = document.getElementById('sidebar-toggle-icon');
+            const collapsedIcon = document.getElementById('sidebar-collapsed-icon');
+
+            if (toggleIcon && collapsedIcon) {
+                if (isCollapsed) {
+                    toggleIcon.style.display = 'none';
+                    collapsedIcon.style.display = 'block';
+                } else {
+                    toggleIcon.style.display = 'block';
+                    collapsedIcon.style.display = 'none';
+                }
+                console.log('🎯 Icons updated for collapsed state:', isCollapsed);
+            } else {
+                console.warn('⚠️ Toggle icons not found');
+            }
+        }
+
+
+        // 현재 페이지 타입 가져오기
+        function getCurrentPageType() {
+            if (document.body.classList.contains('calendar-detail-page') || 
+                window.location.pathname.includes('/calendar-detail') ||
+                document.querySelector('.calendar-workspace')) {
+                return 'calendar-detail';
+            } else if (document.body.classList.contains('calendar-list-page') ||
+                      window.location.pathname.includes('/calendar-list')) {
+                return 'calendar-list';
+            } else {
+                return 'default';
+            }
+        }
+
+        // 페이지 로드 시 저장된 사이드바 상태 복원
+        function restoreSidebarState() {
+            console.log('🔄 Restoring sidebar state...');
+
+            const currentPage = getCurrentPageType();
+            const isCollapsed = localStorage.getItem(`sidebar-collapsed-${currentPage}`) === 'true';
+            const sidebar = document.getElementById('sidebar');
+
+            if (!sidebar) {
+                console.warn('⚠️ Sidebar not found during state restoration');
+                return;
+            }
+
+            if (isCollapsed) {
+                sidebar.classList.add('collapsed');
+                // console.log('✅ Sidebar restored to collapsed state');
+
+                // 부모 컨테이너도 업데이트
+                const dashboardLayout = document.querySelector('.dashboard-layout');
+                if (dashboardLayout) {
+                    dashboardLayout.classList.add('sidebar-collapsed');
+                }
+
+                // 아이콘 상태 복원
+                updateToggleIcons(true);
+            } else {
+                // console.log('✅ Sidebar restored to expanded state');
+                updateToggleIcons(false);
+            }
+        }
+
+        // Avatar generation helper functions (same as in friends.js)
+        function generateAvatarColor(name) {
+            if (!name) return '#9333ea'; // 기본 보라색
+            
+            const colors = [
+                '#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16',
+                '#22c55e', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9',
+                '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef',
+                '#ec4899', '#f43f5e', '#9333ea'
+            ];
+            
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) {
+                const char = name.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            
+            return colors[Math.abs(hash) % colors.length];
+        }
+
+        function generateUserAvatar(name) {
+            if (!name) name = '사용자';
+            const initial = name.charAt(0).toUpperCase();
+            const color = generateAvatarColor(name);
+            
+            const svg = `<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                <rect width="32" height="32" fill="${color}" rx="16"/>
+                <text x="50%" y="50%" text-anchor="middle" dy="0.35em" fill="white" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600">${initial}</text>
+            </svg>`;
+            
+            // URL 인코딩을 사용하여 한글 문자 지원
+            return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+        }
+
+        // 사용자 프로필 아바타 로드 함수 (실제 프로필 데이터 사용)
+        async function loadUserAvatar() {
+            const sidebarAvatar = document.getElementById('sidebar-profile-avatar');
+            if (!sidebarAvatar) {
+                console.warn('❌ Sidebar avatar element not found');
+                return;
+            }
+
+            // 즉시 기본 아바타 설정 (로딩 중에도 무언가 보이도록)
+            sidebarAvatar.src = generateUserAvatar('사용자');
+
+            try {
+                // API를 통해 실제 사용자 프로필 데이터 가져오기
+                const response = await fetch('/api/profile');
+                
+                if (!response.ok) {
+                    console.warn('⚠️ Profile API response not OK:', response.status);
+                    return;
+                }
+
+                const data = await response.json();
+                
+                if (data.success && data.profile) {
+                    const profile = data.profile;
+                    const userName = profile.display_name || profile.username || '사용자';
+                    
+                    console.log('👤 Profile data loaded:', { 
+                        display_name: profile.display_name, 
+                        username: profile.username, 
+                        avatar_url: profile.avatar_url 
+                    });
+                    
+                    // 업로드된 아바타가 있으면 그것을 사용, 없으면 이니셜 아바타 생성
+                    if (profile.avatar_url && profile.avatar_url.trim() !== '') {
+                        // 이미지 로드 테스트
+                        const img = new Image();
+                        img.onload = function() {
+                            sidebarAvatar.src = profile.avatar_url;
+                            console.log('🖼️ Using uploaded avatar from profile:', profile.avatar_url);
+                        };
+                        img.onerror = function() {
+                            console.warn('⚠️ Avatar image failed to load, using generated avatar');
+                            sidebarAvatar.src = generateUserAvatar(userName);
+                        };
+                        img.src = profile.avatar_url;
+                    } else {
+                        sidebarAvatar.src = generateUserAvatar(userName);
+                        console.log('🎨 Generated avatar for user:', userName);
+                    }
+                } else {
+                    console.warn('⚠️ Profile API returned unsuccessful response:', data);
+                }
+            } catch (error) {
+                console.error('❌ Error loading user avatar:', error);
+                // 오류 발생시에도 기본 아바타는 이미 설정되어 있음
+            }
+        }
+
+        // Mini Calendar Functions
+        function generateMiniCalendar() {
+            const monthGrid = document.getElementById('month-grid');
+            if (!monthGrid) return;
+
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const today = now.getDate();
+
+            // Get first day of month and total days
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+            monthGrid.innerHTML = '';
+
+            // Previous month days
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const day = daysInPrevMonth - i;
+                const cell = document.createElement('div');
+                cell.className = 'calendar-cell other-month';
+                cell.textContent = day;
+                monthGrid.appendChild(cell);
+            }
+
+            // Current month days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const cell = document.createElement('div');
+                cell.className = 'calendar-cell';
+                if (day === today) {
+                    cell.classList.add('today');
+                }
+                cell.textContent = day;
+                cell.onclick = () => handleMiniCalendarClick(year, month, day);
+                monthGrid.appendChild(cell);
+            }
+
+            // Next month days
+            const totalCells = monthGrid.children.length;
+            const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+            for (let day = 1; day <= remainingCells; day++) {
+                const cell = document.createElement('div');
+                cell.className = 'calendar-cell other-month';
+                cell.textContent = day;
+                monthGrid.appendChild(cell);
+            }
+        }
+
+        function handleMiniCalendarClick(year, month, day) {
+            // Open day modal with selected date
+            const selectedDate = new Date(year, month, day);
+            
+            // If we're on the calendar detail page, open the modal
+            if (typeof openDayModal === 'function') {
+                openDayModal(selectedDate);
+            } else {
+                // Otherwise, navigate to calendar detail page with date parameter
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                window.location.href = `/dashboard/calendar-detail?date=${dateStr}`;
+            }
+        }
+
+        // Sidebar Media Player Functions
+        let sidebarMediaPlayer = null;
+        let currentTrackIndex = 0;
+        let sidebarTracks = [];
+
+        function initializeSidebarMediaPlayer() {
+            console.log('🎵 Initializing sidebar media player...');
+            
+            // Get media data from the main page
+            const workspace = document.querySelector('.calendar-workspace');
+            if (workspace && workspace.dataset.calendarMedia) {
+                const mediaUrl = workspace.dataset.calendarMedia;
+                const mediaTitle = workspace.dataset.calendarMediaTitle || 'Unknown Track';
+                const mediaType = workspace.dataset.calendarMediaType || 'audio';
+                
+                if (mediaUrl && mediaUrl !== '' && mediaUrl !== 'None') {
+                    sidebarTracks = [{
+                        title: mediaTitle,
+                        artist: '내 음악',
+                        src: mediaUrl,
+                        type: mediaType
+                    }];
+                    
+                    updateSidebarMediaInfo(sidebarTracks[0]);
+                    console.log('✅ Sidebar media player initialized with track:', mediaTitle);
+                } else {
+                    updateSidebarMediaInfo(null);
+                }
+            } else {
+                updateSidebarMediaInfo(null);
+            }
+        }
+
+        function updateSidebarMediaInfo(track) {
+            const titleEl = document.getElementById('sidebar-media-title');
+            const artistEl = document.getElementById('sidebar-media-artist');
+            
+            if (track) {
+                if (titleEl) titleEl.textContent = track.title || 'Unknown Track';
+                if (artistEl) artistEl.textContent = track.artist || 'Unknown Artist';
+            } else {
+                if (titleEl) titleEl.textContent = '미디어 없음';
+                if (artistEl) artistEl.textContent = '캘린더';
+            }
+        }
+
+        function sidebarTogglePlay() {
+            if (!sidebarTracks || sidebarTracks.length === 0) {
+                console.warn('⚠️ No tracks available in sidebar player');
+                return;
+            }
+
+            // Try to use the main media player if available
+            if (window.mediaPlayer && typeof togglePlay === 'function') {
+                togglePlay();
+                updateSidebarPlayButton();
+            } else {
+                console.warn('⚠️ Main media player not available');
+            }
+        }
+
+        function sidebarPrevTrack() {
+            if (typeof prevTrack === 'function') {
+                prevTrack();
+                updateSidebarFromMainPlayer();
+            }
+        }
+
+        function sidebarNextTrack() {
+            if (typeof nextTrack === 'function') {
+                nextTrack();
+                updateSidebarFromMainPlayer();
+            }
+        }
+
+        function updateSidebarPlayButton() {
+            const playBtn = document.getElementById('sidebar-play-btn');
+            const playIcon = playBtn?.querySelector('.play-icon');
+            const pauseIcon = playBtn?.querySelector('.pause-icon');
+            
+            if (window.mediaPlayer && !window.mediaPlayer.paused) {
+                playIcon?.style.setProperty('display', 'none');
+                pauseIcon?.style.setProperty('display', 'block');
+            } else {
+                playIcon?.style.setProperty('display', 'block');
+                pauseIcon?.style.setProperty('display', 'none');
+            }
+        }
+
+        function updateSidebarProgress() {
+            if (!window.mediaPlayer) return;
+            
+            const progressFill = document.getElementById('sidebar-progress-fill');
+            const currentTimeEl = document.getElementById('sidebar-current-time');
+            const totalTimeEl = document.getElementById('sidebar-total-time');
+            
+            if (progressFill && window.mediaPlayer.duration) {
+                const progress = (window.mediaPlayer.currentTime / window.mediaPlayer.duration) * 100;
+                progressFill.style.width = progress + '%';
+            }
+            
+            if (currentTimeEl && window.mediaPlayer.currentTime) {
+                currentTimeEl.textContent = formatTime(window.mediaPlayer.currentTime);
+            }
+            
+            if (totalTimeEl && window.mediaPlayer.duration) {
+                totalTimeEl.textContent = formatTime(window.mediaPlayer.duration);
+            }
+        }
+
+        function updateSidebarFromMainPlayer() {
+            // Update sidebar when main player changes track
+            if (window.currentTracks && window.currentTrackIndex !== undefined) {
+                const track = window.currentTracks[window.currentTrackIndex];
+                if (track) {
+                    updateSidebarMediaInfo(track);
+                }
+            }
+            updateSidebarPlayButton();
+        }
+
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '00:00';
+            
+            const totalSecs = Math.floor(seconds);
+            const hours = Math.floor(totalSecs / 3600);
+            const mins = Math.floor((totalSecs % 3600) / 60);
+            const secs = totalSecs % 60;
+            
+            if (hours > 0) {
+                // 1시간 이상: 00:00:00 형식
+                return (hours < 10 ? '0' : '') + hours + ':' + 
+                       (mins < 10 ? '0' : '') + mins + ':' + 
+                       (secs < 10 ? '0' : '') + secs;
+            } else {
+                // 1시간 미만: 00:00 형식 (분:초)
+                return (mins < 10 ? '0' : '') + mins + ':' + 
+                       (secs < 10 ? '0' : '') + secs;
+            }
+        }
+
+        // Sync with main media player events
+        function setupSidebarMediaSync() {
+            if (window.mediaPlayer) {
+                window.mediaPlayer.addEventListener('timeupdate', updateSidebarProgress);
+                window.mediaPlayer.addEventListener('play', updateSidebarPlayButton);
+                window.mediaPlayer.addEventListener('pause', updateSidebarPlayButton);
+                window.mediaPlayer.addEventListener('ended', updateSidebarPlayButton);
+                console.log('🔗 Sidebar media player synced with main player');
+            }
+        }
+
+        // Add DOM ready event listener
+        document.addEventListener('DOMContentLoaded', function () {
+            // 사이드바 상태 복원
+            restoreSidebarState();
+
+            // 기본 사이드바 매니저 초기화 (sidebar.js에서 자동으로 실행됨)
+            if (typeof SidebarManager !== 'undefined') {
+                const sidebarManager = new SidebarManager();
+                sidebarManager.init();
+            }
+
+            // 사용자 프로핑 아바타 로드
+            loadUserAvatar();
+
+            // Ensure theme toggle works with ThemeManager
+            ensureThemeToggleWorks();
+
+            // Generate mini calendar only on calendar detail page
+            const currentPage = getCurrentPageType();
+            if (currentPage === 'calendar-detail') {
+                console.log('✅ Generating mini calendar for calendar detail page');
+                generateMiniCalendar();
+                
+                // Initialize sidebar media player
+                initializeSidebarMediaPlayer();
+                
+                // Setup media player sync after a short delay to ensure main player is ready
+                setTimeout(() => {
+                    setupSidebarMediaSync();
+                }, 1000);
+            } else {
+                console.log('ℹ️ Not generating mini calendar for page type:', currentPage);
+            }
+        });
+
+
+
+
+    </script>
+</div> <!-- sidebar 닫기 -->
+</div> <!-- sidebar-container 닫기 -->

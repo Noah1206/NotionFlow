@@ -1,0 +1,1195 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}NotionFlow 설정 | 생산성 관리 센터{% endblock %}
+
+{% block description %}NotionFlow 설정 페이지에서 생산성 지표를 확인하고 API 키를 관리하세요. 실시간 시간 절약 현황과 플랫폼 연결 상태를 관리하세요.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet"
+    href="{{ url_for('static', filename='css/sidebar.css') }}?v={{ range(100000, 999999) | random }}">
+<link rel="stylesheet"
+    href="{{ url_for('static', filename='css/settings-redesign.css') }}?v={{ range(100000, 999999) | random }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+    <!-- Header Section -->
+    <div class="settings-header">
+        <div class="header-content">
+            <h1 class="page-title">설정</h1>
+            <p class="page-subtitle">생산성 관리 및 시스템 설정을 확인하세요</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn-icon">
+                <i class="fas fa-bell"></i>
+            </button>
+            <button class="btn-icon">
+                <i class="fas fa-cog"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Activity Report Section -->
+    <section class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-chart-line"></i>
+                이번 주 활동 리포트
+            </h2>
+            <span class="section-badge">실시간</span>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-value">
+                        <span class="metric-number">0</span>
+                        <span class="metric-unit">시간</span>
+                    </div>
+                    <div class="metric-label">총 절약 시간</div>
+                    <div class="metric-change neutral">
+                        <i class="fas fa-minus"></i>
+                        데이터 없음
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-value">
+                        <span class="metric-number">0</span>
+                        <span class="metric-unit">%</span>
+                    </div>
+                    <div class="metric-label">성공률</div>
+                    <div class="metric-change neutral">
+                        <i class="fas fa-minus"></i>
+                        데이터 없음
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-sync"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-value">
+                        <span class="metric-number">0</span>
+                        <span class="metric-unit">회</span>
+                    </div>
+                    <div class="metric-label">동기화 횟수</div>
+                    <div class="metric-change neutral">
+                        <i class="fas fa-minus"></i>
+                        데이터 없음
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weekly Activity Chart -->
+        <div class="chart-container">
+            <canvas id="weeklyChart"></canvas>
+        </div>
+    </section>
+    <!-- Platform Status -->
+    <section class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-plug"></i>
+                연결 상태 관리
+            </h2>
+            <button class="btn-text">연결 추가</button>
+        </div>
+
+        <div class="platform-grid">
+            <div class="platform-card connected">
+                <div class="platform-icon">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                        <path
+                            d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046 1.121-.56 1.121-1.167V6.354c0-.606-.233-.933-.747-.887l-15.177.887c-.56.047-.934.373-.934 1.027zm13.748.327c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.139c-.093-.514.28-.887.747-.933z" />
+                    </svg>
+                </div>
+                <div class="platform-info">
+                    <h3 class="platform-name">Notion</h3>
+                    <span class="platform-status">
+                        <i class="fas fa-circle"></i>
+                        연결됨
+                    </span>
+                </div>
+                <!-- Notion 버튼들은 JavaScript에서 동적으로 관리됨 -->
+            </div>
+
+            <div class="platform-card connected">
+                <div class="platform-icon">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                        <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                    </svg>
+                </div>
+                <div class="platform-info">
+                    <h3 class="platform-name">Google</h3>
+                    <span class="platform-status">
+                        <i class="fas fa-circle"></i>
+                        연결됨
+                    </span>
+                </div>
+                <button class="btn-warning-small" onclick="disconnectPlatform('google')">연결해제</button>
+            </div>
+
+            <div class="platform-card disconnected">
+                <div class="platform-icon">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                        <path
+                            d="M17 3H7c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 16c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm2.5-4H9.5V6h5v9z" />
+                    </svg>
+                </div>
+                <div class="platform-info">
+                    <h3 class="platform-name">Apple</h3>
+                    <span class="platform-status disconnected">
+                        <i class="fas fa-circle"></i>
+                        연결 끊김
+                    </span>
+                </div>
+                <button class="btn-secondary-small" onclick="connectPlatform('apple')">연결</button>
+            </div>
+
+            <div class="platform-card connected">
+                <div class="platform-icon">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                        <path
+                            d="M7.88 12.04q0 .45-.11.87-.1.41-.33.74-.22.33-.58.52-.37.2-.87.2t-.85-.2q-.35-.21-.57-.55-.22-.33-.33-.75-.1-.42-.1-.83 0-.72.33-1.25.33-.53.96-.53.24 0 .42.05.17.05.3.14.12.09.2.22.07.12.07.26 0 .11-.06.2-.06.09-.15.09-.1 0-.14-.08-.05-.07-.05-.15 0-.23-.22-.23-.26 0-.45.27-.19.26-.19.73 0 .69.21.94.2.24.54.24.32 0 .52-.19.2-.19.27-.5.06-.3.06-.64zm2.64.04q0 .45-.11.87-.1.41-.33.74-.22.33-.58.52-.37.2-.87.2t-.85-.2q-.35-.21-.57-.55-.22-.33-.33-.75-.1-.42-.1-.83 0-.72.33-1.25.33-.53.96-.53.24 0 .42.05.17.05.3.14.12.09.2.22.07.12.07.26 0 .11-.06.2-.06.09-.15.09-.1 0-.14-.08-.05-.07-.05-.15 0-.23-.22-.23-.26 0-.45.27-.19.26-.19.73 0 .69.21.94.2.24.54.24.32 0 .52-.19.2-.19.27-.5.06-.3.06-.64z" />
+                    </svg>
+                </div>
+                <div class="platform-info">
+                    <h3 class="platform-name">Outlook</h3>
+                    <span class="platform-status">
+                        <i class="fas fa-circle"></i>
+                        연결됨
+                    </span>
+                </div>
+                <button class="btn-warning-small" onclick="disconnectPlatform('outlook')">연결해제</button>
+            </div>
+
+            <div class="platform-card disconnected">
+                <div class="platform-icon">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                        <path
+                            d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z" />
+                    </svg>
+                </div>
+                <div class="platform-info">
+                    <h3 class="platform-name">Slack</h3>
+                    <span class="platform-status disconnected">
+                        <i class="fas fa-circle"></i>
+                        연결 끊김
+                    </span>
+                </div>
+                <button class="btn-secondary-small" onclick="connectPlatform('slack')">연결</button>
+            </div>
+
+            <div class="platform-card add-new">
+                <div class="platform-icon">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <div class="platform-info">
+                    <h3 class="platform-name">새 플랫폼 추가</h3>
+                    <span class="platform-status">더 많은 서비스 연결</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recent Activity Log -->
+    <section class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-history"></i>
+                최근 활동 로그
+            </h2>
+            <button class="btn-text">전체 기록</button>
+        </div>
+
+        <div class="activity-list">
+            <div class="activity-item">
+                <div class="activity-icon neutral">
+                    <i class="fas fa-info"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-title">활동 기록이 없습니다</div>
+                    <div class="activity-meta">
+                        <span class="activity-time">-</span>
+                        <span class="activity-platform">System</span>
+                    </div>
+                </div>
+                <div class="activity-status neutral">대기중</div>
+            </div>
+        </div>
+    </section>
+    <!-- Settings Actions -->
+    <section class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-cog"></i>
+                빠른 설정
+            </h2>
+        </div>
+
+        <div class="settings-grid">
+            <div class="setting-card">
+                <div class="setting-header">
+                    <h3 class="setting-title">알림 설정</h3>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <p class="setting-description">동기화 완료 및 오류 알림을 받습니다</p>
+            </div>
+
+            <div class="setting-card">
+                <div class="setting-header">
+                    <h3 class="setting-title">자동 동기화</h3>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <p class="setting-description">30분마다 자동으로 데이터를 동기화합니다</p>
+            </div>
+
+            <div class="setting-card">
+                <div class="setting-header">
+                    <h3 class="setting-title">이메일 알림</h3>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <p class="setting-description">중요한 업데이트를 이메일로 받습니다</p>
+            </div>
+
+            <div class="setting-card">
+                <div class="setting-header">
+                    <h3 class="setting-title">데이터 백업</h3>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <p class="setting-description">주간 자동 백업을 활성화합니다</p>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    // Chart.js Configuration
+    const ctx = document.getElementById('weeklyChart').getContext('2d');
+    const weeklyChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['월', '화', '수', '목', '금', '토', '일'],
+            datasets: [{
+                label: '절약 시간 (시간)',
+                data: [0, 0, 0, 0, 0, 0, 0],
+                borderColor: '#3B82F6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderWidth: 2,
+                tension: 0.4,
+                pointBackgroundColor: '#3B82F6',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    cornerRadius: 8,
+                    titleFont: {
+                        size: 14
+                    },
+                    bodyFont: {
+                        size: 13
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        padding: 10,
+                        color: '#6B7280',
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false,
+                        drawBorder: false
+                    },
+                    ticks: {
+                        padding: 10,
+                        color: '#6B7280',
+                        font: {
+                            size: 12
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // 실제 데이터로 설정 페이지 업데이트
+    async function updateSettingsData() {
+        try {
+            // 대시보드 통계 가져오기
+            const statsResponse = await fetch('/api/dashboard/stats');
+            if (statsResponse.ok) {
+                const statsData = await statsResponse.json();
+                if (statsData.success && statsData.stats) {
+                    // 연결된 플랫폼이 없으면 모든 값을 0으로 설정
+                    const connectedPlatforms = parseInt(statsData.stats.connected_platforms) || 0;
+                    
+                    if (connectedPlatforms === 0) {
+                        // 연결된 플랫폼이 없으면 모든 통계를 0으로 설정
+                        document.querySelector('.metric-card:nth-child(1) .metric-number').textContent = '0';
+                        document.querySelector('.metric-card:nth-child(1) .metric-unit').textContent = '시간';
+                        
+                        document.querySelector('.metric-card:nth-child(2) .metric-number').textContent = '0';
+                        
+                        document.querySelector('.metric-card:nth-child(3) .metric-number').textContent = '0';
+                        
+                        // 변화량도 0으로 설정
+                        document.querySelector('.metric-card:nth-child(1) .metric-change').innerHTML = '<i class="fas fa-minus"></i> 변화 없음';
+                        document.querySelector('.metric-card:nth-child(2) .metric-change').innerHTML = '<i class="fas fa-minus"></i> 변화 없음';
+                        document.querySelector('.metric-card:nth-child(3) .metric-change').innerHTML = '<i class="fas fa-minus"></i> 변화 없음';
+                        
+                        // 차트도 모두 0으로 설정
+                        if (window.weeklyChart) {
+                            window.weeklyChart.data.datasets[0].data = [0, 0, 0, 0, 0, 0, 0];
+                            window.weeklyChart.update();
+                        }
+                    } else {
+                        // 연결된 플랫폼이 있으면 실제 데이터 표시
+                        const avgSyncTime = parseFloat(statsData.stats.avg_sync_time.replace('s', ''));
+                        document.querySelector('.metric-card:nth-child(1) .metric-number').textContent = avgSyncTime.toFixed(1);
+                        document.querySelector('.metric-card:nth-child(1) .metric-unit').textContent = '초';
+                        
+                        document.querySelector('.metric-card:nth-child(2) .metric-number').textContent = statsData.stats.success_rate.replace('%', '');
+                        
+                        document.querySelector('.metric-card:nth-child(3) .metric-number').textContent = statsData.stats.synced_events;
+                    }
+                    
+                    console.log('Settings stats updated:', statsData.stats);
+                }
+            } else {
+                // API 오류 시 모든 값을 0으로 설정
+                setZeroValues();
+            }
+
+            // 플랫폼 상태 가져오기
+            const platformsResponse = await fetch('/api/dashboard/platforms');
+            if (platformsResponse.ok) {
+                const platformsData = await platformsResponse.json();
+                if (platformsData.success && platformsData.platforms) {
+                    updatePlatformCards(platformsData.platforms);
+                }
+            }
+
+            // 최근 활동 가져오기
+            const activityResponse = await fetch('/api/dashboard/activity?limit=4');
+            if (activityResponse.ok) {
+                const activityData = await activityResponse.json();
+                if (activityData.success && activityData.activity) {
+                    updateActivityLog(activityData.activity);
+                }
+            }
+
+        } catch (error) {
+            console.error('Error updating settings data:', error);
+            // 에러 시 모든 값을 0으로 설정
+            setZeroValues();
+        }
+    }
+
+    // 모든 값을 0으로 설정하는 함수
+    function setZeroValues() {
+        document.querySelector('.metric-card:nth-child(1) .metric-number').textContent = '0';
+        document.querySelector('.metric-card:nth-child(1) .metric-unit').textContent = '시간';
+        document.querySelector('.metric-card:nth-child(2) .metric-number').textContent = '0';
+        document.querySelector('.metric-card:nth-child(3) .metric-number').textContent = '0';
+        
+        // 변화량도 0으로 설정
+        document.querySelector('.metric-card:nth-child(1) .metric-change').innerHTML = '<i class="fas fa-minus"></i> 데이터 없음';
+        document.querySelector('.metric-card:nth-child(2) .metric-change').innerHTML = '<i class="fas fa-minus"></i> 데이터 없음';
+        document.querySelector('.metric-card:nth-child(3) .metric-change').innerHTML = '<i class="fas fa-minus"></i> 데이터 없음';
+        
+        // 차트도 모두 0으로 설정
+        if (window.weeklyChart) {
+            window.weeklyChart.data.datasets[0].data = [0, 0, 0, 0, 0, 0, 0];
+            window.weeklyChart.update();
+        }
+    }
+
+    // 플랫폼 카드 업데이트
+    function updatePlatformCards(platforms) {
+        const platformGrid = document.querySelector('.platform-grid');
+        const platformNames = ['notion', 'google', 'apple', 'outlook', 'slack'];
+        
+        platformNames.forEach((platformName, index) => {
+            const platformCard = platformGrid.children[index];
+            const platform = platforms[platformName];
+            
+            if (platform && platformCard) {
+                const statusElement = platformCard.querySelector('.platform-status');
+                const button = platformCard.querySelector('button');
+                
+                // 기존의 특별한 버튼들 제거 (초록색 버튼, X 버튼 등)
+                // :contains() 셀렉터는 브라우저 네이티브에서 지원되지 않으므로 제거
+                const existingSpecialButtons = platformCard.querySelectorAll(
+                    '.btn-success, .connection-status-btn, .sync-status-btn, [class*="connected-btn"], ' +
+                    '.btn-success-small, [onclick*="disconnectSpecial"], [class*="green"], button[class*="close"]'
+                );
+                existingSpecialButtons.forEach(btn => btn.remove());
+                
+                // X 버튼이나 특별한 형태의 연동 상태 버튼들도 제거
+                const specialStatusButtons = platformCard.querySelectorAll('button');
+                specialStatusButtons.forEach(btn => {
+                    if (btn.textContent && (
+                        btn.textContent.includes('연동됨') || 
+                        btn.textContent.includes('×') ||
+                        btn.textContent.includes('내 세 캘린더') ||
+                        btn.classList.contains('btn-success')
+                    )) {
+                        btn.remove();
+                    }
+                });
+                
+                // 버튼이 제거되었다면 새로 생성
+                let actionButton = platformCard.querySelector('button');
+                if (!actionButton) {
+                    actionButton = document.createElement('button');
+                    platformCard.appendChild(actionButton);
+                }
+                
+                if (platform.configured && platform.enabled) {
+                    // 연결된 상태 - 일관된 "연결해제" 버튼
+                    platformCard.className = 'platform-card connected';
+                    statusElement.innerHTML = '<i class="fas fa-circle"></i> 연결됨';
+                    statusElement.classList.remove('disconnected');
+                    
+                    // Notion의 경우 캘린더 동기화 상태 확인
+                    if (platformName === 'notion') {
+                        // 캘린더 동기화 상태 확인
+                        if (platform.calendar_connected && platform.events_synced) {
+                            // 이미 캘린더가 연결되고 이벤트가 동기화된 경우 - 연결해제 버튼만 표시
+                            actionButton.textContent = '연결해제';
+                            actionButton.className = 'btn-warning-small';
+                            actionButton.onclick = () => disconnectPlatform(platformName);
+                        } else {
+                            // 아직 캘린더가 선택되지 않은 경우 - 캘린더 선택 버튼과 연결해제 버튼 모두 표시
+                            // 기존 버튼 컨테이너가 있는지 확인
+                            let buttonContainer = platformCard.querySelector('.button-container');
+                            if (!buttonContainer) {
+                                buttonContainer = document.createElement('div');
+                                buttonContainer.className = 'button-container';
+                                buttonContainer.style.cssText = 'display: flex; gap: 8px; justify-content: flex-end;';
+                                platformCard.appendChild(buttonContainer);
+                            }
+                            
+                            // 캘린더 선택 버튼 추가
+                            const calendarButton = document.createElement('button');
+                            calendarButton.textContent = '캘린더 선택';
+                            calendarButton.className = 'btn-primary-small';
+                            calendarButton.style.marginRight = '8px';
+                            calendarButton.onclick = () => showCalendarSelectionModal();
+                            
+                            // 연결해제 버튼
+                            actionButton.textContent = '연결해제';
+                            actionButton.className = 'btn-warning-small';
+                            actionButton.onclick = () => disconnectPlatform(platformName);
+                            
+                            // 버튼 컨테이너에 추가
+                            buttonContainer.innerHTML = '';
+                            buttonContainer.appendChild(calendarButton);
+                            buttonContainer.appendChild(actionButton);
+                        }
+                    } else {
+                        actionButton.textContent = '연결해제';
+                        actionButton.className = 'btn-warning-small';
+                        actionButton.onclick = () => disconnectPlatform(platformName);
+                    }
+                } else {
+                    // 연결되지 않은 상태
+                    platformCard.className = 'platform-card disconnected';
+                    statusElement.innerHTML = '<i class="fas fa-circle"></i> 연결 끊김';
+                    statusElement.classList.add('disconnected');
+                    actionButton.textContent = '연결';
+                    actionButton.className = 'btn-secondary-small';
+                    actionButton.onclick = () => connectPlatform(platformName);
+                }
+            }
+        });
+    }
+    
+    // 개별 플랫폼 상태 업데이트 함수
+    function updatePlatformStatus(platformName, status) {
+        const platformGrid = document.querySelector('.platform-grid');
+        const platformNames = ['notion', 'google', 'apple', 'outlook', 'slack'];
+        const platformIndex = platformNames.indexOf(platformName);
+        
+        if (platformIndex >= 0 && platformGrid.children[platformIndex]) {
+            const platformCard = platformGrid.children[platformIndex];
+            
+            // 설정에 따라 UI 업데이트
+            setTimeout(() => {
+                updateSettingsData(); // 전체 데이터를 다시 로드해서 UI 업데이트
+            }, 100);
+        }
+    }
+    
+    // 플랫폼 연결 함수
+    function connectPlatform(platformName) {
+        // OAuth 플랫폼의 경우 팝업으로 연결
+        const oauthPlatforms = ['notion', 'google', 'outlook', 'slack'];
+        if (oauthPlatforms.includes(platformName)) {
+            const popup = window.open(
+                `/oauth/${platformName}/authorize`,
+                `oauth_${platformName}`,
+                'width=500,height=700,left=' + ((screen.width - 500) / 2) + ',top=' + ((screen.height - 700) / 2) + ',scrollbars=yes,resizable=yes'
+            );
+            
+            if (!popup) {
+                showNotification('팝업이 차단되었습니다. 팝업을 허용해주세요.', 'error');
+            }
+        } else {
+            showNotification(`${platformName} 연결 기능이 곧 제공됩니다.`, 'info');
+        }
+    }
+    
+    // 플랫폼 연결해제 함수  
+    function disconnectPlatform(platformName) {
+        // Notion의 경우 특별 처리: OAuth 유지하고 캘린더 선택만 재설정
+        if (platformName === 'notion') {
+            if (confirm('캘린더 연동을 해제하고 다시 선택하시겠습니까? (Notion 연결은 유지됩니다)')) {
+                // 캘린더 선택 상태만 초기화
+                console.log('🔄 [DISCONNECT] Starting Notion calendar reset...');
+                fetch('/oauth/notion/reset-calendar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    console.log('📡 [DISCONNECT] API Response status:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('📊 [DISCONNECT] API Response data:', data);
+                    if (data.success) {
+                        showNotification('캘린더 연동이 해제되었습니다. 새로운 캘린더를 선택해주세요.', 'success');
+                        
+                        // UI 상태 즉시 업데이트
+                        console.log('🎨 [DISCONNECT] Updating UI to disconnected state...');
+                        updatePlatformStatus('notion', 'disconnected');
+                        
+                        // 캘린더 선택 모달 표시
+                        setTimeout(() => {
+                            console.log('📅 [DISCONNECT] Showing calendar selection modal...');
+                            showCalendarSelectionModal();
+                        }, 1000);
+                    } else {
+                        console.error('❌ [DISCONNECT] Reset failed:', data.error);
+                        showNotification(`연동 해제 실패: ${data.error}`, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ [DISCONNECT] Reset calendar error:', error);
+                    showNotification('캘린더 연동 해제 중 오류가 발생했습니다.', 'error');
+                });
+            }
+        } else {
+            // 다른 플랫폼은 기존 로직 사용
+            if (confirm(`${platformName} 연결을 해제하시겠습니까?`)) {
+                // 수동 연결 해제 플래그 설정 (자동 재연결 방지)
+                if (platformName === 'google') {
+                    localStorage.setItem('google_manually_disconnected', 'true');
+                    console.log('🚫 [DISCONNECT] Set google_manually_disconnected flag');
+                } else if (platformName === 'notion') {
+                    localStorage.setItem('notion_manually_disconnected', 'true');
+                    console.log('🚫 [DISCONNECT] Set notion_manually_disconnected flag');
+                }
+
+                // 연결해제 API 호출
+                fetch(`/oauth/disconnect/${platformName}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification(`${platformName} 연결이 해제되었습니다.`, 'success');
+                        // 페이지 새로고침으로 상태 업데이트
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        showNotification(`연결해제 실패: ${data.error}`, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Disconnect error:', error);
+                    showNotification('연결해제 중 오류가 발생했습니다.', 'error');
+                });
+            }
+        }
+    }
+
+    // 활동 로그 업데이트
+    function updateActivityLog(activities) {
+        const activityList = document.querySelector('.activity-list');
+        if (!activities || activities.length === 0) {
+            // 활동이 없으면 "활동 없음" 메시지 표시
+            activityList.innerHTML = `
+                <div class="activity-item">
+                    <div class="activity-icon neutral">
+                        <i class="fas fa-info"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">활동 기록이 없습니다</div>
+                        <div class="activity-meta">
+                            <span class="activity-time">-</span>
+                            <span class="activity-platform">System</span>
+                        </div>
+                    </div>
+                    <div class="activity-status neutral">대기중</div>
+                </div>
+            `;
+            return;
+        }
+        
+        activityList.innerHTML = ''; // 기존 내용 클리어
+        
+        activities.slice(0, 4).forEach(activity => {
+            const activityItem = document.createElement('div');
+            activityItem.className = 'activity-item';
+            
+            // 활동 타입에 따른 제목 생성
+            let activityTitle = activity.description || getActivityTitle(activity.event_type, activity.platform);
+            
+            // 상태에 따른 클래스 및 아이콘 설정
+            const statusClass = getStatusClass(activity.status);
+            const statusIcon = getStatusIcon(activity.status);
+            const statusText = getStatusText(activity.status);
+            
+            activityItem.innerHTML = `
+                <div class="activity-icon ${statusClass}">
+                    <i class="fas ${statusIcon}"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-title">${activityTitle}</div>
+                    <div class="activity-meta">
+                        <span class="activity-time">${formatTimeAgo(activity.created_at)}</span>
+                        <span class="activity-platform">${getPlatformDisplayName(activity.platform)}</span>
+                    </div>
+                </div>
+                <div class="activity-status ${statusClass}">${statusText}</div>
+            `;
+            
+            activityList.appendChild(activityItem);
+        });
+    }
+
+    // 활동 제목 생성
+    function getActivityTitle(eventType, platform) {
+        const platformName = getPlatformDisplayName(platform);
+        
+        switch (eventType) {
+            case 'sync_started':
+                return `${platformName} 동기화 시작`;
+            case 'sync_completed':
+                return `${platformName} 동기화 완료`;
+            case 'sync_failed':
+                return `${platformName} 동기화 실패`;
+            case 'connection_established':
+                return `${platformName} 연결 완료`;
+            case 'connection_failed':
+                return `${platformName} 연결 실패`;
+            case 'data_imported':
+                return `${platformName} 데이터 가져오기 완료`;
+            case 'backup_created':
+                return `${platformName} 백업 생성`;
+            default:
+                return `${platformName} 활동`;
+        }
+    }
+
+    // 플랫폼 표시명 반환
+    function getPlatformDisplayName(platform) {
+        const platformNames = {
+            'notion': 'Notion',
+            'google': 'Google Calendar',
+            'apple': 'Apple Calendar',
+            'outlook': 'Outlook',
+            'slack': 'Slack',
+            'system': 'System'
+        };
+        return platformNames[platform] || platform || 'Unknown';
+    }
+
+    // 상태 클래스 반환
+    function getStatusClass(status) {
+        switch (status) {
+            case 'success':
+            case 'completed':
+                return 'success';
+            case 'error':
+            case 'failed':
+                return 'error';
+            case 'warning':
+            case 'partial':
+                return 'warning';
+            default:
+                return 'neutral';
+        }
+    }
+
+    // 상태 아이콘 반환
+    function getStatusIcon(status) {
+        switch (status) {
+            case 'success':
+            case 'completed':
+                return 'fa-check';
+            case 'error':
+            case 'failed':
+                return 'fa-times';
+            case 'warning':
+            case 'partial':
+                return 'fa-exclamation';
+            default:
+                return 'fa-info';
+        }
+    }
+
+    // 상태 텍스트 반환
+    function getStatusText(status) {
+        switch (status) {
+            case 'success':
+            case 'completed':
+                return '성공';
+            case 'error':
+            case 'failed':
+                return '실패';
+            case 'warning':
+            case 'partial':
+                return '부분 성공';
+            default:
+                return '대기중';
+        }
+    }
+
+    // 시간 포맷 함수
+    function formatTimeAgo(timestamp) {
+        if (!timestamp) return '-';
+        
+        const now = new Date();
+        const time = new Date(timestamp);
+        const diffMs = now - time;
+        const diffMins = Math.floor(diffMs / (1000 * 60));
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        
+        if (diffMins < 1) return '방금 전';
+        if (diffMins < 60) return `${diffMins}분 전`;
+        if (diffHours < 24) return `${diffHours}시간 전`;
+        if (diffDays < 7) return `${diffDays}일 전`;
+        return time.toLocaleDateString('ko-KR');
+    }
+
+    // 페이지 로드 시 Notion 캘린더 선택 상태 확인
+    function checkNotionCalendarState() {
+        console.log('🔍 [PAGE-LOAD] Checking Notion calendar state...');
+        fetch('/oauth/notion/calendar-state', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('📊 [PAGE-LOAD] Calendar state response:', data);
+            if (data.success && data.needs_calendar_selection) {
+                console.log('✅ [PAGE-LOAD] Notion needs calendar selection - showing modal');
+                // 페이지 로드 후 잠시 후에 모달 표시
+                setTimeout(() => {
+                    showCalendarSelectionModal();
+                }, 2000);
+            } else if (data.success) {
+                console.log('🟢 [PAGE-LOAD] Notion calendar state normal - no action needed');
+            }
+        })
+        .catch(error => {
+            console.error('❌ [PAGE-LOAD] Failed to check Notion calendar state:', error);
+        });
+    }
+
+    // 페이지 로드 시 데이터 업데이트
+    document.addEventListener('DOMContentLoaded', function() {
+        // 차트를 전역 변수로 저장
+        window.weeklyChart = weeklyChart;
+        
+        // 실제 데이터 로드
+        updateSettingsData();
+        
+        // Notion 캘린더 선택 상태 확인
+        console.log('🚀 [PAGE-LOAD] Starting page load sequence...');
+        checkNotionCalendarState();
+        
+        // 30초마다 데이터 업데이트
+        setInterval(updateSettingsData, 30000);
+    });
+
+    // Initialize light theme
+    document.documentElement.setAttribute('data-theme', 'light');
+
+    // OAuth 성공 메시지 리스너 - Notion 연결 후 캘린더로 자동 이동
+    window.addEventListener('message', function(event) {
+        if (event.data && event.data.type === 'oauth_success') {
+            console.log('OAuth success received:', event.data);
+            
+            // 성공 알림 표시
+            showNotification(
+                `${event.data.platform.charAt(0).toUpperCase() + event.data.platform.slice(1)} 연결 완료!`, 
+                'success'
+            );
+            
+            // Notion 연결 완료 후 캘린더 선택 UI 표시 또는 페이지 이동
+            if (event.data.platform === 'notion') {
+                if (event.data.redirect_to_calendar) {
+                    setTimeout(() => {
+                        console.log('Redirecting to calendar after Notion sync...');
+                        window.location.href = '/calendar';
+                    }, 1500);
+                } else {
+                    // 캘린더 선택 UI 표시
+                    setTimeout(() => {
+                        showCalendarSelectionModal();
+                    }, 1000);
+                }
+            } else {
+                // 다른 플랫폼이거나 동기화할 데이터가 없으면 페이지 새로고침
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            }
+        }
+    });
+
+    // 알림 표시 함수
+    function showNotification(message, type = 'info') {
+        // 기존 알림 제거
+        const existingNotification = document.querySelector('.oauth-notification');
+        if (existingNotification) {
+            existingNotification.remove();
+        }
+
+        // 새 알림 생성
+        const notification = document.createElement('div');
+        notification.className = `oauth-notification ${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class="fas fa-check-circle"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        // 스타일 추가
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#10B981' : '#3B82F6'};
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // 3초 후 제거
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 3000);
+    }
+
+    // 알림 애니메이션 CSS 추가
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .oauth-notification .notification-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    `;
+    document.head.appendChild(style);
+
+    // 캘린더 선택 모달 표시 함수
+    function showCalendarSelectionModal() {
+        // 기존 모달이 있으면 제거
+        const existingModal = document.getElementById('settings-calendar-selection-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        // 모달 HTML 생성
+        const modalHTML = `
+            <div id="settings-calendar-selection-modal" style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10001;
+            ">
+                <div style="
+                    background: white;
+                    border-radius: 12px;
+                    padding: 24px;
+                    max-width: 500px;
+                    width: 90%;
+                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+                ">
+                    <h3 style="margin: 0 0 16px 0; color: #333; font-size: 20px;">
+                        📅 Notion 캘린더 연동 설정
+                    </h3>
+                    <p style="margin: 0 0 20px 0; color: #666; line-height: 1.5;">
+                        Notion 연결이 완료되었습니다! 이벤트를 동기화할 캘린더를 선택해주세요.
+                    </p>
+                    
+                    <div id="calendar-list" style="margin-bottom: 20px;">
+                        <div class="loading-spinner" style="text-align: center; padding: 20px;">
+                            🔄 캘린더 목록을 불러오는 중...
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                        <button onclick="closeCalendarModal()" style="
+                            background: #f5f5f5;
+                            border: none;
+                            padding: 10px 20px;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            color: #666;
+                        ">나중에</button>
+                        <button id="sync-button" onclick="startNotionSync()" disabled style="
+                            background: #3b82f6;
+                            border: none;
+                            padding: 10px 20px;
+                            border-radius: 6px;
+                            color: white;
+                            cursor: not-allowed;
+                            opacity: 0.5;
+                        ">동기화 시작</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // 모달을 body에 추가
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        // 캘린더 목록 로드
+        loadUserCalendars();
+    }
+
+    // 캘린더 목록 로드
+    async function loadUserCalendars() {
+        try {
+            const response = await fetch('/api/calendars');
+            const result = await response.json();
+            
+            const calendarList = document.getElementById('calendar-list');
+            if (!calendarList) return;
+
+            if (result.success && result.calendars && result.calendars.length > 0) {
+                let calendarsHTML = '<div style="margin-bottom: 12px; font-weight: 600; color: #333;">캘린더 선택:</div>';
+                
+                result.calendars.forEach((calendar, index) => {
+                    calendarsHTML += `
+                        <label style="
+                            display: block;
+                            padding: 12px;
+                            border: 2px solid #e5e5e5;
+                            border-radius: 8px;
+                            margin-bottom: 8px;
+                            cursor: pointer;
+                            transition: all 0.2s;
+                        " onmouseover="this.style.borderColor='#3b82f6'" onmouseout="this.style.borderColor='#e5e5e5'">
+                            <input type="radio" name="selected-calendar" value="${calendar.id}" 
+                                   onchange="selectCalendar('${calendar.id}')" 
+                                   ${index === 0 ? 'checked' : ''} 
+                                   style="margin-right: 8px;">
+                            <span style="font-weight: 500; color: #333;">${calendar.name}</span>
+                            ${calendar.description ? `<div style="font-size: 12px; color: #666; margin-top: 4px;">${calendar.description}</div>` : ''}
+                        </label>
+                    `;
+                });
+                
+                calendarList.innerHTML = calendarsHTML;
+                
+                // 첫 번째 캘린더가 기본 선택되어 있으므로 동기화 버튼 활성화
+                if (result.calendars.length > 0) {
+                    selectCalendar(result.calendars[0].id);
+                }
+            } else {
+                calendarList.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: #666;">
+                        캘린더가 없습니다. 먼저 캘린더를 생성해주세요.
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Failed to load calendars:', error);
+            const calendarList = document.getElementById('calendar-list');
+            if (calendarList) {
+                calendarList.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: #e74c3c;">
+                        캘린더 목록을 불러오는데 실패했습니다.
+                    </div>
+                `;
+            }
+        }
+    }
+
+    // 캘린더 선택
+    function selectCalendar(calendarId) {
+        window.selectedCalendarId = calendarId;
+        const syncButton = document.getElementById('sync-button');
+        if (syncButton) {
+            syncButton.disabled = false;
+            syncButton.style.cursor = 'pointer';
+            syncButton.style.opacity = '1';
+        }
+    }
+
+    // Notion 동기화 시작
+    async function startNotionSync() {
+        if (!window.selectedCalendarId) return;
+
+        const syncButton = document.getElementById('sync-button');
+        if (syncButton) {
+            syncButton.textContent = '동기화 중...';
+            syncButton.disabled = true;
+            syncButton.style.opacity = '0.7';
+        }
+
+        try {
+            // 먼저 캘린더 연결
+            const connectResponse = await fetch('/api/notion/connect-calendar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    calendar_id: window.selectedCalendarId
+                })
+            });
+
+            const connectResult = await connectResponse.json();
+            
+            if (connectResult.success) {
+                // localStorage 플래그 제거
+                if (connectResult.clear_disconnected_flag) {
+                    localStorage.removeItem('notion_manually_disconnected');
+                    console.log('🧹 [CONNECT] Cleared notion_manually_disconnected flag');
+                }
+                
+                // 동기화 시작
+                const syncResponse = await fetch('/api/sync/notion', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        calendar_id: window.selectedCalendarId
+                    })
+                });
+
+                const syncResult = await syncResponse.json();
+                
+                if (syncResult.success) {
+                    showNotification(`✅ 캘린더 연결 및 ${syncResult.synced_events || 0}개의 이벤트가 동기화되었습니다!`, 'success');
+                    closeCalendarModal();
+                    
+                    // 플랫폼 상태 업데이트
+                    updatePlatformStatus('notion', 'connected');
+                    
+                    // 캘린더 페이지로 이동
+                    setTimeout(() => {
+                        window.location.href = '/calendar';
+                    }, 1500);
+                } else {
+                    showNotification(`✅ 캘린더 연결 완료, ⚠️ 동기화 경고: ${syncResult.error}`, 'warning');
+                    closeCalendarModal();
+                    updatePlatformStatus('notion', 'connected');
+                }
+            } else {
+                showNotification(`❌ 캘린더 연결 실패: ${connectResult.error}`, 'error');
+            }
+        } catch (error) {
+            console.error('Sync failed:', error);
+            showNotification('❌ 동기화 중 오류가 발생했습니다.', 'error');
+        }
+
+        if (syncButton) {
+            syncButton.textContent = '동기화 시작';
+            syncButton.disabled = false;
+            syncButton.style.opacity = '1';
+        }
+    }
+
+    // 모달 닫기
+    function closeCalendarModal() {
+        const modal = document.getElementById('settings-calendar-selection-modal');
+        if (modal) {
+            modal.remove();
+        }
+    }
+</script>
+{% endblock %}

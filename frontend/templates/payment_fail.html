@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>결제 실패 - NotionFlow | 다시 시도해주세요</title>
+    <meta name="description" content="NotionFlow 결제 중 문제가 발생했습니다. 다시 시도하거나 고객지원에 문의하세요.">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="16x16" href="{{ url_for('static', filename='images/favicon-16x16.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="32x32" href="{{ url_for('static', filename='images/favicon-32x32.svg') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='images/apple-touch-icon.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="192x192" href="{{ url_for('static', filename='images/icon-192x192.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="512x512" href="{{ url_for('static', filename='images/icon-512x512.svg') }}">
+    
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#3B82F6">
+
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --text-primary: #000000;
+            --text-secondary: #666666;
+            --text-tertiary: #999999;
+            --accent-primary: #3B82F6;
+            --error-color: #ef4444;
+            --warning-color: #f59e0b;
+            --border-color: #e5e5e5;
+            --shadow-light: rgba(0, 0, 0, 0.1);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+            --gradient-error: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fail-container {
+            background: var(--bg-primary);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px var(--shadow-light);
+            overflow: hidden;
+            max-width: 600px;
+            width: 100%;
+            margin: 2rem;
+            text-align: center;
+        }
+
+        .fail-header {
+            background: var(--gradient-error);
+            color: white;
+            padding: 3rem 2rem 2rem;
+            position: relative;
+        }
+
+        .fail-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .fail-icon svg {
+            width: 40px;
+            height: 40px;
+            stroke: white;
+            stroke-width: 3;
+        }
+
+        .fail-title {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .fail-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .fail-body {
+            padding: 2.5rem;
+        }
+
+        .error-info {
+            background: #fef2f2;
+            border: 2px solid #fca5a5;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .error-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #dc2626;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .error-details {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .error-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .error-row:last-child {
+            border-bottom: none;
+        }
+
+        .error-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .error-value {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            font-family: monospace;
+        }
+
+        .help-section {
+            background: #f0f9ff;
+            border: 2px solid #0ea5e9;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .help-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #0369a1;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .help-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .help-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+            padding: 0.5rem 0;
+        }
+
+        .help-number {
+            width: 20px;
+            height: 20px;
+            background: var(--accent-primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 0.1rem;
+        }
+
+        .help-text {
+            color: #0284c7;
+            font-size: 0.95rem;
+        }
+
+        .common-issues {
+            text-align: left;
+            margin-bottom: 2rem;
+        }
+
+        .issues-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .issue-item {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .issue-question {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .issue-answer {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            padding: 0.875rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow-medium);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: var(--error-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        .contact-info {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .contact-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .contact-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .contact-method {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .contact-method:hover {
+            background: #f3f4f6;
+        }
+
+        .contact-icon {
+            width: 24px;
+            height: 24px;
+            color: var(--accent-primary);
+        }
+
+        .contact-text {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .fail-container {
+                margin: 1rem;
+            }
+
+            .fail-header {
+                padding: 2rem 1.5rem 1.5rem;
+            }
+
+            .fail-body {
+                padding: 2rem 1.5rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .contact-methods {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 애니메이션 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fail-container {
+            animation: fadeInUp 0.6s ease-out;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="fail-container">
+        <div class="fail-header">
+            <div class="fail-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="15" y1="9" x2="9" y2="15"/>
+                    <line x1="9" y1="9" x2="15" y2="15"/>
+                </svg>
+            </div>
+            <h1 class="fail-title">결제 처리 실패</h1>
+            <p class="fail-subtitle">결제 중 문제가 발생했습니다</p>
+        </div>
+
+        <div class="fail-body">
+            <div class="error-info">
+                <div class="error-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    오류 상세 정보
+                </div>
+                
+                {% if error_message %}
+                <p style="color: #dc2626; margin-bottom: 1rem;">{{ error_message }}</p>
+                {% endif %}
+
+                <div class="error-details">
+                    {% if error_code %}
+                    <div class="error-row">
+                        <span class="error-label">오류 코드</span>
+                        <span class="error-value">{{ error_code }}</span>
+                    </div>
+                    {% endif %}
+                    {% if order_id %}
+                    <div class="error-row">
+                        <span class="error-label">주문 번호</span>
+                        <span class="error-value">{{ order_id }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="error-row">
+                        <span class="error-label">발생 시간</span>
+                        <span class="error-value" id="current-time"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="help-section">
+                <div class="help-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9.09 9A3 3 0 0 1 12 6C13.11 6 14 6.9 14 8S13.11 10 12 10H11V12"/>
+                        <circle cx="12" cy="16" r="1"/>
+                        <circle cx="12" cy="12" r="10"/>
+                    </svg>
+                    해결 방법
+                </div>
+                <ol class="help-list">
+                    <li>
+                        <div class="help-number">1</div>
+                        <div class="help-text">카드 정보를 다시 확인하고 올바르게 입력했는지 확인해주세요</div>
+                    </li>
+                    <li>
+                        <div class="help-number">2</div>
+                        <div class="help-text">카드 한도가 충분한지, 유효기간이 지나지 않았는지 확인해주세요</div>
+                    </li>
+                    <li>
+                        <div class="help-number">3</div>
+                        <div class="help-text">다른 결제 수단(다른 카드, 계좌이체 등)을 시도해보세요</div>
+                    </li>
+                    <li>
+                        <div class="help-number">4</div>
+                        <div class="help-text">잠시 후 다시 시도하거나 고객지원에 문의해주세요</div>
+                    </li>
+                </ol>
+            </div>
+
+            <div class="common-issues">
+                <h3 class="issues-title">자주 발생하는 문제</h3>
+                
+                <div class="issue-item">
+                    <div class="issue-question">💳 카드 승인이 거절되었나요?</div>
+                    <div class="issue-answer">
+                        카드사에 문의하여 해외결제 차단, 한도 부족, 보안 차단 등의 문제가 없는지 확인해주세요.
+                    </div>
+                </div>
+
+                <div class="issue-item">
+                    <div class="issue-question">🔒 3D Secure 인증에 실패했나요?</div>
+                    <div class="issue-answer">
+                        카드사 앱이나 SMS 인증을 통해 본인 확인을 완료해주세요.
+                    </div>
+                </div>
+
+                <div class="issue-item">
+                    <div class="issue-question">⏱️ 결제 시간이 초과되었나요?</div>
+                    <div class="issue-answer">
+                        안정적인 인터넷 연결 상태에서 다시 시도해주세요.
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <a href="/payment" class="btn btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 4V10A4 4 0 0 0 5 14H14"/>
+                        <path d="M14 10L18 14L14 18"/>
+                    </svg>
+                    다시 결제하기
+                </a>
+                <a href="/" class="btn btn-secondary">
+                    홈으로 돌아가기
+                </a>
+            </div>
+
+            <div class="contact-info">
+                <h3 class="contact-title">문제가 지속되시나요? 고객지원에 문의하세요</h3>
+                <div class="contact-methods">
+                    <div class="contact-method">
+                        <svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z"/>
+                            <polyline points="22,6 12,13 2,6"/>
+                        </svg>
+                        <div class="contact-text">support@notionflow.co</div>
+                    </div>
+                    <div class="contact-method">
+                        <svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 16.92V19A2 2 0 0 1 20 21H18.45C8.67 21 2 14.33 2 4.55V3A2 2 0 0 1 4 1H7.08C7.49 1 7.85 1.28 7.96 1.68L9.21 6.33C9.33 6.78 9.18 7.26 8.83 7.61L7.34 9.1C8.58 11.45 10.55 13.42 12.9 14.66L14.39 13.17C14.74 12.82 15.22 12.67 15.67 12.79L20.32 14.04C20.72 14.15 21 14.51 21 14.92Z"/>
+                        </svg>
+                        <div class="contact-text">1588-1234</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 현재 시간 표시
+        document.getElementById('current-time').textContent = new Date().toLocaleString('ko-KR');
+
+        // 5초 후 결제 페이지로 이동 제안
+        setTimeout(() => {
+            if (confirm('결제를 다시 시도하시겠습니까?')) {
+                window.location.href = '/payment';
+            }
+        }, 5000);
+    </script>
+</body>
+</html>

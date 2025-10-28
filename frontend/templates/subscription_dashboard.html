@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>구독 관리 - NotionFlow | 구독 및 결제 내역</title>
+    <meta name="description" content="NotionFlow 구독 상태를 확인하고 결제 내역을 관리하세요.">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="16x16" href="{{ url_for('static', filename='images/favicon-16x16.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="32x32" href="{{ url_for('static', filename='images/favicon-32x32.svg') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='images/apple-touch-icon.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="192x192" href="{{ url_for('static', filename='images/icon-192x192.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="512x512" href="{{ url_for('static', filename='images/icon-512x512.svg') }}">
+    
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#3B82F6">
+
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: #f5f5f5;
+            --text-primary: #000000;
+            --text-secondary: #666666;
+            --text-tertiary: #999999;
+            --accent-primary: #3B82F6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --border-color: #e5e5e5;
+            --shadow-light: rgba(0, 0, 0, 0.1);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding-top: 100px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .card {
+            background: var(--bg-primary);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px var(--shadow-light);
+            border: 1px solid var(--border-color);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .status-badge {
+            padding: 0.375rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-trial {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-expired {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .subscription-info {
+            margin-bottom: 2rem;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .info-value {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .trial-progress {
+            margin: 1.5rem 0;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-primary);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .btn-danger {
+            background: var(--error-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .payment-history {
+            grid-column: 1 / -1;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .history-table th,
+        .history-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .history-table th {
+            background: var(--bg-tertiary);
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .payment-status {
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .payment-completed {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .payment-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .payment-failed {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1rem;
+            opacity: 0.5;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            transition: color 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: var(--accent-primary);
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .history-table {
+                font-size: 0.9rem;
+            }
+
+            .history-table th,
+            .history-table td {
+                padding: 0.75rem 0.5rem;
+            }
+        }
+
+        /* 로딩 상태 */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--border-color);
+            border-top: 3px solid var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'components/header.html' %}
+
+    <div class="container">
+        <a href="/dashboard" class="back-link">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19L5 12L12 5"/>
+            </svg>
+            대시보드로 돌아가기
+        </a>
+
+        <div class="page-header">
+            <h1 class="page-title">구독 관리</h1>
+            <p class="page-subtitle">구독 상태를 확인하고 결제 내역을 관리하세요</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- 구독 정보 카드 -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">현재 구독</h2>
+                    <div class="status-badge" id="subscription-status-badge">로딩 중...</div>
+                </div>
+
+                <div class="subscription-info" id="subscription-info">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        구독 정보를 불러오는 중...
+                    </div>
+                </div>
+
+                <div class="trial-progress" id="trial-progress" style="display: none;">
+                    <div class="progress-label">
+                        <span>무료 체험 기간</span>
+                        <span id="trial-remaining">0일 남음</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="trial-progress-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="action-buttons" id="subscription-actions">
+                    <!-- 동적으로 생성됨 -->
+                </div>
+            </div>
+
+            <!-- 다음 결제 정보 카드 -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">다음 결제</h2>
+                </div>
+
+                <div class="subscription-info" id="next-payment-info">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        결제 정보를 불러오는 중...
+                    </div>
+                </div>
+            </div>
+
+            <!-- 결제 내역 카드 -->
+            <div class="card payment-history">
+                <div class="card-header">
+                    <h2 class="card-title">결제 내역</h2>
+                    <button class="btn btn-secondary" onclick="refreshPaymentHistory()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="1 4 1 10 7 10"/>
+                            <path d="M3.51 15A9 9 0 0 0 21 12A9 9 0 0 0 11.5 3L3.51 15"/>
+                        </svg>
+                        새로고침
+                    </button>
+                </div>
+
+                <div id="payment-history-content">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        결제 내역을 불러오는 중...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 페이지 로드 시 구독 정보 로드
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSubscriptionInfo();
+            loadPaymentHistory();
+        });
+
+        // 구독 정보 로드
+        async function loadSubscriptionInfo() {
+            try {
+                const response = await fetch('/api/subscription/status');
+                const data = await response.json();
+
+                if (data.success) {
+                    displaySubscriptionInfo(data);
+                } else {
+                    displayError('subscription-info', '구독 정보를 불러올 수 없습니다.');
+                }
+            } catch (error) {
+                console.error('구독 정보 로드 실패:', error);
+                displayError('subscription-info', '구독 정보 로드 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 구독 정보 표시
+        function displaySubscriptionInfo(data) {
+            const statusBadge = document.getElementById('subscription-status-badge');
+            const subscriptionInfo = document.getElementById('subscription-info');
+            const trialProgress = document.getElementById('trial-progress');
+            const nextPaymentInfo = document.getElementById('next-payment-info');
+            const subscriptionActions = document.getElementById('subscription-actions');
+
+            // 구독 상태 배지
+            const statusText = getStatusText(data.status);
+            const statusClass = getStatusClass(data.status);
+            statusBadge.textContent = statusText;
+            statusBadge.className = `status-badge ${statusClass}`;
+
+            // 구독 정보
+            if (data.subscription) {
+                const sub = data.subscription;
+                subscriptionInfo.innerHTML = `
+                    <div class="info-row">
+                        <span class="info-label">플랜</span>
+                        <span class="info-value">캘린더 통합</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">결제 주기</span>
+                        <span class="info-value">${sub.billing_cycle === 'yearly' ? '연간' : '월간'}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">시작일</span>
+                        <span class="info-value">${formatDate(sub.current_period_start)}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">종료일</span>
+                        <span class="info-value">${formatDate(sub.current_period_end)}</span>
+                    </div>
+                `;
+
+                // 체험 기간 진행률 (체험 중인 경우)
+                if (data.status === 'trial' && data.trial_ends_at) {
+                    const trialEnd = new Date(data.trial_ends_at);
+                    const now = new Date();
+                    const trialStart = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000); // 14일 전
+                    
+                    const totalDays = 14;
+                    const remainingMs = trialEnd - now;
+                    const remainingDays = Math.max(0, Math.ceil(remainingMs / (24 * 60 * 60 * 1000)));
+                    const progressPercent = Math.max(0, (totalDays - remainingDays) / totalDays * 100);
+
+                    document.getElementById('trial-remaining').textContent = `${remainingDays}일 남음`;
+                    document.getElementById('trial-progress-fill').style.width = `${progressPercent}%`;
+                    trialProgress.style.display = 'block';
+                }
+
+                // 다음 결제 정보
+                if (data.status === 'trial') {
+                    const amount = sub.billing_cycle === 'yearly' ? '₩108,000' : '₩12,000';
+                    nextPaymentInfo.innerHTML = `
+                        <div class="info-row">
+                            <span class="info-label">결제 예정일</span>
+                            <span class="info-value">${formatDate(data.trial_ends_at)}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">결제 금액</span>
+                            <span class="info-value">${amount}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">자동 갱신</span>
+                            <span class="info-value">${sub.auto_renew ? '활성화' : '비활성화'}</span>
+                        </div>
+                    `;
+                } else if (data.status === 'active') {
+                    const amount = sub.billing_cycle === 'yearly' ? '₩108,000' : '₩12,000';
+                    nextPaymentInfo.innerHTML = `
+                        <div class="info-row">
+                            <span class="info-label">다음 결제일</span>
+                            <span class="info-value">${formatDate(sub.current_period_end)}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">결제 금액</span>
+                            <span class="info-value">${amount}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">자동 갱신</span>
+                            <span class="info-value">${sub.auto_renew ? '활성화' : '비활성화'}</span>
+                        </div>
+                    `;
+                } else {
+                    nextPaymentInfo.innerHTML = `
+                        <div class="empty-state">
+                            <p>예정된 결제가 없습니다.</p>
+                        </div>
+                    `;
+                }
+
+            } else {
+                subscriptionInfo.innerHTML = `
+                    <div class="empty-state">
+                        <p>활성 구독이 없습니다.</p>
+                    </div>
+                `;
+                nextPaymentInfo.innerHTML = `
+                    <div class="empty-state">
+                        <p>예정된 결제가 없습니다.</p>
+                    </div>
+                `;
+            }
+
+            // 액션 버튼
+            generateActionButtons(data.status, subscriptionActions);
+        }
+
+        // 결제 내역 로드
+        async function loadPaymentHistory() {
+            try {
+                const response = await fetch('/api/payment/history');
+                const data = await response.json();
+
+                if (data.success) {
+                    displayPaymentHistory(data.payments);
+                } else {
+                    displayError('payment-history-content', '결제 내역을 불러올 수 없습니다.');
+                }
+            } catch (error) {
+                console.error('결제 내역 로드 실패:', error);
+                displayError('payment-history-content', '결제 내역 로드 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 결제 내역 표시
+        function displayPaymentHistory(payments) {
+            const content = document.getElementById('payment-history-content');
+
+            if (payments.length === 0) {
+                content.innerHTML = `
+                    <div class="empty-state">
+                        <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="1" y="3" width="15" height="13"/>
+                            <path d="M16 8L20 8L23 11L23 16L16 16"/>
+                            <circle cx="5.5" cy="18.5" r="2.5"/>
+                            <circle cx="18.5" cy="18.5" r="2.5"/>
+                        </svg>
+                        <p>결제 내역이 없습니다.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let tableHtml = `
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>주문번호</th>
+                            <th>금액</th>
+                            <th>상태</th>
+                            <th>결제일</th>
+                            <th>결제수단</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            payments.forEach(payment => {
+                const statusClass = getPaymentStatusClass(payment.status);
+                const statusText = getPaymentStatusText(payment.status);
+                
+                tableHtml += `
+                    <tr>
+                        <td>${payment.order_id}</td>
+                        <td>₩${payment.amount.toLocaleString()}</td>
+                        <td><span class="payment-status ${statusClass}">${statusText}</span></td>
+                        <td>${formatDate(payment.approved_at || payment.created_at)}</td>
+                        <td>${payment.payment_method || '-'}</td>
+                    </tr>
+                `;
+            });
+
+            tableHtml += `</tbody></table>`;
+            content.innerHTML = tableHtml;
+        }
+
+        // 유틸리티 함수들
+        function getStatusText(status) {
+            const statusMap = {
+                'trial': '무료 체험',
+                'active': '활성',
+                'expired': '만료',
+                'cancelled': '취소됨',
+                'none': '구독 없음'
+            };
+            return statusMap[status] || status;
+        }
+
+        function getStatusClass(status) {
+            const classMap = {
+                'trial': 'status-trial',
+                'active': 'status-active',
+                'expired': 'status-expired',
+                'cancelled': 'status-expired'
+            };
+            return classMap[status] || 'status-expired';
+        }
+
+        function getPaymentStatusText(status) {
+            const statusMap = {
+                'completed': '완료',
+                'pending': '대기중',
+                'failed': '실패',
+                'cancelled': '취소'
+            };
+            return statusMap[status] || status;
+        }
+
+        function getPaymentStatusClass(status) {
+            const classMap = {
+                'completed': 'payment-completed',
+                'pending': 'payment-pending',
+                'failed': 'payment-failed',
+                'cancelled': 'payment-failed'
+            };
+            return classMap[status] || 'payment-failed';
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function generateActionButtons(status, container) {
+            let buttonsHtml = '';
+
+            if (status === 'none') {
+                buttonsHtml = `
+                    <a href="/payment" class="btn btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 4V10A4 4 0 0 0 5 14H14"/>
+                            <path d="M14 10L18 14L14 18"/>
+                        </svg>
+                        구독 시작하기
+                    </a>
+                `;
+            } else if (status === 'trial' || status === 'active') {
+                buttonsHtml = `
+                    <button class="btn btn-secondary" onclick="toggleAutoRenew()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2V6M12 18V22M4.93 4.93L7.76 7.76M16.24 16.24L19.07 19.07M2 12H6M18 12H22M4.93 19.07L7.76 16.24M16.24 7.76L19.07 4.93"/>
+                        </svg>
+                        자동 갱신 설정
+                    </button>
+                    <button class="btn btn-danger" onclick="cancelSubscription()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="15" y1="9" x2="9" y2="15"/>
+                            <line x1="9" y1="9" x2="15" y2="15"/>
+                        </svg>
+                        구독 취소
+                    </button>
+                `;
+            } else if (status === 'cancelled') {
+                buttonsHtml = `
+                    <button class="btn btn-primary" onclick="reactivateSubscription()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="1 4 1 10 7 10"/>
+                            <path d="M3.51 15A9 9 0 0 0 21 12A9 9 0 0 0 11.5 3L3.51 15"/>
+                        </svg>
+                        구독 재활성화
+                    </button>
+                    <a href="/payment" class="btn btn-secondary">
+                        새 구독 시작
+                    </a>
+                `;
+            } else if (status === 'expired') {
+                buttonsHtml = `
+                    <a href="/payment" class="btn btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 4V10A4 4 0 0 0 5 14H14"/>
+                            <path d="M14 10L18 14L14 18"/>
+                        </svg>
+                        구독 재개하기
+                    </a>
+                `;
+            }
+
+            container.innerHTML = buttonsHtml;
+        }
+
+        function displayError(elementId, message) {
+            document.getElementById(elementId).innerHTML = `
+                <div class="empty-state">
+                    <p style="color: var(--error-color);">${message}</p>
+                </div>
+            `;
+        }
+
+        // 액션 함수들
+        function refreshPaymentHistory() {
+            loadPaymentHistory();
+        }
+
+        async function toggleAutoRenew() {
+            try {
+                const response = await fetch('/api/subscription/auto-renew', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(data.message);
+                    // 구독 정보 새로고침
+                    loadSubscriptionInfo();
+                } else {
+                    alert('오류: ' + data.message);
+                }
+            } catch (error) {
+                console.error('자동 갱신 토글 실패:', error);
+                alert('자동 갱신 설정 변경 중 오류가 발생했습니다.');
+            }
+        }
+
+        async function cancelSubscription() {
+            if (!confirm('정말로 구독을 취소하시겠습니까?\n\n구독을 취소하면 현재 결제 기간이 끝날 때까지 서비스를 이용하실 수 있습니다.')) {
+                return;
+            }
+            
+            // 취소 사유 입력받기
+            const reason = prompt('구독을 취소하시는 이유를 알려주세요 (선택사항):');
+            
+            try {
+                const response = await fetch('/api/subscription/cancel', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        reason: reason || '사용자 요청'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(data.message);
+                    // 구독 정보 새로고침
+                    loadSubscriptionInfo();
+                } else {
+                    alert('오류: ' + data.message);
+                }
+            } catch (error) {
+                console.error('구독 취소 실패:', error);
+                alert('구독 취소 중 오류가 발생했습니다.');
+            }
+        }
+
+        async function reactivateSubscription() {
+            if (!confirm('구독을 다시 활성화하시겠습니까?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/subscription/reactivate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(data.message);
+                    // 구독 정보 새로고침
+                    loadSubscriptionInfo();
+                } else {
+                    alert('오류: ' + data.message);
+                }
+            } catch (error) {
+                console.error('구독 재활성화 실패:', error);
+                alert('구독 재활성화 중 오류가 발생했습니다.');
+            }
+        }
+    </script>
+</body>
+</html>

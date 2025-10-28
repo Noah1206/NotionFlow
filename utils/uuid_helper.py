@@ -1,0 +1,160 @@
+"""
+UUID 정규화 유틸리티
+하이픈 있는/없는 UUID 형식을 일관되게 처리
+"""
+
+import uuid
+import re
+
+def normalize_uuid(uuid_string):
+    """UUID 문자열을 DB 저장 형식(하이픈 포함)으로 정규화 - 표준 UUID 형식 사용"""
+    if not uuid_string:
+        return None
+
+    # 문자열로 변환
+    uuid_string = str(uuid_string).strip()
+
+    # 특수 케이스: 잘못된 UUID 형식 처리 (예: 87875eda-6797-f839-f8c7-0aa90efb1352)
+    # 중간 부분이 4자리가 아닌 경우 처리
+    parts = uuid_string.split('-')
+    if len(parts) == 5:
+        # 각 부분이 올바른 길이인지 확인
+        expected_lengths = [8, 4, 4, 4, 12]
+        needs_fix = False
+        for i, part in enumerate(parts):
+            if len(part) != expected_lengths[i]:
+                needs_fix = True
+                break
+
+        if needs_fix:
+            # 모든 하이픈 제거 후 재구성
+            clean_uuid = ''.join(parts)
+            if len(clean_uuid) == 32:
+                try:
+                    formatted = f"{clean_uuid[:8]}-{clean_uuid[8:12]}-{clean_uuid[12:16]}-{clean_uuid[16:20]}-{clean_uuid[20:]}"
+                    uuid_obj = uuid.UUID(formatted)
+                    return str(uuid_obj).lower()
+                except ValueError as e:
+                    print(f"⚠️ Failed to fix malformed UUID: {uuid_string}, error: {e}")
+
+    # 하이픈 제거하고 정리
+    clean_uuid = re.sub(r'[^a-fA-F0-9]', '', uuid_string)
+
+    if len(clean_uuid) == 32:
+        # 표준 UUID 형식으로 변환 (하이픈 포함)
+        try:
+            formatted = f"{clean_uuid[:8]}-{clean_uuid[8:12]}-{clean_uuid[12:16]}-{clean_uuid[16:20]}-{clean_uuid[20:]}"
+            uuid_obj = uuid.UUID(formatted)
+            return str(uuid_obj).lower()  # 표준 UUID 형식 반환 (하이픈 포함)
+        except ValueError as e:
+            print(f"⚠️ Failed to format UUID: {clean_uuid}, error: {e}")
+
+    # 이미 올바른 UUID 형식인 경우
+    try:
+        uuid_obj = uuid.UUID(uuid_string)
+        return str(uuid_obj).lower()
+    except ValueError:
+        pass
+
+    print(f"❌ Unable to normalize UUID: {uuid_string}")
+    return None
+
+def normalize_uuid_for_db(uuid_string):
+    """UUID 문자열을 DB 저장 형식(하이픈 포함)으로 정규화 - 표준 UUID 형식 사용"""
+    return normalize_uuid(uuid_string)
+
+def ensure_auth_user_exists(user_id, email, name=None):
+    """사용자 존재 확인 및 생성 (users와 user_profiles 테이블)"""
+    try:
+        from utils.config import config
+        from datetime import datetime, timezone
+        
+        # 서비스 역할 클라이언트 사용
+        supabase = config.supabase_admin
+        if not supabase:
+            print("❌ Admin client not available")
+            return False
+        
+        normalized_id = normalize_uuid(user_id)
+        if not normalized_id:
+            # print(f"❌ Invalid UUID format: {user_id}")
+            return False
+        
+        # 1. users 테이블에서 사용자 확인 및 생성
+        try:
+            existing_user = supabase.table('users').select('id').eq('id', normalized_id).execute()
+            
+            if not existing_user.data:
+                # users 테이블에 사용자 생성
+                user_data = {
+                    'id': normalized_id,
+                    'email': email,
+                    'name': name or 'User',
+                    'created_at': datetime.now(timezone.utc).isoformat()
+                }
+                
+                user_result = supabase.table('users').insert(user_data).execute()
+                if user_result.data:
+                    # print(f"✅ Created users entry for {email}")
+                    pass
+                else:
+                    # print(f"❌ Failed to create users entry")
+                    return False
+            else:
+                print(f"✅ User already exists in users table: {normalized_id}")
+        except Exception as user_e:
+            # print(f"❌ Error with users table: {user_e}")
+            return False
+        
+        # 2. user_profiles 테이블에서 프로필 확인 및 생성
+        try:
+            existing_profile = supabase.table('user_profiles').select('user_id').eq('user_id', normalized_id).execute()
+            
+            if not existing_profile.data:
+                # 고유한 username 생성 (timestamp + uuid prefix 조합)
+                timestamp_suffix = str(int(datetime.now().timestamp()))[-6:]  # 마지막 6자리
+                username = f"{normalized_id[:8]}{timestamp_suffix}"
+                
+                # username 중복 확인 및 재시도
+                max_attempts = 5
+                for attempt in range(max_attempts):
+                    try:
+                        profile_data = {
+                            'user_id': normalized_id,
+                            'username': username,
+                            'email': email,
+                            'created_at': datetime.now(timezone.utc).isoformat()
+                        }
+                        
+                        if name:
+                            profile_data['display_name'] = name
+                        
+                        profile_result = supabase.table('user_profiles').insert(profile_data).execute()
+                        if profile_result.data:
+                            # print(f"✅ Created user_profiles entry: {username}")
+                            break
+                        else:
+                            # print(f"❌ Failed to create user_profiles entry")
+                            return False
+                            
+                    except Exception as profile_insert_e:
+                        if 'duplicate key' in str(profile_insert_e).lower() and attempt < max_attempts - 1:
+                            # username 중복이면 새로운 username 생성
+                            username = f"{normalized_id[:8]}{timestamp_suffix}{attempt + 1}"
+                            print(f"⚠️ Username conflict, retrying with: {username}")
+                            continue
+                        else:
+                            # print(f"❌ Profile creation failed: {profile_insert_e}")
+                            return False
+            else:
+                print(f"✅ User profile already exists: {normalized_id}")
+                
+        except Exception as profile_e:
+            print(f"⚠️ Error with user_profiles table (continuing): {profile_e}")
+            # 프로필 생성 실패는 치명적이지 않음
+        
+        return True
+        
+    except Exception as e:
+        print(f"❌ Error ensuring user exists: {e}")
+        return False

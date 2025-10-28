@@ -1,0 +1,373 @@
+/* 🌟 NOTIONFLOW LIGHT THEME - ClickUp Inspired Light (Default) */
+:root,
+[data-theme="light"] {
+    /* 🎨 CORE COLORS - Clean Black/White Theme */
+    --bg-primary: #ffffff;
+    /* Pure white background */
+    --bg-secondary: #ffffff;
+    /* Pure white for cards */
+    --bg-tertiary: #fafafa;
+    /* Ultra-light gray for subtle sections */
+    --bg-modal: #ffffff;
+    /* Modal backgrounds */
+    --bg-glass: rgba(255, 255, 255, 0.98);
+    /* Glass effect */
+    --bg-hover: #f8f8f8;
+    /* Minimal hover states */
+    --bg-selected: #f0f0f0;
+    /* Selected states */
+
+    /* 🌈 MINIMALIST GRADIENTS - Clean Black/White Theme */
+    --gradient-primary: linear-gradient(135deg, #000000 0%, #333333 100%);
+    --gradient-secondary: linear-gradient(135deg, #f8f8f8 0%, #ffffff 100%);
+    --gradient-subtle: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
+    --gradient-dark: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+
+    /* 🎯 CLEAN ACCENT COLORS - Monochromatic with minimal functional colors */
+    --accent-primary: #000000;
+    /* Pure black primary */
+    --accent-secondary: #666666;
+    /* Medium gray secondary */
+    --accent-tertiary: #999999;
+    /* Light gray tertiary */
+    --accent-success: #2d7d32;
+    /* Clean green for success - minimal */
+    --accent-warning: #f57c00;
+    /* Clean orange for warning - minimal */
+    --accent-error: #d32f2f;
+    /* Clean red for errors - minimal */
+    --accent-muted: #cccccc;
+    /* Very light gray */
+    --accent-border: #e0e0e0;
+    /* Border accent */
+    --accent-hover: #f5f5f5;
+    /* Hover accent */
+
+    /* 📝 TEXT COLORS - Clean Black/White Theme */
+    --text-primary: #000000;
+    /* Pure black for primary text */
+    --text-secondary: #666666;
+    /* Medium gray for secondary text */
+    --text-tertiary: #999999;
+    /* Light gray for tertiary text */
+    --text-muted: #cccccc;
+    /* Very light gray for subtle text */
+    --text-inverse: #ffffff;
+    /* Pure white text on dark backgrounds */
+
+    /* 🔲 BORDER COLORS - Clean monochromatic borders */
+    --border-primary: #e0e0e0;
+    /* Clean light gray border */
+    --border-secondary: #cccccc;
+    /* Medium gray border */
+    --border-accent: #000000;
+    /* Black accent borders */
+    --border-glass: rgba(0, 0, 0, 0.08);
+    /* Subtle glass borders */
+
+    /* 🌈 BUTTON STYLES - Clean black/white buttons */
+    --btn-primary-bg: #000000;
+    /* Black primary button */
+    --btn-primary-hover: #333333;
+    /* Dark gray on hover */
+    --btn-secondary-bg: #ffffff;
+    --btn-secondary-border: #000000;
+    --btn-secondary-hover: #f8f8f8;
+
+    /* 🎭 SHADOWS & EFFECTS - Light theme shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+    --shadow-glow: 0 0 20px rgba(124, 58, 237, 0.1);
+    --shadow-glow-hover: 0 0 30px rgba(124, 58, 237, 0.15);
+
+    /* 🔧 LEGACY VARIABLE OVERRIDES */
+    --main-red: #ef4444;
+    --main-black: #1e293b;
+    --main-gray: #64748b;
+    --main-bg: #f8f9fb;
+    --status-connected: #22c55e;
+    --status-disconnected: #ef4444;
+
+    /* 🎨 SIDEBAR - Light theme floating design */
+    --sidebar-bg: #ffffff !important;
+    /* Clean white background */
+    --sidebar-border: rgba(0, 0, 0, 0.1);
+    /* Light border */
+    --sidebar-width: 240px;
+    /* Consistent width */
+    --sidebar-text-primary: #1e293b;
+    /* Dark text for readability */
+    --sidebar-text-secondary: #64748b;
+    /* Medium gray for secondary text */
+    --sidebar-hover-bg: #f8fafc;
+    /* Light hover background */
+    --sidebar-active-bg: #e0e7ff;
+    /* Light purple active background */
+
+    /* Glass Effects - Light theme */
+    --glass-bg: rgba(255, 255, 255, 0.95);
+    --glass-hover: rgba(248, 250, 252, 0.95);
+    --glass-border: rgba(0, 0, 0, 0.1);
+    --accent-gradient: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+
+    /* 📐 SPACING & SIZING */
+    --spacing-xs: 0.25rem;
+    /* 4px */
+    --spacing-sm: 0.5rem;
+    /* 8px */
+    --spacing-md: 1rem;
+    /* 16px */
+    --spacing-lg: 1.5rem;
+    /* 24px */
+    --spacing-xl: 2rem;
+    /* 32px */
+    --spacing-2xl: 3rem;
+    /* 48px */
+
+    /* 🔤 TYPOGRAPHY */
+    --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-size-xs: 0.75rem;
+    /* 12px */
+    --font-size-sm: 0.875rem;
+    /* 14px */
+    --font-size-base: 1rem;
+    /* 16px */
+    --font-size-lg: 1.125rem;
+    /* 18px */
+    --font-size-xl: 1.25rem;
+    /* 20px */
+    --font-size-2xl: 1.5rem;
+    /* 24px */
+    --font-size-3xl: 1.875rem;
+    /* 30px */
+    --font-size-4xl: 2.25rem;
+    /* 36px */
+
+    /* 🎨 RADIUS */
+    --radius-none: 0;
+    --radius-sm: 0.25rem;
+    /* 4px */
+    --radius-md: 0.375rem;
+    /* 6px */
+    --radius-lg: 0.5rem;
+    /* 8px */
+    --radius-xl: 0.75rem;
+    /* 12px */
+    --radius-2xl: 1rem;
+    /* 16px */
+    --radius-full: 9999px;
+}
+
+/* Global Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Text Selection 스타일 제거 */
+*::selection {
+    background: transparent !important;
+    color: inherit !important;
+}
+
+*::-moz-selection {
+    background: transparent !important;
+    color: inherit !important;
+}
+
+/* Input/Textarea focus 박스 제거 */
+input,
+textarea,
+select {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+/* 💎 NOTIONFLOW BRAND THEME BASE TYPOGRAPHY */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: var(--text-primary) !important;
+    background: var(--bg-primary) !important;
+    background-image: none !important;
+}
+
+/* Utility Classes */
+.status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #e1e1e1;
+    transition: background 0.3s;
+}
+
+.status-dot.connected {
+    background: var(--status-connected);
+}
+
+.sync-btn {
+    background: var(--btn-primary-bg) !important;
+    color: var(--text-inverse) !important;
+    border: 2px solid var(--border-accent);
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 16px 24px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-md);
+}
+
+.sync-btn:hover {
+    background: var(--btn-primary-hover) !important;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.form-input {
+    padding: 12px 16px;
+    border: 2px solid var(--border-primary);
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: border-color 0.3s ease;
+    background: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+
+.form-input:focus {
+    border-color: var(--accent-primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.form-description {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+
+/* Default body background (light mode) */
+body {
+    color: var(--text-primary) !important;
+    background: #ffffff !important;
+    background-image: none !important;
+}
+
+/* 📅 CALENDAR SIDEBAR STYLES */
+.calendar-main-section {
+    margin-top: var(--spacing-md);
+}
+
+.calendar-section-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+    color: var(--sidebar-text-primary);
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.calendar-section-header i {
+    color: var(--sidebar-text-primary);
+    font-size: 1.1em;
+}
+
+.calendar-tools {
+    padding: var(--spacing-xs) var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+}
+
+.calendar-tool {
+    display: block;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    color: var(--sidebar-text-secondary);
+    text-decoration: none;
+    font-size: var(--font-size-xs);
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+    margin-bottom: 2px;
+}
+
+.calendar-tool:hover {
+    background: var(--sidebar-hover-bg);
+    color: var(--sidebar-text-primary);
+}
+
+.subsection-header {
+    padding: var(--spacing-xs) var(--spacing-md);
+    font-weight: 600;
+    font-size: var(--font-size-xs);
+    color: var(--sidebar-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: var(--spacing-sm);
+    margin-bottom: var(--spacing-xs);
+}
+
+.calendar-item {
+    display: block;
+    padding: var(--spacing-xs) var(--spacing-md);
+    color: var(--sidebar-text-secondary);
+    text-decoration: none;
+    font-size: var(--font-size-sm);
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.calendar-item:hover {
+    background: var(--sidebar-hover-bg);
+    color: var(--sidebar-text-primary);
+}
+
+.calendar-item .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-success);
+}
+
+/* 메인 콘텐츠 영역 테마 */
+[data-theme="light"] .main-content {
+    background: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* 모든 섹션을 라이트 테마로 강제 설정 */
+.main-content, 
+.dashboard-section,
+[data-theme="light"] .main-content,
+[data-theme="light"] .dashboard-section {
+    background: #ffffff !important;
+    color: #000000 !important;
+}
+
+/* 다크 테마 완전 비활성화 */
+[data-theme="dark"] * {
+    background: #ffffff !important;
+    color: #000000 !important;
+}
+
+/* 모든 다크 모드 클래스 오버라이드 */
+.dark, .dark-mode, .theme-dark, [data-bs-theme="dark"] {
+    background: #ffffff !important;
+    color: #000000 !important;
+}

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}NotionFlow Dashboard{% endblock %}</title>
+    
+    <!-- Permissions Policy for YouTube embeds -->
+    <meta http-equiv="Permissions-Policy" content="compute-pressure=(), camera=(), microphone=(), geolocation=()">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="16x16"
+        href="{{ url_for('static', filename='images/favicon-16x16.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="32x32"
+        href="{{ url_for('static', filename='images/favicon-32x32.svg') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='images/apple-touch-icon.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="192x192"
+        href="{{ url_for('static', filename='images/icon-192x192.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="512x512"
+        href="{{ url_for('static', filename='images/icon-512x512.svg') }}">
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#3B82F6">
+
+    <!-- CSS Files with cache buster -->
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/variables.css') }}?v={{ range(100000, 999999) | random }}">
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/sidebar.css') }}?v={{ range(100000, 999999) | random }}">
+
+    <style>
+        /* Force sidebar border override */
+        .sidebar {
+            z-index: 1 !important;
+            /* Below modal */
+        }
+
+        /* When modal is active, ensure sidebar stays behind */
+        .setup-modal-overlay~.dashboard-container .sidebar,
+        .calendar-modal-overlay~.dashboard-container .sidebar,
+        body:has(.setup-modal-overlay[style*="flex"]) .sidebar,
+        body:has(.calendar-modal-overlay[style*="flex"]) .sidebar,
+        body.modal-open .sidebar {
+            z-index: -1 !important;
+            opacity: 0.3 !important;
+        }
+
+        /* Ensure all sidebar children also stay behind modal */
+        .sidebar * {
+            z-index: auto !important;
+        }
+    </style>
+
+    <!-- Extra CSS from blocks -->
+    {% block extra_css %}{% endblock %}
+
+    <!-- Core notification system -->
+    <script
+        src="{{ url_for('static', filename='js/notification-utils.js') }}?v={{ range(100000, 999999) | random }}"></script>
+
+    <style>
+        /* Initial Setup Modal Styles */
+        .setup-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            backdrop-filter: blur(4px);
+        }
+
+        .setup-modal {
+            background: #FFFFFF;
+            border-radius: 16px;
+            max-width: 480px;
+            width: 90%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        .setup-modal-header {
+            padding: 32px 32px 24px;
+            text-align: center;
+            border-bottom: 1px solid #F0F0F0;
+        }
+
+        .setup-welcome-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #000000;
+            margin: 0 0 8px 0;
+            letter-spacing: -0.02em;
+        }
+
+        .setup-welcome-subtitle {
+            font-size: 16px;
+            color: #6B7280;
+            margin: 0;
+        }
+
+        .setup-modal-body {
+            padding: 32px;
+        }
+
+        .setup-form-group {
+            margin-bottom: 24px;
+        }
+
+        .setup-form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #000000;
+            margin-bottom: 8px;
+        }
+
+        .setup-form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #E5E5E5;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            background: #FFFFFF;
+        }
+
+        .setup-form-input:focus {
+            outline: none;
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .setup-form-help {
+            font-size: 13px;
+            color: #9CA3AF;
+            margin-top: 6px;
+        }
+
+        .setup-modal-footer {
+            display: flex;
+            gap: 12px;
+            padding: 24px 32px 32px;
+            justify-content: flex-end;
+        }
+
+        .setup-btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            min-width: 100px;
+        }
+
+        .setup-btn-skip {
+            background: #FFFFFF;
+            color: #6B7280;
+            border: 1px solid #E5E5E5;
+        }
+
+        .setup-btn-skip:hover {
+            background: #F9FAFB;
+            color: #000000;
+        }
+
+        .setup-btn-primary {
+            background: #3B82F6;
+            color: #FFFFFF;
+        }
+
+        .setup-btn-primary:hover {
+            background: #2563EB;
+        }
+
+        .setup-btn-primary:disabled {
+            background: #9CA3AF;
+            cursor: not-allowed;
+        }
+    </style>
+
+    <style>
+        /* 🌟 Reset & Base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+        }
+
+        html,
+        body {
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #ffffff !important;
+            /* Clean white background */
+            background-color: #ffffff !important;
+            color: var(--text-primary) !important;
+            /* Clean black text */
+            overflow: hidden;
+        }
+
+        /* Force white background on all elements */
+        html::before,
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #ffffff !important;
+            z-index: -999;
+        }
+
+        /* 🏗️ Layout Structure */
+        .dashboard-container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background: #ffffff !important;
+            /* Clean white background */
+        }
+
+        /* 📱 Main Content Area - Full Screen Design */
+        .main-content {
+            position: fixed !important;
+            top: 0 !important;
+            left: 250px !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: calc(100vw - 250px) !important;
+            height: 100vh !important;
+            padding: 1rem 2rem;
+            overflow-x: hidden;
+            overflow-y: auto;
+            background: #ffffff !important;
+            border-radius: 0 !important;
+            border: none !important;
+            z-index: 1 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            box-sizing: border-box;
+            box-shadow: none !important;
+            transition: left 0.3s ease, width 0.3s ease;
+        }
+
+        /* 사이드바 축소 시 메인 콘텐츠 조정 - sidebar.js가 처리 */
+        body.sidebar-collapsed .main-content {
+            left: 80px !important;
+            /* 60px (collapsed width) + 20px (gap) */
+            width: calc(100vw - 80px) !important;
+            /* 100vw - collapsed sidebar width */
+        }
+
+        /* 모든 섹션과 콘텐츠가 최대 너비를 사용하도록 */
+        .dashboard-section {
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .dashboard-section-header {
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-section-header h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .dashboard-section-header p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 🎨 Floating Sidebar with 10px margins - CRITICAL OVERRIDE */
+        .sidebar,
+        #sidebar,
+        div.sidebar,
+        .dashboard-container .sidebar {
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            right: auto !important;
+            bottom: auto !important;
+            width: 250px !important;
+            height: 100vh !important;
+            background: #1a1a1a !important;
+            /* Dark sidebar background */
+            border: none !important;
+            border-top: none !important;
+            border-left: none !important;
+            border-bottom: none !important;
+            border-right: none !important;
+            border-radius: 0 !important;
+            z-index: 100 !important;
+            overflow-y: auto !important;
+            font-size: 14px;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            display: block !important;
+            transform: none !important;
+        }
+
+        /* Dark sidebar text colors */
+        .sidebar *,
+        .sidebar a,
+        .sidebar .nav-item a,
+        .sidebar .nav-text,
+        .sidebar .sidebar-brand,
+        .sidebar .sidebar-brand *,
+        .sidebar .sidebar-nav *,
+        .sidebar .nav-link,
+        .sidebar .nav-item,
+        .sidebar span,
+        .sidebar p,
+        .sidebar div {
+            color: #e5e7eb !important;
+            background-color: transparent !important;
+        }
+
+        /* Sidebar hover states */
+        .sidebar .nav-item:hover,
+        .sidebar .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            color: #ffffff !important;
+        }
+
+        /* Active sidebar states */
+        .sidebar .nav-item.active,
+        .sidebar .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.15) !important;
+            color: #ffffff !important;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar Component -->
+        <div class="sidebar" id="sidebar">
+            {% include 'components/sidebar.html' %}
+        </div>
+
+        <!-- Main Content Area -->
+        <main class="main-content" role="main">
+            {% block content %}
+            <!-- Page content goes here -->
+            {% endblock %}
+        </main>
+    </div>
+
+
+    <!-- Core JavaScript -->
+    <script defer src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/theme-manager.js') }}"></script>
+
+    <script>
+        // 기본 초기화 스크립트 - sidebar.js가 모든 것을 처리함
+        document.addEventListener('DOMContentLoaded', function () {
+            // 사이드바 매니저가 모든 포지셔닝을 처리하므로 여기서는 기본 초기화만
+            console.log('✅ Dashboard initialized - sidebar handled by sidebar.js');
+        });
+    </script>
+
+    <!-- 페이지별 JavaScript -->
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

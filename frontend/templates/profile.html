@@ -1,0 +1,969 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}프로필 - NotionFlow{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile-redesign.css') }}?v=20250827-1740-fixoverlap">
+<!-- Force browser cache refresh -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<style>
+/* Force override any existing styles */
+body {
+    background: #FFFFFF !important;
+    overflow: hidden !important;
+}
+.main-content {
+    background: #FFFFFF !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    width: 100% !important;
+}
+.profile-page-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden !important;
+}
+
+/* Fix modal text overlapping issues */
+.profile-modal-body {
+    padding: 32px !important;
+}
+.profile-form-group {
+    margin-bottom: 40px !important;
+    position: relative !important;
+    clear: both !important;
+}
+.profile-form-label {
+    display: block !important;
+    margin-bottom: 16px !important;
+    font-weight: 700 !important;
+    color: #2d3748 !important;
+    font-size: 15px !important;
+    line-height: 1.6 !important;
+    position: relative !important;
+}
+.profile-form-input,
+.profile-form-textarea {
+    width: 100% !important;
+    padding: 20px 24px !important;
+    border: 2px solid #e2e8f0 !important;
+    border-radius: 18px !important;
+    font-size: 16px !important;
+    background: #ffffff !important;
+    font-weight: 500 !important;
+    color: #2d3748 !important;
+    line-height: 1.5 !important;
+    box-sizing: border-box !important;
+}
+.profile-form-textarea {
+    resize: vertical !important;
+    min-height: 150px !important;
+    line-height: 1.8 !important;
+}
+.profile-form-help {
+    font-size: 13px !important;
+    color: #718096 !important;
+    margin-top: 16px !important;
+    font-weight: 500 !important;
+    line-height: 1.7 !important;
+}
+
+/* Fix toggle switch overlapping */
+.toggle-switch {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 16px !important;
+    cursor: pointer !important;
+    margin-bottom: 8px !important;
+    min-height: 40px !important;
+}
+.toggle-switch span {
+    flex-shrink: 0 !important;
+    line-height: 1.5 !important;
+}
+.toggle-slider {
+    width: 48px !important;
+    height: 24px !important;
+    background-color: #cbd5e0 !important;
+    border-radius: 24px !important;
+    position: relative !important;
+    transition: all 0.3s ease !important;
+    flex-shrink: 0 !important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-page-container">
+    <div class="profile-minimal-container">
+        <!-- Profile Header Card -->
+        <div class="profile-header-card">
+            <div class="profile-top-section">
+                <div class="profile-avatar-section">
+                    <div class="profile-avatar-wrapper">
+                        <div id="profile-avatar-container">
+                            <div id="profile-avatar" class="profile-avatar-generated">
+                                <!-- 동적으로 생성됨 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-info-section">
+                    <div class="profile-header-row">
+                        <h1 class="profile-username-main">{{ profile.username or 'username' }}</h1>
+                        <button class="profile-edit-btn" onclick="openEditModal()">프로필 편집</button>
+                    </div>
+                    
+                    <div class="profile-stats-row">
+                        <div class="profile-stat">
+                            <span class="stat-number">{{ calendar_count | default(0) }}</span>
+                            <span class="stat-label">캘린더</span>
+                        </div>
+                        <div class="profile-stat">
+                            <span class="stat-number">{{ connector_count | default(0) }}</span>
+                            <span class="stat-label">커넥터</span>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-details">
+                        <div class="profile-display-name">{{ profile.display_name or '이름 없음' }}</div>
+                        <div class="profile-bio">{{ profile.bio or '소개가 없습니다.' }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Basic Information Section -->
+        <div class="profile-info-section">
+            <h2 class="section-header">기본 정보</h2>
+            <div class="info-items-grid">
+                <div class="info-item">
+                    <span class="info-label">사용자명</span>
+                    <span class="info-value username-value">{{ profile.username or 'username' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">표시 이름</span>
+                    <span class="info-value">{{ profile.display_name or profile.username or 'username' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">생년월일</span>
+                    {% if profile.birthdate %}
+                        <span class="info-value">
+                            {% set birthdate_parts = profile.birthdate.split('-') %}
+                            {% if birthdate_parts|length == 3 %}
+                                {{ birthdate_parts[0] }}년 **월 **일
+                            {% else %}
+                                ****년 **월 **일
+                            {% endif %}
+                        </span>
+                    {% else %}
+                        <span class="info-value" style="color: #999;">설정되지 않음</span>
+                    {% endif %}
+                </div>
+                <div class="info-item">
+                    <span class="info-label">이메일</span>
+                    {% if profile.email %}
+                        <span class="info-value">{{ profile.email }}</span>
+                    {% else %}
+                        <div class="email-input-container">
+                            <input type="email" 
+                                   id="email-input" 
+                                   class="email-input-field" 
+                                   placeholder="이메일 주소 입력" 
+                                   value="">
+                            <button type="button" 
+                                    class="email-save-btn" 
+                                    onclick="saveEmail()">저장</button>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="info-item">
+                    <span class="info-label">소개</span>
+                    <span class="info-value">{{ profile.bio or '소개가 없습니다' }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Privacy Settings Section -->
+        <div class="profile-info-section">
+            <h2 class="section-header">개인정보 설정</h2>
+            <div class="privacy-settings">
+                <div class="privacy-item">
+                    <div class="privacy-item-info">
+                        <h4>공개 프로필</h4>
+                        <p>다른 사용자들이 내 프로필을 볼 수 있습니다</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="is-public" {{ 'checked' if profile.is_public else '' }}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div id="edit-profile-modal" class="profile-modal-overlay" style="display: none;">
+    <div class="profile-modal">
+        <div class="profile-modal-header">
+            <h2 class="profile-modal-title">프로필 편집</h2>
+            <button class="profile-modal-close" onclick="closeEditModal()">×</button>
+        </div>
+        <form id="profile-form" class="profile-modal-body">
+            <div class="profile-form-group">
+                <label class="profile-form-label" for="edit-username">사용자명</label>
+                <div class="profile-username-group">
+                    <span class="profile-username-prefix">@</span>
+                    <input type="text" 
+                           id="edit-username" 
+                           name="username" 
+                           class="profile-form-input"
+                           value="{{ profile.username or '' }}" 
+                           placeholder="사용자명 입력" 
+                           maxlength="20" 
+                           pattern="[a-zA-Z0-9_]{3,20}"
+                           style="flex: 1;">
+                    <button type="button" class="profile-check-btn" onclick="checkUsername()">중복 확인</button>
+                </div>
+                <div id="username-feedback" class="profile-form-help"></div>
+                <div class="profile-form-help">3-20자, 영문/숫자/언더스코어만 사용 가능</div>
+            </div>
+
+            <div class="profile-form-group">
+                <label class="profile-form-label" for="edit-display-name">표시 이름</label>
+                <input type="text" 
+                       id="edit-display-name" 
+                       name="display_name" 
+                       class="profile-form-input"
+                       value="{{ profile.display_name or '' }}" 
+                       placeholder="표시 이름 입력" 
+                       maxlength="50">
+                <div class="profile-form-help">대시보드에 표시될 이름입니다</div>
+            </div>
+
+            <div class="profile-form-group">
+                <label class="profile-form-label" for="edit-bio">소개</label>
+                <textarea id="edit-bio" 
+                          name="bio" 
+                          class="profile-form-textarea"
+                          placeholder="자신을 간단히 소개해주세요" 
+                          maxlength="500" 
+                          rows="4">{{ profile.bio or '' }}</textarea>
+                <div class="profile-form-help">최대 500자까지 입력할 수 있습니다</div>
+            </div>
+
+            <div class="profile-form-group">
+                <label class="profile-form-label">프로필 사진</label>
+                <div class="profile-avatar-upload-section">
+                    <!-- 현재 아바타 미리보기 -->
+                    <div class="current-avatar-preview">
+                        <div id="modal-avatar-preview" class="modal-avatar-container">
+                            <!-- 현재 아바타가 여기에 표시됨 -->
+                        </div>
+                    </div>
+                    
+                    <!-- 파일 업로드 버튼 -->
+                    <div class="avatar-upload-controls">
+                        <input type="file" 
+                               id="avatar-file-input" 
+                               accept="image/png,image/jpg,image/jpeg" 
+                               style="display: none;" 
+                               onchange="handleAvatarFileSelect(event)">
+                        <button type="button" 
+                                class="avatar-upload-btn" 
+                                onclick="document.getElementById('avatar-file-input').click()">
+                            📁 사진 선택
+                        </button>
+                        <button type="button" 
+                                class="avatar-remove-btn" 
+                                onclick="removeAvatar()">
+                            🗑️ 제거
+                        </button>
+                    </div>
+                    
+                    <!-- URL 입력 (선택사항) -->
+                    <input type="url" 
+                           id="edit-avatar-url" 
+                           name="avatar_url" 
+                           class="profile-form-input"
+                           value="{{ profile.avatar_url or '' }}" 
+                           placeholder="또는 이미지 URL 직접 입력"
+                           style="margin-top: 10px;">
+                </div>
+                <div class="profile-form-help">JPG 또는 PNG 파일을 선택하거나 이미지 URL을 입력하세요 (최대 5MB)</div>
+            </div>
+
+            <div class="profile-form-group">
+                <label class="toggle-switch" style="display: inline-flex; align-items: center; gap: 12px; cursor: pointer;">
+                    <input type="checkbox" id="edit-is-public" name="is_public" {{ 'checked' if profile.is_public else '' }}>
+                    <span class="toggle-slider"></span>
+                    <span style="font-size: 14px; color: var(--text-primary);">공개 프로필로 설정</span>
+                </label>
+                <div class="profile-form-help">다른 사용자들이 내 프로필을 볼 수 있습니다</div>
+            </div>
+        </form>
+        <div class="profile-modal-footer">
+            <button type="button" class="profile-btn profile-btn-secondary" onclick="closeEditModal()">취소</button>
+            <button type="button" class="profile-btn profile-btn-primary" onclick="saveProfile()">
+                <span class="btn-text">저장</span>
+                <span class="btn-loading" style="display: none;">저장 중...</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Force cache refresh for deployment
+console.log('🚀 Profile page loaded - Version: 20250823-1910-rebuild');
+console.log('📋 Expected: Camera icon should be REMOVED from avatar');
+
+let usernameCheckTimeout;
+
+// Load user profile immediately and on page load
+(async function() {
+    console.log('🔄 Loading profile avatar immediately...');
+    initializeAvatarSystem();
+})();
+
+// Also load on DOMContentLoaded as backup
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🔄 DOM loaded, initializing avatar system...');
+    initializeAvatarSystem();
+});
+
+// New dynamic avatar system
+function initializeAvatarSystem() {
+    const avatarContainer = document.getElementById('profile-avatar');
+    if (!avatarContainer) {
+        console.error('❌ Profile avatar container not found');
+        return;
+    }
+    
+    console.log('🎨 Creating new avatar system...');
+    
+    // Clear any existing content
+    avatarContainer.innerHTML = '';
+    
+    // Generate user initials or load uploaded image
+    loadOrGenerateAvatar(avatarContainer);
+}
+
+async function loadOrGenerateAvatar(container) {
+    // Try to get user data from page context or make a simple API call
+    const username = document.querySelector('.profile-username-main')?.textContent?.trim() || 'User';
+    const displayName = document.querySelector('.profile-display-name')?.textContent?.trim() || username;
+    
+    console.log('👤 User info:', { username, displayName });
+    
+    // First, try to get avatar from server
+    try {
+        const response = await fetch('/api/user/profile');
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.user && data.user.avatar_url) {
+                console.log('📸 Loading avatar from server:', data.user.avatar_url);
+                createImageAvatar(container, data.user.avatar_url);
+                localStorage.setItem('user_uploaded_avatar', data.user.avatar_url);
+                return;
+            }
+        }
+    } catch (error) {
+        console.log('Could not fetch profile from server:', error);
+    }
+    
+    // Check for locally saved avatar
+    const savedAvatarUrl = localStorage.getItem('user_uploaded_avatar');
+    if (savedAvatarUrl && savedAvatarUrl !== 'null' && savedAvatarUrl !== '' && !savedAvatarUrl.startsWith('data:')) {
+        console.log('📸 Loading saved avatar:', savedAvatarUrl);
+        createImageAvatar(container, savedAvatarUrl);
+        return;
+    }
+    
+    // Check if there's an avatar URL in the page
+    const avatarUrlInput = document.getElementById('edit-avatar-url');
+    if (avatarUrlInput && avatarUrlInput.value && avatarUrlInput.value !== '/static/images/default-avatar.png') {
+        console.log('📸 Loading avatar from input:', avatarUrlInput.value);
+        createImageAvatar(container, avatarUrlInput.value);
+        return;
+    }
+    
+    // Generate initials avatar as fallback
+    console.log('🎨 Generating initials avatar');
+    createInitialsAvatar(container, displayName || username);
+    
+    // 사이드바도 동시에 업데이트 (프로필 페이지와 동일한 이름 사용)
+    setTimeout(() => {
+        const nameForAvatar = displayName || username;
+        console.log('🔄 Syncing sidebar with profile avatar for:', nameForAvatar);
+        updateDashboardAvatar(null, nameForAvatar); // 동일한 이름 전달
+    }, 100);
+}
+
+function createImageAvatar(container, imageUrl) {
+    console.log('🖼️ Creating image avatar with URL:', imageUrl);
+    
+    // Clear container first and reset styles
+    container.innerHTML = '';
+    container.classList.remove('profile-avatar-generated');
+    container.classList.add('has-image');
+    
+    const img = document.createElement('img');
+    img.src = imageUrl;
+    img.alt = 'Profile Avatar';
+    
+    img.onload = function() {
+        console.log('✅ Image loaded successfully, updating container');
+        container.innerHTML = '';
+        container.appendChild(img);
+        
+        // Ensure container maintains proper size
+        container.style.width = '150px';
+        container.style.height = '150px';
+        container.style.borderRadius = '50%';
+        container.style.overflow = 'hidden';
+        container.style.background = 'transparent';
+    };
+    
+    img.onerror = function() {
+        console.error('❌ Image failed to load:', imageUrl);
+        localStorage.removeItem('user_uploaded_avatar');
+        const username = document.querySelector('.profile-username-main')?.textContent?.trim() || 'User';
+        createInitialsAvatar(container, username);
+    };
+}
+
+function createInitialsAvatar(container, name) {
+    // Generate initials (first letter of each word, max 2)
+    const initials = name
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase())
+        .slice(0, 2)
+        .join('');
+    
+    // Generate consistent color based on name
+    const colors = [
+        '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
+        '#DDA0DD', '#FF9FF3', '#54A0FF', '#5F27CD', '#00D2D3'
+    ];
+    
+    const colorIndex = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
+    const backgroundColor = colors[colorIndex];
+    
+    container.innerHTML = initials;
+    container.style.cssText = `
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 48px;
+        font-weight: bold;
+        color: white;
+        background: ${backgroundColor};
+        border: 3px solid rgba(255,255,255,0.2);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        user-select: none;
+    `;
+    
+    container.classList.remove('has-image');
+    console.log('✅ Initials avatar created:', initials, backgroundColor);
+}
+
+// 선택된 파일 저장 변수
+let selectedAvatarFile = null;
+
+// 파일 선택 처리
+function handleAvatarFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // 파일 크기 체크 (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        showToast('파일 크기가 너무 큽니다. 5MB 이하의 파일을 선택해주세요.', 'error');
+        return;
+    }
+    
+    // 파일 타입 체크
+    const allowedTypes = ['image/png', 'image/jpg', 'image/jpeg'];
+    if (!allowedTypes.includes(file.type)) {
+        showToast('JPG 또는 PNG 파일만 업로드할 수 있습니다.', 'error');
+        return;
+    }
+    
+    selectedAvatarFile = file;
+    
+    // 미리보기 표시
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const modalPreview = document.getElementById('modal-avatar-preview');
+        if (modalPreview) {
+            modalPreview.innerHTML = `<img src="${e.target.result}" alt="Avatar Preview">`;
+            console.log('✅ Avatar preview updated in modal');
+        }
+    };
+    reader.readAsDataURL(file);
+    
+    showToast('파일이 선택되었습니다. 저장 버튼을 눌러주세요.', 'info');
+}
+
+// 아바타 제거
+function removeAvatar() {
+    selectedAvatarFile = null;
+    const modalPreview = document.getElementById('modal-avatar-preview');
+    const avatarUrlInput = document.getElementById('edit-avatar-url');
+    
+    if (modalPreview) {
+        // 기본 이니셜 아바타로 복원
+        const username = document.querySelector('.profile-username-main')?.textContent?.trim() || 'User';
+        createInitialsAvatarInModal(modalPreview, username);
+    }
+    
+    if (avatarUrlInput) {
+        avatarUrlInput.value = '';
+    }
+    
+    showToast('아바타가 제거되었습니다.', 'info');
+}
+
+// 모달용 이니셜 아바타 생성
+function createInitialsAvatarInModal(container, name) {
+    const initials = name
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase())
+        .slice(0, 2)
+        .join('');
+    
+    const colors = [
+        '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
+        '#DDA0DD', '#FF9FF3', '#54A0FF', '#5F27CD', '#00D2D3'
+    ];
+    
+    const colorIndex = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
+    const backgroundColor = colors[colorIndex];
+    
+    container.innerHTML = initials;
+    container.style.cssText = `
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: bold;
+        color: white;
+        background: ${backgroundColor};
+        border: 2px solid #e5e7eb;
+    `;
+}
+
+// 대시보드 사이드바의 아바타 업데이트 함수
+function updateDashboardAvatar(avatarUrl, userName) {
+    const sidebarAvatar = document.getElementById('sidebar-profile-avatar');
+    if (!sidebarAvatar) return;
+    
+    if (avatarUrl) {
+        // 실제 이미지 URL이 있는 경우
+        sidebarAvatar.src = avatarUrl;
+        console.log('🔄 Updated sidebar avatar with image URL:', avatarUrl);
+    } else {
+        // 이니셜 아바타 생성 (프로필 페이지와 동일한 로직)
+        const finalUserName = userName || 
+                              document.querySelector('.profile-username-main')?.textContent?.trim() || 
+                              document.querySelector('.username-value')?.textContent?.trim() || 
+                              '사용자';
+        
+        console.log('🎨 Generating sidebar initials avatar for:', finalUserName);
+        const avatarDataUrl = generateInitialsAvatarDataUrl(finalUserName);
+        sidebarAvatar.src = avatarDataUrl;
+        console.log('🔄 Updated sidebar avatar with initials for:', finalUserName);
+    }
+}
+
+// 프로필 페이지와 동일한 로직으로 이니셜 아바타 생성
+function generateInitialsAvatarDataUrl(name) {
+    // Generate initials (first letter of each word, max 2)
+    const initials = name
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase())
+        .slice(0, 2)
+        .join('');
+    
+    // Generate consistent color based on name (프로필 페이지와 동일)
+    const colors = [
+        '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
+        '#DDA0DD', '#FF9FF3', '#54A0FF', '#5F27CD', '#00D2D3'
+    ];
+    
+    const colorIndex = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
+    const backgroundColor = colors[colorIndex];
+    
+    // Create SVG data URL
+    const svg = `<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="16" cy="16" r="16" fill="${backgroundColor}"/>
+        <text x="50%" y="50%" text-anchor="middle" dy="0.35em" fill="white" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600">${initials}</text>
+    </svg>`;
+    
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
+// 페이지의 모든 아바타 요소 업데이트
+function updateAllAvatars(avatarUrl) {
+    console.log('🔄 Updating all avatars with URL:', avatarUrl);
+    
+    // 메인 프로필 아바타
+    const mainAvatar = document.getElementById('profile-avatar');
+    if (mainAvatar) {
+        createImageAvatar(mainAvatar, avatarUrl);
+        console.log('✅ Updated main profile avatar');
+    }
+    
+    // 모든 아바타 이미지 업데이트
+    const avatarImages = document.querySelectorAll('img[alt*="avatar"], img[alt*="Profile"], .avatar img, .profile-avatar img');
+    avatarImages.forEach((img, index) => {
+        img.src = avatarUrl;
+        console.log(`✅ Updated avatar image ${index + 1}`);
+    });
+    
+    // 사이드바 아바타
+    updateDashboardAvatar(avatarUrl, null);
+    
+    // 강제 DOM 새로고침
+    setTimeout(() => {
+        const event = new CustomEvent('avatarUpdated', { detail: { avatarUrl } });
+        document.dispatchEvent(event);
+        console.log('📡 Dispatched avatarUpdated event');
+    }, 100);
+}
+
+function openEditModal() {
+    document.getElementById('edit-profile-modal').style.display = 'flex';
+    
+    // 현재 아바타를 모달 미리보기에 복사
+    const currentAvatar = document.getElementById('profile-avatar');
+    const modalPreview = document.getElementById('modal-avatar-preview');
+    
+    if (currentAvatar && modalPreview) {
+        const currentImg = currentAvatar.querySelector('img');
+        if (currentImg) {
+            // 현재 이미지가 있으면 복사
+            modalPreview.innerHTML = `<img src="${currentImg.src}" alt="Current Avatar">`;
+        } else {
+            // 이니셜 아바타면 복사
+            const username = document.querySelector('.profile-username-main')?.textContent?.trim() || 'User';
+            createInitialsAvatarInModal(modalPreview, username);
+        }
+    }
+    
+    // 선택된 파일 초기화
+    selectedAvatarFile = null;
+}
+
+function closeEditModal() {
+    document.getElementById('edit-profile-modal').style.display = 'none';
+    // 피드백 초기화
+    document.getElementById('username-feedback').innerHTML = '';
+    document.getElementById('username-feedback').className = 'profile-form-help';
+}
+
+async function checkUsername() {
+    const usernameInput = document.getElementById('edit-username');
+    const feedback = document.getElementById('username-feedback');
+    const username = usernameInput.value.trim();
+    
+    if (!username) {
+        feedback.innerHTML = '';
+        feedback.className = 'profile-form-help';
+        return;
+    }
+    
+    // 형식 체크
+    if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+        feedback.innerHTML = '3-20자의 영문, 숫자, 언더스코어만 사용 가능합니다.';
+        feedback.style.color = '#EF4444';
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/profile/username/check', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username })
+        });
+        
+        const result = await response.json();
+        
+        if (result.available) {
+            feedback.innerHTML = result.message;
+            feedback.style.color = '#10B981';
+        } else {
+            feedback.innerHTML = result.message;
+            feedback.style.color = '#EF4444';
+        }
+    } catch (error) {
+        console.error('Username check error:', error);
+        feedback.innerHTML = '사용자명 확인 중 오류가 발생했습니다.';
+        feedback.style.color = '#EF4444';
+    }
+}
+
+// 사용자명 입력시 실시간 체크
+document.addEventListener('DOMContentLoaded', function() {
+    const usernameInput = document.getElementById('edit-username');
+    if (usernameInput) {
+        usernameInput.addEventListener('input', function() {
+            clearTimeout(usernameCheckTimeout);
+            usernameCheckTimeout = setTimeout(checkUsername, 500);
+        });
+    }
+    
+    // 개인정보 설정 토글
+    const publicToggle = document.getElementById('is-public');
+    if (publicToggle) {
+        publicToggle.addEventListener('change', async function() {
+            try {
+                const response = await fetch('/api/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        is_public: this.checked
+                    })
+                });
+                
+                const result = await response.json();
+                if (!result.success) {
+                    // 실패시 원래 상태로 되돌리기
+                    this.checked = !this.checked;
+                    showToast(result.error || '설정 변경에 실패했습니다.', 'error');
+                } else {
+                    showToast('개인정보 설정이 변경되었습니다.', 'success');
+                }
+            } catch (error) {
+                console.error('Privacy setting error:', error);
+                this.checked = !this.checked;
+                showToast('설정 변경 중 오류가 발생했습니다.', 'error');
+            }
+        });
+    }
+});
+
+async function saveProfile() {
+    const form = document.getElementById('profile-form');
+    const saveBtn = document.querySelector('.profile-btn-primary');
+    const btnText = saveBtn.querySelector('.btn-text');
+    const btnLoading = saveBtn.querySelector('.btn-loading');
+    
+    // 로딩 상태
+    btnText.style.display = 'none';
+    btnLoading.style.display = 'inline';
+    saveBtn.disabled = true;
+    
+    try {
+        let avatarUrl = document.getElementById('edit-avatar-url').value;
+        
+        // 1. 선택된 파일이 있으면 먼저 업로드
+        if (selectedAvatarFile) {
+            showToast('아바타 업로드 중...', 'info');
+            
+            const avatarFormData = new FormData();
+            avatarFormData.append('avatar', selectedAvatarFile);
+            
+            try {
+                const avatarResponse = await fetch('/api/profile/avatar', {
+                    method: 'POST',
+                    body: avatarFormData
+                });
+                
+                const avatarResult = await avatarResponse.json();
+                
+                if (avatarResult.success && avatarResult.avatar_url) {
+                    avatarUrl = avatarResult.avatar_url;
+                    console.log('✅ Avatar uploaded successfully:', avatarUrl);
+                } else {
+                    throw new Error(avatarResult.error || 'Avatar upload failed');
+                }
+            } catch (avatarError) {
+                console.error('Avatar upload error:', avatarError);
+                showToast('아바타 업로드 실패: ' + avatarError.message, 'error');
+                // 아바타 업로드 실패해도 다른 정보는 저장하도록 계속 진행
+            }
+        }
+        
+        // 2. 프로필 정보 업데이트
+        const formData = new FormData(form);
+        const data = {
+            username: formData.get('username'),
+            display_name: formData.get('display_name'),
+            bio: formData.get('bio'),
+            is_public: formData.get('is_public') === 'on',
+            avatar_url: avatarUrl
+        };
+        
+        const response = await fetch('/api/user/profile', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: data.display_name,
+                avatar_url: avatarUrl,
+                email: data.email,
+                bio: data.bio,
+                is_public: data.is_public
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('프로필이 업데이트되었습니다!', 'success');
+            
+            // 아바타 업데이트
+            if (avatarUrl) {
+                const mainAvatar = document.getElementById('profile-avatar');
+                if (mainAvatar) {
+                    createImageAvatar(mainAvatar, avatarUrl);
+                    localStorage.setItem('user_uploaded_avatar', avatarUrl);
+                }
+                updateAllAvatars(avatarUrl);
+            }
+            
+            // 선택된 파일 초기화
+            selectedAvatarFile = null;
+            
+            // 모달 닫기
+            closeEditModal();
+            
+            // 페이지 새로고침
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            showToast(result.error || '프로필 업데이트에 실패했습니다.', 'error');
+        }
+    } catch (error) {
+        console.error('Profile save error:', error);
+        showToast('프로필 저장 중 오류가 발생했습니다.', 'error');
+    } finally {
+        // 로딩 상태 해제
+        btnText.style.display = 'inline';
+        btnLoading.style.display = 'none';
+        saveBtn.disabled = false;
+    }
+}
+
+async function saveEmail() {
+    const emailInput = document.getElementById('email-input');
+    const saveBtn = document.querySelector('.email-save-btn');
+    const email = emailInput.value.trim();
+    
+    if (!email) {
+        showToast('이메일 주소를 입력해주세요.', 'error');
+        return;
+    }
+    
+    // 간단한 이메일 형식 체크
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        showToast('올바른 이메일 형식을 입력해주세요.', 'error');
+        return;
+    }
+    
+    // 로딩 상태
+    const originalText = saveBtn.textContent;
+    saveBtn.textContent = '저장 중...';
+    saveBtn.disabled = true;
+    
+    try {
+        const response = await fetch('/api/profile/email', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email: email })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // 성공시 입력 필드를 텍스트로 변경
+            const container = emailInput.parentElement;
+            container.innerHTML = `<span class="info-value">${email}</span>`;
+            showToast('이메일이 저장되었습니다.', 'success');
+        } else {
+            showToast(result.error || '이메일 저장에 실패했습니다.', 'error');
+        }
+    } catch (error) {
+        console.error('Email save error:', error);
+        showToast('이메일 저장 중 오류가 발생했습니다.', 'error');
+    } finally {
+        // 로딩 상태 해제
+        saveBtn.textContent = originalText;
+        saveBtn.disabled = false;
+    }
+}
+
+// Simple toast notification function
+function showToast(message, type = 'info') {
+    // Create toast element if it doesn't exist
+    let toast = document.getElementById('profile-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'profile-toast';
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 10001;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
+        `;
+        document.body.appendChild(toast);
+    }
+    
+    // Set colors based on type
+    const colors = {
+        success: { bg: '#10B981', text: '#FFFFFF' },
+        error: { bg: '#EF4444', text: '#FFFFFF' },
+        info: { bg: '#2563EB', text: '#FFFFFF' }
+    };
+    
+    const color = colors[type] || colors.info;
+    toast.style.backgroundColor = color.bg;
+    toast.style.color = color.text;
+    toast.textContent = message;
+    
+    // Show toast
+    setTimeout(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+    }, 10);
+    
+    // Hide toast after 3 seconds
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(20px)';
+    }, 3000);
+}
+</script>
+{% endblock %}

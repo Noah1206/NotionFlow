@@ -1,0 +1,831 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}달력{% endblock %}
+{% block page_class %}calendar-detail-page{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-detail.css') }}?v={{ range(100000, 999999) | random }}&t=20250827002&force=1">
+<style>
+/* Inline CSS to ensure styles are applied - More specific selectors */
+body.calendar-detail-page .calendar-detail-container {
+    padding: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    min-height: 100vh !important;
+    background: #f5f6f8 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+body.calendar-detail-page .calendar-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 20px 24px !important;
+    border-bottom: 1px solid #e5e5e5 !important;
+    background: white !important;
+}
+
+body.calendar-detail-page .page-title {
+    font-size: 24px !important;
+    font-weight: 600 !important;
+    color: #333 !important;
+    margin: 0 !important;
+}
+
+body.calendar-detail-page .calendars-section {
+    margin-bottom: 20px !important;
+    padding: 20px 24px !important;
+    background: white !important;
+    border-bottom: 1px solid #e5e5e5 !important;
+}
+
+body.calendar-detail-page .calendar-main {
+    background: white !important;
+    border-radius: 12px !important;
+    padding: 16px !important;
+    margin: 0 24px 24px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    overflow: hidden !important;
+    flex: 1 !important;
+}
+
+/* Header controls styling */
+body.calendar-detail-page .header-controls {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+}
+
+body.calendar-detail-page .btn-attendees {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 36px !important;
+    height: 36px !important;
+    background: #f8f9fa !important;
+    border: 1px solid #e9ecef !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    color: #495057 !important;
+}
+
+body.calendar-detail-page .btn-attendees:hover {
+    background: #e9ecef !important;
+    border-color: #dee2e6 !important;
+    color: #343a40 !important;
+}
+
+/* Attendees popup styling */
+body.calendar-detail-page .attendees-popup-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+    z-index: 1000 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+body.calendar-detail-page .attendees-popup {
+    background: white !important;
+    border-radius: 12px !important;
+    width: 400px !important;
+    max-height: 600px !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+    overflow: hidden !important;
+}
+
+body.calendar-detail-page .popup-header {
+    padding: 20px 24px !important;
+    border-bottom: 1px solid #e9ecef !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    background: #f8f9fa !important;
+}
+
+body.calendar-detail-page .popup-header h3 {
+    margin: 0 !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    color: #333 !important;
+}
+
+body.calendar-detail-page .popup-close {
+    background: none !important;
+    border: none !important;
+    font-size: 24px !important;
+    cursor: pointer !important;
+    color: #6c757d !important;
+    padding: 0 !important;
+    width: 24px !important;
+    height: 24px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+body.calendar-detail-page .popup-close:hover {
+    color: #495057 !important;
+}
+
+body.calendar-detail-page .popup-body {
+    padding: 16px 24px !important;
+    max-height: 400px !important;
+    overflow-y: auto !important;
+}
+
+body.calendar-detail-page .attendee-item {
+    display: flex !important;
+    align-items: center !important;
+    padding: 12px 0 !important;
+    border-bottom: 1px solid #f1f3f4 !important;
+    gap: 12px !important;
+}
+
+body.calendar-detail-page .attendee-item:last-child {
+    border-bottom: none !important;
+}
+
+body.calendar-detail-page .attendee-avatar {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 50% !important;
+    background: #007bff !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+}
+
+body.calendar-detail-page .attendee-info {
+    flex: 1 !important;
+}
+
+body.calendar-detail-page .attendee-name {
+    font-weight: 500 !important;
+    color: #333 !important;
+    font-size: 14px !important;
+    margin-bottom: 2px !important;
+}
+
+body.calendar-detail-page .attendee-email {
+    color: #6c757d !important;
+    font-size: 12px !important;
+}
+
+body.calendar-detail-page .attendee-status {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+body.calendar-detail-page .status-indicator {
+    width: 8px !important;
+    height: 8px !important;
+    border-radius: 50% !important;
+    background: #28a745 !important;
+}
+
+body.calendar-detail-page .status-owner .status-indicator {
+    background: #ffc107 !important;
+}
+
+body.calendar-detail-page .status-accepted .status-indicator {
+    background: #28a745 !important;
+}
+
+body.calendar-detail-page .status-pending .status-indicator {
+    background: #6c757d !important;
+}
+
+body.calendar-detail-page .status-declined .status-indicator {
+    background: #dc3545 !important;
+}
+
+body.calendar-detail-page .status-text {
+    font-size: 12px !important;
+    color: #6c757d !important;
+}
+
+body.calendar-detail-page .attendees-summary {
+    margin-top: 16px !important;
+    padding-top: 16px !important;
+    border-top: 1px solid #e9ecef !important;
+}
+
+body.calendar-detail-page .summary-stats {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 12px !important;
+}
+
+body.calendar-detail-page .stat-item {
+    text-align: center !important;
+}
+
+body.calendar-detail-page .stat-label {
+    display: block !important;
+    font-size: 11px !important;
+    color: #6c757d !important;
+    margin-bottom: 4px !important;
+}
+
+body.calendar-detail-page .stat-value {
+    display: block !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: #333 !important;
+}
+
+body.calendar-detail-page .stat-value.accepted {
+    color: #28a745 !important;
+}
+
+body.calendar-detail-page .stat-value.pending {
+    color: #6c757d !important;
+}
+
+body.calendar-detail-page .stat-value.declined {
+    color: #dc3545 !important;
+}
+
+body.calendar-detail-page .popup-footer {
+    padding: 16px 24px !important;
+    border-top: 1px solid #e9ecef !important;
+    background: #f8f9fa !important;
+}
+
+body.calendar-detail-page .btn-add-attendee {
+    width: 100% !important;
+    padding: 10px 16px !important;
+    background: #007bff !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    transition: background-color 0.2s ease !important;
+}
+
+body.calendar-detail-page .btn-add-attendee:hover {
+    background: #0056b3 !important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="calendar-detail-container">
+    <!-- 헤더 섹션 -->
+    <div class="calendar-header">
+        <div class="header-left">
+            <h1 class="page-title">달력</h1>
+            <div class="date-info">
+                <span id="current-month-year"></span>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="calendar-controls">
+                <button class="btn-calendar-nav" id="prev-month" onclick="navigateMonth(-1)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="15,18 9,12 15,6"></polyline>
+                    </svg>
+                </button>
+                <button class="btn-today" onclick="goToToday()">오늘</button>
+                <button class="btn-calendar-nav" id="next-month" onclick="navigateMonth(1)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9,18 15,12 9,6"></polyline>
+                    </svg>
+                </button>
+            </div>
+            <div class="header-controls">
+                <button class="btn-attendees" id="attendees-btn" onclick="toggleAttendeesPopup()" title="참석자">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                </button>
+                <div class="view-controls">
+                    <button class="btn-view active" data-view="month">월</button>
+                    <button class="btn-view" data-view="week">주</button>
+                    <button class="btn-view" data-view="day">일</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 참석자 팝업 -->
+    <div class="attendees-popup-overlay" id="attendees-popup" style="display: none;">
+        <div class="attendees-popup">
+            <div class="popup-header">
+                <h3>참석자</h3>
+                <button class="popup-close" onclick="closeAttendeesPopup()">×</button>
+            </div>
+            <div class="popup-body">
+                <div class="attendees-list" id="popup-attendees-list">
+                    <!-- Calendar owner -->
+                    <div class="attendee-item" data-status="owner">
+                        <div class="attendee-avatar">
+                            <span class="avatar-text">J</span>
+                        </div>
+                        <div class="attendee-info">
+                            <div class="attendee-name">조현응 (소유자)</div>
+                            <div class="attendee-email">johyeon-ung@example.com</div>
+                        </div>
+                        <div class="attendee-status status-owner">
+                            <span class="status-indicator"></span>
+                            <span class="status-text">소유자</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Sample attendee -->
+                    <div class="attendee-item" data-status="accepted">
+                        <div class="attendee-avatar">
+                            <span class="avatar-text">김</span>
+                        </div>
+                        <div class="attendee-info">
+                            <div class="attendee-name">김민수</div>
+                            <div class="attendee-email">kim@example.com</div>
+                        </div>
+                        <div class="attendee-status status-accepted">
+                            <span class="status-indicator"></span>
+                            <span class="status-text">참석</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="attendees-summary">
+                    <div class="summary-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">총 인원</span>
+                            <span class="stat-value" id="popup-total-attendees">2</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">참석</span>
+                            <span class="stat-value accepted" id="popup-accepted-count">1</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">미정</span>
+                            <span class="stat-value pending" id="popup-pending-count">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">불참</span>
+                            <span class="stat-value declined" id="popup-declined-count">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="popup-footer">
+                <button class="btn-add-attendee" onclick="openAddAttendeeModal()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    참석자 추가
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 캘린더 목록 섹션 -->
+    <div class="calendars-section">
+        <h3 class="section-title">내 캘린더</h3>
+        <div class="calendars-list" id="calendars-list">
+            {% if calendars %}
+                {% for calendar in calendars %}
+                <div class="calendar-item" data-calendar-id="{{ calendar.id }}">
+                    <div class="calendar-checkbox">
+                        <input type="checkbox" 
+                               id="calendar-{{ calendar.id }}" 
+                               checked 
+                               onchange="toggleCalendar('{{ calendar.id }}', this.checked)">
+                    </div>
+                    <div class="calendar-color" style="background-color: {{ calendar.color }}"></div>
+                    <div class="calendar-info">
+                        <span class="calendar-name">{{ calendar.name }}</span>
+                        <span class="calendar-events-count">{{ calendar.event_count | default(0) }}개 이벤트</span>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-calendars">
+                    <p>생성된 캘린더가 없습니다.</p>
+                    <button class="btn-create-calendar" onclick="window.location.href='/dashboard/calendar-list'">
+                        캘린더 생성하기
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 메인 캘린더 뷰 -->
+    <div class="calendar-main">
+        <div class="calendar-view-container">
+            <!-- 월별 뷰 -->
+            <div class="calendar-view active" id="month-view">
+                <div class="calendar-header-row">
+                    <div class="calendar-weekday">일</div>
+                    <div class="calendar-weekday">월</div>
+                    <div class="calendar-weekday">화</div>
+                    <div class="calendar-weekday">수</div>
+                    <div class="calendar-weekday">목</div>
+                    <div class="calendar-weekday">금</div>
+                    <div class="calendar-weekday">토</div>
+                </div>
+                <div class="calendar-grid" id="calendar-grid">
+                    <!-- Calendar cells will be generated here by JavaScript -->
+                </div>
+            </div>
+
+            <!-- 주별 뷰 (숨김) -->
+            <div class="calendar-view" id="week-view">
+                <div class="week-container">
+                    <!-- Week view will be implemented later -->
+                </div>
+            </div>
+
+            <!-- 일별 뷰 (숨김) -->
+            <div class="calendar-view" id="day-view">
+                <div class="day-container">
+                    <!-- Day view will be implemented later -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 이벤트 상세 모달 -->
+<div class="event-modal-overlay" id="event-modal" style="display: none;">
+    <div class="event-modal">
+        <div class="modal-header">
+            <h3 id="event-modal-title">이벤트 상세</h3>
+            <button class="modal-close" onclick="closeEventModal()">×</button>
+        </div>
+        <div class="modal-body" id="event-modal-body">
+            <!-- Event details will be populated here -->
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeEventModal()">닫기</button>
+            <button class="btn-primary" onclick="editEvent()">편집</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// JavaScript에서 사용할 데이터 설정
+const CALENDAR_DATA = {
+    calendars: {{ calendars | tojson if calendars else [] }},
+    events: {{ all_events | tojson if all_events else [] }},
+    currentDate: '{{ current_date }}'
+};
+
+// 현재 표시 중인 달력들 (체크박스 상태 관리)
+let visibleCalendars = new Set();
+CALENDAR_DATA.calendars.forEach(cal => visibleCalendars.add(cal.id));
+
+// 현재 뷰 상태
+let currentView = 'month';
+let currentDate = new Date();
+
+// 페이지 로드 시 초기화
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🎯 [CRITICAL] Calendar page loaded - starting initialization');
+    console.log('🎯 [CRITICAL] CALENDAR_DATA exists:', typeof CALENDAR_DATA !== 'undefined');
+    if (typeof CALENDAR_DATA !== 'undefined') {
+        console.log('🎯 [CRITICAL] CALENDAR_DATA content:', CALENDAR_DATA);
+    } else {
+        console.error('❌ [CRITICAL] CALENDAR_DATA is undefined!');
+    }
+    
+    initializeCalendar();
+    generateCalendarView();
+    updateDateDisplay();
+});
+
+// 캘린더 초기화
+function initializeCalendar() {
+    console.log('Initializing calendar with data:', CALENDAR_DATA);
+    console.log(`[DEBUG] Total calendars: ${CALENDAR_DATA.calendars.length}`);
+    console.log(`[DEBUG] Total events: ${CALENDAR_DATA.events.length}`);
+    console.log(`[DEBUG] Current date: ${CALENDAR_DATA.currentDate}`);
+    
+    if (CALENDAR_DATA.events.length > 0) {
+        console.log(`[DEBUG] Sample event structure:`, CALENDAR_DATA.events[0]);
+        console.log(`[DEBUG] All event dates:`, CALENDAR_DATA.events.map(e => e.date));
+        
+        // 12월 이벤트 확인
+        const decemberEvents = CALENDAR_DATA.events.filter(e => e.date && e.date.startsWith('2025-12'));
+        console.log(`[DEBUG] December 2025 events: ${decemberEvents.length}`);
+        if (decemberEvents.length > 0) {
+            console.log(`[DEBUG] December event dates:`, decemberEvents.map(e => e.date));
+            console.log(`[DEBUG] SOLUTION: Navigate to December 2025 to see your events!`);
+        }
+    }
+    
+    // 뷰 버튼 이벤트 리스너 설정
+    document.querySelectorAll('.btn-view').forEach(btn => {
+        btn.addEventListener('click', () => switchView(btn.dataset.view));
+    });
+}
+
+// 달력 뷰 생성
+function generateCalendarView() {
+    if (currentView === 'month') {
+        generateMonthView();
+    }
+}
+
+// 월별 뷰 생성
+function generateMonthView() {
+    const grid = document.getElementById('calendar-grid');
+    if (!grid) return;
+
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    // 첫 번째 날과 마지막 날 계산
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - firstDay.getDay()); // 주 시작일로 조정
+    
+    grid.innerHTML = '';
+    
+    // Grid 스타일 강제 적용 (JavaScript로 재설정 방지)
+    grid.style.display = 'grid';
+    grid.style.gridTemplateColumns = 'repeat(7, 1fr)';
+    grid.style.gridTemplateRows = 'repeat(6, 130px)';
+    grid.style.gridAutoRows = '130px'; // 추가 행도 130px
+    grid.style.minHeight = '785px'; // 130px * 6 + 5px = 785px
+    grid.style.maxHeight = '785px';
+    grid.style.height = '785px'; // 정확히 785px로 고정
+    
+    // 6주 생성 (42일)
+    for (let i = 0; i < 42; i++) {
+        const cellDate = new Date(startDate);
+        cellDate.setDate(startDate.getDate() + i);
+        
+        const cell = createCalendarCell(cellDate, month);
+        grid.appendChild(cell);
+    }
+}
+
+// 캘린더 셀 생성
+function createCalendarCell(date, currentMonth) {
+    const cell = document.createElement('div');
+    cell.className = 'calendar-cell';
+    
+    const isCurrentMonth = date.getMonth() === currentMonth;
+    const isToday = isDateToday(date);
+    
+    if (!isCurrentMonth) {
+        cell.classList.add('other-month');
+    }
+    if (isToday) {
+        cell.classList.add('today');
+    }
+    
+    // 날짜 표시
+    const dayNumber = document.createElement('div');
+    dayNumber.className = 'day-number';
+    dayNumber.textContent = date.getDate();
+    cell.appendChild(dayNumber);
+    
+    // 이벤트 표시 (항상 container 생성하여 일정한 크기 유지)
+    const events = getEventsForDate(date);
+    const eventsContainer = document.createElement('div');
+    eventsContainer.className = 'events-container';
+    
+    console.log(`[DEBUG] Cell for ${date.toISOString().split('T')[0]} has ${events.length} events`);
+    
+    if (events.length > 0) {
+        console.log(`[DEBUG] Creating ${events.length} event elements for date ${date.toISOString().split('T')[0]}`);
+        events.slice(0, 6).forEach((event, index) => { // 최대 6개까지 표시 (3개 → 6개로 확장)
+            console.log(`[DEBUG] Creating event element ${index + 1}:`, event);
+            const eventElement = createEventElement(event);
+            eventsContainer.appendChild(eventElement);
+        });
+        
+        if (events.length > 6) {
+            const moreElement = document.createElement('div');
+            moreElement.className = 'more-events';
+            moreElement.textContent = `+${events.length - 6}개 더`;
+            eventsContainer.appendChild(moreElement);
+        }
+    } else {
+        console.log(`[DEBUG] No events for date ${date.toISOString().split('T')[0]}`);
+    }
+    
+    // 이벤트 유무와 관계없이 항상 컨테이너 추가
+    cell.appendChild(eventsContainer);
+    
+    // 클릭 이벤트
+    cell.addEventListener('click', () => handleCellClick(date));
+    
+    return cell;
+}
+
+// 이벤트 요소 생성
+function createEventElement(event) {
+    const eventElement = document.createElement('div');
+    eventElement.className = 'event-item';
+    eventElement.style.backgroundColor = event.calendar_color;
+    eventElement.textContent = event.title;
+    
+    eventElement.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showEventModal(event);
+    });
+    
+    return eventElement;
+}
+
+// 특정 날짜의 이벤트 가져오기
+function getEventsForDate(date) {
+    const dateString = date.toISOString().split('T')[0];
+    
+    // 9월 23일만 자세히 로그
+    if (dateString === '2025-09-23') {
+        console.log(`[DEBUG] Getting events for TODAY: ${dateString}`);
+        console.log(`[DEBUG] Available events:`, CALENDAR_DATA.events.length);
+        console.log(`[DEBUG] Visible calendars:`, Array.from(visibleCalendars));
+        
+        const septEvents = CALENDAR_DATA.events.filter(e => e.date && e.date.startsWith('2025-09'));
+        console.log(`[DEBUG] September events in data:`, septEvents);
+        
+        septEvents.forEach((event, i) => {
+            console.log(`[DEBUG] Sept Event ${i+1}: title="${event.title}", date="${event.date}", calendar_id="${event.calendar_id}"`);
+            console.log(`[DEBUG] Calendar visible for this event: ${visibleCalendars.has(event.calendar_id)}`);
+        });
+    }
+    
+    const filteredEvents = CALENDAR_DATA.events.filter(event => {
+        if (!visibleCalendars.has(event.calendar_id)) return false;
+        return event.date === dateString;
+    });
+    
+    if (dateString === '2025-09-23') {
+        console.log(`[DEBUG] Filtered events for TODAY ${dateString}:`, filteredEvents);
+    }
+    return filteredEvents;
+}
+
+// 오늘 날짜인지 확인
+function isDateToday(date) {
+    const today = new Date();
+    return date.getDate() === today.getDate() &&
+           date.getMonth() === today.getMonth() &&
+           date.getFullYear() === today.getFullYear();
+}
+
+// 월 네비게이션
+function navigateMonth(direction) {
+    currentDate.setMonth(currentDate.getMonth() + direction);
+    generateCalendarView();
+    updateDateDisplay();
+}
+
+// 오늘로 이동
+function goToToday() {
+    currentDate = new Date();
+    generateCalendarView();
+    updateDateDisplay();
+}
+
+// 날짜 표시 업데이트
+function updateDateDisplay() {
+    const monthYearElement = document.getElementById('current-month-year');
+    if (monthYearElement) {
+        const options = { year: 'numeric', month: 'long' };
+        monthYearElement.textContent = currentDate.toLocaleDateString('ko-KR', options);
+    }
+}
+
+// 뷰 전환
+function switchView(view) {
+    currentView = view;
+    
+    // 버튼 상태 업데이트
+    document.querySelectorAll('.btn-view').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.view === view) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // 뷰 전환
+    document.querySelectorAll('.calendar-view').forEach(viewElement => {
+        viewElement.classList.remove('active');
+    });
+    document.getElementById(view + '-view').classList.add('active');
+    
+    generateCalendarView();
+}
+
+// 캘린더 토글
+function toggleCalendar(calendarId, isVisible) {
+    if (isVisible) {
+        visibleCalendars.add(calendarId);
+    } else {
+        visibleCalendars.delete(calendarId);
+    }
+    generateCalendarView(); // 뷰 새로고침
+}
+
+// 셀 클릭 핸들러
+function handleCellClick(date) {
+    console.log('Cell clicked:', date);
+    // 날짜 클릭 시 이벤트 생성 모달 또는 기타 액션
+}
+
+// 이벤트 모달 표시
+function showEventModal(event) {
+    const modal = document.getElementById('event-modal');
+    const title = document.getElementById('event-modal-title');
+    const body = document.getElementById('event-modal-body');
+    
+    title.textContent = event.title;
+    body.innerHTML = `
+        <div class="event-detail">
+            <div class="detail-row">
+                <span class="detail-label">날짜:</span>
+                <span class="detail-value">${event.date}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">시간:</span>
+                <span class="detail-value">${event.start_time || '종일'} - ${event.end_time || ''}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">캘린더:</span>
+                <span class="detail-value">${event.calendar_name}</span>
+            </div>
+            ${event.description ? `
+            <div class="detail-row">
+                <span class="detail-label">설명:</span>
+                <span class="detail-value">${event.description}</span>
+            </div>
+            ` : ''}
+        </div>
+    `;
+    
+    modal.style.display = 'flex';
+}
+
+// 이벤트 모달 닫기
+function closeEventModal() {
+    document.getElementById('event-modal').style.display = 'none';
+}
+
+// 이벤트 편집 (추후 구현)
+function editEvent() {
+    console.log('Edit event clicked');
+    closeEventModal();
+}
+
+// 참석자 팝업 토글
+function toggleAttendeesPopup() {
+    const popup = document.getElementById('attendees-popup');
+    if (popup.style.display === 'none' || popup.style.display === '') {
+        popup.style.display = 'flex';
+    } else {
+        popup.style.display = 'none';
+    }
+}
+
+// 참석자 팝업 닫기
+function closeAttendeesPopup() {
+    document.getElementById('attendees-popup').style.display = 'none';
+}
+
+// 참석자 추가 모달 열기 (기존 함수 참조)
+function openAddAttendeeModal() {
+    console.log('Open add attendee modal');
+    // 기존 calendar_detail.html의 참석자 추가 모달과 연동
+}
+
+// 팝업 외부 클릭 시 닫기
+document.addEventListener('click', function(event) {
+    const popup = document.getElementById('attendees-popup');
+    const btn = document.getElementById('attendees-btn');
+    
+    if (popup && popup.style.display === 'flex') {
+        if (!popup.contains(event.target) && !btn.contains(event.target)) {
+            closeAttendeesPopup();
+        }
+    }
+});
+</script>
+{% endblock %}

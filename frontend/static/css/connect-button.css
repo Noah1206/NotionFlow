@@ -1,0 +1,434 @@
+/* 🔗 ConnectButton Component Styles */
+/* Smart connect/disconnect buttons with state management */
+
+/* ===== Base Button Styles ===== */
+.connect-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', system-ui, sans-serif;
+    font-weight: 500;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    box-sizing: border-box;
+}
+
+.connect-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.connect-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* ===== Button Content ===== */
+.connect-btn-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.connect-btn-icon {
+    font-size: 0.875rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.connect-btn-text {
+    line-height: 1;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.connect-btn-loader {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: inherit;
+    border-radius: inherit;
+}
+
+.loader-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ===== Size Variants ===== */
+.connect-button-small {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    min-height: 32px;
+}
+
+.connect-button-small .connect-btn-icon {
+    font-size: 0.75rem;
+}
+
+.connect-button-small .loader-spinner {
+    width: 12px;
+    height: 12px;
+}
+
+.connect-button-medium {
+    padding: 8px 16px;
+    font-size: 0.875rem;
+    min-height: 40px;
+}
+
+.connect-button-large {
+    padding: 12px 20px;
+    font-size: 1rem;
+    min-height: 48px;
+}
+
+.connect-button-large .connect-btn-icon {
+    font-size: 1rem;
+}
+
+.connect-button-large .loader-spinner {
+    width: 20px;
+    height: 20px;
+}
+
+/* ===== State Variants ===== */
+
+/* Disconnected State */
+.connect-button-disconnected.connect-button-primary {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    border: 1px solid #3b82f6;
+}
+
+.connect-button-disconnected.connect-button-primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    border-color: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.25);
+}
+
+.connect-button-disconnected.connect-button-secondary {
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+}
+
+.connect-button-disconnected.connect-button-secondary:hover:not(:disabled) {
+    background: #e5e7eb;
+    color: #374151;
+    border-color: #9ca3af;
+}
+
+.connect-button-disconnected.connect-button-outline {
+    background: transparent;
+    color: #3b82f6;
+    border: 1px solid #3b82f6;
+}
+
+.connect-button-disconnected.connect-button-outline:hover:not(:disabled) {
+    background: #eff6ff;
+    color: #2563eb;
+    border-color: #2563eb;
+}
+
+/* Connected State */
+.connect-button-connected.connect-button-primary {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: 1px solid #10b981;
+}
+
+.connect-button-connected.connect-button-primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #059669, #047857);
+    border-color: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.25);
+}
+
+.connect-button-connected.connect-button-secondary {
+    background: #ecfdf5;
+    color: #10b981;
+    border: 1px solid #a7f3d0;
+}
+
+.connect-button-connected.connect-button-secondary:hover:not(:disabled) {
+    background: #d1fae5;
+    color: #059669;
+    border-color: #6ee7b7;
+}
+
+.connect-button-connected.connect-button-outline {
+    background: transparent;
+    color: #10b981;
+    border: 1px solid #10b981;
+}
+
+.connect-button-connected.connect-button-outline:hover:not(:disabled) {
+    background: #ecfdf5;
+    color: #059669;
+    border-color: #059669;
+}
+
+/* Error State */
+.connect-button-error.connect-button-primary {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    border: 1px solid #ef4444;
+}
+
+.connect-button-error.connect-button-primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    border-color: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.25);
+}
+
+.connect-button-error.connect-button-secondary {
+    background: #fef2f2;
+    color: #ef4444;
+    border: 1px solid #fecaca;
+}
+
+.connect-button-error.connect-button-secondary:hover:not(:disabled) {
+    background: #fecaca;
+    color: #dc2626;
+    border-color: #fca5a5;
+}
+
+.connect-button-error.connect-button-outline {
+    background: transparent;
+    color: #ef4444;
+    border: 1px solid #ef4444;
+}
+
+.connect-button-error.connect-button-outline:hover:not(:disabled) {
+    background: #fef2f2;
+    color: #dc2626;
+    border-color: #dc2626;
+}
+
+/* Loading State */
+.connect-button:disabled .connect-btn-text,
+.connect-button:disabled .connect-btn-icon {
+    opacity: 0;
+}
+
+/* ===== Button Group Styles ===== */
+.connect-button-group {
+    display: flex;
+    gap: 16px;
+}
+
+.connect-button-group-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.connect-button-group-list {
+    flex-direction: column;
+}
+
+.connect-button-group-inline {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+/* ===== Button Group Items ===== */
+.connect-button-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.connect-button-item:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.platform-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.platform-name {
+    display: block;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 4px;
+}
+
+.platform-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.platform-status.connected {
+    background: #ecfdf5;
+    color: #10b981;
+}
+
+.platform-status.disconnected {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.platform-status.connected::before {
+    content: "●";
+    color: #10b981;
+}
+
+.platform-status.disconnected::before {
+    content: "○";
+    color: #6b7280;
+}
+
+.button-container {
+    flex-shrink: 0;
+    margin-left: 16px;
+}
+
+/* ===== Inline Layout Adjustments ===== */
+.connect-button-group-inline .connect-button-item {
+    padding: 12px 16px;
+    min-width: auto;
+}
+
+.connect-button-group-inline .platform-info {
+    margin-right: 12px;
+}
+
+.connect-button-group-inline .platform-name {
+    margin-bottom: 0;
+    font-size: 0.875rem;
+}
+
+.connect-button-group-inline .button-container {
+    margin-left: 8px;
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 768px) {
+    .connect-button-group-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .connect-button-group-inline {
+        flex-direction: column;
+    }
+    
+    .connect-button-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    
+    .button-container {
+        margin-left: 0 !important;
+    }
+    
+    .connect-button {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ===== Accessibility ===== */
+@media (prefers-reduced-motion: reduce) {
+    .connect-button {
+        transition: none !important;
+    }
+    
+    .connect-button-item {
+        transition: none !important;
+    }
+    
+    .loader-spinner {
+        animation: none !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .connect-button {
+        border-width: 2px;
+    }
+    
+    .connect-button-item {
+        border-width: 2px;
+    }
+}
+
+/* ===== Focus Styles ===== */
+.connect-button:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* ===== Special States ===== */
+.connect-button-loading {
+    pointer-events: none;
+}
+
+.connect-button-success {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: white !important;
+    border-color: #10b981 !important;
+}
+
+.connect-button-warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+    color: white !important;
+    border-color: #f59e0b !important;
+}
+
+/* ===== Animations ===== */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.connect-button-loading .connect-btn-loader {
+    animation: pulse 2s infinite;
+}

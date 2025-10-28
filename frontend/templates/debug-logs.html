@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import Debug Logs - NodeFlow</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8fafc;
+        }
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .logs-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .log-entry {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 16px 20px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .log-entry:hover {
+            background-color: #f8fafc;
+        }
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .log-platform {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .platform-notion {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .platform-google {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .log-timestamp {
+            color: #64748b;
+            font-size: 14px;
+        }
+        .log-summary {
+            margin-bottom: 8px;
+        }
+        .log-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 14px;
+            color: #64748b;
+        }
+        .status-success {
+            color: #059669;
+        }
+        .status-error {
+            color: #dc2626;
+        }
+        .log-details {
+            display: none;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #e2e8f0;
+        }
+        .log-details.show {
+            display: block;
+        }
+        .step-logs {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+        .step-log {
+            margin: 4px 0;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 13px;
+        }
+        .api-response {
+            background: #fefefe;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 8px 0;
+        }
+        .api-response-header {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+        pre {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+            margin: 8px 0;
+        }
+        .refresh-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .refresh-btn:hover {
+            background: #2563eb;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+        .error {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 16px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Import Debug Logs</h1>
+        <p>캘린더 동기화 과정에서 발생한 로그와 실제 가져온 데이터를 확인할 수 있습니다.</p>
+        <button class="refresh-btn" onclick="loadLogs()">🔄 새로고침</button>
+    </div>
+
+    <div class="logs-container">
+        <div id="loading" class="loading">로그를 불러오는 중...</div>
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="logs-list"></div>
+    </div>
+
+    <script>
+        async function loadLogs() {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const logsList = document.getElementById('logs-list');
+            
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            logsList.innerHTML = '';
+            
+            try {
+                const response = await fetch('/api/debug/import-logs');
+                const data = await response.json();
+                
+                loading.style.display = 'none';
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to load logs');
+                }
+                
+                if (data.logs.length === 0) {
+                    logsList.innerHTML = '<div style="padding: 40px; text-align: center; color: #64748b;">아직 로그가 없습니다. 캘린더 동기화를 시도해보세요.</div>';
+                    return;
+                }
+                
+                data.logs.forEach(log => {
+                    const logElement = createLogElement(log);
+                    logsList.appendChild(logElement);
+                });
+                
+            } catch (err) {
+                loading.style.display = 'none';
+                error.style.display = 'block';
+                error.textContent = `로그 로딩 실패: ${err.message}`;
+            }
+        }
+        
+        function createLogElement(log) {
+            const logDiv = document.createElement('div');
+            logDiv.className = 'log-entry';
+            
+            const timestamp = new Date(log.timestamp).toLocaleString('ko-KR');
+            const success = log.success;
+            const platform = log.platform;
+            const totalImported = log.total_imported || 0;
+            const errorCount = log.errors ? log.errors.length : 0;
+            
+            logDiv.innerHTML = `
+                <div class="log-header">
+                    <div>
+                        <span class="log-platform platform-${platform}">${platform.toUpperCase()}</span>
+                        <span class="log-timestamp">${timestamp}</span>
+                    </div>
+                    <div class="${success ? 'status-success' : 'status-error'}">
+                        ${success ? '✅ 성공' : '❌ 실패'}
+                    </div>
+                </div>
+                <div class="log-summary">
+                    <strong>사용자:</strong> ${log.user_id} | 
+                    <strong>캘린더:</strong> ${log.calendar_id}
+                </div>
+                <div class="log-stats">
+                    <span>📥 가져온 이벤트: ${totalImported}개</span>
+                    <span>📁 데이터베이스 발견: ${log.databases_found ? log.databases_found.length : 0}개</span>
+                    ${errorCount > 0 ? `<span class="status-error">⚠️ 오류: ${errorCount}개</span>` : ''}
+                </div>
+                <div class="log-details">
+                    ${createLogDetails(log)}
+                </div>
+            `;
+            
+            logDiv.addEventListener('click', () => {
+                const details = logDiv.querySelector('.log-details');
+                details.classList.toggle('show');
+            });
+            
+            return logDiv;
+        }
+        
+        function createLogDetails(log) {
+            let html = '';
+            
+            // Step logs
+            if (log.step_logs && log.step_logs.length > 0) {
+                html += '<div class="step-logs">';
+                html += '<div style="font-weight: 600; margin-bottom: 8px;">📝 실행 단계:</div>';
+                log.step_logs.forEach(step => {
+                    html += `<div class="step-log">${step}</div>`;
+                });
+                html += '</div>';
+            }
+            
+            // Errors
+            if (log.errors && log.errors.length > 0) {
+                html += '<div style="background: #fef2f2; padding: 12px; border-radius: 6px; margin-bottom: 16px;">';
+                html += '<div style="font-weight: 600; color: #dc2626; margin-bottom: 8px;">⚠️ 오류:</div>';
+                log.errors.forEach(error => {
+                    html += `<div style="color: #dc2626; font-size: 14px;">${error}</div>`;
+                });
+                html += '</div>';
+            }
+            
+            // Database info
+            if (log.databases_found && log.databases_found.length > 0) {
+                html += '<div style="margin-bottom: 16px;">';
+                html += '<div style="font-weight: 600; margin-bottom: 8px;">📁 발견된 데이터베이스:</div>';
+                log.databases_found.forEach(db => {
+                    html += `<div style="margin: 4px 0; padding: 8px; background: #f0f9ff; border-radius: 4px;">
+                        <strong>${db.title}</strong> (${db.events_found}개 이벤트) 
+                        ${db.has_date_field ? '✅ 날짜 필드 있음' : '❌ 날짜 필드 없음'}
+                    </div>`;
+                });
+                html += '</div>';
+            }
+            
+            // Import events
+            if (log.events_imported && log.events_imported.length > 0) {
+                html += '<div style="margin-bottom: 16px;">';
+                html += '<div style="font-weight: 600; margin-bottom: 8px;">📅 가져온 이벤트:</div>';
+                log.events_imported.slice(0, 5).forEach(event => {  // 처음 5개만 표시
+                    html += `<div style="margin: 4px 0; padding: 8px; background: #f0fdf4; border-radius: 4px;">
+                        <strong>${event.title}</strong> - ${event.start_datetime}
+                        ${event.import_success ? ' ✅' : ' ❌'}
+                    </div>`;
+                });
+                if (log.events_imported.length > 5) {
+                    html += `<div style="color: #64748b; font-size: 14px;">... 및 ${log.events_imported.length - 5}개 더</div>`;
+                }
+                html += '</div>';
+            }
+            
+            // API Responses (collapsed)
+            if (log.api_responses && log.api_responses.length > 0) {
+                html += '<details style="margin-bottom: 16px;">';
+                html += '<summary style="cursor: pointer; font-weight: 600;">🔍 API 응답 데이터</summary>';
+                log.api_responses.forEach(apiResp => {
+                    html += `<div class="api-response">
+                        <div class="api-response-header">${apiResp.step}</div>
+                        <pre>${JSON.stringify(apiResp, null, 2)}</pre>
+                    </div>`;
+                });
+                html += '</details>';
+            }
+            
+            return html;
+        }
+        
+        // 페이지 로드 시 로그 불러오기
+        document.addEventListener('DOMContentLoaded', loadLogs);
+    </script>
+</body>
+</html>

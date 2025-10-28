@@ -1,0 +1,562 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}API Keys - NotionFlow{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet"
+    href="{{ url_for('static', filename='css/api-keys-redesign.css') }}?v={{ range(100000, 999999) | random }}">
+{% endblock %}
+
+{% block content %}
+<!-- API 키 관리 메인 컨테이너 -->
+<div class="api-container">
+
+    <!-- 헤더 섹션 -->
+    <div class="api-header-container">
+        <div class="api-header">
+            <div class="api-title-section">
+                <h1 class="api-main-title">🔑 API 키 관리</h1>
+                <p class="api-subtitle">플랫폼과 안전하게 연결하고 캘린더를 동기화하세요</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 캘린더 설정 가이드 -->
+    {% if not stats or stats.connected_count == 0 %}
+    <div class="calendar-setup-guide" id="calendar-setup-guide">
+        <div class="guide-content">
+            <div class="guide-icon">🎯</div>
+            <h3>시작하기</h3>
+            <p>먼저 플랫폼을 연결하여 캘린더 동기화를 설정해보세요.</p>
+            <button class="guide-close-btn" onclick="hideCalendarGuide()">×</button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 플랫폼 카드 그리드 -->
+    <div class="platforms-grid">
+
+        <!-- Notion 카드 -->
+        <div class="platform-card" data-platform="notion">
+            <div class="platform-header">
+                <div class="platform-icon">
+                    <img src="{{ url_for('static', filename='images/notion-icon.png') }}" alt="Notion"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <div class="platform-icon-fallback" style="display: none;">
+                        <span class="icon-text">N</span>
+                    </div>
+                </div>
+                <div class="platform-info">
+                    <h3 class="platform-name">Notion</h3>
+                    <div class="platform-status disconnected">
+                        <span class="status-dot"></span>연결되지 않음
+                    </div>
+                </div>
+                <div class="platform-actions">
+                    <button class="one-click-btn-small" onclick="oneClickConnect('notion')">
+                        <span class="btn-text">원클릭</span>
+                        <div class="btn-loader" style="display: none;">
+                            <div class="loader-spinner"></div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="platform-body">
+                <p class="platform-description">Notion 데이터베이스와 캘린더를 동기화하세요</p>
+
+                <div class="platform-features">
+                    <div class="feature-item">
+                        <span class="feature-icon">📝</span>
+                        <span>페이지 생성</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">📊</span>
+                        <span>데이터베이스 연동</span>
+                    </div>
+                </div>
+
+                <div class="platform-buttons">
+                    <button class="platform-connect-btn" onclick="connectPlatform('notion')">
+                        <span class="connect-text">연결하기</span>
+                        <div class="connect-loader" style="display: none;">
+                            <div class="loader-spinner"></div>
+                        </div>
+                    </button>
+                    <button class="platform-sync-btn" style="display: none;">
+                        <span class="sync-text">캘린더 연동</span>
+                        <span class="sync-status"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Google Calendar 카드 -->
+        <div class="platform-card" data-platform="google">
+            <div class="platform-header">
+                <div class="platform-icon">
+                    <img src="{{ url_for('static', filename='images/google-calendar-icon.png') }}" alt="Google Calendar"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <div class="platform-icon-fallback" style="display: none;">
+                        <span class="icon-text">📅</span>
+                    </div>
+                </div>
+                <div class="platform-info">
+                    <h3 class="platform-name">Google Calendar</h3>
+                    <div class="platform-status disconnected">
+                        <span class="status-dot"></span>연결되지 않음
+                    </div>
+                </div>
+                <div class="platform-actions">
+                    <button class="one-click-btn-small" onclick="oneClickConnect('google')">
+                        <span class="btn-text">원클릭</span>
+                        <div class="btn-loader" style="display: none;">
+                            <div class="loader-spinner"></div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="platform-body">
+                <p class="platform-description">Google Calendar와 실시간 동기화를 설정하세요</p>
+
+                <div class="platform-features">
+                    <div class="feature-item">
+                        <span class="feature-icon">📅</span>
+                        <span>일정 동기화</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">🔔</span>
+                        <span>알림 연동</span>
+                    </div>
+                </div>
+
+                <div class="platform-buttons">
+                    <button class="platform-sync-btn" style="display: none;">
+                        <span class="sync-text">캘린더 연동</span>
+                        <span class="sync-status"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Apple Calendar 카드 -->
+        <div class="platform-card" data-platform="apple">
+            <div class="platform-header">
+                <div class="platform-icon">
+                    <div class="platform-icon-fallback">
+                        <span class="icon-text">🍎</span>
+                    </div>
+                </div>
+                <div class="platform-info">
+                    <h3 class="platform-name">Apple Calendar</h3>
+                    <div class="platform-status disconnected">
+                        <span class="status-dot"></span>연결되지 않음
+                    </div>
+                </div>
+                <div class="platform-actions">
+                    <button class="one-click-btn-small" onclick="oneClickConnect('apple')">
+                        <span class="btn-text">원클릭</span>
+                        <div class="btn-loader" style="display: none;">
+                            <div class="loader-spinner"></div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="platform-body">
+                <p class="platform-description">Apple Calendar와 캘린더를 동기화하세요</p>
+
+                <div class="platform-features">
+                    <div class="feature-item">
+                        <span class="feature-icon">📱</span>
+                        <span>모바일 동기화</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">🔄</span>
+                        <span>실시간 연동</span>
+                    </div>
+                </div>
+
+                <div class="platform-buttons">
+                    <button class="platform-connect-btn" onclick="connectPlatform('apple')">
+                        <span class="connect-text">연결하기</span>
+                        <div class="connect-loader" style="display: none;">
+                            <div class="loader-spinner"></div>
+                        </div>
+                    </button>
+                    <button class="platform-sync-btn" style="display: none;">
+                        <span class="sync-text">캘린더 연동</span>
+                        <span class="sync-status"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Microsoft Outlook 카드 -->
+        <div class="platform-card" data-platform="outlook">
+            <div class="platform-header">
+                <div class="platform-icon">
+                    <div class="platform-icon-fallback">
+                        <span class="icon-text">📧</span>
+                    </div>
+                </div>
+                <div class="platform-info">
+                    <h3 class="platform-name">Microsoft Outlook</h3>
+                    <div class="platform-status disconnected">
+                        <span class="status-dot"></span>연결되지 않음
+                    </div>
+                </div>
+                <div class="platform-actions">
+                    <button class="one-click-btn-small" onclick="oneClickConnect('outlook')">
+                        <span class="btn-text">원클릭</span>
+                        <div class="btn-loader" style="display: none;">
+                            <div class="loader-spinner"></div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="platform-body">
+                <p class="platform-description">Outlook 캘린더와 메일을 동기화하세요</p>
+
+                <div class="platform-features">
+                    <div class="feature-item">
+                        <span class="feature-icon">📨</span>
+                        <span>메일 연동</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">🗓️</span>
+                        <span>일정 관리</span>
+                    </div>
+                </div>
+
+                <div class="platform-buttons">
+                    <button class="platform-connect-btn" onclick="connectPlatform('outlook')">
+                        <span class="connect-text">연결하기</span>
+                        <div class="connect-loader" style="display: none;">
+                            <div class="loader-spinner"></div>
+                        </div>
+                    </button>
+                    <button class="platform-sync-btn" style="display: none;">
+                        <span class="sync-text">캘린더 연동</span>
+                        <span class="sync-status"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slack 카드 -->
+        <div class="platform-card" data-platform="slack">
+            <div class="platform-header">
+                <div class="platform-icon">
+                    <div class="platform-icon-fallback">
+                        <span class="icon-text">💬</span>
+                    </div>
+                </div>
+                <div class="platform-info">
+                    <h3 class="platform-name">Slack</h3>
+                    <div class="platform-status disconnected">
+                        <span class="status-dot"></span>연결되지 않음
+                    </div>
+                </div>
+                <div class="platform-actions">
+                    <button class="one-click-btn-small" onclick="oneClickConnect('slack')">
+                        <span class="btn-text">원클릭</span>
+                        <div class="btn-loader" style="display: none;">
+                            <div class="loader-spinner"></div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="platform-body">
+                <p class="platform-description">Slack과 업무 스케줄을 동기화하세요</p>
+
+                <div class="platform-features">
+                    <div class="feature-item">
+                        <span class="feature-icon">💬</span>
+                        <span>메시지 연동</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">📋</span>
+                        <span>작업 관리</span>
+                    </div>
+                </div>
+
+                <div class="platform-buttons">
+                    <button class="platform-connect-btn" onclick="connectPlatform('slack')">
+                        <span class="connect-text">연결하기</span>
+                        <div class="connect-loader" style="display: none;">
+                            <div class="loader-spinner"></div>
+                        </div>
+                    </button>
+                    <button class="platform-sync-btn" style="display: none;">
+                        <span class="sync-text">캘린더 연동</span>
+                        <span class="sync-status"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- 캘린더 선택 모달 -->
+<div id="clean-calendar-selection-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>캘린더 선택</h2>
+            <button class="modal-close" onclick="closeCalendarSelectionModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <p>동기화할 캘린더를 선택해주세요:</p>
+            <div id="calendar-list-container" class="calendar-list">
+                <!-- Dynamic calendar list will be loaded here -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeCalendarSelectionModal()">취소</button>
+            <button class="btn-primary" id="clean-confirm-calendar-selection" onclick="confirmCalendarSelection()" disabled>
+                선택한 캘린더로 연결
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Global variables
+    let selectedCalendarId = null;
+    let currentConnectingPlatform = null;
+
+    // Utility functions that are still needed
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.textContent = message;
+
+        // Add to page
+        document.body.appendChild(notification);
+
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 3000);
+    }
+
+    function getKoreanPlatformName(platform) {
+        const names = {
+            'notion': 'Notion',
+            'google': 'Google Calendar',
+            'apple': 'Apple Calendar',
+            'outlook': 'Microsoft Outlook',
+            'slack': 'Slack'
+        };
+        return names[platform] || platform;
+    }
+
+    // Calendar selection modal functions
+    function showCalendarSelectionModal(platform) {
+        currentConnectingPlatform = platform;
+        const modal = document.getElementById('clean-calendar-selection-modal');
+        const calendarListContainer = document.getElementById('calendar-list-container');
+
+        modal.style.display = 'flex';
+        calendarListContainer.innerHTML = '<div class="loading">캘린더 목록을 불러오는 중...</div>';
+
+        // Load calendar list
+        loadUserCalendars(calendarListContainer);
+    }
+
+    function closeCalendarSelectionModal() {
+        const modal = document.getElementById('clean-calendar-selection-modal');
+        modal.style.display = 'none';
+        selectedCalendarId = null;
+        currentConnectingPlatform = null;
+
+        // Reset confirm button
+        document.getElementById('confirm-calendar-selection').disabled = true;
+    }
+
+    async function loadUserCalendars(calendarListContainer) {
+        try {
+            // Load user-created calendars (like Notion pattern)
+            const response = await fetch('/api/calendars');
+            if (!response.ok) {
+                throw new Error('사용자 캘린더 목록을 불러올 수 없습니다');
+            }
+
+            const data = await response.json();
+            if (data.success && data.calendars && data.calendars.length > 0) {
+                calendarListContainer.innerHTML = '';
+
+                data.calendars.forEach(calendar => {
+                    const calendarItem = createUserCalendarItem(calendar);
+                    calendarListContainer.appendChild(calendarItem);
+                });
+            } else {
+                displayNoCalendarsMessage(calendarListContainer);
+            }
+
+        } catch (error) {
+            console.error('캘린더 목록 로드 오류:', error);
+            calendarListContainer.innerHTML = `<div class="error">캘린더 목록을 불러오는데 실패했습니다: ${error.message}</div>`;
+        }
+    }
+
+    function displayNoCalendarsMessage(container) {
+        container.innerHTML =
+            '<div class="no-calendars-message">' +
+            '<div class="no-calendars-icon">' +
+            '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+            '<path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>' +
+            '</svg>' +
+            '</div>' +
+            '<h4>캘린더가 없습니다</h4>' +
+            '<p>먼저 캘린더를 생성해주세요.</p>' +
+            '</div>';
+    }
+
+    function createUserCalendarItem(calendar) {
+        const item = document.createElement('div');
+        item.className = 'calendar-item';
+        item.setAttribute('data-calendar-id', calendar.id);
+        item.onclick = () => selectCalendar(calendar.id);
+
+        item.innerHTML =
+            '<div class="calendar-radio"></div>' +
+            '<div class="calendar-info">' +
+            '<div class="calendar-name">📅 ' + (calendar.name || '') + '</div>' +
+            '<div class="calendar-description">' + (calendar.description || '') + '</div>' +
+            '</div>' +
+            '<div class="calendar-type ' + (calendar.type || 'personal') + '">' + getUserCalendarTypeText(calendar.type) + '</div>';
+
+        return item;
+    }
+
+    function createCalendarItem(calendar) {
+        const item = document.createElement('div');
+        item.className = 'calendar-item';
+        item.setAttribute('data-calendar-id', calendar.id);
+        item.onclick = () => selectCalendar(calendar.id);
+
+        const sourceIcon = calendar.source === 'google' ? '📅' : '📝';
+        const sourceText = calendar.source === 'google' ? 'Google' : 'Notion';
+
+        item.innerHTML =
+            '<div class="calendar-radio"></div>' +
+            '<div class="calendar-info">' +
+            '<div class="calendar-name">' + sourceIcon + ' ' + (calendar.name || '') + '</div>' +
+            '<div class="calendar-description">' + (calendar.description || '') + '</div>' +
+            '<div class="calendar-source">' + sourceText + '</div>' +
+            '</div>' +
+            '<div class="calendar-type ' + (calendar.type || 'personal') + '">' + getCalendarTypeText(calendar.type, calendar.source) + '</div>';
+
+        return item;
+    }
+
+    function getUserCalendarTypeText(type) {
+        switch (type) {
+            case 'primary': return '기본';
+            case 'personal': return '개인';
+            case 'work': return '업무';
+            case 'family': return '가족';
+            case 'study': return '학습';
+            default: return '개인';
+        }
+    }
+
+    function getCalendarTypeText(type, source) {
+        if (source === 'google') {
+            switch (type) {
+                case 'primary': return '기본';
+                case 'google': return '구글';
+                default: return '구글';
+            }
+        } else {
+            switch (type) {
+                case 'primary': return '기본';
+                case 'shared': return '공유';
+                case 'personal': return '개인';
+                case 'notion': return 'Notion';
+                default: return '개인';
+            }
+        }
+    }
+
+    function selectCalendar(calendarId) {
+        // Remove previous selection
+        document.querySelectorAll('.calendar-item').forEach(item => {
+            item.classList.remove('selected');
+        });
+
+        // Add new selection
+        const selectedItem = document.querySelector('[data-calendar-id="' + calendarId + '"]');
+        if (selectedItem) {
+            selectedItem.classList.add('selected');
+            selectedCalendarId = calendarId;
+
+            // Enable confirm button
+            document.getElementById('confirm-calendar-selection').disabled = false;
+        }
+    }
+
+    async function confirmCalendarSelection() {
+        if (!selectedCalendarId || !currentConnectingPlatform) {
+            showNotification('캘린더를 선택해주세요.', 'error');
+            return;
+        }
+
+        // Close modal
+        closeCalendarSelectionModal();
+
+        // Connect selected calendar with platform
+        try {
+            // Use platform manager to handle connection
+            const manager = PlatformManagerFactory.get(currentConnectingPlatform);
+            if (manager && manager.connectCalendar) {
+                await manager.connectCalendar(selectedCalendarId);
+            } else {
+                // Fallback to direct API call
+                await fetch(`/api/platform/${currentConnectingPlatform}/connect`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ calendar_id: selectedCalendarId })
+                });
+
+                showNotification(`${getKoreanPlatformName(currentConnectingPlatform)} 연결 완료!`, 'success');
+            }
+
+        } catch (error) {
+            console.error('캘린더 연결 중 오류:', error);
+            showNotification('캘린더 연결 중 오류가 발생했습니다.', 'error');
+        }
+    }
+
+    function hideCalendarGuide() {
+        const guide = document.getElementById('calendar-setup-guide');
+        if (guide) {
+            guide.style.display = 'none';
+            localStorage.setItem('calendar_guide_hidden', 'true');
+        }
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log('Clean API Keys page loaded');
+
+        // Hide guide if already hidden
+        const guide = document.getElementById('calendar-setup-guide');
+        if (guide && localStorage.getItem('calendar_guide_hidden') === 'true') {
+            guide.style.display = 'none';
+        }
+    });
+</script>
+
+<!-- New Platform Managers -->
+<script
+    src="{{ url_for('static', filename='js/platform-managers.js') }}?v={{ range(100000, 999999) | random }}"></script>
+
+{% endblock %}

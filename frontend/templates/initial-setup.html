@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>초기 설정 - NotionFlow</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="16x16" href="{{ url_for('static', filename='images/favicon-16x16.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="32x32" href="{{ url_for('static', filename='images/favicon-32x32.svg') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='images/apple-touch-icon.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="192x192" href="{{ url_for('static', filename='images/icon-192x192.svg') }}">
+    <link rel="icon" type="image/svg+xml" sizes="512x512" href="{{ url_for('static', filename='images/icon-512x512.svg') }}">
+    
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#3B82F6">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', system-ui, sans-serif;
+            background: #F5F5F5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .setup-container {
+            background: #FFFFFF;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            border: 1px solid #E5E5E5;
+            overflow: hidden;
+        }
+        
+        .setup-header {
+            padding: 40px 40px 32px;
+            text-align: center;
+            background: #000000;
+            color: white;
+        }
+        
+        .setup-logo {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            letter-spacing: -0.03em;
+        }
+        
+        .setup-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .setup-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .setup-body {
+            padding: 40px;
+        }
+        
+        .progress-bar {
+            height: 4px;
+            background: #E5E5E5;
+            border-radius: 2px;
+            margin-bottom: 32px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #000000;
+            width: 30%;
+            transition: width 0.3s ease;
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 8px;
+        }
+        
+        .form-label.required::after {
+            content: " *";
+            color: #EF4444;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #E5E5E5;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            background: #FFFFFF;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #000000;
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        .form-help {
+            font-size: 13px;
+            color: #6B7280;
+            margin-top: 6px;
+        }
+        
+        .form-footer {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 14px 24px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            font-family: inherit;
+        }
+        
+        .btn-secondary {
+            background: #FFFFFF;
+            color: #6B7280;
+            border: 1px solid #E5E5E5;
+        }
+        
+        .btn-secondary:hover {
+            background: #F9FAFB;
+            color: #1F2937;
+        }
+        
+        .btn-primary {
+            background: #000000;
+            color: #FFFFFF;
+        }
+        
+        .btn-primary:hover {
+            background: #1F2937;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn-primary:disabled {
+            background: #9CA3AF;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading {
+            display: none;
+        }
+        
+        .btn-primary:disabled .btn-text {
+            display: none;
+        }
+        
+        .btn-primary:disabled .loading {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Progress Overlay */
+        .progress-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .progress-overlay.active {
+            display: flex;
+        }
+        
+        .progress-modal {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+        
+        .progress-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 20px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .progress-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #1F2937;
+        }
+        
+        .progress-message {
+            font-size: 14px;
+            color: #6B7280;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+        
+        .progress-steps {
+            text-align: left;
+            margin-top: 20px;
+        }
+        
+        .progress-step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .progress-step.active {
+            background: #F3F4F6;
+        }
+        
+        .progress-step.completed {
+            opacity: 0.6;
+        }
+        
+        .step-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #E5E7EB;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6B7280;
+            flex-shrink: 0;
+        }
+        
+        .step-icon.active {
+            background: #000;
+            color: white;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        .step-icon.completed {
+            background: #10B981;
+            color: white;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .step-text {
+            font-size: 14px;
+            color: #374151;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #000;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @media (max-width: 640px) {
+            .setup-header {
+                padding: 32px 24px 24px;
+            }
+            
+            .setup-body {
+                padding: 24px;
+            }
+            
+            .setup-logo {
+                font-size: 28px;
+            }
+            
+            .setup-title {
+                font-size: 20px;
+            }
+            
+            .setup-subtitle {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <div class="setup-header">
+            <div class="setup-logo">NotionFlow</div>
+            <h1 class="setup-title">환영합니다! 👋</h1>
+            <p class="setup-subtitle">시작하기 전에 간단한 정보를 입력해주세요</p>
+        </div>
+        
+        <form id="setup-form" class="setup-body">
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label required" for="display_name">이름</label>
+                <input type="text" 
+                       id="display_name" 
+                       name="display_name" 
+                       class="form-input"
+                       placeholder="홍길동" 
+                       required
+                       autofocus>
+                <div class="form-help">대시보드에 표시될 이름입니다</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label required" for="birthdate">생년월일</label>
+                <input type="date" 
+                       id="birthdate" 
+                       name="birthdate" 
+                       class="form-input"
+                       max=""
+                       required>
+                <div class="form-help">캘린더 일정 추천에 사용됩니다</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="setup-email">이메일</label>
+                <input type="email"
+                       id="setup-email"
+                       name="email"
+                       class="form-input"
+                       placeholder="example@email.com">
+                <div class="form-help">알림 및 공유 기능에 사용됩니다 (선택)</div>
+            </div>
+            
+            <div class="form-footer">
+                <button type="button" class="btn btn-secondary" onclick="skipSetup()">
+                    나중에 하기
+                </button>
+                <button type="submit" class="btn btn-primary" id="submit-btn">
+                    <span class="btn-text">시작하기</span>
+                    <span class="loading"><span class="spinner"></span> 저장 중...</span>
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Progress Overlay -->
+    <div class="progress-overlay" id="progressOverlay">
+        <div class="progress-modal">
+            <svg class="progress-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" />
+            </svg>
+            
+            <h2 class="progress-title">계정 설정 중...</h2>
+            <p class="progress-message" id="progressMessage">
+                잠시만 기다려주세요. NotionFlow 계정을 준비하고 있습니다.
+            </p>
+            
+            <div class="progress-steps">
+                <div class="progress-step" id="step1">
+                    <div class="step-icon">1</div>
+                    <div class="step-text">프로필 정보 저장</div>
+                </div>
+                <div class="progress-step" id="step2">
+                    <div class="step-icon">2</div>
+                    <div class="step-text">대시보드 초기화</div>
+                </div>
+                <div class="progress-step" id="step3">
+                    <div class="step-icon">3</div>
+                    <div class="step-text">개인 설정 적용</div>
+                </div>
+                <div class="progress-step" id="step4">
+                    <div class="step-icon">4</div>
+                    <div class="step-text">완료!</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Set max date to today
+        document.getElementById('birthdate').max = new Date().toISOString().split('T')[0];
+        
+        // Update progress bar as user fills form
+        const inputs = document.querySelectorAll('.form-input');
+        function updateProgress() {
+            const filled = Array.from(inputs).filter(input => input.value).length;
+            const progress = (filled / 3) * 100;
+            document.querySelector('.progress-fill').style.width = progress + '%';
+        }
+        
+        inputs.forEach(input => {
+            input.addEventListener('input', updateProgress);
+        });
+        
+        // Handle form submission
+        document.getElementById('setup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submit-btn');
+            const formData = new FormData(e.target);
+            
+            const data = {
+                display_name: formData.get('display_name'),
+                birthdate: formData.get('birthdate'),
+                email: formData.get('email')
+            };
+            
+            // Validation
+            if (!data.display_name || !data.birthdate) {
+                alert('이름과 생년월일은 필수 입력 항목입니다.');
+                return;
+            }
+            
+            // Show progress overlay
+            submitBtn.disabled = true;
+            showProgressOverlay();
+            
+            try {
+                // Step 1: Save profile
+                await updateProgress(1, '프로필 정보를 저장하고 있습니다...');
+                await delay(800);
+                
+                const response = await fetch('/api/profile/initial-setup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Step 2: Initialize dashboard
+                    await updateProgress(2, '대시보드를 준비하고 있습니다...');
+                    await delay(600);
+                    
+                    // Step 3: Apply settings
+                    await updateProgress(3, '개인 설정을 적용하고 있습니다...');
+                    await delay(500);
+                    
+                    // Step 4: Complete
+                    await updateProgress(4, '모든 준비가 완료되었습니다!');
+                    await delay(400);
+                    
+                    // Mark setup as complete and redirect
+                    sessionStorage.setItem('setup_complete', 'true');
+                    window.location.href = '/dashboard';
+                } else {
+                    hideProgressOverlay();
+                    alert(result.error || '설정 저장에 실패했습니다.');
+                    submitBtn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Setup error:', error);
+                hideProgressOverlay();
+                alert('설정 저장 중 오류가 발생했습니다.');
+                submitBtn.disabled = false;
+            }
+        });
+        
+        function skipSetup() {
+            sessionStorage.setItem('setup_skipped', 'true');
+            window.location.href = '/dashboard';
+        }
+        
+        // Progress overlay functions
+        function showProgressOverlay() {
+            const overlay = document.getElementById('progressOverlay');
+            overlay.classList.add('active');
+            // Reset all steps
+            for (let i = 1; i <= 4; i++) {
+                const step = document.getElementById(`step${i}`);
+                step.classList.remove('active', 'completed');
+                step.querySelector('.step-icon').classList.remove('active', 'completed');
+            }
+        }
+        
+        function hideProgressOverlay() {
+            const overlay = document.getElementById('progressOverlay');
+            overlay.classList.remove('active');
+        }
+        
+        async function updateProgress(stepNumber, message) {
+            const messageEl = document.getElementById('progressMessage');
+            messageEl.textContent = message;
+            
+            // Update step states
+            for (let i = 1; i <= stepNumber; i++) {
+                const step = document.getElementById(`step${i}`);
+                const icon = step.querySelector('.step-icon');
+                
+                if (i < stepNumber) {
+                    // Mark previous steps as completed
+                    step.classList.remove('active');
+                    step.classList.add('completed');
+                    icon.classList.remove('active');
+                    icon.classList.add('completed');
+                    icon.innerHTML = '✓';
+                } else {
+                    // Mark current step as active
+                    step.classList.add('active');
+                    icon.classList.add('active');
+                }
+            }
+        }
+        
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    </script>
+</body>
+</html>

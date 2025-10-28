@@ -1,0 +1,247 @@
+/**
+ * Calendar Selector - Notion Style Design
+ * 노션 스타일의 깔끔하고 미니멀한 캘린더 선택기
+ */
+
+.calendar-selector {
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
+    margin-bottom: 16px;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+    transition: none;
+}
+
+.calendar-selector:hover {
+    box-shadow: none;
+}
+
+.calendar-selector-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0;
+    padding: 12px 16px;
+    background: #ffffff;
+    border-bottom: none;
+    position: relative;
+}
+
+.calendar-selector-header h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(55, 53, 47, 0.85);
+    margin: 0;
+    text-transform: none;
+    letter-spacing: -0.003em;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+.selector-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.btn-select-all,
+.btn-select-none {
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    border: none;
+    background: rgba(55, 53, 47, 0.06);
+    color: rgba(55, 53, 47, 0.7);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.12s ease-out;
+    text-transform: none;
+    letter-spacing: normal;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+.btn-select-all:hover,
+.btn-select-none:hover {
+    background: rgba(55, 53, 47, 0.12);
+    color: rgba(55, 53, 47, 0.9);
+}
+
+.calendar-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 8px;
+    background: transparent;
+}
+
+.calendar-item {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    transition: all 0.12s ease-out;
+    cursor: pointer;
+    background: transparent;
+    position: relative;
+    margin: 0;
+}
+
+.calendar-item:hover {
+    background: rgba(55, 53, 47, 0.04);
+}
+
+.calendar-item.selected {
+    background: rgba(35, 131, 226, 0.1);
+}
+
+.calendar-item.selected:hover {
+    background: rgba(35, 131, 226, 0.15);
+}
+
+.calendar-checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    width: 100%;
+}
+
+.calendar-checkbox {
+    width: 16px;
+    height: 16px;
+    margin-right: 12px;
+    cursor: pointer;
+    accent-color: #2383e2;
+    position: relative;
+}
+
+.calendar-checkbox:checked {
+    accent-color: #2383e2;
+}
+
+.calendar-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.calendar-color-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: none;
+    position: relative;
+}
+
+.calendar-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(55, 53, 47, 0.9);
+    flex: 1;
+    transition: color 0.12s ease-out;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+    letter-spacing: -0.003em;
+}
+
+.calendar-event-count {
+    font-size: 12px;
+    color: rgba(55, 53, 47, 0.5);
+    padding: 2px 6px;
+    background: rgba(55, 53, 47, 0.06);
+    border-radius: 4px;
+    font-weight: 500;
+    transition: all 0.12s ease-out;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+.calendar-item:hover .calendar-event-count {
+    background: rgba(55, 53, 47, 0.1);
+    color: rgba(55, 53, 47, 0.7);
+}
+
+.no-calendars {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.no-calendars p {
+    color: #6b7280;
+    margin-bottom: 16px;
+    font-size: 14px;
+}
+
+.btn-create-calendar {
+    display: inline-block;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-create-calendar:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Notion Style Scrollbar */
+.calendar-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.calendar-list::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 0;
+}
+
+.calendar-list::-webkit-scrollbar-thumb {
+    background: rgba(55, 53, 47, 0.16);
+    border-radius: 2px;
+}
+
+.calendar-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(55, 53, 47, 0.26);
+}
+
+/* Notion Style Loading Animation */
+@keyframes notionShimmer {
+    0% {
+        background-position: -200px 0;
+    }
+    100% {
+        background-position: calc(200px + 100%) 0;
+    }
+}
+
+.calendar-item.loading {
+    background: linear-gradient(90deg, rgba(55, 53, 47, 0.04) 0%, rgba(55, 53, 47, 0.08) 50%, rgba(55, 53, 47, 0.04) 100%);
+    background-size: 200px 100%;
+    animation: notionShimmer 1.2s ease-in-out infinite;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .calendar-selector {
+        padding: 16px;
+    }
+    
+    .calendar-selector-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .selector-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .calendar-list {
+        max-height: 300px;
+    }
+}

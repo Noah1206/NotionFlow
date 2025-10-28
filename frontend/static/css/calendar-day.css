@@ -1,0 +1,2565 @@
+/* ============================================================================
+   Calendar Day Page - Todo Mate Minimal + Excel Professional Design
+   ============================================================================ */
+
+/* ============================================================================
+   1. BASE STYLES & TYPOGRAPHY
+   ============================================================================ */
+
+body.calendar-day-page {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #fafafa;
+    color: #1f2937;
+    line-height: 1.5;
+    font-size: 14px;
+}
+
+/* Typography Scale */
+h1 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+h2 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+}
+
+h3 {
+    font-size: 15px;
+    font-weight: 500;
+    margin: 0;
+}
+
+/* ============================================================================
+   2. LAYOUT SYSTEM
+   ============================================================================ */
+
+.calendar-day-workspace {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #fafafa;
+}
+
+/* Top Navigation Bar */
+.calendar-topbar {
+    padding: 16px 32px;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 60px;
+}
+
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Back Button */
+.btn-back {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-back:hover {
+    background: #f3f4f6;
+    color: #1f2937;
+}
+
+/* Calendar Header Info */
+.calendar-header-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.calendar-icon-small {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.header-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.calendar-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.date-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.formatted-date {
+    font-size: 14px;
+    font-weight: 700;
+    color: #3b82f6;
+}
+
+.weekday {
+    font-size: 12px;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+/* Top Bar Buttons */
+.btn-add-event,
+.btn-today {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-add-event {
+    background: #3b82f6;
+    color: #ffffff;
+}
+
+.btn-add-event:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.btn-today {
+    background: #ffffff;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+}
+
+.btn-today:hover {
+    background: #f9fafb;
+    color: #1f2937;
+    border-color: #d1d5db;
+}
+
+/* ============================================================================
+   3. MAIN CONTENT GRID - SIMPLIFIED 2-SECTION LAYOUT
+   ============================================================================ */
+
+.calendar-day-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    background: #f8f9fa;
+}
+
+/* ============================================================================
+   WEEKLY CALENDAR SECTION
+   ============================================================================ */
+
+.weekly-calendar-section {
+    margin-bottom: 12px;
+}
+
+.week-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+}
+
+.day-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 12px;
+    background: #f8fafc;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    min-height: 150px;
+    position: relative;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    aspect-ratio: 3/4;
+}
+
+.day-cell:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.day-cell.today {
+    background: #eff6ff;
+    border-color: #3b82f6;
+    border-width: 2px;
+}
+
+.day-cell.today:hover {
+    background: #dbeafe;
+}
+
+.day-header {
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.day-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.day-date {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.day-cell.today .day-date {
+    color: #1e40af;
+    position: relative;
+}
+
+/* 오늘 날짜 빨간 점 표시 제거됨 */
+/* .day-cell.today .day-date::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background: #dc2626;
+    border-radius: 50%;
+    border: 1px solid #ffffff;
+    box-shadow: 0 1px 3px rgba(220, 38, 38, 0.3);
+} */
+
+.day-content {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+}
+
+/* 포스트잇 스타일 다짐 */
+.commitment-sticky {
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 11px;
+    line-height: 1.4;
+    color: #92400e;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);
+    position: relative;
+    max-width: 100%;
+    word-break: break-word;
+    transform: rotate(-1deg);
+    transition: all 0.2s ease;
+}
+
+.commitment-sticky:hover {
+    transform: rotate(0deg) scale(1.05);
+    box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3);
+}
+
+.commitment-sticky::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 6px;
+    background: #f59e0b;
+    border-radius: 0 0 4px 4px;
+    opacity: 0.6;
+}
+
+/* 빈 상태 메시지 */
+.empty-day-message {
+    font-size: 11px;
+    color: #9ca3af;
+    text-align: center;
+    font-style: italic;
+}
+
+/* 다른 날짜들의 포스트잇 색상 변형 */
+.commitment-sticky.variant-blue {
+    background: #dbeafe;
+    border-color: #3b82f6;
+    color: #1e40af;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.commitment-sticky.variant-blue::before {
+    background: #3b82f6;
+}
+
+.commitment-sticky.variant-green {
+    background: #dcfce7;
+    border-color: #22c55e;
+    color: #15803d;
+    box-shadow: 0 2px 4px rgba(34, 197, 94, 0.2);
+}
+
+.commitment-sticky.variant-green::before {
+    background: #22c55e;
+}
+
+.commitment-sticky.variant-pink {
+    background: #fce7f3;
+    border-color: #ec4899;
+    color: #be185d;
+    box-shadow: 0 2px 4px rgba(236, 72, 153, 0.2);
+}
+
+.commitment-sticky.variant-pink::before {
+    background: #ec4899;
+}
+
+/* Daily Commitment Section */
+.daily-commitment-section {
+    margin-bottom: 16px;
+}
+
+.commitment-widget {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+.commitment-widget:hover {
+    box-shadow: 0 4px 8px -1px rgba(0, 0, 0, 0.1);
+}
+
+.commitment-widget .widget-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 32px 20px 32px;
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+    border-bottom: 2px solid #f1f5f9;
+}
+
+.commitment-widget .widget-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+.commitment-widget .widget-icon {
+    font-size: 24px;
+}
+
+.current-time-display {
+    font-size: 18px;
+    font-weight: 700;
+    color: #3b82f6;
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+    background: #eff6ff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid #bfdbfe;
+}
+
+.commitment-content {
+    padding: 24px 32px;
+}
+
+.commitment-textarea {
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fafbfc;
+    font-family: inherit;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #374151;
+    resize: vertical;
+    outline: none;
+    padding: 12px 16px;
+    min-height: 60px;
+    transition: all 0.2s ease;
+}
+
+.commitment-textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    background: #ffffff;
+}
+
+.commitment-textarea::placeholder {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+.commitment-actions {
+    margin-top: 16px;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.btn-save-commitment,
+.btn-clear-commitment {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.btn-save-commitment {
+    background: #10b981;
+    color: #ffffff;
+}
+
+.btn-save-commitment:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.btn-clear-commitment {
+    background: #ffffff;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+}
+
+.btn-clear-commitment:hover {
+    background: #fee2e2;
+    color: #dc2626;
+    border-color: #fecaca;
+}
+
+/* Main Content Grid - 2 Columns Side by Side */
+.main-content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+    margin-top: 20px;
+}
+
+.daily-routine-section {
+    grid-column: 1;
+    min-height: 400px;
+}
+
+.tasks-section {
+    grid-column: 2;
+    min-height: 400px;
+}
+
+/* ============================================================================
+   4. TOP SUMMARY WIDGETS - COMPACT EXCEL STYLE
+   ============================================================================ */
+
+/* Quick Notes Widget */
+.quick-notes-widget {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.notes-compact-container {
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.notes-title.compact {
+    width: 100%;
+    border: none;
+    background: #f9fafb;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1f2937;
+    padding: 6px 10px;
+    border-radius: 6px;
+    outline: none;
+}
+
+.notes-textarea.compact {
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    font-family: inherit;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #4b5563;
+    resize: none;
+    outline: none;
+    padding: 8px 10px;
+    border-radius: 6px;
+    min-height: 60px;
+}
+
+.save-notes-btn.compact {
+    padding: 4px 12px;
+    background: #10b981;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* Today's Stats Widget */
+.today-stats-widget {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.stats-grid {
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.stat-label {
+    font-size: 11px;
+    color: #6b7280;
+    min-width: 70px;
+}
+
+.stat-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1f2937;
+    min-width: 35px;
+}
+
+.stat-bar {
+    flex: 1;
+    height: 6px;
+    background: #f3f4f6;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.stat-progress {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #2563eb);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+/* Time Overview Widget */
+.time-overview-widget {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.time-summary {
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.current-time,
+.next-event {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.time-label {
+    font-size: 11px;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.time-display {
+    font-size: 24px;
+    font-weight: 700;
+    color: #3b82f6;
+}
+
+.event-preview {
+    font-size: 12px;
+    font-weight: 500;
+    color: #1f2937;
+    background: #f0f9ff;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+/* Compact Widget Headers */
+.widget-header.compact {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.widget-header.compact h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.widget-header.compact .widget-icon {
+    font-size: 14px;
+}
+
+/* Widget Controls - Excel Style */
+.widget-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.control-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 5px;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.control-btn:hover {
+    background: #e5e7eb;
+    color: #374151;
+    border-color: #d1d5db;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.control-btn.add-note,
+.control-btn.add-progress,
+.control-btn.add-time,
+.control-btn.add-routine {
+    background: #dbeafe;
+    border-color: #3b82f6;
+    color: #1e40af;
+}
+
+.control-btn.clear-notes,
+.control-btn.clear-routine {
+    background: #fee2e2;
+    border-color: #ef4444;
+    color: #dc2626;
+}
+
+/* ============================================================================
+   5. EXCEL WIDGET SYSTEM - MAIN CONTENT
+   ============================================================================ */
+
+.excel-widget {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    height: fit-content;
+}
+
+.excel-widget:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Widget Headers */
+.widget-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 28px;
+    background: #ffffff;
+    border-bottom: 2px solid #f3f4f6;
+}
+
+.widget-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.widget-icon {
+    font-size: 16px;
+}
+
+.add-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: transparent;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.add-btn:hover {
+    background: #f3f4f6;
+    color: #3b82f6;
+}
+
+/* ============================================================================
+   5. EXCEL TABLE SYSTEM
+   ============================================================================ */
+
+.excel-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+/* Table Headers */
+.table-header {
+    display: grid;
+    background: #f9fafb;
+    border-bottom: 2px solid #e5e7eb;
+    font-weight: 600;
+    color: #374151;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.header-cell {
+    padding: 12px 20px;
+    text-align: left;
+    border-right: 1px solid #e5e7eb;
+}
+
+.header-cell:last-child {
+    border-right: none;
+}
+
+/* Table Body */
+.table-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.table-row {
+    display: grid;
+    border-bottom: 1px solid #f3f4f6;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    background: #ffffff;
+}
+
+.table-row:hover {
+    background: #f8fafc;
+    border-color: #e5e7eb;
+    box-shadow: inset 2px 0 0 #3b82f6;
+}
+
+.table-row:last-child {
+    border-bottom: none;
+}
+
+.cell {
+    padding: 16px 20px;
+    border-right: 1px solid #f3f4f6;
+    display: flex;
+    align-items: center;
+    min-height: 60px;
+}
+
+.cell:last-child {
+    border-right: none;
+}
+
+/* ============================================================================
+   6. TOP WIDGETS - EXCEL STYLE TABLES
+   ============================================================================ */
+
+/* Quick Notes Table */
+.notes-table .table-header,
+.notes-table .table-row {
+    grid-template-columns: 90px 1fr 60px;
+}
+
+.notes-table .table-body {
+    max-height: 180px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Priority Select */
+.priority-select {
+    width: 100%;
+    padding: 4px 8px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    background: #ffffff;
+    font-size: 11px;
+    font-weight: 500;
+    outline: none;
+    cursor: pointer;
+}
+
+.priority-select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Note Input */
+.note-input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    background: #ffffff;
+    font-size: 12px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.note-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.note-input::placeholder {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+/* Progress Table */
+.progress-table .table-header,
+.progress-table .table-row {
+    grid-template-columns: 80px 1fr 60px;
+}
+
+.progress-table .table-body {
+    max-height: 180px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Metric Input */
+.metric-input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    background: #ffffff;
+    font-size: 12px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.metric-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Progress Input Group */
+.progress-input-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 6px;
+}
+
+.progress-current,
+.progress-total {
+    width: 30px;
+    padding: 3px 6px;
+    border: 1px solid #e5e7eb;
+    border-radius: 3px;
+    background: #ffffff;
+    font-size: 11px;
+    text-align: center;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.progress-current:focus,
+.progress-total:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.progress-separator {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background: #f3f4f6;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+/* Time Table */
+.time-table .table-header,
+.time-table .table-row {
+    grid-template-columns: 80px 1fr 60px;
+}
+
+.time-table .table-body {
+    max-height: 180px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Time Type Select */
+.time-type-select {
+    width: 100%;
+    padding: 4px 6px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    background: #ffffff;
+    font-size: 10px;
+    font-weight: 500;
+    outline: none;
+    cursor: pointer;
+}
+
+.time-type-select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Time Content */
+.time-display-live {
+    font-size: 16px;
+    font-weight: 700;
+    color: #3b82f6;
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+}
+
+.time-content-input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    background: #ffffff;
+    font-size: 11px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.time-content-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Action Buttons */
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    background: transparent;
+    border: 1px solid transparent;
+    color: #9ca3af;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 12px;
+}
+
+.action-btn:hover {
+    background: #fee2e2;
+    border-color: #fecaca;
+    color: #dc2626;
+    transform: scale(1.1);
+}
+
+.action-btn.delete-note,
+.action-btn.delete-progress,
+.action-btn.delete-time,
+.action-btn.delete-routine {
+    color: #ef4444;
+}
+
+/* Empty States */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+    background: #fafbfc;
+    border-top: 1px solid #e5e7eb;
+}
+
+.empty-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+    opacity: 0.6;
+}
+
+.empty-message {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 16px;
+    line-height: 1.5;
+}
+
+.btn-add-first {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: #3b82f6;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-add-first:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================================================
+   7. DAILY ROUTINE TABLE - ENHANCED EXCEL STYLE
+   ============================================================================ */
+
+.routine-table .table-header,
+.routine-table .table-row {
+    grid-template-columns: 75px 1fr 50px 60px;
+}
+
+.routine-table .table-body {
+    max-height: 600px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Enhanced Time Cell */
+.time-cell {
+    justify-content: center;
+    font-weight: 700;
+    color: #1e40af;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border-radius: 8px;
+    margin: 2px 4px;
+    font-size: 13px;
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+    letter-spacing: 0.5px;
+    border: 1px solid #bfdbfe;
+    box-shadow: inset 0 1px 2px rgba(59, 130, 246, 0.1);
+}
+
+.time-cell:hover {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    transform: scale(1.02);
+}
+
+/* Alternating Row Colors for Better Readability */
+.routine-table .table-row:nth-child(even) {
+    background: #fafbfc;
+}
+
+.routine-table .table-row:nth-child(odd) {
+    background: #ffffff;
+}
+
+/* Time Indicator for Current Time */
+.routine-table .table-row.current-time {
+    background: linear-gradient(90deg, #fef3c7 0%, #fffbeb 100%);
+    border-left: 3px solid #f59e0b;
+}
+
+.routine-table .table-row.current-time .time-cell {
+    background: #f59e0b;
+    color: #ffffff;
+    font-weight: 800;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.8;
+    }
+}
+
+.activity-cell {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.activity-title {
+    font-weight: 500;
+    color: #1f2937;
+    font-size: 14px;
+}
+
+.activity-description {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* Enhanced Routine Inputs */
+.time-input {
+    width: 100%;
+    padding: 4px 6px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    background: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
+    color: #1e40af;
+    outline: none;
+    text-align: center;
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+    transition: all 0.2s ease;
+}
+
+.time-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    background: #eff6ff;
+}
+
+.activity-title-input,
+.activity-desc-input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    background: #ffffff;
+    outline: none;
+    transition: all 0.2s ease;
+    margin-bottom: 4px;
+}
+
+.activity-title-input {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1f2937;
+}
+
+.activity-desc-input {
+    font-size: 11px;
+    color: #6b7280;
+}
+
+.activity-title-input:focus,
+.activity-desc-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.activity-title-input::placeholder,
+.activity-desc-input::placeholder {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+.status-cell {
+    justify-content: center;
+}
+
+.routine-checkbox {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    cursor: pointer;
+    accent-color: #3b82f6;
+}
+
+/* ============================================================================
+   7. TASKS TABLE - ENHANCED READABILITY
+   ============================================================================ */
+
+.tasks-table .table-header,
+.tasks-table .table-row {
+    grid-template-columns: 45px 1fr repeat(5, 70px) 80px 60px;
+}
+
+/* Tag Columns Styling */
+.tag-column {
+    background: #f8f9fa;
+    border-left: 1px solid #e5e7eb;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 500;
+    color: #6b7280;
+}
+
+.tag-cell {
+    border-left: 1px solid #e5e7eb;
+    padding: 0 4px;
+    text-align: center;
+}
+
+.tag-input {
+    width: 100%;
+    padding: 2px 4px;
+    border: none;
+    background: transparent;
+    text-align: center;
+    font-size: 11px;
+    color: #1f2937;
+}
+
+.tag-input:focus {
+    outline: none;
+    background: #f0f9ff;
+    border-radius: 2px;
+}
+
+/* Tag Colors */
+.tag-1 {
+    background: #fee2e2;
+}
+
+.tag-2 {
+    background: #fef3c7;
+}
+
+.tag-3 {
+    background: #dcfce7;
+}
+
+.tag-4 {
+    background: #e0e7ff;
+}
+
+.tag-5 {
+    background: #fce7f3;
+}
+
+.tasks-table .table-body {
+    max-height: 600px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Alternating Row Colors */
+.tasks-table .table-row:nth-child(even) {
+    background: #fafbfc;
+}
+
+.tasks-table .table-row:nth-child(odd) {
+    background: #ffffff;
+}
+
+.task-cell {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.task-title {
+    font-weight: 500;
+    color: #1f2937;
+    font-size: 14px;
+}
+
+.task-description {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.priority-cell {
+    justify-content: center;
+}
+
+.priority-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.priority-chip.high {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.priority-chip.medium {
+    background: #fffbeb;
+    color: #d97706;
+}
+
+.priority-chip.low {
+    background: #f0fdf4;
+    color: #16a34a;
+}
+
+.task-checkbox {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    cursor: pointer;
+    accent-color: #3b82f6;
+}
+
+/* Completed Tasks */
+.task-row.completed {
+    opacity: 0.6;
+    background: #f9fafb;
+}
+
+.task-row.completed .task-title {
+    text-decoration: line-through;
+    color: #9ca3af;
+}
+
+.task-row.completed .task-description {
+    text-decoration: line-through;
+    color: #d1d5db;
+}
+
+.task-row.completed .priority-chip {
+    opacity: 0.5;
+}
+
+/* Task Input Fields */
+.task-title-input,
+.task-desc-input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    background: #ffffff;
+    outline: none;
+    transition: all 0.2s ease;
+    margin-bottom: 4px;
+}
+
+.task-title-input {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1f2937;
+}
+
+.task-desc-input {
+    font-size: 11px;
+    color: #6b7280;
+}
+
+.task-title-input:focus,
+.task-desc-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.task-title-input::placeholder,
+.task-desc-input::placeholder {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+/* ============================================================================
+   8. EVENTS SECTION
+   ============================================================================ */
+
+.events-content {
+    padding: 28px;
+}
+
+/* Empty State */
+.no-events-message {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 180px;
+}
+
+.empty-state {
+    text-align: center;
+    color: #6b7280;
+}
+
+.empty-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    margin: 0 0 16px 0;
+    font-size: 14px;
+}
+
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    background: #3b82f6;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Events Table */
+.events-table .table-header,
+.events-table .table-row {
+    grid-template-columns: 65px 1fr 80px;
+}
+
+.events-table .table-body {
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Alternating Row Colors */
+.events-table .table-row:nth-child(even) {
+    background: #fafbfc;
+}
+
+.events-table .table-row:nth-child(odd) {
+    background: #ffffff;
+}
+
+.event-cell {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.event-title {
+    font-weight: 500;
+    color: #1f2937;
+    font-size: 14px;
+}
+
+.event-description {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.tag-cell {
+    justify-content: center;
+}
+
+.event-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.event-tag.work {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.event-tag.personal {
+    background: #f0fdf4;
+    color: #16a34a;
+}
+
+.event-tag.learning {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.add-event-section {
+    margin-top: 16px;
+    text-align: center;
+    padding: 16px;
+    border-top: 1px solid #f3f4f6;
+}
+
+.event-row:hover {
+    background: #f8fafc;
+    border-color: #e5e7eb;
+    box-shadow: inset 2px 0 0 #3b82f6;
+}
+
+/* ============================================================================
+   9. NOTES SECTION
+   ============================================================================ */
+
+.notes-container {
+    padding: 28px;
+}
+
+.notes-header {
+    margin-bottom: 16px;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 12px;
+}
+
+.notes-title {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    padding: 8px 0;
+    outline: none;
+}
+
+.notes-title::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
+}
+
+.notes-body {
+    position: relative;
+}
+
+.notes-textarea {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #1f2937;
+    resize: vertical;
+    outline: none;
+    padding: 0;
+    min-height: 160px;
+}
+
+.notes-textarea::placeholder {
+    color: #9ca3af;
+}
+
+.save-notes-btn {
+    padding: 6px 16px;
+    background: #10b981;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.save-notes-btn:hover {
+    background: #059669;
+    transform: translateY(-1px);
+}
+
+/* ============================================================================
+   10. DRAG & DROP EFFECTS
+   ============================================================================ */
+
+.table-row[draggable="true"] {
+    cursor: grab;
+}
+
+.table-row[draggable="true"]:active {
+    cursor: grabbing;
+}
+
+.table-row.drag-over {
+    background: #eff6ff;
+    border-color: #3b82f6;
+    box-shadow: inset 0 2px 4px rgba(59, 130, 246, 0.1);
+}
+
+.routine-row.dragging,
+.task-row.dragging {
+    opacity: 0.5;
+    transform: rotate(2deg);
+}
+
+/* ============================================================================
+   11. MODAL SYSTEM
+   ============================================================================ */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background: #ffffff;
+    border-radius: 24px;
+    width: 90%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 28px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.modal-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+    background: #f3f4f6;
+    color: #1f2937;
+}
+
+.modal-body {
+    padding: 28px;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    background: #ffffff;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.color-picker {
+    display: flex;
+    gap: 8px;
+}
+
+.color-option {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.color-option:hover,
+.color-option.active {
+    border-color: #1f2937;
+    transform: scale(1.1);
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.btn-cancel,
+.btn-save {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-cancel {
+    background: #ffffff;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+}
+
+.btn-cancel:hover {
+    background: #f9fafb;
+    color: #1f2937;
+}
+
+.btn-save {
+    background: #3b82f6;
+    color: #ffffff;
+    border: none;
+}
+
+.btn-save:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================================================
+   12. RESPONSIVE DESIGN
+   ============================================================================ */
+
+@media (max-width: 1200px) {
+    .main-content-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .daily-routine-section,
+    .tasks-section {
+        grid-column: 1;
+    }
+
+    .calendar-day-content {
+        max-width: 100%;
+        padding: 20px;
+    }
+
+    .commitment-widget .widget-header {
+        padding: 20px 24px 16px 24px;
+    }
+
+    .commitment-content {
+        padding: 20px 24px;
+    }
+
+    /* Weekly calendar responsive */
+    .week-grid {
+        gap: 8px;
+        padding: 16px;
+    }
+
+    .day-cell {
+        padding: 12px 8px;
+        min-height: 120px;
+        aspect-ratio: 3/4;
+    }
+
+    .day-date {
+        font-size: 16px;
+    }
+
+    .commitment-sticky {
+        font-size: 10px;
+        padding: 6px 8px;
+    }
+}
+
+@media (max-width: 768px) {
+    .calendar-day-content {
+        padding: 16px;
+        gap: 12px;
+    }
+
+    .week-grid {
+        gap: 6px;
+        padding: 12px;
+    }
+
+    .day-cell {
+        padding: 10px 6px;
+        min-height: 100px;
+        aspect-ratio: 3/4;
+    }
+
+    .day-name {
+        font-size: 10px;
+    }
+
+    .day-date {
+        font-size: 14px;
+    }
+
+    .commitment-sticky {
+        font-size: 9px;
+        padding: 4px 6px;
+    }
+
+    .commitment-widget .widget-header {
+        padding: 16px 20px 12px 20px;
+    }
+
+    .commitment-content {
+        padding: 16px 20px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .calendar-day-content {
+        padding: 20px;
+        gap: 16px;
+    }
+}
+
+@media (max-width: 768px) {
+    .calendar-day-content {
+        padding: 16px;
+        gap: 16px;
+    }
+
+    .calendar-topbar {
+        padding: 12px 16px;
+    }
+
+    .excel-widget {
+        border-radius: 20px;
+    }
+
+    .widget-header {
+        padding: 16px 20px;
+    }
+
+    .cell {
+        padding: 12px 16px;
+    }
+
+    .routine-table .table-header,
+    .routine-table .table-row {
+        grid-template-columns: 60px 1fr 50px;
+    }
+
+    .tasks-table .table-header,
+    .tasks-table .table-row {
+        grid-template-columns: 45px 1fr repeat(5, 60px) 70px 50px;
+    }
+
+    .tag-column,
+    .tag-cell {
+        font-size: 10px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .topbar-left {
+        gap: 12px;
+    }
+
+    .calendar-name {
+        font-size: 14px;
+    }
+
+    .formatted-date {
+        font-size: 13px;
+    }
+
+    .notes-container {
+        padding: 20px;
+    }
+
+    .modal-content {
+        border-radius: 16px;
+    }
+}
+
+/* ============================================================================
+   13. INLINE EDITING SYSTEM
+   ============================================================================ */
+
+/* Inline editor input styling */
+.inline-editor {
+    font-family: inherit !important;
+    border: 2px solid #3b82f6 !important;
+    border-radius: 4px !important;
+    padding: 4px 8px !important;
+    background: #ffffff !important;
+    outline: none !important;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1) !important;
+    transition: all 0.2s ease !important;
+}
+
+.inline-editor:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2) !important;
+}
+
+/* Editable element hints */
+.activity-title:hover:not(.editing),
+.activity-description:hover:not(.editing),
+.task-title:hover:not(.editing),
+.task-description:hover:not(.editing),
+.time-cell:hover:not(.editing) {
+    background: rgba(59, 130, 246, 0.05) !important;
+    cursor: text !important;
+    position: relative;
+}
+
+.activity-title:hover:not(.editing)::after,
+.activity-description:hover:not(.editing)::after,
+.task-title:hover:not(.editing)::after,
+.task-description:hover:not(.editing)::after,
+.time-cell:hover:not(.editing)::after {
+    content: '더블클릭하여 편집';
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1f2937;
+    color: #ffffff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    white-space: nowrap;
+    opacity: 0;
+    animation: tooltipFadeIn 0.3s ease-out 0.8s forwards;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+@keyframes tooltipFadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-4px);
+    }
+
+    to {
+        opacity: 0.9;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* Editing state visual feedback */
+.table-row.editing {
+    background: rgba(59, 130, 246, 0.05) !important;
+    border: 1px solid rgba(59, 130, 246, 0.2) !important;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Save success animation */
+@keyframes saveSuccess {
+    0% {
+        background: #f0fdf4;
+        transform: scale(1.02);
+    }
+
+    50% {
+        background: #dcfce7;
+        transform: scale(1.05);
+    }
+
+    100% {
+        background: transparent;
+        transform: scale(1);
+    }
+}
+
+/* Time cell specific styling */
+.time-cell.editing {
+    background: #eff6ff !important;
+    border-radius: 6px !important;
+}
+
+/* Text selection improvements */
+.activity-title,
+.activity-description,
+.task-title,
+.task-description {
+    user-select: text;
+}
+
+.time-cell {
+    user-select: text;
+    cursor: pointer;
+}
+
+/* Focus indicators for edited elements */
+.recently-edited {
+    animation: recentEdit 2s ease-out;
+}
+
+@keyframes recentEdit {
+    0% {
+        box-shadow: inset 0 0 0 2px #10b981;
+        background: #f0fdf4;
+    }
+
+    100% {
+        box-shadow: inset 0 0 0 0 #10b981;
+        background: transparent;
+    }
+}
+
+/* Error state for invalid inputs */
+.inline-editor.error {
+    border-color: #dc2626 !important;
+    background: #fef2f2 !important;
+    animation: shake 0.3s ease-in-out;
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-4px);
+    }
+
+    75% {
+        transform: translateX(4px);
+    }
+}
+
+/* Improved placeholder styling */
+.inline-editor::placeholder {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+/* Context menu styling (for future enhancement) */
+.edit-context-menu {
+    position: fixed;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    padding: 4px;
+    z-index: 2000;
+    font-size: 12px;
+}
+
+.edit-context-menu button {
+    display: block;
+    width: 100%;
+    padding: 6px 12px;
+    border: none;
+    background: transparent;
+    text-align: left;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.edit-context-menu button:hover {
+    background: #f3f4f6;
+}
+
+/* ============================================================================
+   14. ANIMATION & TRANSITIONS
+   ============================================================================ */
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.table-row {
+    animation: slideIn 0.3s ease-out;
+}
+
+.excel-widget {
+    animation: slideIn 0.5s ease-out;
+}
+
+/* Checkbox animations */
+input[type="checkbox"] {
+    transition: all 0.2s ease;
+}
+
+input[type="checkbox"]:checked {
+    transform: scale(1.1);
+}
+
+/* Focus styles */
+*:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* Selection styles */
+::selection {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+/* ============================================================================
+   시간 하이라이트 시스템
+   ============================================================================ */
+
+/* 시간 하이라이트 표시 */
+.routine-row.time-highlighted {
+    background: rgba(59, 130, 246, 0.1) !important;
+    border: 2px solid #3b82f6 !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2) !important;
+    transform: scale(1.02);
+    z-index: 10;
+    position: relative;
+}
+
+.routine-row.time-highlighted .routine-time {
+    background: #3b82f6;
+    color: white;
+    font-weight: 700;
+    border-radius: 6px;
+    padding: 4px 8px;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.routine-row.time-highlighted .routine-activity {
+    color: #1e40af;
+    font-weight: 600;
+}
+
+/* 시간 선택 애니메이션 */
+.routine-row.time-highlighted {
+    animation: timeHighlight 0.3s ease-out;
+}
+
+@keyframes timeHighlight {
+    0% {
+        transform: scale(1);
+        background: rgba(59, 130, 246, 0.05);
+    }
+
+    50% {
+        transform: scale(1.05);
+        background: rgba(59, 130, 246, 0.15);
+    }
+
+    100% {
+        transform: scale(1.02);
+        background: rgba(59, 130, 246, 0.1);
+    }
+}
+
+/* 시간 클릭 가능 스타일 */
+.routine-time {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    padding: 2px 6px;
+    user-select: none;
+}
+
+.routine-time:hover {
+    background: rgba(59, 130, 246, 0.05);
+    color: #3b82f6;
+    transform: scale(1.05);
+}
+
+/* 시간 선택 피드백 */
+.time-feedback {
+    position: fixed;
+    top: 100px;
+    right: 30px;
+    z-index: 1000;
+    background: rgba(59, 130, 246, 0.95);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    opacity: 1;
+    transform: translateY(0);
+    transition: all 0.3s ease;
+    animation: feedbackSlideIn 0.3s ease-out;
+}
+
+.feedback-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.feedback-icon {
+    font-size: 16px;
+}
+
+.feedback-text {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+@keyframes feedbackSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
+
+/* ============================================================================
+   WEATHER WIDGET STYLES - Todo Mate + Linear 디자인
+   ============================================================================ */
+
+.day-weather {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 6px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.2s ease;
+    min-width: 42px;
+    z-index: 2;
+}
+
+.day-weather:hover {
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-1px);
+    border-color: rgba(94, 106, 210, 0.2);
+}
+
+.weather-emoji {
+    font-size: 18px;
+    line-height: 1;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+}
+
+.weather-temp {
+    font-size: 10px;
+    font-weight: 600;
+    color: #4B5563;
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+
+/* 다양한 날씨 상태에 따른 특별 스타일링 */
+.day-weather[data-weather="Rain"] {
+    background: rgba(59, 130, 246, 0.05);
+    border-color: rgba(59, 130, 246, 0.15);
+}
+
+.day-weather[data-weather="Rain"]:hover {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.25);
+}
+
+.day-weather[data-weather="Clear"] {
+    background: rgba(251, 191, 36, 0.05);
+    border-color: rgba(251, 191, 36, 0.15);
+}
+
+.day-weather[data-weather="Clear"]:hover {
+    background: rgba(251, 191, 36, 0.1);
+    border-color: rgba(251, 191, 36, 0.25);
+}
+
+.day-weather[data-weather="Clouds"] {
+    background: rgba(107, 114, 128, 0.05);
+    border-color: rgba(107, 114, 128, 0.15);
+}
+
+.day-weather[data-weather="Clouds"]:hover {
+    background: rgba(107, 114, 128, 0.1);
+    border-color: rgba(107, 114, 128, 0.25);
+}
+
+.day-weather[data-weather="Snow"] {
+    background: rgba(219, 234, 254, 0.8);
+    border-color: rgba(147, 197, 253, 0.3);
+}
+
+.day-weather[data-weather="Snow"]:hover {
+    background: rgba(219, 234, 254, 0.95);
+    border-color: rgba(147, 197, 253, 0.5);
+}
+
+/* 날씨 로딩 상태 */
+.weather-loading {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e5e7eb;
+    border-top: 2px solid #3b82f6;
+    border-radius: 50%;
+    animation: weather-spin 1s linear infinite;
+    z-index: 2;
+}
+
+@keyframes weather-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* 날씨 에러 상태 */
+.weather-error {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 4px 6px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 6px;
+    font-size: 10px;
+    color: #dc2626;
+    z-index: 2;
+}
+
+/* 반응형 날씨 위젯 */
+@media (max-width: 768px) {
+    .day-weather {
+        top: 6px;
+        right: 6px;
+        padding: 3px 5px;
+        min-width: 38px;
+    }
+
+    .weather-emoji {
+        font-size: 16px;
+        width: 20px;
+        height: 20px;
+    }
+
+    .weather-temp {
+        font-size: 9px;
+    }
+}
+
+/* 다크모드 지원 (추후 확장용) */
+@media (prefers-color-scheme: dark) {
+    .day-weather {
+        background: rgba(31, 41, 55, 0.95);
+        border-color: rgba(156, 163, 175, 0.3);
+        color: #f3f4f6;
+    }
+
+    .weather-temp {
+        color: #d1d5db;
+    }
+}

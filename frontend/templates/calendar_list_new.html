@@ -1,0 +1,137 @@
+{% extends "base_dashboard.html" %}
+
+{% block body_class %}calendar-list-page{% endblock %}
+
+{% block title %}새 캘린더 디자인 - NotionFlow{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/calendar-list.css') }}?v=20250904-3">
+<style>
+/* 강제 표시 스타일 */
+.force-new-design {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    background: #f8fafc;
+    padding: 40px;
+    margin: 20px;
+    border: 3px solid #3b82f6;
+    border-radius: 12px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="force-new-design">
+    <h1 style="color: #3b82f6; font-size: 32px; margin-bottom: 30px;">🎨 새로운 모던 캘린더 디자인</h1>
+    
+    <!-- Featured Calendar Section -->
+    <div class="featured-section" style="margin-bottom: 40px;">
+        <h2 style="color: #1f2937; font-size: 24px; margin-bottom: 20px;">⭐ 주요 캘린더</h2>
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold;">
+                    메
+                </div>
+                <div>
+                    <h3 style="font-size: 24px; font-weight: bold; margin: 0 0 8px 0;">메인 업무 캘린더</h3>
+                    <p style="font-size: 16px; margin: 0; opacity: 0.9;">개인 일정 및 업무 관리를 위한 메인 캘린더</p>
+                </div>
+                <div style="margin-left: auto; text-align: center;">
+                    <div style="font-size: 32px; font-weight: bold;">24</div>
+                    <div style="font-size: 14px; opacity: 0.8;">이벤트</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar Grid -->
+    <div style="margin-bottom: 40px;">
+        <h2 style="color: #1f2937; font-size: 24px; margin-bottom: 20px;">📅 모든 캘린더</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+            
+            <!-- Calendar Card 1 -->
+            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: all 0.3s; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 15px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.05)'">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
+                        메
+                    </div>
+                    <div>
+                        <h3 style="font-size: 18px; font-weight: bold; color: #1f2937; margin: 0 0 4px 0;">메인 업무 캘린더</h3>
+                        <p style="font-size: 14px; color: #6b7280; margin: 0;">개인 일정 및 업무 관리</p>
+                    </div>
+                </div>
+                <div style="border-top: 1px solid #f3f4f6; padding-top: 15px;">
+                    <div style="display: flex; align-items: center; gap: 8px; color: #10b981; font-size: 14px;">
+                        <span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></span>
+                        다음: 팀 미팅 (2시간 후)
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar Card 2 -->
+            <div style="background: white; border: 1px solid #dbeafe; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); background: linear-gradient(135deg, rgba(59, 130, 246, 0.02) 0%, rgba(59, 130, 246, 0.05) 100%); transition: all 0.3s; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 15px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.05)'">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
+                        팀
+                    </div>
+                    <div>
+                        <h3 style="font-size: 18px; font-weight: bold; color: #1f2937; margin: 0 0 4px 0;">팀 프로젝트</h3>
+                        <p style="font-size: 14px; color: #6b7280; margin: 0;">개발팀 공용 프로젝트 일정</p>
+                        <div style="display: inline-flex; align-items: center; gap: 4px; background: #dbeafe; color: #3b82f6; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 500; margin-top: 4px;">
+                            공유됨
+                        </div>
+                    </div>
+                </div>
+                <div style="border-top: 1px solid #f3f4f6; padding-top: 15px;">
+                    <div style="display: flex; align-items: center; gap: -8px;">
+                        <div style="width: 24px; height: 24px; background: #10b981; border-radius: 50%; color: white; font-size: 12px; display: flex; align-items: center; justify-content: center; border: 2px solid white; font-weight: 500;">김</div>
+                        <div style="width: 24px; height: 24px; background: #3b82f6; border-radius: 50%; color: white; font-size: 12px; display: flex; align-items: center; justify-content: center; border: 2px solid white; margin-left: -8px; font-weight: 500;">이</div>
+                        <div style="width: 24px; height: 24px; background: #f59e0b; border-radius: 50%; color: white; font-size: 12px; display: flex; align-items: center; justify-content: center; border: 2px solid white; margin-left: -8px; font-weight: 500;">박</div>
+                        <div style="width: 24px; height: 24px; background: #94a3b8; border-radius: 50%; color: #1f2937; font-size: 10px; display: flex; align-items: center; justify-content: center; border: 2px solid white; margin-left: -8px; font-weight: 500;">+2</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar Card 3 -->
+            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: all 0.3s; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 15px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.05)'">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
+                        개
+                    </div>
+                    <div>
+                        <h3 style="font-size: 18px; font-weight: bold; color: #1f2937; margin: 0 0 4px 0;">개인 일정</h3>
+                        <p style="font-size: 14px; color: #6b7280; margin: 0;">사적인 약속과 개인적인 일정</p>
+                    </div>
+                </div>
+                <div style="border-top: 1px solid #f3f4f6; padding-top: 15px;">
+                    <div style="display: flex; align-items: center; gap: 8px; color: #f59e0b; font-size: 14px;">
+                        <span style="width: 8px; height: 8px; background: #f59e0b; border-radius: 50%; animation: pulse 2s infinite;"></span>
+                        다음: 병원 예약 (내일 오전)
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Calendar Card -->
+            <div style="background: white; border: 2px dashed #d1d5db; border-radius: 12px; padding: 40px; display: flex; align-items: center; justify-content: center; min-height: 200px; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.borderColor='#3b82f6'; this.style.background='#eff6ff'" onmouseout="this.style.borderColor='#d1d5db'; this.style.background='white'">
+                <div style="text-align: center;">
+                    <div style="width: 48px; height: 48px; background: #e5e7eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: #6b7280;">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                    </div>
+                    <h3 style="font-size: 18px; font-weight: 600; color: #1f2937; margin: 0 0 8px 0;">새 캘린더 만들기</h3>
+                    <p style="font-size: 14px; color: #6b7280; margin: 0;">새로운 주제의 캘린더를 생성하세요</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div style="text-align: center; padding: 20px; background: #f0fdf4; border-radius: 8px; color: #166534;">
+        ✅ 새로운 모던 디자인이 성공적으로 적용되었습니다!
+    </div>
+</div>
+
+{% endblock %}

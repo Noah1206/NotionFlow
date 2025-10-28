@@ -1,0 +1,977 @@
+/* 🚀 NotionFlow Dashboard Sidebar Styles - Unified Version */
+/* 재사용 가능한 사이드바 컴포넌트 스타일 */
+
+/* 🎵 Compact Media Player Styles */
+body .sidebar .compact-media-player,
+#sidebar .compact-media-player,
+.sidebar .compact-media-player {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 12px;
+}
+
+.compact-player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.compact-player-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.compact-player-duration {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.compact-media-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.compact-control-buttons {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.compact-control-btn {
+    background: #f1f5f9;
+    border: none;
+    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #475569;
+}
+
+.compact-control-btn:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+.compact-play-btn {
+    background: #3b82f6;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.compact-play-btn:hover {
+    background: #2563eb;
+}
+
+/* Media info section */
+.compact-media-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.compact-media-cover {
+    width: 48px;
+    height: 48px;
+    background: #f1f5f9;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.media-cover-placeholder {
+    font-size: 24px;
+}
+
+.compact-media-details {
+    flex: 1;
+}
+
+.compact-media-title-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.compact-media-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+    cursor: pointer;
+    flex: 1;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.compact-media-title:hover {
+    background-color: #f1f5f9;
+}
+
+.compact-media-title-input {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+    border: 2px solid #3b82f6;
+    border-radius: 4px;
+    padding: 2px 4px;
+    background: white;
+    flex: 1;
+    outline: none;
+}
+
+.edit-title-btn {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    opacity: 0;
+}
+
+.compact-media-title-container:hover .edit-title-btn {
+    opacity: 1;
+}
+
+.edit-title-btn:hover {
+    background-color: #f1f5f9;
+    color: #3b82f6;
+}
+
+.compact-media-artist {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.compact-media-progress-section {
+    margin-bottom: 12px;
+}
+
+.compact-progress-bar {
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 2px;
+    position: relative;
+    cursor: pointer;
+    margin-bottom: 6px;
+}
+
+.compact-progress-fill {
+    height: 100%;
+    background: #3b82f6;
+    border-radius: 2px;
+    width: 0;
+    transition: width 0.1s;
+}
+
+.compact-progress-handle {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    background: #3b82f6;
+    border-radius: 50%;
+    left: 0;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.compact-progress-bar:hover .compact-progress-handle {
+    opacity: 1;
+}
+
+.compact-time-display {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #64748b;
+}
+
+.compact-volume-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.compact-volume-btn {
+    background: transparent;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.compact-volume-btn:hover {
+    color: #1e293b;
+}
+
+.compact-volume-slider {
+    width: 60px;
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 2px;
+    position: relative;
+    cursor: pointer;
+}
+
+.compact-volume-fill {
+    height: 100%;
+    background: #3b82f6;
+    border-radius: 2px;
+    width: 50%;
+}
+
+/* ✨ 사이드바 기본 구조 - 전체 화면 세로 레이아웃 */
+body .sidebar,
+body .sidebar-container,
+body .left-sidebar,
+body div.sidebar,
+body div.left-sidebar,
+html body .sidebar,
+html body .left-sidebar,
+#sidebar,
+body #sidebar,
+.dashboard-layout .sidebar,
+.dashboard-layout .left-sidebar,
+.sidebar:not(.dummy),
+.left-sidebar:not(.dummy) {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 250px !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    min-height: 100vh !important;
+    background: #FFFFFF !important;
+    background-color: #FFFFFF !important;
+    border: none !important;
+    border-top: none !important;
+    border-left: none !important;
+    border-bottom: none !important;
+    border-right: none !important;
+    border-radius: 0 !important;
+    outline: none !important;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    flex-shrink: 0;
+    z-index: 100 !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    margin: 0 !important;
+    padding: 40px 24px 30px 24px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-sizing: border-box !important;
+}
+
+/* 사이드바 축소 상태 비활성화 - 전체 화면에서는 불필요 */
+.left-sidebar.collapsed, .sidebar.collapsed {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* 🚨 펼쳐진 상태 헤더 - 전체 화면에서는 숨김 */
+.expanded-header {
+    display: none !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 60px !important;
+    background: transparent !important;
+    border-bottom: none !important;
+    border-radius: 20px 20px 0 0 !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 16px 20px !important;
+    box-sizing: border-box !important;
+    z-index: 100 !important;
+}
+
+.expanded-toggle-btn {
+    background: transparent !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 8px !important;
+    padding: 6px !important;
+    cursor: pointer !important;
+    width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #374151 !important;
+    transition: all 0.2s ease !important;
+}
+
+.expanded-toggle-btn:hover {
+    background: #f3f4f6 !important;
+    border-color: #9ca3af !important;
+}
+
+.expanded-toggle-btn svg {
+    width: 18px !important;
+    height: 18px !important;
+    stroke: #374151 !important;
+    stroke-width: 2 !important;
+}
+
+/* 🚨 접힌 상태 헤더 - 전체 화면에서는 숨김 */
+.collapsed-header {
+    display: none !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 60px !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 12px 8px !important;
+    z-index: 100 !important;
+}
+
+.collapsed-toggle-btn {
+    background: transparent !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    padding: 6px !important;
+    cursor: pointer !important;
+    width: 28px !important;
+    height: 28px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #374151 !important;
+    transition: all 0.2s ease !important;
+}
+
+.collapsed-toggle-btn:hover {
+    background: #f3f4f6 !important;
+    border-color: #9ca3af !important;
+}
+
+.collapsed-toggle-btn svg {
+    width: 14px !important;
+    height: 14px !important;
+    stroke: #374151 !important;
+    stroke-width: 2 !important;
+}
+
+/* 상태별 헤더 표시/숨김 */
+.sidebar:not(.collapsed) .collapsed-header {
+    display: none !important;
+}
+
+.left-sidebar.collapsed, .sidebar.collapsed .expanded-header {
+    display: none !important;
+}
+
+.left-sidebar.collapsed, .sidebar.collapsed .collapsed-header {
+    display: flex !important;
+}
+
+/* 사이드바 로고 스타일 */
+.sidebar-logo {
+    display: flex !important;
+    align-items: center !important;
+    margin-right: auto !important;
+    flex: 1 !important;
+    padding: 4px 0 !important;
+}
+
+.logo-text {
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    color: #000000 !important;
+    letter-spacing: -0.025em !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* 접힌 상태에서 로고 숨기기 */
+.left-sidebar.collapsed, .sidebar.collapsed .sidebar-logo {
+    display: none !important;
+}
+
+/* 네비게이션 컨테이너 */
+.sidebar-nav {
+    position: relative;
+    height: calc(100% - 60px);
+    margin-top: 60px;
+    padding: 8px 0 16px 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* 메인 네비게이션 */
+.sidebar-main-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0 4px;
+}
+
+/* 접힌 상태에서 네비게이션 패딩 조정 */
+.left-sidebar.collapsed, .sidebar.collapsed .sidebar-main-nav {
+    padding: 0 8px;
+}
+
+/* 네비게이션 섹션 - 클래식하고 깔끔한 디자인 */
+.nav-section {
+    margin-bottom: 24px;
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+    border: none;
+    flex: none;
+    min-height: auto;
+    display: block;
+}
+
+.nav-section:last-child {
+    margin-bottom: 0;
+    flex: none;
+}
+
+/* 네비게이션 아이템 기본 스타일 - 클래식한 리스트 스타일 */
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px;
+    border-radius: 0;
+    color: #000000;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 15px;
+    font-weight: 400;
+    position: relative;
+    width: 100%;
+    margin-bottom: 1px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    border-left: 3px solid transparent;
+    min-height: 48px;
+}
+
+.nav-item:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: #000000;
+    border-left: 3px solid #6b7280;
+}
+
+.nav-item.active {
+    background-color: rgba(0, 0, 0, 0.15);
+    color: #000000;
+    font-weight: 500;
+    border-left: 3px solid #3b82f6;
+}
+
+.nav-item.active .nav-icon svg {
+    stroke: #000000;
+}
+
+/* 네비게이션 아이콘 */
+.nav-icon {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-icon svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.5;
+}
+
+/* 네비게이션 레이블 */
+.nav-label {
+    flex: 1;
+    min-width: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* 접힌 상태에서 레이블 숨기기 */
+.left-sidebar.collapsed, .sidebar.collapsed .nav-label {
+    display: none;
+}
+
+.left-sidebar.collapsed, .sidebar.collapsed .nav-item {
+    justify-content: center;
+    padding: 12px 4px;
+    margin: 2px 0;
+    width: 100%;
+}
+
+/* 프로필 네비게이션 아이템 */
+.profile-nav-item .sidebar-avatar {
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    border: 1.5px solid rgba(107, 114, 128, 0.3) !important;
+    transition: all 0.2s ease !important;
+}
+
+.profile-nav-item:hover .sidebar-avatar {
+    border-color: rgba(107, 114, 128, 0.5) !important;
+    transform: scale(1.05) !important;
+}
+
+.profile-nav-item.active .sidebar-avatar {
+    border-color: #1d4ed8 !important;
+    box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.2) !important;
+}
+
+/* 배지 스타일 */
+.count-badge {
+    background: #e5e7eb;
+    color: #000000;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.premium-badge {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+/* 접힌 상태에서 배지 숨기기 */
+.left-sidebar.collapsed, .sidebar.collapsed .count-badge,
+.left-sidebar.collapsed, .sidebar.collapsed .premium-badge {
+    display: none;
+}
+
+/* 스크롤바 스타일 */
+.sidebar::-webkit-scrollbar,
+.sidebar-nav::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-track,
+.sidebar-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb,
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover,
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* 모바일 반응형 */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+
+    .sidebar.mobile-open {
+        transform: translateX(0);
+    }
+
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 101;
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+    }
+}
+
+/* 사이드바가 접혔을 때 메인 콘텐츠 조정을 위한 CSS 변수 */
+:root {
+    --sidebar-width: 240px;
+    --sidebar-collapsed-width: 60px;
+    --sidebar-gap: 16px;
+}
+
+body.sidebar-collapsed {
+    --sidebar-width: var(--sidebar-collapsed-width);
+}
+
+/* Reminders Section Styles */
+.reminders-section {
+    padding: 12px 16px !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+    background: rgba(0, 0, 0, 0.02) !important;
+}
+
+.reminders-header {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    margin-bottom: 8px !important;
+}
+
+.reminders-icon {
+    font-size: 14px !important;
+}
+
+.reminders-title {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #374151 !important;
+}
+
+.reminders-content {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 8px !important;
+    overflow-x: auto !important;
+    padding: 8px 0 !important;
+}
+
+.reminder-item {
+    background: #ffffff !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    border-radius: 8px !important;
+    padding: 6px 12px !important;
+    white-space: nowrap !important;
+    font-size: 12px !important;
+    color: #6b7280 !important;
+    flex-shrink: 0 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+.reminder-item:hover {
+    background: rgba(59, 130, 246, 0.05) !important;
+    border-color: rgba(59, 130, 246, 0.2) !important;
+    color: #3b82f6 !important;
+}
+
+.reminder-item.active {
+    background: #3b82f6 !important;
+    color: #ffffff !important;
+    border-color: #3b82f6 !important;
+}
+
+/* Hide reminders in collapsed state */
+.left-sidebar.collapsed, .sidebar.collapsed .reminders-section {
+    display: none !important;
+}
+
+/* Mini Calendar Widget Styles */
+.mini-calendar-section {
+    padding: 12px 16px !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+.sidebar .mini-calendar-widget {
+    width: 100% !important;
+    background: rgba(0, 0, 0, 0.02) !important;
+    border-radius: 12px !important;
+    padding: 12px !important;
+    position: relative !important;
+}
+
+.sidebar .calendar-view-container {
+    width: 100% !important;
+}
+
+.sidebar .compact-month-header {
+    margin-bottom: 8px !important;
+}
+
+.sidebar .compact-weekday-labels {
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    gap: 2px !important;
+    margin-bottom: 8px !important;
+}
+
+.sidebar .compact-weekday-label {
+    text-align: center !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    color: #6b7280 !important;
+    padding: 2px !important;
+}
+
+.sidebar .compact-month-grid {
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    gap: 2px !important;
+}
+
+.sidebar .calendar-cell {
+    aspect-ratio: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 11px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    color: #374151 !important;
+    background: transparent !important;
+}
+
+.sidebar .calendar-cell:hover {
+    background: rgba(59, 130, 246, 0.1) !important;
+}
+
+.sidebar .calendar-cell.today {
+    background: #3b82f6 !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+.sidebar .calendar-cell.other-month {
+    color: #d1d5db !important;
+}
+
+.sidebar .calendar-cell.selected {
+    background: rgba(59, 130, 246, 0.2) !important;
+    border: 1px solid #3b82f6 !important;
+}
+
+/* Hide mini calendar in collapsed state */
+.left-sidebar.collapsed, .sidebar.collapsed .mini-calendar-section {
+    display: none !important;
+}
+
+/* Hide calendar-detail-only sections by default */
+.calendar-detail-only {
+    display: none !important;
+}
+
+/* Show calendar-detail-only sections only on calendar detail page */
+body.calendar-detail-page .sidebar .calendar-detail-only,
+.calendar-detail-page .sidebar .calendar-detail-only {
+    display: block !important;
+}
+
+/* Hide in collapsed state even on calendar detail page */
+body.calendar-detail-page .left-sidebar.collapsed, .sidebar.collapsed .calendar-detail-only,
+.calendar-detail-page .left-sidebar.collapsed, .sidebar.collapsed .calendar-detail-only {
+    display: none !important;
+}
+
+/* 🌙 강력한 라이트 테마 적용 - 사이드바 전체 - 최고 우선순위 */
+body .sidebar,
+body .sidebar *,
+body .sidebar div,
+body .sidebar section,
+body .sidebar header,
+body .sidebar .profile-section,
+body .sidebar .nav-section,
+body .sidebar .widgets-section,
+body .sidebar .sidebar-header,
+body .sidebar .sidebar-content,
+body .sidebar .sidebar-footer,
+html body .sidebar,
+html body .sidebar *,
+html body div.sidebar,
+html body div.sidebar *,
+#sidebar,
+#sidebar *,
+body #sidebar,
+body #sidebar *,
+[data-theme="light"] .sidebar,
+[data-theme="light"] .sidebar *,
+[data-theme="dark"] .sidebar,
+[data-theme="dark"] .sidebar * {
+    background-color: #FFFFFF !important;
+    background: #FFFFFF !important;
+}
+
+/* 사이드바 내 모든 텍스트를 검은 색으로 - 최고 우선순위 */
+body .sidebar,
+body .sidebar *,
+body .sidebar div,
+body .sidebar span,
+body .sidebar p,
+body .sidebar a,
+body .sidebar h1,
+body .sidebar h2,
+body .sidebar h3,
+body .sidebar h4,
+body .sidebar h5,
+body .sidebar h6,
+html body .sidebar,
+html body .sidebar *,
+#sidebar,
+#sidebar *,
+body #sidebar *,
+[data-theme="light"] .sidebar *,
+[data-theme="dark"] .sidebar * {
+    color: #000000 !important;
+}
+
+/* 네비게이션 아이템 색상 - 최고 우선순위 */
+body .sidebar .nav-item,
+html body .sidebar .nav-item,
+#sidebar .nav-item,
+body #sidebar .nav-item,
+[data-theme="light"] .sidebar .nav-item,
+[data-theme="dark"] .sidebar .nav-item {
+    color: #000000 !important;
+    background-color: transparent !important;
+}
+
+body .sidebar .nav-item:hover,
+html body .sidebar .nav-item:hover,
+#sidebar .nav-item:hover,
+body #sidebar .nav-item:hover,
+[data-theme="light"] .sidebar .nav-item:hover,
+[data-theme="dark"] .sidebar .nav-item:hover {
+    background-color: rgba(0, 0, 0, 0.1) !important;
+    color: #000000 !important;
+}
+
+body .sidebar .nav-item.active,
+html body .sidebar .nav-item.active,
+#sidebar .nav-item.active,
+body #sidebar .nav-item.active,
+[data-theme="light"] .sidebar .nav-item.active,
+[data-theme="dark"] .sidebar .nav-item.active {
+    background-color: rgba(0, 0, 0, 0.15) !important;
+    color: #000000 !important;
+}
+
+/* 프로필 섹션도 라이트 테마 */
+.sidebar .profile-section,
+.sidebar .profile-nav-item,
+.sidebar .sidebar-profile {
+    background-color: #FFFFFF !important;
+    background: #FFFFFF !important;
+}
+
+/* 위젯들도 라이트 테마 */
+.sidebar .sidebar-widget,
+.sidebar .widget-section,
+.sidebar .compact-media-player {
+    background-color: #f9f9f9 !important;
+    background: #f9f9f9 !important;
+    border: 1px solid #e5e7eb !important;
+}
+
+/* 🚨🚨🚨 최고 우선순위 오버라이드 - 무조건 적용 🚨🚨🚨 */
+html body #sidebar,
+html body div#sidebar,
+html body .sidebar,
+html body div.sidebar,
+html body .left-sidebar,
+html body div.left-sidebar,
+body[data-theme="light"] #sidebar,
+body[data-theme="light"] .sidebar,
+body[data-theme="light"] .left-sidebar,
+body[data-theme="dark"] #sidebar,
+body[data-theme="dark"] .sidebar,
+body[data-theme="dark"] .left-sidebar {
+    background: #FFFFFF !important;
+    background-color: #FFFFFF !important;
+    background-image: none !important;
+    border: none !important;
+    border-right: none !important;
+    border-left: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+}
+
+/* 모든 자식 요소 배경 흰색 강제 */
+html body #sidebar *:not(.nav-item):not(.nav-item:hover):not(.nav-item.active),
+html body .sidebar *:not(.nav-item):not(.nav-item:hover):not(.nav-item.active),
+html body .left-sidebar *:not(.nav-item):not(.nav-item:hover):not(.nav-item.active) {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+/* 모든 텍스트 검은색 강제 */
+html body #sidebar *,
+html body .sidebar *,
+html body .left-sidebar *,
+html body #sidebar .nav-item,
+html body .sidebar .nav-item,
+html body .left-sidebar .nav-item,
+html body #sidebar .nav-label,
+html body .sidebar .nav-label,
+html body .left-sidebar .nav-label {
+    color: #000000 !important;
+}
+
+/* nav-item hover 상태 강제 */
+html body #sidebar .nav-item:hover,
+html body .sidebar .nav-item:hover,
+html body .left-sidebar .nav-item:hover {
+    background: rgba(0, 0, 0, 0.05) !important;
+    background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+/* nav-item active 상태 강제 */
+html body #sidebar .nav-item.active,
+html body .sidebar .nav-item.active,
+html body .left-sidebar .nav-item.active {
+    background: rgba(0, 0, 0, 0.1) !important;
+    background-color: rgba(0, 0, 0, 0.1) !important;
+}
