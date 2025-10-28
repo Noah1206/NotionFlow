@@ -371,11 +371,23 @@
             flex: 1;
             height: 100%;
             width: 100%;
+            display: grid !important;
+            grid-template-columns: 80px repeat(7, 1fr) !important;
+            grid-template-rows: 40px repeat(24, 1fr) !important;
+            gap: 1px !important;
+            background: #f8f9fa !important;
+            border: 1px solid #e9ecef !important;
         }
 
         #calendar-grid-container {
             height: 100%;
             width: 100%;
+            display: grid !important;
+            grid-template-columns: 80px repeat(7, 1fr) !important;
+            grid-template-rows: 40px repeat(24, 1fr) !important;
+            gap: 1px !important;
+            background: #f8f9fa !important;
+            border: 1px solid #e9ecef !important;
         }
 
         /* 🎨 CLEAN SIDEBAR DESIGN - Larger Sections */
@@ -8020,6 +8032,50 @@
 
         }
 
+        // Fallback calendar grid when GoogleCalendarGrid is not available
+        function createFallbackCalendarGrid(container) {
+            if (!container) return;
+
+            // Clear container
+            container.innerHTML = '';
+
+            // Create time column header
+            const timeHeader = document.createElement('div');
+            timeHeader.style.cssText = 'grid-column: 1; grid-row: 1; background: #f8f9fa; border: 1px solid #dee2e6; padding: 8px; text-align: center; font-weight: bold;';
+            timeHeader.textContent = '시간';
+            container.appendChild(timeHeader);
+
+            // Create day headers
+            const days = ['일', '월', '화', '수', '목', '금', '토'];
+            days.forEach((day, index) => {
+                const dayHeader = document.createElement('div');
+                dayHeader.style.cssText = `grid-column: ${index + 2}; grid-row: 1; background: #f8f9fa; border: 1px solid #dee2e6; padding: 8px; text-align: center; font-weight: bold;`;
+                dayHeader.textContent = day;
+                container.appendChild(dayHeader);
+            });
+
+            // Create time slots and day cells
+            for (let hour = 0; hour < 24; hour++) {
+                // Time label
+                const timeLabel = document.createElement('div');
+                timeLabel.style.cssText = `grid-column: 1; grid-row: ${hour + 2}; background: #fff; border: 1px solid #dee2e6; padding: 8px; text-align: center; font-size: 12px;`;
+                timeLabel.textContent = `${hour.toString().padStart(2, '0')}:00`;
+                container.appendChild(timeLabel);
+
+                // Day cells
+                for (let day = 0; day < 7; day++) {
+                    const dayCell = document.createElement('div');
+                    dayCell.style.cssText = `grid-column: ${day + 2}; grid-row: ${hour + 2}; background: #fff; border: 1px solid #dee2e6; min-height: 40px; position: relative;`;
+                    dayCell.className = 'calendar-time-slot';
+                    dayCell.dataset.hour = hour;
+                    dayCell.dataset.day = day;
+                    container.appendChild(dayCell);
+                }
+            }
+
+            console.log('Fallback calendar grid created successfully');
+        }
+
         // Load events when page is ready
         document.addEventListener('DOMContentLoaded', function () {
 
@@ -8028,7 +8084,9 @@
             if (container && typeof GoogleCalendarGrid !== 'undefined') {
                 window.googleCalendarGrid = new GoogleCalendarGrid(container);
             } else {
-                // GoogleCalendarGrid not available
+                // GoogleCalendarGrid not available - create fallback grid
+                console.log('GoogleCalendarGrid not available, creating fallback');
+                createFallbackCalendarGrid(container);
             }
 
             // Set up refresh listeners first
