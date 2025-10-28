@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS calendar_export_settings (
     -- 내보내기 설정
     auto_export BOOLEAN DEFAULT false,
     enabled_platforms JSONB DEFAULT '[]'::jsonb, -- ["google", "notion", "outlook"]
+    
     export_all_events BOOLEAN DEFAULT true,
 
     -- 메타데이터
@@ -160,45 +161,62 @@ CREATE TRIGGER trigger_update_platform_mapping_updated_at
 -- 변경사항 추적 트리거
 -- =====================================
 
--- 이벤트 변경 시 export_queue에 자동 추가
+-- 이벤트 변경 시 export_queue에 자동 추가 (사용자 존재 확인)
 CREATE OR REPLACE FUNCTION track_calendar_event_changes()
 RETURNS TRIGGER AS $$
 DECLARE
     change_type_val VARCHAR(20);
     event_data_val JSONB;
     summary_val TEXT;
+    target_user_id UUID;
+    user_exists BOOLEAN := FALSE;
 BEGIN
     -- 변경 타입 결정
     IF TG_OP = 'INSERT' THEN
         change_type_val := 'created';
         event_data_val := to_jsonb(NEW);
         summary_val := 'Event created: ' || NEW.title;
+        target_user_id := NEW.user_id;
     ELSIF TG_OP = 'UPDATE' THEN
         change_type_val := 'updated';
         event_data_val := to_jsonb(NEW);
         summary_val := 'Event updated: ' || NEW.title;
+        target_user_id := NEW.user_id;
     ELSIF TG_OP = 'DELETE' THEN
         change_type_val := 'deleted';
         event_data_val := to_jsonb(OLD);
         summary_val := 'Event deleted: ' || OLD.title;
+        target_user_id := OLD.user_id;
     END IF;
 
-    -- export_queue에 변경사항 추가
-    INSERT INTO calendar_export_queue (
-        calendar_id,
-        user_id,
-        event_id,
-        change_type,
-        event_data,
-        change_summary
-    ) VALUES (
-        COALESCE(NEW.calendar_id, OLD.calendar_id),
-        COALESCE(NEW.user_id, OLD.user_id),
-        COALESCE(NEW.id, OLD.id),
-        change_type_val,
-        event_data_val,
-        summary_val
-    );
+    -- 사용자 존재 여부 확인 (users 테이블 또는 auth.users 테이블)
+    SELECT EXISTS(
+        SELECT 1 FROM auth.users WHERE id = target_user_id
+        UNION ALL
+        SELECT 1 FROM users WHERE id = target_user_id
+    ) INTO user_exists;
+
+    -- 사용자가 존재하는 경우에만 export_queue에 추가
+    IF user_exists THEN
+        INSERT INTO calendar_export_queue (
+            calendar_id,
+            user_id,
+            event_id,
+            change_type,
+            event_data,
+            change_summary
+        ) VALUES (
+            COALESCE(NEW.calendar_id, OLD.calendar_id),
+            target_user_id,
+            COALESCE(NEW.id, OLD.id),
+            change_type_val,
+            event_data_val,
+            summary_val
+        );
+    ELSE
+        -- 사용자가 존재하지 않으면 로그만 남기고 에러 발생시키지 않음
+        RAISE NOTICE 'User % does not exist in users table, skipping export queue entry', target_user_id;
+    END IF;
 
     RETURN COALESCE(NEW, OLD);
 END;
