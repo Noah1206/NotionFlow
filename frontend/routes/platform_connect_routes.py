@@ -121,53 +121,104 @@ def connect_platform():
 
 @platform_connect_bp.route('/calendar/disconnect-platform', methods=['POST'])
 def disconnect_platform():
-    """플랫폼 캘린더 연동 해제"""
+    """플랫폼 캘린더 연동 완전 해제 - 모든 관련 토큰 및 설정 삭제"""
     user_id, error_response, status_code = check_auth()
     if error_response:
         return error_response, status_code
-    
+
     try:
-        data = request.get_json()
+        data = request.get_json() or {}
         platform = data.get('platform')
-        
+        clean_disconnect = data.get('clean_disconnect', True)  # 기본값 true로 변경
+
         if not platform:
             return jsonify({
                 'success': False,
                 'error': 'Platform is required'
             }), 400
-        
+
+        from utils.uuid_helper import normalize_uuid
+        normalized_user_id = normalize_uuid(user_id)
         supabase = config.get_client_for_user(user_id)
-        
-        # 연동 설정 업데이트 (연동 해제) - OAuth 토큰 완전 삭제
-        update_data = {
-            'is_enabled': False,
-            'updated_at': datetime.now().isoformat(),
-            'credentials': {
-                'access_token': None,
-                'refresh_token': None,
-                'oauth_connected': False,
-                'disconnected': True,
-                'disconnected_at': datetime.now().isoformat()
-            }
-        }
-        
-        result = supabase.table('calendar_sync_configs').update(update_data).eq('user_id', user_id).eq('platform', platform).execute()
-        
-        if not result.data:
+
+        if clean_disconnect:
+            print(f"🧹 [{platform.upper()}] 완전 연결 해제 요청 - OAuth 토큰 및 모든 연결 정보 삭제")
+
+            # 1. OAuth 토큰 완전 삭제 (oauth_tokens 테이블)
+            try:
+                oauth_result = supabase.table('oauth_tokens').delete().eq('user_id', normalized_user_id).eq('platform', platform).execute()
+                print(f"✅ [{platform.upper()}] OAuth 토큰 삭제됨: {len(oauth_result.data) if oauth_result.data else 0}개")
+            except Exception as e:
+                print(f"⚠️ [{platform.upper()}] OAuth 토큰 삭제 중 오류 (계속 진행): {e}")
+
+            # 2. 캘린더 동기화 설정 완전 삭제 (calendar_sync_configs 테이블)
+            try:
+                sync_result = supabase.table('calendar_sync_configs').delete().eq('user_id', normalized_user_id).eq('platform', platform).execute()
+                print(f"✅ [{platform.upper()}] 동기화 설정 삭제됨: {len(sync_result.data) if sync_result.data else 0}개")
+            except Exception as e:
+                print(f"⚠️ [{platform.upper()}] 동기화 설정 삭제 중 오류 (계속 진행): {e}")
+
+            # 3. 플랫폼 연결 정보 삭제 (platform_connections 테이블)
+            try:
+                platform_result = supabase.table('platform_connections').delete().eq('user_id', normalized_user_id).eq('platform', platform).execute()
+                print(f"✅ [{platform.upper()}] 플랫폼 연결 정보 삭제됨: {len(platform_result.data) if platform_result.data else 0}개")
+            except Exception as e:
+                print(f"⚠️ [{platform.upper()}] 플랫폼 연결 정보 삭제 중 오류 (계속 진행): {e}")
+
+            # 4. Sync 상태 정보 삭제 (sync_status 테이블)
+            try:
+                sync_status_result = supabase.table('sync_status').delete().eq('user_id', normalized_user_id).eq('platform', platform).execute()
+                print(f"✅ [{platform.upper()}] Sync 상태 정보 삭제됨: {len(sync_status_result.data) if sync_status_result.data else 0}개")
+            except Exception as e:
+                print(f"⚠️ [{platform.upper()}] Sync 상태 정보 삭제 중 오류 (계속 진행): {e}")
+
+            # 5. 캘린더 동기화 레코드 삭제 (calendar_sync 테이블)
+            try:
+                calendar_sync_result = supabase.table('calendar_sync').delete().eq('user_id', normalized_user_id).eq('platform', platform).execute()
+                print(f"✅ [{platform.upper()}] 캘린더 동기화 레코드 삭제됨: {len(calendar_sync_result.data) if calendar_sync_result.data else 0}개")
+            except Exception as e:
+                print(f"⚠️ [{platform.upper()}] 캘린더 동기화 레코드 삭제 중 오류 (계속 진행): {e}")
+
+            print(f"✅ [{platform.upper()}] 사용자 {user_id}의 모든 {platform} 연결 정보가 완전히 삭제됨")
+            print(f"📝 [{platform.upper()}] 기존 동기화된 이벤트는 그대로 유지됨")
+
             return jsonify({
-                'success': False,
-                'error': f'{platform} connection not found'
-            }), 404
-        
-        print(f"✅ Platform {platform} disconnected for user {user_id}")
-        
-        return jsonify({
-            'success': True,
-            'message': f'{platform} calendar sync disabled'
-        })
-        
+                'success': True,
+                'message': f'{platform} 연결이 완전히 해제되었습니다. 기존 이벤트는 유지됩니다.',
+                'clean_disconnect': True
+            })
+
+        else:
+            # 기존 비활성화 로직 (하위 호환성)
+            update_data = {
+                'is_enabled': False,
+                'updated_at': datetime.now().isoformat(),
+                'credentials': {
+                    'access_token': None,
+                    'refresh_token': None,
+                    'oauth_connected': False,
+                    'disconnected': True,
+                    'disconnected_at': datetime.now().isoformat()
+                }
+            }
+
+            result = supabase.table('calendar_sync_configs').update(update_data).eq('user_id', normalized_user_id).eq('platform', platform).execute()
+
+            if not result.data:
+                return jsonify({
+                    'success': False,
+                    'error': f'{platform} connection not found'
+                }), 404
+
+            print(f"✅ Platform {platform} disconnected (legacy mode) for user {user_id}")
+
+            return jsonify({
+                'success': True,
+                'message': f'{platform} calendar sync disabled'
+            })
+
     except Exception as e:
-        print(f"❌ Error disconnecting platform: {e}")
+        print(f"❌ Error disconnecting platform {platform}: {e}")
         return jsonify({
             'success': False,
             'error': str(e)

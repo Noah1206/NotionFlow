@@ -59,7 +59,7 @@ def require_login():
 
 @calendar_export_bp.route('/oauth/connected-platforms', methods=['GET'])
 def get_connected_platforms():
-    """연결된 플랫폼 목록 조회 - 기존 OAuth 시스템 활용"""
+    """연결된 플랫폼 목록 조회 - API 키 관리 페이지와 동일한 로직 사용"""
     try:
         user_id = require_login()
         if isinstance(user_id, tuple):  # Error response
@@ -67,13 +67,20 @@ def get_connected_platforms():
 
         normalized_id = normalize_uuid(user_id)
 
-        # 기존 oauth_tokens 테이블 활용
+        # API 키 관리 페이지와 동일하게 두 테이블 모두 확인
+        # 1. oauth_tokens 테이블 확인
         oauth_result = supabase.from_('oauth_tokens') \
             .select('platform, access_token, expires_at, created_at, updated_at') \
             .eq('user_id', normalized_id) \
             .execute()
 
-        # 기존 sync_status 테이블 활용
+        # 2. calendar_sync_configs 테이블 확인 (API 키 관리 페이지와 동일)
+        sync_configs_result = supabase.from_('calendar_sync_configs') \
+            .select('platform, credentials, is_enabled, updated_at') \
+            .eq('user_id', normalized_id) \
+            .execute()
+
+        # 3. sync_status 테이블도 확인 (추가 정보용)
         sync_result = supabase.from_('sync_status') \
             .select('platform, is_connected, last_sync_at, items_synced') \
             .eq('user_id', normalized_id) \
@@ -82,27 +89,44 @@ def get_connected_platforms():
         # 데이터 결합
         platforms_info = []
         oauth_data = {item['platform']: item for item in oauth_result.data}
+        sync_configs_data = {item['platform']: item for item in sync_configs_result.data}
         sync_data = {item['platform']: item for item in sync_result.data}
 
-        # 지원 플랫폼 목록 (기존 시스템과 동일)
+        # 지원 플랫폼 목록
         supported_platforms = ['google', 'notion', 'outlook', 'apple', 'slack']
 
         for platform in supported_platforms:
             oauth_info = oauth_data.get(platform, {})
+            sync_config_info = sync_configs_data.get(platform, {})
             sync_info = sync_data.get(platform, {})
+
+            # API 키 관리 페이지와 동일한 로직 적용
+            # oauth_tokens 테이블 또는 calendar_sync_configs 테이블에 토큰이 있는지 확인
+            has_oauth_token = bool(oauth_info.get('access_token'))
+            has_sync_config_token = False
+
+            if sync_config_info:
+                credentials = sync_config_info.get('credentials', {})
+                has_sync_config_token = bool(credentials.get('access_token'))
+
+            # 둘 중 하나라도 토큰이 있고, enabled 상태면 연결됨으로 처리
+            is_enabled = sync_config_info.get('is_enabled', False) if sync_config_info else False
+            is_connected = (has_oauth_token or has_sync_config_token) and (is_enabled or has_oauth_token)
 
             platform_info = {
                 'platform': platform,
-                'is_connected': bool(oauth_info.get('access_token')),
-                'oauth_connected': bool(oauth_info.get('access_token')),
+                'is_connected': is_connected,
+                'oauth_connected': has_oauth_token,
+                'sync_config_connected': has_sync_config_token,
+                'enabled': is_enabled,
                 'sync_enabled': sync_info.get('is_connected', False),
                 'last_sync': sync_info.get('last_sync_at'),
                 'items_synced': sync_info.get('items_synced', 0),
-                'connected_at': oauth_info.get('created_at'),
+                'connected_at': oauth_info.get('created_at') or sync_config_info.get('updated_at'),
                 'expires_at': oauth_info.get('expires_at')
             }
 
-            # 실제로 연결된 플랫폼만 반환
+            # 연결된 플랫폼만 반환
             if platform_info['is_connected']:
                 platforms_info.append(platform_info)
 
