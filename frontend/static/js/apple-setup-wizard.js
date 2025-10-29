@@ -523,7 +523,7 @@ class AppleSetupWizard {
         }
         
         // Fallback
-        return window.showNotification ? window.showNotification(message, type) : // Console log removed
+        return window.showNotification ? window.showNotification(message, type) : console.log(`${type}: ${message}`);
     }
     
     /**
