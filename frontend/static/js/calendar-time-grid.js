@@ -1,40 +1,40 @@
 // Google Calendar Style Time Grid JavaScript - Updated 2025-08-25 15:30 for height fix
 
-// Force CSS override immediately on load
+// Force CSS override immediately on load - Google Calendar Style
 document.addEventListener('DOMContentLoaded', function() {
     const style = document.createElement('style');
     style.textContent = `
-        .hour-line { 
-            height: 60px !important; 
-            min-height: 60px !important; 
-            max-height: 60px !important; 
+        .hour-line {
+            height: 48px !important;
+            min-height: 48px !important;
+            max-height: 48px !important;
         }
     `;
     document.head.appendChild(style);
 });
 
-// Time grid configuration
+// Time grid configuration - Google Calendar Style
 const TIME_GRID_CONFIG = {
     startHour: 0,   // Start at 12 AM (midnight)
     endHour: 23,    // End at 11 PM
     defaultViewStart: 7, // Default visible start at 7 AM
-    hourHeight: 60, // Fixed to match CSS styling (60px per hour)
+    hourHeight: 48, // Google Calendar style (48px per hour)
     snapMinutes: 15, // Snap to 15-minute intervals
-    showHalfHours: true, // Show 30-minute marks
-    showQuarterHours: true, // Show 15-minute marks
+    showHalfHours: false, // Google style: only hour lines
+    showQuarterHours: false, // Google style: clean look
     compactMode: false // More detailed view
 };
 
-// Professional event color schemes for Linear/Slack style
+// Google Calendar event color schemes
 const EVENT_COLOR_SCHEMES = [
-    { name: 'blue', color: '#3b82f6' },
-    { name: 'green', color: '#10b981' },
-    { name: 'orange', color: '#f59e0b' },
-    { name: 'red', color: '#ef4444' },
-    { name: 'purple', color: '#8b5cf6' },
-    { name: 'pink', color: '#ec4899' },
-    { name: 'indigo', color: '#6366f1' },
-    { name: 'slate', color: '#64748b' }
+    { name: 'blue', color: '#1a73e8' },    // Google Blue
+    { name: 'red', color: '#ea4335' },     // Google Red
+    { name: 'yellow', color: '#fbbc04' },  // Google Yellow
+    { name: 'green', color: '#34a853' },   // Google Green
+    { name: 'purple', color: '#9333ea' },  // Purple
+    { name: 'orange', color: '#ff6b35' },  // Orange (Notion)
+    { name: 'pink', color: '#ec4899' },    // Pink
+    { name: 'indigo', color: '#5856d6' }   // Indigo (Apple)
 ];
 
 // Get random color scheme from the palette
@@ -273,27 +273,22 @@ function renderWeekHeader() {
     }
 }
 
-// Render time labels with enhanced detail
+// Render time labels - Google Calendar style
 function renderTimeLabels() {
     const labelsContainer = document.querySelector('.time-labels-column');
     if (!labelsContainer) return;
-    
+
     labelsContainer.innerHTML = '';
-    
+
     for (let hour = TIME_GRID_CONFIG.startHour; hour <= TIME_GRID_CONFIG.endHour; hour++) {
-        const hourOffset = hour - TIME_GRID_CONFIG.startHour;
-        const baseTop = hourOffset * TIME_GRID_CONFIG.hourHeight;
-        
-        // Main hour label
         const hourLabel = document.createElement('div');
-        hourLabel.className = 'time-label main-hour';
+        hourLabel.className = 'time-label';
         hourLabel.dataset.hour = hour;
-        hourLabel.style.top = `${baseTop}px`; // Position at the hour line
-        
+
         // Format hour display (12-hour format with AM/PM)
         let displayHour = hour;
         let ampm = 'AM';
-        
+
         if (hour === 0) {
             displayHour = 12;
             ampm = 'AM';
@@ -304,39 +299,10 @@ function renderTimeLabels() {
             displayHour = hour - 12;
             ampm = 'PM';
         }
-        
-        hourLabel.innerHTML = `
-            <span class="hour-text">${displayHour}</span>
-            <span class="ampm-text">${ampm}</span>
-        `;
+
+        // Google Calendar style: "1 AM" format
+        hourLabel.textContent = hour === 0 ? '' : `${displayHour} ${ampm}`;
         labelsContainer.appendChild(hourLabel);
-        
-        // Add 30-minute mark if not the last hour
-        if (TIME_GRID_CONFIG.showHalfHours && hour < TIME_GRID_CONFIG.endHour) {
-            const halfHourLabel = document.createElement('div');
-            halfHourLabel.className = 'time-label half-hour';
-            halfHourLabel.dataset.hour = hour;
-            halfHourLabel.dataset.minutes = 30;
-            halfHourLabel.style.top = `${baseTop + TIME_GRID_CONFIG.hourHeight / 2}px`; // Position at 30 min
-            halfHourLabel.innerHTML = '<span class="minute-text">30</span>';
-            labelsContainer.appendChild(halfHourLabel);
-        }
-        
-        // Add 15-minute marks if quarter hours are enabled
-        if (TIME_GRID_CONFIG.showQuarterHours && hour < TIME_GRID_CONFIG.endHour) {
-            [15, 45].forEach(minute => {
-                if (minute === 30 && TIME_GRID_CONFIG.showHalfHours) return; // Skip 30 if already shown
-                
-                const quarterLabel = document.createElement('div');
-                quarterLabel.className = 'time-label quarter-hour';
-                quarterLabel.dataset.hour = hour;
-                quarterLabel.dataset.minutes = minute;
-                const fraction = minute / 60;
-                quarterLabel.style.top = `${baseTop + TIME_GRID_CONFIG.hourHeight * fraction}px`; // Position at quarter marks
-                quarterLabel.innerHTML = `<span class="minute-text">${minute}</span>`;
-                labelsContainer.appendChild(quarterLabel);
-            });
-        }
     }
 }
 

@@ -1,0 +1,434 @@
+/* Google Calendar Style Month View CSS */
+
+:root {
+    /* Google Calendar Colors */
+    --google-blue: #1a73e8;
+    --google-blue-hover: #1967d2;
+    --google-blue-light: #e8f0fe;
+    --google-blue-lighter: #d2e3fc;
+    --google-gray-50: #f8f9fa;
+    --google-gray-100: #f1f3f4;
+    --google-gray-200: #e8eaed;
+    --google-gray-300: #dadce0;
+    --google-gray-500: #9aa0a6;
+    --google-gray-700: #5f6368;
+    --google-gray-800: #3c4043;
+    --google-gray-900: #202124;
+    --google-yellow: #fbbc04;
+    --google-green: #34a853;
+    --google-red: #ea4335;
+    --notion-orange: #ff6b35;
+    --apple-purple: #5856d6;
+    --outlook-blue: #0078d4;
+}
+
+/* 캘린더 컨테이너 */
+.calendar-month-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+    overflow: hidden;
+}
+
+/* 캘린더 헤더 */
+.calendar-month-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    background: white;
+    border-bottom: 1px solid var(--google-gray-300);
+}
+
+.calendar-month-title {
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--google-gray-800);
+    font-family: 'Google Sans', 'Roboto', sans-serif;
+}
+
+/* 네비게이션 버튼 */
+.calendar-nav-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.calendar-nav-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--google-gray-700);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+}
+
+.calendar-nav-btn:hover {
+    background: var(--google-gray-100);
+}
+
+.calendar-nav-btn:active {
+    background: var(--google-gray-200);
+}
+
+.calendar-today-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--google-gray-300);
+    border-radius: 4px;
+    background: white;
+    color: var(--google-gray-800);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.calendar-today-btn:hover {
+    background: var(--google-gray-50);
+    box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3);
+}
+
+/* 요일 헤더 */
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: white;
+    border-bottom: 1px solid var(--google-gray-300);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.weekday {
+    padding: 8px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--google-gray-700);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    border-right: 1px solid var(--google-gray-300);
+}
+
+.weekday:last-child {
+    border-right: none;
+}
+
+.weekday.weekend {
+    background: var(--google-gray-50);
+}
+
+/* 캘린더 그리드 */
+.calendar-days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-auto-rows: minmax(100px, 1fr);
+}
+
+/* 날짜 셀 */
+.calendar-day-cell {
+    border-right: 1px solid var(--google-gray-300);
+    border-bottom: 1px solid var(--google-gray-300);
+    padding: 8px;
+    background: white;
+    min-height: 100px;
+    position: relative;
+    transition: background 0.1s ease;
+}
+
+.calendar-day-cell:nth-child(7n) {
+    border-right: none;
+}
+
+.calendar-day-cell:hover {
+    background: var(--google-gray-50);
+}
+
+.calendar-day-cell.weekend {
+    background: #fafafa;
+}
+
+.calendar-day-cell.weekend:hover {
+    background: var(--google-gray-100);
+}
+
+.calendar-day-cell.other-month {
+    background: var(--google-gray-50);
+}
+
+.calendar-day-cell.selected {
+    background: var(--google-blue-light) !important;
+}
+
+/* 날짜 번호 */
+.day-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--google-gray-800);
+    border-radius: 50%;
+    margin-bottom: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.day-number:hover {
+    background: var(--google-gray-100);
+}
+
+.day-number.today {
+    background: var(--google-blue);
+    color: white;
+    font-weight: 500;
+}
+
+.day-number.other-month {
+    color: var(--google-gray-500);
+}
+
+/* 이벤트 컨테이너 */
+.day-events {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    margin-top: 2px;
+}
+
+/* 구글 캘린더 스타일 이벤트 */
+.calendar-event {
+    display: block;
+    background: var(--google-blue);
+    color: white;
+    border-radius: 4px;
+    padding: 0 4px;
+    margin-bottom: 1px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 18px;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+    position: relative;
+}
+
+.calendar-event:hover {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    z-index: 2;
+}
+
+/* 플랫폼별 이벤트 색상 */
+.calendar-event.google {
+    background: var(--google-blue);
+}
+
+.calendar-event.notion {
+    background: var(--notion-orange);
+}
+
+.calendar-event.apple {
+    background: var(--apple-purple);
+}
+
+.calendar-event.outlook {
+    background: var(--outlook-blue);
+}
+
+.calendar-event.manual {
+    background: var(--google-green);
+}
+
+/* 할일/태스크 스타일 */
+.calendar-event.task {
+    background: var(--google-yellow);
+    color: var(--google-gray-900);
+}
+
+.calendar-event.completed {
+    background: var(--google-gray-200);
+    color: var(--google-gray-700);
+    text-decoration: line-through;
+    opacity: 0.8;
+}
+
+/* 종일 이벤트 */
+.calendar-event.all-day {
+    background: linear-gradient(90deg, var(--event-color, var(--google-blue)) 3px, transparent 3px);
+    border: 1px solid var(--event-color, var(--google-blue));
+    color: var(--google-gray-800);
+    padding-left: 8px;
+    font-weight: 500;
+}
+
+.calendar-event.all-day:hover {
+    background-color: var(--google-blue-light);
+}
+
+/* 시간이 있는 이벤트 */
+.calendar-event.with-time {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.event-time {
+    font-size: 10px;
+    font-weight: 600;
+    opacity: 0.9;
+    flex-shrink: 0;
+}
+
+.event-title {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 멀티데이 이벤트 */
+.calendar-event.multi-day-start {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    margin-right: -8px;
+    padding-right: 12px;
+}
+
+.calendar-event.multi-day-middle {
+    border-radius: 0;
+    margin-left: -8px;
+    margin-right: -8px;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+.calendar-event.multi-day-end {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    margin-left: -8px;
+    padding-left: 12px;
+}
+
+/* 더 많은 이벤트 표시 */
+.more-events-indicator {
+    color: var(--google-gray-700);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 4px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.2s ease;
+}
+
+.more-events-indicator:hover {
+    background: var(--google-gray-100);
+    color: var(--google-gray-900);
+}
+
+/* 이벤트 팝업/툴팁 */
+.event-tooltip {
+    position: absolute;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.1);
+    padding: 12px;
+    min-width: 200px;
+    max-width: 300px;
+    z-index: 1000;
+    display: none;
+}
+
+.event-tooltip.show {
+    display: block;
+}
+
+.event-tooltip-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--google-gray-900);
+    margin-bottom: 8px;
+}
+
+.event-tooltip-time {
+    font-size: 12px;
+    color: var(--google-gray-700);
+    margin-bottom: 4px;
+}
+
+.event-tooltip-location {
+    font-size: 12px;
+    color: var(--google-gray-700);
+    margin-bottom: 4px;
+}
+
+.event-tooltip-description {
+    font-size: 12px;
+    color: var(--google-gray-700);
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--google-gray-200);
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .calendar-day-cell {
+        min-height: 80px;
+        padding: 4px;
+    }
+
+    .calendar-event {
+        font-size: 11px;
+        line-height: 16px;
+    }
+
+    .day-number {
+        width: 22px;
+        height: 22px;
+        font-size: 12px;
+    }
+
+    .weekday {
+        font-size: 10px;
+        padding: 6px;
+    }
+}
+
+/* 애니메이션 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-2px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.calendar-event {
+    animation: fadeIn 0.2s ease;
+}
+
+/* 프린트 스타일 */
+@media print {
+    .calendar-nav-buttons {
+        display: none;
+    }
+
+    .calendar-day-cell {
+        break-inside: avoid;
+    }
+
+    .calendar-event {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+}
