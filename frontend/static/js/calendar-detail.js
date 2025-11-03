@@ -1663,12 +1663,12 @@ function renderMainCalendar() {
             <div class="day-events" style="display: flex; flex-direction: column; gap: 2px;">
                 ${dayEvents.slice(0, 3).map(event => `
                     <div class="month-event" style="
-                        background: ${event.color || '#3b82f6'};
-                        color: white;
+                        background: transparent;
+                        color: #111827;
                         padding: 3px 6px;
                         border-radius: 4px;
-                        font-size: 11px;
-                        font-weight: 500;
+                        font-size: 12px;
+                        font-weight: 600;
                         white-space: nowrap;
                         overflow: hidden;
                         text-overflow: ellipsis;
@@ -1677,7 +1677,6 @@ function renderMainCalendar() {
                         display: flex;
                         align-items: center;
                         line-height: 1.2;
-                        border: 1px solid rgba(255, 255, 255, 0.2);
                     " title="${event.title}">
                         ${event.title}
                     </div>
