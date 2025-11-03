@@ -45,43 +45,43 @@ class UnifiedSyncModal {
         this.bindEvents();
     }
     
-    // 기존 .topbar-right 영역에 "연동하기" 버튼 추가
-    createSyncButton() {
-        const topbarRight = document.querySelector('.topbar-right');
-        if (!topbarRight) {
-            // .topbar-right가 없는 페이지에서는 버튼을 생성하지 않음 (정상 동작)
-            return;
-        }
+    // // 기존 .topbar-right 영역에 "연동하기" 버튼 추가
+    // createSyncButton() {
+    //     const topbarRight = document.querySelector('.topbar-right');
+    //     if (!topbarRight) {
+    //         // .topbar-right가 없는 페이지에서는 버튼을 생성하지 않음 (정상 동작)
+    //         return;
+    //     }
         
-        const syncButton = document.createElement('button');
-        syncButton.id = 'unified-sync-button';
-        syncButton.className = 'sync-icon-button'; // 새로운 아이콘 버튼 스타일
-        syncButton.title = '캘린더 연동하기'; // 툴팁
-        syncButton.innerHTML = `
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="sync-icon">
-                <path d="M23 4v6h-6M1 20v-6h6"/>
-                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
-            </svg>
-            <div class="sync-loader" style="display: none;">
-                <div class="loader-spinner"></div>
-            </div>
-        `;
+    //     const syncButton = document.createElement('button');
+    //     syncButton.id = 'unified-sync-button';
+    //     syncButton.className = 'sync-icon-button'; // 새로운 아이콘 버튼 스타일
+    //     syncButton.title = '캘린더 연동하기'; // 툴팁
+    //     syncButton.innerHTML = `
+    //         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="sync-icon">
+    //             <path d="M23 4v6h-6M1 20v-6h6"/>
+    //             <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+    //         </svg>
+    //         <div class="sync-loader" style="display: none;">
+    //             <div class="loader-spinner"></div>
+    //         </div>
+    //     `;
         
-        // 기존 view-toggle 옆에 추가
-        const viewToggle = topbarRight.querySelector('.view-toggle');
-        if (viewToggle) {
-            topbarRight.insertBefore(syncButton, viewToggle.nextSibling);
-        } else {
-            topbarRight.appendChild(syncButton);
-        }
+    //     // 기존 view-toggle 옆에 추가
+    //     const viewToggle = topbarRight.querySelector('.view-toggle');
+    //     if (viewToggle) {
+    //         topbarRight.insertBefore(syncButton, viewToggle.nextSibling);
+    //     } else {
+    //         topbarRight.appendChild(syncButton);
+    //     }
         
-        // 클릭 이벤트 - event delegation으로 안전하게 처리
-        syncButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            this.openModal();
-        });
-    }
+    //     // 클릭 이벤트 - event delegation으로 안전하게 처리
+    //     syncButton.addEventListener('click', (e) => {
+    //         e.preventDefault();
+    //         e.stopPropagation();
+    //         this.openModal();
+    //     });
+    // }
     
     // 기존 event-form-widget 스타일 재활용한 모달 생성
     createModal() {
