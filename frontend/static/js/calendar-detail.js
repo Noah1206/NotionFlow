@@ -2606,17 +2606,18 @@ function isValidCache(cacheEntry) {
 
 // Event management
 async function loadEvents() {
-    // Console log removed
-    // Console log removed
+    console.log('🔄 loadEvents 시작...');
 
     try {
         // Use global calendar ID (initialized in initializeCalendarId)
         const calendarId = window.calendarId || getCurrentCalendarId();
 
         if (!calendarId) {
-            // Console error removed
+            console.error('❌ 캘린더 ID를 찾을 수 없습니다');
             return;
         }
+
+        console.log('📋 캘린더 ID:', calendarId);
 
         // Console log removed
 
@@ -2662,6 +2663,9 @@ async function fetchAndCacheEvents(calendarId, silent = false) {
         if (response.ok) {
             const data = await response.json();
 
+            console.log('📊 API 응답 데이터:', data);
+            console.log('📊 응답 타입:', typeof data, '배열인가?', Array.isArray(data));
+
             // 캐시에 저장
             const cacheKey = getCacheKey(calendarId);
             eventCache.set(cacheKey, {
@@ -2670,7 +2674,7 @@ async function fetchAndCacheEvents(calendarId, silent = false) {
             });
 
             if (!silent) {
-                // Console log removed
+                console.log('💾 이벤트 캐시에 저장 완료');
             }
 
             // 이벤트 데이터 처리
@@ -2981,6 +2985,7 @@ async function saveEvent() {
         };
 
         console.log('🔄 이벤트 생성 요청:', eventData);
+        console.log('📍 현재 calendarEvents 배열:', calendarEvents.length, '개');
 
         const response = await fetch('/api/dashboard/events', {
             method: 'POST',
@@ -2999,8 +3004,16 @@ async function saveEvent() {
             closeEventModal();
             showNotification('이벤트가 추가되었습니다.');
 
+            console.log('🔄 이벤트 목록 새로고침 시작...');
+
+            // 캐시 무효화 (새로 생성된 이벤트를 가져오기 위해)
+            eventCache.clear();
+            console.log('🗑️ 이벤트 캐시 무효화 완료');
+
             // 이벤트 목록 새로고침
             await loadEvents();
+            console.log('📍 새로고침 후 calendarEvents 배열:', calendarEvents.length, '개');
+
             renderMonthView();
             updateStats();
         } else {
