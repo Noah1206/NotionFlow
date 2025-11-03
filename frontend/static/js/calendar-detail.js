@@ -2653,8 +2653,8 @@ async function fetchAndCacheEvents(calendarId, silent = false) {
             // Console log removed
         }
 
-        // Fetch events from API
-        const response = await fetch(`/api/calendars/${calendarId}/events`);
+        // Fetch events from API - 올바른 엔드포인트 사용
+        const response = await fetch('/api/dashboard/calendar/events');
 
         if (!silent) {
             // Console log removed
@@ -2987,7 +2987,7 @@ async function saveEvent() {
         console.log('🔄 이벤트 생성 요청:', eventData);
         console.log('📍 현재 calendarEvents 배열:', calendarEvents.length, '개');
 
-        const response = await fetch('/api/dashboard/events', {
+        const response = await fetch('/api/dashboard/calendar/events', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
