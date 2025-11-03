@@ -2595,6 +2595,56 @@ function goToToday() {
 let eventCache = new Map();
 const CACHE_DURATION = 5 * 60 * 1000; // 5분 캐시
 
+// 사이드바에서 이벤트 데이터 추출하는 함수
+function extractEventsFromSidebar() {
+    const eventItems = document.querySelectorAll('.event-list-item');
+    const extractedEvents = [];
+
+    console.log('🔍 사이드바에서 발견된 이벤트 아이템:', eventItems.length, '개');
+
+    eventItems.forEach((item, index) => {
+        try {
+            const titleElement = item.querySelector('.event-list-item-title');
+            const timeElement = item.querySelector('.event-list-item-time');
+
+            if (titleElement) {
+                const title = titleElement.textContent.trim();
+                const timeText = timeElement ? timeElement.textContent.trim() : '';
+
+                // 간단한 이벤트 객체 생성
+                const event = {
+                    id: `sidebar-event-${index}`,
+                    title: title,
+                    start_datetime: new Date().toISOString(), // 임시로 오늘 날짜
+                    start_date: new Date().toISOString().split('T')[0],
+                    description: '',
+                    is_all_day: false,
+                    source_platform: 'manual'
+                };
+
+                // 시간 정보가 있으면 파싱 시도
+                if (timeText && timeText !== '종일') {
+                    try {
+                        // "11월 3일 오후" 등의 형식 처리
+                        const today = new Date();
+                        event.start_datetime = today.toISOString();
+                        event.start_date = today.toISOString().split('T')[0];
+                    } catch (timeError) {
+                        console.warn('시간 파싱 실패:', timeError);
+                    }
+                }
+
+                extractedEvents.push(event);
+                console.log('📄 추출된 이벤트:', title, timeText);
+            }
+        } catch (error) {
+            console.error('이벤트 추출 중 오류:', error);
+        }
+    });
+
+    return extractedEvents;
+}
+
 function getCacheKey(calendarId) {
     return `events_${calendarId}`;
 }
@@ -2716,6 +2766,17 @@ function processEventsData(data) {
 
         // Transform API events to calendar format
         console.log('📊 Processing events data:', events.length, 'events');
+
+        // 만약 API에서 빈 배열이 오면, 사이드바에서 이벤트 데이터 추출 시도
+        if (events.length === 0) {
+            console.log('🔍 API에서 빈 데이터, 사이드바에서 이벤트 추출 시도...');
+            const sidebarEvents = extractEventsFromSidebar();
+            if (sidebarEvents.length > 0) {
+                console.log('✅ 사이드바에서 이벤트 발견:', sidebarEvents.length, '개');
+                events = sidebarEvents;
+            }
+        }
+
         calendarEvents = events.map(event => ({
             id: event.id,
             title: event.title || 'Untitled Event',
