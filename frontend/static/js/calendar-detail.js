@@ -1660,57 +1660,43 @@ function renderMainCalendar() {
             <div class="day-number" style="font-weight: ${isToday ? '700' : '600'}; margin-bottom: 4px; color: ${isToday ? '#1d4ed8' : (isCurrentMonth ? '#111827' : '#9ca3af')}; font-size: 14px;">
                 ${dayNumber}
             </div>
-            <div class="day-events" style="display: flex; flex-direction: column; gap: 4px;">
-                ${dayEvents.slice(0, 2).map(event => `
+            <div class="day-events" style="display: flex; flex-direction: column; gap: 2px;">
+                ${dayEvents.slice(0, 3).map(event => `
                     <div class="month-event" style="
-                        background: linear-gradient(135deg, ${event.color || '#3b82f6'} 0%, ${event.color ? event.color + 'cc' : '#1d4ed8'} 100%);
+                        background: ${event.color || '#3b82f6'};
                         color: white;
-                        padding: 8px 10px;
-                        border-radius: 8px;
-                        font-size: 13px;
-                        font-weight: 600;
+                        padding: 3px 6px;
+                        border-radius: 4px;
+                        font-size: 11px;
+                        font-weight: 500;
                         white-space: nowrap;
                         overflow: hidden;
                         text-overflow: ellipsis;
-                        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
-                        border: 2px solid rgba(255, 255, 255, 0.3);
-                        position: relative;
-                        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                         cursor: pointer;
-                        min-height: 24px;
+                        min-height: 16px;
                         display: flex;
                         align-items: center;
-                    " onmouseover="this.style.transform='translateY(-2px) scale(1.02)'; this.style.boxShadow='0 6px 12px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.15)';"
-                       onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 3px 6px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1)';">
-                        <div style="display: flex; align-items: center; gap: 6px; width: 100%;">
-                            <div style="
-                                width: 8px;
-                                height: 8px;
-                                background: rgba(255, 255, 255, 0.9);
-                                border-radius: 50%;
-                                flex-shrink: 0;
-                                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-                            "></div>
-                            <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">${event.title}</span>
-                        </div>
+                        line-height: 1.2;
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                    " title="${event.title}">
+                        ${event.title}
                     </div>
                 `).join('')}
-                ${dayEvents.length > 2 ? `
+                ${dayEvents.length > 3 ? `
                     <div style="
-                        font-size: 12px;
-                        color: #374151;
+                        font-size: 10px;
+                        color: #6b7280;
                         text-align: center;
-                        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-                        padding: 6px 8px;
-                        border-radius: 6px;
-                        font-weight: 600;
-                        border: 2px dashed #9ca3af;
-                        min-height: 20px;
+                        background: #f3f4f6;
+                        padding: 2px 4px;
+                        border-radius: 3px;
+                        font-weight: 500;
+                        min-height: 14px;
                         display: flex;
                         align-items: center;
                         justify-content: center;
                     ">
-                        +${dayEvents.length - 2} 더 보기
+                        +${dayEvents.length - 3} 더보기
                     </div>
                 ` : ''}
             </div>
