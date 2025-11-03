@@ -2640,7 +2640,18 @@ function extractEventsFromSidebar() {
     // 실제 사이드바 HTML 구조 확인
     const eventListContainer = document.getElementById('event-list');
     if (eventListContainer) {
-        console.log('🔍 event-list 컨테이너 HTML:', eventListContainer.innerHTML.substring(0, 500) + '...');
+        console.log('🔍 event-list 컨테이너 전체 HTML:', eventListContainer.innerHTML);
+
+        // 사이드바 내의 모든 텍스트 노드 확인
+        const allDivs = eventListContainer.querySelectorAll('div');
+        console.log('🔍 event-list 내 모든 div 개수:', allDivs.length);
+
+        allDivs.forEach((div, index) => {
+            if (div.textContent.trim() && div.textContent.trim().length > 0 && !div.querySelector('input')) {
+                console.log(`🔍 [DIV-${index}] 텍스트 내용:`, div.textContent.trim());
+                console.log(`🔍 [DIV-${index}] 클래스:`, div.className);
+            }
+        });
     }
 
     const extractedEvents = [];
@@ -2648,16 +2659,34 @@ function extractEventsFromSidebar() {
     eventItems.forEach((item, index) => {
         try {
             console.log(`🔍 [${index}] 이벤트 아이템 처리 중...`);
+            console.log(`🔍 [${index}] 아이템 HTML:`, item.outerHTML);
+            console.log(`🔍 [${index}] 아이템 텍스트:`, item.textContent.trim());
 
+            // 기존 선택자 시도
             const titleElement = item.querySelector('.event-list-item-title');
             const timeElement = item.querySelector('.event-list-item-time');
 
+            // 대안 선택자들 시도
+            const alternativeTitle1 = item.querySelector('.event-list-title');
+            const alternativeTitle2 = item.querySelector('div:not([style*="input"])');
+            const alternativeTime1 = item.querySelector('.event-list-date');
+
             console.log(`🔍 [${index}] titleElement:`, titleElement);
             console.log(`🔍 [${index}] timeElement:`, timeElement);
+            console.log(`🔍 [${index}] alternativeTitle1:`, alternativeTitle1);
+            console.log(`🔍 [${index}] alternativeTitle2:`, alternativeTitle2);
+            console.log(`🔍 [${index}] alternativeTime1:`, alternativeTime1);
 
-            if (titleElement) {
-                const title = titleElement.textContent.trim();
-                const timeText = timeElement ? timeElement.textContent.trim() : '';
+            // 제목 요소 찾기 (우선순위대로)
+            const finalTitleElement = titleElement || alternativeTitle1 || alternativeTitle2;
+            const finalTimeElement = timeElement || alternativeTime1;
+
+            if (finalTitleElement) {
+                const title = finalTitleElement.textContent.trim();
+                const timeText = finalTimeElement ? finalTimeElement.textContent.trim() : '';
+
+                console.log(`🔍 [${index}] 최종 선택된 title:`, title);
+                console.log(`🔍 [${index}] 최종 선택된 time:`, timeText);
 
                 // 날짜 파싱 시도 (기본값: 오늘)
                 let eventDate = new Date();
