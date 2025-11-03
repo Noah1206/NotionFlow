@@ -2710,7 +2710,8 @@ function processEventsData(data) {
             }
         }
 
-        // Transform API events to calendar format (no debug logs for performance)
+        // Transform API events to calendar format
+        console.log('📊 Processing events data:', events.length, 'events');
         calendarEvents = events.map(event => ({
             id: event.id,
             title: event.title || 'Untitled Event',
@@ -2771,15 +2772,40 @@ function loadDemoEvents() {
 }
 
 function getEventsForDate(date) {
-    const filteredEvents = calendarEvents.filter(event =>
-        event.date.getDate() === date.getDate() &&
-        event.date.getMonth() === date.getMonth() &&
-        event.date.getFullYear() === date.getFullYear()
-    );
+    if (!calendarEvents || !Array.isArray(calendarEvents)) {
+        return [];
+    }
 
-    // Debug: 특정 날짜의 이벤트만 로그 (성능을 위해 조건부)
+    const filteredEvents = calendarEvents.filter(event => {
+        let eventDate;
+
+        // API 데이터 형식: start_datetime 또는 start_date 속성 사용
+        if (event.start_datetime) {
+            eventDate = new Date(event.start_datetime);
+        } else if (event.start_date) {
+            eventDate = new Date(event.start_date);
+        } else if (event.date) {
+            // 기존 로컬 데이터 형식 (하위 호환성)
+            eventDate = event.date instanceof Date ? event.date : new Date(event.date);
+        } else {
+            return false; // 날짜 정보가 없는 이벤트는 제외
+        }
+
+        // 날짜 비교
+        return eventDate.getDate() === date.getDate() &&
+               eventDate.getMonth() === date.getMonth() &&
+               eventDate.getFullYear() === date.getFullYear();
+    });
+
+    // Debug: 특정 날짜의 이벤트 로그
     if (filteredEvents.length > 0) {
         console.log('🐛 DEBUG: getEventsForDate found events for', date.toDateString(), ':', filteredEvents.length, 'events');
+        console.log('🐛 Events:', filteredEvents.map(e => ({
+            title: e.title,
+            start_datetime: e.start_datetime,
+            start_date: e.start_date,
+            date: e.date
+        })));
     }
 
     return filteredEvents;
@@ -2845,11 +2871,22 @@ function closeEventModal() {
 
 function openDayModal(date) {
     // Navigate to calendar day page instead of opening modal
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    
-    const dateString = `${year}-${month}-${day}`;
+
+    // date가 문자열인 경우 (YYYY-MM-DD 형식) 그대로 사용
+    let dateString;
+    if (typeof date === 'string') {
+        // 이미 YYYY-MM-DD 형식의 문자열인 경우
+        dateString = date;
+    } else if (date instanceof Date) {
+        // Date 객체인 경우 문자열로 변환
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        dateString = `${year}-${month}-${day}`;
+    } else {
+        console.error('Invalid date parameter:', date);
+        return;
+    }
     const calendarId = getCurrentCalendarId();
     
     if (calendarId) {
@@ -2912,43 +2949,69 @@ function loadDayEvents(date) {
     }
 }
 
-function saveEvent() {
+async function saveEvent() {
     const title = document.getElementById('event-title').value;
     const start = document.getElementById('event-start').value;
     const end = document.getElementById('event-end').value;
     const description = document.getElementById('event-description').value;
     const allDay = document.getElementById('event-allday').checked;
-    
-    // Use random color instead of user selection
-    const randomColors = [
-        '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', 
-        '#06b6d4', '#84cc16', '#a855f7', '#6366f1', '#dc2626', '#059669', '#d97706', '#7c3aed',
-        '#db2777', '#0891b2', '#65a30d', '#4f46e5', '#be123c', '#047857'
-    ];
-    const color = randomColors[Math.floor(Math.random() * randomColors.length)];
-    
+
     if (!title || !start) {
         alert('제목과 시작일은 필수입니다.');
         return;
     }
-    
-    const newEvent = {
-        id: Date.now(),
-        title: title,
-        date: new Date(start),
-        time: allDay ? '종일' : new Date(start).toLocaleTimeString('ko-KR', {hour: '2-digit', minute: '2-digit'}),
-        description: description,
-        color: color,
-        allDay: allDay
-    };
-    
-    calendarEvents.push(newEvent);
-    renderMonthView();
-    closeEventModal();
-    updateStats();
-    
-    // Show success message
-    showNotification('이벤트가 추가되었습니다.');
+
+    try {
+        // 현재 캘린더 ID 가져오기
+        const calendarId = getCurrentCalendarId();
+        if (!calendarId) {
+            alert('캘린더 ID를 찾을 수 없습니다.');
+            return;
+        }
+
+        // API로 이벤트 생성 요청
+        const eventData = {
+            calendar_id: calendarId,
+            title: title,
+            description: description || '',
+            start_datetime: allDay ? start + 'T00:00:00' : start,
+            end_datetime: allDay ? (end || start) + 'T23:59:59' : (end || start),
+            is_all_day: allDay,
+            source_platform: 'manual'
+        };
+
+        console.log('🔄 이벤트 생성 요청:', eventData);
+
+        const response = await fetch('/api/dashboard/events', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify(eventData)
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            console.log('✅ 이벤트 생성 성공:', result);
+
+            // 성공 시 UI 업데이트
+            closeEventModal();
+            showNotification('이벤트가 추가되었습니다.');
+
+            // 이벤트 목록 새로고침
+            await loadEvents();
+            renderMonthView();
+            updateStats();
+        } else {
+            const error = await response.json();
+            console.error('❌ 이벤트 생성 실패:', error);
+            alert('이벤트 생성에 실패했습니다: ' + (error.error || '알 수 없는 오류'));
+        }
+    } catch (error) {
+        console.error('❌ 이벤트 생성 중 오류:', error);
+        alert('이벤트 생성 중 오류가 발생했습니다.');
+    }
 }
 
 function clearEventForm() {

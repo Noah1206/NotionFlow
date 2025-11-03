@@ -40,7 +40,7 @@ class UnifiedSyncModal {
     }
     
     init() {
-        this.createSyncButton();
+        // this.createSyncButton(); // 주석 처리된 함수이므로 호출 제거
         this.createModal();
         this.bindEvents();
     }
