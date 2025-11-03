@@ -1657,18 +1657,52 @@ function renderMainCalendar() {
         dayCell.onclick = () => openDayModal(currentDay.toISOString().split('T')[0]);
 
         dayCell.innerHTML = `
-            <div class="day-number" style="font-weight: ${isToday ? '700' : '500'}; margin-bottom: 4px; color: ${isToday ? '#1d4ed8' : (isCurrentMonth ? '#111827' : '#9ca3af')};">
+            <div class="day-number" style="font-weight: ${isToday ? '700' : '500'}; margin-bottom: 6px; color: ${isToday ? '#1d4ed8' : (isCurrentMonth ? '#111827' : '#9ca3af')};">
                 ${dayNumber}
             </div>
-            <div class="day-events" style="display: flex; flex-direction: column; gap: 1px;">
+            <div class="day-events" style="display: flex; flex-direction: column; gap: 3px;">
                 ${dayEvents.slice(0, 3).map(event => `
-                    <div class="month-event" style="background: ${event.color || '#3b82f6'}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        ${event.title}
+                    <div class="month-event" style="
+                        background: linear-gradient(135deg, ${event.color || '#3b82f6'}, ${event.color ? event.color + 'dd' : '#2563eb'});
+                        color: white;
+                        padding: 6px 8px;
+                        border-radius: 6px;
+                        font-size: 12px;
+                        font-weight: 500;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        position: relative;
+                        transition: all 0.2s ease;
+                        cursor: pointer;
+                    " onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(0, 0, 0, 0.15)';"
+                       onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0, 0, 0, 0.1)';">
+                        <div style="display: flex; align-items: center; gap: 4px;">
+                            <div style="
+                                width: 6px;
+                                height: 6px;
+                                background: rgba(255, 255, 255, 0.8);
+                                border-radius: 50%;
+                                flex-shrink: 0;
+                            "></div>
+                            <span style="flex: 1; overflow: hidden; text-overflow: ellipsis;">${event.title}</span>
+                        </div>
                     </div>
                 `).join('')}
                 ${dayEvents.length > 3 ? `
-                    <div style="font-size: 10px; color: #6b7280; text-align: center;">
-                        +${dayEvents.length - 3} 더보기
+                    <div style="
+                        font-size: 11px;
+                        color: #6b7280;
+                        text-align: center;
+                        background: #f3f4f6;
+                        padding: 4px 6px;
+                        border-radius: 4px;
+                        font-weight: 500;
+                        border: 1px dashed #d1d5db;
+                    ">
+                        +${dayEvents.length - 3} 더 보기
                     </div>
                 ` : ''}
             </div>
