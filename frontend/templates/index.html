@@ -3940,7 +3940,7 @@
         }
 
         /* ===== Dropbox-style Floating Video Card (Hero Video Only) ===== */
-        
+
         /* Floating video card - Only for hero video */
         .dbx-card {
             width: min(960px, 92vw);
@@ -3950,7 +3950,7 @@
             overflow: hidden;
             background: var(--surface, #fafafa);
             border: 1px solid var(--border, #e8e9ed);
-            box-shadow: 0 10px 30px rgba(0,0,0,.08), 0 30px 80px rgba(0,0,0,.12);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .08), 0 30px 80px rgba(0, 0, 0, .12);
             transform: translateZ(0);
         }
 
@@ -4008,7 +4008,7 @@
         .dbx-card {
             opacity: 0;
             transform: translateY(10px);
-            transition: opacity .6s cubic-bezier(.2,.7,.2,1), transform .6s cubic-bezier(.2,.7,.2,1);
+            transition: opacity .6s cubic-bezier(.2, .7, .2, 1), transform .6s cubic-bezier(.2, .7, .2, 1);
         }
 
         .dbx-card.is-in {
@@ -4052,21 +4052,13 @@
                 </div>
                 <figure class="figure dbx-card">
                     <div class="hero-slider">
-                        <img 
-                            class="hero-image active"
-                            src="{{ url_for('static', filename='images/demo1.png') }}"
+                        <img class="hero-image active" src="{{ url_for('static', filename='images/demo1.png') }}"
                             alt="NodeFlow Demo Screenshot 1">
-                        <img 
-                            class="hero-image"
-                            src="{{ url_for('static', filename='images/demo2.png') }}"
+                        <img class="hero-image" src="{{ url_for('static', filename='images/demo2.png') }}"
                             alt="NodeFlow Demo Screenshot 2">
-                        <img 
-                            class="hero-image"
-                            src="{{ url_for('static', filename='images/demo3.png') }}"
+                        <img class="hero-image" src="{{ url_for('static', filename='images/demo3.png') }}"
                             alt="NodeFlow Demo Screenshot 3">
-                        <img 
-                            class="hero-image"
-                            src="{{ url_for('static', filename='images/demo4.png') }}"
+                        <img class="hero-image" src="{{ url_for('static', filename='images/demo4.png') }}"
                             alt="NodeFlow Demo Screenshot 4">
                     </div>
                 </figure>
@@ -4372,48 +4364,6 @@
                                 </tr>
                             </tbody>
                         </table>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Pricing Section -->
-        <section class="pricing-preview-section pricing-section" id="pricing-preview">
-            <div class="container">
-                <div class="pricing-preview-content">
-                    <h2 class="pricing-preview-title pricing-title">
-                        워크플로우에 <span class="highlight-text">완벽한 발전</span>을 선택하세요
-                    </h2>
-                    <p class="pricing-preview-subtitle pricing-sub">
-                        개발자와 팀을 위한 강력한 캘린더 동기화 플랫폼을 무료 체험으로 시작하고 성장에 따라 확장하세요.
-                    </p>
-                    <div class="pricing-preview-cards">
-                        <div class="pricing-preview-card featured single-plan pricing-card reveal">
-                            <div class="plan-header">
-                                <h3 class="pricing-preview-plan plan-name">캘린더 통합</h3>
-                                <p class="plan-tagline plan-desc">모든 기능을 포함한 완전한 캘린더 동기화 솔루션</p>
-                            </div>
-                            <div class="pricing-preview-price price-row">
-                                <span class="currency price">$</span>
-                                <span class="amount price">12</span>
-                                <span class="period per">/월</span>
-                            </div>
-                            <div class="price-note mini-copy">연간 결제 시 $9/월 (25% 할인) • 14일 무료 체험</div>
-                            <div class="rule"></div>
-                            <div class="pricing-preview-features features">
-                                <div class="feature">무제한 캘린더 동기화</div>
-                                <div class="feature">모든 플랫폼 연결 (Google, Apple, Notion, Outlook, Slack)</div>
-                                <div class="feature">실시간 동기화</div>
-                                <div class="feature">고급 대시보드 & 분석</div>
-                                <div class="feature">팀 협업 도구</div>
-                                <div class="feature">우선 고객 지원</div>
-                                <div class="feature">자동 백업 & 복구</div>
-                            </div>
-                            <div class="rule"></div>
-                            <div class="cta-wrap">
-                                <a href="/signup" class="plan-button primary cta">14일 무료 체험 시작</a>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -4734,32 +4684,32 @@
         })();
 
         /* Dropbox-style image card animation with slider */
-        (function(){
+        (function () {
             const card = document.querySelector('.dbx-card');
-            if(!card) return;
+            if (!card) return;
 
-            const io = new IntersectionObserver(([e])=>{
-                if(e.isIntersecting){
+            const io = new IntersectionObserver(([e]) => {
+                if (e.isIntersecting) {
                     card.classList.add('is-in');
                     startSlider();
                 }
-            },{threshold:.2});
+            }, { threshold: .2 });
             io.observe(card);
 
             let sliderInterval;
             function startSlider() {
                 const images = document.querySelectorAll('.hero-image');
-                if(images.length === 0) return;
-                
+                if (images.length === 0) return;
+
                 let currentIndex = 0;
-                
+
                 sliderInterval = setInterval(() => {
                     // 현재 이미지 숨기기
                     images[currentIndex].classList.remove('active');
-                    
+
                     // 다음 인덱스로 이동
                     currentIndex = (currentIndex + 1) % images.length;
-                    
+
                     // 새 이미지 보이기
                     images[currentIndex].classList.add('active');
                 }, 3000); // 3초 간격
