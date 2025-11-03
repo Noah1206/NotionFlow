@@ -1644,11 +1644,11 @@ function renderMainCalendar() {
         dayCell.className = 'month-day-cell';
         dayCell.style.cssText = `
             background: white;
-            padding: 8px;
+            padding: 6px;
             cursor: pointer;
             border: 1px solid transparent;
             position: relative;
-            min-height: 80px;
+            min-height: 100px;
             ${!isCurrentMonth ? 'color: #9ca3af; background: #f9fafb;' : ''}
             ${isToday ? 'background: #dbeafe; border-color: #3b82f6; font-weight: bold;' : ''}
         `;
@@ -1657,52 +1657,60 @@ function renderMainCalendar() {
         dayCell.onclick = () => openDayModal(currentDay.toISOString().split('T')[0]);
 
         dayCell.innerHTML = `
-            <div class="day-number" style="font-weight: ${isToday ? '700' : '500'}; margin-bottom: 6px; color: ${isToday ? '#1d4ed8' : (isCurrentMonth ? '#111827' : '#9ca3af')};">
+            <div class="day-number" style="font-weight: ${isToday ? '700' : '600'}; margin-bottom: 4px; color: ${isToday ? '#1d4ed8' : (isCurrentMonth ? '#111827' : '#9ca3af')}; font-size: 14px;">
                 ${dayNumber}
             </div>
-            <div class="day-events" style="display: flex; flex-direction: column; gap: 3px;">
-                ${dayEvents.slice(0, 3).map(event => `
+            <div class="day-events" style="display: flex; flex-direction: column; gap: 4px;">
+                ${dayEvents.slice(0, 2).map(event => `
                     <div class="month-event" style="
-                        background: linear-gradient(135deg, ${event.color || '#3b82f6'}, ${event.color ? event.color + 'dd' : '#2563eb'});
+                        background: linear-gradient(135deg, ${event.color || '#3b82f6'} 0%, ${event.color ? event.color + 'cc' : '#1d4ed8'} 100%);
                         color: white;
-                        padding: 6px 8px;
-                        border-radius: 6px;
-                        font-size: 12px;
-                        font-weight: 500;
+                        padding: 8px 10px;
+                        border-radius: 8px;
+                        font-size: 13px;
+                        font-weight: 600;
                         white-space: nowrap;
                         overflow: hidden;
                         text-overflow: ellipsis;
-                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
+                        border: 2px solid rgba(255, 255, 255, 0.3);
                         position: relative;
-                        transition: all 0.2s ease;
+                        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                         cursor: pointer;
-                    " onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(0, 0, 0, 0.15)';"
-                       onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0, 0, 0, 0.1)';">
-                        <div style="display: flex; align-items: center; gap: 4px;">
+                        min-height: 24px;
+                        display: flex;
+                        align-items: center;
+                    " onmouseover="this.style.transform='translateY(-2px) scale(1.02)'; this.style.boxShadow='0 6px 12px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.15)';"
+                       onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 3px 6px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1)';">
+                        <div style="display: flex; align-items: center; gap: 6px; width: 100%;">
                             <div style="
-                                width: 6px;
-                                height: 6px;
-                                background: rgba(255, 255, 255, 0.8);
+                                width: 8px;
+                                height: 8px;
+                                background: rgba(255, 255, 255, 0.9);
                                 border-radius: 50%;
                                 flex-shrink: 0;
+                                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
                             "></div>
-                            <span style="flex: 1; overflow: hidden; text-overflow: ellipsis;">${event.title}</span>
+                            <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">${event.title}</span>
                         </div>
                     </div>
                 `).join('')}
-                ${dayEvents.length > 3 ? `
+                ${dayEvents.length > 2 ? `
                     <div style="
-                        font-size: 11px;
-                        color: #6b7280;
+                        font-size: 12px;
+                        color: #374151;
                         text-align: center;
-                        background: #f3f4f6;
-                        padding: 4px 6px;
-                        border-radius: 4px;
-                        font-weight: 500;
-                        border: 1px dashed #d1d5db;
+                        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+                        padding: 6px 8px;
+                        border-radius: 6px;
+                        font-weight: 600;
+                        border: 2px dashed #9ca3af;
+                        min-height: 20px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
                     ">
-                        +${dayEvents.length - 3} 더 보기
+                        +${dayEvents.length - 2} 더 보기
                     </div>
                 ` : ''}
             </div>
