@@ -186,24 +186,27 @@ def get_dashboard_stats():
                 success_rate = 0.0
                 avg_sync_time = "N/A"
         
-        # Get actual event count from calendar events using same logic as calendar list page
+        # Get actual event count from all user calendars (consistent with dashboard_data.py)
         try:
-            from datetime import datetime, timedelta
             from utils.uuid_helper import normalize_uuid
-            
-            # Use same filtering as calendar list page (365 days ahead)
+
+            # First get all user calendars
             normalized_user_id = normalize_uuid(user_id)
-            start_datetime = datetime.now()
-            end_datetime = start_datetime + timedelta(days=365)
-            
-            events_result = supabase.table('calendar_events').select('id', count='exact')\
-                .eq('user_id', normalized_user_id)\
-                .gte('start_datetime', start_datetime.isoformat())\
-                .lte('start_datetime', end_datetime.isoformat())\
-                .execute()
-            
-            synced_events_count = getattr(events_result, 'count', len(sync_events)) if hasattr(events_result, 'count') else len(sync_events)
-            print(f"📊 [API-STATS] Found {synced_events_count} events for user {user_id} (using same filter as calendar list)")
+            calendars_result = supabase.table('calendars').select('id').eq('owner_id', normalized_user_id).execute()
+
+            synced_events_count = 0
+
+            # Count events for each calendar (includes both manual and platform events)
+            for calendar in calendars_result.data:
+                calendar_events = supabase.table('calendar_events').select(
+                    'id', count='exact'
+                ).eq('calendar_id', calendar['id']).execute()
+
+                calendar_event_count = calendar_events.count if calendar_events.count is not None else 0
+                synced_events_count += calendar_event_count
+                print(f"📊 [API-STATS] Calendar {calendar['id'][:8]}...: {calendar_event_count} events")
+
+            print(f"📊 [API-STATS] Total events across all calendars for user {user_id}: {synced_events_count}")
         except Exception as e:
             print(f"⚠️ [API-STATS] Error counting events: {e}")
             synced_events_count = len(sync_events)
@@ -250,9 +253,10 @@ def create_calendar_event():
                     'error': f'Missing required field: {field}'
                 }), 400
         
-        # Create event data
+        # Create event data - calendar_id 추가 필요!
         event_data = {
             'user_id': user_id,
+            'calendar_id': data.get('calendar_id'),  # 캘린더 ID 추가!
             'title': data['title'],
             'description': data.get('description', ''),
             'start_datetime': data['start_datetime'],
@@ -267,6 +271,19 @@ def create_calendar_event():
             'created_at': datetime.now().isoformat(),
             'updated_at': datetime.now().isoformat()
         }
+
+        # calendar_id가 없으면 기본 캘린더 찾기
+        if not event_data['calendar_id']:
+            # 사용자의 첫 번째 캘린더를 기본으로 사용
+            supabase = config.supabase_client
+            calendars = supabase.table('calendars').select('id').eq('owner_id', user_id).limit(1).execute()
+            if calendars.data:
+                event_data['calendar_id'] = calendars.data[0]['id']
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': 'No calendar found. Please create a calendar first.'
+                }), 400
         
         # Save to database
         supabase = config.supabase_client

@@ -261,9 +261,18 @@ def get_sync_preview():
                     if supabase_url and supabase_key:
                         supabase = create_client(supabase_url, supabase_key)
                         
-                        # 현재 사용자의 이벤트 수 조회
-                        events_result = supabase.table('calendar_events').select('id', count='exact').eq('user_id', user_id).execute()
-                        event_count = events_result.count or 0
+                        # 현재 사용자의 이벤트 수 조회 (모든 캘린더의 이벤트 합계)
+                        from utils.uuid_helper import normalize_uuid
+                        normalized_user_id = normalize_uuid(user_id)
+
+                        # 사용자의 모든 캘린더 조회
+                        calendars_result = supabase.table('calendars').select('id').eq('owner_id', normalized_user_id).execute()
+
+                        event_count = 0
+                        # 각 캘린더의 이벤트 수 합계 (사용자 직접 생성 + 플랫폼 동기화 이벤트 모두 포함)
+                        for calendar in (calendars_result.data or []):
+                            calendar_events = supabase.table('calendar_events').select('id', count='exact').eq('calendar_id', calendar['id']).execute()
+                            event_count += (calendar_events.count or 0)
                         
                         preview[platform] = {
                             'current_events': event_count,

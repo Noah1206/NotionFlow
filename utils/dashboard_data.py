@@ -318,9 +318,10 @@ class DashboardDataManager:
                 # Calculate actual event count for this calendar
                 try:
                     # Query calendar_events table to get actual event count
+                    # calendar_id만으로 조회 (캘린더는 이미 owner_id로 필터링됨)
                     events_result = self.admin_client.table('calendar_events').select(
                         'id', count='exact'
-                    ).eq('user_id', normalized_user_id).eq('calendar_id', calendar['id']).execute()
+                    ).eq('calendar_id', calendar['id']).execute()
                     
                     event_count = events_result.count if events_result.count is not None else 0
                     print(f"📊 [EVENT-COUNT] Calendar '{calendar['name']}' ({calendar['id'][:8]}...): {event_count} events")
