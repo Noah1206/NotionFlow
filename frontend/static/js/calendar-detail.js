@@ -2630,15 +2630,30 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5분 캐시
 
 // 사이드바에서 이벤트 데이터 추출하는 함수
 function extractEventsFromSidebar() {
+    // 다양한 선택자로 이벤트 아이템 찾기
     const eventItems = document.querySelectorAll('.event-list-item');
-    const extractedEvents = [];
+    const alternativeItems = document.querySelectorAll('#event-list > div, #event-list .event-item, .sidebar-widget .event');
 
     console.log('🔍 사이드바에서 발견된 이벤트 아이템:', eventItems.length, '개');
+    console.log('🔍 대안 선택자로 발견된 아이템:', alternativeItems.length, '개');
+
+    // 실제 사이드바 HTML 구조 확인
+    const eventListContainer = document.getElementById('event-list');
+    if (eventListContainer) {
+        console.log('🔍 event-list 컨테이너 HTML:', eventListContainer.innerHTML.substring(0, 500) + '...');
+    }
+
+    const extractedEvents = [];
 
     eventItems.forEach((item, index) => {
         try {
+            console.log(`🔍 [${index}] 이벤트 아이템 처리 중...`);
+
             const titleElement = item.querySelector('.event-list-item-title');
             const timeElement = item.querySelector('.event-list-item-time');
+
+            console.log(`🔍 [${index}] titleElement:`, titleElement);
+            console.log(`🔍 [${index}] timeElement:`, timeElement);
 
             if (titleElement) {
                 const title = titleElement.textContent.trim();
@@ -2678,9 +2693,11 @@ function extractEventsFromSidebar() {
 
                 extractedEvents.push(event);
                 console.log('📄 추출된 이벤트:', title, timeText);
+            } else {
+                console.log(`🔍 [${index}] titleElement를 찾을 수 없음 - 건너뜀`);
             }
         } catch (error) {
-            console.error('이벤트 추출 중 오류:', error);
+            console.error(`❌ [${index}] 이벤트 추출 중 오류:`, error);
         }
     });
 
