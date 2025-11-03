@@ -4,14 +4,14 @@
  *
  * Flow:
  * 1. OAuth Authentication
- * 2. NotionFlow Calendar Selection
+ * 2. NodeFlow Calendar Selection
  * 3. Connection & Sync
  */
 
 class NotionCalendarManager {
     constructor() {
-        this.selectedNotionFlowCalendarId = null;
-        this.selectedNotionFlowCalendarName = null;
+        this.selectedNodeFlowCalendarId = null;
+        this.selectedNodeFlowCalendarName = null;
 
         // Console log removed
     }
@@ -23,8 +23,8 @@ class NotionCalendarManager {
         try {
             // Console log removed
 
-            // Show NotionFlow calendar selection
-            await this.showNotionFlowCalendarSelection();
+            // Show NodeFlow calendar selection
+            await this.showNodeFlowCalendarSelection();
         } catch (error) {
             // Console error removed
             this.showNotification('Notion 캘린더 선택 중 오류가 발생했습니다.', 'error');
@@ -32,13 +32,13 @@ class NotionCalendarManager {
     }
 
     /**
-     * Show NotionFlow Calendar selection modal
+     * Show NodeFlow Calendar selection modal
      */
-    async showNotionFlowCalendarSelection() {
+    async showNodeFlowCalendarSelection() {
         // Console log removed
 
         try {
-            // Fetch NotionFlow calendars
+            // Fetch NodeFlow calendars
             const response = await fetch('/api/calendars');
             const data = await response.json();
 
@@ -46,14 +46,14 @@ class NotionCalendarManager {
             const calendars = data.personal_calendars || data.calendars || [];
 
             if (!data.success || !calendars.length) {
-                this.showNotification('NotionFlow 캘린더가 없습니다. 캘린더를 먼저 생성해주세요.', 'warning');
+                this.showNotification('NodeFlow 캘린더가 없습니다. 캘린더를 먼저 생성해주세요.', 'warning');
                 return;
             }
 
             // Console log removed
 
             // Show selection modal
-            this.createNotionFlowCalendarModal(calendars);
+            this.createNodeFlowCalendarModal(calendars);
 
         } catch (error) {
             // Console error removed
@@ -62,19 +62,19 @@ class NotionCalendarManager {
     }
 
     /**
-     * Create NotionFlow Calendar selection modal (Google-style)
+     * Create NodeFlow Calendar selection modal (Google-style)
      */
-    createNotionFlowCalendarModal(calendars) {
+    createNodeFlowCalendarModal(calendars) {
         // Remove existing modal
         const existingModal = document.getElementById('notion-calendar-modal');
         if (existingModal) existingModal.remove();
 
         // Create calendar list
         const calendarItems = calendars.map(cal => `
-            <div class="calendar-item" onclick="window.notionManager.selectNotionFlowCalendar('${cal.id}', '${cal.name}')">
+            <div class="calendar-item" onclick="window.notionManager.selectNodeFlowCalendar('${cal.id}', '${cal.name}')">
                 <div class="calendar-name">${cal.name}</div>
                 <div class="calendar-description">이벤트: ${cal.event_count || 0}개</div>
-                <div class="calendar-meta">NotionFlow Calendar</div>
+                <div class="calendar-meta">NodeFlow Calendar</div>
             </div>
         `).join('');
 
@@ -83,11 +83,11 @@ class NotionCalendarManager {
             <div class="modal-overlay" id="notion-calendar-modal">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h2>NotionFlow 캘린더 선택</h2>
+                        <h2>NodeFlow 캘린더 선택</h2>
                         <button class="modal-close" onclick="window.notionManager.closeModal('notion-calendar-modal')">&times;</button>
                     </div>
                     <div class="modal-body">
-                        <p><strong>Notion</strong>과 동기화할 NotionFlow 캘린더를 선택하세요:</p>
+                        <p><strong>Notion</strong>과 동기화할 NodeFlow 캘린더를 선택하세요:</p>
                         <div class="calendar-list">
                             ${calendarItems}
                         </div>
@@ -101,9 +101,9 @@ class NotionCalendarManager {
     }
 
     /**
-     * Handle NotionFlow calendar selection and perform final connection
+     * Handle NodeFlow calendar selection and perform final connection
      */
-    async selectNotionFlowCalendar(calendarId, calendarName) {
+    async selectNodeFlowCalendar(calendarId, calendarName) {
         // Console log removed
 
         try {
@@ -112,7 +112,7 @@ class NotionCalendarManager {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    notionflow_calendar_id: calendarId
+                    nodeflow_calendar_id: calendarId
                 })
             });
 
@@ -131,7 +131,7 @@ class NotionCalendarManager {
                 this.updateConnectionStatus();
 
                 // Reset selections
-                this.selectedNotionFlowCalendarId = null;
+                this.selectedNodeFlowCalendarId = null;
 
             } else {
                 throw new Error(result.error || '연결에 실패했습니다.');

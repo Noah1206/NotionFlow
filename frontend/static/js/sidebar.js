@@ -1,5 +1,5 @@
 /**
- * 🚀 NotionFlow Dashboard Sidebar Module
+ * 🚀 NodeFlow Dashboard Sidebar Module
  * 재사용 가능한 사이드바 컴포넌트 JavaScript
  */
 

@@ -1,11 +1,11 @@
-# NotionFlow - 올인원 캘린더 동기화 플랫폼
+# NodeFlow - 올인원 캘린더 동기화 플랫폼
 
 ## 📋 프로젝트 표지
 
 <div align="center">
-  <img src="https://via.placeholder.com/800x400/3B82F6/FFFFFF?text=NotionFlow" alt="NotionFlow Banner">
+  <img src="https://via.placeholder.com/800x400/3B82F6/FFFFFF?text=NodeFlow" alt="NodeFlow Banner">
 
-  # NotionFlow
+  # NodeFlow
   ### 🌐 모든 캘린더를 하나로, 완벽한 일정 동기화의 시작
 
   [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/yourusername/notionflow)
@@ -19,7 +19,7 @@
 ## 🎯 소프트웨어 소개
 
 ### 개요
-NotionFlow는 Notion, Google Calendar, Apple Calendar, Outlook, Slack 등 다양한 플랫폼의 캘린더를 실시간으로 동기화하는 통합 캘린더 관리 솔루션입니다. 사용자가 여러 플랫폼에서 관리하는 일정을 한 곳에서 효율적으로 관리할 수 있도록 설계되었습니다.
+NodeFlow는 Notion, Google Calendar, Apple Calendar, Outlook, Slack 등 다양한 플랫폼의 캘린더를 실시간으로 동기화하는 통합 캘린더 관리 솔루션입니다. 사용자가 여러 플랫폼에서 관리하는 일정을 한 곳에서 효율적으로 관리할 수 있도록 설계되었습니다.
 
 ### 핵심 가치
 - **통합성**: 5개 이상의 주요 캘린더 플랫폼 연동
@@ -84,196 +84,83 @@ NotionFlow는 Notion, Google Calendar, Apple Calendar, Outlook, Slack 등 다양
 ### 🔐 인증 및 보안 시스템
 
 #### OAuth 2.0 통합
-```python
-# Google Calendar OAuth 플로우
-@app.route('/oauth/google/callback')
-def google_oauth_callback():
-    # 1. 인증 코드 받기
-    code = request.args.get('code')
+NodeFlow의 인증 시스템은 업계 표준 OAuth 2.0 프로토콜을 사용하여 사용자가 안전하게 외부 플랫폼과 연동할 수 있도록 구현했습니다. 사용자가 Google, Notion, Slack 등의 플랫폼과 연동하려고 할 때, 우리 시스템은 해당 플랫폼의 OAuth 서버로 사용자를 리다이렉트합니다. 사용자가 권한을 승인하면 플랫폼에서 인증 코드를 우리 콜백 URL로 전송하고, 이 코드를 사용해 액세스 토큰과 리프레시 토큰을 받아옵니다.
 
-    # 2. 액세스 토큰 교환
-    token_data = exchange_code_for_token(code)
-
-    # 3. 암호화 저장
-    encrypted_token = encrypt_token(token_data['access_token'])
-
-    # 4. DB 저장
-    supabase.from_('oauth_tokens').insert({
-        'user_id': user_id,
-        'platform': 'google',
-        'access_token': encrypted_token,
-        'refresh_token': encrypted_refresh
-    }).execute()
-```
+모든 토큰은 AES-256 암호화 알고리즘을 사용하여 암호화된 상태로 데이터베이스에 저장되며, 필요할 때만 복호화하여 사용합니다. 리프레시 토큰을 통해 액세스 토큰을 자동으로 갱신하는 메커니즘도 구현하여 사용자가 반복적으로 로그인할 필요가 없도록 했습니다.
 
 #### 세션 관리
-- Flask-Session 기반 서버 사이드 세션
-- UUID 정규화를 통한 일관된 사용자 식별
-- 자동 세션 만료 및 갱신 메커니즘
+세션 관리는 Flask-Session을 활용한 서버 사이드 세션으로 구현했습니다. 사용자가 로그인하면 고유한 세션 ID가 생성되고, 이는 쿠키로 클라이언트에 전달됩니다. 실제 세션 데이터는 서버에 저장되어 보안을 강화했습니다. 모든 사용자 ID는 UUID 형식으로 정규화하여 시스템 전체에서 일관되게 사용되며, 30분간 활동이 없으면 세션이 자동으로 만료되고 재인증을 요구합니다. 또한 "Remember Me" 기능을 통해 사용자가 원할 경우 세션을 최대 30일까지 유지할 수 있도록 했습니다.
 
 ### 📅 캘린더 관리 시스템
 
 #### 캘린더 생성 및 관리
-```javascript
-// 캘린더 생성 모달
-class CalendarManager {
-    async createCalendar(calendarData) {
-        // 1. 유효성 검증
-        if (!this.validateCalendarData(calendarData)) {
-            throw new Error('Invalid calendar data');
-        }
+캘린더 생성 프로세스는 사용자 친화적인 모달 인터페이스를 통해 진행됩니다. 사용자가 새 캘린더를 만들려고 하면, 시스템은 먼저 입력된 데이터의 유효성을 검증합니다. 캘린더 이름은 필수 항목이며, 최소 2자에서 최대 50자까지 입력 가능합니다. 색상은 미리 정의된 팔레트에서 선택할 수 있습니다.
 
-        // 2. API 호출
-        const response = await fetch('/api/calendars', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(calendarData)
-        });
-
-        // 3. UI 업데이트
-        if (response.ok) {
-            this.refreshCalendarList();
-            this.showSuccessMessage('캘린더가 생성되었습니다');
-        }
-    }
-}
-```
+캘린더 생성 요청이 서버로 전송되면, 백엔드에서는 해당 사용자의 캘린더 개수를 확인하고 플랜별 제한을 검증합니다. 무료 사용자는 최대 3개, 프로 사용자는 무제한 캘린더를 생성할 수 있습니다. 캘린더가 성공적으로 생성되면 데이터베이스에 저장되고, 실시간으로 사용자의 캘린더 목록이 업데이트됩니다.
 
 #### 다중 캘린더 지원
-- 사용자당 무제한 캘린더 생성
-- 캘린더별 색상 및 설정 커스터마이징
-- 공유 캘린더 기능 (읽기/쓰기 권한 관리)
+NodeFlow는 사용자가 여러 개의 캘린더를 동시에 관리할 수 있도록 설계되었습니다. 각 캘린더는 고유한 ID를 가지며, 개별적으로 동기화 설정을 관리할 수 있습니다. 예를 들어, 업무용 캘린더는 Outlook과 동기화하고, 개인 캘린더는 Google Calendar와 동기화하는 식으로 유연하게 설정할 수 있습니다.
+
+캘린더 공유 기능도 구현되어 있어, 사용자는 특정 캘린더를 다른 사용자와 공유할 수 있습니다. 공유 시 읽기 전용 또는 편집 가능 권한을 설정할 수 있으며, 공유 링크를 통해 비회원도 캘린더를 볼 수 있도록 공개 설정이 가능합니다. 공유된 캘린더는 실시간으로 업데이트되어 모든 참여자가 최신 정보를 확인할 수 있습니다.
 
 ### 🔄 동기화 엔진
 
 #### 실시간 양방향 동기화
-```python
-class SyncEngine:
-    def __init__(self, user_id):
-        self.user_id = user_id
-        self.sync_interval = 15  # 분
+동기화 엔진은 NodeFlow의 핵심 기능으로, 모든 연결된 플랫폼과의 데이터를 실시간으로 동기화합니다. 기본적으로 15분 간격으로 자동 동기화가 실행되며, 사용자는 언제든지 수동으로 동기화를 트리거할 수 있습니다.
 
-    async def sync_all_platforms(self):
-        """모든 플랫폼 동기화 실행"""
-        platforms = self.get_connected_platforms()
+동기화 프로세스는 먼저 사용자가 연결한 모든 플랫폼의 목록을 가져옵니다. 각 플랫폼에 대해 API를 통해 원격 이벤트를 가져오고, 로컬 데이터베이스에 저장된 이벤트와 비교합니다. 변경사항 감지 알고리즘은 이벤트의 마지막 수정 시간, 제목, 시작/종료 시간, 설명 등을 비교하여 추가, 수정, 삭제가 필요한 항목을 식별합니다.
 
-        for platform in platforms:
-            try:
-                # 1. 플랫폼에서 이벤트 가져오기
-                remote_events = await self.fetch_remote_events(platform)
-
-                # 2. 로컬 이벤트와 비교
-                local_events = self.get_local_events(platform)
-
-                # 3. 변경사항 감지
-                changes = self.detect_changes(remote_events, local_events)
-
-                # 4. 동기화 실행
-                await self.apply_changes(changes)
-
-                # 5. 상태 업데이트
-                self.update_sync_status(platform, 'success')
-
-            except Exception as e:
-                self.handle_sync_error(platform, str(e))
-```
+식별된 변경사항은 큐에 저장되고 순차적으로 처리됩니다. 각 변경사항 처리 후에는 즉시 데이터베이스에 반영되어 데이터 일관성을 보장합니다. 동기화가 완료되면 sync_status 테이블이 업데이트되어 마지막 동기화 시간과 동기화된 항목 수가 기록됩니다.
 
 #### 충돌 해결 메커니즘
-- 타임스탬프 기반 최신 우선 정책
-- 사용자 지정 우선순위 설정 가능
-- 충돌 발생 시 사용자 알림 및 선택
+여러 플랫폼에서 동시에 같은 이벤트를 수정했을 때 발생하는 충돌을 해결하기 위한 정교한 메커니즘을 구현했습니다. 기본적으로는 타임스탬프 기반의 "최신 수정 우선" 정책을 따르지만, 사용자가 플랫폼별 우선순위를 설정할 수도 있습니다.
+
+충돌이 감지되면 시스템은 두 버전의 차이점을 분석하고, 중요한 변경사항(시간, 장소 변경 등)이 있을 경우 사용자에게 알림을 보냅니다. 사용자는 대시보드에서 충돌을 검토하고 어떤 버전을 유지할지 선택할 수 있습니다. 선택하지 않은 버전도 백업으로 저장되어 필요시 복구할 수 있습니다.
 
 ### 🎨 사용자 인터페이스
 
 #### 대시보드
-```html
-<!-- 통합 캘린더 뷰 -->
-<div class="dashboard-container">
-    <!-- 헤더 섹션 -->
-    <header class="dashboard-header">
-        <h1>내 캘린더</h1>
-        <div class="quick-actions">
-            <button id="create-event">새 일정</button>
-            <button id="sync-now">지금 동기화</button>
-        </div>
-    </header>
+메인 대시보드는 사용자가 모든 캘린더를 한눈에 볼 수 있도록 설계되었습니다. 상단 헤더에는 현재 선택된 날짜와 빠른 작업 버튼들이 배치되어 있습니다. 새 일정 추가 버튼을 클릭하면 이벤트 생성 모달이 나타나고, 지금 동기화 버튼을 누르면 모든 플랫폼과의 즉시 동기화가 시작됩니다.
 
-    <!-- 캘린더 그리드 -->
-    <div class="calendar-grid">
-        <!-- 월간/주간/일간 뷰 전환 -->
-        <div class="view-switcher">
-            <button data-view="month">월</button>
-            <button data-view="week">주</button>
-            <button data-view="day">일</button>
-        </div>
+중앙의 캘린더 그리드는 월간, 주간, 일간 뷰로 전환할 수 있습니다. 각 뷰는 사용자의 선호도에 따라 커스터마이징 가능하며, 드래그 앤 드롭으로 일정을 이동하거나 시간을 조정할 수 있습니다. 이벤트를 클릭하면 상세 정보 팝업이 나타나고, 바로 편집하거나 삭제할 수 있습니다.
 
-        <!-- 실제 캘린더 렌더링 영역 -->
-        <div id="calendar-view"></div>
-    </div>
-
-    <!-- 사이드바: 캘린더 목록 -->
-    <aside class="calendar-sidebar">
-        <div class="calendar-list">
-            <!-- 동적으로 생성되는 캘린더 목록 -->
-        </div>
-    </aside>
-</div>
-```
+좌측 사이드바에는 사용자의 모든 캘린더 목록이 표시됩니다. 각 캘린더 옆의 체크박스로 표시 여부를 토글할 수 있고, 색상 표시기를 클릭하면 캘린더 색상을 변경할 수 있습니다. 캘린더 이름 위에 마우스를 올리면 편집 및 삭제 아이콘이 나타납니다.
 
 #### 플랫폼 연동 플로우
-1. **플랫폼 선택**: 카드 UI로 시각적 선택
-2. **OAuth 인증**: 안전한 리다이렉트 플로우
-3. **캘린더 매핑**: 2단계 모달로 직관적 연결
-4. **동기화 시작**: 자동 또는 수동 동기화 옵션
+플랫폼 연동은 직관적인 4단계 프로세스로 진행됩니다. 첫째, API 키 관리 페이지에서 연동하고자 하는 플랫폼 카드를 선택합니다. 각 카드에는 플랫폼 로고와 간단한 설명이 포함되어 있습니다. 둘째, 연결 버튼을 클릭하면 해당 플랫폼의 OAuth 인증 페이지로 리다이렉트됩니다. 셋째, 권한을 승인하면 NodeFlow로 돌아와 2단계 모달이 나타납니다. 여기서 플랫폼의 캘린더와 NodeFlow 캘린더를 매핑합니다. 넷째, 설정을 완료하면 자동으로 첫 동기화가 시작됩니다.
 
 ### 🔌 플랫폼별 통합 기능
 
 #### Google Calendar
-- 전체 캘린더 목록 가져오기
-- 이벤트 CRUD 작업
-- 참석자 관리
-- 알림 설정 동기화
+Google Calendar 통합은 Google Calendar API v3를 사용하여 구현했습니다. 사용자가 OAuth 인증을 완료하면, 시스템은 사용자의 모든 Google 캘린더 목록을 가져옵니다. 각 캘린더의 이벤트를 조회할 때는 페이지네이션을 사용하여 대량의 데이터도 효율적으로 처리합니다.
+
+이벤트 생성 시 Google Calendar의 모든 속성을 지원합니다. 제목, 설명, 시작/종료 시간은 물론 위치, 참석자, 알림 설정까지 동기화됩니다. 반복 일정도 RRULE 형식을 파싱하여 정확하게 처리하며, 시간대 변환도 자동으로 처리됩니다. 참석자 관리 기능을 통해 회의 초대장을 보내고 응답 상태를 추적할 수 있습니다.
 
 #### Notion
-- 데이터베이스 기반 캘린더 연동
-- 속성 매핑 (날짜, 제목, 설명 등)
-- 페이지 링크 자동 생성
-- 태그 및 카테고리 동기화
+Notion 통합은 Notion API를 활용하여 데이터베이스 기반 캘린더를 연동합니다. 사용자가 Notion 워크스페이스에 있는 데이터베이스를 선택하면, 시스템은 해당 데이터베이스의 스키마를 분석합니다. 날짜 속성을 가진 데이터베이스만 캘린더로 사용 가능하며, 제목, 설명, 태그 등의 속성을 자동으로 매핑합니다.
+
+Notion 페이지가 생성되거나 수정될 때마다 웹훅을 통해 실시간으로 업데이트를 받습니다. NodeFlow에서 이벤트를 생성하면 자동으로 Notion 페이지가 생성되고, 페이지 링크가 이벤트에 첨부됩니다. 태그와 카테고리는 Notion의 Select/Multi-select 속성과 동기화되어 일관된 분류 체계를 유지합니다.
 
 #### Apple Calendar
-- iCloud 캘린더 접근
-- 리마인더 통합
-- 위치 기반 알림
-- Siri 단축어 지원
+Apple Calendar 통합은 CalDAV 프로토콜을 통해 iCloud 캘린더에 접근합니다. 사용자의 Apple ID와 앱별 비밀번호를 사용하여 인증하며, 모든 iCloud 캘린더와 동기화할 수 있습니다. 리마인더 앱과의 통합도 지원하여 할 일 목록을 캘린더 이벤트로 표시할 수 있습니다.
+
+위치 기반 알림 기능을 구현하여 특정 장소에 도착하거나 떠날 때 알림을 받을 수 있습니다. Siri 단축어 지원을 통해 음성 명령으로 일정을 추가하거나 확인할 수 있으며, Apple Watch와의 동기화도 자동으로 처리됩니다.
 
 #### Outlook
-- Exchange 서버 연동
-- 회의실 예약 통합
-- Teams 미팅 링크 자동 생성
-- 업무 시간 설정 반영
+Outlook 통합은 Microsoft Graph API를 사용하여 Exchange 서버와 연동합니다. Office 365 계정이나 Outlook.com 계정 모두 지원하며, 기업 환경에서 사용되는 Exchange Server와도 호환됩니다. 회의실 예약 시스템과 통합되어 회의실 가용성을 확인하고 예약할 수 있습니다.
+
+Teams 미팅과의 통합을 통해 온라인 회의가 포함된 일정을 생성하면 자동으로 Teams 미팅 링크가 생성됩니다. 업무 시간 설정을 반영하여 근무 시간 외의 일정을 구분하고, 부재중 자동 응답 설정도 동기화됩니다. 위임된 캘린더 액세스도 지원하여 비서나 팀원이 다른 사람의 캘린더를 관리할 수 있습니다.
 
 #### Slack
-- 채널별 캘린더 공유
-- 슬래시 커맨드 지원
-- 일정 알림 봇
-- 상태 메시지 자동 업데이트
+Slack 통합은 Slack API와 봇을 활용하여 팀 커뮤니케이션과 일정 관리를 연결합니다. 특정 채널에 캘린더를 공유하면 채널 멤버들이 일정을 확인하고 댓글을 남길 수 있습니다. 슬래시 커맨드를 통해 채팅창에서 바로 일정을 조회하거나 추가할 수 있습니다.
+
+일정 알림 봇은 예정된 이벤트를 사전에 알려주고, 참석자들에게 리마인더를 보냅니다. 사용자의 Slack 상태 메시지를 현재 진행 중인 일정에 따라 자동으로 업데이트하여 팀원들이 서로의 가용성을 쉽게 파악할 수 있습니다. 일정 투표 기능을 통해 팀 회의 시간을 민주적으로 결정할 수도 있습니다.
 
 ### 📊 분석 및 통계
 
-```python
-class AnalyticsService:
-    def generate_user_insights(self, user_id):
-        """사용자 일정 패턴 분석"""
-        return {
-            'total_events': self.count_total_events(user_id),
-            'busiest_day': self.find_busiest_day(user_id),
-            'average_events_per_day': self.calculate_average(user_id),
-            'sync_performance': self.measure_sync_performance(user_id),
-            'platform_usage': self.analyze_platform_usage(user_id)
-        }
-```
+사용자 인사이트 생성 기능은 축적된 캘린더 데이터를 분석하여 의미 있는 통계를 제공합니다. 시스템은 총 이벤트 수, 가장 바쁜 요일, 일일 평균 일정 수 등 기본적인 통계를 계산합니다. 또한 동기화 성능을 측정하여 어떤 플랫폼이 가장 자주 사용되는지, 동기화 속도는 어떤지 등을 분석합니다.
+
+시간 사용 패턴 분석을 통해 사용자가 언제 가장 생산적인지, 회의가 집중되는 시간대는 언제인지 파악할 수 있습니다. 이러한 인사이트를 바탕으로 일정 최적화 제안을 제공하며, 예를 들어 집중 작업 시간 블록을 추천하거나 과도한 회의를 경고합니다. 월별, 분기별 리포트를 생성하여 장기적인 시간 관리 추세를 파악할 수 있도록 돕습니다.
 
 ---
 
@@ -390,7 +277,7 @@ class AnalyticsService:
 ### 비전
 "모든 사람이 시간의 주인이 되는 세상"
 
-NotionFlow는 단순한 캘린더 동기화 도구를 넘어, 사용자의 시간 관리 파트너가 되고자 합니다. 우리는 기술을 통해 사람들이 더 의미 있는 일에 집중할 수 있도록 돕습니다.
+NodeFlow는 단순한 캘린더 동기화 도구를 넘어, 사용자의 시간 관리 파트너가 되고자 합니다. 우리는 기술을 통해 사람들이 더 의미 있는 일에 집중할 수 있도록 돕습니다.
 
 ---
 
@@ -409,6 +296,6 @@ MIT License - 자유롭게 사용, 수정, 배포 가능
 
 ---
 
-*NotionFlow - 당신의 시간을 더 가치있게*
+*NodeFlow - 당신의 시간을 더 가치있게*
 
-*Copyright © 2024 NotionFlow Team. All rights reserved.*
+*Copyright © 2024 NodeFlow Team. All rights reserved.*

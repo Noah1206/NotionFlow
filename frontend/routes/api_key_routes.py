@@ -37,7 +37,7 @@ PLATFORM_CONFIGS = {
         'name': 'Slack',
         'credential_type': 'webhook_url',
         'test_method': 'POST',
-        'test_payload': {'text': 'NotionFlow connection test'},
+        'test_payload': {'text': 'NodeFlow connection test'},
         'required_fields': ['webhook_url']
     },
     'google': {
@@ -440,8 +440,8 @@ def test_slack_connection(credentials: Dict) -> Dict:
             return {'success': False, 'error': 'Slack webhook URL required'}
         
         payload = {
-            'text': 'NotionFlow connection test - you can ignore this message',
-            'username': 'NotionFlow',
+            'text': 'NodeFlow connection test - you can ignore this message',
+            'username': 'NodeFlow',
             'icon_emoji': ':calendar:'
         }
         

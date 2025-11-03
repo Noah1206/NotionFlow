@@ -1,6 +1,6 @@
-# CLAUDE.md - NotionFlow Project Guidelines
+# CLAUDE.md - NodeFlow Project Guidelines
 
-> 이 문서는 NotionFlow 프로젝트의 코드 작성, 수정 및 개발 시 준수해야 할 모든 규칙과 가이드라인을 정의합니다.
+> 이 문서는 NodeFlow 프로젝트의 코드 작성, 수정 및 개발 시 준수해야 할 모든 규칙과 가이드라인을 정의합니다.
 
 ## 📋 목차
 
@@ -33,7 +33,7 @@
 - **Google Calendar 카드 비활성화 로직 복원**: 캘린더가 없을 때 모든 플랫폼 카드 비활성화
 - **올바른 2단계 모달 플로우 구현**:
   - 1단계: 사용자의 Google 캘린더 선택 (구글 계정에 있는 캘린더들)
-  - 2단계: NotionFlow 캘린더 선택 (연결할 대상 캘린더)
+  - 2단계: NodeFlow 캘린더 선택 (연결할 대상 캘린더)
 - **캘린더 자동 생성 로직 완전 제거**: 사용자가 직접 캘린더를 생성해야 함
 
 **수정된 파일들**:
@@ -150,10 +150,10 @@
    // 1단계: Google 캘린더 선택 (사용자 계정의 구글 캘린더들)
    await this.showGoogleCalendarSelection();
 
-   // 2단계: NotionFlow 캘린더 선택 (연결할 대상)
-   await this.showNotionFlowCalendarSelection();
+   // 2단계: NodeFlow 캘린더 선택 (연결할 대상)
+   await this.showNodeFlowCalendarSelection();
 
-   // ❌ 잘못된 플로우: 바로 NotionFlow 캘린더 선택하거나 자동 캘린더 생성
+   // ❌ 잘못된 플로우: 바로 NodeFlow 캘린더 선택하거나 자동 캘린더 생성
    ```
 
 10. **캘린더 자동 생성 금지 (2024-10-05 추가)**
@@ -202,7 +202,7 @@
 ## 🎯 프로젝트 컨텍스트
 
 ### 프로젝트 개요
-- **이름**: NotionFlow
+- **이름**: NodeFlow
 - **목적**: Notion과 다양한 캘린더 플랫폼 간의 원활한 동기화
 - **주요 기술**: Flask, Supabase, PostgreSQL, OAuth 2.0
 - **배포 환경**: Railway, Google Cloud Run, Docker
@@ -1328,7 +1328,7 @@ profiler = Profiler(app)
 
 ---
 
-*이 문서는 NotionFlow 프로젝트의 모든 개발 활동에 대한 절대 지침입니다.*
+*이 문서는 NodeFlow 프로젝트의 모든 개발 활동에 대한 절대 지침입니다.*
 *모든 코드 수정 시 이 문서의 규칙을 반드시 준수해야 합니다.*
 
 *마지막 업데이트: 2024년 10월 5일*
@@ -1338,7 +1338,7 @@ profiler = Profiler(app)
 ### Google Calendar OAuth 2단계 모달 수정
 - **문제**: OAuth 성공 후 2단계 모달이 나타나지 않고, Google Calendar enabled 상태가 false로 표시됨
 - **해결**:
-  1. GoogleCalendarManager 2단계 플로우 구현 (Google 캘린더 선택 → NotionFlow 캘린더 선택)
+  1. GoogleCalendarManager 2단계 플로우 구현 (Google 캘린더 선택 → NodeFlow 캘린더 선택)
   2. 캘린더가 없을 때 플랫폼 카드 비활성화 로직 복원
   3. 모든 자동 캘린더 생성 로직 제거 (사용자가 직접 생성해야 함)
 

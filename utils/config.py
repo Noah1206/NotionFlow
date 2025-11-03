@@ -1,5 +1,5 @@
 """
-🔐 NotionFlow Configuration Manager
+🔐 NodeFlow Configuration Manager
 Secure configuration management with environment variables and validation
 """
 
@@ -193,7 +193,7 @@ class Config:
     
     def print_config_status(self):
         """Print configuration status for debugging"""
-        print("\n🔧 NotionFlow Configuration Status:")
+        print("\n🔧 NodeFlow Configuration Status:")
         print(f"   Environment: {self.FLASK_ENV}")
         print(f"   Debug Mode: {self.DEBUG}")
         print(f"   Supabase URL: {self.SUPABASE_URL}")

@@ -23,8 +23,8 @@ def connect_notion_to_calendar():
             return jsonify({'error': 'User not authenticated'}), 401
             
         data = request.get_json()
-        calendar_id = data.get('calendar_id')
-        
+        calendar_id = data.get('calendar_id') or data.get('nodeflow_calendar_id')  # Support both parameter names
+
         if not calendar_id:
             return jsonify({'error': 'Calendar ID is required'}), 400
             

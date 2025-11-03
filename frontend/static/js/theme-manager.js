@@ -1,5 +1,5 @@
 /**
- * 🎨 NotionFlow Theme Manager - Light Mode Only
+ * 🎨 NodeFlow Theme Manager - Light Mode Only
  * 다크 모드를 완전히 비활성화하고 라이트 모드만 강제 사용
  */
 

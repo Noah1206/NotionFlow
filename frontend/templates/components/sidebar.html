@@ -1,5 +1,5 @@
-<!-- 
-    ✅✅✅ NOTIONFLOW SIDEBAR v5.0 - FIXED VERSION ✅✅✅
+<!--
+    ✅✅✅ NODEFLOW SIDEBAR v5.0 - FIXED VERSION ✅✅✅
     =============================================
     CACHE BUSTER: {{ range(500000, 999999) | random }}
     DEPLOYED: 2025-08-07 01:20 KST - CALENDAR LIST MODE
@@ -1107,7 +1107,7 @@
             margin-bottom: 8px;
         }
 
-        /* NotionFlow 로고 텍스트 */
+        /* NodeFlow 로고 텍스트 */
         .sidebar-logo {
             display: flex;
             align-items: center;
@@ -1615,9 +1615,9 @@
             let encryptedId = '';
             let encryptedEmail = '';
 
-            if (window.notionFlowConfig && window.notionFlowConfig.encryptedUserId) {
-                encryptedId = window.notionFlowConfig.encryptedUserId;
-                encryptedEmail = window.notionFlowConfig.encryptedEmail;
+            if (window.nodeFlowConfig && window.nodeFlowConfig.encryptedUserId) {
+                encryptedId = window.nodeFlowConfig.encryptedUserId;
+                encryptedEmail = window.nodeFlowConfig.encryptedEmail;
             } else if (window.dashboardData && window.dashboardData.encrypted_user_id) {
                 encryptedId = window.dashboardData.encrypted_user_id;
                 encryptedEmail = window.dashboardData.encrypted_email;

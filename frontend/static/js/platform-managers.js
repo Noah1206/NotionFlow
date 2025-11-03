@@ -758,7 +758,7 @@ class GoogleManager extends PlatformManager {
         try {
             // Console log removed
 
-            // Fetch user's NotionFlow calendars
+            // Fetch user's NodeFlow calendars
             const response = await fetch('/api/calendars');
             if (!response.ok) {
                 throw new Error(`Failed to fetch user calendars: ${response.status}`);
@@ -1321,7 +1321,7 @@ class GoogleManager extends PlatformManager {
                 try {
                     const googleManager = PlatformManagerFactory.get('google');
                     if (googleManager) {
-                        // Step 2: Show user's NotionFlow calendars
+                        // Step 2: Show user's NodeFlow calendars
                         await googleManager.showUserCalendarSelection(window.selectedCalendarId);
                     }
                 } catch (error) {

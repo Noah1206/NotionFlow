@@ -1,5 +1,5 @@
 """
-🔐 NotionFlow Payment Management System
+🔐 NodeFlow Payment Management System
 토스페이먼츠 연동 및 구독 관리 시스템
 """
 

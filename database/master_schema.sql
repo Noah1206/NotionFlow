@@ -1,5 +1,5 @@
 -- ============================================
--- 🚀 NotionFlow Master Database Schema
+-- 🚀 NodeFlow Master Database Schema
 -- Consolidated schema file combining all table definitions
 -- and common functions to eliminate duplication
 -- ============================================

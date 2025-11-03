@@ -1,10 +1,10 @@
-# NotionFlow 📅
+# NodeFlow 📅
 
 > Seamless calendar synchronization between Notion and your favorite calendar apps
 
 ## ✨ Quick Overview
 
-**NotionFlow**는 여러 캘린더 플랫폼 간의 원활한 동기화를 제공하는 웹 애플리케이션입니다.
+**NodeFlow**는 여러 캘린더 플랫폼 간의 원활한 동기화를 제공하는 웹 애플리케이션입니다.
 
 ### 주요 기능
 - 🗓️ **다중 플랫폼 지원**: Google Calendar, Apple Calendar, Outlook, Notion

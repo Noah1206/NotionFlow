@@ -1,5 +1,5 @@
 -- ============================================
--- 🚀 NotionFlow Complete Database Schema
+-- 🚀 NodeFlow Complete Database Schema
 -- Updated with actual production schema structure
 -- ============================================
 

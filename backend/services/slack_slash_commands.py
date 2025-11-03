@@ -33,7 +33,7 @@ def verify_slack_request(request):
     return all(field in request.form for field in required_fields)
 
 def get_user_by_slack_team_user(team_id, user_id):
-    """Get NotionFlow user by Slack team and user ID"""
+    """Get NodeFlow user by Slack team and user ID"""
     try:
         if not supabase:
             return None
@@ -74,12 +74,12 @@ def handle_notion_command():
     text = request.form.get('text', '').strip()
     response_url = request.form.get('response_url')
     
-    # Get NotionFlow user
+    # Get NodeFlow user
     notionflow_user = get_user_by_slack_team_user(team_id, user_id)
     if not notionflow_user:
         return jsonify({
             'response_type': 'ephemeral',
-            'text': 'You need to connect your Slack account to NotionFlow first. Visit your NotionFlow dashboard to set up the integration.'
+            'text': 'You need to connect your Slack account to NodeFlow first. Visit your NodeFlow dashboard to set up the integration.'
         })
     
     # Parse command text
@@ -108,12 +108,12 @@ def handle_notion_command():
 def show_help():
     """Show help message for /notion command"""
     help_text = """
-*NotionFlow Slack Commands*
+*NodeFlow Slack Commands*
 
 • `/notion create [page|database] [title]` - Create a new Notion page or database
 • `/notion save [message_link]` - Save a Slack message to Notion
 • `/notion search [query]` - Search your Notion pages
-• `/notion status` - Check your NotionFlow connection status
+• `/notion status` - Check your NodeFlow connection status
 • `/notion help` - Show this help message
 
 *Examples:*
@@ -238,7 +238,7 @@ def handle_status_command(user_id, slack_user_id):
                 sync_info += f"• {status_emoji} {sync['platform'].title()} - {sync['created_at'][:10]}\n"
         
         status_text = f"""
-*NotionFlow Connection Status*
+*NodeFlow Connection Status*
 
 Notion: {notion_status}
 Slack: {slack_status}
@@ -269,7 +269,7 @@ def create_notion_content_async(user_id, content_type, title, channel_id, slack_
         if not notion_connection.data:
             send_delayed_response(response_url, {
                 'response_type': 'ephemeral',
-                'text': 'Notion not connected. Please connect Notion in your NotionFlow dashboard.'
+                'text': 'Notion not connected. Please connect Notion in your NodeFlow dashboard.'
             })
             return
         
@@ -405,7 +405,7 @@ def search_notion_async(user_id, query, slack_user_id, response_url):
         if not notion_connection.data:
             send_delayed_response(response_url, {
                 'response_type': 'ephemeral',
-                'text': 'Notion not connected. Please connect Notion in your NotionFlow dashboard.'
+                'text': 'Notion not connected. Please connect Notion in your NodeFlow dashboard.'
             })
             return
         

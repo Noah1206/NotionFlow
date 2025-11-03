@@ -1,9 +1,9 @@
-# 🏗️ NotionFlow Codebase Overview
+# 🏗️ NodeFlow Codebase Overview
 
 ## 📊 Project Architecture
 
 ```
-NotionFlow/
+NodeFlow/
 ├── 🎯 app.py                    # Main entry point (loads frontend/app.py)
 ├── 🖥️ frontend/                 # Web application layer
 │   ├── app.py                   # Flask main application with lazy loading

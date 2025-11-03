@@ -1,4 +1,4 @@
--- Migration: Create sync tracking tables for NotionFlow
+-- Migration: Create sync tracking tables for NodeFlow
 -- Version: 001
 -- Date: 2025-01-25
 

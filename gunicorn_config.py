@@ -1,5 +1,5 @@
 """
-🚀 Gunicorn Configuration for NotionFlow Production Deployment
+🚀 Gunicorn Configuration for NodeFlow Production Deployment
 """
 import os
 import multiprocessing

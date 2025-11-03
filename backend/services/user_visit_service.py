@@ -1,5 +1,5 @@
 """
-🚀 NotionFlow User Visit Tracking Service
+🚀 NodeFlow User Visit Tracking Service
 Manages user visits and first-time popup display logic with Supabase integration
 """
 

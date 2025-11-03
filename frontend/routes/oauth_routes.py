@@ -1109,7 +1109,7 @@ def exchange_code_for_tokens(platform, code, state_data):
         headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
             'Notion-Version': '2022-06-28',
-            'User-Agent': 'NotionFlow/1.0'
+            'User-Agent': 'NodeFlow/1.0'
         }
         # Notion token request format - credentials go in Authorization header, not body
         token_data = {

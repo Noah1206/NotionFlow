@@ -72,7 +72,7 @@ def verify_outlook_signature(request):
     return True
 
 def get_user_by_platform_id(platform, platform_user_id, team_id=None):
-    """Get NotionFlow user ID by platform user ID"""
+    """Get NodeFlow user ID by platform user ID"""
     try:
         if not supabase:
             return None
@@ -159,7 +159,7 @@ def handle_slack_message(event, team_id):
     if not user_id or event.get('bot_id'):
         return jsonify({'status': 'ignored'})
     
-    # Get NotionFlow user
+    # Get NodeFlow user
     notionflow_user = get_user_by_platform_id('slack', user_id, team_id)
     if not notionflow_user:
         return jsonify({'status': 'no_user'})
@@ -198,7 +198,7 @@ def handle_slack_reaction_added(event, team_id):
     if item.get('type') != 'message':
         return jsonify({'status': 'ignored'})
     
-    # Get NotionFlow user
+    # Get NodeFlow user
     notionflow_user = get_user_by_platform_id('slack', user_id, team_id)
     if not notionflow_user:
         return jsonify({'status': 'no_user'})
@@ -453,7 +453,7 @@ def extract_user_from_resource(resource, client_state):
         parts = resource.split('/users/')
         if len(parts) > 1:
             user_part = parts[1].split('/')[0]
-            # Look up NotionFlow user by Outlook user ID
+            # Look up NodeFlow user by Outlook user ID
             return get_user_by_platform_id('outlook', user_part)
     
     return None

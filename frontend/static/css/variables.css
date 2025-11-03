@@ -1,4 +1,4 @@
-/* 🌟 NOTIONFLOW LIGHT THEME - ClickUp Inspired Light (Default) */
+/* 🌟 NODEFLOW LIGHT THEME - ClickUp Inspired Light (Default) */
 :root,
 [data-theme="light"] {
     /* 🎨 CORE COLORS - Clean Black/White Theme */
@@ -195,7 +195,7 @@ select:focus {
     background: transparent !important;
 }
 
-/* 💎 NOTIONFLOW BRAND THEME BASE TYPOGRAPHY */
+/* 💎 NODEFLOW BRAND THEME BASE TYPOGRAPHY */
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     color: var(--text-primary) !important;

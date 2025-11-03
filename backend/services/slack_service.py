@@ -6,7 +6,7 @@ import json
 from supabase import create_client
 
 class SlackProvider:
-    """Slack integration provider for NotionFlow"""
+    """Slack integration provider for NodeFlow"""
     
     def __init__(self, access_token: str, team_id: str = None):
         self.access_token = access_token

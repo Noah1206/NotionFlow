@@ -1,6 +1,6 @@
 """
 Apple Calendar (CalDAV) Synchronization Service
-Handles bidirectional sync between Apple Calendar and NotionFlow
+Handles bidirectional sync between Apple Calendar and NodeFlow
 """
 
 import os
@@ -37,7 +37,7 @@ class AppleCalendarSync:
 
     def sync_to_calendar(self, user_id: str, calendar_id: Optional[str] = None, date_range: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
         """
-        Sync Apple Calendar events to NotionFlow calendar
+        Sync Apple Calendar events to NodeFlow calendar
 
         Args:
             user_id: User ID to sync for
@@ -79,7 +79,7 @@ class AppleCalendarSync:
             apple_events = self._fetch_apple_events(credentials, date_range)
             print(f"📥 [APPLE SYNC] Fetched {len(apple_events)} events from Apple Calendar")
 
-            # Sync events to NotionFlow calendar using batch processing
+            # Sync events to NodeFlow calendar using batch processing
             synced_count = self._sync_events_batch_apple(apple_events, user_id, calendar_id)
 
             print(f"✅ [APPLE SYNC] Successfully synced {synced_count} events")
@@ -611,7 +611,7 @@ class AppleCalendarSync:
             return datetime.now().isoformat()
 
     def _sync_event_to_notionflow(self, user_id: str, calendar_id: str, event: Dict) -> bool:
-        """Sync a single event to NotionFlow calendar using calendar_events table"""
+        """Sync a single event to NodeFlow calendar using calendar_events table"""
         try:
             supabase = config.get_client_for_user(user_id)
 

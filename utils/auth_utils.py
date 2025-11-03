@@ -1,5 +1,5 @@
 """
-🔐 NotionFlow Authentication Utilities
+🔐 NodeFlow Authentication Utilities
 JWT token validation and user session management utilities
 """
 

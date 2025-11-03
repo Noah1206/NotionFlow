@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Database Setup Script for NotionFlow
+Database Setup Script for NodeFlow
 This script checks and creates necessary database tables
 """
 
@@ -28,12 +28,12 @@ def check_table_exists(supabase_client, table_name):
         return False
 
 def create_basic_tables():
-    """Create basic tables needed for NotionFlow functionality"""
+    """Create basic tables needed for NodeFlow functionality"""
     # Return empty list as no calendar tables are needed
     return []
 
 def main():
-    print("🚀 Starting NotionFlow Database Setup...")
+    print("🚀 Starting NodeFlow Database Setup...")
     
     try:
         # Initialize Supabase client

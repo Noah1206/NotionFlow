@@ -6,7 +6,7 @@ import json
 from supabase import create_client
 
 class OutlookProvider:
-    """Outlook/Microsoft Graph integration provider for NotionFlow"""
+    """Outlook/Microsoft Graph integration provider for NodeFlow"""
     
     def __init__(self, access_token: str, refresh_token: str = None):
         self.access_token = access_token
