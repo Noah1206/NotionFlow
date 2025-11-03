@@ -1491,6 +1491,78 @@ def delete_calendar_event_simple(calendar_id, event_id):
             'error': f'Failed to delete event: {str(e)}'
         }), 500
 
+@calendar_api_bp.route('/calendars/<calendar_id>/privacy', methods=['PUT'])
+def toggle_calendar_privacy(calendar_id):
+    """Toggle calendar privacy (public/private)"""
+    try:
+        user_id = get_current_user_id()
+        if not user_id:
+            return jsonify({
+                'success': False,
+                'error': 'Authentication required'
+            }), 401
+
+        if not dashboard_data:
+            return jsonify({
+                'success': False,
+                'error': 'Dashboard data manager not available'
+            }), 500
+
+        try:
+            from utils.config import config
+            supabase = config.get_client_for_user(user_id)
+        except Exception as e:
+            return jsonify({
+                'success': False,
+                'error': f'Database connection error: {str(e)}'
+            }), 500
+
+        # 캘린더 소유권 확인
+        try:
+            calendar_result = supabase.table('calendars').select('*').eq('id', calendar_id).eq('owner_id', user_id).execute()
+
+            if not calendar_result.data:
+                return jsonify({
+                    'success': False,
+                    'error': 'Calendar not found or access denied'
+                }), 404
+
+            calendar = calendar_result.data[0]
+            current_public_access = calendar.get('public_access', False)
+            new_public_access = not current_public_access
+
+            # 프라이버시 설정 업데이트
+            update_result = supabase.table('calendars').update({
+                'public_access': new_public_access,
+                'updated_at': datetime.now().isoformat()
+            }).eq('id', calendar_id).eq('owner_id', user_id).execute()
+
+            if update_result.data:
+                return jsonify({
+                    'success': True,
+                    'public_access': new_public_access,
+                    'message': f'Calendar is now {"public" if new_public_access else "private"}'
+                }), 200
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': 'Failed to update calendar privacy'
+                }), 500
+
+        except Exception as db_error:
+            print(f"Database error in privacy toggle: {db_error}")
+            return jsonify({
+                'success': False,
+                'error': f'Database operation failed: {str(db_error)}'
+            }), 500
+
+    except Exception as e:
+        print(f"Error in calendar privacy toggle: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'Privacy toggle failed: {str(e)}'
+        }), 500
+
 # Error handlers
 @calendar_api_bp.errorhandler(404)
 def not_found(error):

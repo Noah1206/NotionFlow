@@ -137,39 +137,71 @@
     
     <!-- Main Content -->
     <div class="friends-content">
-        <!-- My Calendars Share Section -->
-        <div class="my-calendars-section">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <span class="section-icon">📤</span>
-                    내 캘린더 공유하기
-                </h2>
-                <button class="btn-refresh" onclick="loadMyCalendars()" title="새로고침">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <polyline points="23 4 23 10 17 10"/>
-                        <polyline points="1 20 1 14 7 14"/>
-                        <path d="m3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-                    </svg>
-                </button>
-            </div>
-            
-            <div class="my-calendars-container" id="my-calendars-container">
-                <div class="loading-spinner" id="my-calendars-loading">
-                    <div class="progress-bar-container">
-                        <div class="progress-bar"></div>
+        <!-- My Calendars Notion-Style Section -->
+        <div class="notion-calendars-section">
+            <div class="notion-section-header">
+                <div class="notion-title-row">
+                    <h2 class="notion-section-title">
+                        <span class="section-icon">📅</span>
+                        내 캘린더
+                    </h2>
+                    <div class="notion-actions">
+                        <button class="notion-btn-refresh" onclick="loadNotionCalendars()" title="새로고침">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <polyline points="23 4 23 10 17 10"/>
+                                <polyline points="1 20 1 14 7 14"/>
+                                <path d="m3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                            </svg>
+                        </button>
+                        <button class="notion-btn-select-all" onclick="toggleSelectAll()" title="전체 선택/해제">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <polyline points="9,11 12,14 22,4"/>
+                                <path d="M21,12v7a2,2 0,0 1,-2,2H5a2,2 0,0 1,-2,-2V5a2,2 0,0 1,2,-2h11"/>
+                            </svg>
+                        </button>
                     </div>
-                    <span class="loading-text">캘린더 목록을 불러오는 중<span class="loading-dots"></span></span>
                 </div>
-                
-                <div class="my-calendars-grid" id="my-calendars-grid" style="display: none;">
-                    <!-- My calendars will be loaded here -->
+                <div class="notion-filters">
+                    <button class="notion-filter-btn active" data-filter="all" onclick="filterCalendars('all')">
+                        모두 <span class="filter-count" id="count-all">0</span>
+                    </button>
+                    <button class="notion-filter-btn" data-filter="public" onclick="filterCalendars('public')">
+                        공개 <span class="filter-count" id="count-public">0</span>
+                    </button>
+                    <button class="notion-filter-btn" data-filter="private" onclick="filterCalendars('private')">
+                        비공개 <span class="filter-count" id="count-private">0</span>
+                    </button>
                 </div>
-                
-                <div class="empty-state" id="my-calendars-empty" style="display: none;">
-                    <div class="empty-icon">📅</div>
+            </div>
+
+            <div class="notion-calendar-list" id="notion-calendar-list">
+                <div class="notion-loading" id="notion-calendars-loading">
+                    <div class="notion-loading-spinner"></div>
+                    <span>캘린더를 불러오는 중...</span>
+                </div>
+
+                <div class="notion-calendar-table" id="notion-calendar-table" style="display: none;">
+                    <div class="notion-table-header">
+                        <div class="notion-header-cell checkbox-cell">
+                            <input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAllCalendars()">
+                        </div>
+                        <div class="notion-header-cell name-cell">이름</div>
+                        <div class="notion-header-cell status-cell">상태</div>
+                        <div class="notion-header-cell events-cell">이벤트</div>
+                        <div class="notion-header-cell created-cell">생성일</div>
+                        <div class="notion-header-cell actions-cell">작업</div>
+                    </div>
+
+                    <div class="notion-table-body" id="notion-table-body">
+                        <!-- Calendar rows will be loaded here -->
+                    </div>
+                </div>
+
+                <div class="notion-empty-state" id="notion-calendars-empty" style="display: none;">
+                    <div class="notion-empty-icon">📅</div>
                     <h3>캘린더가 없습니다</h3>
-                    <p>먼저 대시보드에서 캘린더를 생성해주세요.</p>
-                    <button class="btn-primary" onclick="window.location.href='/dashboard'">
+                    <p>대시보드에서 새 캘린더를 만들어보세요.</p>
+                    <button class="notion-btn-primary" onclick="window.location.href='/dashboard'">
                         대시보드로 이동
                     </button>
                 </div>
@@ -652,6 +684,287 @@ function createFriendsInitialsAvatar(container, name) {
     
     container.classList.remove('has-image');
     console.log('✅ Friends initials avatar created:', initials, backgroundColor);
+}
+
+// ===== NOTION-STYLE CALENDAR FUNCTIONS =====
+
+let notionCalendars = [];
+let selectedCalendars = new Set();
+
+// 페이지 로드 시 캘린더 불러오기
+document.addEventListener('DOMContentLoaded', function() {
+    loadNotionCalendars();
+});
+
+// 캘린더 목록 불러오기
+async function loadNotionCalendars() {
+    const loading = document.getElementById('notion-calendars-loading');
+    const table = document.getElementById('notion-calendar-table');
+    const empty = document.getElementById('notion-calendars-empty');
+
+    try {
+        loading.style.display = 'flex';
+        table.style.display = 'none';
+        empty.style.display = 'none';
+
+        const response = await fetch('/api/calendars');
+        const result = await response.json();
+
+        if (result.success && result.calendars && result.calendars.length > 0) {
+            notionCalendars = result.calendars;
+            renderNotionCalendars(notionCalendars);
+            updateFilterCounts();
+            loading.style.display = 'none';
+            table.style.display = 'block';
+        } else {
+            loading.style.display = 'none';
+            empty.style.display = 'flex';
+        }
+    } catch (error) {
+        console.error('캘린더 로드 실패:', error);
+        loading.style.display = 'none';
+        empty.style.display = 'flex';
+    }
+}
+
+// 캘린더 목록 렌더링
+function renderNotionCalendars(calendars) {
+    const tbody = document.getElementById('notion-table-body');
+    tbody.innerHTML = '';
+
+    calendars.forEach(calendar => {
+        const row = createNotionCalendarRow(calendar);
+        tbody.appendChild(row);
+    });
+}
+
+// 캘린더 행 생성
+function createNotionCalendarRow(calendar) {
+    const row = document.createElement('div');
+    row.className = 'notion-calendar-row';
+    row.dataset.calendarId = calendar.id;
+
+    const isPublic = calendar.public_access || false;
+    const eventCount = calendar.event_count || 0;
+    const createdDate = new Date(calendar.created_at).toLocaleDateString('ko-KR');
+
+    row.innerHTML = `
+        <div class="notion-cell">
+            <input type="checkbox" class="notion-checkbox" data-calendar-id="${calendar.id}" onchange="toggleCalendarSelection('${calendar.id}')">
+        </div>
+        <div class="notion-cell">
+            <div class="calendar-name">
+                <div class="calendar-color-dot" style="background-color: ${calendar.color || '#3B82F6'}"></div>
+                <span>${calendar.name}</span>
+            </div>
+        </div>
+        <div class="notion-cell">
+            <button class="privacy-toggle ${isPublic ? 'public' : ''}"
+                    onclick="toggleCalendarPrivacy('${calendar.id}')"
+                    title="${isPublic ? '공개' : '비공개'}">
+            </button>
+        </div>
+        <div class="notion-cell">
+            <span class="event-count">${eventCount}</span>
+        </div>
+        <div class="notion-cell">
+            <span class="created-date">${createdDate}</span>
+        </div>
+        <div class="notion-cell">
+            <div class="calendar-actions">
+                <button class="action-btn" onclick="editCalendar('${calendar.id}')" title="편집">
+                    편집
+                </button>
+                <button class="action-btn danger" onclick="deleteCalendar('${calendar.id}')" title="삭제">
+                    삭제
+                </button>
+            </div>
+        </div>
+    `;
+
+    return row;
+}
+
+// 캘린더 선택/해제
+function toggleCalendarSelection(calendarId) {
+    if (selectedCalendars.has(calendarId)) {
+        selectedCalendars.delete(calendarId);
+    } else {
+        selectedCalendars.add(calendarId);
+    }
+
+    const row = document.querySelector(`[data-calendar-id="${calendarId}"]`);
+    if (row) {
+        row.classList.toggle('selected', selectedCalendars.has(calendarId));
+    }
+
+    updateSelectAllCheckbox();
+}
+
+// 전체 선택/해제
+function toggleSelectAllCalendars() {
+    const selectAllCheckbox = document.getElementById('select-all-checkbox');
+    const checkboxes = document.querySelectorAll('.notion-checkbox');
+
+    if (selectAllCheckbox.checked) {
+        // 전체 선택
+        selectedCalendars.clear();
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = true;
+            selectedCalendars.add(checkbox.dataset.calendarId);
+            const row = checkbox.closest('.notion-calendar-row');
+            if (row) row.classList.add('selected');
+        });
+    } else {
+        // 전체 해제
+        selectedCalendars.clear();
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = false;
+            const row = checkbox.closest('.notion-calendar-row');
+            if (row) row.classList.remove('selected');
+        });
+    }
+}
+
+// 전체 선택 체크박스 상태 업데이트
+function updateSelectAllCheckbox() {
+    const selectAllCheckbox = document.getElementById('select-all-checkbox');
+    const checkboxes = document.querySelectorAll('.notion-checkbox');
+
+    if (selectedCalendars.size === 0) {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+    } else if (selectedCalendars.size === checkboxes.length) {
+        selectAllCheckbox.checked = true;
+        selectAllCheckbox.indeterminate = false;
+    } else {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = true;
+    }
+}
+
+// 캘린더 프라이버시 토글
+async function toggleCalendarPrivacy(calendarId) {
+    try {
+        const response = await fetch(`/api/calendars/${calendarId}/privacy`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // UI 업데이트
+            const toggle = document.querySelector(`[data-calendar-id="${calendarId}"] .privacy-toggle`);
+            const isPublic = result.public_access;
+
+            toggle.classList.toggle('public', isPublic);
+            toggle.title = isPublic ? '공개' : '비공개';
+
+            // 캘린더 데이터 업데이트
+            const calendar = notionCalendars.find(c => c.id === calendarId);
+            if (calendar) {
+                calendar.public_access = isPublic;
+            }
+
+            updateFilterCounts();
+
+            // 알림 표시
+            showNotification(
+                isPublic ? '캘린더가 공개되었습니다' : '캘린더가 비공개되었습니다',
+                'success'
+            );
+        } else {
+            throw new Error(result.error || '프라이버시 설정 변경에 실패했습니다');
+        }
+    } catch (error) {
+        console.error('프라이버시 토글 실패:', error);
+        showNotification('프라이버시 설정 변경에 실패했습니다', 'error');
+    }
+}
+
+// 필터 기능
+function filterCalendars(filter) {
+    const filterBtns = document.querySelectorAll('.notion-filter-btn');
+    filterBtns.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.filter === filter);
+    });
+
+    let filteredCalendars;
+    switch (filter) {
+        case 'public':
+            filteredCalendars = notionCalendars.filter(cal => cal.public_access);
+            break;
+        case 'private':
+            filteredCalendars = notionCalendars.filter(cal => !cal.public_access);
+            break;
+        default:
+            filteredCalendars = notionCalendars;
+    }
+
+    renderNotionCalendars(filteredCalendars);
+}
+
+// 필터 카운트 업데이트
+function updateFilterCounts() {
+    const allCount = notionCalendars.length;
+    const publicCount = notionCalendars.filter(cal => cal.public_access).length;
+    const privateCount = allCount - publicCount;
+
+    document.getElementById('count-all').textContent = allCount;
+    document.getElementById('count-public').textContent = publicCount;
+    document.getElementById('count-private').textContent = privateCount;
+}
+
+// 캘린더 편집
+function editCalendar(calendarId) {
+    // 편집 모달 열기 또는 편집 페이지로 이동
+    window.location.href = `/calendar/${calendarId}/edit`;
+}
+
+// 캘린더 삭제
+async function deleteCalendar(calendarId) {
+    if (!confirm('정말로 이 캘린더를 삭제하시겠습니까?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/calendars/${calendarId}`, {
+            method: 'DELETE'
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // 캘린더 목록에서 제거
+            notionCalendars = notionCalendars.filter(cal => cal.id !== calendarId);
+            renderNotionCalendars(notionCalendars);
+            updateFilterCounts();
+
+            // 선택된 목록에서도 제거
+            selectedCalendars.delete(calendarId);
+            updateSelectAllCheckbox();
+
+            showNotification('캘린더가 삭제되었습니다', 'success');
+        } else {
+            throw new Error(result.error || '캘린더 삭제에 실패했습니다');
+        }
+    } catch (error) {
+        console.error('캘린더 삭제 실패:', error);
+        showNotification('캘린더 삭제에 실패했습니다', 'error');
+    }
+}
+
+// 알림 표시
+function showNotification(message, type = 'info') {
+    // 기존 알림 시스템 활용
+    if (typeof window.showNotification === 'function') {
+        window.showNotification(message, type);
+    } else {
+        alert(message);
+    }
 }
 </script>
 

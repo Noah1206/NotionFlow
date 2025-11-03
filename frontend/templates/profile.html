@@ -97,6 +97,38 @@ body {
     transition: all 0.3s ease !important;
     flex-shrink: 0 !important;
 }
+
+/* 로그아웃 버튼 스타일 */
+.logout-button-container {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.logout-btn {
+    background: #EF4444 !important;
+    color: white !important;
+    border: none !important;
+    padding: 12px 24px !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2) !important;
+}
+
+.logout-btn:hover {
+    background: #DC2626 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3) !important;
+}
+
+.logout-btn:active {
+    transform: translateY(0) !important;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2) !important;
+}
 </style>
 {% endblock %}
 
@@ -207,6 +239,11 @@ body {
                     </label>
                 </div>
             </div>
+        </div>
+
+        <!-- 로그아웃 버튼 -->
+        <div class="logout-button-container">
+            <button class="logout-btn" onclick="logout()">로그아웃</button>
         </div>
     </div>
 </div>
@@ -964,6 +1001,30 @@ function showToast(message, type = 'info') {
         toast.style.opacity = '0';
         toast.style.transform = 'translateY(20px)';
     }, 3000);
+}
+
+// 로그아웃 함수
+async function logout() {
+    if (confirm('정말 로그아웃하시겠습니까?')) {
+        try {
+            const response = await fetch('/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                // 로그아웃 성공시 홈페이지로 이동
+                window.location.href = '/';
+            } else {
+                showToast('로그아웃 중 오류가 발생했습니다.', 'error');
+            }
+        } catch (error) {
+            console.error('Logout error:', error);
+            showToast('로그아웃 중 오류가 발생했습니다.', 'error');
+        }
+    }
 }
 </script>
 {% endblock %}
