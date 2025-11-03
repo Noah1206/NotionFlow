@@ -1506,6 +1506,39 @@ function forceRenderMonthView() {
 // 전역 함수로 등록 (브라우저 콘솔에서 호출 가능)
 window.forceRenderMonthView = forceRenderMonthView;
 
+// GoogleCalendarGrid가 없을 때 handleEventCheckbox 폴백 함수
+window.handleEventCheckbox = function(checkbox) {
+    console.log('📋 handleEventCheckbox 폴백 함수 호출됨:', checkbox);
+
+    // GoogleCalendarGrid가 있으면 해당 함수 호출
+    if (window.googleCalendarGrid && typeof window.googleCalendarGrid.handleEventCheckbox === 'function') {
+        return window.googleCalendarGrid.handleEventCheckbox(checkbox);
+    }
+
+    // 없으면 기본 체크박스 동작만 수행
+    const allCheckboxes = document.querySelectorAll('.event-checkbox');
+    const checkedCheckboxes = document.querySelectorAll('.event-checkbox:checked');
+    const selectAllCheckbox = document.getElementById('select-all-events');
+
+    if (selectAllCheckbox) {
+        if (checkedCheckboxes.length === 0) {
+            selectAllCheckbox.indeterminate = false;
+            selectAllCheckbox.checked = false;
+        } else if (checkedCheckboxes.length === allCheckboxes.length) {
+            selectAllCheckbox.indeterminate = false;
+            selectAllCheckbox.checked = true;
+        } else {
+            selectAllCheckbox.indeterminate = true;
+        }
+    }
+
+    // 삭제 버튼 표시/숨김
+    const deleteBtn = document.querySelector('.btn-delete-selected-events');
+    if (deleteBtn) {
+        deleteBtn.style.display = checkedCheckboxes.length > 0 ? 'inline-block' : 'none';
+    }
+};
+
 // Month view rendering (both main and compact)
 function renderMonthView() {
     console.log('🗓️ Rendering month view');
@@ -2611,28 +2644,37 @@ function extractEventsFromSidebar() {
                 const title = titleElement.textContent.trim();
                 const timeText = timeElement ? timeElement.textContent.trim() : '';
 
+                // 날짜 파싱 시도 (기본값: 오늘)
+                let eventDate = new Date();
+
+                // 시간 정보에서 날짜 추출 시도
+                if (timeText) {
+                    console.log('🕐 시간 텍스트 파싱 시도:', timeText);
+
+                    // "11월 3일" 패턴 찾기
+                    const dateMatch = timeText.match(/(\d+)월\s*(\d+)일/);
+                    if (dateMatch) {
+                        const month = parseInt(dateMatch[1]) - 1; // 월은 0부터 시작
+                        const day = parseInt(dateMatch[2]);
+                        const year = new Date().getFullYear();
+
+                        eventDate = new Date(year, month, day);
+                        console.log('📅 날짜 파싱 성공:', eventDate.toDateString());
+                    } else {
+                        console.log('📅 날짜 파싱 실패, 오늘 날짜 사용');
+                    }
+                }
+
                 // 간단한 이벤트 객체 생성
                 const event = {
                     id: `sidebar-event-${index}`,
                     title: title,
-                    start_datetime: new Date().toISOString(), // 임시로 오늘 날짜
-                    start_date: new Date().toISOString().split('T')[0],
+                    start_datetime: eventDate.toISOString(),
+                    start_date: eventDate.toISOString().split('T')[0],
                     description: '',
-                    is_all_day: false,
+                    is_all_day: timeText === '종일' || !timeText,
                     source_platform: 'manual'
                 };
-
-                // 시간 정보가 있으면 파싱 시도
-                if (timeText && timeText !== '종일') {
-                    try {
-                        // "11월 3일 오후" 등의 형식 처리
-                        const today = new Date();
-                        event.start_datetime = today.toISOString();
-                        event.start_date = today.toISOString().split('T')[0];
-                    } catch (timeError) {
-                        console.warn('시간 파싱 실패:', timeError);
-                    }
-                }
 
                 extractedEvents.push(event);
                 console.log('📄 추출된 이벤트:', title, timeText);
@@ -2773,7 +2815,11 @@ function processEventsData(data) {
             const sidebarEvents = extractEventsFromSidebar();
             if (sidebarEvents.length > 0) {
                 console.log('✅ 사이드바에서 이벤트 발견:', sidebarEvents.length, '개');
+                console.log('📄 추출된 이벤트 상세:', sidebarEvents);
                 events = sidebarEvents;
+                console.log('🔄 events 배열 업데이트 완료, 새 길이:', events.length);
+            } else {
+                console.log('❌ 사이드바에서 이벤트 추출 실패');
             }
         }
 
@@ -2790,6 +2836,11 @@ function processEventsData(data) {
             location: event.location,
             attendees: event.attendees
         }));
+
+        console.log('🎯 최종 calendarEvents 배열:', calendarEvents.length, '개');
+        if (calendarEvents.length > 0) {
+            console.log('📋 첫 번째 이벤트 샘플:', calendarEvents[0]);
+        }
 
         // If no events, keep empty (don't show demo events)
         if (calendarEvents.length === 0) {
