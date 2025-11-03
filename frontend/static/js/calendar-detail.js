@@ -1677,8 +1677,16 @@ function renderMainCalendar() {
                         display: flex;
                         align-items: center;
                         line-height: 1.2;
+                        gap: 6px;
                     " title="${event.title}">
-                        ${event.title}
+                        <div style="
+                            width: 8px;
+                            height: 8px;
+                            background: ${event.color || '#3b82f6'};
+                            border-radius: 50%;
+                            flex-shrink: 0;
+                        "></div>
+                        <span style="flex: 1; overflow: hidden; text-overflow: ellipsis;">${event.title}</span>
                     </div>
                 `).join('')}
                 ${dayEvents.length > 3 ? `
