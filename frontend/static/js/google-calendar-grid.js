@@ -2010,7 +2010,21 @@ class GoogleCalendarGrid {
                 
                 // Update the event list
                 this.updateEventList();
-                
+
+                // Update global calendarEvents for month view
+                if (window.calendarEvents) {
+                    window.calendarEvents.push({
+                        id: savedEvent.id || Date.now().toString(),
+                        title: eventData.title,
+                        description: eventData.description,
+                        start_datetime: eventData.start_time,
+                        end_datetime: eventData.end_time,
+                        start_date: eventData.date,
+                        color: eventData.color,
+                        source_platform: 'manual'
+                    });
+                }
+
                 // Show success notification
                 if (window.showNotification) {
                     showNotification(`일정 "${eventData.title}"이 생성되었습니다`, 'success');
@@ -2042,6 +2056,20 @@ class GoogleCalendarGrid {
             
             // Update the event list
             this.updateEventList();
+
+            // Update global calendarEvents for month view (even in error case)
+            if (window.calendarEvents) {
+                window.calendarEvents.push({
+                    id: localEventData.id,
+                    title: eventData.title,
+                    description: eventData.description,
+                    start_datetime: eventData.start_time,
+                    end_datetime: eventData.end_time,
+                    start_date: eventData.date,
+                    color: eventData.color,
+                    source_platform: 'manual'
+                });
+            }
             
             // Show warning notification
             if (window.showNotification) {

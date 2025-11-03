@@ -12,6 +12,8 @@ let currentDate = new Date();
 let currentView = 'month'; // Initialize to month view by default
 let selectedDate = null;
 let calendarEvents = [];
+// Make calendarEvents globally accessible
+window.calendarEvents = calendarEvents;
 let todoList = [];
 let habitList = [];
 let miniCalendarDate = new Date();
@@ -2918,6 +2920,9 @@ function processEventsData(data) {
             attendees: event.attendees
         }));
 
+        // Update global reference
+        window.calendarEvents = calendarEvents;
+
         console.log('🎯 최종 calendarEvents 배열:', calendarEvents.length, '개');
         if (calendarEvents.length > 0) {
             console.log('📋 첫 번째 이벤트 샘플:', calendarEvents[0]);
@@ -2926,6 +2931,7 @@ function processEventsData(data) {
         // If no events, keep empty (don't show demo events)
         if (calendarEvents.length === 0) {
             calendarEvents = [];
+            window.calendarEvents = calendarEvents;
         }
 
         // Pass events to GoogleCalendarGrid if it exists
