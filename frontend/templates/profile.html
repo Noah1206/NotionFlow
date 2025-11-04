@@ -31,48 +31,146 @@ body {
     overflow: hidden !important;
 }
 
-/* Fix modal text overlapping issues */
-.profile-modal-body {
-    padding: 32px !important;
-}
+/* 프로필 편집 모달 - 플랫폼 연결 팝업과 동일한 스타일 적용 */
 .profile-form-group {
-    margin-bottom: 40px !important;
-    position: relative !important;
-    clear: both !important;
+    margin-bottom: 24px;
 }
 .profile-form-label {
-    display: block !important;
-    margin-bottom: 16px !important;
-    font-weight: 700 !important;
-    color: #2d3748 !important;
-    font-size: 15px !important;
-    line-height: 1.6 !important;
-    position: relative !important;
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #000000;
+    font-size: 14px;
 }
 .profile-form-input,
 .profile-form-textarea {
-    width: 100% !important;
-    padding: 20px 24px !important;
-    border: 2px solid #e2e8f0 !important;
-    border-radius: 18px !important;
-    font-size: 16px !important;
-    background: #ffffff !important;
-    font-weight: 500 !important;
-    color: #2d3748 !important;
-    line-height: 1.5 !important;
-    box-sizing: border-box !important;
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #000000;
+    border-radius: 4px;
+    font-size: 14px;
+    background: #ffffff;
+    color: #000000;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+.profile-form-input:focus,
+.profile-form-textarea:focus {
+    outline: none;
+    border-color: #333333;
+    background: #f5f5f5;
 }
 .profile-form-textarea {
-    resize: vertical !important;
-    min-height: 150px !important;
-    line-height: 1.8 !important;
+    resize: vertical;
+    min-height: 100px;
 }
 .profile-form-help {
-    font-size: 13px !important;
-    color: #718096 !important;
-    margin-top: 16px !important;
-    font-weight: 500 !important;
-    line-height: 1.7 !important;
+    font-size: 12px;
+    color: #666666;
+    margin-top: 4px;
+}
+
+/* 사용자명 그룹 스타일 */
+.profile-username-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 2px solid #000000;
+    border-radius: 4px;
+    padding: 0;
+    background: #ffffff;
+    transition: all 0.2s ease;
+}
+.profile-username-group:focus-within {
+    border-color: #333333;
+    background: #f5f5f5;
+}
+.profile-username-prefix {
+    padding: 12px 0 12px 16px;
+    color: #000000;
+    font-weight: 600;
+    background: #f8f8f8;
+    border-right: 1px solid #e5e7eb;
+}
+.profile-username-group .profile-form-input {
+    border: none;
+    margin: 0;
+    padding: 12px 16px;
+    flex: 1;
+    background: transparent;
+}
+.profile-username-group .profile-form-input:focus {
+    border: none;
+    background: transparent;
+}
+
+/* 체크 버튼 스타일 */
+.profile-check-btn {
+    padding: 8px 16px;
+    background: #000000;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-right: 8px;
+}
+.profile-check-btn:hover {
+    background: #333333;
+}
+
+/* 아바타 업로드 섹션 */
+.profile-avatar-upload-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.current-avatar-preview {
+    display: flex;
+    justify-content: center;
+}
+.modal-avatar-container {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid #e5e7eb;
+}
+.modal-avatar-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.avatar-upload-controls {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+.avatar-upload-btn,
+.avatar-remove-btn {
+    padding: 8px 16px;
+    border: 2px solid #000000;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.avatar-upload-btn {
+    background: #000000;
+    color: #ffffff;
+}
+.avatar-upload-btn:hover {
+    background: #333333;
+}
+.avatar-remove-btn {
+    background: #ffffff;
+    color: #000000;
+}
+.avatar-remove-btn:hover {
+    background: #f5f5f5;
 }
 
 /* Fix toggle switch overlapping */
@@ -248,14 +346,14 @@ body {
     </div>
 </div>
 
-<!-- Edit Profile Modal -->
-<div id="edit-profile-modal" class="profile-modal-overlay" style="display: none;">
-    <div class="profile-modal">
-        <div class="profile-modal-header">
-            <h2 class="profile-modal-title">프로필 편집</h2>
-            <button class="profile-modal-close" onclick="closeEditModal()">×</button>
+<!-- Edit Profile Modal - 플랫폼 연결 팝업과 동일한 구조 -->
+<div id="edit-profile-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>프로필 편집</h2>
+            <button class="modal-close" onclick="closeEditModal()">&times;</button>
         </div>
-        <form id="profile-form" class="profile-modal-body">
+        <form id="profile-form" class="modal-body">
             <div class="profile-form-group">
                 <label class="profile-form-label" for="edit-username">사용자명</label>
                 <div class="profile-username-group">
@@ -348,9 +446,9 @@ body {
                 <div class="profile-form-help">다른 사용자들이 내 프로필을 볼 수 있습니다</div>
             </div>
         </form>
-        <div class="profile-modal-footer">
-            <button type="button" class="profile-btn profile-btn-secondary" onclick="closeEditModal()">취소</button>
-            <button type="button" class="profile-btn profile-btn-primary" onclick="saveProfile()">
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeEditModal()">취소</button>
+            <button type="button" class="btn-primary" onclick="saveProfile()">
                 <span class="btn-text">저장</span>
                 <span class="btn-loading" style="display: none;">저장 중...</span>
             </button>
@@ -686,11 +784,11 @@ function updateAllAvatars(avatarUrl) {
 
 function openEditModal() {
     document.getElementById('edit-profile-modal').style.display = 'flex';
-    
+
     // 현재 아바타를 모달 미리보기에 복사
     const currentAvatar = document.getElementById('profile-avatar');
     const modalPreview = document.getElementById('modal-avatar-preview');
-    
+
     if (currentAvatar && modalPreview) {
         const currentImg = currentAvatar.querySelector('img');
         if (currentImg) {
@@ -702,7 +800,7 @@ function openEditModal() {
             createInitialsAvatarInModal(modalPreview, username);
         }
     }
-    
+
     // 선택된 파일 초기화
     selectedAvatarFile = null;
 }
@@ -801,7 +899,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function saveProfile() {
     const form = document.getElementById('profile-form');
-    const saveBtn = document.querySelector('.profile-btn-primary');
+    const saveBtn = document.querySelector('.btn-primary');
     const btnText = saveBtn.querySelector('.btn-text');
     const btnLoading = saveBtn.querySelector('.btn-loading');
     
