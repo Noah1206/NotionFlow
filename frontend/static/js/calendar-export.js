@@ -230,7 +230,7 @@ class CalendarExportManager {
             const platformInfo = this.getPlatformInfo(platform.platform);
 
             return `
-                <div class="platform-item ${isSelected ? 'selected' : ''}"
+                <div class="platform-item ${isSelected ? 'selected' : ''} ${!platform.is_connected ? 'disconnected' : ''}"
                      data-platform="${platform.platform}">
                     <div class="platform-info">
                         <div class="platform-icon ${platform.platform}">

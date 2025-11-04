@@ -682,7 +682,11 @@
             dayElement.appendChild(dayNumber);
 
             // 이벤트 추가 (멀티데이 지원)
-            const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            // 로컬 타임존을 명시적으로 사용하여 날짜 문자열 생성
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
             const dayEvents = getEventsForDate(dateStr);
             
             dayEvents.forEach(event => {
@@ -771,7 +775,16 @@
             });
             dayElement.appendChild(addBtn);
 
-            dayElement.addEventListener('click', () => selectDate(dateStr));
+            dayElement.addEventListener('click', () => {
+                console.log('Day clicked:', {
+                    originalDate: date,
+                    dateString: dateStr,
+                    day: date.getDate(),
+                    month: date.getMonth() + 1,
+                    year: date.getFullYear()
+                });
+                selectDate(dateStr);
+            });
             calendarDays.appendChild(dayElement);
         }
     }
@@ -803,6 +816,28 @@
 
     function selectDate(dateStr) {
         console.log('Selected date:', dateStr);
+
+        // 현재 캘린더 ID 가져오기 (URL에서 추출하거나 전역 변수에서)
+        const currentPath = window.location.pathname;
+        const pathParts = currentPath.split('/');
+        let calendarId = null;
+
+        // URL 패턴: /dashboard/calendar/{calendar_id} 에서 calendar_id 추출
+        const calendarIndex = pathParts.indexOf('calendar');
+        if (calendarIndex !== -1 && calendarIndex + 1 < pathParts.length) {
+            calendarId = pathParts[calendarIndex + 1];
+        }
+
+        // 기본 캘린더 ID가 없으면 임시로 사용 (실제로는 서버에서 전달받아야 함)
+        if (!calendarId) {
+            console.error('Calendar ID not found in URL');
+            calendarId = 'default-calendar'; // 임시 값
+        }
+
+        // 일뷰 페이지로 이동
+        const dayUrl = `/dashboard/calendar/${calendarId}/day/${dateStr}`;
+        console.log('Navigating to:', dayUrl);
+        window.location.href = dayUrl;
     }
 
     function addEvent(dateStr) {

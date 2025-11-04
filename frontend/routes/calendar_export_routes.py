@@ -126,9 +126,8 @@ def get_connected_platforms():
                 'expires_at': oauth_info.get('expires_at')
             }
 
-            # 연결된 플랫폼만 반환
-            if platform_info['is_connected']:
-                platforms_info.append(platform_info)
+            # 모든 플랫폼을 표시 (연결 여부와 관계없이)
+            platforms_info.append(platform_info)
 
         return jsonify({
             'success': True,

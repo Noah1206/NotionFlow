@@ -151,7 +151,7 @@
 }
 
 .export-description p {
-    color: #333333;
+    color: #000000;
     font-size: 15px;
     line-height: 1.5;
     margin: 0 0 16px;
@@ -255,6 +255,33 @@
     border-color: #000000;
 }
 
+/* 연결되지 않은 플랫폼 스타일 */
+.platform-item.disconnected {
+    opacity: 0.6;
+    border-style: dashed;
+    border-color: #666666;
+}
+
+.platform-item.disconnected:hover {
+    opacity: 0.8;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.platform-item.disconnected .platform-name {
+    color: #666666;
+}
+
+.platform-item.disconnected .platform-status {
+    color: #666666;
+    font-style: italic;
+}
+
+.platform-item.disconnected .platform-icon {
+    background: #666666;
+    border-color: #666666;
+}
+
 .platform-item.selected {
     background: #000000;
     color: #ffffff;
@@ -340,7 +367,7 @@
 
 .platform-status {
     font-size: 13px;
-    color: #6b7280;
+    color: #000000;
     font-weight: 500;
     letter-spacing: -0.01em;
 }
@@ -413,7 +440,7 @@
     cursor: pointer;
     font-size: 14px;
     color: #000000;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .checkbox-label input[type="checkbox"] {
@@ -442,9 +469,9 @@
     align-items: center;
     justify-content: center;
     padding: 40px;
-    color: #333333;
+    color: #000000;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .loading-spinner::before {

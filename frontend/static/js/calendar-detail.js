@@ -18,6 +18,14 @@ let todoList = [];
 let habitList = [];
 let miniCalendarDate = new Date();
 let blacklistedMediaUrls = new Set(); // Track failed media URLs to prevent retries
+
+// 타임존 문제 해결을 위한 로컬 날짜 포매팅 함수
+function formatDateToLocalString(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
 let sharedUsers = []; // Store shared users list
 
 // Event search functionality
@@ -1655,8 +1663,8 @@ function renderMainCalendar() {
             ${isToday ? 'background: #dbeafe; border-color: #3b82f6; font-weight: bold;' : ''}
         `;
 
-        dayCell.dataset.date = currentDay.toISOString().split('T')[0];
-        dayCell.onclick = () => openDayModal(currentDay.toISOString().split('T')[0]);
+        dayCell.dataset.date = formatDateToLocalString(currentDay);
+        dayCell.onclick = () => openDayModal(formatDateToLocalString(currentDay));
 
         dayCell.innerHTML = `
             <div class="day-number" style="font-weight: ${isToday ? '700' : '600'}; margin-bottom: 4px; color: ${isToday ? '#1d4ed8' : (isCurrentMonth ? '#111827' : '#9ca3af')}; font-size: 14px;">
@@ -2751,7 +2759,7 @@ function extractEventsFromSidebar() {
                     id: `sidebar-event-${index}`,
                     title: title,
                     start_datetime: eventDate.toISOString(),
-                    start_date: eventDate.toISOString().split('T')[0],
+                    start_date: formatDateToLocalString(eventDate),
                     description: '',
                     is_all_day: timeText === '종일' || !timeText,
                     source_platform: 'manual'
@@ -5350,7 +5358,7 @@ function loadAllEvents() {
 function convertCalendarEventsToSearchFormat() {
     return calendarEvents.map(event => {
         const eventDate = new Date(event.date);
-        const dateString = eventDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+        const dateString = formatDateToLocalString(eventDate); // YYYY-MM-DD format
         const formattedDate = eventDate.toLocaleDateString('ko-KR', {
             year: 'numeric',
             month: 'long',
@@ -5399,7 +5407,7 @@ function generateSampleEvents() {
             events.push({
                 id: `event_${currentYear}_${currentMonth}_${day}_${events.length}`,
                 title: randomEvent.title,
-                date: eventDate.toISOString().split('T')[0],
+                date: formatDateToLocalString(eventDate),
                 time: randomEvent.time,
                 description: randomEvent.description,
                 formattedDate: `${currentYear}년 ${currentMonth + 1}월 ${day}일`
@@ -6912,7 +6920,7 @@ function populateEventForm(event) {
         const endDate = new Date(event.end_datetime || event.start_datetime || event.date);
 
         if (dateInput) {
-            dateInput.value = startDate.toISOString().split('T')[0];
+            dateInput.value = formatDateToLocalString(startDate);
         }
 
         if (startTimeInput) {
