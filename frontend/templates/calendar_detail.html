@@ -38,6 +38,54 @@
         href="{{ url_for('static', filename='css/popup-redesign-urgent.css') }}?v={{ range(100000, 999999) | random }}"> -->
 
     <style>
+        /* 로딩 스피너 스타일 */
+        .page-loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease-out;
+        }
+
+        .page-loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-spinner-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            font-size: 14px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         /* 강제 스타일 적용 - !important 사용 */
 
         /* 기본 리셋 */
@@ -2586,6 +2634,14 @@
 </head>
 
 <body class="calendar-detail-standalone">
+
+    <!-- 로딩 스피너 오버레이 -->
+    <div id="page-loading-overlay" class="page-loading-overlay">
+        <div class="loading-spinner-container">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">캘린더를 불러오는 중...</div>
+        </div>
+    </div>
 
     <div class="calendar-workspace" data-calendar-id="{{ calendar.id }}"
         data-calendar-media="{{ calendar.media_url or '' }}"
@@ -7578,26 +7634,70 @@
 
         }
 
+        // 로딩 상태 관리
+        let loadingTasks = {
+            calendarGrid: false,
+            calendarEvents: false,
+            sidebarEvents: false
+        };
+
+        function checkAllLoadingComplete() {
+            const allComplete = Object.values(loadingTasks).every(task => task === true);
+            if (allComplete) {
+                setTimeout(() => {
+                    const loadingOverlay = document.getElementById('page-loading-overlay');
+                    if (loadingOverlay) {
+                        loadingOverlay.classList.add('hidden');
+                        console.log('✅ All loading complete - hiding spinner');
+                        // 완전히 제거하기 위해 추가 지연
+                        setTimeout(() => {
+                            loadingOverlay.style.display = 'none';
+                        }, 300);
+                    }
+                }, 500); // 0.5초 추가 지연으로 자연스러운 전환
+            }
+        }
+
         // Load events when page is ready
         document.addEventListener('DOMContentLoaded', function () {
+            console.log('🔄 Page loading started...');
 
             // Initialize GoogleCalendarGrid first
             const container = document.getElementById('calendar-grid-container');
             if (container && typeof GoogleCalendarGrid !== 'undefined') {
                 window.googleCalendarGrid = new GoogleCalendarGrid(container);
                 console.log('✅ GoogleCalendarGrid initialized successfully');
+                loadingTasks.calendarGrid = true;
+                checkAllLoadingComplete();
             } else {
                 console.error('❌ Could not initialize GoogleCalendarGrid:', {
                     container: container,
                     GoogleCalendarGridClass: typeof GoogleCalendarGrid
                 });
+                loadingTasks.calendarGrid = true; // 실패해도 로딩 완료로 처리
+                checkAllLoadingComplete();
             }
 
             // Set up refresh listeners first
             setupRefreshListeners();
 
             // Load events immediately
-            loadCalendarEvents();
+            loadCalendarEvents().then(() => {
+                console.log('✅ Calendar events loaded');
+                loadingTasks.calendarEvents = true;
+                checkAllLoadingComplete();
+            }).catch(() => {
+                console.log('❌ Calendar events failed to load');
+                loadingTasks.calendarEvents = true; // 실패해도 로딩 완료로 처리
+                checkAllLoadingComplete();
+            });
+
+            // Load sidebar events
+            setTimeout(() => {
+                console.log('✅ Sidebar events loaded');
+                loadingTasks.sidebarEvents = true;
+                checkAllLoadingComplete();
+            }, 300);
 
             // Quick fallback check (단축된 대기)
             setTimeout(() => {
@@ -7606,6 +7706,15 @@
                     window.googleCalendarGrid.loadEvents(window.pendingCalendarEvents);
                     window.pendingCalendarEvents = null;
                 }
+
+                // 강제 로딩 완료 (5초 후)
+                setTimeout(() => {
+                    console.log('⏰ Force completing loading after 5 seconds');
+                    Object.keys(loadingTasks).forEach(key => {
+                        loadingTasks[key] = true;
+                    });
+                    checkAllLoadingComplete();
+                }, 5000);
             }, 200); // 1초 → 0.2초로 단축
         });
     </script>
