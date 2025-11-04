@@ -367,6 +367,153 @@ def connect_google_calendar():
             'error': f'Internal server error: {str(e)}'
         }), 500
 
+@platform_connect_bp.route('/api/platform/notion/connect', methods=['POST'])
+def connect_notion_calendar():
+    """Notion Calendar 연결"""
+    try:
+        user_id, error_response, status_code = check_auth()
+        if error_response:
+            return error_response, status_code
+
+        data = request.get_json() or {}
+        notionflow_calendar_id = data.get('notionflow_calendar_id')
+
+        if not notionflow_calendar_id:
+            return jsonify({
+                'success': False,
+                'error': 'notionflow_calendar_id is required'
+            }), 400
+
+        from utils.config import config
+        supabase = config.get_client_for_user(user_id)
+
+        # Notion 연결 정보 저장 또는 업데이트
+        existing = supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', 'notion').execute()
+
+        connection_data = {
+            'user_id': user_id,
+            'platform': 'notion',
+            'is_enabled': True,
+            'sync_direction': 'bidirectional',
+            'updated_at': datetime.now().isoformat(),
+            'credentials': {
+                'oauth_connected': True,
+                'notionflow_calendar_id': notionflow_calendar_id,
+                'connected_at': datetime.now().isoformat(),
+                'real_time_sync': True
+            }
+        }
+
+        if existing.data:
+            result = supabase.table('calendar_sync_configs').update(connection_data).eq('user_id', user_id).eq('platform', 'notion').execute()
+        else:
+            connection_data['created_at'] = datetime.now().isoformat()
+            result = supabase.table('calendar_sync_configs').insert(connection_data).execute()
+
+        print(f"✅ Notion Calendar connected for user {user_id}")
+
+        return jsonify({
+            'success': True,
+            'message': 'Notion Calendar connected successfully',
+            'notionflow_calendar_id': notionflow_calendar_id
+        })
+
+    except Exception as e:
+        print(f"❌ Error connecting Notion Calendar: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@platform_connect_bp.route('/api/platform/apple/connect', methods=['POST'])
+def connect_apple_calendar():
+    """Apple Calendar 연결"""
+    try:
+        user_id, error_response, status_code = check_auth()
+        if error_response:
+            return error_response, status_code
+
+        data = request.get_json() or {}
+        notionflow_calendar_id = data.get('notionflow_calendar_id')
+
+        if not notionflow_calendar_id:
+            return jsonify({
+                'success': False,
+                'error': 'notionflow_calendar_id is required'
+            }), 400
+
+        from utils.config import config
+        supabase = config.get_client_for_user(user_id)
+
+        # Apple Calendar 연결 정보 저장 또는 업데이트
+        existing = supabase.table('calendar_sync_configs').select('*').eq('user_id', user_id).eq('platform', 'apple').execute()
+
+        connection_data = {
+            'user_id': user_id,
+            'platform': 'apple',
+            'is_enabled': True,
+            'sync_direction': 'bidirectional',
+            'updated_at': datetime.now().isoformat(),
+            'credentials': {
+                'oauth_connected': False,  # Apple uses CalDAV, not OAuth
+                'username': existing.data[0]['credentials'].get('username') if existing.data else None,
+                'password': existing.data[0]['credentials'].get('password') if existing.data else None,
+                'server_url': 'https://caldav.icloud.com',
+                'connected': True,
+                'notionflow_calendar_id': notionflow_calendar_id,
+                'connected_at': datetime.now().isoformat(),
+                'real_time_sync': True
+            }
+        }
+
+        if existing.data:
+            # 기존 Apple 인증 정보 유지하면서 캘린더 ID만 업데이트
+            existing_credentials = existing.data[0].get('credentials', {})
+            connection_data['credentials'].update({
+                'username': existing_credentials.get('username'),
+                'password': existing_credentials.get('password'),
+                'server_url': existing_credentials.get('server_url', 'https://caldav.icloud.com')
+            })
+            result = supabase.table('calendar_sync_configs').update(connection_data).eq('user_id', user_id).eq('platform', 'apple').execute()
+        else:
+            connection_data['created_at'] = datetime.now().isoformat()
+            result = supabase.table('calendar_sync_configs').insert(connection_data).execute()
+
+        print(f"✅ Apple Calendar connected for user {user_id}")
+
+        # 동기화 상태 업데이트
+        try:
+            sync_status_data = {
+                'user_id': user_id,
+                'platform': 'apple',
+                'is_connected': True,
+                'is_synced': True,
+                'last_sync_at': datetime.now().isoformat(),
+                'updated_at': datetime.now().isoformat()
+            }
+
+            existing_status = supabase.table('sync_status').select('*').eq('user_id', user_id).eq('platform', 'apple').execute()
+            if existing_status.data:
+                supabase.table('sync_status').update(sync_status_data).eq('user_id', user_id).eq('platform', 'apple').execute()
+            else:
+                sync_status_data['created_at'] = datetime.now().isoformat()
+                supabase.table('sync_status').insert(sync_status_data).execute()
+        except Exception as e:
+            print(f"⚠️ Failed to update sync status: {e}")
+
+        return jsonify({
+            'success': True,
+            'message': 'Apple Calendar connected successfully',
+            'notionflow_calendar_id': notionflow_calendar_id
+        })
+
+    except Exception as e:
+        print(f"❌ Error connecting Apple Calendar: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 @platform_connect_bp.route('/api/platform/google/disconnect', methods=['POST'])
 def disconnect_google_calendar():
     """Google Calendar 연결 완전 해제 - OAuth 토큰 포함 모든 정보 삭제"""
