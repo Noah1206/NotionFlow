@@ -604,23 +604,51 @@
             loadOrGenerateFriendsAvatar(avatarContainer);
         }
 
-        function loadOrGenerateFriendsAvatar(container) {
-            // Use default username or try to get from localStorage
-            const username = 'User'; // Default fallback
+        async function loadOrGenerateFriendsAvatar(container) {
+            console.log('👤 Loading user profile for avatar...');
 
-            console.log('👤 User info for friends avatar:', { username });
+            try {
+                // Get user profile from API
+                const response = await fetch('/api/user/profile');
+                const profileData = await response.json();
 
-            // Check for uploaded avatar first
-            const savedAvatarUrl = localStorage.getItem('user_uploaded_avatar');
-            if (savedAvatarUrl && savedAvatarUrl !== 'null' && savedAvatarUrl !== '') {
-                console.log('📸 Loading saved avatar for friends page:', savedAvatarUrl);
-                createFriendsImageAvatar(container, savedAvatarUrl);
-                return;
+                console.log('📊 Profile data for avatar:', profileData);
+
+                let username = 'User';
+                let avatarUrl = null;
+
+                if (profileData && profileData.success && profileData.profile) {
+                    username = profileData.profile.display_name || profileData.profile.username || 'User';
+                    avatarUrl = profileData.profile.avatar_url;
+                    console.log('✅ Profile loaded:', { username, avatarUrl });
+                } else {
+                    console.log('⚠️ Using fallback user info');
+                }
+
+                // Use profile avatar or check localStorage
+                if (avatarUrl && avatarUrl !== 'null' && avatarUrl !== '') {
+                    console.log('📸 Loading profile avatar:', avatarUrl);
+                    createFriendsImageAvatar(container, avatarUrl);
+                    return;
+                }
+
+                // Check for uploaded avatar in localStorage
+                const savedAvatarUrl = localStorage.getItem('user_uploaded_avatar');
+                if (savedAvatarUrl && savedAvatarUrl !== 'null' && savedAvatarUrl !== '') {
+                    console.log('📸 Loading saved avatar from localStorage:', savedAvatarUrl);
+                    createFriendsImageAvatar(container, savedAvatarUrl);
+                    return;
+                }
+
+                // Generate initials avatar
+                console.log('🎨 Generating initials avatar for:', username);
+                createFriendsInitialsAvatar(container, username);
+
+            } catch (error) {
+                console.error('❌ Error loading profile for avatar:', error);
+                // Fallback to initials
+                createFriendsInitialsAvatar(container, 'User');
             }
-
-            // Generate initials avatar
-            console.log('🎨 Generating initials avatar for friends page');
-            createFriendsInitialsAvatar(container, username);
         }
 
         function createFriendsImageAvatar(container, imageUrl) {
@@ -709,13 +737,21 @@
                 const response = await fetch('/api/calendars');
                 const result = await response.json();
 
+                console.log('📊 [CALENDARS] API Response:', result);
+                console.log('📊 [CALENDARS] Success:', result.success);
+                console.log('📊 [CALENDARS] Calendars array:', result.calendars);
+                console.log('📊 [CALENDARS] Calendars length:', result.calendars ? result.calendars.length : 'undefined');
+
                 if (result.success && result.calendars && result.calendars.length > 0) {
+                    console.log('✅ [CALENDARS] Showing calendar table with', result.calendars.length, 'calendars');
                     notionCalendars = result.calendars;
                     renderNotionCalendars(notionCalendars);
                     updateFilterCounts();
                     loading.style.display = 'none';
                     table.style.display = 'block';
                 } else {
+                    console.log('❌ [CALENDARS] Showing empty state');
+                    console.log('❌ [CALENDARS] Reason - success:', result.success, 'calendars exist:', !!result.calendars, 'length:', result.calendars ? result.calendars.length : 'N/A');
                     loading.style.display = 'none';
                     empty.style.display = 'flex';
                 }
