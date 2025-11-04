@@ -518,6 +518,13 @@ function openAddFriendModal() {
 
     if (modal) {
         modal.style.display = 'flex';
+
+        // Add click event to close modal when clicking overlay
+        modal.onclick = function(e) {
+            if (e.target === modal) {
+                closeAddFriendModal();
+            }
+        };
     }
 
     if (searchInput) {
