@@ -2848,3 +2848,23 @@
         }
     }
 }
+
+/* Empty State Styles */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px 40px 20px; /* 상단 패딩 60px로 증가 */
+    color: #6b7280;
+}
+
+.empty-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 8px;
+}
+
+.empty-description {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 20px;
+}
