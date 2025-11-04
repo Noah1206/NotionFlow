@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ calendar.name }} - 캘린더 - NodeFlow</title>
+    <title>{{ calendar.name }} - 캘린더 - NotionFlow</title>
 
     <!-- Permissions Policy for YouTube embeds -->
     <meta http-equiv="Permissions-Policy" content="compute-pressure=(), camera=(), microphone=(), geolocation=()">
@@ -7200,16 +7200,16 @@
             });
 
             // 로컬 저장소에 볼륨 설정 저장
-            localStorage.setItem('nodeflow_volume', currentVolume);
-            localStorage.setItem('nodeflow_muted', isMuted);
+            localStorage.setItem('notionflow_volume', currentVolume);
+            localStorage.setItem('notionflow_muted', isMuted);
         }
 
         /**
          * 저장된 볼륨 설정 로드
          */
         function loadVolumeSettings() {
-            const savedVolume = localStorage.getItem('nodeflow_volume');
-            const savedMuted = localStorage.getItem('nodeflow_muted');
+            const savedVolume = localStorage.getItem('notionflow_volume');
+            const savedMuted = localStorage.getItem('notionflow_muted');
 
             if (savedVolume !== null) {
                 currentVolume = parseFloat(savedVolume);

@@ -1,5 +1,5 @@
 /**
- * 🔐 Unified Authentication Service for NodeFlow
+ * 🔐 Unified Authentication Service for NotionFlow
  * Handles login, registration, and session management
  */
 

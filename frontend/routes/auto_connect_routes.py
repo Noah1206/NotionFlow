@@ -31,7 +31,7 @@ DEMO_CREDENTIALS = {
     'notion': {
         'demo_api_key': 'ntn_demo_key_for_testing_purposes_only',
         'demo_name': 'Demo Workspace',
-        'demo_user': 'NodeFlow Demo User'
+        'demo_user': 'NotionFlow Demo User'
     },
     'google': {
         'demo_client_id': 'demo-google-client-id.apps.googleusercontent.com',

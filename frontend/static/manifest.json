@@ -1,6 +1,6 @@
 {
-  "name": "NodeFlow - 플랫폼 연결 도구",
-  "short_name": "NodeFlow",
+  "name": "NotionFlow - 플랫폼 연결 도구",
+  "short_name": "NotionFlow",
   "description": "Google 캘린더, Notion, Apple 캘린더를 통합하는 플랫폼",
   "start_url": "/",
   "display": "standalone",

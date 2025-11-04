@@ -54,7 +54,7 @@ PLATFORM_CONFIGS = {
         'name': 'Slack',
         'credential_type': 'webhook_url',
         'test_method': 'POST',
-        'test_payload': {'text': 'NodeFlow connection test'},
+        'test_payload': {'text': 'NotionFlow connection test'},
         'required_fields': ['webhook_url']
     }
 }
@@ -423,8 +423,8 @@ def test_slack_connection(credentials):
             return {'success': False, 'error': 'Webhook URL required'}
         
         payload = {
-            'text': 'NodeFlow connection test',
-            'username': 'NodeFlow'
+            'text': 'NotionFlow connection test',
+            'username': 'NotionFlow'
         }
         
         response = requests.post(webhook_url, json=payload, timeout=10)

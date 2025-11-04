@@ -280,9 +280,9 @@ def connect_google_calendar():
             data = {}
 
         calendar_id = data.get('calendar_id')  # Google Calendar ID
-        nodeflow_calendar_id = data.get('nodeflow_calendar_id')  # NodeFlow internal calendar ID
+        notionflow_calendar_id = data.get('notionflow_calendar_id')  # NotionFlow internal calendar ID
         print(f"📅 Google Calendar ID received: {calendar_id}")
-        print(f"📅 NodeFlow Calendar ID received: {nodeflow_calendar_id}")
+        print(f"📅 NotionFlow Calendar ID received: {notionflow_calendar_id}")
         print(f"📅 Request data parsed: {data}")
 
         if not calendar_id:
@@ -325,7 +325,7 @@ def connect_google_calendar():
             'credentials': {
                 'oauth_connected': True,
                 'google_calendar_id': calendar_id,  # Store Google calendar email here
-                'nodeflow_calendar_id': nodeflow_calendar_id,  # Store NodeFlow internal calendar ID
+                'notionflow_calendar_id': notionflow_calendar_id,  # Store NotionFlow internal calendar ID
                 'connected_at': datetime.now().isoformat(),
                 'real_time_sync': True,
                 'needs_calendar_selection': True  # Flag that calendar selection is needed

@@ -293,7 +293,7 @@ def connect_google_to_calendar():
                 print(f"❌ [GOOGLE-CONNECT] No calendars found for user {user_id}")
                 return jsonify({'error': 'No calendars found for user. Please create a calendar first.'}), 404
         else:
-            # This is a NodeFlow calendar ID
+            # This is a NotionFlow calendar ID
             actual_calendar_id = calendar_id
             print(f"🔗 [GOOGLE-CONNECT] Checking calendar ownership...")
             calendar_check = supabase.table('calendars').select('*').eq('id', actual_calendar_id).eq('owner_id', formatted_user_id).execute()

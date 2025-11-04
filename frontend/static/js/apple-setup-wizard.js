@@ -136,7 +136,7 @@ class AppleSetupWizard {
                                     <li>Apple ID로 로그인</li>
                                     <li><strong>"앱 암호"</strong> 섹션 찾기</li>
                                     <li><strong>"암호 생성"</strong> 클릭</li>
-                                    <li>레이블: <code>NodeFlow</code> 입력</li>
+                                    <li>레이블: <code>NotionFlow</code> 입력</li>
                                     <li>생성된 암호 <strong>복사</strong> (xxxx-xxxx-xxxx-xxxx)</li>
                                 </ol>
                             </div>
@@ -392,7 +392,7 @@ class AppleSetupWizard {
                     // Console log removed
                 }
 
-                // Apple Calendar 연결 성공 후 NodeFlow 캘린더 선택 팝업 표시
+                // Apple Calendar 연결 성공 후 NotionFlow 캘린더 선택 팝업 표시
                 // 마법사를 닫고 캘린더 선택 모달을 표시하기 위해 타이머 설정
                 setTimeout(() => {
                     // 마법사가 표시되어 있으면 먼저 닫기
@@ -878,7 +878,7 @@ class AppleSetupWizard {
         `;
     }
     /**
-     * NodeFlow 캘린더 선택 모달 표시
+     * NotionFlow 캘린더 선택 모달 표시
      */
     async showCalendarSelectionModal() {
         try {
@@ -887,7 +887,7 @@ class AppleSetupWizard {
                 this.wizardModal.remove();
             }
 
-            // NodeFlow 캘린더 목록 가져오기
+            // NotionFlow 캘린더 목록 가져오기
             const response = await fetch('/api/user/calendars');
             if (!response.ok) {
                 throw new Error('캘린더 목록을 가져올 수 없습니다.');
@@ -917,7 +917,7 @@ class AppleSetupWizard {
                                 <div class="header-icon">🍎</div>
                                 <div class="header-text">
                                     <h2>Apple Calendar 연동</h2>
-                                    <p class="subtitle">연동할 NodeFlow 캘린더를 선택하세요</p>
+                                    <p class="subtitle">연동할 NotionFlow 캘린더를 선택하세요</p>
                                 </div>
                             </div>
                             <button class="close-btn" onclick="document.getElementById('apple-calendar-selection').remove()">
@@ -964,7 +964,7 @@ class AppleSetupWizard {
                                 <div class="empty-state">
                                     <div class="empty-icon">📅</div>
                                     <h3>생성된 캘린더가 없습니다</h3>
-                                    <p>먼저 NodeFlow에서 캘린더를 생성한 후 연동해주세요.</p>
+                                    <p>먼저 NotionFlow에서 캘린더를 생성한 후 연동해주세요.</p>
                                 </div>
                             ` : ''}
                         </div>
@@ -1588,7 +1588,7 @@ class AppleSetupWizard {
             syncBtn.disabled = true;
             syncBtn.textContent = '연동 중...';
 
-            // Apple Calendar과 NodeFlow 캘린더 연결
+            // Apple Calendar과 NotionFlow 캘린더 연결
             // Google과 동일한 방식으로 처리
             const response = await fetch('/api/calendars/sync', {
                 method: 'POST',

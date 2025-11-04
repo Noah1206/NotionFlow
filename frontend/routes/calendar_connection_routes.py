@@ -542,7 +542,7 @@ def auto_import_google_events(user_id, calendar_id):
         if not google_events:
             return {'success': True, 'imported_count': 0, 'failed_count': 0, 'message': 'No events to import'}
         
-        # Import events to NodeFlow calendar
+        # Import events to NotionFlow calendar
         imported_count = 0
         failed_count = 0
         
@@ -554,7 +554,7 @@ def auto_import_google_events(user_id, calendar_id):
                 if existing_event.data:
                     continue  # Skip if event already exists
                 
-                # Convert Google event to NodeFlow format
+                # Convert Google event to NotionFlow format
                 start_datetime = event.get('start', {})
                 end_datetime = event.get('end', {})
                 

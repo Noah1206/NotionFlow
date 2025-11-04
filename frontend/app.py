@@ -3981,7 +3981,7 @@ def health_check():
     try:
         # 기본 Flask 앱 상태 체크
         status = 'healthy'
-        message = 'NodeFlow is running successfully'
+        message = 'NotionFlow is running successfully'
         details = {
             'environment': os.environ.get('RAILWAY_ENVIRONMENT', 'development'),
             'blueprints_registered': len(registered_blueprints) if 'registered_blueprints' in globals() else 0,
@@ -4016,14 +4016,14 @@ def root_health():
     """Root endpoint that also serves as health check"""
     try:
         return jsonify({
-            'service': 'NodeFlow',
+            'service': 'NotionFlow',
             'status': 'running',
             'version': '1.0.0',
             'timestamp': dt.utcnow().isoformat()
         })
     except Exception as e:
         return jsonify({
-            'service': 'NodeFlow',
+            'service': 'NotionFlow',
             'status': 'error',
             'error': str(e),
             'timestamp': dt.utcnow().isoformat()
@@ -5773,7 +5773,7 @@ def sync_calendar():
                 print(f"⚠️ [SYNC] Error updating Notion calendar_sync_configs: {config_error}")
                 # Continue even if config update fails
         
-        # Notion에서 NodeFlow로 이벤트 가져오기 (Import)
+        # Notion에서 NotionFlow로 이벤트 가져오기 (Import)
         synced_events_count = 0
         imported_events_count = 0
         
@@ -5791,7 +5791,7 @@ def sync_calendar():
             except Exception as e:
                 print(f"Error importing events from Google: {e}")
         
-        # 2. 기존 NodeFlow 일정을 외부 플랫폼으로 내보내기 (Export)
+        # 2. 기존 NotionFlow 일정을 외부 플랫폼으로 내보내기 (Export)
         if sync_existing and existing_events:
             try:
                 print(f"Starting sync of {len(existing_events)} existing events to {platform}")
@@ -5968,7 +5968,7 @@ def save_import_log(debug_data):
         return None
 
 def import_events_from_notion(user_id: str, calendar_id: str) -> int:
-    """Notion에서 이벤트를 가져와서 NodeFlow calendar_events 테이블에 저장"""
+    """Notion에서 이벤트를 가져와서 NotionFlow calendar_events 테이블에 저장"""
     import json
     import logging
     from datetime import datetime, timezone
@@ -6360,7 +6360,7 @@ def import_events_from_notion(user_id: str, calendar_id: str) -> int:
         return 0
 
 def import_events_from_google(user_id: str, calendar_id: str) -> int:
-    """Google Calendar에서 이벤트를 가져와서 NodeFlow calendar_events 테이블에 저장"""
+    """Google Calendar에서 이벤트를 가져와서 NotionFlow calendar_events 테이블에 저장"""
     import json
     import logging
     
@@ -6461,7 +6461,7 @@ def import_events_from_google(user_id: str, calendar_id: str) -> int:
         
         total_imported = 0
         
-        # 3. 각 이벤트를 NodeFlow에 저장
+        # 3. 각 이벤트를 NotionFlow에 저장
         for event in events:
             try:
                 event_id = event.get('id')
@@ -6586,7 +6586,7 @@ def get_google_calendar_events():
             time_max=time_max
         )
         
-        # 일정 데이터 형식 변환 (Google -> NodeFlow 형식)
+        # 일정 데이터 형식 변환 (Google -> NotionFlow 형식)
         converted_events = []
         for event in google_events:
             converted_event = {
@@ -6638,7 +6638,7 @@ def sync_google_events_to_notion():
         google_events_data = json.loads(google_events_response[0].data)
         google_events = google_events_data.get('events', [])
         
-        # NodeFlow 데이터베이스에 일정 저장
+        # NotionFlow 데이터베이스에 일정 저장
         synced_count = 0
         failed_count = 0
         
@@ -6649,7 +6649,7 @@ def sync_google_events_to_notion():
         
         for event in google_events:
             try:
-                # Convert Google event to NodeFlow format
+                # Convert Google event to NotionFlow format
                 event_data = {
                     'user_id': user_id,
                     'calendar_id': calendar_id,
@@ -6692,7 +6692,7 @@ def sync_google_events_to_notion():
                 ).execute()
                 
                 if result.data:
-                    print(f"Successfully synced Google event '{event.get('title', 'Unknown')}' to NodeFlow calendar {calendar_id}")
+                    print(f"Successfully synced Google event '{event.get('title', 'Unknown')}' to NotionFlow calendar {calendar_id}")
                     synced_count += 1
                 else:
                     print(f"Failed to sync event {event.get('title', 'Unknown')}: No data returned")
@@ -6704,15 +6704,15 @@ def sync_google_events_to_notion():
         
         return jsonify({
             'success': True,
-            'message': f'Google Calendar 일정을 NodeFlow로 동기화했습니다.',
+            'message': f'Google Calendar 일정을 NotionFlow로 동기화했습니다.',
             'synced_count': synced_count,
             'failed_count': failed_count,
             'total_count': len(google_events)
         }), 200
         
     except Exception as e:
-        print(f"Error syncing Google events to NodeFlow: {e}")
-        return jsonify({'error': 'Failed to sync Google events to NodeFlow'}), 500
+        print(f"Error syncing Google events to NotionFlow: {e}")
+        return jsonify({'error': 'Failed to sync Google events to NotionFlow'}), 500
 
 @app.route('/api/google-calendar/auto-import', methods=['POST'])
 def auto_import_google_events():
@@ -6780,13 +6780,13 @@ def auto_import_google_events():
                 'failed_count': 0
             })
         
-        # Import events to NodeFlow calendar
+        # Import events to NotionFlow calendar
         imported_count = 0
         failed_count = 0
         
         for event in google_events:
             try:
-                # Convert Google event to NodeFlow format
+                # Convert Google event to NotionFlow format
                 start_datetime = event.get('start', {})
                 end_datetime = event.get('end', {})
                 
@@ -6854,7 +6854,7 @@ def auto_import_google_events():
 
 @app.route('/api/import-google-events/<calendar_id>', methods=['POST'])
 def import_google_events_to_calendar(calendar_id):
-    """Google Calendar 이벤트를 특정 NodeFlow 캘린더로 자동 가져오기"""
+    """Google Calendar 이벤트를 특정 NotionFlow 캘린더로 자동 가져오기"""
     try:
         # Enhanced logging
         print(f"=== Import Google Events Request ===")
@@ -6943,13 +6943,13 @@ def import_google_events_to_calendar(calendar_id):
                 'failed_count': 0
             })
         
-        # Import events to NodeFlow database
+        # Import events to NotionFlow database
         synced_count = 0
         failed_count = 0
         
         for event in google_events:
             try:
-                # Convert Google event to NodeFlow format (use correct Google API field names)
+                # Convert Google event to NotionFlow format (use correct Google API field names)
                 start_datetime = event.get('start', {})
                 end_datetime = event.get('end', {})
                 
@@ -7235,9 +7235,9 @@ def mark_platform_connected(platform):
                 'error': 'User not authenticated'
             }), 401
 
-        # Get request data for nodeflow_calendar_id if provided
+        # Get request data for notionflow_calendar_id if provided
         data = request.get_json() or {}
-        nodeflow_calendar_id = data.get('nodeflow_calendar_id')
+        notionflow_calendar_id = data.get('notionflow_calendar_id')
         
         # Google Calendar의 경우 database에 configuration 저장
         if platform == 'google':
@@ -7260,9 +7260,9 @@ def mark_platform_connected(platform):
                     'updated_at': datetime.utcnow().isoformat()
                 }
 
-                # Add nodeflow_calendar_id if provided
-                if nodeflow_calendar_id:
-                    config_data['calendar_id'] = nodeflow_calendar_id
+                # Add notionflow_calendar_id if provided
+                if notionflow_calendar_id:
+                    config_data['calendar_id'] = notionflow_calendar_id
                 
                 if existing_config.data:
                     # Update existing config
@@ -7270,8 +7270,8 @@ def mark_platform_connected(platform):
                         'is_enabled': True,
                         'updated_at': datetime.utcnow().isoformat()
                     }
-                    if nodeflow_calendar_id:
-                        update_data['calendar_id'] = nodeflow_calendar_id
+                    if notionflow_calendar_id:
+                        update_data['calendar_id'] = notionflow_calendar_id
                     supabase.table('calendar_sync_configs').update(update_data).eq('user_id', user_id).eq('platform', platform).execute()
                 else:
                     # Insert new config
@@ -7508,14 +7508,14 @@ if __name__ == '__main__':
     
     # Railway production mode - debug=False로 설정하여 경고 제거
     if os.environ.get('RAILWAY_ENVIRONMENT'):
-        print(f"Starting NodeFlow app on port {port} (debug=False)")
+        print(f"Starting NotionFlow app on port {port} (debug=False)")
         # Flask 개발 서버 경고를 숨기기 위한 로그 레벨 설정
         import logging
         log = logging.getLogger('werkzeug')
         log.setLevel(logging.ERROR)
         app.run(host='0.0.0.0', port=port, debug=False)
     else:
-        print(f"Starting NodeFlow app on port {port} (debug=True)")
+        print(f"Starting NotionFlow app on port {port} (debug=True)")
         app.run(host='0.0.0.0', port=port, debug=True)
 elif os.environ.get('RENDER') and not os.environ.get('FLASK_ENV') == 'development':
     # Production startup with error handling (only on Render platform)
