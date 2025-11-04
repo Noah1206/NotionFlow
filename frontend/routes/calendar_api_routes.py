@@ -16,6 +16,9 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../utils'))
 
 calendar_api_bp = Blueprint('calendar_api', __name__, url_prefix='/api')
 
+# 사이드바 이벤트 카운트를 저장할 간단한 메모리 캐시
+sidebar_event_cache = {}
+
 # Dashboard data manager import
 try:
     from utils.dashboard_data import DashboardDataManager
@@ -1561,6 +1564,101 @@ def toggle_calendar_privacy(calendar_id):
         return jsonify({
             'success': False,
             'error': f'Privacy toggle failed: {str(e)}'
+        }), 500
+
+@calendar_api_bp.route('/calendars/<calendar_id>/real-event-count', methods=['GET'])
+def get_real_event_count(calendar_id):
+    """실제 이벤트 개수 가져오기 (DB + 사이드바 이벤트 포함)"""
+    try:
+        # 인증 확인
+        user_id = get_current_user_id()
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+
+        # Config import
+        from utils.config import config
+        supabase = config.supabase_admin
+
+        # 1. DB 이벤트 개수 가져오기
+        db_events_result = supabase.table('calendar_events').select(
+            'id', count='exact'
+        ).eq('calendar_id', calendar_id).execute()
+
+        db_count = db_events_result.count if db_events_result.count is not None else 0
+
+        # 2. 사이드바 이벤트 개수 가져오기
+        # 실제 구현에서는 프론트엔드에서 별도 API로 사이드바 이벤트 정보를 전송받아야 합니다.
+        # 현재는 임시로 0으로 설정하고, 향후 calendar-detail.js에서 extractEventsFromSidebar() 결과를
+        # 별도 엔드포인트로 전송하는 방식으로 개선할 수 있습니다.
+
+        # 캐시에서 사이드바 이벤트 개수 가져오기
+        sidebar_count = 0
+        if calendar_id in sidebar_event_cache:
+            cached_data = sidebar_event_cache[calendar_id]
+            # 캐시가 10분 이내의 데이터인 경우에만 사용
+            cache_age = (datetime.now() - cached_data['timestamp']).total_seconds()
+            if cache_age <= 600:  # 10분
+                sidebar_count = cached_data['count']
+                print(f"📊 [REAL-EVENT-COUNT] Using cached sidebar count: {sidebar_count}")
+            else:
+                print(f"📊 [REAL-EVENT-COUNT] Cache expired for calendar {calendar_id[:8]}...")
+        else:
+            print(f"📊 [REAL-EVENT-COUNT] No cached sidebar data for calendar {calendar_id[:8]}...")
+
+        # 추가 이벤트 소스 확인 (예: 동기화된 외부 이벤트 등)
+        # 여기서는 다른 테이블이나 API에서 가져올 수 있는 이벤트들을 확인할 수 있습니다.
+
+        total_count = db_count + sidebar_count
+
+        print(f"📊 [REAL-EVENT-COUNT] Calendar {calendar_id[:8]}... DB: {db_count}, Sidebar: {sidebar_count}, Total: {total_count}")
+
+        return jsonify({
+            'success': True,
+            'count': total_count,
+            'db_count': db_count,
+            'sidebar_count': sidebar_count
+        })
+
+    except Exception as e:
+        print(f"❌ Error getting real event count: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'Failed to get event count: {str(e)}'
+        }), 500
+
+@calendar_api_bp.route('/calendars/<calendar_id>/sidebar-events', methods=['POST'])
+def update_sidebar_events(calendar_id):
+    """사이드바 이벤트 정보 업데이트 (프론트엔드에서 전송)"""
+    try:
+        # 인증 확인
+        user_id = get_current_user_id()
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+
+        data = request.get_json()
+        sidebar_events = data.get('sidebar_events', [])  # 프론트엔드에서 보내는 키와 일치
+        sidebar_count = data.get('count', len(sidebar_events))
+
+        # 메모리 캐시에 사이드바 이벤트 개수 저장
+        sidebar_event_cache[calendar_id] = {
+            'count': sidebar_count,
+            'events': sidebar_events,
+            'timestamp': datetime.now()
+        }
+
+        print(f"📊 [SIDEBAR-EVENTS] Calendar {calendar_id[:8]}... received {sidebar_count} sidebar events")
+        print(f"📊 [SIDEBAR-EVENTS] Cache updated for calendar {calendar_id[:8]}...")
+
+        return jsonify({
+            'success': True,
+            'received_count': sidebar_count
+        })
+
+    except Exception as e:
+        print(f"❌ Error updating sidebar events: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'Failed to update sidebar events: {str(e)}'
         }), 500
 
 # Error handlers

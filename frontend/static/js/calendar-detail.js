@@ -2901,6 +2901,9 @@ function processEventsData(data) {
                 console.log('📄 추출된 이벤트 상세:', sidebarEvents);
                 events = sidebarEvents;
                 console.log('🔄 events 배열 업데이트 완료, 새 길이:', events.length);
+
+                // 사이드바 이벤트 정보를 백엔드로 전송
+                sendSidebarEventsToBackend(sidebarEvents);
             } else {
                 console.log('❌ 사이드바에서 이벤트 추출 실패');
             }
@@ -6940,4 +6943,33 @@ document.addEventListener('click', function(e) {
         closeEventDetailModal();
     }
 });
+
+// 사이드바 이벤트를 백엔드로 전송하는 함수
+async function sendSidebarEventsToBackend(sidebarEvents) {
+    try {
+        const calendarId = window.location.pathname.split('/').pop();
+
+        const response = await fetch(`/api/calendars/${calendarId}/sidebar-events`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                sidebar_events: sidebarEvents,
+                count: sidebarEvents.length
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            console.log(`✅ [SIDEBAR-SYNC] Successfully sent ${sidebarEvents.length} sidebar events to backend`);
+        } else {
+            console.warn('⚠️ [SIDEBAR-SYNC] Failed to send sidebar events:', data.error);
+        }
+    } catch (error) {
+        console.error('❌ [SIDEBAR-SYNC] Error sending sidebar events to backend:', error);
+    }
+}
 

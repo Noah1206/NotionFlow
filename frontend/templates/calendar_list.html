@@ -2369,6 +2369,36 @@
         updateDeleteButtonVisibility();
     }
 
+    // 실시간 이벤트 카운트 업데이트 함수
+    async function updateRealTimeEventCounts() {
+        const calendarCards = document.querySelectorAll('[data-calendar]');
+        console.log('🔄 실시간 이벤트 카운트 업데이트 시작:', calendarCards.length, '개 캘린더');
+
+        for (const card of calendarCards) {
+            const calendarId = card.getAttribute('data-calendar');
+            if (!calendarId) continue;
+
+            try {
+                // API로 실제 이벤트 개수 가져오기 (DB + 사이드바 이벤트 포함)
+                const response = await fetch(`/api/calendars/${calendarId}/real-event-count`);
+                const data = await response.json();
+
+                if (data.success && data.count !== undefined) {
+                    // UI 업데이트
+                    const metaElement = card.querySelector('.calendar-meta');
+                    if (metaElement) {
+                        const metaText = metaElement.textContent;
+                        const updatedText = metaText.replace(/\d+개 이벤트/, `${data.count}개 이벤트`);
+                        metaElement.textContent = updatedText;
+                        console.log(`✅ 캘린더 ${calendarId.substring(0, 8)}... 이벤트 개수 업데이트: ${data.count}개 (DB: ${data.db_count}, 사이드바: ${data.sidebar_count})`);
+                    }
+                }
+            } catch (error) {
+                console.error(`❌ 캘린더 ${calendarId} 이벤트 카운트 업데이트 실패:`, error);
+            }
+        }
+    }
+
     // 🔍 Log when page is loaded
     document.addEventListener('DOMContentLoaded', function () {
         console.log('🔍 Calendar list page fully loaded');
@@ -2376,6 +2406,11 @@
 
         // Check and show empty state UI if needed
         showEmptyStateIfNeeded();
+
+        // 실시간 이벤트 카운트 업데이트 (3초 후)
+        setTimeout(() => {
+            updateRealTimeEventCounts();
+        }, 3000);
     });
 </script>
 {% endblock %}
