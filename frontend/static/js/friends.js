@@ -101,19 +101,26 @@ async function loadFriends() {
 async function loadFriendCalendars() {
     try {
         const response = await fetch('/api/friends/calendars', {
+            method: 'GET',
+            credentials: 'include',  // 세션 쿠키 포함
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                'Content-Type': 'application/json'
             }
         });
-        
+
         if (response.ok) {
             const data = await response.json();
+            console.log('📊 Friend calendars response:', data);
             friendCalendars = Array.isArray(data) ? data : (data.calendars || []);
             renderCalendarTable();
             updateStats();
+        } else {
+            console.error('❌ API response not ok:', response.status, response.statusText);
+            const errorData = await response.text();
+            console.error('❌ Error response:', errorData);
         }
     } catch (error) {
-        // Console error removed
+        console.error('❌ Network error loading friend calendars:', error);
         friendCalendars = []; // Ensure friendCalendars is always an array
         showNotification('캘린더 목록을 불러오는데 실패했습니다.', 'error');
     }
