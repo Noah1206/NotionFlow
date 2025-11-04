@@ -1610,13 +1610,26 @@ def get_real_event_count(calendar_id):
 
         total_count = db_count + sidebar_count
 
-        print(f"📊 [REAL-EVENT-COUNT] Calendar {calendar_id[:8]}... DB: {db_count}, Sidebar: {sidebar_count}, Total: {total_count}")
+        print(f"📊 [REAL-EVENT-COUNT] ===== DETAILED BREAKDOWN =====")
+        print(f"📊 [REAL-EVENT-COUNT] Calendar ID: {calendar_id}")
+        print(f"📊 [REAL-EVENT-COUNT] DB Events: {db_count}")
+        print(f"📊 [REAL-EVENT-COUNT] Sidebar Events: {sidebar_count}")
+        print(f"📊 [REAL-EVENT-COUNT] Total Count: {total_count}")
+
+        # 캐시 상태 상세 로깅
+        if calendar_id in sidebar_event_cache:
+            cache_data = sidebar_event_cache[calendar_id]
+            print(f"📊 [REAL-EVENT-COUNT] Cache timestamp: {cache_data['timestamp']}")
+            print(f"📊 [REAL-EVENT-COUNT] Cache event titles: {[event.get('title', 'No title') for event in cache_data.get('events', [])]}")
+
+        print(f"📊 [REAL-EVENT-COUNT] ===============================")
 
         return jsonify({
             'success': True,
             'count': total_count,
             'db_count': db_count,
-            'sidebar_count': sidebar_count
+            'sidebar_count': sidebar_count,
+            'cache_status': 'cached' if calendar_id in sidebar_event_cache else 'no_cache'
         })
 
     except Exception as e:
@@ -1646,8 +1659,13 @@ def update_sidebar_events(calendar_id):
             'timestamp': datetime.now()
         }
 
-        print(f"📊 [SIDEBAR-EVENTS] Calendar {calendar_id[:8]}... received {sidebar_count} sidebar events")
-        print(f"📊 [SIDEBAR-EVENTS] Cache updated for calendar {calendar_id[:8]}...")
+        print(f"📊 [SIDEBAR-EVENTS] ===== SIDEBAR EVENT UPDATE =====")
+        print(f"📊 [SIDEBAR-EVENTS] Calendar ID: {calendar_id}")
+        print(f"📊 [SIDEBAR-EVENTS] Received count: {sidebar_count}")
+        print(f"📊 [SIDEBAR-EVENTS] Event titles: {[event.get('title', 'No title') for event in sidebar_events]}")
+        print(f"📊 [SIDEBAR-EVENTS] Event details: {sidebar_events}")
+        print(f"📊 [SIDEBAR-EVENTS] Cache updated at: {datetime.now()}")
+        print(f"📊 [SIDEBAR-EVENTS] ======================================")
 
         return jsonify({
             'success': True,

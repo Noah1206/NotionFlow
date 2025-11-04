@@ -2384,14 +2384,26 @@
                 const data = await response.json();
 
                 if (data.success && data.count !== undefined) {
+                    // 상세 로깅
+                    console.log(`📊 [REAL-TIME-COUNT] ===== CALENDAR COUNT UPDATE =====`);
+                    console.log(`📊 [REAL-TIME-COUNT] Calendar ID: ${calendarId}`);
+                    console.log(`📊 [REAL-TIME-COUNT] Total Count: ${data.count}`);
+                    console.log(`📊 [REAL-TIME-COUNT] DB Count: ${data.db_count || 'undefined'}`);
+                    console.log(`📊 [REAL-TIME-COUNT] Sidebar Count: ${data.sidebar_count || 'undefined'}`);
+                    console.log(`📊 [REAL-TIME-COUNT] Cache Status: ${data.cache_status || 'unknown'}`);
+                    console.log(`📊 [REAL-TIME-COUNT] Raw Response:`, data);
+                    console.log(`📊 [REAL-TIME-COUNT] ==============================`);
+
                     // UI 업데이트
                     const metaElement = card.querySelector('.calendar-meta');
                     if (metaElement) {
                         const metaText = metaElement.textContent;
                         const updatedText = metaText.replace(/\d+개 이벤트/, `${data.count}개 이벤트`);
                         metaElement.textContent = updatedText;
-                        console.log(`✅ 캘린더 ${calendarId.substring(0, 8)}... 이벤트 개수 업데이트: ${data.count}개 (DB: ${data.db_count}, 사이드바: ${data.sidebar_count})`);
+                        console.log(`✅ UI 업데이트 완료: "${metaText}" → "${updatedText}"`);
                     }
+                } else {
+                    console.warn(`⚠️ [REAL-TIME-COUNT] Invalid response for ${calendarId}:`, data);
                 }
             } catch (error) {
                 console.error(`❌ 캘린더 ${calendarId} 이벤트 카운트 업데이트 실패:`, error);

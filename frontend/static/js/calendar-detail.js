@@ -2897,8 +2897,12 @@ function processEventsData(data) {
             console.log('🔍 API에서 빈 데이터, 사이드바에서 이벤트 추출 시도...');
             const sidebarEvents = extractEventsFromSidebar();
             if (sidebarEvents.length > 0) {
-                console.log('✅ 사이드바에서 이벤트 발견:', sidebarEvents.length, '개');
-                console.log('📄 추출된 이벤트 상세:', sidebarEvents);
+                console.log('🔍 [SIDEBAR-EXTRACT] ===== SIDEBAR EVENTS FOUND =====');
+                console.log('🔍 [SIDEBAR-EXTRACT] Count:', sidebarEvents.length);
+                console.log('🔍 [SIDEBAR-EXTRACT] Event titles:', sidebarEvents.map(e => e.title || 'No title'));
+                console.log('🔍 [SIDEBAR-EXTRACT] Event details:', sidebarEvents);
+                console.log('🔍 [SIDEBAR-EXTRACT] ================================');
+
                 events = sidebarEvents;
                 console.log('🔄 events 배열 업데이트 완료, 새 길이:', events.length);
 
@@ -6964,7 +6968,12 @@ async function sendSidebarEventsToBackend(sidebarEvents) {
         const data = await response.json();
 
         if (data.success) {
-            console.log(`✅ [SIDEBAR-SYNC] Successfully sent ${sidebarEvents.length} sidebar events to backend`);
+            console.log(`✅ [SIDEBAR-SYNC] ===== SIDEBAR SYNC SUCCESS =====`);
+            console.log(`✅ [SIDEBAR-SYNC] Calendar ID: ${calendarId}`);
+            console.log(`✅ [SIDEBAR-SYNC] Events sent: ${sidebarEvents.length}`);
+            console.log(`✅ [SIDEBAR-SYNC] Event titles:`, sidebarEvents.map(e => e.title || 'No title'));
+            console.log(`✅ [SIDEBAR-SYNC] Event details:`, sidebarEvents);
+            console.log(`✅ [SIDEBAR-SYNC] ===============================`);
         } else {
             console.warn('⚠️ [SIDEBAR-SYNC] Failed to send sidebar events:', data.error);
         }
