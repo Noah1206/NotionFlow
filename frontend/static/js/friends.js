@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Then load all data
     await loadCurrentUser();
     await loadFriends();
-    await loadMyCalendars();
+    // Calendar loading is handled by loadNotionCalendars() in friends.html
     await loadSharedCalendars();
     await loadFriendCalendars();
     initializeEventListeners();
@@ -117,19 +117,51 @@ async function loadFriendCalendars() {
 function renderStoryBar() {
     const storyList = document.getElementById('story-list');
     if (!storyList) return;
-    
+
     const myStory = storyList.querySelector('.my-story');
-    
-    // Clear existing friend stories
-    const existingStories = storyList.querySelectorAll('.story-item:not(.my-story)');
+
+    // Clear existing friend stories and empty state
+    const existingStories = storyList.querySelectorAll('.story-item:not(.my-story), .empty-friends-state');
     existingStories.forEach(story => story.remove());
-    
+
     // Ensure friends is an array before using forEach
     if (!Array.isArray(friends)) {
         // Console warn removed
         return;
     }
-    
+
+    // Check if there are no friends
+    if (friends.length === 0) {
+        // Add empty state message
+        const emptyState = document.createElement('div');
+        emptyState.className = 'empty-friends-state';
+        emptyState.style.cssText = `
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-left: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        `;
+        emptyState.innerHTML = `
+            <span>👥 아직 친구가 없습니다.</span>
+            <button onclick="openAddFriendModal()" style="
+                background: #4285f4;
+                color: white;
+                border: none;
+                padding: 6px 12px;
+                border-radius: 20px;
+                cursor: pointer;
+                font-size: 13px;
+                font-weight: 500;
+            ">친구 추가하기</button>
+        `;
+        storyList.appendChild(emptyState);
+        return;
+    }
+
     // Add friend stories
     friends.forEach(friend => {
         const hasPublicCalendars = friend.public_calendars > 0;
@@ -219,15 +251,39 @@ function renderCalendarTable(calendars = null) {
     const paginatedCalendars = calendarsToRender.slice(startIndex, endIndex);
     
     if (paginatedCalendars.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="8" class="empty-state">
-                    <div class="empty-icon">📅</div>
-                    <div class="empty-title">아직 공개된 캘린더가 없습니다</div>
-                    <div class="empty-description">친구들이 캘린더를 공개하면 여기에 표시됩니다.</div>
-                </td>
-            </tr>
-        `;
+        // Check if there are no friends first
+        if (friends.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="empty-state">
+                        <div class="empty-icon">👥</div>
+                        <div class="empty-title">아직 친구가 없습니다</div>
+                        <div class="empty-description">친구를 추가하면 공개된 캘린더를 볼 수 있습니다.</div>
+                        <button onclick="openAddFriendModal()" class="add-friend-btn" style="
+                            margin-top: 15px;
+                            background: #4285f4;
+                            color: white;
+                            border: none;
+                            padding: 8px 20px;
+                            border-radius: 20px;
+                            cursor: pointer;
+                            font-size: 14px;
+                            font-weight: 500;
+                        ">친구 추가하기</button>
+                    </td>
+                </tr>
+            `;
+        } else {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="empty-state">
+                        <div class="empty-icon">📅</div>
+                        <div class="empty-title">아직 공개된 캘린더가 없습니다</div>
+                        <div class="empty-description">친구들이 캘린더를 공개하면 여기에 표시됩니다.</div>
+                    </td>
+                </tr>
+            `;
+        }
         return;
     }
     
@@ -457,7 +513,21 @@ function updatePagination(totalItems) {
 
 // Modal functions
 function openAddFriendModal() {
-    document.getElementById('add-friend-modal').style.display = 'flex';
+    const modal = document.getElementById('add-friend-modal');
+    const searchInput = document.getElementById('user-search-input');
+
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+
+    if (searchInput) {
+        searchInput.value = '';
+        // Clear search results if exists
+        const searchResults = document.getElementById('user-search-results');
+        if (searchResults) {
+            searchResults.innerHTML = '';
+        }
+    }
 }
 
 function closeAddFriendModal() {
@@ -719,92 +789,8 @@ function debounce(func, wait) {
 
 // ===== MY CALENDARS SHARING FUNCTIONS =====
 
-// Load current user's calendars
-async function loadMyCalendars() {
-    const loadingEl = document.getElementById('my-calendars-loading');
-    const gridEl = document.getElementById('my-calendars-grid');
-    const emptyEl = document.getElementById('my-calendars-empty');
-    
-    // Show loading
-    loadingEl.style.display = 'flex';
-    gridEl.style.display = 'none';
-    emptyEl.style.display = 'none';
-    
-    try {
-        const response = await fetch('/api/calendar/my-calendars');
-        const data = await response.json();
-        
-        if (data.success && data.calendars) {
-            if (data.calendars.length > 0) {
-                renderMyCalendars(data.calendars);
-                gridEl.style.display = 'grid';
-            } else {
-                emptyEl.style.display = 'block';
-            }
-        } else {
-            emptyEl.style.display = 'block';
-        }
-    } catch (error) {
-        // Console error removed
-        emptyEl.style.display = 'block';
-    } finally {
-        loadingEl.style.display = 'none';
-    }
-}
-
-// Render my calendars
-function renderMyCalendars(calendars) {
-    const gridEl = document.getElementById('my-calendars-grid');
-    
-    gridEl.innerHTML = calendars.map(calendar => `
-        <div class="calendar-card" data-calendar-id="${calendar.id}">
-            <div class="calendar-header">
-                <div class="calendar-color" style="background-color: ${calendar.color || '#2563eb'}"></div>
-                <div class="calendar-info">
-                    <h3 class="calendar-name">${escapeHtml(calendar.name)}</h3>
-                    <span class="calendar-type">${getCalendarTypeName(calendar.platform)}</span>
-                </div>
-                <div class="calendar-status">
-                    ${calendar.is_currently_shared ? 
-                        '<span class="status-shared">🔗 공유중</span>' : 
-                        '<span class="status-private">🔒 비공개</span>'
-                    }
-                </div>
-            </div>
-            
-            <div class="calendar-body">
-                <p class="calendar-description">${escapeHtml(calendar.description || '설명 없음')}</p>
-                
-                ${calendar.is_currently_shared ? `
-                    <div class="shared-with">
-                        <small>공유된 친구: ${calendar.shared_with.length}명</small>
-                    </div>
-                ` : ''}
-            </div>
-            
-            <div class="calendar-actions">
-                <button class="btn-share" onclick="openShareModal('${calendar.id}', '${escapeHtml(calendar.name)}')">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-                        <polyline points="16,6 12,2 8,6"/>
-                        <line x1="12" y1="2" x2="12" y2="15"/>
-                    </svg>
-                    친구와 공유
-                </button>
-                
-                ${calendar.is_currently_shared ? `
-                    <button class="btn-manage-share" onclick="openManageShareModal('${calendar.id}', '${escapeHtml(calendar.name)}')">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <circle cx="12" cy="12" r="3"/>
-                            <path d="M12 1v6m0 6v6"/>
-                        </svg>
-                        공유 관리
-                    </button>
-                ` : ''}
-            </div>
-        </div>
-    `).join('');
-}
+// Note: Calendar loading functions are defined in friends.html inline script
+// This prevents the null element error by using existing HTML functions
 
 // Open share modal
 function openShareModal(calendarId, calendarName) {
@@ -964,7 +950,7 @@ async function shareWithSelectedFriends() {
         if (successful > 0) {
             showNotification(`${successful}명의 친구에게 캘린더를 공유했습니다.`, 'success');
             closeShareModal();
-            loadMyCalendars(); // Refresh the calendar list
+            loadNotionCalendars(); // Refresh the calendar list
         } else {
             showNotification('캘린더 공유에 실패했습니다.', 'error');
         }
@@ -1271,35 +1257,7 @@ async function sendFriendRequestToUser(userId, userName, buttonElement) {
     }
 }
 
-// Clear search when modal is opened
-function openAddFriendModal() {
-    const modal = document.getElementById('add-friend-modal');
-    const searchInput = document.getElementById('user-search-input');
-    
-    if (modal) {
-        modal.style.display = 'flex';
-    }
-    
-    // Clear search input and reset to placeholder
-    if (searchInput) {
-        searchInput.value = '';
-        showSearchState('placeholder');
-    }
-}
-
-// Close add friend modal
-function closeAddFriendModal() {
-    const modal = document.getElementById('add-friend-modal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-    
-    // Clear any ongoing search
-    if (searchTimeout) {
-        clearTimeout(searchTimeout);
-        searchTimeout = null;
-    }
-}
+// Note: openAddFriendModal and closeAddFriendModal are already defined above
 
 // Show notification
 function showNotification(message, type = 'info') {
