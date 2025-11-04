@@ -4162,6 +4162,21 @@ except ImportError as e:
 
 # Removed duplicate health endpoint
 
+# ====== 📄 LEGAL DOCUMENT ROUTES ======
+# 법적 문서 (개인정보처리방침, 서비스 약관) 라우트
+
+@app.route('/privacy-policy')
+def privacy_policy():
+    """개인정보처리방침 페이지"""
+    return render_template('privacy-policy.html')
+
+@app.route('/terms-of-service')
+def terms_of_service():
+    """서비스 이용약관 페이지"""
+    return render_template('terms-of-service.html')
+
+print("[SUCCESS] Legal document routes registered")
+
 # ====== 💳 PAYMENT SYSTEM ROUTES ======
 # 결제 시스템 라우트 구현
 
