@@ -107,7 +107,20 @@ def get_connected_platforms():
 
             if sync_config_info:
                 credentials = sync_config_info.get('credentials', {})
-                has_sync_config_token = bool(credentials.get('access_token'))
+                # Apple Calendar는 username/password를 사용하므로 별도 체크
+                if platform == 'apple':
+                    # Apple은 username/password와 connected 플래그를 확인
+                    has_sync_config_token = bool(
+                        (credentials.get('username') and credentials.get('password')) or
+                        credentials.get('connected', False)
+                    )
+                    print(f"🍎 Apple Calendar 연결 체크: username={bool(credentials.get('username'))}, "
+                          f"password={bool(credentials.get('password'))}, "
+                          f"connected={credentials.get('connected')}, "
+                          f"is_enabled={sync_config_info.get('is_enabled')}, "
+                          f"결과={has_sync_config_token}")
+                else:
+                    has_sync_config_token = bool(credentials.get('access_token'))
 
             # 둘 중 하나라도 토큰이 있고, enabled 상태면 연결됨으로 처리
             is_enabled = sync_config_info.get('is_enabled', False) if sync_config_info else False
