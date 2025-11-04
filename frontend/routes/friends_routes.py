@@ -33,26 +33,19 @@ except ImportError:
 friends_bp = Blueprint('friends', __name__, url_prefix='/api')
 
 def get_current_user():
-    """Get current user from token"""
-    auth_header = request.headers.get('Authorization')
-    
-    # For testing: allow access without authentication
-    if not auth_header or not auth_header.startswith('Bearer '):
-        print("⚠️ No auth header found, using test user for development")
-        return 'test_user_123'  # Test user ID
-    
-    token = auth_header.replace('Bearer ', '')
-    
-    # For testing: accept any token longer than 10 characters
-    if len(token) > 10:
-        print("✅ Using test authentication")
-        return 'test_user_123'
-    
-    is_valid, user_info = verify_token(token)
-    
-    if is_valid and isinstance(user_info, dict):
-        return user_info.get('user_id') or user_info.get('id')
-    return None
+    """Get current user from session"""
+    try:
+        from utils.auth_manager import AuthManager
+        user_id = AuthManager.get_current_user_id()
+        if user_id:
+            print(f"✅ [FRIENDS AUTH] User authenticated: {user_id}")
+            return user_id
+        else:
+            print("❌ [FRIENDS AUTH] No user authenticated")
+            return None
+    except Exception as e:
+        print(f"❌ [FRIENDS AUTH] Auth error: {e}")
+        return None
 
 @friends_bp.route('/users/search', methods=['GET'])
 def search_users():
