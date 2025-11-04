@@ -224,7 +224,6 @@ function renderCalendarTable(calendars = null) {
             tbody.innerHTML = `
                 <tr>
                     <td colspan="8" class="empty-state">
-                        <div class="empty-icon">👥</div>
                         <div class="empty-title">아직 친구가 없습니다</div>
                         <div class="empty-description">친구를 추가하면 공개된 캘린더를 볼 수 있습니다.</div>
                         <button onclick="openAddFriendModal()" class="add-friend-btn" style="
