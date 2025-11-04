@@ -242,17 +242,19 @@
 }
 
 .platform-item.disconnected .platform-name {
-    color: #666666;
+    color: #000000;
+    opacity: 0.5;
 }
 
 .platform-item.disconnected .platform-status {
-    color: #666666;
+    color: #000000;
     font-style: italic;
+    opacity: 0.5;
 }
 
 .platform-item.disconnected .platform-icon {
-    background: #666666;
-    border-color: #666666;
+    background: #000000;
+    opacity: 0.3;
 }
 
 .platform-item.selected {
@@ -332,13 +334,13 @@
 
 .platform-status {
     font-size: 12px;
-    color: #6b7280;
+    color: #000000;
     font-weight: 400;
     letter-spacing: -0.01em;
 }
 
 .platform-item.selected .platform-status {
-    color: #4b5563;
+    color: #000000;
 }
 
 .platform-actions {
@@ -505,7 +507,7 @@
 
 .btn-primary:disabled {
     background: #cccccc;
-    color: #666666;
+    color: #000000;
     border-color: #cccccc;
     cursor: not-allowed;
     transform: none;
@@ -533,13 +535,13 @@
 .export-result.success {
     background: #d1fae5;
     border: 1px solid #10b981;
-    color: #059669;
+    color: #000000;
 }
 
 .export-result.error {
     background: #fee2e2;
     border: 1px solid #ef4444;
-    color: #dc2626;
+    color: #000000;
 }
 
 /* 반응형 디자인 */
@@ -582,39 +584,42 @@
     }
 }
 
-/* 다크 모드 지원 */
+/* 다크 모드에서도 검은색 텍스트 유지 */
 @media (prefers-color-scheme: dark) {
+    .export-modal {
+        background: #ffffff;
+    }
+
     .export-modal .modal-title {
-        color: #f9fafb;
+        color: #000000;
     }
 
     .export-description p {
-        color: #9ca3af;
+        color: #000000;
     }
 
     .section-title {
-        color: #f9fafb;
+        color: #000000;
     }
 
     .platform-item {
-        background: #374151;
-        border-color: #4b5563;
+        background: #ffffff;
+        border-color: #e5e7eb;
     }
 
     .platform-item:hover {
-        background: #4b5563;
-        border-color: #6b7280;
+        background: #f7f8fa;
     }
 
     .platform-name {
-        color: #f9fafb;
+        color: #000000;
     }
 
     .platform-status {
-        color: #9ca3af;
+        color: #000000;
     }
 
     .checkbox-label {
-        color: #d1d5db;
+        color: #000000;
     }
 }

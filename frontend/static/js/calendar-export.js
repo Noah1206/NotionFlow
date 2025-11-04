@@ -199,7 +199,7 @@ class CalendarExportManager {
             if (this.pendingChanges === 0) {
                 pendingChangesInfo.style.background = '#f3f4f6';
                 pendingChangesInfo.style.borderColor = '#d1d5db';
-                pendingChangesInfo.innerHTML = '<span style="color: #6b7280;">변경사항이 없습니다.</span>';
+                pendingChangesInfo.innerHTML = '<span style="color: #000000;">변경사항이 없습니다.</span>';
             } else {
                 pendingChangesInfo.style.background = '#fef3c7';
                 pendingChangesInfo.style.borderColor = '#f59e0b';
@@ -214,7 +214,7 @@ class CalendarExportManager {
         if (this.connectedPlatforms.length === 0) {
             platformsList.innerHTML = `
                 <div class="no-platforms">
-                    <p style="text-align: center; color: #6b7280; padding: 40px;">
+                    <p style="text-align: center; color: #000000; padding: 40px;">
                         연결된 플랫폼이 없습니다.<br>
                         <a href="/dashboard/api-keys" style="color: #3b82f6; text-decoration: underline;">
                             설정에서 플랫폼을 연결해보세요.
