@@ -27,6 +27,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     initializeEventListeners();
     checkFriendRequests();
     updateNotificationBadge();
+
+    // 초대링크 초기화
+    await initializeInviteLink();
+
+    // URL 파라미터에서 초대코드 확인
+    checkInviteCodeInUrl();
 });
 
 // Load current user
@@ -696,18 +702,171 @@ async function declineRequest(requestId) {
 }
 
 // Copy invite link
-function copyInviteLink() {
+async function copyInviteLink() {
     const input = document.getElementById('invite-link');
-    input.select();
-    document.execCommand('copy');
-    
+
+    try {
+        // 클립보드에 복사
+        await navigator.clipboard.writeText(input.value);
+    } catch (err) {
+        // 폴백: 구형 브라우저용
+        input.select();
+        document.execCommand('copy');
+    }
+
     const btn = event.target.closest('.btn-copy');
     const originalText = btn.innerHTML;
     btn.innerHTML = '✓ 복사됨';
-    
+
     setTimeout(() => {
         btn.innerHTML = originalText;
     }, 2000);
+}
+
+// 초대링크 생성 함수
+async function generateInviteLink() {
+    try {
+        console.log('🔗 [INVITE] 초대링크 생성 요청...');
+
+        const response = await fetch('/api/invite/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            const inviteInput = document.getElementById('invite-link');
+            inviteInput.value = data.invite_url;
+
+            console.log(`✅ [INVITE] 초대링크 생성 성공: ${data.invite_url}`);
+
+            // 복사 버튼 활성화
+            const copyBtn = document.querySelector('.btn-copy');
+            if (copyBtn) {
+                copyBtn.disabled = false;
+                copyBtn.style.opacity = '1';
+            }
+        } else {
+            console.error('❌ [INVITE] 초대링크 생성 실패:', data.error);
+            alert('초대링크 생성에 실패했습니다: ' + data.error);
+        }
+    } catch (error) {
+        console.error('❌ [INVITE] 초대링크 생성 중 오류:', error);
+        alert('초대링크 생성 중 오류가 발생했습니다.');
+    }
+}
+
+// 페이지 로드 시 초대링크 자동 생성
+async function initializeInviteLink() {
+    console.log('🔗 [INVITE] 초대링크 초기화...');
+
+    // 로딩 상태 표시
+    const inviteInput = document.getElementById('invite-link');
+    const copyBtn = document.querySelector('.btn-copy');
+
+    if (inviteInput) {
+        inviteInput.value = '초대링크 생성 중...';
+        if (copyBtn) {
+            copyBtn.disabled = true;
+            copyBtn.style.opacity = '0.5';
+        }
+
+        // 실제 링크 생성
+        await generateInviteLink();
+    }
+}
+
+// URL에서 초대코드 확인 및 처리
+function checkInviteCodeInUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const inviteCode = urlParams.get('invite');
+
+    if (inviteCode) {
+        console.log(`🔗 [INVITE] URL에서 초대코드 발견: ${inviteCode}`);
+
+        // URL에서 파라미터 제거 (깔끔한 URL 유지)
+        const url = new URL(window.location);
+        url.searchParams.delete('invite');
+        window.history.replaceState({}, '', url);
+
+        // 초대코드 처리
+        processInviteCode(inviteCode);
+    }
+}
+
+// 초대코드 처리 함수
+async function processInviteCode(inviteCode) {
+    try {
+        console.log(`🔗 [INVITE] 초대코드 처리 중: ${inviteCode}`);
+
+        // 초대코드 검증 API 호출
+        const response = await fetch(`/api/invite/${inviteCode}`, {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            const inviterName = data.inviter.name;
+            const inviterId = data.inviter.id;
+
+            console.log(`✅ [INVITE] 유효한 초대코드: ${inviterName}님의 초대`);
+
+            // 사용자에게 친구 추가 확인
+            const confirmMessage = `${inviterName}님이 친구로 초대했습니다.\n친구 요청을 보내시겠습니까?`;
+
+            if (confirm(confirmMessage)) {
+                // 친구 요청 보내기
+                await sendFriendRequest(inviterId, inviterName);
+            }
+        } else {
+            console.error('❌ [INVITE] 유효하지 않은 초대코드:', data.error);
+            alert('유효하지 않거나 만료된 초대링크입니다.');
+        }
+    } catch (error) {
+        console.error('❌ [INVITE] 초대코드 처리 중 오류:', error);
+        alert('초대링크 처리 중 오류가 발생했습니다.');
+    }
+}
+
+// 초대를 통한 친구 요청 보내기
+async function sendFriendRequest(friendId, friendName) {
+    try {
+        console.log(`👥 [FRIEND-REQUEST] 친구 요청 보내기: ${friendName} (${friendId})`);
+
+        const response = await fetch('/api/friends/request', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                friend_id: friendId
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            console.log(`✅ [FRIEND-REQUEST] 친구 요청 전송 성공: ${friendName}`);
+            alert(`${friendName}님에게 친구 요청을 보냈습니다!`);
+
+            // 친구 목록 새로고침
+            await loadFriends();
+        } else {
+            console.error('❌ [FRIEND-REQUEST] 친구 요청 실패:', data.error);
+            alert(`친구 요청 실패: ${data.error}`);
+        }
+    } catch (error) {
+        console.error('❌ [FRIEND-REQUEST] 친구 요청 중 오류:', error);
+        alert('친구 요청 중 오류가 발생했습니다.');
+    }
 }
 
 // Open my calendar settings

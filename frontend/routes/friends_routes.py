@@ -267,7 +267,100 @@ def get_friend_calendars():
         calendars = friends_db.get_friend_calendars(current_user_id)
         
         return jsonify({'calendars': calendars, 'success': True}), 200
-        
+
     except Exception as e:
         print(f"❌ Get friend calendars error: {e}")
         return jsonify({'error': 'Failed to get friend calendars', 'calendars': []}), 500
+
+@friends_bp.route('/invite/generate', methods=['POST'])
+def generate_invite_link():
+    """초대링크 생성"""
+    try:
+        import uuid
+        import secrets
+        from utils.config import config
+
+        # Get current user
+        current_user_id = get_current_user()
+        if not current_user_id:
+            return jsonify({'error': 'Authentication required'}), 401
+
+        supabase = config.supabase_admin
+
+        # 기존 활성 초대링크가 있는지 확인
+        existing_invite = supabase.table('invite_links').select('*').eq('inviter_id', current_user_id).eq('is_active', True).execute()
+
+        if existing_invite.data:
+            # 기존 링크가 있으면 재사용
+            invite_code = existing_invite.data[0]['invite_code']
+            print(f"🔗 [INVITE-LINK] Reusing existing invite code: {invite_code}")
+        else:
+            # 새로운 초대 코드 생성
+            invite_code = secrets.token_urlsafe(12)  # 안전한 랜덤 코드 생성
+
+            # DB에 저장
+            invite_data = {
+                'invite_code': invite_code,
+                'inviter_id': current_user_id,
+                'is_active': True,
+                'created_at': datetime.now().isoformat(),
+                'expires_at': None  # 무제한 (선택적으로 만료일 설정 가능)
+            }
+
+            result = supabase.table('invite_links').insert(invite_data).execute()
+            print(f"🔗 [INVITE-LINK] Created new invite code: {invite_code}")
+
+        # 초대링크 URL 생성
+        base_url = request.host_url.rstrip('/')
+        invite_url = f"{base_url}/invite/{invite_code}"
+
+        return jsonify({
+            'success': True,
+            'invite_code': invite_code,
+            'invite_url': invite_url
+        })
+
+    except Exception as e:
+        print(f"❌ Generate invite link error: {e}")
+        return jsonify({'error': 'Failed to generate invite link', 'details': str(e)}), 500
+
+@friends_bp.route('/invite/<invite_code>', methods=['GET'])
+def process_invite_link(invite_code):
+    """초대링크 처리"""
+    try:
+        from utils.config import config
+
+        supabase = config.supabase_admin
+
+        # 초대 코드 검증
+        invite_result = supabase.table('invite_links').select('*').eq('invite_code', invite_code).eq('is_active', True).execute()
+
+        if not invite_result.data:
+            return jsonify({'error': 'Invalid or expired invite link'}), 404
+
+        invite_data = invite_result.data[0]
+        inviter_id = invite_data['inviter_id']
+
+        # 초대자 정보 조회
+        inviter_result = supabase.table('users').select('name, email').eq('id', inviter_id).execute()
+
+        if not inviter_result.data:
+            return jsonify({'error': 'Inviter not found'}), 404
+
+        inviter_info = inviter_result.data[0]
+
+        print(f"🔗 [INVITE-PROCESS] Valid invite code: {invite_code} from {inviter_info['name']}")
+
+        return jsonify({
+            'success': True,
+            'invite_code': invite_code,
+            'inviter': {
+                'id': inviter_id,
+                'name': inviter_info['name'],
+                'email': inviter_info['email']
+            }
+        })
+
+    except Exception as e:
+        print(f"❌ Process invite link error: {e}")
+        return jsonify({'error': 'Failed to process invite link', 'details': str(e)}), 500

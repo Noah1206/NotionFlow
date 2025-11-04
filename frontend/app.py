@@ -7493,6 +7493,26 @@ def check_google_calendar_connection(user_id):
 # ===== CACHE CONTROL =====
 # (Cache control functions already defined above with proper decorators)
 
+# ===== 초대링크 처리 =====
+@app.route('/invite/<invite_code>')
+def handle_invite_link(invite_code):
+    """초대링크 처리 페이지"""
+    try:
+        # 로그인 상태 확인
+        user_id = session.get('user_id')
+
+        if not user_id:
+            # 비로그인 사용자는 회원가입 페이지로 리다이렉트 (초대코드 전달)
+            return redirect(f'/signup?invite={invite_code}')
+
+        # 로그인된 사용자는 친구 페이지로 리다이렉트 (초대코드로 친구 추가 처리)
+        return redirect(f'/dashboard/friends?invite={invite_code}')
+
+    except Exception as e:
+        logger.error(f"Invite link handling error: {e}")
+        flash('초대링크 처리 중 오류가 발생했습니다.', 'error')
+        return redirect('/')
+
 if __name__ == '__main__':
     # ✅ FIXED: Sync scheduler with singleton pattern to prevent multiple instances
     try:
