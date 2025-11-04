@@ -617,16 +617,25 @@
                 let username = 'User';
                 let avatarUrl = null;
 
-                if (profileData && profileData.success && profileData.profile) {
-                    username = profileData.profile.display_name || profileData.profile.username || 'User';
-                    avatarUrl = profileData.profile.avatar_url;
+                // Handle different response formats
+                if (profileData && (profileData.success || profileData.id)) {
+                    // Format 1: { success: true, profile: {...} }
+                    if (profileData.profile) {
+                        username = profileData.profile.display_name || profileData.profile.username || 'User';
+                        avatarUrl = profileData.profile.avatar_url;
+                    }
+                    // Format 2: Direct user object { id: '...', avatar: '...', ... }
+                    else if (profileData.id) {
+                        username = profileData.display_name || profileData.username || 'User';
+                        avatarUrl = profileData.avatar;
+                    }
                     console.log('✅ Profile loaded:', { username, avatarUrl });
                 } else {
                     console.log('⚠️ Using fallback user info');
                 }
 
                 // Use profile avatar or check localStorage
-                if (avatarUrl && avatarUrl !== 'null' && avatarUrl !== '') {
+                if (avatarUrl && avatarUrl !== 'null' && avatarUrl !== '' && !avatarUrl.includes('default-avatar.png')) {
                     console.log('📸 Loading profile avatar:', avatarUrl);
                     createFriendsImageAvatar(container, avatarUrl);
                     return;
@@ -739,19 +748,33 @@
 
                 console.log('📊 [CALENDARS] API Response:', result);
                 console.log('📊 [CALENDARS] Success:', result.success);
-                console.log('📊 [CALENDARS] Calendars array:', result.calendars);
-                console.log('📊 [CALENDARS] Calendars length:', result.calendars ? result.calendars.length : 'undefined');
 
-                if (result.success && result.calendars && result.calendars.length > 0) {
-                    console.log('✅ [CALENDARS] Showing calendar table with', result.calendars.length, 'calendars');
-                    notionCalendars = result.calendars;
+                // Handle both response formats
+                let calendars = [];
+                if (result.calendars) {
+                    // New format: { success: true, calendars: [...] }
+                    calendars = result.calendars;
+                    console.log('📊 [CALENDARS] Using calendars array:', calendars.length);
+                } else if (result.personal_calendars) {
+                    // Old format: { personal_calendars: [...], shared_calendars: [...] }
+                    calendars = [...(result.personal_calendars || []), ...(result.shared_calendars || [])];
+                    console.log('📊 [CALENDARS] Using personal_calendars + shared_calendars:', calendars.length);
+                    console.log('📊 [CALENDARS] Personal:', result.personal_calendars ? result.personal_calendars.length : 0);
+                    console.log('📊 [CALENDARS] Shared:', result.shared_calendars ? result.shared_calendars.length : 0);
+                }
+
+                console.log('📊 [CALENDARS] Final calendars array:', calendars);
+
+                if (result.success && calendars && calendars.length > 0) {
+                    console.log('✅ [CALENDARS] Showing calendar table with', calendars.length, 'calendars');
+                    notionCalendars = calendars;
                     renderNotionCalendars(notionCalendars);
                     updateFilterCounts();
                     loading.style.display = 'none';
                     table.style.display = 'block';
                 } else {
                     console.log('❌ [CALENDARS] Showing empty state');
-                    console.log('❌ [CALENDARS] Reason - success:', result.success, 'calendars exist:', !!result.calendars, 'length:', result.calendars ? result.calendars.length : 'N/A');
+                    console.log('❌ [CALENDARS] Reason - success:', result.success, 'calendars exist:', !!calendars, 'length:', calendars ? calendars.length : 'N/A');
                     loading.style.display = 'none';
                     empty.style.display = 'flex';
                 }
