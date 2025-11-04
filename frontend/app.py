@@ -5368,15 +5368,62 @@ def update_current_user_profile():
         print(f"Error updating user profile: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/calendars', methods=['GET'])
+def get_user_calendars_api():
+    """API endpoint to get current user's calendars"""
+    try:
+        user_id = session.get('user_id')
+
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+
+        # Normalize UUID format
+        from utils.uuid_helper import normalize_uuid
+        normalized_user_id = normalize_uuid(user_id)
+
+        print(f"📋 [API] Getting calendars for user: {normalized_user_id}")
+
+        # Get calendars from database
+        if calendar_db_available and calendar_db:
+            calendars = calendar_db.get_user_calendars(normalized_user_id)
+
+            # Add event count for each calendar
+            for cal in calendars:
+                cal['event_count'] = 0  # Default to 0 for now
+
+            print(f"✅ [API] Found {len(calendars)} calendars for user")
+
+            return jsonify({
+                'success': True,
+                'calendars': calendars
+            })
+        else:
+            print("❌ [API] Calendar database not available")
+            return jsonify({
+                'success': False,
+                'error': 'Database not available',
+                'calendars': []
+            })
+
+    except Exception as e:
+        print(f"❌ [API] Error getting user calendars: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'calendars': []
+        })
+
 @app.route('/friends')
 def friends_page():
     """Friends page route"""
     user_id = session.get('user_id')
-    
+
     # 🔒 Security: Redirect unauthenticated users to login
     if not user_id:
         return redirect('/login?from=friends')
-    
+
     return render_template('friends.html')
 
 # ============================================
