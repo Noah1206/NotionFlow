@@ -124,8 +124,13 @@
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 .notion-calendar-table {
@@ -647,7 +652,6 @@
 
 .btn-add-friend:hover {
     background: rgba(255, 255, 255, 0.25);
-    transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
 }
 
@@ -1416,27 +1420,27 @@
     .friends-header {
         padding: 16px 20px;
     }
-    
+
     .page-title {
         font-size: 20px;
     }
-    
+
     .filter-controls {
         flex-wrap: wrap;
     }
-    
+
     .search-input {
         width: 100%;
     }
-    
+
     .stats-section {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .calendar-table-container {
         overflow-x: scroll;
     }
-    
+
     .calendar-table {
         min-width: 700px;
     }
@@ -1491,20 +1495,36 @@
     0% {
         transform: translateX(-100%);
     }
+
     50% {
         transform: translateX(150%);
     }
+
     100% {
         transform: translateX(-100%);
     }
 }
 
 @keyframes loading-dots {
-    0% { content: ''; }
-    25% { content: '.'; }
-    50% { content: '..'; }
-    75% { content: '...'; }
-    100% { content: ''; }
+    0% {
+        content: '';
+    }
+
+    25% {
+        content: '.';
+    }
+
+    50% {
+        content: '..';
+    }
+
+    75% {
+        content: '...';
+    }
+
+    100% {
+        content: '';
+    }
 }
 
 /* Legacy spinner for backwards compatibility */
@@ -1618,7 +1638,8 @@
     transition: all 0.2s;
     position: relative;
     overflow: hidden;
-    border-left: 4px solid #06b6d4; /* Cyan accent for shared calendars */
+    border-left: 4px solid #06b6d4;
+    /* Cyan accent for shared calendars */
 }
 
 .shared-calendar-card:hover {
@@ -2290,8 +2311,13 @@
 
 /* Spinner Animation */
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Modal Improvements */
@@ -2328,52 +2354,52 @@
         grid-template-columns: 1fr;
         gap: 15px;
     }
-    
+
     .calendar-card {
         padding: 15px;
     }
-    
+
     .calendar-actions {
         flex-direction: column;
     }
-    
+
     .btn-share,
     .btn-manage-share {
         min-width: auto;
     }
-    
+
     #share-calendar-modal .modal-content {
         width: 95%;
         margin: 20px auto;
     }
-    
+
     .share-actions {
         flex-direction: column;
     }
-    
+
     /* User search mobile styles */
     #add-friend-modal .modal-content {
         width: 95%;
         margin: 20px auto;
         max-height: 90vh;
     }
-    
+
     .user-result-card {
         flex-direction: column;
         text-align: center;
         padding: 20px 15px;
     }
-    
+
     .user-avatar {
         margin-right: 0;
         margin-bottom: 12px;
     }
-    
+
     .user-actions {
         margin-left: 0;
         margin-top: 15px;
     }
-    
+
     .btn-send-request {
         width: 100%;
     }
@@ -2411,6 +2437,7 @@
         opacity: 0;
         transform: translateY(-20px) scale(0.95);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -2605,6 +2632,7 @@
         opacity: 0;
         transform: translateY(-10px) scale(0.98);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -2781,9 +2809,12 @@
 }
 
 @keyframes pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: scale(1);
     }
+
     50% {
         transform: scale(1.1);
     }
@@ -2806,11 +2837,12 @@
         border-radius: 0;
         animation: mobileSlideUp 0.3s ease-out;
     }
-    
+
     @keyframes mobileSlideUp {
         from {
             transform: translateY(100%);
         }
+
         to {
             transform: translateY(0);
         }
