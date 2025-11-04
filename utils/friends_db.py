@@ -306,82 +306,117 @@ class FriendsDB:
     
     # Friendship Methods
     def get_friends(self, user_id):
-        """Get user's friends list"""
+        """Get user's friends list based on calendar sharing relationships"""
         if not self.is_available():
             return []
 
         try:
-            # Get friendships where user is requester or addressee
-            result = self.supabase.rpc('get_user_friends', {'user_id': user_id}).execute()
+            print(f"🔍 [FRIENDS] Finding friends for user {user_id} via calendar shares")
 
-            if result.data:
-                return result.data
+            # Find friends through calendar sharing relationships
+            # A "friend" is someone who has shared their calendar with you
+            # OR someone you've shared your calendar with
 
-            # Fallback: manual query
-            friends_as_requester = self.supabase.table('friendships').select('''
-                addressee_id as friend_id,
-                created_at,
-                addressee:user_profiles!addressee_id(name, email, avatar_url)
-            ''').eq('requester_id', user_id).eq('status', 'accepted').execute()
+            # Get calendars shared WITH this user (user received shares)
+            received_shares = self.supabase.table('calendar_shares').select('''
+                calendar_id,
+                shared_by,
+                shared_at,
+                calendars!inner(owner_id, name)
+            ''').eq('user_id', user_id).eq('is_active', True).execute()
 
-            friends_as_addressee = self.supabase.table('friendships').select('''
-                requester_id as friend_id,
-                created_at,
-                requester:user_profiles!requester_id(name, email, avatar_url)
-            ''').eq('addressee_id', user_id).eq('status', 'accepted').execute()
+            # Get calendars shared BY this user (user gave shares)
+            given_shares = self.supabase.table('calendar_shares').select('''
+                user_id,
+                shared_at,
+                calendar_id,
+                calendars!inner(owner_id, name)
+            ''').eq('shared_by', user_id).eq('is_active', True).execute()
 
+            friend_ids = set()
+            connection_dates = {}
+
+            # Process received shares - the calendar owner is a friend
+            for share in received_shares.data or []:
+                if share.get('calendars') and share['shared_by']:
+                    friend_id = share['shared_by']
+                    friend_ids.add(friend_id)
+                    connection_dates[friend_id] = share['shared_at']
+                    print(f"✅ [FRIENDS] Found friend {friend_id[:8]}... (shared calendar with you)")
+
+            # Process given shares - the person you shared with is a friend
+            for share in given_shares.data or []:
+                if share.get('calendars') and share['user_id']:
+                    friend_id = share['user_id']
+                    friend_ids.add(friend_id)
+                    if friend_id not in connection_dates:
+                        connection_dates[friend_id] = share['shared_at']
+                    print(f"✅ [FRIENDS] Found friend {friend_id[:8]}... (you shared calendar with them)")
+
+            # Remove self if somehow included
+            friend_ids.discard(user_id)
+
+            if not friend_ids:
+                print(f"🔍 [FRIENDS] No friends found for user {user_id}")
+                return []
+
+            print(f"🤝 [FRIENDS] Found {len(friend_ids)} friends through calendar sharing")
+
+            # Get friend details from user_profiles and users tables
             friends = []
+            for friend_id in friend_ids:
+                try:
+                    # Try to get from user_profiles first
+                    profile_result = self.supabase.table('user_profiles').select(
+                        'user_id, username, email, avatar_url'
+                    ).eq('user_id', friend_id).execute()
 
-            # Process friends where user is requester
-            for friend in friends_as_requester.data or []:
-                if friend.get('addressee'):
-                    friends.append({
-                        'id': friend['friend_id'],
-                        'name': friend['addressee']['username'],  # Use username
-                        'email': friend['addressee']['email'],
-                        'avatar': friend['addressee']['avatar_url'],
-                        'connected_at': friend['created_at']
-                    })
+                    if profile_result.data:
+                        profile = profile_result.data[0]
+                        friend_info = {
+                            'id': friend_id,
+                            'name': profile.get('username', 'Unknown'),
+                            'email': profile.get('email', ''),
+                            'avatar': profile.get('avatar_url'),
+                            'connected_at': connection_dates.get(friend_id)
+                        }
+                    else:
+                        # Fallback to users table
+                        user_result = self.supabase.table('users').select(
+                            'id, name, email, avatar_url'
+                        ).eq('id', friend_id).execute()
 
-            # Process friends where user is addressee
-            for friend in friends_as_addressee.data or []:
-                if friend.get('requester'):
-                    friends.append({
-                        'id': friend['friend_id'],
-                        'name': friend['requester']['username'],  # Use username
-                        'email': friend['requester']['email'],
-                        'avatar': friend['requester']['avatar_url'],
-                        'connected_at': friend['created_at']
-                    })
+                        if user_result.data:
+                            user = user_result.data[0]
+                            friend_info = {
+                                'id': friend_id,
+                                'name': user.get('name', 'Unknown'),
+                                'email': user.get('email', ''),
+                                'avatar': user.get('avatar_url'),
+                                'connected_at': connection_dates.get(friend_id)
+                            }
+                        else:
+                            # Create minimal friend info if user not found
+                            friend_info = {
+                                'id': friend_id,
+                                'name': f'User {friend_id[:8]}...',
+                                'email': '',
+                                'avatar': None,
+                                'connected_at': connection_dates.get(friend_id)
+                            }
 
-            # TEMPORARY: Return test friend data for development/testing
-            # This should be removed once the friendship system is properly set up
-            if not friends and user_id == '87875eda-6797-4839-a8c7-0aa90efb1352':
-                print("🧪 [TEST MODE] Returning hardcoded friend data for testing")
-                friends = [{
-                    'id': '0583633b-fdda-443c-be9a-eb8a731366ab',  # Test friend ID
-                    'name': 'Test Friend',
-                    'email': 'testfriend@example.com',
-                    'avatar': None,
-                    'connected_at': '2025-11-04T14:58:18.000Z'
-                }]
+                    friends.append(friend_info)
+                    print(f"📝 [FRIENDS] Added friend: {friend_info['name']} ({friend_id[:8]}...)")
 
+                except Exception as friend_error:
+                    print(f"⚠️ [FRIENDS] Error getting details for friend {friend_id}: {friend_error}")
+                    continue
+
+            print(f"🎯 [FRIENDS] Successfully retrieved {len(friends)} friends")
             return friends
 
         except Exception as e:
             print(f"❌ Failed to get friends: {e}")
-
-            # TEMPORARY: Return test friend data as fallback for development
-            if user_id == '87875eda-6797-4839-a8c7-0aa90efb1352':
-                print("🧪 [TEST MODE] Returning hardcoded friend data as fallback")
-                return [{
-                    'id': '0583633b-fdda-443c-be9a-eb8a731366ab',  # Test friend ID
-                    'name': 'Test Friend',
-                    'email': 'testfriend@example.com',
-                    'avatar': None,
-                    'connected_at': '2025-11-04T14:58:18.000Z'
-                }]
-
             return []
     
     def get_friendship_status(self, user1_id, user2_id):
