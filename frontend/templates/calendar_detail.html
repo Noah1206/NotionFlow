@@ -6504,8 +6504,40 @@
                 alert(`${eventCountToDelete}개 일정이 휴지통에서 제거되었습니다.`);
                 console.log(`🗑️ ${eventCountToDelete} events removed from trash UI`);
 
+                // 사이드바 이벤트 캐시 초기화
+                clearSidebarEventCache(currentCalendarId);
+
                 // 2. 비동기로 서버에서 삭제 (백그라운드 처리)
                 deleteEventsFromServerAsync(currentCalendarTrashedEvents, currentCalendarId);
+            }
+        }
+
+        // 사이드바 이벤트 캐시 초기화 함수
+        async function clearSidebarEventCache(calendarId) {
+            try {
+                console.log(`🧹 [CACHE-CLEAR] 사이드바 이벤트 캐시 초기화 중...`);
+
+                const response = await fetch(`/api/calendars/${calendarId}/sidebar-events`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        sidebar_events: [],
+                        count: 0
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    console.log(`✅ [CACHE-CLEAR] 사이드바 이벤트 캐시가 초기화되었습니다.`);
+                } else {
+                    console.warn(`⚠️ [CACHE-CLEAR] 캐시 초기화 실패:`, data.error);
+                }
+            } catch (error) {
+                console.error(`❌ [CACHE-CLEAR] 캐시 초기화 중 오류:`, error);
             }
         }
 

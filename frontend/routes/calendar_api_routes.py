@@ -1610,25 +1610,36 @@ def get_real_event_count(calendar_id):
 
         total_count = db_count + sidebar_count
 
+        # DB 이벤트 상세 조회 (디버깅용)
+        db_events_detail = supabase.table('calendar_events').select(
+            'id, title, start_datetime, created_at'
+        ).eq('calendar_id', calendar_id).execute()
+
         print(f"📊 [REAL-EVENT-COUNT] ===== DETAILED BREAKDOWN =====")
         print(f"📊 [REAL-EVENT-COUNT] Calendar ID: {calendar_id}")
         print(f"📊 [REAL-EVENT-COUNT] DB Events: {db_count}")
         print(f"📊 [REAL-EVENT-COUNT] Sidebar Events: {sidebar_count}")
         print(f"📊 [REAL-EVENT-COUNT] Total Count: {total_count}")
 
+        # DB 이벤트 상세 정보 로깅
+        if db_events_detail.data:
+            print(f"📊 [DB-EVENTS] Found {len(db_events_detail.data)} events in database:")
+            for i, event in enumerate(db_events_detail.data):
+                print(f"📊 [DB-EVENTS] {i+1}. {event.get('title', 'No title')} (ID: {event.get('id', 'No ID')[:8]}..., Created: {event.get('created_at', 'Unknown')})")
+
         # 캐시 상태 상세 로깅
         if calendar_id in sidebar_event_cache:
             cache_data = sidebar_event_cache[calendar_id]
-            print(f"📊 [REAL-EVENT-COUNT] Cache timestamp: {cache_data['timestamp']}")
-            print(f"📊 [REAL-EVENT-COUNT] Cache event titles: {[event.get('title', 'No title') for event in cache_data.get('events', [])]}")
+            print(f"📊 [SIDEBAR-CACHE] Timestamp: {cache_data['timestamp']}")
+            print(f"📊 [SIDEBAR-CACHE] Event titles: {[event.get('title', 'No title') for event in cache_data.get('events', [])]}")
 
         print(f"📊 [REAL-EVENT-COUNT] ===============================")
 
         return jsonify({
             'success': True,
             'count': total_count,
-            'db_count': db_count,
-            'sidebar_count': sidebar_count,
+            'db_count': db_count if db_count is not None else 0,
+            'sidebar_count': sidebar_count if sidebar_count is not None else 0,
             'cache_status': 'cached' if calendar_id in sidebar_event_cache else 'no_cache'
         })
 
@@ -1638,6 +1649,52 @@ def get_real_event_count(calendar_id):
             'success': False,
             'error': f'Failed to get event count: {str(e)}'
         }), 500
+
+@calendar_api_bp.route('/calendars/<calendar_id>/clean-db-events', methods=['DELETE'])
+def clean_db_events(calendar_id):
+    """캘린더의 DB 이벤트를 모두 삭제 (디버깅/정리용)"""
+    try:
+        # 인증 확인
+        user_id = get_current_user_id()
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+
+        from utils.config import config
+        supabase = config.supabase_admin
+
+        # 현재 DB 이벤트 조회
+        current_events = supabase.table('calendar_events').select(
+            'id, title, created_at'
+        ).eq('calendar_id', calendar_id).execute()
+
+        print(f"🗑️ [CLEAN-DB] ===== CLEANING DB EVENTS =====")
+        print(f"🗑️ [CLEAN-DB] Calendar ID: {calendar_id}")
+        print(f"🗑️ [CLEAN-DB] Found {len(current_events.data) if current_events.data else 0} events to delete")
+
+        if current_events.data:
+            for i, event in enumerate(current_events.data):
+                print(f"🗑️ [CLEAN-DB] {i+1}. Deleting: {event.get('title', 'No title')} (ID: {event.get('id', 'No ID')[:8]}...)")
+
+        # 모든 이벤트 삭제
+        delete_result = supabase.table('calendar_events').delete().eq('calendar_id', calendar_id).execute()
+
+        deleted_count = len(current_events.data) if current_events.data else 0
+        print(f"🗑️ [CLEAN-DB] Successfully deleted {deleted_count} events")
+        print(f"🗑️ [CLEAN-DB] ===============================")
+
+        return jsonify({
+            'success': True,
+            'deleted_count': deleted_count,
+            'message': f'Successfully deleted {deleted_count} events from database'
+        })
+
+    except Exception as e:
+        print(f"❌ Error cleaning DB events: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'Failed to clean DB events: {str(e)}'
+        }), 500
+
 
 @calendar_api_bp.route('/calendars/<calendar_id>/sidebar-events', methods=['POST'])
 def update_sidebar_events(calendar_id):
@@ -1659,11 +1716,16 @@ def update_sidebar_events(calendar_id):
             'timestamp': datetime.now()
         }
 
+        # 캐시 초기화 여부 확인
+        is_cache_clear = sidebar_count == 0 and len(sidebar_events) == 0
+
         print(f"📊 [SIDEBAR-EVENTS] ===== SIDEBAR EVENT UPDATE =====")
         print(f"📊 [SIDEBAR-EVENTS] Calendar ID: {calendar_id}")
         print(f"📊 [SIDEBAR-EVENTS] Received count: {sidebar_count}")
-        print(f"📊 [SIDEBAR-EVENTS] Event titles: {[event.get('title', 'No title') for event in sidebar_events]}")
-        print(f"📊 [SIDEBAR-EVENTS] Event details: {sidebar_events}")
+        print(f"📊 [SIDEBAR-EVENTS] Operation type: {'🧹 CACHE CLEAR' if is_cache_clear else '📊 EVENT UPDATE'}")
+        if not is_cache_clear:
+            print(f"📊 [SIDEBAR-EVENTS] Event titles: {[event.get('title', 'No title') for event in sidebar_events]}")
+            print(f"📊 [SIDEBAR-EVENTS] Event details: {sidebar_events}")
         print(f"📊 [SIDEBAR-EVENTS] Cache updated at: {datetime.now()}")
         print(f"📊 [SIDEBAR-EVENTS] ======================================")
 

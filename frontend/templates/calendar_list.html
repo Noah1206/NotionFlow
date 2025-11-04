@@ -2424,5 +2424,40 @@
             updateRealTimeEventCounts();
         }, 3000);
     });
+
+    // DB 이벤트 정리 함수 (디버깅용)
+    async function cleanCalendarDbEvents(calendarId) {
+        if (!confirm('⚠️ 이 캘린더의 데이터베이스 이벤트를 모두 삭제하시겠습니까?\n(사이드바 이벤트는 유지됩니다)')) {
+            return;
+        }
+
+        try {
+            console.log(`🗑️ Cleaning DB events for calendar: ${calendarId}`);
+
+            const response = await fetch(`/api/calendars/${calendarId}/clean-db-events`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                console.log(`✅ Successfully deleted ${data.deleted_count} DB events`);
+                alert(`✅ 성공적으로 ${data.deleted_count}개의 DB 이벤트를 삭제했습니다.`);
+
+                // 이벤트 카운트 새로고침
+                updateRealTimeEventCounts();
+            } else {
+                console.error('❌ Failed to clean DB events:', data.error);
+                alert(`❌ DB 이벤트 삭제 실패: ${data.error}`);
+            }
+        } catch (error) {
+            console.error('❌ Error cleaning DB events:', error);
+            alert('❌ DB 이벤트 삭제 중 오류가 발생했습니다.');
+        }
+    }
+
+    // 전역 함수로 등록 (개발자 콘솔에서 사용 가능)
+    window.cleanCalendarDbEvents = cleanCalendarDbEvents;
 </script>
 {% endblock %}

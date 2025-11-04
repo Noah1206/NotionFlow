@@ -130,38 +130,6 @@ function renderStoryBar() {
         return;
     }
 
-    // Check if there are no friends
-    if (friends.length === 0) {
-        // Add empty state message
-        const emptyState = document.createElement('div');
-        emptyState.className = 'empty-friends-state';
-        emptyState.style.cssText = `
-            padding: 20px;
-            text-align: center;
-            color: #666;
-            font-size: 14px;
-            margin-left: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        `;
-        emptyState.innerHTML = `
-            <span>👥 아직 친구가 없습니다.</span>
-            <button onclick="openAddFriendModal()" style="
-                background: #4285f4;
-                color: white;
-                border: none;
-                padding: 6px 12px;
-                border-radius: 20px;
-                cursor: pointer;
-                font-size: 13px;
-                font-weight: 500;
-            ">친구 추가하기</button>
-        `;
-        storyList.appendChild(emptyState);
-        return;
-    }
-
     // Add friend stories
     friends.forEach(friend => {
         const hasPublicCalendars = friend.public_calendars > 0;
