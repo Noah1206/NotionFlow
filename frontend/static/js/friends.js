@@ -702,25 +702,36 @@ async function declineRequest(requestId) {
 }
 
 // Copy invite link
-async function copyInviteLink() {
+async function copyInviteLink(event) {
     const input = document.getElementById('invite-link');
 
     try {
         // 클립보드에 복사
         await navigator.clipboard.writeText(input.value);
+        console.log('✅ [INVITE] 클립보드에 복사됨:', input.value);
     } catch (err) {
         // 폴백: 구형 브라우저용
         input.select();
         document.execCommand('copy');
+        console.log('✅ [INVITE] 폴백 방식으로 복사됨:', input.value);
     }
 
-    const btn = event.target.closest('.btn-copy');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '✓ 복사됨';
+    // 버튼 찾기 (event가 없는 경우 대비)
+    let btn;
+    if (event && event.target) {
+        btn = event.target.closest('.btn-copy');
+    } else {
+        btn = document.querySelector('.btn-copy');
+    }
 
-    setTimeout(() => {
-        btn.innerHTML = originalText;
-    }, 2000);
+    if (btn) {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '✓ 복사됨';
+
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+        }, 2000);
+    }
 }
 
 // 초대링크 생성 함수
